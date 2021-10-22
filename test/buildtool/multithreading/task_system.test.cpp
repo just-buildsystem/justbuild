@@ -222,3 +222,39 @@ TEST_CASE("All threads run until work is done", "[task_system]") {
         CHECK(tids.size() == kNumThreads);
     }
 }
+
+TEST_CASE("Use finish as system-wide barrier", "[task_system]") {
+    using namespace std::chrono_literals;
+    static auto const kNumThreads = std::thread::hardware_concurrency();
+
+    std::vector<int> vec(kNumThreads, 0);
+    std::vector<int> exp0(kNumThreads, 0);
+    std::vector<int> exp1(kNumThreads, 1);
+    std::vector<int> exp2(kNumThreads, 2);
+
+    {
+        TaskSystem ts{kNumThreads};
+
+        // Wait for all threads to go to sleep.
+        ts.Finish();
+        CHECK(vec == exp0);
+
+        for (std::size_t i{}; i < ts.NumberOfThreads(); ++i) {
+            ts.QueueTask([&vec, i] {
+                std::this_thread::sleep_for(1s);
+                vec[i] = 1;
+            });
+        }
+
+        ts.Finish();
+        CHECK(vec == exp1);
+
+        for (std::size_t i{}; i < ts.NumberOfThreads(); ++i) {
+            ts.QueueTask([&vec, i] {
+                std::this_thread::sleep_for(1s);
+                vec[i] = 2;
+            });
+        }
+    }
+    CHECK(vec == exp2);
+}

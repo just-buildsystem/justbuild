@@ -48,6 +48,9 @@ class TaskSystem {
         return thread_count_;
     }
 
+    // Wait for all queues to become empty _and_ all tasks to finish.
+    void Finish() noexcept;
+
   private:
     std::size_t const thread_count_{
         std::max(1U, std::thread::hardware_concurrency())};

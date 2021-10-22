@@ -17,18 +17,22 @@ TaskSystem::TaskSystem(std::size_t number_of_threads)
 }
 
 TaskSystem::~TaskSystem() {
-    // When starting a new task system all spawned threads will immediately go
-    // to sleep and wait for tasks. Even after adding some tasks, it can take a
-    // while until the first thread wakes up. Therefore, we need to wait for the
-    // total workload (number of active threads _and_ total number of queued
-    // tasks) to become zero.
-    total_workload_.WaitForZero();
+    Finish();
     for (auto& q : queues_) {
         q.done();
     }
     for (auto& t : threads_) {
         t.join();
     }
+}
+
+void TaskSystem::Finish() noexcept {
+    // When starting a new task system all spawned threads will immediately go
+    // to sleep and wait for tasks. Even after adding some tasks, it can take a
+    // while until the first thread wakes up. Therefore, we need to wait for the
+    // total workload (number of active threads _and_ total number of queued
+    // tasks) to become zero.
+    total_workload_.WaitForZero();
 }
 
 void TaskSystem::Run(std::size_t idx) {
