@@ -174,14 +174,11 @@ TEST_CASE("All threads run until work is done", "[task_system]") {
             // Wait some time for all threads to go to sleep.
             std::this_thread::sleep_for(1s);
 
-            // Run singe task that creates the actual store tasks. All threads
-            // should stay alive until their corresponding queue is filled.
-            ts.QueueTask([&ts, &store_id] {
-                // One task per thread (assumes round-robin push to queues).
-                for (std::size_t i{}; i < ts.NumberOfThreads(); ++i) {
-                    ts.QueueTask([&store_id] { store_id(); });
-                }
-            });
+            // All threads should stay alive until their corresponding queue is
+            // filled. One task per thread (assumes round-robin push to queues).
+            for (std::size_t i{}; i < ts.NumberOfThreads(); ++i) {
+                ts.QueueTask([&store_id] { store_id(); });
+            }
         }
         CHECK(tids.size() == kNumThreads);
     }

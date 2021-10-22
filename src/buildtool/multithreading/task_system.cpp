@@ -7,9 +7,9 @@ TaskSystem::TaskSystem() : TaskSystem(std::thread::hardware_concurrency()) {}
 
 TaskSystem::TaskSystem(std::size_t number_of_threads)
     : thread_count_{std::max(1UL, number_of_threads)},
-      num_threads_running_{thread_count_} {
+      total_workload_{thread_count_} {
     for (std::size_t index = 0; index < thread_count_; ++index) {
-        queues_.emplace_back(&queues_read_, &num_threads_running_);
+        queues_.emplace_back(&total_workload_);
     }
     for (std::size_t index = 0; index < thread_count_; ++index) {
         threads_.emplace_back([&, index]() { Run(index); });
@@ -19,11 +19,10 @@ TaskSystem::TaskSystem(std::size_t number_of_threads)
 TaskSystem::~TaskSystem() {
     // When starting a new task system all spawned threads will immediately go
     // to sleep and wait for tasks. Even after adding some tasks, it can take a
-    // while until the first thread wakes up. Therefore, we first need to wait
-    // for the queues being read, before we can wait for all threads to become
-    // idle.
-    queues_read_.WaitForSet();
-    num_threads_running_.WaitForZero();
+    // while until the first thread wakes up. Therefore, we need to wait for the
+    // total workload (number of active threads _and_ total number of queued
+    // tasks) to become zero.
+    total_workload_.WaitForZero();
     for (auto& q : queues_) {
         q.done();
     }
