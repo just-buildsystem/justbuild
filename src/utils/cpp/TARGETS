@@ -1,0 +1,40 @@
+{ "hash_combine":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_combine"]
+  , "hdrs": ["hash_combine.hpp"]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "utils", "cpp"]
+  }
+, "type_safe_arithmetic":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["type_safe_arithmetic"]
+  , "hdrs": ["type_safe_arithmetic.hpp"]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "utils", "cpp"]
+  }
+, "json":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["json"]
+  , "hdrs": ["json.hpp"]
+  , "deps": [["@", "json", "", "json"], ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "utils", "cpp"]
+  }
+, "concepts":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["concepts"]
+  , "hdrs": ["concepts.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
+, "atomic":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["atomic"]
+  , "hdrs": ["atomic.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
+, "hex_string":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hex_string"]
+  , "hdrs": ["hex_string.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
+}

@@ -1,0 +1,62 @@
+{ "file_system_manager":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["file_system_manager"]
+  , "srcs": ["file_system_manager.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
+, "system_command":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["system_command"]
+  , "srcs": ["system_command.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/file_system", "system_command"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
+, "git_tree":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["git_tree"]
+  , "srcs": ["git_tree.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/file_system", "git_tree"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
+, "file_root":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["file_root"]
+  , "srcs": ["file_root.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/file_system", "file_root"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
+, "test_data":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    ["data/empty_executable", "data/example_file", "data/test_repo.bundle"]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["file_root", "file_system_manager", "git_tree", "system_command"]
+  }
+}

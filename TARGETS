@@ -1,0 +1,26 @@
+{ "exported-just":
+  { "type": "export"
+  , "target": ["src/buildtool/main", "just"]
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+  }
+, "just":
+  { "type": ["@", "rules", "CC", "configure"]
+  , "arguments_config": ["OS", "ARCH"]
+  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
+  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
+  , "target": ["exported-just"]
+  }
+, "libgit2":
+  { "type": "export"
+  , "target": ["@", "libgit2", "", "git2"]
+  , "fixed_config":
+    { "USE_SHA1": "OpenSSL"
+    , "USE_SSH": false
+    , "USE_HTTPS": false
+    , "USE_GSSAPI": false
+    }
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+  }
+}

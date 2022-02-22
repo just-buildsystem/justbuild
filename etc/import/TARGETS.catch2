@@ -1,0 +1,7 @@
+{ "catch2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": ["catch.hpp"]
+  , "link external": ["-lpthread"]
+  , "stage": ["catch2"]
+  }
+}

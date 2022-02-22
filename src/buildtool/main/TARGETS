@@ -1,0 +1,21 @@
+{ "just":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["just"]
+  , "srcs": ["main.cpp"]
+  , "private-hdrs": ["main.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/graph_traverser", "graph_traverser"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["src/buildtool/build_engine/base_maps", "source_map"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/utils/cpp", "concepts"]
+    , ["src/utils/cpp", "json"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  }
+}

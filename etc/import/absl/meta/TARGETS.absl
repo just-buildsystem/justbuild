@@ -1,0 +1,8 @@
+{ "type_traits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["type_traits"]
+  , "stage": ["absl", "meta"]
+  , "hdrs": ["type_traits.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+}

@@ -1,0 +1,538 @@
+{ "defaults":
+  { "doc":
+    [ "A rule to provide defaults."
+    , "All CC targets take their defaults for CXX, CC, flags, etc from"
+    , "the target [\"CC\", \"defaults\"]. This is probably the only sensibe"
+    , "use of this rule. As targets form a different root, the defaults"
+    , "can be provided without changing this directory."
+    ]
+  , "string_fields": ["CC", "CXX", "CFLAGS", "CXXFLAGS", "PATH", "AR"]
+  , "expression":
+    { "type": "RESULT"
+    , "provides":
+      { "type": "map_union"
+      , "$1":
+        [ { "type": "singleton_map"
+          , "key": "CC"
+          , "value": {"type": "FIELD", "name": "CC"}
+          }
+        , { "type": "singleton_map"
+          , "key": "CXX"
+          , "value": {"type": "FIELD", "name": "CXX"}
+          }
+        , { "type": "singleton_map"
+          , "key": "CFLAGS"
+          , "value": {"type": "FIELD", "name": "CFLAGS"}
+          }
+        , { "type": "singleton_map"
+          , "key": "CXXFLAGS"
+          , "value": {"type": "FIELD", "name": "CXXFLAGS"}
+          }
+        , { "type": "singleton_map"
+          , "key": "AR"
+          , "value": {"type": "FIELD", "name": "AR"}
+          }
+        , { "type": "singleton_map"
+          , "key": "ENV"
+          , "value":
+            { "type": "singleton_map"
+            , "key": "PATH"
+            , "value":
+              { "type": "join"
+              , "separator": ":"
+              , "$1": {"type": "FIELD", "name": "PATH"}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+, "configure":
+  { "doc":
+    [ "A rule to provide a static platform configuration for a target."
+    , "The artifacts and runfiles of the specified target will be propagated."
+    , "The target defined by this rule does not propagate any provides data."
+    ]
+  , "config_fields": ["os", "arch", "target_arch"]
+  , "target_fields": ["target"]
+  , "field_doc":
+    { "os": ["The operation system used for building."]
+    , "arch": ["The architecture used for building."]
+    , "target_arch":
+      [ "Non-mandatory target architecture to build for. If omitted, target"
+      , "architecture is derived from \"arch\"."
+      ]
+    , "target":
+      [ "The target to configure. Multiple targets are supported, but their"
+      , "artifacts and runfiles should not conflict."
+      ]
+    }
+  , "imports":
+    { "transition": "configure transition"
+    , "artifacts": ["./", "..", "field_artifacts"]
+    , "runfiles": ["./", "..", "field_runfiles"]
+    }
+  , "config_transitions":
+    {"target": [{"type": "CALL_EXPRESSION", "name": "transition"}]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "target"]
+      , ["transition", {"type": "CALL_EXPRESSION", "name": "transition"}]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+      , "runfiles": {"type": "CALL_EXPRESSION", "name": "runfiles"}
+      }
+    }
+  }
+, "header directory":
+  { "doc":
+    [ "A directory of header files."
+    , ""
+    , "Define a directory of  header files that belong together and are staged"
+    , "in such a way that no other target (used together with this target) will"
+    , "have to put files in this directory. The typical use case is a library"
+    , "libfoo that expects all headers to be included as #include \"foo/bar.h\"."
+    , "In this case, one would define a header direcotry for \"foo\"."
+    , ""
+    , "Technically, a tree is created from the given files and staged to the"
+    , "specified location. Since trees are opaque, the directory name becomes"
+    , "essentially owned by target. In this way, staging conflicts can be"
+    , "avoided by detecting them early and not only once a file with the same"
+    , "name is  added to the staging location. Also, as only a tree identifier"
+    , "has to be passed around, such a directory can be handled more"
+    , "efficiently by the tool."
+    ]
+  , "target_fields": ["hdrs"]
+  , "string_fields": ["stage", "public stage"]
+  , "field_doc":
+    { "hdrs": ["The header files to be put into the header directory."]
+    , "stage":
+      [ "The location of the header directory."
+      , "Path segments are joined with \"/\"."
+      ]
+    , "public stage":
+      [ "If non-empty, no closure for the header directory's stage is created, "
+      , "so can be combined with other header directories having the same "
+      , "public staging directory."
+      ]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "hdrs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "x"
+            , "range": {"type": "FIELD", "name": "hdrs"}
+            , "body":
+              {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "x"}}
+            }
+          }
+        ]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "dir"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "public stage"}
+          , "then":
+            { "type": "to_subdir"
+            , "subdir": {"type": "var", "name": "stage"}
+            , "$1": {"type": "var", "name": "hdrs"}
+            }
+          , "else":
+            { "type": "singleton_map"
+            , "key": {"type": "var", "name": "stage"}
+            , "value": {"type": "TREE", "$1": {"type": "var", "name": "hdrs"}}
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "dir"}
+      , "runfiles": {"type": "var", "name": "dir"}
+      }
+    }
+  }
+, "library":
+  { "doc": ["A C++ libaray"]
+  , "target_fields": ["srcs", "hdrs", "private-hdrs", "deps", "proto"]
+  , "string_fields":
+    ["name", "stage", "pure C", "local defines", "link external"]
+  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+  , "implicit": {"defaults": ["defaults"]}
+  , "field_doc":
+    { "name":
+      ["The name of the library (without leading \"lib\" or trailing \".a\""]
+    , "srcs": ["The source files of the library."]
+    , "hdrs": ["Any public header files of the library."]
+    , "private-hdrs":
+      [ "Any header files that only need to be present when compiling the"
+      , "source files, but are not needed for any consumer of the library"
+      ]
+    , "stage":
+      [ "The logical location of all header and source files, as well as the"
+      , "resulting library file. Individual directory components are joined"
+      , "with \"/\"."
+      ]
+    , "pure C":
+      [ "If non-empty, compile as C sources rathter than C++ sources."
+      , "In particular, CC is used to compile rather than CXX"
+      ]
+    , "local defines":
+      [ "List of defines set for source files local to this target."
+      , "Each list entry will be prepended by \"-D\"."
+      ]
+    , "link external":
+      ["Additional linker flags for linking external libraries."]
+    , "deps": ["Any other libraries this library depends upon."]
+    }
+  , "config_doc":
+    { "CXX": ["The name of the C++ compiler to be used."]
+    , "CC":
+      ["The name of the C compiler to be used (when compiling pure C code)"]
+    , "AR": ["The archive tool to used for creating the library"]
+    , "ENV": ["The environment for any action generated."]
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones."
+      , "For libraries that should be built in a non-standard way; usually"
+      , "adapting the default target [\"CC\", \"defaults\"] is the better"
+      , "choice"
+      ]
+    , "CFLAGS":
+      [ "The flags for CC to be used instead of the default ones."
+      , "For libraries that should be built in a non-standard way; usually"
+      , "adapting the default target [\"CC\", \"defaults\"] is the better"
+      , "choice"
+      ]
+    }
+  , "anonymous":
+    { "proto-deps":
+      { "target": "proto"
+      , "provider": "proto"
+      , "rule_map":
+        { "library": ["./", "proto", "library"]
+        , "service library": ["./", "proto", "service library"]
+        }
+      }
+    }
+  , "imports":
+    { "artifacts": ["./", "..", "field_artifacts"]
+    , "default-CXXFLAGS": "default-CXXFLAGS"
+    , "default-CFLAGS": "default-CFLAGS"
+    , "result": "lib result"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "local defines"
+        , { "type": "foreach"
+          , "var": "def"
+          , "range": {"type": "FIELD", "name": "local defines"}
+          , "body":
+            {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
+          }
+        ]
+      , [ "CFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ { "type": "var"
+              , "name": "CFLAGS"
+              , "default":
+                {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+              }
+            , {"type": "var", "name": "local defines"}
+            ]
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ { "type": "var"
+              , "name": "CXXFLAGS"
+              , "default":
+                {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+              }
+            , {"type": "var", "name": "local defines"}
+            ]
+          }
+        ]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "srcs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "hdrs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "private-hdrs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "private-hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , ["link external", {"type": "FIELD", "name": "link external"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "result"}
+    }
+  }
+, "binary":
+  { "doc": ["A binary written in C++"]
+  , "target_fields": ["srcs", "private-hdrs", "deps", "proto"]
+  , "string_fields":
+    ["name", "stage", "pure C", "local defines", "link external"]
+  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV"]
+  , "implicit": {"defaults": ["defaults"]}
+  , "field_doc":
+    { "name": ["The name of the binary"]
+    , "srcs": ["The source files of the library."]
+    , "private-hdrs":
+      [ "Any header files that need to be present when compiling the"
+      , "source files."
+      ]
+    , "stage":
+      [ "The logical location of all header and source files, as well as the"
+      , "resulting binary file. Individual directory components are joined"
+      , "with \"/\"."
+      ]
+    , "pure C":
+      [ "If non-empty, compile as C sources rathter than C++ sources."
+      , "In particular, CC is used to compile rather than CXX"
+      ]
+    , "local defines":
+      [ "List of defines set for source files local to this target."
+      , "Each list entry will be prepended by \"-D\"."
+      ]
+    , "link external":
+      ["Additional linker flags for linking external libraries."]
+    , "deps": ["Any other libraries this binary depends upon."]
+    }
+  , "config_doc":
+    { "CXX": ["The name of the C++ compiler to be used."]
+    , "CC":
+      ["The name of the C compiler to be used (when compiling pure C code)"]
+    , "ENV": ["The environment for any action generated."]
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "CFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    }
+  , "anonymous":
+    { "proto-deps":
+      { "target": "proto"
+      , "provider": "proto"
+      , "rule_map":
+        { "library": ["./", "proto", "library"]
+        , "service library": ["./", "proto", "service library"]
+        }
+      }
+    }
+  , "imports":
+    { "artifacts": ["./", "..", "field_artifacts"]
+    , "compile-deps": "compile-deps"
+    , "link-deps": "link-deps"
+    , "objects": "objects"
+    , "default-CC": "default-CC"
+    , "default-CXX": "default-CXX"
+    , "default-CFLAGS": "default-CFLAGS"
+    , "default-CXXFLAGS": "default-CXXFLAGS"
+    , "default-ENV": "default-ENV"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "local defines"
+        , { "type": "foreach"
+          , "var": "def"
+          , "range": {"type": "FIELD", "name": "local defines"}
+          , "body":
+            {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
+          }
+        ]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "srcs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "local hdrs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "private-hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "CXX"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "pure C"}
+          , "then":
+            { "type": "var"
+            , "name": "CC"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+            }
+          , "else":
+            { "type": "var"
+            , "name": "CXX"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+            }
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "pure C"}
+          , "then":
+            { "type": "var"
+            , "name": "CFLAGS"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+            }
+          , "else":
+            { "type": "var"
+            , "name": "CXXFLAGS"
+            , "default":
+              {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+            }
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "CXXFLAGS"}
+            , {"type": "var", "name": "local defines"}
+            ]
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
+      , [ "base name"
+        , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+        ]
+      , [ "binary name"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "else": {"type": "var", "name": "base name"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "base name"}
+              ]
+            }
+          }
+        ]
+      , [ "link-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
+              , { "type": "++"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "deps"}
+                  , "body":
+                    { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "dep"}
+                    , "provider": "link-args"
+                    }
+                  }
+                }
+              , {"type": "FIELD", "name": "link external"}
+              ]
+            }
+          }
+        ]
+      , [ "binary"
+        , { "type": "ACTION"
+          , "outs": [{"type": "var", "name": "binary name"}]
+          , "inputs":
+            { "type": "disjoint_map_union"
+            , "$1":
+              [ {"type": "var", "name": "objects"}
+              , {"type": "var", "name": "link-deps"}
+              ]
+            }
+          , "cmd":
+            { "type": "++"
+            , "$1":
+              [ [ {"type": "var", "name": "CXX"}
+                , "-o"
+                , {"type": "var", "name": "binary name"}
+                ]
+              , {"type": "var", "name": "link-args"}
+              ]
+            }
+          , "env": {"type": "var", "name": "ENV"}
+          }
+        ]
+      ]
+    , "body":
+      {"type": "RESULT", "artifacts": {"type": "var", "name": "binary"}}
+    }
+  }
+}

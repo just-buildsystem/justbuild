@@ -1,0 +1,9 @@
+{
+    "out": {
+        "type": "ACTION",
+        "data": {
+            "id": "write_to_file",
+            "path": "out"
+        }
+    }
+}

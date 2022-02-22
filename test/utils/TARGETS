@@ -1,0 +1,57 @@
+{ "container_matchers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["container_matchers"]
+  , "hdrs": ["container_matchers.hpp"]
+  , "deps": [["@", "catch2", "", "catch2"]]
+  , "stage": ["test", "utils"]
+  }
+, "execution_bazel":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["execution_bazel"]
+  , "hdrs": ["remote_execution/bazel_action_creator.hpp"]
+  , "deps":
+    [ ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    ]
+  , "stage": ["test", "utils"]
+  }
+, "log_config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_config"]
+  , "hdrs": ["logging/log_config.hpp"]
+  , "deps": [["src/buildtool/logging", "logging"]]
+  , "stage": ["test", "utils"]
+  }
+, "test_env":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["test_env"]
+  , "hdrs": ["test_env.hpp"]
+  , "deps": ["log_config"]
+  , "stage": ["test", "utils"]
+  }
+, "local_hermeticity":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["local_hermeticity"]
+  , "hdrs": ["hermeticity/local.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["test", "utils"]
+  }
+, "catch-main-remote-execution":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["catch-main-remote-execution"]
+  , "srcs": ["remote_execution/main-remote-execution.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , "log_config"
+    , "test_env"
+    ]
+  , "stage": ["test", "utils"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"]}
+}

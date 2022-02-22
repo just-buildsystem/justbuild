@@ -1,0 +1,45 @@
+{
+    "actions": {
+        "make_exe": {
+            "output": [
+                "hello_world"
+            ],
+            "command": [
+                "g++", "hello_world.cpp", "-o", "hello_world"
+            ],
+            "input": {
+                "hello_world.cpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "hello_world.cpp",
+                        "repository": ""
+                    }
+                }
+            },
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        },
+        "make_output": {
+            "output": [
+                "greeting_output"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\n./hello_world > greeting_output\nls -alR\n"
+            ],
+            "input": {
+                "hello_world": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "make_exe",
+                        "path": "hello_world"
+                    }
+                }
+            }
+        }
+    },
+    "blobs": [],
+    "trees": {}
+}

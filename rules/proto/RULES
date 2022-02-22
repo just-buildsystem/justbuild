@@ -1,0 +1,105 @@
+{ "library":
+  { "target_fields": ["srcs", "deps"]
+  , "string_fields": ["stage", "name", "service"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "name"
+        , { "type": "assert_non_empty"
+          , "msg": "Have to provide a name, unique in the stage"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
+        ]
+      , [ "srcs"
+        , [ { "type": "VALUE_NODE"
+            , "$1":
+              { "type": "RESULT"
+              , "artifacts":
+                { "type": "to_subdir"
+                , "subdir": {"type": "var", "name": "stage"}
+                , "$1":
+                  { "type": "disjoint_map_union"
+                  , "msg": "Sources have to be conflict free"
+                  , "$1":
+                    { "type": "foreach"
+                    , "var": "x"
+                    , "range": {"type": "FIELD", "name": "srcs"}
+                    , "body":
+                      { "type": "DEP_ARTIFACTS"
+                      , "dep": {"type": "var", "name": "x"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        ]
+      , [ "deps"
+        , { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "var": "x"
+            , "range": {"type": "FIELD", "name": "deps"}
+            , "body":
+              { "type": "DEP_PROVIDES"
+              , "dep": {"type": "var", "name": "x"}
+              , "provider": "proto"
+              }
+            }
+          }
+        ]
+      , [ "node"
+        , { "type": "ABSTRACT_NODE"
+          , "node_type":
+            { "type": "if"
+            , "cond": {"type": "FIELD", "name": "service"}
+            , "then": "service library"
+            , "else": "library"
+            }
+          , "target_fields":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "singleton_map"
+                , "key": "srcs"
+                , "value": {"type": "var", "name": "srcs"}
+                }
+              , { "type": "singleton_map"
+                , "key": "deps"
+                , "value": {"type": "var", "name": "deps"}
+                }
+              ]
+            }
+          , "string_fields":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "singleton_map"
+                , "key": "name"
+                , "value": [{"type": "var", "name": "name"}]
+                }
+              , { "type": "singleton_map"
+                , "key": "stage"
+                , "value": [{"type": "var", "name": "stage"}]
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "provides":
+        { "type": "singleton_map"
+        , "key": "proto"
+        , "value": [{"type": "var", "name": "node"}]
+        }
+      }
+    }
+  }
+}

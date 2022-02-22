@@ -1,0 +1,31 @@
+{ "bazel_msg":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bazel_msg"]
+  , "hdrs": ["bazel_blob.hpp", "bazel_blob_container.hpp", "bazel_common.hpp"]
+  , "deps":
+    [ ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/utils/cpp", "concepts"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["@", "grpc", "", "grpc++"]
+    ]
+  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
+  }
+, "bazel_msg_factory":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bazel_msg_factory"]
+  , "hdrs": ["bazel_msg_factory.hpp"]
+  , "srcs": ["bazel_msg_factory.cpp"]
+  , "deps":
+    [ "bazel_msg"
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
+  }
+}

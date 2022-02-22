@@ -1,0 +1,23 @@
+{
+  "proxy_foo_reader": {
+    "vars": [
+      "FOO"
+    ],
+    "imports": {
+      "read_foo": "real_foo_reader"
+    },
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "read_foo"
+    }
+  },
+  "real_foo_reader": {
+    "vars": [
+      "FOO"
+    ],
+    "expression": {
+      "type": "var",
+      "name": "FOO"
+    }
+  }
+}

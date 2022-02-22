@@ -1,0 +1,15 @@
+{ "dag":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["dag"]
+  , "srcs": ["dag.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "dag"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["dag"]}
+}

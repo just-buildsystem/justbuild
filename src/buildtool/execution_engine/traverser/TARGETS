@@ -1,0 +1,14 @@
+{ "traverser":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["traverser"]
+  , "hdrs": ["traverser.hpp"]
+  , "deps":
+    [ ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "concepts"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "execution_engine", "traverser"]
+  }
+}

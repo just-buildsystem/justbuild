@@ -1,0 +1,54 @@
+{ "task":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["task"]
+  , "hdrs": ["task.hpp"]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+, "notification_queue":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["notification_queue"]
+  , "hdrs": ["notification_queue.hpp"]
+  , "deps": ["task", ["src/utils/cpp", "atomic"]]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+, "task_system":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["task_system"]
+  , "hdrs": ["task_system.hpp"]
+  , "srcs": ["task_system.cpp"]
+  , "deps": ["notification_queue", "task", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+, "async_map_node":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["async_map_node"]
+  , "hdrs": ["async_map_node.hpp"]
+  , "deps": ["task", "task_system", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+, "async_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["async_map"]
+  , "hdrs": ["async_map.hpp"]
+  , "deps":
+    [ "task"
+    , "task_system"
+    , "async_map_node"
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+, "async_map_consumer":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["async_map_consumer"]
+  , "hdrs": ["async_map_consumer.hpp"]
+  , "deps":
+    [ "task"
+    , "task_system"
+    , "async_map_node"
+    , "async_map"
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
+}

@@ -1,0 +1,23 @@
+{ "no conflict":
+  { "type":
+    [ "tree"
+    , "ls -R"
+    ]
+  , "tree":
+    [ [ "simple_targets"
+      , "collect as runfiles"
+      ]
+    ]
+  , "direct":
+    [ "foo.txt"
+    ]
+  }
+, "range conflict":
+  { "type":
+    [ "tree"
+    , "ls -R"
+    ]
+  , "tree": []
+  , "direct": ["tree/foo.txt"]
+  }
+}

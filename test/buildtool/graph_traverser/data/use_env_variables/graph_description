@@ -1,0 +1,18 @@
+{
+    "blobs": [],
+    "trees": {},
+    "actions": {
+        "write_to_file": {
+            "output": ["out"],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\necho -n ${MYCONTENT} > out"
+            ],
+            "env": {
+                "MYCONTENT": "content from environment variable",
+                "UNUSED_VAR": "nothing important"
+            }
+        }
+    }
+}

@@ -1,0 +1,12 @@
+{ "utility":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utility"]
+  , "stage": ["absl", "utility"]
+  , "hdrs": ["utility.h"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+}

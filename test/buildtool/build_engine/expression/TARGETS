@@ -1,0 +1,42 @@
+{ "linked_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["linked_map"]
+  , "srcs": ["linked_map.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/build_engine/expression", "linked_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "expression"]
+  }
+, "expression":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["expression"]
+  , "srcs": ["expression.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "expression"]
+  }
+, "configuration":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["configuration"]
+  , "srcs": ["configuration.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "expression"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["configuration", "expression", "linked_map"]
+  }
+}

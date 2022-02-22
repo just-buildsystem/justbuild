@@ -1,0 +1,9 @@
+{
+    "stripped_greeting_output": {
+        "type": "ACTION",
+        "data": {
+            "id": "strip_time",
+            "path": "stripped_greeting_output"
+        }
+    }
+}

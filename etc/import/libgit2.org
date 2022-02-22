@@ -1,0 +1,47 @@
+* Options
+ - ~USE_SYSTEM_LIBS~ = true|false
+   - true: link against libs from system's ambient environment
+   - false: link against libs open repository name
+ - ~DEBUG_POOL~ = true|false: Debug pool allocator
+ - ~ENABLE_TRACE~ = true|false: Tracing support
+ - ~THEADSAFE~ = true|false:
+ - ~USE_ICONV~ = true|false:
+ - ~USE_NSEC~ = true|false:
+ - ~USE_NTLMCLIENT~ = true|false:
+ - ~USE_SSH~ = true|false
+   - true: link against libssh2 (from system or open name)
+   - false: no SSH support
+ - ~USE_GSSAPI~ = true|false|"GSS.framework"|"gssapi"
+   - true: use "GSS.framework" for ~OS=="darwin"~ or else "gssapi"
+   - false: Disable GSS
+   - "GSS.framework": Link against GSS framework (system or open name)
+   - "gssapi": Link against libgssapi (system or open name)
+ - ~USE_SHA1~ = true|"CollisionDetection"|"OpenSSL"|"mbedTLS"|"Win32"|"CommonCrypto"|"Generic"|"HTTPS"
+   - true: use "CollisionDetection"
+   - "CollisionDetection": build with shipped SHA1DC implementation
+   - "OpenSSL": link against OpenSSL compat library (from system or open name)
+   - "mbedTLS": link against mbedTLS (from system or open name)
+   - "Win32": link against Windows' SHA1 implementation (always from system)
+   - "CommonCrypto": build with shipped common_crypto implementation
+   - "Generic": build with shipped SHA1 implementation
+   - "HTTPS": inherit from ~USE_HTTPS~, or fall back to "CollisionDetection"
+ - ~WINHTTP~ = true|false: use "WinHTTP" if ~USE_HTTPS==true~
+ - ~USE_HTTPS~ = true|"SecureTransport"|"WinHTTP"|"OpenSSL"|"embedTLS"|false|null
+   - true: use "WinHTTP" if ~WINHTTP~ and ~OS=="windows"~
+   - "SecureTransport": link against Security framework (from system or open name)
+   - "WinHTTP": link against Windows' libwinhttp (always from system)
+   - "OpenSSL": link against OpenSSL (from system or open name)
+   - "mbedTLS": link against mbedTLS (from system or open name)
+   - false|null: Disable HTTPS
+ - ~USE_HTTP_PARSER~ = "system"|<other>
+   - "system": link against libhttp_parser (from system or open name)
+   - <other>: compile and link bundled http_parser (./deps/http-parser)
+ - ~USE_BUNDLED_ZLIB~ = true|false
+   - true: compile and link bundled zlib (./deps/zlib)
+   - false: link against libz (from system or open name)
+ - ~REGEX_BACKEND~ = "regcomp_l"|"pcre"|"pcre2"|"builtin"|null
+   - "regcomp_l": compile against regcomp_l (always from system)
+   - "regcomp": compile against regcomp (always from system)
+   - "pcre": link against libpcre (from system or open name)
+   - "pcre2": link against libpcre2 (from system or open name)
+   - "builtin"|null: compile and link bundled pcre (./deps/pcre)

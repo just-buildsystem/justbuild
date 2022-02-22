@@ -1,0 +1,232 @@
+{
+  "test_empty_rule": {
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_rule_fields": {
+    "string_fields": ["foo"],
+    "target_fields": ["bar"],
+    "config_fields": ["baz"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_config_transitions_target_via_field": {
+    "target_fields": ["target"],
+    "config_transitions": {
+      "target": [{
+        "type": "empty_map"
+      }]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_config_transitions_target_via_implicit": {
+    "implicit": {
+      "target": [
+        ["module", "name"]
+      ]
+    },
+    "config_transitions": {
+      "target": [{
+        "type": "empty_map"
+      }]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_config_transitions_canonicalness": {
+    "target_fields": ["foo", "bar"],
+    "string_fields": ["quux", "corge"],
+    "config_fields": ["grault", "garply"],
+    "implicit": {
+      "baz": [
+        ["module", "name"]
+      ],
+      "qux": [
+        ["module", "name"]
+      ]
+    },
+    "config_transitions": {
+      "bar": [{
+        "type": "singleton_map",
+        "key": "exists",
+        "value": true
+      }],
+      "qux": [{
+        "type": "singleton_map",
+        "key": "defined",
+        "value": true
+      }]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_call_import": {
+    "config_vars": ["FOO"],
+    "imports": {
+      "compose_foo": [
+        "composers",
+        "foo_composer"
+      ]
+    },
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "compose_foo"
+    }
+  },
+  "test_string_kw_conflict": {
+    "string_fields": ["foo", "type", "bar"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_target_kw_conflict": {
+    "target_fields": ["foo", "arguments_config", "bar"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_config_kw_conflict": {
+    "config_fields": ["foo", "type", "bar"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_implicit_kw_conflict": {
+    "implicit": {
+      "foo": [],
+      "arguments_config": [],
+      "bar": []
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_string_target_conflict": {
+    "string_fields": ["foo", "bar"],
+    "target_fields": ["bar", "baz"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_target_config_conflict": {
+    "target_fields": ["foo", "bar"],
+    "config_fields": ["bar", "baz"],
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_config_implicit_conflict": {
+    "config_fields": ["foo", "bar"],
+    "implicit": {
+      "bar": [
+        ["module", "name"]
+      ],
+      "baz": [
+        ["module", "name"]
+      ]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_unknown_config_transitions_target": {
+    "config_transitions": {
+      "missing": [{
+        "type": "empty_map"
+      }]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_missing_config_vars": {
+    "imports": {
+      "compose_foo": [
+        "composers",
+        "foo_composer"
+      ]
+    },
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "compose_foo"
+    }
+  },
+  "test_missing_imports": {
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "compose_foo"
+    }
+  },
+  "test_malformed_rule": "not_an_object",
+  "test_malformed_rule_expression": {
+    "missing_expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_target_fields": {
+    "target_fields": "not_a_list",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_string_fields": {
+    "string_fields": "not_a_list",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_config_fields": {
+    "config_fields": "not_a_list",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_implicit": {
+    "implicit": "not_an_object",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_implicit_entry": {
+    "implicit": {
+      "target": "not_a_list"
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_implicit_entity_name": {
+    "implicit": {
+      "target": [
+        ["module_without_name"]
+      ]
+    },
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_config_vars": {
+    "config_vars": "not_a_list",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_config_transitions": {
+    "config_transitions": "not_an_object",
+    "expression": {
+      "type": "RESULT"
+    }
+  },
+  "test_malformed_imports": {
+    "imports": "not_an_object",
+    "expression": {
+      "type": "RESULT"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+    "statement": {
+        "type": "ACTION",
+        "data": {
+            "id": "read_test",
+            "path": "statement"
+        }
+    }
+}

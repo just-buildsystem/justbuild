@@ -1,0 +1,9 @@
+{
+    "sequence_printer.out": {
+        "type": "ACTION",
+        "data": {
+            "id": "main/link",
+            "path": "a.out"
+        }
+    }
+}

@@ -1,0 +1,10 @@
+{ "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs":
+    [ [["./", "dag", "TESTS"], "dag"]
+    , [["./", "executor", "TESTS"], "executor"]
+    , [["./", "traverser", "TESTS"], "traverser"]
+    ]
+  }
+}

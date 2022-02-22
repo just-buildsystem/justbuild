@@ -1,0 +1,101 @@
+{ "cli":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cli"]
+  , "hdrs": ["cli.hpp"]
+  , "deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["@", "cli11", "", "cli11"]
+    , ["@", "json", "", "json"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "bazel_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bazel_types"]
+  , "hdrs": ["bazel_types.hpp"]
+  , "deps": [["@", "grpc", "", "grpc++"]]
+  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common"]
+  , "hdrs":
+    [ "action.hpp"
+    , "artifact_digest.hpp"
+    , "artifact.hpp"
+    , "identifier.hpp"
+    , "statistics.hpp"
+    ]
+  , "deps":
+    [ "bazel_types"
+    , ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "artifact_factory":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["artifact_factory"]
+  , "hdrs": ["artifact_factory.hpp"]
+  , "deps":
+    [ "common"
+    , "artifact_description"
+    , "action_description"
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "artifact_description":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["artifact_description"]
+  , "hdrs": ["artifact_description.hpp"]
+  , "deps":
+    [ "common"
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "json"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "action_description":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["action_description"]
+  , "hdrs": ["action_description.hpp"]
+  , "deps":
+    [ "common"
+    , "artifact_description"
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "tree":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["tree"]
+  , "hdrs": ["tree.hpp"]
+  , "deps":
+    [ "common"
+    , "artifact_description"
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "hdrs": ["repository_config.hpp"]
+  , "deps":
+    [ ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "git_cas"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+}

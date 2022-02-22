@@ -1,0 +1,12 @@
+{ "fmt-lib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fmt"]
+  , "srcs": ["src/format.cc", "src/os.cc"]
+  , "hdrs": [["./", "include/fmt", "hdrs"]]
+  }
+, "fmt":
+  { "type": "export"
+  , "target": "fmt-lib"
+  , "flexible_config": ["CXX", "CXXFLAGS", "AR", "ENV"]
+  }
+}

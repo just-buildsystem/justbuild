@@ -1,0 +1,24 @@
+{ "catch-main":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["catch-main"]
+  , "srcs": ["main.cpp"]
+  , "deps": [["@", "catch2", "", "catch2"], ["test/utils", "log_config"]]
+  , "stage": ["test"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs":
+    [ [["./", "buildtool", "TESTS"], "buildtool"]
+    , [["./", "utils", "TESTS"], "utils"]
+    ]
+  }
+, "ALL":
+  { "type": ["@", "rules", "CC", "configure"]
+  , "tainted": ["test"]
+  , "arguments_config": ["OS", "ARCH"]
+  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
+  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
+  , "target": ["TESTS"]
+  }
+}

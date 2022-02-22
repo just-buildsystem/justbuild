@@ -1,0 +1,20 @@
+{ "log_level":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_level"]
+  , "hdrs": ["log_level.hpp"]
+  , "stage": ["src", "buildtool", "logging"]
+  }
+, "logging":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["logging"]
+  , "hdrs":
+    [ "log_config.hpp"
+    , "log_sink.hpp"
+    , "log_sink_cmdline.hpp"
+    , "log_sink_file.hpp"
+    , "logger.hpp"
+    ]
+  , "deps": ["log_level", ["@", "fmt", "", "fmt"]]
+  , "stage": ["src", "buildtool", "logging"]
+  }
+}

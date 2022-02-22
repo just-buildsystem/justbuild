@@ -1,0 +1,87 @@
+{ "ac_client":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["ac_client"]
+  , "srcs": ["bazel_ac_client.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["test/utils", "execution_bazel"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "cas_client":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["cas_client"]
+  , "srcs": ["bazel_cas_client.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "execution_client":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["execution_client"]
+  , "srcs": ["bazel_execution_client.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["test/utils", "execution_bazel"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "bytestream_client":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["bytestream_client"]
+  , "srcs": ["bytestream_client.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["test/utils", "execution_bazel"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "network":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["network"]
+  , "srcs": ["bazel_network.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["test/utils", "execution_bazel"]
+    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "msg_factory":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["msg_factory"]
+  , "srcs": ["bazel_msg_factory.test.cpp"]
+  , "data": [["test/buildtool/execution_api", "test_data"]]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/file_system", "object_type"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps":
+    [ "ac_client"
+    , "bytestream_client"
+    , "cas_client"
+    , "execution_client"
+    , "msg_factory"
+    , "network"
+    ]
+  }
+}

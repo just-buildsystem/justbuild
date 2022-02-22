@@ -1,0 +1,39 @@
+{ "span":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["span"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["internal/span.h", "span.h"]
+  , "deps":
+    [ ["absl/algorithm", "algorithm"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "bad_optional_access":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bad_optional_access"]
+  , "stage": ["absl", "types"]
+  , "srcs": ["bad_optional_access.cc"]
+  , "hdrs": ["bad_optional_access.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
+, "optional":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["optional"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["internal/optional.h", "optional.h"]
+  , "deps":
+    [ "bad_optional_access"
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+}

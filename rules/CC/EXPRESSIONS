@@ -1,0 +1,504 @@
+{ "default-CC":
+  { "expression":
+    { "type": "join"
+    , "$1":
+      { "type": "++"
+      , "$1":
+        { "type": "foreach"
+        , "var": "x"
+        , "range": {"type": "FIELD", "name": "defaults"}
+        , "body":
+          { "type": "DEP_PROVIDES"
+          , "provider": "CC"
+          , "dep": {"type": "var", "name": "x"}
+          }
+        }
+      }
+    }
+  }
+, "default-CXX":
+  { "expression":
+    { "type": "join"
+    , "$1":
+      { "type": "++"
+      , "$1":
+        { "type": "foreach"
+        , "var": "x"
+        , "range": {"type": "FIELD", "name": "defaults"}
+        , "body":
+          { "type": "DEP_PROVIDES"
+          , "provider": "CXX"
+          , "dep": {"type": "var", "name": "x"}
+          }
+        }
+      }
+    }
+  }
+, "default-CFLAGS":
+  { "expression":
+    { "type": "++"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range": {"type": "FIELD", "name": "defaults"}
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "provider": "CFLAGS"
+        , "dep": {"type": "var", "name": "x"}
+        }
+      }
+    }
+  }
+, "default-CXXFLAGS":
+  { "expression":
+    { "type": "++"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range": {"type": "FIELD", "name": "defaults"}
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "provider": "CXXFLAGS"
+        , "dep": {"type": "var", "name": "x"}
+        }
+      }
+    }
+  }
+, "default-ENV":
+  { "expression":
+    { "type": "foreach"
+    , "var": "x"
+    , "range": {"type": "FIELD", "name": "defaults"}
+    , "body":
+      { "type": "DEP_PROVIDES"
+      , "provider": "ENV"
+      , "dep": {"type": "var", "name": "x"}
+      }
+    }
+  }
+, "configure transition":
+  { "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "OS"
+        , { "type": "assert_non_empty"
+          , "msg": "Missing field \"os\" for \"configure\"."
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "os"}}
+          }
+        ]
+      , [ "ARCH"
+        , { "type": "assert_non_empty"
+          , "msg": "Missing field \"arch\" for \"configure\"."
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "arch"}}
+          }
+        ]
+      , ["HOST_ARCH", {"type": "var", "name": "ARCH"}]
+      , [ "TARGET_ARCH"
+        , {"type": "join", "$1": {"type": "FIELD", "name": "target_arch"}}
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "TARGET_ARCH"}
+          , "then": {"type": "var", "name": "TARGET_ARCH"}
+          , "else": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "map_union"
+      , "$1":
+        [ { "type": "singleton_map"
+          , "key": "OS"
+          , "value": {"type": "var", "name": "OS"}
+          }
+        , { "type": "singleton_map"
+          , "key": "ARCH"
+          , "value": {"type": "var", "name": "TARGET_ARCH"}
+          }
+        , { "type": "singleton_map"
+          , "key": "HOST_ARCH"
+          , "value": {"type": "var", "name": "HOST_ARCH"}
+          }
+        , { "type": "singleton_map"
+          , "key": "TARGET_ARCH"
+          , "value": {"type": "var", "name": "TARGET_ARCH"}
+          }
+        ]
+      }
+    }
+  }
+, "compile-deps":
+  { "expression":
+    { "type": "disjoint_map_union"
+    , "$1":
+      { "type": "++"
+      , "$1":
+        [ { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            { "type": "DEP_PROVIDES"
+            , "dep": {"type": "var", "name": "dep"}
+            , "provider": "compile-deps"
+            , "default": {"type": "empty_map"}
+            }
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "proto-deps"}
+          , "body":
+            { "type": "DEP_PROVIDES"
+            , "dep": {"type": "var", "name": "dep"}
+            , "provider": "compile-deps"
+            , "default": {"type": "empty_map"}
+            }
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "proto-deps"}
+          , "body":
+            {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
+          }
+        ]
+      }
+    }
+  }
+, "link-deps":
+  { "expression":
+    { "type": "disjoint_map_union"
+    , "$1":
+      { "type": "++"
+      , "$1":
+        [ { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            { "type": "DEP_PROVIDES"
+            , "dep": {"type": "var", "name": "dep"}
+            , "provider": "link-deps"
+            , "default": {"type": "empty_map"}
+            }
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "proto-deps"}
+          , "body":
+            { "type": "DEP_PROVIDES"
+            , "dep": {"type": "var", "name": "dep"}
+            , "provider": "link-deps"
+            , "default": {"type": "empty_map"}
+            }
+          }
+        , { "type": "foreach"
+          , "var": "dep"
+          , "range": {"type": "FIELD", "name": "proto-deps"}
+          , "body":
+            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+          }
+        ]
+      }
+    }
+  }
+, "objects":
+  { "vars": ["CXX", "CXXFLAGS", "ENV", "srcs", "compile-deps", "local hdrs"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "include tree"
+        , { "type": "singleton_map"
+          , "key": "include"
+          , "value":
+            {"type": "TREE", "$1": {"type": "var", "name": "compile-deps"}}
+          }
+        ]
+      , [ "all hdrs"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "include tree"}
+            , { "type": "to_subdir"
+              , "subdir": "work"
+              , "$1": {"type": "var", "name": "local hdrs"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "map_union"
+      , "$1":
+        { "type": "foreach_map"
+        , "var_key": "src_name"
+        , "var_val": "src_val"
+        , "range": {"type": "var", "name": "srcs"}
+        , "body":
+          { "type": "let*"
+          , "bindings":
+            [ [ "work src_name"
+              , { "type": "join"
+                , "separator": "/"
+                , "$1": ["work", {"type": "var", "name": "src_name"}]
+                }
+              ]
+            , [ "inputs"
+              , { "type": "map_union"
+                , "$1":
+                  [ {"type": "var", "name": "all hdrs"}
+                  , { "type": "singleton_map"
+                    , "key": {"type": "var", "name": "work src_name"}
+                    , "value": {"type": "var", "name": "src_val"}
+                    }
+                  ]
+                }
+              ]
+            , [ "out"
+              , { "type": "change_ending"
+                , "$1": {"type": "var", "name": "src_name"}
+                , "ending": ".o"
+                }
+              ]
+            , [ "work out"
+              , { "type": "join"
+                , "separator": "/"
+                , "$1": ["work", {"type": "var", "name": "out"}]
+                }
+              ]
+            , [ "action output"
+              , { "type": "ACTION"
+                , "outs": [{"type": "var", "name": "work out"}]
+                , "inputs": {"type": "var", "name": "inputs"}
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ [{"type": "var", "name": "CXX"}]
+                    , {"type": "var", "name": "CXXFLAGS"}
+                    , ["-I", "work", "-isystem", "include"]
+                    , ["-c", {"type": "var", "name": "work src_name"}]
+                    , ["-o", {"type": "var", "name": "work out"}]
+                    ]
+                  }
+                }
+              ]
+            , [ "staged output artifact"
+              , { "type": "map_union"
+                , "$1":
+                  { "type": "foreach_map"
+                  , "range": {"type": "var", "name": "action output"}
+                  , "var_val": "object"
+                  , "body":
+                    { "type": "singleton_map"
+                    , "key": {"type": "var", "name": "out"}
+                    , "value": {"type": "var", "name": "object"}
+                    }
+                  }
+                }
+              ]
+            ]
+          , "body": {"type": "var", "name": "staged output artifact"}
+          }
+        }
+      }
+    }
+  }
+, "lib result":
+  { "vars":
+    [ "CXX"
+    , "CXXFLAGS"
+    , "CC"
+    , "CFLAGS"
+    , "ENV"
+    , "AR"
+    , "srcs"
+    , "hdrs"
+    , "private-hdrs"
+    , "link external"
+    , "extra-provides"
+    ]
+  , "imports":
+    { "artifacts": ["./", "..", "field_artifacts"]
+    , "compile-deps": "compile-deps"
+    , "link-deps": "link-deps"
+    , "objects": "objects"
+    , "default-CC": "default-CC"
+    , "default-CXX": "default-CXX"
+    , "default-CFLAGS": "default-CFLAGS"
+    , "default-CXXFLAGS": "default-CXXFLAGS"
+    , "default-ENV": "default-ENV"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "CXX"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "pure C"}
+          , "then":
+            { "type": "var"
+            , "name": "CC"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+            }
+          , "else":
+            { "type": "var"
+            , "name": "CXX"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+            }
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "pure C"}
+          , "then":
+            { "type": "var"
+            , "name": "CFLAGS"
+            , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+            }
+          , "else":
+            { "type": "var"
+            , "name": "CXXFLAGS"
+            , "default":
+              {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+            }
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , [ "local hdrs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            [ {"type": "var", "name": "hdrs"}
+            , {"type": "var", "name": "private-hdrs"}
+            ]
+          }
+        ]
+      , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
+      , [ "base name"
+        , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+        ]
+      , [ "libname"
+        , { "type": "join"
+          , "$1": ["lib", {"type": "var", "name": "base name"}, ".a"]
+          }
+        ]
+      , [ "lib"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "objects"}
+          , "else": {"type": "empty_map"}
+          , "then":
+            { "type": "ACTION"
+            , "outs": [{"type": "var", "name": "libname"}]
+            , "inputs": {"type": "var", "name": "objects"}
+            , "cmd":
+              { "type": "++"
+              , "$1":
+                [ [ {"type": "var", "name": "AR", "default": "ar"}
+                  , "cqs"
+                  , {"type": "var", "name": "libname"}
+                  ]
+                , {"type": "keys", "$1": {"type": "var", "name": "objects"}}
+                ]
+              }
+            }
+          }
+        ]
+      , [ "lib"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1": {"type": "var", "name": "lib"}
+          }
+        ]
+      , [ "link-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "keys", "$1": {"type": "var", "name": "lib"}}
+              , { "type": "++"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "deps"}
+                  , "body":
+                    { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "dep"}
+                    , "provider": "link-args"
+                    }
+                  }
+                }
+              , { "type": "++"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "proto-deps"}
+                  , "body":
+                    { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "dep"}
+                    , "provider": "link-args"
+                    }
+                  }
+                }
+              , {"type": "var", "name": "link external", "default": []}
+              ]
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "lib"}
+      , "runfiles": {"type": "var", "name": "hdrs"}
+      , "provides":
+        { "type": "map_union"
+        , "$1":
+          [ { "type": "singleton_map"
+            , "key": "compile-deps"
+            , "value": {"type": "var", "name": "compile-deps"}
+            }
+          , { "type": "singleton_map"
+            , "key": "link-deps"
+            , "value": {"type": "var", "name": "link-deps"}
+            }
+          , { "type": "singleton_map"
+            , "key": "link-args"
+            , "value": {"type": "var", "name": "link-args"}
+            }
+          , { "type": "var"
+            , "name": "extra-provides"
+            , "default": {"type": "empty_map"}
+            }
+          ]
+        }
+      }
+    }
+  }
+}

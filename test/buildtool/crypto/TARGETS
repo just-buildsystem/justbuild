@@ -1,0 +1,13 @@
+{ "crypto":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["crypto"]
+  , "srcs": ["crypto.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/crypto", "hash_generator"]
+    ]
+  , "stage": ["test", "buildtool", "crypto"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["crypto"]}
+}

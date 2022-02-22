@@ -1,0 +1,15 @@
+{ "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs":
+    [ [["./", "common", "TESTS"], "common"]
+    , [["./", "crypto", "TESTS"], "crypto"]
+    , [["./", "execution_api", "TESTS"], "execution_api"]
+    , [["./", "execution_engine", "TESTS"], "execution_engine"]
+    , [["./", "file_system", "TESTS"], "file_system"]
+    , [["./", "graph_traverser", "TESTS"], "graph_traverser"]
+    , [["./", "logging", "TESTS"], "logging"]
+    , [["./", "multithreading", "TESTS"], "multithreading"]
+    ]
+  }
+}

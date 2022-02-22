@@ -1,0 +1,71 @@
+{ "executor_api_tests":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["executor_api_tests"]
+  , "hdrs": ["executor_api.test.hpp"]
+  , "stage": ["test", "buildtool", "execution_engine", "executor"]
+  }
+, "executor":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["executor"]
+  , "srcs": ["executor.test.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_engine/executor", "executor"]
+    , ["test", "catch-main"]
+    , ["@", "catch2", "", "catch2"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "executor"]
+  }
+, "local":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["local"]
+  , "srcs": ["executor_api_local.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ "executor_api_tests"
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_engine/executor", "executor"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["test/utils", "local_hermeticity"]
+    , ["@", "catch2", "", "catch2"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "executor"]
+  }
+, "remote_bazel":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["remote_bazel"]
+  , "srcs": ["executor_api_remote_bazel.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ "executor_api_tests"
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_api/remote", "bazel"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_engine/executor", "executor"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["@", "catch2", "", "catch2"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "executor"]
+  }
+, "test_data":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    [ "data/greeter/greet.cpp"
+    , "data/greeter/greet.hpp"
+    , "data/greeter/greet_mod.cpp"
+    , "data/greeter/main.cpp"
+    , "data/hello_world/main.cpp"
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "executor"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["executor", "local", "remote_bazel"]
+  }
+}

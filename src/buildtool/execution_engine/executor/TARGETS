@@ -1,0 +1,16 @@
+{ "executor":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["executor"]
+  , "hdrs": ["executor.hpp"]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "execution_engine", "executor"]
+  }
+}

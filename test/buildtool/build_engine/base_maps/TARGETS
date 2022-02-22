@@ -1,0 +1,127 @@
+{ "test_repo":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["test_repo"]
+  , "hdrs": ["test_repo.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "config"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "entity_name":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["entity_name"]
+  , "srcs": ["entity_name.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "directory_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["directory_map"]
+  , "srcs": ["directory_map.test.cpp"]
+  , "data": ["test_data_src"]
+  , "deps":
+    [ "test_repo"
+    , ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/build_engine/base_maps", "directory_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "json_file_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["json_file_map"]
+  , "srcs": ["json_file_map.test.cpp"]
+  , "data": ["test_data_json"]
+  , "deps":
+    [ "test_repo"
+    , ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/build_engine/base_maps", "json_file_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "source_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["source_map"]
+  , "srcs": ["source_map.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ "test_repo"
+    , ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["src/buildtool/build_engine/base_maps", "source_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "expression_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["expression_map"]
+  , "srcs": ["expression_map.test.cpp"]
+  , "data": ["test_data_expr"]
+  , "deps":
+    [ "test_repo"
+    , ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/build_engine/base_maps", "expression_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "rule_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["rule_map"]
+  , "srcs": ["rule_map.test.cpp"]
+  , "data": ["test_data_rule"]
+  , "deps":
+    [ "test_repo"
+    , ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "test_data_src":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["data_src/file", "data_src/foo/bar/file"]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "test_data_json":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["data_json/bad.json", "data_json/foo.json"]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "test_data_expr":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["data_expr/EXPRESSIONS", "data_expr/readers/EXPRESSIONS"]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "test_data_rule":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["data_rule/RULES", "data_rule/composers/EXPRESSIONS"]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "test_data":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    ["test_data_src", "test_data_json", "test_data_expr", "test_data_rule"]
+  , "stage": ["test", "buildtool", "build_engine", "base_maps"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps":
+    [ "directory_map"
+    , "entity_name"
+    , "expression_map"
+    , "json_file_map"
+    , "rule_map"
+    , "source_map"
+    ]
+  }
+}

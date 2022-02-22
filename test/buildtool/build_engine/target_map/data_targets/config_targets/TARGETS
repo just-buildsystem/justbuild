@@ -1,0 +1,27 @@
+{ "indirect dependency":
+  { "type":
+    [ "simple_rules"
+    , "upper case"
+    ]
+  , "srcs":
+    [ "use foo"
+    ]
+  }
+, "use foo":
+  { "type":
+    [ "simple_rules"
+    , "text file"
+    ]
+  , "arguments_config":
+    [ "foo"
+    ]
+  , "name":
+    [ "foo.txt."
+    ]
+  , "content":
+    [ { "type": "var"
+      , "name": "foo"
+      }
+    ]
+  }
+}

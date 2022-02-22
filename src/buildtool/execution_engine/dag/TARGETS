@@ -1,0 +1,17 @@
+{ "dag":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["dag"]
+  , "hdrs": ["dag.hpp"]
+  , "srcs": ["dag.cpp"]
+  , "deps":
+    [ ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "action_description"]
+    , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "execution_engine", "dag"]
+  }
+}

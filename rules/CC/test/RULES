@@ -1,0 +1,265 @@
+{ "test":
+  { "doc":
+    [ "A test written in C++"
+    , "FIXME: the test binary and data must be built for host"
+    ]
+  , "tainted": ["test"]
+  , "target_fields": ["srcs", "private-hdrs", "deps", "data"]
+  , "string_fields": ["name", "stage"]
+  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV"]
+  , "implicit":
+    { "defaults": [["./", "..", "defaults"]]
+    , "proto-deps": []
+    , "runner": ["test_runner.sh"]
+    }
+  , "field_doc":
+    { "name":
+      [ "The name of the test"
+      , ""
+      , "Used to name the test binary as well as for staging the test result"
+      ]
+    , "srcs": ["The sources of the test binary"]
+    , "private-hdrs":
+      [ "Any additional header files that need to be present when compiling"
+      , "the test binary."
+      ]
+    , "stage":
+      [ "The logical location of all header and source files."
+      , "Individual directory components are joined with \"/\"."
+      ]
+    , "data": ["Any files the test binary needs access to when running"]
+    }
+  , "config_doc":
+    { "CXX": ["The name of the C++ compiler to be used."]
+    , "ENV": ["The environment for any action generated."]
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    }
+  , "imports":
+    { "artifacts": ["./", "../..", "field_artifacts"]
+    , "compile-deps": ["./", "..", "compile-deps"]
+    , "link-deps": ["./", "..", "link-deps"]
+    , "objects": ["./", "..", "objects"]
+    , "default-CXX": ["./", "..", "default-CXX"]
+    , "default-CXXFLAGS": ["./", "..", "default-CXXFLAGS"]
+    , "default-ENV": ["./", "..", "default-ENV"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "srcs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "local hdrs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "private-hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "CXX"
+        , { "type": "var"
+          , "name": "CXX"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "var"
+          , "name": "CXXFLAGS"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
+      , [ "base name"
+        , { "type": "assert_non_empty"
+          , "msg": "A non-empy name has to be provided"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
+        ]
+      , [ "binary name"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "else": {"type": "var", "name": "base name"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "base name"}
+              ]
+            }
+          }
+        ]
+      , [ "link-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
+              , { "type": "++"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "deps"}
+                  , "body":
+                    { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "dep"}
+                    , "provider": "link-args"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      , [ "binary"
+        , { "type": "ACTION"
+          , "outs": [{"type": "var", "name": "binary name"}]
+          , "inputs":
+            { "type": "disjoint_map_union"
+            , "$1":
+              [ {"type": "var", "name": "objects"}
+              , {"type": "var", "name": "link-deps"}
+              ]
+            }
+          , "cmd":
+            { "type": "++"
+            , "$1":
+              [ [ {"type": "var", "name": "CXX"}
+                , "-o"
+                , {"type": "var", "name": "binary name"}
+                ]
+              , {"type": "var", "name": "link-args"}
+              ]
+            }
+          , "env": {"type": "var", "name": "ENV"}
+          }
+        ]
+      , [ "staged test binary"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach_map"
+            , "range": {"type": "var", "name": "binary"}
+            , "var_val": "binary"
+            , "body":
+              { "type": "singleton_map"
+              , "key": "test"
+              , "value": {"type": "var", "name": "binary"}
+              }
+            }
+          }
+        ]
+      , [ "runner"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "runner"
+            , "range": {"type": "FIELD", "name": "runner"}
+            , "body":
+              { "type": "map_union"
+              , "$1":
+                { "type": "foreach"
+                , "var": "runner"
+                , "range":
+                  { "type": "values"
+                  , "$1":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "runner"}
+                    }
+                  }
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": "runner.sh"
+                  , "value": {"type": "var", "name": "runner"}
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "data"
+        , { "type": "disjoint_map_union"
+          , "msg": "Data runfiles may not conflict"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "data"}
+            , "body":
+              {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
+            }
+          }
+        ]
+      , [ "test-results"
+        , { "type": "ACTION"
+          , "outs": ["result", "stdout", "stderr", "time-start", "time-stop"]
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "to_subdir"
+                , "subdir": "work"
+                , "$1": {"type": "var", "name": "data"}
+                }
+              , {"type": "var", "name": "runner"}
+              , {"type": "var", "name": "staged test binary"}
+              ]
+            }
+          , "cmd": ["sh", "./runner.sh"]
+          , "may_fail": ["test"]
+          , "fail_message":
+            { "type": "join"
+            , "$1":
+              ["CC test ", {"type": "var", "name": "binary name"}, " failed"]
+            }
+          }
+        ]
+      , [ "runfiles"
+        , { "type": "singleton_map"
+          , "key": {"type": "var", "name": "base name"}
+          , "value":
+            {"type": "TREE", "$1": {"type": "var", "name": "test-results"}}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "test-results"}
+      , "runfiles": {"type": "var", "name": "runfiles"}
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{ "task":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["task"]
+  , "srcs": ["task.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/multithreading", "task_system"]
+    ]
+  , "stage": ["test", "buildtool", "multithreading"]
+  }
+, "task_system":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["task_system"]
+  , "srcs": ["task_system.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/multithreading", "task_system"]
+    ]
+  , "stage": ["test", "buildtool", "multithreading"]
+  }
+, "async_map_node":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["async_map_node"]
+  , "srcs": ["async_map_node.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/multithreading", "async_map_node"]
+    , ["src/buildtool/multithreading", "task_system"]
+    ]
+  , "stage": ["test", "buildtool", "multithreading"]
+  }
+, "async_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["async_map"]
+  , "srcs": ["async_map.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/multithreading", "async_map"]
+    , ["src/buildtool/multithreading", "async_map_node"]
+    , ["src/buildtool/multithreading", "task_system"]
+    ]
+  , "stage": ["test", "buildtool", "multithreading"]
+  }
+, "async_map_consumer":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["async_map_consumer"]
+  , "srcs": ["async_map_consumer.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/multithreading", "async_map"]
+    , ["src/buildtool/multithreading", "task_system"]
+    ]
+  , "stage": ["test", "buildtool", "multithreading"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps":
+    [ "async_map"
+    , "async_map_consumer"
+    , "async_map_node"
+    , "task"
+    , "task_system"
+    ]
+  }
+}

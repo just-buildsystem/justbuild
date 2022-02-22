@@ -1,0 +1,105 @@
+{ "gpr_public_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "support/alloc.h"
+    , "support/atm.h"
+    , "support/atm_gcc_atomic.h"
+    , "support/atm_gcc_sync.h"
+    , "support/atm_windows.h"
+    , "support/cpu.h"
+    , "support/log.h"
+    , "support/log_windows.h"
+    , "support/port_platform.h"
+    , "support/string_util.h"
+    , "support/sync.h"
+    , "support/sync_abseil.h"
+    , "support/sync_custom.h"
+    , "support/sync_generic.h"
+    , "support/sync_posix.h"
+    , "support/sync_windows.h"
+    , "support/thd_id.h"
+    , "support/time.h"
+    ]
+  }
+, "grpc_public_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "byte_buffer.h"
+    , "byte_buffer_reader.h"
+    , "compression.h"
+    , "fork.h"
+    , "grpc.h"
+    , "grpc_posix.h"
+    , "grpc_security_constants.h"
+    , "slice.h"
+    , "slice_buffer.h"
+    , "status.h"
+    , "load_reporting.h"
+    , "support/workaround_list.h"
+    ]
+  }
+, "gpr_codegen_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "impl/codegen/atm.h"
+    , "impl/codegen/atm_gcc_atomic.h"
+    , "impl/codegen/atm_gcc_sync.h"
+    , "impl/codegen/atm_windows.h"
+    , "impl/codegen/fork.h"
+    , "impl/codegen/gpr_slice.h"
+    , "impl/codegen/gpr_types.h"
+    , "impl/codegen/log.h"
+    , "impl/codegen/port_platform.h"
+    , "impl/codegen/sync.h"
+    , "impl/codegen/sync_abseil.h"
+    , "impl/codegen/sync_custom.h"
+    , "impl/codegen/sync_generic.h"
+    , "impl/codegen/sync_posix.h"
+    , "impl/codegen/sync_windows.h"
+    ]
+  }
+, "gpr_codegen":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": ["gpr_codegen_headers"]
+  }
+, "grpc_codegen_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "impl/codegen/byte_buffer.h"
+    , "impl/codegen/byte_buffer_reader.h"
+    , "impl/codegen/compression_types.h"
+    , "impl/codegen/connectivity_state.h"
+    , "impl/codegen/grpc_types.h"
+    , "impl/codegen/propagation_bits.h"
+    , "impl/codegen/status.h"
+    , "impl/codegen/slice.h"
+    ]
+  }
+, "grpc_codegen":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "grpc_codegen_headers"
+    , "gpr_codegen_headers"
+    ]
+  }
+, "grpc_secure_public_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs": ["grpc_security.h"]
+  }
+, "census_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpc"]
+  , "public stage": ["yes"]
+  , "hdrs": ["census.h"]
+  }
+}

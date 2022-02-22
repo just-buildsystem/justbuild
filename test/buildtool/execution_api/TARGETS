@@ -1,0 +1,30 @@
+{ "local_tree_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["local_tree_map"]
+  , "srcs": ["local_tree_map.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/utils/cpp", "atomic"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api"]
+  }
+, "test_data":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    [ "data/executable_file"
+    , "data/non_executable_file"
+    , "data/subdir1/file1"
+    , "data/subdir1/subdir2/file2"
+    ]
+  , "stage": ["test", "buildtool", "execution_api"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["local_tree_map"]
+  , "dirs":
+    [[["./", "bazel", "TESTS"], "bazel"], [["./", "local", "TESTS"], "local"]]
+  }
+}

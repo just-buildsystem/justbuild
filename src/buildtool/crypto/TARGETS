@@ -1,0 +1,31 @@
+{ "hash_impl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_impl"]
+  , "hdrs":
+    [ "hash_impl.hpp"
+    , "hash_impl_md5.hpp"
+    , "hash_impl_sha1.hpp"
+    , "hash_impl_sha256.hpp"
+    , "hash_impl_git.hpp"
+    ]
+  , "srcs":
+    [ "hash_impl_md5.cpp"
+    , "hash_impl_sha1.cpp"
+    , "hash_impl_sha256.cpp"
+    , "hash_impl_git.cpp"
+    ]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["@", "ssl", "", "crypto"]
+    ]
+  , "stage": ["src", "buildtool", "crypto"]
+  }
+, "hash_generator":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_generator"]
+  , "hdrs": ["hash_generator.hpp"]
+  , "deps": ["hash_impl"]
+  , "stage": ["src", "buildtool", "crypto"]
+  }
+}

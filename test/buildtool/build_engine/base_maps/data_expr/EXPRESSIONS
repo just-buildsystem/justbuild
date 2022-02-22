@@ -1,0 +1,66 @@
+{
+  "test_expression_literal": {
+    "expression": "foo"
+  },
+  "test_read_vars": {
+    "vars": ["FOO"],
+    "expression": {
+      "type": "var",
+      "name": "FOO"
+    }
+  },
+  "test_call_import": {
+    "vars": ["FOO"],
+    "imports": {
+      "read_foo": [
+        "readers",
+        "real_foo_reader"
+      ]
+    },
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "read_foo"
+    }
+  },
+  "test_overwrite_import": {
+    "vars": ["FOO"],
+    "imports": {
+      "read_foo": [
+        "readers",
+        "proxy_foo_reader"
+      ]
+    },
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "read_foo"
+    }
+  },
+  "test_missing_vars": {
+    "expression": {
+      "type": "var",
+      "name": "FOO"
+    }
+  },
+  "test_missing_imports": {
+    "expression": {
+      "type": "CALL_EXPRESSION",
+      "name": "read_foo"
+    }
+  },
+  "test_malformed_function": "not_an_object",
+  "test_malformed_expression": {
+    "missing_expression": {}
+  },
+  "test_malformed_vars": {
+    "vars": "not_a_list",
+    "expression": {
+      "type": "empty_map"
+    }
+  },
+  "test_malformed_imports": {
+    "imports": "not_an_object",
+    "expression": {
+      "type": "empty_map"
+    }
+  }
+}

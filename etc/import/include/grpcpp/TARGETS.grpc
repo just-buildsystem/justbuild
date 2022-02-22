@@ -1,0 +1,168 @@
+{ "grpcpp_public_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpcpp"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "alarm.h"
+    , "alarm_impl.h"
+    , "channel.h"
+    , "channel_impl.h"
+    , "client_context.h"
+    , "completion_queue.h"
+    , "completion_queue_impl.h"
+    , "create_channel.h"
+    , "create_channel_impl.h"
+    , "create_channel_posix.h"
+    , "ext/health_check_service_server_builder_option.h"
+    , "generic/async_generic_service.h"
+    , "generic/generic_stub.h"
+    , "grpcpp.h"
+    , "health_check_service_interface.h"
+    , "impl/call.h"
+    , "impl/channel_argument_option.h"
+    , "impl/client_unary_call.h"
+    , "impl/codegen/core_codegen.h"
+    , "impl/grpc_library.h"
+    , "impl/method_handler_impl.h"
+    , "impl/rpc_method.h"
+    , "impl/rpc_service_method.h"
+    , "impl/serialization_traits.h"
+    , "impl/server_builder_option.h"
+    , "impl/server_builder_option_impl.h"
+    , "impl/server_builder_plugin.h"
+    , "impl/server_initializer.h"
+    , "impl/server_initializer_impl.h"
+    , "impl/service_type.h"
+    , "resource_quota.h"
+    , "security/auth_context.h"
+    , "security/auth_metadata_processor.h"
+    , "security/credentials.h"
+    , "security/credentials_impl.h"
+    , "security/server_credentials.h"
+    , "security/server_credentials_impl.h"
+    , "security/tls_credentials_options.h"
+    , "server.h"
+    , "server_impl.h"
+    , "server_builder.h"
+    , "server_context.h"
+    , "server_posix.h"
+    , "support/async_stream.h"
+    , "support/async_stream_impl.h"
+    , "support/async_unary_call.h"
+    , "support/async_unary_call_impl.h"
+    , "support/byte_buffer.h"
+    , "support/channel_arguments.h"
+    , "support/channel_arguments_impl.h"
+    , "support/client_callback.h"
+    , "support/client_callback_impl.h"
+    , "support/client_interceptor.h"
+    , "support/config.h"
+    , "support/interceptor.h"
+    , "support/message_allocator.h"
+    , "support/method_handler.h"
+    , "support/proto_buffer_reader.h"
+    , "support/proto_buffer_writer.h"
+    , "support/server_callback.h"
+    , "support/server_callback_impl.h"
+    , "support/server_interceptor.h"
+    , "support/slice.h"
+    , "support/status.h"
+    , "support/status_code_enum.h"
+    , "support/string_ref.h"
+    , "support/stub_options.h"
+    , "support/sync_stream.h"
+    , "support/sync_stream_impl.h"
+    , "support/time.h"
+    , "support/validate_service_config.h"
+    ]
+  }
+, "grpcpp_config_proto_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpcpp"]
+  , "public stage": ["yes"]
+  , "hdrs": ["impl/codegen/config_protobuf.h"]
+  }
+, "grpcpp_codegen_base_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpcpp"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "impl/codegen/async_generic_service.h"
+    , "impl/codegen/async_stream.h"
+    , "impl/codegen/async_stream_impl.h"
+    , "impl/codegen/async_unary_call.h"
+    , "impl/codegen/async_unary_call_impl.h"
+    , "impl/codegen/byte_buffer.h"
+    , "impl/codegen/call.h"
+    , "impl/codegen/call_hook.h"
+    , "impl/codegen/call_op_set.h"
+    , "impl/codegen/call_op_set_interface.h"
+    , "impl/codegen/callback_common.h"
+    , "impl/codegen/channel_interface.h"
+    , "impl/codegen/client_callback.h"
+    , "impl/codegen/client_callback_impl.h"
+    , "impl/codegen/client_context.h"
+    , "impl/codegen/client_context_impl.h"
+    , "impl/codegen/client_interceptor.h"
+    , "impl/codegen/client_unary_call.h"
+    , "impl/codegen/completion_queue.h"
+    , "impl/codegen/completion_queue_impl.h"
+    , "impl/codegen/completion_queue_tag.h"
+    , "impl/codegen/config.h"
+    , "impl/codegen/core_codegen_interface.h"
+    , "impl/codegen/create_auth_context.h"
+    , "impl/codegen/delegating_channel.h"
+    , "impl/codegen/grpc_library.h"
+    , "impl/codegen/intercepted_channel.h"
+    , "impl/codegen/interceptor.h"
+    , "impl/codegen/interceptor_common.h"
+    , "impl/codegen/message_allocator.h"
+    , "impl/codegen/metadata_map.h"
+    , "impl/codegen/method_handler.h"
+    , "impl/codegen/method_handler_impl.h"
+    , "impl/codegen/rpc_method.h"
+    , "impl/codegen/rpc_service_method.h"
+    , "impl/codegen/security/auth_context.h"
+    , "impl/codegen/serialization_traits.h"
+    , "impl/codegen/server_callback.h"
+    , "impl/codegen/server_callback_handlers.h"
+    , "impl/codegen/server_callback_impl.h"
+    , "impl/codegen/server_context.h"
+    , "impl/codegen/server_context_impl.h"
+    , "impl/codegen/server_interceptor.h"
+    , "impl/codegen/server_interface.h"
+    , "impl/codegen/service_type.h"
+    , "impl/codegen/slice.h"
+    , "impl/codegen/status.h"
+    , "impl/codegen/status_code_enum.h"
+    , "impl/codegen/string_ref.h"
+    , "impl/codegen/stub_options.h"
+    , "impl/codegen/sync_stream.h"
+    , "impl/codegen/sync_stream_impl.h"
+    , "impl/codegen/time.h"
+    ]
+  }
+, "grpcpp_codegen_proto_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpcpp"]
+  , "public stage": ["yes"]
+  , "hdrs":
+    [ "impl/codegen/proto_buffer_reader.h"
+    , "impl/codegen/proto_buffer_writer.h"
+    , "impl/codegen/proto_utils.h"
+    ]
+  }
+, "grpc++_internal_hdrs_only_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["grpcpp"]
+  , "public stage": ["yes"]
+  , "hdrs": ["impl/codegen/sync.h"]
+  }
+, "grpc++_internal_hdrs_only":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "grpc++_internal_hdrs_only_headers"
+    , ["./", "../grpc", "gpr_codegen_headers"]
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{ "algorithm":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["algorithm"]
+  , "stage": ["absl", "algorithm"]
+  , "hdrs": ["algorithm.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+}

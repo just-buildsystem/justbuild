@@ -1,0 +1,26 @@
+{ "git2":
+  { "type": "export"
+  , "target": ["./", "src", "git2internal"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "CC"
+    , "AR"
+    , "ENV"
+    , "USE_SYSTEM_LIBS"
+    , "DEBUG_POOL"
+    , "ENABLE_TRACE"
+    , "THREADSAFE"
+    , "USE_ICONV"
+    , "USE_NSEC"
+    , "REGEX_BACKEND"
+    , "USE_SSH"
+    , "USE_NTLMCLIENT"
+    , "USE_GSSAPI"
+    , "USE_SHA1"
+    , "USE_HTTPS"
+    , "WINHTTP"
+    ]
+  }
+}

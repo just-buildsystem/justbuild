@@ -1,0 +1,46 @@
+{ "artifacts":
+  { "type":
+    [ "result"
+    , "wrong RESULT"
+    ]
+  , "artifacts":
+    [ "YES"
+    ]
+  }
+, "artifacts entry":
+  { "type":
+    [ "result"
+    , "wrong RESULT"
+    ]
+  , "artifacts_entry":
+    [ "YES"
+    ]
+  }
+, "runfiles":
+  { "type":
+    [ "result"
+    , "wrong RESULT"
+    ]
+  , "runfiles":
+    [ "YES"
+    ]
+  }
+, "runfiles entry":
+  { "type":
+    [ "result"
+    , "wrong RESULT"
+    ]
+  , "runfiles_entry":
+    [ "YES"
+    ]
+  }
+, "provides":
+  { "type":
+    [ "result"
+    , "wrong RESULT"
+    ]
+  , "provides":
+    [ "YES"
+    ]
+  }
+}

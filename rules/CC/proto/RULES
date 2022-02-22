@@ -1,0 +1,72 @@
+{ "library":
+  { "doc":
+    [ "A library C++ library, generated from proto files."
+    , ""
+    , "This rule usually is used to bind anonymous targets generated from"
+    , "proto libraries."
+    ]
+  , "string_fields": ["name", "stage"]
+  , "target_fields": ["srcs", "deps"]
+  , "config_vars":
+    ["OS", "ARCH", "HOST_ARCH", "CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+  , "implicit":
+    { "protoc": [["@", "protoc", "", "protoc"]]
+    , "defaults": [["./", "..", "defaults"]]
+    , "proto-deps": [["@", "protoc", "", "C++ runtime"]]
+    , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
+    , "pure C": []
+    }
+  , "imports":
+    { "protoc-compile": "protoc-compile"
+    , "host transition": ["transitions", "for host"]
+    }
+  , "config_transitions":
+    {"protoc": [{"type": "CALL_EXPRESSION", "name": "host transition"}]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "protoc-compile"}
+    }
+  }
+, "service library":
+  { "doc":
+    [ "A service library C++ library, generated from proto files."
+    , ""
+    , "Calls protoc with gRPC plugin to additionally generate gRPC services"
+    , "from proto libraries."
+    ]
+  , "string_fields": ["name", "stage"]
+  , "target_fields": ["srcs", "deps"]
+  , "config_vars":
+    ["OS", "ARCH", "HOST_ARCH", "CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+  , "implicit":
+    { "protoc": [["@", "protoc", "", "protoc"]]
+    , "grpc_cpp_plugin": [["@", "grpc", "src/compiler", "grpc_cpp_plugin"]]
+    , "defaults": [["./", "..", "defaults"]]
+    , "proto-deps":
+      [ ["@", "grpc", "", "grpc++_codegen_proto"]
+      , ["@", "protoc", "", "C++ runtime"]
+      ]
+    , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
+    , "pure C": []
+    }
+  , "imports":
+    { "protoc-compile": "protoc-compile"
+    , "host transition": ["transitions", "for host"]
+    }
+  , "config_transitions":
+    { "protoc": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "grpc_cpp_plugin":
+      [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["service support", true]
+      , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "protoc-compile"}
+    }
+  }
+}

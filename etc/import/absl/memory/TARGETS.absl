@@ -1,0 +1,8 @@
+{ "memory":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["memory"]
+  , "stage": ["absl", "memory"]
+  , "hdrs": ["memory.h"]
+  , "deps": [["absl/base", "core_headers"], ["absl/meta", "type_traits"]]
+  }
+}

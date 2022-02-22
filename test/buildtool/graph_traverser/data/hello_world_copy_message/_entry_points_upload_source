@@ -1,0 +1,9 @@
+{
+    "local_src_file.cpp": {
+        "type": "LOCAL",
+        "data": {
+            "path": "hello_world.cpp",
+            "repository": ""
+        }
+    }
+}

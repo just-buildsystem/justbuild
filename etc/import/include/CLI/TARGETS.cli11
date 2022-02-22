@@ -1,0 +1,22 @@
+{ "cli11_headers":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["CLI"]
+  , "hdrs":
+    [ "Option.hpp"
+    , "Split.hpp"
+    , "Formatter.hpp"
+    , "ConfigFwd.hpp"
+    , "Version.hpp"
+    , "TypeTools.hpp"
+    , "Validators.hpp"
+    , "FormatterFwd.hpp"
+    , "Macros.hpp"
+    , "StringTools.hpp"
+    , "Error.hpp"
+    , "Timer.hpp"
+    , "CLI.hpp"
+    , "App.hpp"
+    , "Config.hpp"
+    ]
+  }
+}

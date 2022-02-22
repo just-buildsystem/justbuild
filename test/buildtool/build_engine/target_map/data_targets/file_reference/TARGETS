@@ -1,0 +1,9 @@
+{ "_hello.txt" : { "type" : "install"
+                 , "files" : { "raw_data/hello.txt" : ["FILE", null, "hello.txt"] }
+                 }
+, "hello.txt" :  { "type" : "generic"
+                 , "deps" : ["_hello.txt"]
+                 , "outs" : ["hello.txt"]
+                 , "cmds" : ["cat raw_data/hello.txt | tr 'a-z' 'A-Z' > hello.txt"]
+                 }
+}

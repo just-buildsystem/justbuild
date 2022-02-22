@@ -1,0 +1,34 @@
+{ "compressed_tuple":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["compressed_tuple"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/compressed_tuple.h"]
+  , "deps": [["absl/utility", "utility"]]
+  }
+, "inlined_vector_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["inlined_vector_internal"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/inlined_vector.h"]
+  , "deps":
+    [ "compressed_tuple"
+    , ["absl/base", "core_headers"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "inlined_vector":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["inlined_vector"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["inlined_vector.h"]
+  , "deps":
+    [ "inlined_vector_internal"
+    , ["absl/algorithm", "algorithm"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/memory", "memory"]
+    ]
+  }
+}

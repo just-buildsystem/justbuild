@@ -1,0 +1,36 @@
+{ "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "hdrs": ["config.hpp"]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "local"]
+  }
+, "local":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["local"]
+  , "hdrs":
+    [ "file_storage.hpp"
+    , "local_api.hpp"
+    , "local_action.hpp"
+    , "local_response.hpp"
+    , "local_storage.hpp"
+    , "local_cas.hpp"
+    , "local_ac.hpp"
+    ]
+  , "srcs": ["local_action.cpp", "local_storage.cpp"]
+  , "deps":
+    [ ["@", "gsl-lite", "", "gsl-lite"]
+    , "config"
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "system_command"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "local"]
+  }
+}

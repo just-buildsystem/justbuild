@@ -1,0 +1,83 @@
+{
+    "actions": {
+        "make_exe": {
+            "output": [
+                "hello_world"
+            ],
+            "command": [
+                "g++", "hello_world.cpp", "-o", "hello_world"
+            ],
+            "input": {
+                "hello_world.cpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "hello_world.cpp",
+                        "repository": ""
+                    }
+                }
+            },
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        },
+        "make_output": {
+            "output": [
+                "greeting_output"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\n./hello_world > greeting_output"
+            ],
+            "input": {
+                "hello_world": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "make_exe",
+                        "path": "hello_world"
+                    }
+                }
+            }
+        },
+        "strip_time": {
+            "output": [
+                "stripped_greeting_output"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\nhead -n1 greeting_output > stripped_greeting_output"
+            ],
+            "input": {
+                "greeting_output": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "make_output",
+                        "path": "greeting_output"
+                    }
+                }
+            }
+        },
+        "list_ctimes": {
+            "output": [
+                "ctimes"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\nls --full-time --time ctime > ctimes"
+            ],
+            "input": {
+                "stripped_greeting_output": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "strip_time",
+                        "path": "stripped_greeting_output"
+                    }
+                }
+            }
+        }
+    },
+    "blobs": [],
+    "trees": {}
+}

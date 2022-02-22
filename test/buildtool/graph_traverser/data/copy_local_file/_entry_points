@@ -1,0 +1,9 @@
+{
+    "copied.hpp": {
+        "type": "LOCAL",
+        "data": {
+            "path": "copy_me.hpp",
+            "repository": ""
+        }
+    }
+}

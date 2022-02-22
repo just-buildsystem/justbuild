@@ -1,0 +1,26 @@
+{ "logger":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["logger"]
+  , "srcs": ["logger.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["test", "buildtool", "logging"]
+  }
+, "log_sink_file":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["log_sink_file"]
+  , "srcs": ["log_sink_file.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["test", "buildtool", "logging"]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["log_sink_file", "logger"]}
+}

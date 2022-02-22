@@ -1,0 +1,42 @@
+{ "staged":
+  { "doc": ["Stage data to a logical subdirectory."]
+  , "target_fields": ["srcs"]
+  , "string_fields": ["stage"]
+  , "field_doc":
+    { "srcs": ["The (run)files to be staged"]
+    , "stage":
+      [ "The logical directory to stage the files to."
+      , "Individual directory components are joined with \"/\"."
+      ]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "srcs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "x"
+            , "range": {"type": "FIELD", "name": "srcs"}
+            , "body":
+              {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "x"}}
+            }
+          }
+        ]
+      , [ "staged"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1": {"type": "var", "name": "srcs"}
+          }
+        ]
+      ]
+    , "body": {"type": "RESULT", "runfiles": {"type": "var", "name": "staged"}}
+    }
+  }
+}

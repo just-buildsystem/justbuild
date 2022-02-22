@@ -1,0 +1,9 @@
+{ "addressing":
+  { "type": "install"
+  , "files":
+    { "absolute": [ "x/x" , "foo" ]
+    , "relative": [ "./" , "x/x" , "foo" ]
+    , "upwards": [ "./" , "../.." , "foo" ]
+    }
+  }
+}

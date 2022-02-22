@@ -1,0 +1,42 @@
+{ "civil_time":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["civil_time"]
+  , "stage": ["absl", "time", "internal", "cctz"]
+  , "srcs": ["src/civil_time_detail.cc"]
+  , "hdrs":
+    [ "include/cctz/civil_time.h"
+    , "include/cctz/civil_time_detail.h"
+    ]
+  , "deps": [["absl/base", "config"]]
+  }
+, "time_zone":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["time_zone"]
+  , "stage": ["absl", "time", "internal", "cctz"]
+  , "srcs":
+    [ "src/time_zone_fixed.cc"
+    , "src/time_zone_format.cc"
+    , "src/time_zone_if.cc"
+    , "src/time_zone_impl.cc"
+    , "src/time_zone_info.cc"
+    , "src/time_zone_libc.cc"
+    , "src/time_zone_lookup.cc"
+    , "src/time_zone_posix.cc"
+    , "src/zone_info_source.cc"
+    ]
+  , "private-hdrs":
+    [ "src/time_zone_fixed.h"
+    , "src/time_zone_if.h"
+    , "src/time_zone_impl.h"
+    , "src/time_zone_info.h"
+    , "src/time_zone_libc.h"
+    , "src/time_zone_posix.h"
+    , "src/tzfile.h"
+    ]
+  , "hdrs":
+    [ "include/cctz/time_zone.h"
+    , "include/cctz/zone_info_source.h"
+    ]
+  , "deps": ["civil_time", ["absl/base", "config"]]
+  }
+}

@@ -1,0 +1,22 @@
+{ "common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common"]
+  , "hdrs":
+    [ "execution_common.hpp"
+    , "execution_api.hpp"
+    , "execution_action.hpp"
+    , "execution_response.hpp"
+    , "local_tree_map.hpp"
+    ]
+  , "deps":
+    [ ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  }
+}

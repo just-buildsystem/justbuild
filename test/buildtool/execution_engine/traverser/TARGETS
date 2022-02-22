@@ -1,0 +1,16 @@
+{ "traverser":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["traverser"]
+  , "srcs": ["traverser.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_engine/traverser", "traverser"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "traverser"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["traverser"]}
+}

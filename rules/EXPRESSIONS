@@ -1,0 +1,89 @@
+{ "field_artifacts":
+  { "vars": ["fieldname", "transition"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range":
+        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+      , "body":
+        { "type": "DEP_ARTIFACTS"
+        , "dep": {"type": "var", "name": "x"}
+        , "transition":
+          { "type": "var"
+          , "name": "transition"
+          , "default": {"type": "empty_map"}
+          }
+        }
+      }
+    }
+  }
+, "field_runfiles":
+  { "vars": ["fieldname", "transition"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range":
+        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+      , "body":
+        { "type": "DEP_RUNFILES"
+        , "dep": {"type": "var", "name": "x"}
+        , "transition":
+          { "type": "var"
+          , "name": "transition"
+          , "default": {"type": "empty_map"}
+          }
+        }
+      }
+    }
+  }
+, "action_env":
+  { "vars": ["ENV"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      [ {"type": "singleton_map", "key": "PATH", "value": "/bin:/usr/bin"}
+      , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+      ]
+    }
+  }
+, "stage_singleton_field":
+  { "vars": ["fieldname", "transition", "location"]
+  , "expression":
+    { "type": "disjoint_map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "src"
+      , "range":
+        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+      , "body":
+        { "type": "disjoint_map_union"
+        , "$1":
+          { "type": "foreach"
+          , "var": "artifact"
+          , "range":
+            { "type": "values"
+            , "$1":
+              { "type": "DEP_ARTIFACTS"
+              , "dep": {"type": "var", "name": "src"}
+              , "transition":
+                { "type": "var"
+                , "name": "transition"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            }
+          , "body":
+            { "type": "singleton_map"
+            , "key": {"type": "var", "name": "location"}
+            , "value": {"type": "var", "name": "artifact"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

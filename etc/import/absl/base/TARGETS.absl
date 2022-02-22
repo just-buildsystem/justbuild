@@ -1,0 +1,148 @@
+{ "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "stage": ["absl", "base"]
+  , "hdrs":
+    [ "config.h"
+    , "options.h"
+    , "policy_checks.h"
+    ]
+  }
+, "core_headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["core_headers"]
+  , "stage": ["absl", "base"]
+  , "hdrs":
+    [ "attributes.h"
+    , "const_init.h"
+    , "macros.h"
+    , "optimization.h"
+    , "port.h"
+    , "thread_annotations.h"
+    , "internal/thread_annotations.h"
+    ]
+  , "deps": ["config"]
+  }
+, "atomic_hook":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["atomic_hook"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/atomic_hook.h"]
+  , "deps": ["config", "core_headers"]
+  }
+, "dynamic_annotations":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["dynamic_annotations"]
+  , "stage": ["absl", "base"]
+  , "local defines": ["__CLANG_SUPPORT_DYN_ANNOTATION__"]
+  , "srcs": ["dynamic_annotations.cc"]
+  , "hdrs": ["dynamic_annotations.h"]
+  }
+, "log_severity":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_severity"]
+  , "stage": ["absl", "base"]
+  , "srcs": ["log_severity.cc"]
+  , "hdrs": ["log_severity.h"]
+  , "deps": ["config", "core_headers"]
+  }
+, "raw_logging_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["raw_logging_internal"]
+  , "stage": ["absl", "base"]
+  , "srcs": ["internal/raw_logging.cc"]
+  , "hdrs": ["internal/raw_logging.h"]
+  , "deps": ["atomic_hook", "config", "core_headers", "log_severity"]
+  }
+, "errno_saver":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["errno_saver"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/errno_saver.h"]
+  , "deps": ["config"]
+  }
+, "base_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["base_internal"]
+  , "stage": ["absl", "base"]
+  , "hdrs":
+    [ "internal/hide_ptr.h"
+    , "internal/identity.h"
+    , "internal/inline_variable.h"
+    , "internal/invoke.h"
+    , "internal/scheduling_mode.h"
+    ]
+  , "deps": ["config" , ["absl/meta", "type_traits"]]
+  }
+, "spinlock_wait":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["spinlock_wait"]
+  , "stage": ["absl", "base"]
+  , "srcs": ["internal/spinlock_wait.cc"]
+  , "hdrs":
+    [ "internal/spinlock_akaros.inc"
+    , "internal/spinlock_linux.inc"
+    , "internal/spinlock_posix.inc"
+    , "internal/spinlock_wait.h"
+    , "internal/spinlock_win32.inc"
+    ]
+  , "deps": ["base_internal", "core_headers", "errno_saver"]
+  }
+, "endian":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["endian"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/endian.h", "internal/unaligned_access.h"]
+  , "deps": ["config", "core_headers"]
+  }
+, "bits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bits"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/bits.h"]
+  , "deps": ["config", "core_headers"]
+  }
+, "throw_delegate":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["throw_delegate"]
+  , "stage": ["absl", "base"]
+  , "srcs": ["internal/throw_delegate.cc"]
+  , "hdrs": ["internal/throw_delegate.h"]
+  , "deps": ["config", "raw_logging_internal"]
+  }
+, "base":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["base"]
+  , "stage": ["absl", "base"]
+  , "srcs":
+    [ "internal/cycleclock.cc"
+    , "internal/spinlock.cc"
+    , "internal/sysinfo.cc"
+    , "internal/thread_identity.cc"
+    , "internal/unscaledcycleclock.cc"
+    ]
+  , "hdrs":
+    [ "call_once.h"
+    , "casts.h"
+    , "internal/cycleclock.h"
+    , "internal/low_level_scheduling.h"
+    , "internal/per_thread_tls.h"
+    , "internal/spinlock.h"
+    , "internal/sysinfo.h"
+    , "internal/thread_identity.h"
+    , "internal/tsan_mutex_interface.h"
+    , "internal/unscaledcycleclock.h"
+    ]
+  , "deps":
+    [ "atomic_hook"
+    , "base_internal"
+    , "config"
+    , "core_headers"
+    , "dynamic_annotations"
+    , "log_severity"
+    , "raw_logging_internal"
+    , "spinlock_wait"
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+}

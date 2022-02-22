@@ -1,0 +1,75 @@
+#ifndef INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP
+#define INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP
+
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "gsl-lite/gsl-lite.hpp"
+#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+
+[[nodiscard]] static inline auto CreateAction(
+    std::string const& instance_name,
+    std::vector<std::string> const& args,
+    std::map<std::string, std::string> const& env_vars,
+    std::map<std::string, std::string> const& properties) noexcept
+    -> std::unique_ptr<bazel_re::Digest> {
+    auto const& info = RemoteExecutionConfig::Instance();
+
+    auto platform = std::make_unique<bazel_re::Platform>();
+    for (auto const& [name, value] : properties) {
+        bazel_re::Platform_Property property;
+        property.set_name(name);
+        property.set_value(value);
+        *(platform->add_properties()) = property;
+    }
+
+    std::vector<BazelBlob> blobs;
+
+    bazel_re::Command cmd;
+    cmd.set_allocated_platform(platform.release());
+    std::copy(
+        args.begin(), args.end(), pb::back_inserter(cmd.mutable_arguments()));
+
+    std::transform(std::begin(env_vars),
+                   std::end(env_vars),
+                   pb::back_inserter(cmd.mutable_environment_variables()),
+                   [](auto const& name_value) {
+                       bazel_re::Command_EnvironmentVariable env_var_message;
+                       env_var_message.set_name(name_value.first);
+                       env_var_message.set_value(name_value.second);
+                       return env_var_message;
+                   });
+
+    auto cmd_data = cmd.SerializeAsString();
+    auto cmd_id = ArtifactDigest::Create(cmd_data);
+    blobs.emplace_back(cmd_id, cmd_data);
+
+    bazel_re::Directory empty_dir;
+    auto dir_data = empty_dir.SerializeAsString();
+    auto dir_id = ArtifactDigest::Create(dir_data);
+    blobs.emplace_back(dir_id, dir_data);
+
+    bazel_re::Action action;
+    action.set_allocated_command_digest(
+        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{cmd_id}});
+    action.set_do_not_cache(false);
+    action.set_allocated_input_root_digest(
+        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{dir_id}});
+
+    auto action_data = action.SerializeAsString();
+    auto action_id = ArtifactDigest::Create(action_data);
+    blobs.emplace_back(action_id, action_data);
+
+    BazelCasClient cas_client(info.Host(), info.Port());
+
+    if (cas_client.BatchUpdateBlobs(instance_name, blobs.begin(), blobs.end())
+            .size() == blobs.size()) {
+        return std::make_unique<bazel_re::Digest>(action_id);
+    }
+    return nullptr;
+}
+
+#endif  // INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP

@@ -1,0 +1,50 @@
+{ "configured_target":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["configured_target"]
+  , "hdrs": ["configured_target.hpp"]
+  , "deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
+, "result_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["result_map"]
+  , "hdrs": ["result_map.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "tree"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/multithreading", "task"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
+, "target_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_map"]
+  , "hdrs": ["target_map.hpp"]
+  , "srcs": ["utils.cpp", "built_in_rules.cpp", "export.cpp", "target_map.cpp"]
+  , "private-hdrs": ["built_in_rules.hpp", "export.hpp", "utils.hpp"]
+  , "deps":
+    [ "configured_target"
+    , "result_map"
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["src/buildtool/build_engine/base_maps", "field_reader"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["src/buildtool/build_engine/base_maps", "source_map"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
+}

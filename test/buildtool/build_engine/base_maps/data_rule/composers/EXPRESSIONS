@@ -1,0 +1,28 @@
+{
+  "foo_composer": {
+    "vars": [
+      "FOO"
+    ],
+    "expression": {
+      "type": "map_union",
+      "$1": [{
+          "type": "singleton_map",
+          "key": "type",
+          "value": "RESULT"
+        },
+        {
+          "type": "singleton_map",
+          "key": "artifacts",
+          "value": {
+            "type": "singleton_map",
+            "key": "foo",
+            "value": {
+              "type": "var",
+              "name": "FOO"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

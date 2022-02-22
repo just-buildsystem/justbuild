@@ -1,0 +1,51 @@
+{ "grpc_plugin_support":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["grpc_plugin_support"]
+  , "stage": ["src", "compiler"]
+  , "srcs":
+    [ "cpp_generator.cc"
+    , "csharp_generator.cc"
+    , "node_generator.cc"
+    , "objective_c_generator.cc"
+    , "php_generator.cc"
+    , "python_generator.cc"
+    , "ruby_generator.cc"
+    ]
+  , "hdrs":
+    [ "config.h"
+    , "config_protobuf.h"
+    , "cpp_generator.h"
+    , "cpp_generator_helpers.h"
+    , "cpp_plugin.h"
+    , "csharp_generator.h"
+    , "csharp_generator_helpers.h"
+    , "generator_helpers.h"
+    , "node_generator.h"
+    , "node_generator_helpers.h"
+    , "objective_c_generator.h"
+    , "objective_c_generator_helpers.h"
+    , "php_generator.h"
+    , "php_generator_helpers.h"
+    , "protobuf_plugin.h"
+    , "python_generator.h"
+    , "python_generator_helpers.h"
+    , "python_private_generator.h"
+    , "ruby_generator.h"
+    , "ruby_generator_helpers-inl.h"
+    , "ruby_generator_map-inl.h"
+    , "ruby_generator_string-inl.h"
+    , "schema_interface.h"
+    ]
+  , "deps":
+    [ [".", "grpc++_config_proto"]
+    , ["@", "protobuf", ".", "protoc_lib"]
+    ]
+  }
+, "grpc_cpp_plugin":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["grpc_cpp_plugin"]
+  , "srcs": ["cpp_plugin.cc"]
+  , "deps": ["grpc_plugin_support"]
+  , "link external": ["-pthread"]
+  }
+}

@@ -1,0 +1,16 @@
+{ "string field":
+  { "type": ["simple_rules", "text file"]
+  , "name": "PlAiN sTrInG"
+  , "content": ["This is FOO!"]
+  }
+, "string field 2":
+  { "type": ["simple_rules", "text file"]
+  , "name": ["OK", 4711, "OK"]
+  , "content": ["This is FOO!"]
+  }
+, "config field":
+  { "type": ["simple_rules", "transition FOO"]
+  , "value": [{"type": "singleton_map", "key": "FooKey", "value": "BarValue"}]
+  , "deps": [["siple_targets", "rule provides FOO"]]
+  }
+}

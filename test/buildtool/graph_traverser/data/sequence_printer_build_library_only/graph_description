@@ -1,0 +1,173 @@
+{
+    "blobs": [],
+    "trees": {},
+    "actions": {
+        "sequences/random_dna_sequence/compile": {
+            "input": {
+                "sequence.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/sequence.hpp",
+                        "repository": ""
+                    }
+                },
+                "random_dna_sequence.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/random_dna_sequence.hpp",
+                        "repository": ""
+                    }
+                },
+                "random_dna_sequence.cpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/random_dna_sequence.cpp",
+                        "repository": ""
+                    }
+                }
+            },
+            "output": [
+                "obj.o"
+            ],
+            "command": [
+                "c++", "-o", "obj.o", "-c", "random_dna_sequence.cpp"
+            ],
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        },
+        "sequences/fibonacci/compile": {
+            "input": {
+                "sequence.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/sequence.hpp",
+                        "repository": ""
+                    }
+                },
+                "fibonacci.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/fibonacci.hpp",
+                        "repository": ""
+                    }
+                },
+                "fibonacci.cpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/fibonacci.cpp",
+                        "repository": ""
+                    }
+                }
+            },
+            "output": [
+                "obj.o"
+            ],
+            "command": [
+                "c++", "-o", "obj.o", "-c", "fibonacci.cpp"
+            ],
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        },
+        "sequences/link": {
+            "input": {
+                "obj1.o": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "sequences/random_dna_sequence/compile",
+                        "path": "obj.o"
+                    }
+                },
+                "obj2.o": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "sequences/fibonacci/compile",
+                        "path": "obj.o"
+                    }
+                }
+            },
+            "output": [
+                "lib.a"
+            ],
+            "command": [
+                "ar", "cqs", "lib.a", "obj1.o", "obj2.o"
+            ]
+        },
+        "main/compile": {
+            "input": {
+                "fibonacci.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/fibonacci.hpp",
+                        "repository": ""
+                    }
+                },
+                "random_dna_sequence.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/random_dna_sequence.hpp",
+                        "repository": ""
+                    }
+                },
+                "sequence.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "sequences/sequence.hpp",
+                        "repository": ""
+                    }
+                },
+                "printer.hpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "printer/printer.hpp",
+                        "repository": ""
+                    }
+                },
+                "main.cpp": {
+                    "type": "LOCAL",
+                    "data": {
+                        "path": "main.cpp",
+                        "repository": ""
+                    }
+                }
+            },
+            "output": [
+                "obj.o"
+            ],
+            "command": [
+                "c++", "-o", "obj.o", "-c", "main.cpp"
+            ],
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        },
+        "main/link": {
+            "input": {
+                "lib1.a": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "sequences/link",
+                        "path": "lib.a"
+                    }
+                },
+                "obj1.o": {
+                    "type": "ACTION",
+                    "data": {
+                        "id": "main/compile",
+                        "path": "obj.o"
+                    }
+                }
+            },
+            "output": [
+                "a.out"
+            ],
+            "command": [
+                "c++", "-o", "a.out", "obj1.o", "lib1.a"
+            ],
+            "env": {
+                "PATH": "/bin:/usr/bin"
+            }
+        }
+    }
+}

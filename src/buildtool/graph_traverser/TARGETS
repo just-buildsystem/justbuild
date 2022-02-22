@@ -1,0 +1,22 @@
+{ "graph_traverser":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["graph_traverser"]
+  , "hdrs": ["graph_traverser.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_engine/executor", "executor"]
+    , ["src/buildtool/execution_engine/traverser", "traverser"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/remote", "bazel"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/file_system", "jsonfs"]
+    , ["src/utils/cpp", "json"]
+    , ["@", "fmt", "", "fmt"]
+    ]
+  , "stage": ["src", "buildtool", "graph_traverser"]
+  }
+}

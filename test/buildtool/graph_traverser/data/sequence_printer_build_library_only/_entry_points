@@ -1,0 +1,9 @@
+{
+    "sequences.a": {
+        "type": "ACTION",
+        "data": {
+            "id": "sequences/link",
+            "path": "lib.a"
+        }
+    }
+}

@@ -1,0 +1,115 @@
+{ "ares_build_h":
+  { "type": "install"
+  , "files": {"ares_build.h": "cares/ares_build.h"}
+  }
+, "ares_config_h":
+  { "type": "install"
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
+  , "files":
+    { "ares_config.h":
+      { "type": "let*"
+      , "bindings":
+        [ [ "PLATFORM"
+          , { "type": "join"
+            , "separator": "_"
+            , "$1":
+              [ {"type": "var", "name": "OS"}
+              , { "type": "var"
+                , "name": "TARGET_ARCH"
+                , "default": {"type": "var", "name": "ARCH"}
+                }
+              ]
+            }
+          ]
+        ]
+      , "body":
+        { "type": "cond"
+        , "cond":
+          [ [ { "type": "or"
+              , "$1":
+                [ { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "ios_x86_64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "ios_armv7"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "ios_armv7s"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "ios_arm64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "tvos_x86_64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "tvos_arm64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "watchos_i386"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "watchos_x86_64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "watchos_armv7k"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "watchos_arm64_32"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "PLATFORM"}
+                  , "$2": "darwin_x86_64"
+                  }
+                , { "type": "=="
+                  , "$1": {"type": "var", "name": "OS"}
+                  , "$2": "darwin"
+                  }
+                ]
+              }
+            , "cares/config_darwin/ares_config.h"
+            ]
+          , [ { "type": "=="
+              , "$1": {"type": "var", "name": "OS"}
+              , "$2": "windows"
+              }
+            , "cares/config_windows/ares_config.h"
+            ]
+          , [ { "type": "=="
+              , "$1": {"type": "var", "name": "OS"}
+              , "$2": "android"
+              }
+            , "cares/config_android/ares_config.h"
+            ]
+          ]
+        , "default": "cares/config_linux/ares_config.h"
+        }
+      }
+    }
+  }
+, "address_sorting":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["address_sorting"]
+  , "stage": ["third_party", "address_sorting"]
+  , "pure C": ["YES"]
+  , "srcs":
+    [ "address_sorting/address_sorting.c"
+    , "address_sorting/address_sorting_posix.c"
+    , "address_sorting/address_sorting_windows.c"
+    ]
+  , "hdrs": ["address_sorting/address_sorting_internal.h"]
+  , "deps":
+    [ ["./", "address_sorting/include/address_sorting", "address_sorting_headers"]
+    ]
+  }
+}

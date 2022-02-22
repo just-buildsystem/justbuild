@@ -1,0 +1,41 @@
+{ "artifact_factory":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["artifact_factory"]
+  , "srcs": ["artifact_factory.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "artifact_factory"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
+, "artifact_description":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["artifact_description"]
+  , "srcs": ["artifact_description.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/common", "artifact_description"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
+, "action_description":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["action_description"]
+  , "srcs": ["action_description.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/common", "action_description"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["action_description", "artifact_description", "artifact_factory"]
+  }
+}

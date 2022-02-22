@@ -1,0 +1,156 @@
+{ "rule just provides":
+  { "type":
+    [ "simple_rules"
+    , "just provide"
+    ]
+  }
+, "rule provides FOO":
+  { "type":
+    [ "simple_rules"
+    , "provide variable FOO"
+    ]
+  }
+, "config transition for FOO":
+  { "type":
+    [ "simple_rules"
+    , "transition FOO"
+    ]
+  , "value":
+    [ "bar"
+    , "baz"
+    ]
+  , "deps":
+    [ "rule provides FOO"
+    ]
+  }
+, "collect dep artifacts":
+  { "type":
+    [ "simple_rules"
+    , "collect deps"
+    ]
+  , "deps":
+    [ "foo.txt"
+    , "bar.txt"
+    , "baz.txt"
+    ]
+  }
+, "collect as runfiles":
+  { "type":
+    [ "simple_rules"
+    , "collect deps as runfiles"
+    ]
+  , "deps":
+    [ "foo.txt"
+    , "bar.txt"
+    , "baz.txt"
+    ]
+  }
+, "stage blob":
+  { "type":
+    [ "simple_rules"
+    , "text file"
+    ]
+  , "name":
+    [ "foo.txt"
+    ]
+  , "content":
+    [ "This is FOO!"
+    ]
+  }
+, "use implicit":
+  { "type":
+    [ "simple_rules"
+    , "implicit file"
+    ]
+  }
+, "actions":
+  { "type":
+    [ "simple_rules"
+    , "upper case"
+    ]
+  , "srcs":
+    [ "foo.txt"
+    , "bar.txt"
+    ]
+  }
+, "artifact names":
+  { "type":
+    [ "simple_rules"
+    , "text file"
+    ]
+  , "name":
+    [ "index.txt"
+    ]
+  , "content":
+    [ { "type": "join"
+      , "separator": ";"
+      , "$1":
+        { "type": "outs"
+        , "dep": "collect dep artifacts"
+        }
+      }
+    ]
+  , "analyze":
+    [ "collect dep artifacts"
+    ]
+  }
+, "runfile names":
+  { "type":
+    [ "simple_rules"
+    , "text file"
+    ]
+  , "name":
+    [ "index.txt"
+    ]
+  , "content":
+    [ { "type": "join"
+      , "separator": ";"
+      , "$1":
+        { "type": "runfiles"
+        , "dep": "collect as runfiles"
+        }
+      }
+    ]
+  , "analyze":
+    [ "collect as runfiles"
+    ]
+  }
+, "use generic":
+  { "type": "generic"
+  , "deps":
+    [ "foo.txt"
+    , "bar.txt"
+    ]
+  , "cmds":
+    [ "cat foo.txt bar.txt > out"
+    , "echo 'DONE' >> out"
+    ]
+  , "outs":
+    [ "out"
+    ]
+  }
+, "install":
+  { "type": "install"
+  , "deps":
+    [ "foo.txt"
+    , "bar.txt"
+    ]
+  , "files":
+    { "combined.txt": "use generic"
+    , "subdir/restaged.txt": "bar.txt"
+    }
+  , "dirs":
+    [ [ "collect as runfiles"
+      , "mix/in/this/subdir"
+      ]
+    , [ "runfile names"
+      , "mix/in/this/subdir"
+      ]
+    ]
+  }
+, "generate file":
+  { "type": "file_gen"
+  , "name": "generated.txt"
+  , "data": "Hello World!"
+  }
+}

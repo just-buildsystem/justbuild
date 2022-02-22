@@ -1,0 +1,46 @@
+{ "linked_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["linked_map"]
+  , "hdrs": ["linked_map.hpp"]
+  , "deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "atomic"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "expression"]
+  }
+, "expression":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["expression"]
+  , "hdrs":
+    [ "configuration.hpp"
+    , "expression_ptr.hpp"
+    , "expression.hpp"
+    , "function_map.hpp"
+    , "evaluator.hpp"
+    , "target_result.hpp"
+    , "target_node.hpp"
+    ]
+  , "srcs":
+    [ "expression_ptr.cpp"
+    , "expression.cpp"
+    , "evaluator.cpp"
+    , "target_node.cpp"
+    ]
+  , "deps":
+    [ "linked_map"
+    , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["src/utils/cpp", "json"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "concepts"]
+    , ["src/utils/cpp", "atomic"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "expression"]
+  }
+}

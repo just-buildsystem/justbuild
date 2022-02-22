@@ -1,0 +1,115 @@
+{ "internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["strings_internal"]
+  , "stage": ["absl", "strings"]
+  , "srcs":
+    [ "internal/escaping.cc"
+    , "internal/ostringstream.cc"
+    , "internal/utf8.cc"
+    ]
+  , "hdrs":
+    [ "internal/char_map.h"
+    , "internal/escaping.h"
+    , "internal/ostringstream.h"
+    , "internal/resize_uninitialized.h"
+    , "internal/utf8.h"
+    ]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "strings":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["strings"]
+  , "stage": ["absl", "strings"]
+  , "srcs":
+    [ "ascii.cc"
+    , "charconv.cc"
+    , "escaping.cc"
+    , "internal/charconv_bigint.cc"
+    , "internal/charconv_parse.cc"
+    , "internal/memutil.cc"
+    , "match.cc"
+    , "numbers.cc"
+    , "str_cat.cc"
+    , "str_replace.cc"
+    , "str_split.cc"
+    , "string_view.cc"
+    , "substitute.cc"
+    ]
+  , "hdrs":
+    [ "ascii.h"
+    , "charconv.h"
+    , "escaping.h"
+    , "internal/memutil.h"
+    , "internal/charconv_bigint.h"
+    , "internal/charconv_parse.h"
+    , "internal/stl_type_traits.h"
+    , "internal/str_join_internal.h"
+    , "internal/str_split_internal.h"
+    , "match.h"
+    , "numbers.h"
+    , "str_cat.h"
+    , "str_join.h"
+    , "str_replace.h"
+    , "str_split.h"
+    , "string_view.h"
+    , "strip.h"
+    , "substitute.h"
+    ]
+  , "deps":
+    [ "internal"
+    , ["absl/base", "base"]
+    , ["absl/base", "bits"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+, "str_format_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["str_format_internal"]
+  , "stage": ["absl", "strings"]
+  , "srcs":
+    [ "internal/str_format/arg.cc"
+    , "internal/str_format/bind.cc"
+    , "internal/str_format/extension.cc"
+    , "internal/str_format/float_conversion.cc"
+    , "internal/str_format/output.cc"
+    , "internal/str_format/parser.cc"
+    ]
+  , "hdrs":
+    [ "internal/str_format/arg.h"
+    , "internal/str_format/bind.h"
+    , "internal/str_format/checker.h"
+    , "internal/str_format/extension.h"
+    , "internal/str_format/float_conversion.h"
+    , "internal/str_format/output.h"
+    , "internal/str_format/parser.h"
+    ]
+  , "deps":
+    [ "strings"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "int128"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "str_format":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["str_format"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["str_format.h"]
+  , "deps": ["str_format_internal"]
+  }
+}

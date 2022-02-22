@@ -1,0 +1,51 @@
+{
+    "blobs": ["test to check if blobs are uploaded", "this"],
+    "trees": {
+        "4d8756372185a2f0c7a1c63ae4aec5080d5abb0e": {
+            "subject": {
+                "type": "KNOWN",
+                "data": {
+                    "id": "a2a3f4f1e30c488bfbd52aabfbcfcc1f5822158d",
+                    "size": 4,
+                    "file_type": "f"
+                }
+            }
+        },
+        "a00e8ce5eec43c5d77b54d0df6016df943ed05da": {
+            "nested": {
+                "type": "TREE",
+                "data": {
+                    "id": "4d8756372185a2f0c7a1c63ae4aec5080d5abb0e"
+                }
+            }
+        }
+    },
+    "actions": {
+        "write_test": {
+            "input": {
+                "main": {
+                    "type": "TREE",
+                    "data": {
+                        "id": "a00e8ce5eec43c5d77b54d0df6016df943ed05da"
+                    }
+                },
+                "thing": {
+                    "type": "KNOWN",
+                    "data": {
+                    "id": "d4d7eecc25bcbd902b0b97a97e8e2e478c97454b",
+                        "size": 35,
+                        "file_type": "f"
+                    }
+                }
+            },
+            "output": [
+                "statement"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\necho -n \"$(cat main/nested/subject) is a $(cat thing)\" > statement"
+            ]
+        }
+    }
+}

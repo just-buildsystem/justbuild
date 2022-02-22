@@ -1,0 +1,37 @@
+{ "protoc":
+  { "type": "export"
+  , "doc":
+    [ "The protobuffer compiler."
+    , ""
+    , "This target typically is used as an implict dependency of"
+    , "the protobuffer rules."
+    ]
+  , "target": ["src/google/protobuf", "protoc"]
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+  }
+, "protoc_lib":
+  { "type": "export"
+  , "doc": []
+  , "target": ["src/google/protobuf", "protoc_lib"]
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+  }
+, "protobuf_headers":
+  { "type": "export"
+  , "doc": [""]
+  , "target": ["src/google/protobuf", "protobuf_headers"]
+  }
+, "C++ runtime":
+  { "type": "export"
+  , "doc": ["The library every generated C++ proto file depends upon"]
+  , "target": ["src/google/protobuf", "protobuf"]
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+  }
+, "well_known_protos":
+  { "type": "export"
+  , "doc": ["Standard well known protobufs"]
+  , "target": ["src/google/protobuf", "well_known_protos"]
+  }
+}

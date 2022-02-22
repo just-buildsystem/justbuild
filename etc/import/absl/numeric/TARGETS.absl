@@ -1,0 +1,13 @@
+{ "int128":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["int128"]
+  , "stage": ["absl", "numeric"]
+  , "srcs": ["int128.cc"]
+  , "hdrs":
+    [ "int128.h"
+    , "int128_have_intrinsic.inc"
+    , "int128_no_intrinsic.inc"
+    ]
+  , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
+  }
+}

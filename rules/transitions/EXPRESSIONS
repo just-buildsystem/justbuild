@@ -1,0 +1,13 @@
+{ "for host":
+  { "vars": ["ARCH", "HOST_ARCH"]
+  , "expression":
+    { "type": "singleton_map"
+    , "key": "TARGET_ARCH"
+    , "value":
+      { "type": "var"
+      , "name": "HOST_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
+    }
+  }
+}

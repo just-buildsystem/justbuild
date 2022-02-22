@@ -1,0 +1,79 @@
+{ "object_type":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["object_type"]
+  , "hdrs": ["object_type.hpp"]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "file_system_manager":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["file_system_manager"]
+  , "hdrs": ["file_system_manager.hpp"]
+  , "deps":
+    [ "object_type"
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "system_command":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["system_command"]
+  , "hdrs": ["system_command.hpp"]
+  , "deps":
+    [ "file_system_manager"
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "jsonfs":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["jsonfs"]
+  , "hdrs": ["jsonfs.hpp"]
+  , "deps": ["object_type", "file_system_manager", ["src/utils/cpp", "json"]]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "git_cas":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_cas"]
+  , "hdrs": ["git_cas.hpp"]
+  , "srcs": ["git_cas.cpp"]
+  , "deps":
+    [ "object_type"
+    , "file_system_manager"
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["", "libgit2"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "git_tree":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_tree"]
+  , "hdrs": ["git_tree.hpp"]
+  , "srcs": ["git_tree.cpp"]
+  , "deps":
+    [ "git_cas"
+    , "object_type"
+    , "file_system_manager"
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "atomic"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+, "file_root":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["file_root"]
+  , "hdrs": ["file_root.hpp"]
+  , "deps":
+    [ "git_tree"
+    , "file_system_manager"
+    , ["src/buildtool/common", "artifact_description"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
+}

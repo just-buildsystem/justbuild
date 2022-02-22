@@ -1,0 +1,9 @@
+{
+    "executable": {
+        "type": "ACTION",
+        "data": {
+            "id": "make_exe",
+            "path": "hello_world"
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{ "git2_http_parser":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git2_http_parser"]
+  , "pure C": ["yes"]
+  , "srcs": ["http_parser.c"]
+  , "private-hdrs": ["http_parser.h"]
+  }
+}

@@ -1,0 +1,9 @@
+{
+    "greeting_output": {
+        "type": "ACTION",
+        "data": {
+            "id": "make_output",
+            "path": "greeting_output"
+        }
+    }
+}
