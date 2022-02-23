@@ -53,33 +53,42 @@
 , "stage_singleton_field":
   { "vars": ["fieldname", "transition", "location"]
   , "expression":
-    { "type": "disjoint_map_union"
+    { "type": "assert_non_empty"
+    , "msg":
+      ["No artifact specified in field", {"type": "var", "name": "fieldname"}]
     , "$1":
-      { "type": "foreach"
-      , "var": "src"
-      , "range":
-        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-      , "body":
-        { "type": "disjoint_map_union"
-        , "$1":
-          { "type": "foreach"
-          , "var": "artifact"
-          , "range":
-            { "type": "values"
-            , "$1":
-              { "type": "DEP_ARTIFACTS"
-              , "dep": {"type": "var", "name": "src"}
-              , "transition":
-                { "type": "var"
-                , "name": "transition"
-                , "default": {"type": "empty_map"}
+      { "type": "disjoint_map_union"
+      , "msg":
+        [ "Expecting (essentially) a single artifact in field"
+        , {"type": "var", "name": "fieldname"}
+        ]
+      , "$1":
+        { "type": "foreach"
+        , "var": "src"
+        , "range":
+          {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+        , "body":
+          { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "artifact"
+            , "range":
+              { "type": "values"
+              , "$1":
+                { "type": "DEP_ARTIFACTS"
+                , "dep": {"type": "var", "name": "src"}
+                , "transition":
+                  { "type": "var"
+                  , "name": "transition"
+                  , "default": {"type": "empty_map"}
+                  }
                 }
               }
-            }
-          , "body":
-            { "type": "singleton_map"
-            , "key": {"type": "var", "name": "location"}
-            , "value": {"type": "var", "name": "artifact"}
+            , "body":
+              { "type": "singleton_map"
+              , "key": {"type": "var", "name": "location"}
+              , "value": {"type": "var", "name": "artifact"}
+              }
             }
           }
         }
