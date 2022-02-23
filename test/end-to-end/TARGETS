@@ -1,0 +1,8 @@
+{ "tool-under-test":
+  {"type": "install", "files": {"bin/tool-under-test": [".", "just"]}}
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["./", "actions", "TESTS"], "actions"]]
+  }
+}

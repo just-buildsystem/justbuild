@@ -1,0 +1,9 @@
+{ "equality":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["equality"]
+  , "test": ["action-equality.sh"]
+  , "keep": ["graph.json"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["equality"]}
+}

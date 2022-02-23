@@ -11,6 +11,7 @@
   , "dirs":
     [ [["./", "buildtool", "TESTS"], "buildtool"]
     , [["./", "utils", "TESTS"], "utils"]
+    , [["./", "end-to-end", "TESTS"], "end-to-end"]
     ]
   }
 , "ALL":
