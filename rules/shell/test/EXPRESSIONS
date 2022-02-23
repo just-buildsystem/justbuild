@@ -1,0 +1,116 @@
+{ "test-result":
+  { "vars": ["name", "test.sh"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "runner"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "runner"
+            , "range": {"type": "FIELD", "name": "runner"}
+            , "body":
+              { "type": "map_union"
+              , "$1":
+                { "type": "foreach"
+                , "var": "runner"
+                , "range":
+                  { "type": "values"
+                  , "$1":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "runner"}
+                    }
+                  }
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": "runner"
+                  , "value": {"type": "var", "name": "runner"}
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "deps"
+        , { "type": "TREE"
+          , "$1":
+            { "type": "disjoint_map_union"
+            , "msg": "Field 'deps' has to stage in a conflict free way"
+            , "$1":
+              { "type": "++"
+              , "$1":
+                [ { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "deps"}
+                  , "body":
+                    { "type": "DEP_RUNFILES"
+                    , "dep": {"type": "var", "name": "dep"}
+                    }
+                  }
+                , { "type": "foreach"
+                  , "var": "dep"
+                  , "range": {"type": "FIELD", "name": "deps"}
+                  , "body":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "dep"}
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      , [ "test-results"
+        , { "type": "ACTION"
+          , "outs":
+            { "type": "++"
+            , "$1":
+              [ ["result", "stdout", "stderr", "time-start", "time-stop"]
+              , { "type": "foreach"
+                , "var": "filename"
+                , "range": {"type": "FIELD", "name": "keep"}
+                , "body":
+                  { "type": "join"
+                  , "$1": ["work/", {"type": "var", "name": "filename"}]
+                  }
+                }
+              ]
+            }
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "singleton_map"
+                , "key": "work"
+                , "value": {"type": "var", "name": "deps"}
+                }
+              , {"type": "var", "name": "runner"}
+              , {"type": "var", "name": "test.sh"}
+              ]
+            }
+          , "cmd":
+            { "type": "++"
+            , "$1": [["./runner"], {"type": "FIELD", "name": "keep"}]
+            }
+          , "may_fail": ["test"]
+          , "fail_message":
+            { "type": "join"
+            , "$1": ["shell test ", {"type": "var", "name": "name"}, " failed"]
+            }
+          }
+        ]
+      , [ "runfiles"
+        , { "type": "singleton_map"
+          , "key": {"type": "var", "name": "name"}
+          , "value":
+            {"type": "TREE", "$1": {"type": "var", "name": "test-results"}}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "test-results"}
+      , "runfiles": {"type": "var", "name": "runfiles"}
+      }
+    }
+  }
+}

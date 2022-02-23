@@ -1,0 +1,50 @@
+{ "script":
+  { "doc": ["Shell test, given by a test script"]
+  , "target_fields": ["deps", "test"]
+  , "string_fields": ["keep", "name"]
+  , "field_doc":
+    { "test": ["The shell script for the test, launched with sh"]
+    , "name":
+      [ "A name for the test, used in reporting, as well as for staging"
+      , "the test result tree in the runfiles"
+      ]
+    , "keep":
+      [ "List of names (relativ to the test working directory) of files that"
+      , "the test might generate that should be kept as part of the output."
+      , "This might be useful for further analysis of the test"
+      ]
+    , "deps":
+      [ "Any targets that should be staged (with artifacts and runfiles) into"
+      , "the tests working directory"
+      ]
+    }
+  , "tainted": ["test"]
+  , "implicit": {"runner": ["test_runner.sh"]}
+  , "imports":
+    { "test-result": "test-result"
+    , "stage": ["./", "../..", "stage_singleton_field"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "test.sh"
+        , { "type": "context"
+          , "msg": "Expecting 'test' to specify precisely one file containing a shell script"
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "test"], ["location", "test.sh"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+            }
+          }
+        ]
+      , [ "name"
+        , { "type": "assert_non_empty"
+          , "msg": "Have to provide a non-empty name for the test (e.g., for result staging)"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "test-result"}
+    }
+  }
+}
