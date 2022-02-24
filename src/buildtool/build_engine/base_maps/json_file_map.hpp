@@ -6,8 +6,8 @@
 #include <string>
 
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"

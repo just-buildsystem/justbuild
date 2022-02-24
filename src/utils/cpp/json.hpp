@@ -6,8 +6,8 @@
 #include <sstream>
 #include <string>
 
-#include "nlohmann/json.hpp"
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 
 template <typename ValueT>
 auto ExtractValueAs(

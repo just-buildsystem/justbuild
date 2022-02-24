@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 
-#include "nlohmann/json.hpp"
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"

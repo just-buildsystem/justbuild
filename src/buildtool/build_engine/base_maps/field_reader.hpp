@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"

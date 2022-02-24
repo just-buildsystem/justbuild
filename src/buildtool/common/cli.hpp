@@ -9,8 +9,8 @@
 
 #include "CLI/CLI.hpp"
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 constexpr auto kDefaultLogLevel = LogLevel::Info;
