@@ -1,0 +1,63 @@
+{ "headers":
+  { "doc": ["Headers of C++ proto binding"]
+  , "target_fields": ["proto"]
+  , "string_fields": ["stage"]
+  , "field_doc":
+    { "proto": ["The proto source files to create the binding from."]
+    , "stage":
+      [ "The logical location of the header files. Individual directory"
+      , "components are joined with \"/\"."
+      ]
+    }
+  , "anonymous":
+    { "proto-deps":
+      { "target": "proto"
+      , "provider": "proto"
+      , "rule_map":
+        { "library": ["./", "..", "library"]
+        , "service library": ["./", "..", "service library"]
+        }
+      }
+    }
+  , "imports": {"runfiles": ["./", "../../..", "field_runfiles"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "to_subdir"
+        , "subdir": {"type": "var", "name": "stage"}
+        , "$1":
+          { "type": "map_union"
+          , "$1":
+            [ { "type": "let*"
+              , "bindings": [["fieldname", "proto-deps"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
+              }
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach"
+                , "var": "x"
+                , "range": {"type": "FIELD", "name": "proto-deps"}
+                , "body":
+                  { "type": "DEP_PROVIDES"
+                  , "provider": "compile-deps"
+                  , "dep": {"type": "var", "name": "x"}
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
