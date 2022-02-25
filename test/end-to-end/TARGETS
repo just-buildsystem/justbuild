@@ -3,6 +3,9 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "dirs": [[["./", "actions", "TESTS"], "actions"]]
+  , "dirs":
+    [ [["./", "actions", "TESTS"], "actions"]
+    , [["./", "targets", "TESTS"], "targets"]
+    ]
   }
 }

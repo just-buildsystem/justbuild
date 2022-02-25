@@ -1,0 +1,9 @@
+{ "upwards reference":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["upwards"]
+  , "test": ["upwards.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["upwards reference"]}
+}
