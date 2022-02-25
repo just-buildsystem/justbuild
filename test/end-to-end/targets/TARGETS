@@ -4,6 +4,15 @@
   , "test": ["upwards.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "repository naming":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["repo_names"]
+  , "test": ["repo_names.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["upwards reference"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["upwards reference", "repository naming"]
+  }
 }
