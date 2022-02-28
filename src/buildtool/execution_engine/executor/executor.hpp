@@ -2,6 +2,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_EXECUTOR_HPP
 
 #include <algorithm>
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -29,6 +30,7 @@ class ExecutorImpl {
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         gsl::not_null<IExecutionApi*> const& api,
         std::map<std::string, std::string> const& properties,
+        std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag)
         -> std::optional<IExecutionResponse::Ptr> {
         auto const& inputs = action->Dependencies();
@@ -81,7 +83,7 @@ class ExecutorImpl {
 
         // set action options
         remote_action->SetCacheFlag(cache_flag);
-        remote_action->SetTimeout(IExecutionAction::kDefaultTimeout);
+        remote_action->SetTimeout(timeout);
         return remote_action->Execute(&logger);
     }
 
@@ -343,9 +345,11 @@ class Executor {
     using CF = IExecutionAction::CacheFlag;
 
   public:
-    explicit Executor(IExecutionApi* api,
-                      std::map<std::string, std::string> properties)
-        : api_{api}, properties_{std::move(properties)} {}
+    explicit Executor(
+        IExecutionApi* api,
+        std::map<std::string, std::string> properties,
+        std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
+        : api_{api}, properties_{std::move(properties)}, timeout_{timeout} {}
 
     /// \brief Run an action in a blocking manner
     /// This method must be thread-safe as it could be called in parallel
@@ -361,6 +365,7 @@ class Executor {
             action,
             api_,
             properties_,
+            timeout_,
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
 
         // check response and save digests of results
@@ -379,6 +384,7 @@ class Executor {
   private:
     gsl::not_null<IExecutionApi*> api_;
     std::map<std::string, std::string> properties_;
+    std::chrono::milliseconds timeout_;
 };
 
 /// \brief Rebuilder for running and comparing actions of two API endpoints.
@@ -391,12 +397,16 @@ class Rebuilder {
     /// \param api          Rebuild endpoint, executes without action cache.
     /// \param api_cached   Reference endpoint, serves everything from cache.
     /// \param properties   Platform properties for execution.
-    Rebuilder(IExecutionApi* api,
-              IExecutionApi* api_cached,
-              std::map<std::string, std::string> properties)
+    /// \param timeout      Timeout for action execution.
+    Rebuilder(
+        IExecutionApi* api,
+        IExecutionApi* api_cached,
+        std::map<std::string, std::string> properties,
+        std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : api_{api},
           api_cached_{api_cached},
-          properties_{std::move(properties)} {}
+          properties_{std::move(properties)},
+          timeout_{timeout} {}
 
     [[nodiscard]] auto Process(
         gsl::not_null<DependencyGraph::ActionNode const*> const& action)
@@ -404,15 +414,19 @@ class Rebuilder {
         auto const& action_id = action->Content().Id();
         Logger logger("rebuild:" + action_id);
         auto response = Impl::ExecuteAction(
-            logger, action, api_, properties_, CF::PretendCached);
+            logger, action, api_, properties_, timeout_, CF::PretendCached);
 
         if (not response) {
             return true;  // action without response (e.g., tree action)
         }
 
         Logger logger_cached("cached:" + action_id);
-        auto response_cached = Impl::ExecuteAction(
-            logger_cached, action, api_cached_, properties_, CF::FromCacheOnly);
+        auto response_cached = Impl::ExecuteAction(logger_cached,
+                                                   action,
+                                                   api_cached_,
+                                                   properties_,
+                                                   timeout_,
+                                                   CF::FromCacheOnly);
 
         if (not response_cached) {
             logger_cached.Emit(LogLevel::Error,
@@ -446,6 +460,7 @@ class Rebuilder {
     gsl::not_null<IExecutionApi*> api_;
     gsl::not_null<IExecutionApi*> api_cached_;
     std::map<std::string, std::string> properties_;
+    std::chrono::milliseconds timeout_;
     mutable std::mutex m_;
     mutable std::vector<std::string> cache_misses_{};
     mutable std::unordered_map<

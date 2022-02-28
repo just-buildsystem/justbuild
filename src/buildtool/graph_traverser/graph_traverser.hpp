@@ -282,7 +282,8 @@ class GraphTraverser {
     [[nodiscard]] auto Traverse(
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
-        Executor executor{&(*api_), clargs_.build.platform_properties};
+        Executor executor{
+            &(*api_), clargs_.build.platform_properties, clargs_.build.timeout};
         Traverser t{executor, g, clargs_.jobs};
         return t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
     }
@@ -301,8 +302,10 @@ class GraphTraverser {
 
         // setup rebuilder with api for cache endpoint
         auto api_cached = CreateExecutionApi(cache_args);
-        Rebuilder executor{
-            &(*api_), &(*api_cached), clargs_.build.platform_properties};
+        Rebuilder executor{&(*api_),
+                           &(*api_cached),
+                           clargs_.build.platform_properties,
+                           clargs_.build.timeout};
         bool success{false};
         {
             Traverser t{executor, g, clargs_.jobs};

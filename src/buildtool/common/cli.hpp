@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
 
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <string>
@@ -14,6 +15,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 
 constexpr auto kDefaultLogLevel = LogLevel::Info;
+constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
 
 /// \brief Arguments common to all commands.
 struct CommonArguments {
@@ -59,6 +61,7 @@ struct EndpointArguments {
 struct BuildArguments {
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
     std::map<std::string, std::string> platform_properties;
+    std::chrono::milliseconds timeout{kDefaultTimeout};
     std::size_t build_jobs{};
     std::optional<std::string> dump_artifacts{std::nullopt};
     std::optional<std::string> print_to_stdout{std::nullopt};
@@ -268,6 +271,14 @@ static inline auto SetupBuildArguments(
         ->type_name("KEY:VAL")
         ->allow_extra_args(false)
         ->expected(1, 1);
+
+    app->add_option_function<unsigned int>(
+           "--action_timeout",
+           [clargs](auto const& seconds) {
+               clargs->timeout = seconds * std::chrono::seconds{1};
+           },
+           "Action timeout in seconds. (Default: 300).")
+        ->type_name("NUM");
 
     app->add_option(
            "-J,--build_jobs",
