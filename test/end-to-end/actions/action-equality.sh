@@ -46,14 +46,14 @@ cat > TARGETS <<'EOI'
 EOI
 
 
-bin/tool-under-test build -J 1 --local_build_root .tool-root 2>log
-cat log
+bin/tool-under-test build -J 1 --local_build_root .tool-root -f build.log 2>&1
+cat build.log
 echo
-grep '4 actions' log
-grep '1 cache hit' log
+grep 'Processed.* 4 actions' build.log
+grep '1 cache hit' build.log
 
 echo
-bin/tool-under-test analyse --dump_graph graph.json
+bin/tool-under-test analyse --dump_graph graph.json 2>&1
 echo
 matching_targets=$(cat graph.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .target]] | sort')
 echo "${matching_targets}"
