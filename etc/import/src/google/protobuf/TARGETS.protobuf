@@ -326,7 +326,7 @@
     , "wire_format.cc"
     , "wrappers.pb.cc"
     ]
-  , "deps": ["protobuf_lite"]
+  , "deps": ["protobuf_lite", ["@", "zlib", "", "zlib"]]
   }
 
 , "protoc_lib":

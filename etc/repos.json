@@ -119,7 +119,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
-    , "bindings": {"rules": "rules-protobuf"}
+    , "bindings": {"rules": "rules-protobuf", "zlib": "zlib"}
     }
   , "bazel_remote_apis":
     { "repository":
