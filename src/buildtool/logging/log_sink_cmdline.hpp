@@ -56,6 +56,7 @@ class LogSinkCmdLine final : public ILogSink {
                 fmt::print(stderr, "{} {}\n", prefix, line);
                 prefix = cont_prefix;
             });
+            std::fflush(stderr);
         }
     }
 
