@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -223,6 +224,12 @@ class ResultTargetMap {
                             }
                         });
         result.actions.erase(lastaction, result.actions.end());
+
+        Logger::Log(LogLevel::Info,
+                    "Discovered {} actions, {} trees, {} blobs",
+                    result.actions.size(),
+                    result.trees.size(),
+                    result.blobs.size());
 
         return result;
     }
