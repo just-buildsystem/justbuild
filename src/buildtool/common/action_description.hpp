@@ -2,6 +2,7 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ACTION_DESCRIPTION_HPP
 
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -15,6 +16,7 @@ class ActionDescription {
   public:
     using outputs_t = std::vector<std::string>;
     using inputs_t = std::unordered_map<std::string, ArtifactDescription>;
+    using Ptr = std::shared_ptr<ActionDescription>;
 
     ActionDescription(outputs_t output_files,
                       outputs_t output_dirs,
@@ -27,7 +29,7 @@ class ActionDescription {
 
     [[nodiscard]] static auto FromJson(std::string const& id,
                                        nlohmann::json const& desc) noexcept
-        -> std::optional<ActionDescription> {
+        -> std::optional<ActionDescription::Ptr> {
         try {
             auto outputs =
                 ExtractValueAs<std::vector<std::string>>(desc, "output");
@@ -113,11 +115,11 @@ class ActionDescription {
                 no_cache = *no_cache_it;
             }
 
-            return ActionDescription{
+            return std::make_shared<ActionDescription>(
                 std::move(*outputs),
                 std::move(*output_dirs),
                 Action{id, std::move(*command), env, may_fail, no_cache},
-                inputs};
+                inputs);
         } catch (std::exception const& ex) {
             Logger::Log(
                 LogLevel::Error,

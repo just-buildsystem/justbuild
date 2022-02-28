@@ -43,13 +43,13 @@ auto getTainted(std::set<std::string>* tainted,
                 const ExpressionPtr& tainted_exp,
                 const BuildMaps::Target::TargetMap::LoggerPtr& logger) -> bool;
 
-auto createAction(ActionDescription::outputs_t output_files,
-                  ActionDescription::outputs_t output_dirs,
+auto createAction(const ActionDescription::outputs_t& output_files,
+                  const ActionDescription::outputs_t& output_dirs,
                   std::vector<std::string> command,
                   const ExpressionPtr& env,
                   std::optional<std::string> may_fail,
                   bool no_cache,
-                  const ExpressionPtr& inputs_exp) -> ActionDescription;
+                  const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr;
 
 }  // namespace BuildMaps::Target::Utils
 #endif

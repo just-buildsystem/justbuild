@@ -147,9 +147,9 @@ void FileGenRuleWithDeps(
     vars_set.insert(param_vars->begin(), param_vars->end());
     auto analysis_result = std::make_shared<AnalysedTarget>(
         TargetResult{stage, ExpressionPtr{Expression::map_t{}}, stage},
-        std::vector<ActionDescription>{},
+        std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{data_val->String()},
-        std::vector<Tree>{},
+        std::vector<Tree::Ptr>{},
         std::move(vars_set),
         std::move(tainted));
     analysis_result =
@@ -344,9 +344,9 @@ void InstallRuleWithDeps(
     auto const& empty_map = Expression::kEmptyMap;
     auto result =
         std::make_shared<AnalysedTarget>(TargetResult{stage, empty_map, stage},
-                                         std::vector<ActionDescription>{},
+                                         std::vector<ActionDescription::Ptr>{},
                                          std::vector<std::string>{},
-                                         std::vector<Tree>{},
+                                         std::vector<Tree::Ptr>{},
                                          std::move(effective_vars),
                                          std::move(tainted));
 
@@ -708,7 +708,7 @@ void GenericRuleWithDeps(
                                                std::nullopt,
                                                false,
                                                inputs);
-    auto action_identifier = action.Id();
+    auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;
     for (auto const& path : outs) {
         artifacts.emplace(path,
@@ -720,9 +720,9 @@ void GenericRuleWithDeps(
     auto result = std::make_shared<AnalysedTarget>(
         TargetResult{
             ExpressionPtr{Expression::map_t{artifacts}}, empty_map, empty_map},
-        std::vector<ActionDescription>{action},
+        std::vector<ActionDescription::Ptr>{action},
         std::vector<std::string>{},
-        std::vector<Tree>{},
+        std::vector<Tree::Ptr>{},
         std::move(effective_vars),
         std::move(tainted));
 

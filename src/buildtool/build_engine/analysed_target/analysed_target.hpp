@@ -16,9 +16,9 @@
 class AnalysedTarget {
   public:
     AnalysedTarget(TargetResult result,
-                   std::vector<ActionDescription> actions,
+                   std::vector<ActionDescription::Ptr> actions,
                    std::vector<std::string> blobs,
-                   std::vector<Tree> trees,
+                   std::vector<Tree::Ptr> trees,
                    std::unordered_set<std::string> vars,
                    std::set<std::string> tainted)
         : result_{std::move(result)},
@@ -29,10 +29,11 @@ class AnalysedTarget {
           tainted_{std::move(tainted)} {}
 
     [[nodiscard]] auto Actions() const& noexcept
-        -> std::vector<ActionDescription> const& {
+        -> std::vector<ActionDescription::Ptr> const& {
         return actions_;
     }
-    [[nodiscard]] auto Actions() && noexcept -> std::vector<ActionDescription> {
+    [[nodiscard]] auto Actions() && noexcept
+        -> std::vector<ActionDescription::Ptr> {
         return std::move(actions_);
     }
     [[nodiscard]] auto Artifacts() const& noexcept -> ExpressionPtr const& {
@@ -57,10 +58,11 @@ class AnalysedTarget {
         -> std::vector<std::string> const& {
         return blobs_;
     }
-    [[nodiscard]] auto Trees() && noexcept -> std::vector<Tree> {
+    [[nodiscard]] auto Trees() && noexcept -> std::vector<Tree::Ptr> {
         return std::move(trees_);
     }
-    [[nodiscard]] auto Trees() const& noexcept -> std::vector<Tree> const& {
+    [[nodiscard]] auto Trees() const& noexcept
+        -> std::vector<Tree::Ptr> const& {
         return trees_;
     }
     [[nodiscard]] auto Blobs() && noexcept -> std::vector<std::string> {
@@ -89,9 +91,9 @@ class AnalysedTarget {
 
   private:
     TargetResult result_;
-    std::vector<ActionDescription> actions_;
+    std::vector<ActionDescription::Ptr> actions_;
     std::vector<std::string> blobs_;
-    std::vector<Tree> trees_;
+    std::vector<Tree::Ptr> trees_;
     std::unordered_set<std::string> vars_;
     std::set<std::string> tainted_;
 };

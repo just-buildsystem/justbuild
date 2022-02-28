@@ -48,9 +48,9 @@ class GraphTraverser {
     [[nodiscard]] auto BuildAndStage(
         std::map<std::string, ArtifactDescription> const& artifact_descriptions,
         std::map<std::string, ArtifactDescription> const& runfile_descriptions,
-        std::vector<ActionDescription> const& action_descriptions,
+        std::vector<ActionDescription::Ptr> const& action_descriptions,
         std::vector<std::string> const& blobs,
-        std::vector<Tree> const& trees) const
+        std::vector<Tree::Ptr> const& trees) const
         -> std::optional<std::pair<std::vector<std::filesystem::path>, bool>> {
         DependencyGraph graph;  // must outlive artifact_nodes
         auto artifacts = BuildArtifacts(&graph,
@@ -110,7 +110,7 @@ class GraphTraverser {
         }
         auto const [blobs, tree_descs, actions] = *desc;
 
-        std::vector<ActionDescription> action_descriptions{};
+        std::vector<ActionDescription::Ptr> action_descriptions{};
         action_descriptions.reserve(actions.size());
         for (auto const& [id, description] : actions.items()) {
             auto action = ActionDescription::FromJson(id, description);
@@ -120,7 +120,7 @@ class GraphTraverser {
             action_descriptions.emplace_back(std::move(*action));
         }
 
-        std::vector<Tree> trees{};
+        std::vector<Tree::Ptr> trees{};
         for (auto const& [id, description] : tree_descs.items()) {
             auto tree = Tree::FromJson(id, description);
             if (not tree) {
@@ -372,8 +372,8 @@ class GraphTraverser {
         gsl::not_null<DependencyGraph*> const& graph,
         std::map<std::string, ArtifactDescription> const& artifacts,
         std::map<std::string, ArtifactDescription> const& runfiles,
-        std::vector<ActionDescription> const& actions,
-        std::vector<Tree> const& trees,
+        std::vector<ActionDescription::Ptr> const& actions,
+        std::vector<Tree::Ptr> const& trees,
         std::vector<std::string> const& blobs) const
         -> std::optional<
             std::pair<std::vector<std::filesystem::path>,
@@ -392,14 +392,14 @@ class GraphTraverser {
         std::vector<ActionDescription> tree_actions{};
         tree_actions.reserve(trees.size());
         for (auto const& tree : trees) {
-            tree_actions.emplace_back(tree.Action());
+            tree_actions.emplace_back(tree->Action());
         }
 
         if (not graph->Add(actions) or not graph->Add(tree_actions)) {
             Logger::Log(LogLevel::Error, [&actions]() {
                 auto json = nlohmann::json::array();
                 for (auto const& desc : actions) {
-                    json.push_back(desc.ToJson());
+                    json.push_back(desc->ToJson());
                 }
                 return fmt::format(
                     "could not build the dependency graph from the actions "

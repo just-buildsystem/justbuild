@@ -524,6 +524,9 @@ class DependencyGraph : DirectedAcyclicGraph {
     [[nodiscard]] auto Add(std::vector<ActionDescription> const& actions)
         -> bool;
 
+    [[nodiscard]] auto Add(std::vector<ActionDescription::Ptr> const& actions)
+        -> bool;
+
     [[nodiscard]] auto AddAction(ActionDescription const& description) -> bool;
 
     [[nodiscard]] auto AddArtifact(ArtifactDescription const& description)

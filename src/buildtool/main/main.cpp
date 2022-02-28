@@ -694,10 +694,11 @@ struct AnalysisResult {
 [[nodiscard]] auto TargetActionsToJson(AnalysedTargetPtr const& target)
     -> nlohmann::json {
     auto actions = nlohmann::json::array();
-    std::for_each(
-        target->Actions().begin(),
-        target->Actions().end(),
-        [&actions](auto const& action) { actions.push_back(action.ToJson()); });
+    std::for_each(target->Actions().begin(),
+                  target->Actions().end(),
+                  [&actions](auto const& action) {
+                      actions.push_back(action->ToJson());
+                  });
     return actions;
 }
 
@@ -707,7 +708,7 @@ struct AnalysisResult {
     std::for_each(
         target->Trees().begin(),
         target->Trees().end(),
-        [&trees](auto const& tree) { trees[tree.Id()] = tree.ToJson(); });
+        [&trees](auto const& tree) { trees[tree->Id()] = tree->ToJson(); });
 
     return trees;
 }

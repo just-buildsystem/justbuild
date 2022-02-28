@@ -25,22 +25,22 @@ namespace BuildMaps::Target {
 class ResultTargetMap {
   public:
     struct ActionWithOrigin {
-        ActionDescription desc;
+        ActionDescription::Ptr desc;
         nlohmann::json origin;
     };
 
     template <bool kIncludeOrigins = false>
     struct ResultType {
-        std::vector<ActionDescription> actions{};
+        std::vector<ActionDescription::Ptr> actions{};
         std::vector<std::string> blobs{};
-        std::vector<Tree> trees{};
+        std::vector<Tree::Ptr> trees{};
     };
 
     template <>
     struct ResultType</*kIncludeOrigins=*/true> {
         std::vector<ActionWithOrigin> actions{};
         std::vector<std::string> blobs{};
-        std::vector<Tree> trees{};
+        std::vector<Tree::Ptr> trees{};
     };
 
     explicit ResultTargetMap(std::size_t jobs) : width_{ComputeWidth(jobs)} {}
@@ -122,7 +122,7 @@ class ResultTargetMap {
                             [&origin_map, &pos, &el](auto const& action) {
                                 std::pair<ConfiguredTarget, std::size_t> origin{
                                     el.first, pos++};
-                                auto id = action.Id();
+                                auto id = action->Id();
                                 if (origin_map.contains(id)) {
                                     origin_map[id].push_back(origin);
                                 }
@@ -161,7 +161,7 @@ class ResultTargetMap {
                                   [&result, &origin_map](auto const& action) {
                                       auto origins = nlohmann::json::array();
                                       for (auto const& [ct, count] :
-                                           origin_map[action.Id()]) {
+                                           origin_map[action->Id()]) {
                                           origins.push_back(nlohmann::json{
                                               {"target", ct.target.ToJson()},
                                               {"subtask", count},
@@ -191,23 +191,24 @@ class ResultTargetMap {
         auto lastblob = std::unique(result.blobs.begin(), result.blobs.end());
         result.blobs.erase(lastblob, result.blobs.end());
 
-        std::sort(result.trees.begin(),
-                  result.trees.end(),
-                  [](auto left, auto right) { return left.Id() < right.Id(); });
+        std::sort(
+            result.trees.begin(),
+            result.trees.end(),
+            [](auto left, auto right) { return left->Id() < right->Id(); });
         auto lasttree = std::unique(
             result.trees.begin(),
             result.trees.end(),
-            [](auto left, auto right) { return left.Id() == right.Id(); });
+            [](auto left, auto right) { return left->Id() == right->Id(); });
         result.trees.erase(lasttree, result.trees.end());
 
         std::sort(result.actions.begin(),
                   result.actions.end(),
                   [](auto left, auto right) {
                       if constexpr (kIncludeOrigins) {
-                          return left.desc.Id() < right.desc.Id();
+                          return left.desc->Id() < right.desc->Id();
                       }
                       else {
-                          return left.Id() < right.Id();
+                          return left->Id() < right->Id();
                       }
                   });
         auto lastaction =
@@ -215,10 +216,10 @@ class ResultTargetMap {
                         result.actions.end(),
                         [](auto left, auto right) {
                             if constexpr (kIncludeOrigins) {
-                                return left.desc.Id() == right.desc.Id();
+                                return left.desc->Id() == right.desc->Id();
                             }
                             else {
-                                return left.Id() == right.Id();
+                                return left->Id() == right->Id();
                             }
                         });
         result.actions.erase(lastaction, result.actions.end());
@@ -235,19 +236,19 @@ class ResultTargetMap {
                       result.actions.end(),
                       [&actions](auto const& action) {
                           if constexpr (kIncludeOrigins) {
-                              auto const& id = action.desc.GraphAction().Id();
-                              actions[id] = action.desc.ToJson();
+                              auto const& id = action.desc->GraphAction().Id();
+                              actions[id] = action.desc->ToJson();
                               actions[id]["origins"] = action.origin;
                           }
                           else {
-                              auto const& id = action.GraphAction().Id();
-                              actions[id] = action.ToJson();
+                              auto const& id = action->GraphAction().Id();
+                              actions[id] = action->ToJson();
                           }
                       });
         std::for_each(
             result.trees.begin(),
             result.trees.end(),
-            [&trees](auto const& tree) { trees[tree.Id()] = tree.ToJson(); });
+            [&trees](auto const& tree) { trees[tree->Id()] = tree->ToJson(); });
         return nlohmann::json{
             {"actions", actions}, {"blobs", result.blobs}, {"trees", trees}};
     }

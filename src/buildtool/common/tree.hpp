@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_TREE_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_TREE_HPP
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -13,6 +14,7 @@ class Tree {
     using inputs_t = ActionDescription::inputs_t;
 
   public:
+    using Ptr = std::shared_ptr<Tree>;
     explicit Tree(inputs_t&& inputs)
         : id_{ComputeId(inputs)}, inputs_{std::move(inputs)} {}
 
@@ -36,7 +38,7 @@ class Tree {
 
     [[nodiscard]] static auto FromJson(std::string const& id,
                                        nlohmann::json const& json)
-        -> std::optional<Tree> {
+        -> std::optional<Tree::Ptr> {
         auto inputs = inputs_t{};
         inputs.reserve(json.size());
         for (auto const& [path, artifact] : json.items()) {
@@ -46,15 +48,15 @@ class Tree {
             }
             inputs.emplace(path, std::move(*artifact_desc));
         }
-        return Tree{id, std::move(inputs)};
+        return std::make_shared<Tree>(id, std::move(inputs));
     }
+
+    Tree(std::string id, inputs_t&& inputs)
+        : id_{std::move(id)}, inputs_{std::move(inputs)} {}
 
   private:
     std::string id_;
     inputs_t inputs_;
-
-    Tree(std::string id, inputs_t&& inputs)
-        : id_{std::move(id)}, inputs_{std::move(inputs)} {}
 
     static auto ComputeDescription(inputs_t const& inputs) -> nlohmann::json {
         auto json = nlohmann::json::object();

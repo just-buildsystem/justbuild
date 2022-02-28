@@ -20,7 +20,7 @@ TEST_CASE("From JSON", "[action_description]") {
     SECTION("Parse full action") {
         auto description = ActionDescription::FromJson("id", json);
         REQUIRE(description);
-        CHECK(description->ToJson() == json);
+        CHECK((*description)->ToJson() == json);
     }
 
     SECTION("Parse action without optional input") {

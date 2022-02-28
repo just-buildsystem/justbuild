@@ -21,12 +21,12 @@ namespace {
 
 [[nodiscard]] auto CreateAnalysedTarget(
     TargetResult const& result,
-    std::vector<ActionDescription> const& descs,
+    std::vector<ActionDescription::Ptr> const& descs,
     std::vector<std::string> const& blobs) -> AnalysedTargetPtr {
     return std::make_shared<AnalysedTarget>(result,
                                             descs,
                                             blobs,
-                                            std::vector<Tree>(),
+                                            std::vector<Tree::Ptr>(),
                                             std::unordered_set<std::string>{},
                                             std::set<std::string>{});
 }
@@ -54,34 +54,43 @@ TEST_CASE("origins creation", "[result_map]") {
     using BuildMaps::Base::EntityName;
     using BuildMaps::Target::ResultTargetMap;
 
-    auto foo =
-        ActionDescription{{}, {}, Action{"run_foo", {"touch", "foo"}, {}}, {}};
-    auto bar =
-        ActionDescription{{}, {}, Action{"run_bar", {"touch", "bar"}, {}}, {}};
-    auto baz =
-        ActionDescription{{}, {}, Action{"run_baz", {"touch", "baz"}, {}}, {}};
+    auto foo = std::make_shared<ActionDescription>(
+        ActionDescription::outputs_t{},
+        ActionDescription::outputs_t{},
+        Action{"run_foo", {"touch", "foo"}, {}},
+        ActionDescription::inputs_t{});
+    auto bar = std::make_shared<ActionDescription>(
+        ActionDescription::outputs_t{},
+        ActionDescription::outputs_t{},
+        Action{"run_bar", {"touch", "bar"}, {}},
+        ActionDescription::inputs_t{});
+    auto baz = std::make_shared<ActionDescription>(
+        ActionDescription::outputs_t{},
+        ActionDescription::outputs_t{},
+        Action{"run_baz", {"touch", "baz"}, {}},
+        ActionDescription::inputs_t{});
 
     ResultTargetMap map{0};
     CHECK(map.Add(EntityName{"", ".", "foobar"},
                   {},
                   CreateAnalysedTarget(
-                      {}, std::vector<ActionDescription>{foo, bar}, {})));
-    CHECK(map.Add(
-        EntityName{"", ".", "baz"},
-        {},
-        CreateAnalysedTarget({}, std::vector<ActionDescription>{baz}, {})));
+                      {}, std::vector<ActionDescription::Ptr>{foo, bar}, {})));
+    CHECK(map.Add(EntityName{"", ".", "baz"},
+                  {},
+                  CreateAnalysedTarget(
+                      {}, std::vector<ActionDescription::Ptr>{baz}, {})));
 
     auto result = map.ToResult();
     REQUIRE(result.actions.size() == 3);
     CHECK(result.blobs.empty());
 
-    auto expect_foo = foo.ToJson();
-    auto expect_bar = bar.ToJson();
-    auto expect_baz = baz.ToJson();
+    auto expect_foo = foo->ToJson();
+    auto expect_bar = bar->ToJson();
+    auto expect_baz = baz->ToJson();
     CHECK(map.ToJson() == nlohmann::json{{"actions",
-                                          {{foo.Id(), expect_foo},
-                                           {bar.Id(), expect_bar},
-                                           {baz.Id(), expect_baz}}},
+                                          {{foo->Id(), expect_foo},
+                                           {bar->Id(), expect_bar},
+                                           {baz->Id(), expect_baz}}},
                                          {"blobs", nlohmann::json::array()},
                                          {"trees", nlohmann::json::object()}});
 
@@ -101,9 +110,9 @@ TEST_CASE("origins creation", "[result_map]") {
     nlohmann::json from_file{};
     file >> from_file;
     CHECK(from_file == nlohmann::json{{"actions",
-                                       {{foo.Id(), expect_foo},
-                                        {bar.Id(), expect_bar},
-                                        {baz.Id(), expect_baz}}},
+                                       {{foo->Id(), expect_foo},
+                                        {bar->Id(), expect_bar},
+                                        {baz->Id(), expect_baz}}},
                                       {"blobs", nlohmann::json::array()},
                                       {"trees", nlohmann::json::object()}});
 }

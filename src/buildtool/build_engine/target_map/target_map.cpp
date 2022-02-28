@@ -302,9 +302,9 @@ void withDependencies(
 
     // Evaluate main expression
     auto expression_config = key.config.Prune(config_vars);
-    std::vector<ActionDescription> actions{};
+    std::vector<ActionDescription::Ptr> actions{};
     std::vector<std::string> blobs{};
-    std::vector<Tree> trees{};
+    std::vector<Tree::Ptr> trees{};
     auto main_exp_fcts = FunctionMap::MakePtr(
         {{"FIELD",
           [&params](auto&& eval, auto const& expr, auto const& env) {
@@ -496,7 +496,7 @@ void withDependencies(
                                                          may_fail,
                                                          no_cache,
                                                          inputs_exp);
-              auto action_id = action.Id();
+              auto action_id = action->Id();
               actions.emplace_back(std::move(action));
               for (auto const& out : outputs) {
                   result.emplace(out,
@@ -566,8 +566,8 @@ void withDependencies(
                   throw Evaluator::EvaluationError{
                       fmt::format("TREE conflicts on subtree {}", *conflict)};
               }
-              auto tree = Tree{std::move(artifacts)};
-              auto tree_id = tree.Id();
+              auto tree = std::make_shared<Tree>(std::move(artifacts));
+              auto tree_id = tree->Id();
               trees.emplace_back(std::move(tree));
               return ExpressionPtr{ArtifactDescription{tree_id}};
           }},

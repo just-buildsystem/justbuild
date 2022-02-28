@@ -17,9 +17,9 @@ auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
         ExpressionPtr{Expression::map_t{key.name, std::move(artifact)}};
     return std::make_shared<AnalysedTarget>(
         TargetResult{stage, Expression::kEmptyMap, stage},
-        std::vector<ActionDescription>{},
+        std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
-        std::vector<Tree>{},
+        std::vector<Tree::Ptr>{},
         std::unordered_set<std::string>{},
         std::set<std::string>{});
 }

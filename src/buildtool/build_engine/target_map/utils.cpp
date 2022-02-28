@@ -152,13 +152,13 @@ auto hash_vector(std::vector<std::string> const& vec) -> std::string {
 }  // namespace
 
 auto BuildMaps::Target::Utils::createAction(
-    ActionDescription::outputs_t output_files,
-    ActionDescription::outputs_t output_dirs,
+    const ActionDescription::outputs_t& output_files,
+    const ActionDescription::outputs_t& output_dirs,
     std::vector<std::string> command,
     const ExpressionPtr& env,
     std::optional<std::string> may_fail,
     bool no_cache,
-    const ExpressionPtr& inputs_exp) -> ActionDescription {
+    const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
     auto hasher = HashGenerator{BuildMaps::Target::Utils::kActionHash}
                       .IncrementalHasher();
     hasher.Update(hash_vector(output_files));
@@ -186,12 +186,12 @@ auto BuildMaps::Target::Utils::createAction(
     for (auto const& [input_path, artifact] : inputs_exp->Map()) {
         inputs.emplace(input_path, artifact->Artifact());
     }
-    return ActionDescription{std::move(output_files),
-                             std::move(output_dirs),
-                             Action{std::move(action_id),
-                                    std::move(command),
-                                    std::move(env_vars),
-                                    std::move(may_fail),
-                                    no_cache},
-                             std::move(inputs)};
+    return std::make_shared<ActionDescription>(output_files,
+                                               output_dirs,
+                                               Action{std::move(action_id),
+                                                      std::move(command),
+                                                      std::move(env_vars),
+                                                      std::move(may_fail),
+                                                      no_cache},
+                                               std::move(inputs));
 }

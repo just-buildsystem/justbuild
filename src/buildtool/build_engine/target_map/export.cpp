@@ -40,9 +40,9 @@ void FinalizeExport(
     // action
     auto analysis_result = std::make_shared<AnalysedTarget>(
         TargetResult{(*value)->Artifacts(), provides, (*value)->RunFiles()},
-        std::vector<ActionDescription>{},
+        std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
-        std::vector<Tree>{},
+        std::vector<Tree::Ptr>{},
         std::move(vars_set),
         std::set<std::string>{});
     analysis_result =

@@ -315,9 +315,9 @@ TEST_CASE("simple targets") {
         // in the vector is guaranteed. The test rule generates the action by
         // iterating over the "srcs" field, so we get the actions in the order
         // of that field, not in alphabetical order.
-        CHECK(result->Actions()[0].ToJson()["input"]["in"]["data"]["path"] ==
+        CHECK(result->Actions()[0]->ToJson()["input"]["in"]["data"]["path"] ==
               "simple_targets/foo.txt");
-        CHECK(result->Actions()[1].ToJson()["input"]["in"]["data"]["path"] ==
+        CHECK(result->Actions()[1]->ToJson()["input"]["in"]["data"]["path"] ==
               "simple_targets/bar.txt");
     }
 }
@@ -594,9 +594,9 @@ TEST_CASE("target reference") {
 
         CHECK(result->Actions().size() == 1);
         CHECK(result->Actions()[0]
-                  .ToJson()["input"]["raw_data/hello.txt"]["type"] == "LOCAL");
+                  ->ToJson()["input"]["raw_data/hello.txt"]["type"] == "LOCAL");
         CHECK(result->Actions()[0]
-                  .ToJson()["input"]["raw_data/hello.txt"]["data"]["path"] ==
+                  ->ToJson()["input"]["raw_data/hello.txt"]["data"]["path"] ==
               "file_reference/hello.txt");
     }
 
@@ -665,16 +665,17 @@ TEST_CASE("trees") {
         CHECK(!error);
         CHECK(error_msg == "NONE");
         CHECK(result->Actions().size() == 1);
-        CHECK(result->Actions()[0].ToJson()["input"]["tree"]["type"] == "TREE");
-        CHECK(result->Actions()[0].ToJson()["input"]["foo.txt"]["type"] ==
+        CHECK(result->Actions()[0]->ToJson()["input"]["tree"]["type"] ==
+              "TREE");
+        CHECK(result->Actions()[0]->ToJson()["input"]["foo.txt"]["type"] ==
               "LOCAL");
-        CHECK(
-            result->Actions()[0].ToJson()["input"]["foo.txt"]["data"]["path"] ==
-            "tree/foo.txt");
+        CHECK(result->Actions()[0]->ToJson()["input"]["foo.txt"]["data"]["pat"
+                                                                         "h"] ==
+              "tree/foo.txt");
         CHECK(result->Trees().size() == 1);
-        CHECK(result->Trees()[0].ToJson()["foo.txt"]["type"] == "LOCAL");
-        CHECK(result->Trees()[0].ToJson()["bar.txt"]["type"] == "LOCAL");
-        CHECK(result->Trees()[0].ToJson()["baz.txt"]["type"] == "LOCAL");
+        CHECK(result->Trees()[0]->ToJson()["foo.txt"]["type"] == "LOCAL");
+        CHECK(result->Trees()[0]->ToJson()["bar.txt"]["type"] == "LOCAL");
+        CHECK(result->Trees()[0]->ToJson()["baz.txt"]["type"] == "LOCAL");
     }
 
     SECTION("stage into tree") {

@@ -104,6 +104,16 @@ auto DependencyGraph::Add(std::vector<ActionDescription> const& actions)
     return true;
 }
 
+auto DependencyGraph::Add(std::vector<ActionDescription::Ptr> const& actions)
+    -> bool {
+    for (auto const& action : actions) {
+        if (not AddAction(*action)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 auto DependencyGraph::AddArtifact(ArtifactDescription const& description)
     -> ArtifactIdentifier {
     auto artifact = description.ToArtifact();
