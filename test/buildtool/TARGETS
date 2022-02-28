@@ -2,7 +2,8 @@
   { "type": "install"
   , "tainted": ["test"]
   , "dirs":
-    [ [["./", "common", "TESTS"], "common"]
+    [ [["./", "build_engine", "TESTS"], "build_engine"]
+    , [["./", "common", "TESTS"], "common"]
     , [["./", "crypto", "TESTS"], "crypto"]
     , [["./", "execution_api", "TESTS"], "execution_api"]
     , [["./", "execution_engine", "TESTS"], "execution_engine"]

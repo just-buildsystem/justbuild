@@ -1,0 +1,10 @@
+{ "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs":
+    [ [["./", "base_maps", "TESTS"], "base_maps"]
+    , [["./", "expression", "TESTS"], "expression"]
+    , [["./", "target_map", "TESTS"], "target_map"]
+    ]
+  }
+}

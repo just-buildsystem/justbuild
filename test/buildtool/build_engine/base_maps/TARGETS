@@ -23,7 +23,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["directory_map"]
   , "srcs": ["directory_map.test.cpp"]
-  , "data": ["test_data_src"]
+  , "data": ["test_data_src", "test_data"]
   , "deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
@@ -37,7 +37,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["json_file_map"]
   , "srcs": ["json_file_map.test.cpp"]
-  , "data": ["test_data_json"]
+  , "data": ["test_data_json", "test_data"]
   , "deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
@@ -50,7 +50,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["source_map"]
   , "srcs": ["source_map.test.cpp"]
-  , "data": ["test_data"]
+  , "data": ["test_data", "test_data_src"]
   , "deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
@@ -64,7 +64,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["expression_map"]
   , "srcs": ["expression_map.test.cpp"]
-  , "data": ["test_data_expr"]
+  , "data": ["test_data_expr", "test_data"]
   , "deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
@@ -77,7 +77,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["rule_map"]
   , "srcs": ["rule_map.test.cpp"]
-  , "data": ["test_data_rule"]
+  , "data": ["test_data_rule", "test_data"]
   , "deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
@@ -108,8 +108,7 @@
   }
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
-  , "srcs":
-    ["test_data_src", "test_data_json", "test_data_expr", "test_data_rule"]
+  , "srcs": ["data/test_repo.bundle"]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
 , "TESTS":
