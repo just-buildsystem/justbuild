@@ -28,8 +28,10 @@ static auto const kJsonTreeId =
 
 [[nodiscard]] static inline auto CreateTestRepo()
     -> std::optional<std::filesystem::path> {
-    auto repo_path = GetTestDir() / "test_repo" /
-                     std::filesystem::path{std::tmpnam(nullptr)}.filename();
+    static std::atomic<int> counter{};
+    auto repo_path =
+        GetTestDir() / "test_repo" /
+        std::filesystem::path{std::to_string(counter++)}.filename();
     auto cmd = fmt::format(
         "git clone --bare {} {}", kBundlePath.string(), repo_path.string());
     if (std::system(cmd.c_str()) == 0) {

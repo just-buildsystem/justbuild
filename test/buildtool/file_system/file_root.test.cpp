@@ -1,3 +1,4 @@
+#include <atomic>
 #include <thread>
 
 #include "catch2/catch.hpp"
@@ -24,8 +25,10 @@ auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 
 [[nodiscard]] auto CreateTestRepo(bool do_checkout = false)
     -> std::optional<std::filesystem::path> {
-    auto repo_path = GetTestDir() / "test_repo" /
-                     std::filesystem::path{std::tmpnam(nullptr)}.filename();
+    static std::atomic<int> counter{};
+    auto repo_path =
+        GetTestDir() / "test_repo" /
+        std::filesystem::path{std::to_string(counter++)}.filename();
     auto cmd = fmt::format("git clone {}{} {}",
                            do_checkout ? "--branch master " : "",
                            kBundlePath,

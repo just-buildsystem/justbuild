@@ -30,8 +30,10 @@ auto const kFailId = std::string{"0123456789abcdef0123456789abcdef01234567"};
 
 [[nodiscard]] auto CreateTestRepo(bool is_bare = false)
     -> std::optional<std::filesystem::path> {
-    auto repo_path = GetTestDir() / "test_repo" /
-                     std::filesystem::path{std::tmpnam(nullptr)}.filename();
+    static std::atomic<int> counter{};
+    auto repo_path =
+        GetTestDir() / "test_repo" /
+        std::filesystem::path{std::to_string(counter++)}.filename();
     auto cmd = fmt::format("git clone {}{} {}",
                            is_bare ? "--bare " : "",
                            kBundlePath,
