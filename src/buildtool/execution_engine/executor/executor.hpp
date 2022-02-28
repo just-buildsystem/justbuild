@@ -281,6 +281,7 @@ class ExecutorImpl {
                 logger.Emit(LogLevel::Error,
                             "action returned non-zero exit code {}",
                             response->ExitCode());
+                PrintError(logger, action->Command());
                 return false;
             }
         }
@@ -301,6 +302,7 @@ class ExecutorImpl {
                 }
                 return message;
             });
+            PrintError(logger, action->Command());
             return false;
         }
 
@@ -336,6 +338,13 @@ class ExecutorImpl {
                 return message;
             });
         }
+    }
+
+    void static PrintError(Logger const& logger,
+                           std::vector<std::string> const& command) noexcept {
+        logger.Emit(LogLevel::Error,
+                    "Failed to execute command:\n{}",
+                    nlohmann::json{command}.dump());
     }
 };
 
