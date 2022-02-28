@@ -1257,6 +1257,10 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitSuccess;
                 }
 #ifndef BOOTSTRAP_BUILD_TOOL
+                Logger::Log(LogLevel::Info,
+                            "Analysed target {}",
+                            result->id.ToString());
+                ReportTaintedness(*result);
                 auto const& [actions, blobs, trees] = result_map.ToResult();
 
                 // Clean up result map, now that it is no longer needed
@@ -1270,7 +1274,6 @@ auto main(int argc, char* argv[]) -> int {
                     "{}ing {}.",
                     arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
                     result->id.ToString());
-                ReportTaintedness(*result);
 
                 auto build_result = traverser.BuildAndStage(
                     artifacts, runfiles, actions, blobs, trees);
