@@ -11,8 +11,8 @@
 #include "src/buildtool/file_system/jsonfs.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "test/utils/test_env.hpp"
 #include "src/utils/cpp/json.hpp"
+#include "test/utils/test_env.hpp"
 
 // NOLINTNEXTLINE(google-build-namespaces)
 namespace {

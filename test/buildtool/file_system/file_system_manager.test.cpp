@@ -95,8 +95,7 @@ TEST_CASE("IsFile", "[file_system]") {
         "test/buildtool/file_system/data/example_file"));
     CHECK(FileSystemManager::IsFile(
         "test/buildtool/file_system/data/empty_executable"));
-    CHECK_FALSE(
-        FileSystemManager::IsFile("test/buildtool/file_system/data/"));
+    CHECK_FALSE(FileSystemManager::IsFile("test/buildtool/file_system/data/"));
 }
 
 TEST_CASE("IsExecutable", "[file_system]") {
@@ -104,13 +103,13 @@ TEST_CASE("IsExecutable", "[file_system]") {
         "test/buildtool/file_system/data/empty_executable"));
     CHECK_FALSE(FileSystemManager::IsExecutable(
         "test/buildtool/file_system/data/example_file"));
-    CHECK_FALSE(FileSystemManager::IsExecutable(
-        "test/buildtool/file_system/data/"));
+    CHECK_FALSE(
+        FileSystemManager::IsExecutable("test/buildtool/file_system/data/"));
 }
 
 TEST_CASE("Type", "[file_system]") {
-    auto const type_file = FileSystemManager::Type(
-        "test/buildtool/file_system/data/example_file");
+    auto const type_file =
+        FileSystemManager::Type("test/buildtool/file_system/data/example_file");
     REQUIRE(type_file);
     CHECK(*type_file == ObjectType::File);
 
