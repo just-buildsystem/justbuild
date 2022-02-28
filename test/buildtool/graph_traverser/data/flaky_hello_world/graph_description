@@ -5,7 +5,7 @@
                 "hello_world"
             ],
             "command": [
-                "g++", "hello_world.cpp", "-o", "hello_world"
+                "c++", "hello_world.cpp", "-o", "hello_world"
             ],
             "input": {
                 "hello_world.cpp": {
