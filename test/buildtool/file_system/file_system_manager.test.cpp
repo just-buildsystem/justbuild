@@ -45,6 +45,34 @@ class WriteFileFixture {
                                            "file"};
 };
 
+namespace {
+
+namespace fs = std::filesystem;
+
+constexpr auto kFilePerms =
+    fs::perms::owner_read | fs::perms::group_read | fs::perms::others_read;
+
+constexpr auto kExecPerms =
+    fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec;
+
+auto HasFilePermissions(fs::path const& path) noexcept -> bool {
+    try {
+        return fs::status(path).permissions() == kFilePerms;
+    } catch (...) {
+        return false;
+    }
+}
+
+auto HasExecutablePermissions(fs::path const& path) noexcept -> bool {
+    try {
+        return fs::status(path).permissions() == (kFilePerms | kExecPerms);
+    } catch (...) {
+        return false;
+    }
+}
+
+}  // namespace
+
 TEST_CASE("CreateDirectory", "[file_system]") {
     auto const dir = GENERATE(as<std::filesystem::path>{},
                               "level0",
@@ -172,8 +200,8 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
         CHECK(content_to.has_value());
         CHECK(content_from == content_to);
 
-        // permissions should be 0444 (not writable, but removable)
-        CHECK(not FileSystemManager::WriteFile("replacement content", to_));
+        // permissions should be 0444
+        CHECK(HasFilePermissions(to_));
     }
     SECTION("as executable") {
         // Copy as file was successful
@@ -192,8 +220,8 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
         CHECK(content_to.has_value());
         CHECK(content_from == content_to);
 
-        // permissions should be 0555 (not writable, but removable)
-        CHECK(not FileSystemManager::WriteFile("replacement content", to_));
+        // permissions should be 0555
+        CHECK(HasExecutablePermissions(to_));
     }
 }
 
@@ -256,9 +284,8 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
         CHECK(written_content.has_value());
         CHECK(written_content == content);
 
-        // permissions should be 0444 (not writable, but removable)
-        CHECK(not FileSystemManager::WriteFile("replacement content",
-                                               file_path_));
+        // permissions should be 0444
+        CHECK(HasFilePermissions(file_path_));
     }
     SECTION("as an executable") {
         std::string const content{"\n"};
@@ -274,9 +301,8 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
         CHECK(written_content.has_value());
         CHECK(written_content == content);
 
-        // permissions should be 0555 (not writable, but removable)
-        CHECK(not FileSystemManager::WriteFile("replacement content",
-                                               file_path_));
+        // permissions should be 0555
+        CHECK(HasExecutablePermissions(file_path_));
     }
 }
 
