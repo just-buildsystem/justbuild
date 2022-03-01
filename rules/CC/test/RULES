@@ -6,7 +6,8 @@
   , "tainted": ["test"]
   , "target_fields": ["srcs", "private-hdrs", "deps", "data"]
   , "string_fields": ["name", "stage"]
-  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV"]
+  , "config_vars":
+    ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "CC_TEST_LAUNCHER"]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
     , "proto-deps": []
@@ -35,6 +36,10 @@
     , "CXXFLAGS":
       [ "The flags for CXX to be used instead of the default ones"
       , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "CC_TEST_LAUNCHER":
+      [ "List of strings representing the launcher that is prepend to the"
+      , "command line for running the test binary."
       ]
     }
   , "imports":
@@ -238,7 +243,13 @@
               , {"type": "var", "name": "staged test binary"}
               ]
             }
-          , "cmd": ["sh", "./runner.sh"]
+          , "cmd":
+            { "type": "++"
+            , "$1":
+              [ ["sh", "./runner.sh"]
+              , {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
+              ]
+            }
           , "may_fail": ["test"]
           , "fail_message":
             { "type": "join"

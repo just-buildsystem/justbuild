@@ -21,7 +21,7 @@ date +%s > ../time-start
 # TODO:
 # - proper wrapping with timeout
 # - test arguments to select specific test cases
-if ../test > ../stdout 2> ../stderr
+if "$@" ../test > ../stdout 2> ../stderr
 then
     RESULT=PASS
 else
