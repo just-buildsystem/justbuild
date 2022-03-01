@@ -620,6 +620,7 @@ struct AnalysisResult {
         &source_targets, &targets_file_map, &rule_map, result_map, jobs);
 
     auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
+    Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     std::shared_ptr<AnalysedTarget> target{};
 
     bool failed{false};
