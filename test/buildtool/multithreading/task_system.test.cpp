@@ -69,8 +69,10 @@ TEST_CASE("Side effects of tasks are reflected out of ts", "[task_system]") {
     SECTION("Lambda capturing `this` inside struct") {
         std::string ext_name{};
         struct Wrapper {
-            TaskSystem ts{};
             std::string name{};
+            // ts must be second, otherwise name will get destroyed before the
+            // task system is finished.
+            TaskSystem ts{};
 
             explicit Wrapper(std::string n) : name{std::move(n)} {}
 
