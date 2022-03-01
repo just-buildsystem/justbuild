@@ -161,6 +161,22 @@ auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{reverse_result};
 }
 
+auto Range(ExpressionPtr const& expr) -> ExpressionPtr {
+    size_t len = 0;
+    if (expr->IsNumber() && expr->Number() > 0.0) {
+        len = static_cast<size_t>(std::lround(expr->Number()));
+    }
+    if (expr->IsString()) {
+        len = static_cast<size_t>(std::atol(expr->String().c_str()));
+    }
+    auto result = Expression::list_t{};
+    result.reserve(len);
+    for (size_t i = 0; i < len; i++) {
+        result.emplace_back(ExpressionPtr{fmt::format("{}", i)});
+    }
+    return ExpressionPtr{result};
+}
+
 auto ChangeEndingTo(ExpressionPtr const& name, ExpressionPtr const& ending)
     -> ExpressionPtr {
     std::filesystem::path path{name->String()};
@@ -785,6 +801,7 @@ auto built_in_functions =
                           {"+", AddExpr},
                           {"++", UnaryExpr(Flatten)},
                           {"nub_right", UnaryExpr(NubRight)},
+                          {"range", UnaryExpr(Range)},
                           {"change_ending", ChangeEndingExpr},
                           {"basename", UnaryExpr(BaseName)},
                           {"join", JoinExpr},

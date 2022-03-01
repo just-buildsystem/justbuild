@@ -1335,6 +1335,33 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(dep_result ==
               Expression::FromJson(R"(["subdir", "bar_suffix"])"_json));
     }
+
+    SECTION("range expression") {
+        auto expr_str = Expression::FromJson(R"(
+            { "type": "range"
+            , "$1": "3"
+            })"_json);
+        REQUIRE(expr_str);
+        auto str_result = expr_str.Evaluate(env, fcts);
+        CHECK(str_result == Expression::FromJson(R"(["0", "1", "2"])"_json));
+
+        auto expr_number = Expression::FromJson(R"(
+            { "type": "range"
+            , "$1": 4
+            })"_json);
+        REQUIRE(expr_number);
+        auto number_result = expr_number.Evaluate(env, fcts);
+        CHECK(number_result ==
+              Expression::FromJson(R"(["0", "1", "2", "3"])"_json));
+
+        auto expr_null = Expression::FromJson(R"(
+            { "type": "range"
+            , "$1": null
+            })"_json);
+        REQUIRE(expr_null);
+        auto null_result = expr_null.Evaluate(env, fcts);
+        CHECK(null_result == Expression::FromJson(R"([])"_json));
+    }
 }
 
 TEST_CASE("Expression hash computation", "[expression]") {
