@@ -2,6 +2,7 @@
   { "doc": ["Shell test, given by a test script"]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
+  , "config_vars": ["RUNS_PER_TEST"]
   , "field_doc":
     { "test": ["The shell script for the test, launched with sh"]
     , "name":
@@ -18,10 +19,18 @@
       , "the tests working directory"
       ]
     }
+  , "config_doc":
+    { "RUNS_PER_TEST":
+      [ "The number of times the test should be run in order to detect flakyness."
+      , "If set, no test action will be taken from cache."
+      ]
+    }
   , "tainted": ["test"]
-  , "implicit": {"runner": ["test_runner.sh"]}
+  , "implicit":
+    {"runner": ["test_runner.sh"], "summarizer": ["test_summary.py"]}
   , "imports":
     { "test-result": "test-result"
+    , "action": "test-action"
     , "stage": ["./", "../..", "stage_singleton_field"]
     }
   , "expression":
@@ -44,7 +53,102 @@
           }
         ]
       ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "test-result"}
+    , "body":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "RUNS_PER_TEST"}
+      , "else": {"type": "CALL_EXPRESSION", "name": "test-result"}
+      , "then":
+        { "type": "let*"
+        , "bindings":
+          [ [ "attempts"
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach"
+                , "var": "ATTEMPT"
+                , "range":
+                  { "type": "range"
+                  , "$1": {"type": "var", "name": "RUNS_PER_TEST"}
+                  }
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "ATTEMPT"}
+                  , "value":
+                    { "type": "TREE"
+                    , "$1": {"type": "CALL_EXPRESSION", "name": "action"}
+                    }
+                  }
+                }
+              }
+            ]
+          , [ "summarizer"
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach"
+                , "var": "x"
+                , "range": {"type": "FIELD", "name": "summarizer"}
+                , "body":
+                  { "type": "map_union"
+                  , "$1":
+                    { "type": "foreach"
+                    , "var": "x"
+                    , "range":
+                      { "type": "values"
+                      , "$1":
+                        { "type": "DEP_ARTIFACTS"
+                        , "dep": {"type": "var", "name": "x"}
+                        }
+                      }
+                    , "body":
+                      { "type": "singleton_map"
+                      , "key": "summarizer"
+                      , "value": {"type": "var", "name": "x"}
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          , [ "summary"
+            , { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ {"type": "var", "name": "attempts"}
+                  , {"type": "var", "name": "summarizer"}
+                  ]
+                }
+              , "outs":
+                ["stdout", "stderr", "result", "time-start", "time-stop"]
+              , "cmd": ["./summarizer"]
+              }
+            ]
+          , [ "artifacts"
+            , { "type": "map_union"
+              , "$1":
+                [ {"type": "var", "name": "summary"}
+                , { "type": "singleton_map"
+                  , "key": "work"
+                  , "value":
+                    {"type": "TREE", "$1": {"type": "var", "name": "attempts"}}
+                  }
+                ]
+              }
+            ]
+          , [ "runfiles"
+            , { "type": "singleton_map"
+              , "key": {"type": "var", "name": "name"}
+              , "value":
+                {"type": "TREE", "$1": {"type": "var", "name": "artifacts"}}
+              }
+            ]
+          ]
+        , "body":
+          { "type": "RESULT"
+          , "artifacts": {"type": "var", "name": "artifacts"}
+          , "runfiles": {"type": "var", "name": "runfiles"}
+          }
+        }
+      }
     }
   }
 }
