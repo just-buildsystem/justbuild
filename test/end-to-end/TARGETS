@@ -5,6 +5,7 @@
   , "tainted": ["test"]
   , "dirs":
     [ [["./", "actions", "TESTS"], "actions"]
+    , [["./", "generated-binary", "TESTS"], "generated-binary"]
     , [["./", "targets", "TESTS"], "targets"]
     ]
   }
