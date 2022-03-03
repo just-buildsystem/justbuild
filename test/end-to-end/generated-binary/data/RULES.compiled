@@ -1,0 +1,74 @@
+{ "generated files":
+  { "string_fields": ["width"]
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts":
+      { "type": "map_union"
+      , "$1":
+        { "type": "foreach"
+        , "var": "n"
+        , "range":
+          { "type": "range"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "width"}}
+          }
+        , "body":
+          { "type": "let*"
+          , "bindings":
+            [ [ "src"
+              , { "type": "join"
+                , "$1":
+                  [ "#include <stdio.h>\n"
+                  , "int main(int argc, char **argv) {\n"
+                  , "  printf(\"Hello from generated program #%s!\", \""
+                  , {"type": "var", "name": "n"}
+                  , "\");\n"
+                  , "  return 0;\n"
+                  , "}\n"
+                  ]
+                }
+              ]
+            , [ "src file"
+              , { "type": "singleton_map"
+                , "key": "hello.c"
+                , "value":
+                  {"type": "BLOB", "data": {"type": "var", "name": "src"}}
+                }
+              ]
+            , [ "hello"
+              , { "type": "ACTION"
+                , "inputs": {"type": "var", "name": "src file"}
+                , "outs": ["hello"]
+                , "cmd": ["cc", "-o", "hello", "hello.c"]
+                , "env":
+                  { "type": "singleton_map"
+                  , "key": "PATH"
+                  , "value": "/bin:/sbin:/usr/bin:/usr/sbin"
+                  }
+                }
+              ]
+            , [ "out"
+              , { "type": "ACTION"
+                , "inputs": {"type": "var", "name": "hello"}
+                , "outs":
+                  [ { "type": "join"
+                    , "$1": ["out-", {"type": "var", "name": "n"}, ".txt"]
+                    }
+                  ]
+                , "cmd":
+                  [ "/bin/sh"
+                  , "-c"
+                  , { "type": "join"
+                    , "$1":
+                      ["./hello > out-", {"type": "var", "name": "n"}, ".txt"]
+                    }
+                  ]
+                }
+              ]
+            ]
+          , "body": {"type": "var", "name": "out"}
+          }
+        }
+      }
+    }
+  }
+}

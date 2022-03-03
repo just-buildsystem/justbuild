@@ -5,5 +5,15 @@
   , "keep": ["out/out.txt"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["shell"]}
+, "compile rules":
+  {"type": "install", "files": {"RULES": "data/RULES.compiled"}}
+, "compiled":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["compiled"]
+  , "test": ["compiled.sh"]
+  , "keep": ["graph.json", "out/out.txt"]
+  , "deps": [["test/end-to-end", "tool-under-test"], "compile rules"]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["shell", "compiled"]}
 }
