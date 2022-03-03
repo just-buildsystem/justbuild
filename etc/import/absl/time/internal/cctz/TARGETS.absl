@@ -13,6 +13,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["time_zone"]
   , "stage": ["absl", "time", "internal", "cctz"]
+  , "local cflags":
+    [ "-Wno-shadow"
+    , "-Wno-unused-template"
+    , "-Wno-tautological-type-limit-compare"
+    ]
   , "srcs":
     [ "src/time_zone_fixed.cc"
     , "src/time_zone_format.cc"

@@ -42,6 +42,12 @@
     , "target_file_name": "TARGETS.protobuf"
     , "bindings": {"protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
     }
+  , "rules-absl":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.absl"
+    }
   , "import targets": {"repository": {"type": "file", "path": "etc/import"}}
   , "gsl-lite":
     { "repository":
@@ -167,7 +173,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.absl"
-    , "bindings": {"rules": "rules"}
+    , "bindings": {"rules": "rules-absl"}
     }
   , "zlib":
     { "repository":
