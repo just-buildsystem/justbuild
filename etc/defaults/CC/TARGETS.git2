@@ -1,0 +1,58 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["OS"]
+  , "CC": ["clang"]
+  , "CXX": ["clang++"]
+  , "CFLAGS":
+    { "type": "case"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      { "windows":
+        [ "-D_SCL_SECURE_NO_WARNINGS"
+        , "-D_CRT_SECURE_NO_DEPRECATE"
+        , "-D_CRT_NONSTDC_NO_DEPRECATE"
+        , "/GF"
+        , "/MP"
+        , "/nologo"
+        ]
+      }
+    , "default":
+      { "type": "++"
+      , "$1":
+        [ ["-D_GNU_SOURCE", "-Wall", "-Wextra"]
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case":
+            { "sunos":
+              [ "-D_POSIX_C_SOURCE=200112L"
+              , "-D__EXTENSIONS__"
+              , "-D_POSIX_PTHREAD_SEMANTICS"
+              ]
+            , "solaris":
+              [ "-D_POSIX_C_SOURCE=200112L"
+              , "-D__EXTENSIONS__"
+              , "-D_POSIX_PTHREAD_SEMANTICS"
+              ]
+            }
+          }
+        , [ "-Wdocumentation"
+          , "-Wno-documentation-deprecated-sync"
+          , "-Wno-missing-field-initializers"
+          , "-Wstrict-aliasing"
+          , "-Wstrict-prototypes"
+          , "-Wdeclaration-after-statement"
+          , "-Wshift-count-overflow"
+          , "-Wunused-const-variable"
+          , "-Wunused-function"
+          , "-Wint-conversion"
+          , "-Wformat"
+          , "-Wformat-security"
+          ]
+        ]
+      }
+    }
+  , "CXXFLAGS": []
+  , "AR": ["ar"]
+  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  }
+}

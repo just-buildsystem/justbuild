@@ -594,18 +594,14 @@
   , "name": ["git2"]
   , "pure C": ["yes"]
   , "local defines":
-    { "type": "++"
-    , "$1":
-      [ ["HAVE_QSORT_S"]
-      , { "type": "case"
-        , "expr": {"type": "var", "name": "OS"}
-        , "case":
-          { "linux": ["HAVE_QSORT_R_GNU"]
-          , "darwin": ["HAVE_QSORT_R_BSD"]
-          , "bsd": ["HAVE_QSORT_R_BSD"]
-          }
-        }
-      ]
+    { "type": "case"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      { "linux": ["HAVE_QSORT_R_GNU"]
+      , "darwin": ["HAVE_QSORT_R_BSD"]
+      , "bsd": ["HAVE_QSORT_R_BSD"]
+      , "windows": ["HAVE_QSORT_S"]
+      }
     }
   , "srcs":
     [ "alloc.c"

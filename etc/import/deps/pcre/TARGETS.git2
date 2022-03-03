@@ -242,6 +242,7 @@
         }
       ]
     }
+  , "local cflags": ["-Wno-unused-function", "-Wno-implicit-fallthrough"]
   , "srcs": ["git2_pcre_sources"]
   , "hdrs": ["git2_pcre_headers"]
   }

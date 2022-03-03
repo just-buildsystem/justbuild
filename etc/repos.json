@@ -54,6 +54,12 @@
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.re2"
     }
+  , "rules-git2":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.git2"
+    }
   , "import targets": {"repository": {"type": "file", "path": "etc/import"}}
   , "gsl-lite":
     { "repository":
@@ -243,7 +249,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.git2"
-    , "bindings": {"rules": "rules", "zlib": "zlib", "ssl": "ssl"}
+    , "bindings": {"rules": "rules-git2", "zlib": "zlib", "ssl": "ssl"}
     }
   , "catch2":
     { "repository":
