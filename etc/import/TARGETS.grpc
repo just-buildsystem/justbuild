@@ -160,6 +160,7 @@
 , "grpc_base_c":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_base_c"]
+  , "local cflags": ["-Wno-implicit-const-int-float-conversion"]
   , "srcs":
     [ "src/core/lib/avl/avl.cc"
     , "src/core/lib/backoff/backoff.cc"
@@ -553,6 +554,7 @@
 , "grpc_lb_upb":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_lb_upb"]
+  , "pure C": ["yes"]
   , "srcs":
     ["src/core/ext/upb-generated/src/proto/grpc/lb/v1/load_balancer.upb.c"]
   , "hdrs":
@@ -1292,6 +1294,7 @@
 , "envoy_annotations_upb":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["envoy_annotations_upb"]
+  , "pure C": ["yes"]
   , "srcs":
     [ "src/core/ext/upb-generated/envoy/annotations/deprecation.upb.c"
     , "src/core/ext/upb-generated/envoy/annotations/resource.upb.c"

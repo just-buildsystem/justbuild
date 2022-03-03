@@ -1,6 +1,7 @@
 { "alts_upb":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["alts_upb"]
+  , "pure C": ["yes"]
   , "srcs":
     [ "src/proto/grpc/gcp/altscontext.upb.c"
     , "src/proto/grpc/gcp/handshaker.upb.c"
