@@ -167,7 +167,7 @@
   { "doc": ["A C++ libaray"]
   , "target_fields": ["srcs", "hdrs", "private-hdrs", "deps", "proto"]
   , "string_fields":
-    ["name", "stage", "pure C", "local defines", "link external"]
+    ["name", "stage", "pure C", "local defines", "local cflags", "link external"]
   , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
@@ -192,6 +192,8 @@
       [ "List of defines set for source files local to this target."
       , "Each list entry will be prepended by \"-D\"."
       ]
+    , "local cflags":
+      ["List of compile flags set for source files local to this target."]
     , "link external":
       ["Additional linker flags for linking external libraries."]
     , "deps": ["Any other libraries this library depends upon."]
@@ -242,6 +244,7 @@
             {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
           }
         ]
+      , ["local cflags", {"type": "FIELD", "name": "local cflags"}]
       , [ "CFLAGS"
         , { "type": "++"
           , "$1":

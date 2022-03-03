@@ -322,6 +322,7 @@
     , "srcs"
     , "hdrs"
     , "private-hdrs"
+    , "local cflags"
     , "link external"
     , "extra-provides"
     ]
@@ -374,6 +375,14 @@
             , "default":
               {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
             }
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "CXXFLAGS"}
+            , {"type": "var", "name": "local cflags", "default": []}
+            ]
           }
         ]
       , [ "ENV"
