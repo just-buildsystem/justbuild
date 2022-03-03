@@ -2,9 +2,10 @@
   { "type": ["CC", "defaults"]
   , "CC": ["clang"]
   , "CXX": ["clang++"]
-  , "CFLAGS": []
+  , "CFLAGS": ["-std=gnu17", "-O2"]
   , "CXXFLAGS":
     [ "-std=c++20"
+    , "-O2"
     , "-Wall"
     , "-Wextra"
     , "-Wpedantic"

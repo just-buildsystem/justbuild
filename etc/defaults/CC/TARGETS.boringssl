@@ -4,64 +4,69 @@
   , "CC": ["clang"]
   , "CXX": ["clang++"]
   , "CFLAGS":
-    { "type": "let*"
-    , "bindings":
-      [ [ "PLATFORM"
-        , { "type": "join"
-          , "separator": "_"
-          , "$1":
-            [ {"type": "var", "name": "OS"}
-            , { "type": "var"
-              , "name": "TARGET_ARCH"
-              , "default": {"type": "var", "name": "ARCH"}
+    { "type": "++"
+    , "$1":
+      [ ["-std=gnu17", "-O2"]
+      , { "type": "let*"
+        , "bindings":
+          [ [ "PLATFORM"
+            , { "type": "join"
+              , "separator": "_"
+              , "$1":
+                [ {"type": "var", "name": "OS"}
+                , { "type": "var"
+                  , "name": "TARGET_ARCH"
+                  , "default": {"type": "var", "name": "ARCH"}
+                  }
+                ]
               }
             ]
-          }
-        ]
-      , [ "posix_copts"
-        , [ "-Wa,--noexecstack"
-          , "-D_XOPEN_SOURCE=700"
-          , "-Wall"
-          , "-Werror"
-          , "-Wformat=2"
-          , "-Wsign-compare"
-          , "-Wmissing-field-initializers"
-          , "-Wwrite-strings"
-          , "-Wshadow"
-          , "-fno-common"
-          ]
-        ]
-      ]
-    , "body":
-      { "type": "cond"
-      , "cond":
-        [ [ { "type": "or"
-            , "$1":
-              [ { "type": "=="
-                , "$1": {"type": "var", "name": "PLATFORM"}
-                , "$2": "linux_ppc64le"
-                }
-              , { "type": "=="
-                , "$1": {"type": "var", "name": "PLATFORM"}
-                , "$2": "linux_x86_64"
-                }
-              , { "type": "=="
-                , "$1": {"type": "var", "name": "PLATFORM"}
-                , "$2": "mac_x86_64"
-                }
+          , [ "posix_copts"
+            , [ "-Wa,--noexecstack"
+              , "-D_XOPEN_SOURCE=700"
+              , "-Wall"
+              , "-Werror"
+              , "-Wformat=2"
+              , "-Wsign-compare"
+              , "-Wmissing-field-initializers"
+              , "-Wwrite-strings"
+              , "-Wshadow"
+              , "-fno-common"
               ]
-            }
-          , {"type": "var", "name": "posix_copts"}
+            ]
           ]
-        , [ { "type": "=="
-          , "$1": {"type": "var", "name": "PLATFORM"}
-          , "$2": "windows_x86_64"
+        , "body":
+          { "type": "cond"
+          , "cond":
+            [ [ { "type": "or"
+                , "$1":
+                  [ { "type": "=="
+                    , "$1": {"type": "var", "name": "PLATFORM"}
+                    , "$2": "linux_ppc64le"
+                    }
+                  , { "type": "=="
+                    , "$1": {"type": "var", "name": "PLATFORM"}
+                    , "$2": "linux_x86_64"
+                    }
+                  , { "type": "=="
+                    , "$1": {"type": "var", "name": "PLATFORM"}
+                    , "$2": "mac_x86_64"
+                    }
+                  ]
+                }
+              , {"type": "var", "name": "posix_copts"}
+              ]
+            , [ { "type": "=="
+              , "$1": {"type": "var", "name": "PLATFORM"}
+              , "$2": "windows_x86_64"
+              }
+              , ["-DWIN32_LEAN_AND_MEAN", "-DOPENSSL_NO_ASM"]
+              ]
+            ]
+          , "default": ["-DOPENSSL_NO_ASM"]
           }
-          , ["-DWIN32_LEAN_AND_MEAN", "-DOPENSSL_NO_ASM"]
-          ]
-        ]
-      , "default": ["-DOPENSSL_NO_ASM"]
-      }
+        }
+      ]
     }
   , "CXXFLAGS": []
   , "AR": ["ar"]

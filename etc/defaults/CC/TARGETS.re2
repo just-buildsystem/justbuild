@@ -5,6 +5,7 @@
   , "CFLAGS": []
   , "CXXFLAGS":
     [ "-std=c++11"
+    , "-O2"
     , "-pthread"
     , "-Wall"
     , "-Wextra"
