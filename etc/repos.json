@@ -48,6 +48,12 @@
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.absl"
     }
+  , "rules-re2":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.re2"
+    }
   , "import targets": {"repository": {"type": "file", "path": "etc/import"}}
   , "gsl-lite":
     { "repository":
@@ -195,7 +201,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.re2"
-    , "bindings": {"rules": "rules"}
+    , "bindings": {"rules": "rules-re2"}
     }
   , "com_github_cares_cares":
     { "repository":
