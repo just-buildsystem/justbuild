@@ -294,6 +294,7 @@
           , "value": {"type": "var", "name": "all proto srcs"}
           }
         ]
+      , ["local cflags", ["-Wno-sign-conversion", "-Wno-unused-function"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}
     }
