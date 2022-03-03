@@ -237,10 +237,10 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                 auto json_values) {
                 auto rule_it = json_values[0]->find(id.name);
                 if (rule_it == json_values[0]->end()) {
-                    (*logger)(
-                        fmt::format(
-                            "Cannot find rule {} in {}", id.name, id.module),
-                        true);
+                    (*logger)(fmt::format("Cannot find rule {} in {}",
+                                          nlohmann::json(id.name).dump(),
+                                          nlohmann::json(id.module).dump()),
+                              true);
                     return;
                 }
 
