@@ -1,0 +1,13 @@
+--- bytestream.proto.orig	2022-03-04 15:34:51.771366591 +0100
++++ bytestream.proto	2022-03-04 15:36:46.721674292 +0100
+@@ -16,8 +16,8 @@
+ 
+ package google.bytestream;
+ 
+-import "google/api/annotations.proto";
+-import "google/protobuf/wrappers.proto";
++// import "google/api/annotations.proto";
++// import "google/protobuf/wrappers.proto";
+ 
+ option go_package = "google.golang.org/genproto/googleapis/bytestream;bytestream";
+ option java_outer_classname = "ByteStreamProto";

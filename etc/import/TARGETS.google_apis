@@ -9,6 +9,11 @@
   , "srcs": ["google/api/annotations.proto"]
   , "deps": ["google_api_http_proto"]
   }
+, "google/bytestream/bytestream.proto":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "google/bytestream/bytestream.proto"]]
+  , "patch": [["@", "patches", "", "bytestream.proto.diff"]]
+  }
 , "google_bytestream_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_bytestream_proto"]

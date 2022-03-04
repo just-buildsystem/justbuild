@@ -17,6 +17,7 @@
     , "bootstrap": {"link": ["-lgit2", "-lpthread"]}
     }
   , "defaults": {"repository": {"type": "file", "path": "etc/defaults"}}
+  , "patches": {"repository": {"type": "file", "path": "etc/patches"}}
   , "rules":
     { "repository": {"type": "file", "path": "rules"}
     , "target_root": "defaults"
@@ -163,7 +164,8 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.google_apis"
-    , "bindings": {"rules": "rules-protobuf", "protoc": "protobuf"}
+    , "bindings":
+      {"rules": "rules-protobuf", "protoc": "protobuf", "patches": "patches"}
     }
   , "upb":
     { "repository":
