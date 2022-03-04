@@ -1,0 +1,68 @@
+{ "file":
+  { "doc": ["Replace a file, logically in pace, by a patched version"]
+  , "target_fields": ["src", "patch"]
+  , "config_vars": ["PATCH"]
+  , "field_doc":
+    { "src":
+      ["The single source file to patch, typically an explict file reference."]
+    , "patch": ["The patch to apply."]
+    }
+  , "imports":
+    { "stage_field": ["./", "..", "stage_singleton_field"]
+    , "stage_artifact": ["./", "..", "stage_artifact_to_singleton_field"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "orig"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "src"], ["location", "orig"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage_field"}
+          }
+        ]
+      , [ "patch"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "patch"], ["location", "patch"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage_field"}
+          }
+        ]
+      , [ "inputs"
+        , { "type": "map_union"
+          , "$1":
+            [{"type": "var", "name": "orig"}, {"type": "var", "name": "patch"}]
+          }
+        ]
+      , [ "patched"
+        , { "type": "ACTION"
+          , "inputs": {"type": "var", "name": "inputs"}
+          , "outs": ["patched"]
+          , "cmd":
+            [ {"type": "var", "name": "PATCH", "default": "patch"}
+            , "-s"
+            , "--read-only=ignore"
+            , "--follow-symlinks"
+            , "-o"
+            , "patched"
+            , "orig"
+            , "patch"
+            ]
+          }
+        ]
+      , [ "result"
+        , { "type": "let*"
+          , "bindings":
+            [ ["artifact", {"type": "var", "name": "patched"}]
+            , ["fieldname", "src"]
+            ]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage_artifact"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "result"}
+      , "runfiles": {"type": "var", "name": "result"}
+      }
+    }
+  }
+}

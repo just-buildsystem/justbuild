@@ -95,4 +95,54 @@
       }
     }
   }
+, "stage_artifact_to_singleton_field":
+  { "vars": ["artifact", "fieldname", "transition"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "location"
+        , { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "var": "src"
+            , "range":
+              {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+            , "body":
+              { "type": "keys"
+              , "$1":
+                { "type": "DEP_ARTIFACTS"
+                , "dep": {"type": "var", "name": "src"}
+                , "transition":
+                  { "type": "var"
+                  , "name": "transition"
+                  , "default": {"type": "empty_map"}
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "staged_artifact"
+        , { "type": "foreach_map"
+          , "range": {"type": "var", "name": "artifact"}
+          , "var_val": "val"
+          , "body":
+            { "type": "foreach"
+            , "range": {"type": "var", "name": "location"}
+            , "var": "pos"
+            , "body":
+              { "type": "singleton_map"
+              , "key": {"type": "var", "name": "pos"}
+              , "value": {"type": "var", "name": "val"}
+              }
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "disjoint_map_union"
+      , "$1": {"type": "++", "$1": {"type": "var", "name": "staged_artifact"}}
+      }
+    }
+  }
 }
