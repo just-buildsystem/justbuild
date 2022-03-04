@@ -324,11 +324,12 @@ class ExecutorImpl {
         auto has_out = response->HasStdOut();
         if (has_err or has_out) {
             logger.Emit(LogLevel::Info, [&] {
-                auto message = std::string{has_err and has_out
-                                               ? "Output and error"
-                                               : has_out ? "Output" : "Error"} +
-                               " of command: ";
-                message += nlohmann::json{command}.dump();
+                using namespace std::string_literals;
+                auto message =
+                    (has_err and has_out ? "Stdout and stderr"s
+                                         : has_out ? "Stdout"s : "Stderr"s) +
+                    " of command: ";
+                message += nlohmann::json(command).dump();
                 if (response->HasStdOut()) {
                     message += "\n" + response->StdOut();
                 }
@@ -343,8 +344,8 @@ class ExecutorImpl {
     void static PrintError(Logger const& logger,
                            std::vector<std::string> const& command) noexcept {
         logger.Emit(LogLevel::Error,
-                    "Failed to execute command:\n{}",
-                    nlohmann::json{command}.dump());
+                    "Failed to execute command {}",
+                    nlohmann::json(command).dump());
     }
 };
 
