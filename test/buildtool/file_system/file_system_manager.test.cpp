@@ -404,3 +404,84 @@ TEST_CASE("FileSystemManager", "[file_system]") {
     CHECK(FileSystemManager::RemoveFile(copy_file));
     CHECK(not FileSystemManager::IsFile(copy_file));
 }
+
+TEST_CASE("CreateFileHardlink", "[file_system]") {
+    std::filesystem::path to{"./tmp-CreateFileHardlink/linked_file"};
+    REQUIRE(FileSystemManager::CreateDirectory(to.parent_path()));
+
+    SECTION("Existing file") {
+        std::filesystem::path from{
+            "test/buildtool/file_system/data/example_file"};
+
+        CHECK(FileSystemManager::CreateFileHardlink(from, to));
+        CHECK(std::filesystem::exists(to));
+
+        CHECK_FALSE(FileSystemManager::CreateFileHardlink(from, to));
+        CHECK(std::filesystem::exists(to));
+
+        CHECK(FileSystemManager::RemoveFile(to));
+        CHECK(not std::filesystem::exists(to));
+    }
+    SECTION("Non-existing file") {
+        std::filesystem::path from{
+            "test/buildtool/file_system/data/this_file_does_not_exist"};
+
+        CHECK_FALSE(FileSystemManager::CreateFileHardlink(from, to));
+        CHECK_FALSE(std::filesystem::exists(to));
+    }
+    SECTION("Existing but not file") {
+        std::filesystem::path from{"./tmp-CreateFileHardlink/dir"};
+        CHECK(FileSystemManager::CreateDirectory(from));
+
+        CHECK_FALSE(FileSystemManager::CreateFileHardlink(from, to));
+        CHECK_FALSE(std::filesystem::exists(to));
+    }
+}
+
+TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
+    auto set_perm = [&](bool is_executable) {
+        auto const content = FileSystemManager::ReadFile(from_);
+        REQUIRE(content);
+        REQUIRE(FileSystemManager::RemoveFile(from_));
+        REQUIRE(FileSystemManager::WriteFileAs(
+            *content,
+            from_,
+            is_executable ? ObjectType::Executable : ObjectType::File));
+    };
+    auto run_test = [&](bool is_executable) {
+        // Hard link creation was successful
+        CHECK(FileSystemManager::CreateFileHardlinkAs(
+            from_,
+            to_,
+            is_executable ? ObjectType::Executable : ObjectType::File));
+
+        // file exists
+        CHECK(std::filesystem::exists(to_));
+        CHECK(std::filesystem::is_regular_file(to_));
+        CHECK(is_executable == FileSystemManager::IsExecutable(to_));
+
+        // permissions should be 0555 or 0444
+        CHECK((is_executable ? HasExecutablePermissions(to_)
+                             : HasFilePermissions(to_)));
+    };
+    SECTION("as file") {
+        SECTION("from file") {
+            set_perm(false);
+            run_test(false);
+        }
+        SECTION("from executable") {
+            set_perm(true);
+            run_test(false);
+        }
+    }
+    SECTION("as executable") {
+        SECTION("from file") {
+            set_perm(false);
+            run_test(true);
+        }
+        SECTION("from executable") {
+            set_perm(true);
+            run_test(true);
+        }
+    }
+}

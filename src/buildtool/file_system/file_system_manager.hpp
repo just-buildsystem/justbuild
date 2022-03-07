@@ -118,6 +118,34 @@ class FileSystemManager {
         }
     }
 
+    template <ObjectType kType>
+    requires(IsFileObject(kType))
+        [[nodiscard]] static auto CreateFileHardlinkAs(
+            std::filesystem::path const& file_path,
+            std::filesystem::path const& link_path) noexcept -> bool {
+        // Set permissions first (permissions are a property of the file) so
+        // that the created link has the correct permissions as soon as the link
+        // creation is finished.
+        return SetFilePermissions(file_path, IsExecutableObject(kType)) and
+               CreateFileHardlink(file_path, link_path);
+    }
+
+    [[nodiscard]] static auto CreateFileHardlinkAs(
+        std::filesystem::path const& file_path,
+        std::filesystem::path const& link_path,
+        ObjectType output_type) noexcept -> bool {
+        switch (output_type) {
+            case ObjectType::File:
+                return CreateFileHardlinkAs<ObjectType::File>(file_path,
+                                                              link_path);
+            case ObjectType::Executable:
+                return CreateFileHardlinkAs<ObjectType::Executable>(file_path,
+                                                                    link_path);
+            case ObjectType::Tree:
+                return false;
+        }
+    }
+
     [[nodiscard]] static auto Rename(std::filesystem::path const& src,
                                      std::filesystem::path const& dst,
                                      bool no_clobber = false) noexcept -> bool {
