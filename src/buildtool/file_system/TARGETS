@@ -11,6 +11,7 @@
   , "deps":
     [ "object_type"
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/system", "system"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "file_system"]

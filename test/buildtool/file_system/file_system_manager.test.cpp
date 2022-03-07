@@ -167,60 +167,76 @@ TEST_CASE("ReadFile", "[file_system]") {
 }
 
 TEST_CASE_METHOD(CopyFileFixture, "CopyFile", "[file_system]") {
-    // Copy file was successful
-    CHECK(FileSystemManager::CopyFile(from_, to_));
+    auto run_test = [&](bool fd_less) {
+        // Copy file was successful
+        CHECK(FileSystemManager::CopyFile(from_, to_, fd_less));
 
-    // file exists
-    CHECK(std::filesystem::exists(to_));
-    CHECK(std::filesystem::is_regular_file(to_));
+        // file exists
+        CHECK(std::filesystem::exists(to_));
+        CHECK(std::filesystem::is_regular_file(to_));
 
-    // Contents are equal
-    auto const content_from = FileSystemManager::ReadFile(from_);
-    CHECK(content_from.has_value());
-    auto const content_to = FileSystemManager::ReadFile(to_);
-    CHECK(content_to.has_value());
-    CHECK(content_from == content_to);
+        // Contents are equal
+        auto const content_from = FileSystemManager::ReadFile(from_);
+        CHECK(content_from.has_value());
+        auto const content_to = FileSystemManager::ReadFile(to_);
+        CHECK(content_to.has_value());
+        CHECK(content_from == content_to);
+    };
+
+    SECTION("direct") { run_test(false); }
+    SECTION("fd_less") { run_test(true); }
 }
 
 TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
     SECTION("as file") {
-        // Copy as file was successful
-        CHECK(FileSystemManager::CopyFileAs(from_, to_, ObjectType::File));
+        auto run_test = [&](bool fd_less) {
+            // Copy as file was successful
+            CHECK(FileSystemManager::CopyFileAs(
+                from_, to_, ObjectType::File, fd_less));
 
-        // file exists
-        CHECK(std::filesystem::exists(to_));
-        CHECK(std::filesystem::is_regular_file(to_));
-        CHECK(not FileSystemManager::IsExecutable(to_));
+            // file exists
+            CHECK(std::filesystem::exists(to_));
+            CHECK(std::filesystem::is_regular_file(to_));
+            CHECK(not FileSystemManager::IsExecutable(to_));
 
-        // Contents are equal
-        auto const content_from = FileSystemManager::ReadFile(from_);
-        CHECK(content_from.has_value());
-        auto const content_to = FileSystemManager::ReadFile(to_);
-        CHECK(content_to.has_value());
-        CHECK(content_from == content_to);
+            // Contents are equal
+            auto const content_from = FileSystemManager::ReadFile(from_);
+            CHECK(content_from.has_value());
+            auto const content_to = FileSystemManager::ReadFile(to_);
+            CHECK(content_to.has_value());
+            CHECK(content_from == content_to);
 
-        // permissions should be 0444
-        CHECK(HasFilePermissions(to_));
+            // permissions should be 0444
+            CHECK(HasFilePermissions(to_));
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd_less") { run_test(true); }
     }
     SECTION("as executable") {
-        // Copy as file was successful
-        CHECK(
-            FileSystemManager::CopyFileAs(from_, to_, ObjectType::Executable));
+        auto run_test = [&](bool fd_less) {
+            // Copy as file was successful
+            CHECK(FileSystemManager::CopyFileAs(
+                from_, to_, ObjectType::Executable, fd_less));
 
-        // file exists
-        CHECK(std::filesystem::exists(to_));
-        CHECK(std::filesystem::is_regular_file(to_));
-        CHECK(FileSystemManager::IsExecutable(to_));
+            // file exists
+            CHECK(std::filesystem::exists(to_));
+            CHECK(std::filesystem::is_regular_file(to_));
+            CHECK(FileSystemManager::IsExecutable(to_));
 
-        // Contents are equal
-        auto const content_from = FileSystemManager::ReadFile(from_);
-        CHECK(content_from.has_value());
-        auto const content_to = FileSystemManager::ReadFile(to_);
-        CHECK(content_to.has_value());
-        CHECK(content_from == content_to);
+            // Contents are equal
+            auto const content_from = FileSystemManager::ReadFile(from_);
+            CHECK(content_from.has_value());
+            auto const content_to = FileSystemManager::ReadFile(to_);
+            CHECK(content_to.has_value());
+            CHECK(content_from == content_to);
 
-        // permissions should be 0555
-        CHECK(HasExecutablePermissions(to_));
+            // permissions should be 0555
+            CHECK(HasExecutablePermissions(to_));
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd_less") { run_test(true); }
     }
 }
 
@@ -357,8 +373,10 @@ TEST_CASE("FileSystemManager", "[file_system]") {
     CHECK(file_content == test_content);
 
     // copy file without 'overwrite'
-    CHECK(FileSystemManager::CopyFile(
-        test_file, copy_file, std::filesystem::copy_options::none));
+    CHECK(FileSystemManager::CopyFile(test_file,
+                                      copy_file,
+                                      /*fd_less=*/false,
+                                      std::filesystem::copy_options::none));
 
     // copy file with 'overwrite'
     CHECK(FileSystemManager::CopyFile(copy_file, test_file));

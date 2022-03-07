@@ -8,12 +8,14 @@
 #include <optional>
 
 #ifdef __unix__
+#include <sys/wait.h>
 #include <unistd.h>
 #endif
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/system/system.hpp"
 
 /// \brief Implements primitive file system functionality.
 /// Catches all exceptions for use with exception-free callers.
@@ -139,29 +141,52 @@ class FileSystemManager {
     [[nodiscard]] static auto CopyFile(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
+        bool fd_less = false,
         std::filesystem::copy_options opt =
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
-        try {
-            return std::filesystem::copy_file(src, dst, opt);
-        } catch (std::exception const& e) {
-            Logger::Log(LogLevel::Error,
-                        "copying file from {} to {}:\n{}",
-                        src.string(),
-                        dst.string(),
-                        e.what());
-            return false;
+        if (fd_less) {
+            pid_t pid = ::fork();
+            if (pid == -1) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Failed to copy file: cannot fork a child process.");
+                return false;
+            }
+
+            if (pid == 0) {
+                // Disable logging errors in child to avoid the use of mutexes.
+                System::ExitWithoutCleanup(
+                    CopyFileImpl</*kLogError=*/false>(src, dst, opt)
+                        ? EXIT_SUCCESS
+                        : EXIT_FAILURE);
+            }
+
+            int status{};
+            ::waitpid(pid, &status, 0);
+
+            // NOLINTNEXTLINE(hicpp-signed-bitwise)
+            if (WEXITSTATUS(status) != EXIT_SUCCESS) {
+                Logger::Log(LogLevel::Error,
+                            "Failed copying file {} to {}",
+                            src.string(),
+                            dst.string());
+                return false;
+            }
+            return true;
         }
+        return CopyFileImpl(src, dst, opt);
     }
 
     template <ObjectType kType>
     requires(IsFileObject(kType)) [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
+        bool fd_less = false,
         std::filesystem::copy_options opt =
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
-        return CopyFile(src, dst, opt) and
+        return CopyFile(src, dst, fd_less, opt) and
                SetFilePermissions(dst, IsExecutableObject(kType));
     }
 
@@ -169,14 +194,16 @@ class FileSystemManager {
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
         ObjectType type,
+        bool fd_less = false,
         std::filesystem::copy_options opt =
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         switch (type) {
             case ObjectType::File:
-                return CopyFileAs<ObjectType::File>(src, dst, opt);
+                return CopyFileAs<ObjectType::File>(src, dst, fd_less, opt);
             case ObjectType::Executable:
-                return CopyFileAs<ObjectType::Executable>(src, dst, opt);
+                return CopyFileAs<ObjectType::Executable>(
+                    src, dst, fd_less, opt);
             case ObjectType::Tree:
                 break;
         }
@@ -540,6 +567,27 @@ class FileSystemManager {
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error, e.what());
             return CreationStatus::Failed;
+        }
+    }
+
+    template <bool kLogError = true>
+    [[nodiscard]] static auto CopyFileImpl(
+        std::filesystem::path const& src,
+        std::filesystem::path const& dst,
+        std::filesystem::copy_options opt =
+            std::filesystem::copy_options::overwrite_existing) noexcept
+        -> bool {
+        try {
+            return std::filesystem::copy_file(src, dst, opt);
+        } catch (std::exception const& e) {
+            if constexpr (kLogError) {
+                Logger::Log(LogLevel::Error,
+                            "copying file from {} to {}:\n{}",
+                            src.string(),
+                            dst.string(),
+                            e.what());
+            }
+            return false;
         }
     }
 
