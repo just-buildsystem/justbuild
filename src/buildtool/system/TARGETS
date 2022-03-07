@@ -1,9 +1,23 @@
-{ "system_command":
+{ "system":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["VALGRIND_BUILD"]
+  , "name": ["system"]
+  , "hdrs": ["system.hpp"]
+  , "srcs": ["system.cpp"]
+  , "local defines":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "VALGRIND_BUILD"}
+    , "then": ["VALGRIND_BUILD"]
+    }
+  , "stage": ["src", "buildtool", "system"]
+  }
+, "system_command":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["system_command"]
   , "hdrs": ["system_command.hpp"]
   , "deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ "system"
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]

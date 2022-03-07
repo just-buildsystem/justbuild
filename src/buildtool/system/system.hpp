@@ -1,0 +1,10 @@
+#ifndef INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_HPP
+#define INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_HPP
+
+namespace System {
+
+void ExitWithoutCleanup(int exit_code);
+
+}
+
+#endif  // INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_HPP

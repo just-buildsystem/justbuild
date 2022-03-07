@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdio>
 #include <cstring>  // for strerror()
+#include <iostream>
 #include <iterator>
 #include <map>
 #include <optional>
@@ -17,6 +18,7 @@
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/system/system.hpp"
 
 /// \brief Execute system commands and obtain stdout, stderr and return value.
 /// Subsequent commands are context free and are not affected by previous
@@ -172,12 +174,12 @@ class SystemCommand {
             ::execvpe(*cmd, cmd, envp);
 
             // report error and terminate child process if ::execvp did not exit
-            logger_.Emit(LogLevel::Error,
-                         "Failed to execute '{}' with error: {}",
-                         *cmd,
-                         strerror(errno));
+            std::cerr << fmt::format("Failed to execute '{}' with error: {}",
+                                     *cmd,
+                                     strerror(errno))
+                      << std::endl;
 
-            std::exit(EXIT_FAILURE);
+            System::ExitWithoutCleanup(EXIT_FAILURE);
         }
 
         // wait for child to finish and obtain return value
