@@ -47,6 +47,7 @@ class FileStorage {
 
   private:
     std::filesystem::path const storage_root_{};
+    static constexpr bool fd_less_{kType == ObjectType::Executable};
 
     /// \brief Add file to storage via copy and atomic rename.
     /// If a race-condition occurs, the winning thread will be the one
@@ -77,14 +78,20 @@ class FileStorage {
     [[nodiscard]] static auto CreateFileFromData(
         std::filesystem::path const& file_path,
         std::filesystem::path const& other_path) noexcept -> bool {
-        return FileSystemManager::CopyFileAs<kType>(other_path, file_path);
+        // Copy executables without opening any writeable file descriptors in
+        // this process to avoid those from being inherited by child processes.
+        return FileSystemManager::CopyFileAs<kType>(
+            other_path, file_path, fd_less_);
     }
 
     /// \brief Create file from bytes.
     [[nodiscard]] static auto CreateFileFromData(
         std::filesystem::path const& file_path,
         std::string const& bytes) noexcept -> bool {
-        return FileSystemManager::WriteFileAs<kType>(bytes, file_path);
+        // Write executables without opening any writeable file descriptors in
+        // this process to avoid those from being inherited by child processes.
+        return FileSystemManager::WriteFileAs<kType>(
+            bytes, file_path, fd_less_);
     }
 
     /// \brief Stage file from source path to target path.
