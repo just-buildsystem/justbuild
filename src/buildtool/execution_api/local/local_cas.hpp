@@ -28,12 +28,13 @@ class LocalCAS {
 
     [[nodiscard]] auto StoreBlobFromBytes(std::string const& bytes)
         const noexcept -> std::optional<bazel_re::Digest> {
-        return StoreBlob(bytes);
+        return StoreBlob(bytes, /*is_owner=*/true);
     }
 
-    [[nodiscard]] auto StoreBlobFromFile(std::filesystem::path const& file_path)
-        const noexcept -> std::optional<bazel_re::Digest> {
-        return StoreBlob(file_path);
+    [[nodiscard]] auto StoreBlobFromFile(std::filesystem::path const& file_path,
+                                         bool is_owner = false) const noexcept
+        -> std::optional<bazel_re::Digest> {
+        return StoreBlob(file_path, is_owner);
     }
 
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest) const noexcept
@@ -71,25 +72,25 @@ class LocalCAS {
 
     /// \brief Store blob from bytes to storage.
     [[nodiscard]] auto StoreBlobData(std::string const& blob_id,
-                                     std::string const& bytes) const noexcept
-        -> bool {
+                                     std::string const& bytes,
+                                     bool /*unused*/) const noexcept -> bool {
         return file_store_.AddFromBytes(blob_id, bytes);
     }
 
     /// \brief Store blob from file path to storage.
-    [[nodiscard]] auto StoreBlobData(
-        std::string const& blob_id,
-        std::filesystem::path const& file_path) const noexcept -> bool {
-        return file_store_.AddFromFile(blob_id, file_path);
+    [[nodiscard]] auto StoreBlobData(std::string const& blob_id,
+                                     std::filesystem::path const& file_path,
+                                     bool is_owner) const noexcept -> bool {
+        return file_store_.AddFromFile(blob_id, file_path, is_owner);
     }
 
     /// \brief Store blob from unspecified data to storage.
     template <class T>
-    [[nodiscard]] auto StoreBlob(T const& data) const noexcept
+    [[nodiscard]] auto StoreBlob(T const& data, bool is_owner) const noexcept
         -> std::optional<bazel_re::Digest> {
         auto digest = CreateDigest(data);
         if (digest) {
-            if (StoreBlobData(digest->hash(), data)) {
+            if (StoreBlobData(digest->hash(), data, is_owner)) {
                 return digest;
             }
             logger_.Emit(

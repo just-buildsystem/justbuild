@@ -115,8 +115,9 @@ class LocalAction final : public IExecutionAction {
         std::filesystem::path const& exec_path) const noexcept -> bool;
 
     /// \brief Store file from path in file CAS and return pointer to digest.
-    [[nodiscard]] auto DigestFromFile(std::filesystem::path const& file_path)
-        const noexcept -> gsl::owner<bazel_re::Digest*>;
+    [[nodiscard]] auto DigestFromOwnedFile(
+        std::filesystem::path const& file_path) const noexcept
+        -> gsl::owner<bazel_re::Digest*>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_ACTION_HPP

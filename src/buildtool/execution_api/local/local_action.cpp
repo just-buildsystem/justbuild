@@ -110,11 +110,11 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
         Output result{};
         result.action.set_exit_code(command_output->return_value);
         if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromFile(command_output->stdout_file)) {
+                DigestFromOwnedFile(command_output->stdout_file)) {
             result.action.set_allocated_stdout_digest(digest_ptr);
         }
         if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromFile(command_output->stderr_file)) {
+                DigestFromOwnedFile(command_output->stderr_file)) {
             result.action.set_allocated_stderr_digest(digest_ptr);
         }
 
@@ -205,7 +205,8 @@ auto LocalAction::CollectOutputFile(std::filesystem::path const& exec_path,
         return std::nullopt;
     }
     bool is_executable = IsExecutableObject(*type);
-    auto digest = storage_->StoreBlob(file_path, is_executable);
+    auto digest =
+        storage_->StoreBlob</*kOwner=*/true>(file_path, is_executable);
     if (digest) {
         auto out_file = bazel_re::OutputFile{};
         out_file.set_path(local_path);
@@ -229,7 +230,7 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
         dir_path,
         [this](auto path, auto is_exec) {
-            return storage_->StoreBlob(path, is_exec);
+            return storage_->StoreBlob</*kOwner=*/true>(path, is_exec);
         },
         [this](auto bytes, auto dir) -> std::optional<bazel_re::Digest> {
             auto digest = storage_->StoreBlob(bytes);
@@ -286,9 +287,9 @@ auto LocalAction::CollectAndStoreOutputs(
     return true;
 }
 
-auto LocalAction::DigestFromFile(std::filesystem::path const& file_path)
+auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)
     const noexcept -> gsl::owner<bazel_re::Digest*> {
-    if (auto digest = storage_->StoreBlob(file_path)) {
+    if (auto digest = storage_->StoreBlob</*kOwner=*/true>(file_path)) {
         return new bazel_re::Digest{std::move(*digest)};
     }
     return nullptr;

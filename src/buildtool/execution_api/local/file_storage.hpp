@@ -26,10 +26,11 @@ class FileStorage {
 
     /// \brief Add file to storage.
     /// \returns true if file exists afterward.
-    [[nodiscard]] auto AddFromFile(
-        std::string const& id,
-        std::filesystem::path const& source_path) const noexcept -> bool {
-        return AtomicAdd(id, source_path);
+    [[nodiscard]] auto AddFromFile(std::string const& id,
+                                   std::filesystem::path const& source_path,
+                                   bool is_owner = false) const noexcept
+        -> bool {
+        return AtomicAdd(id, source_path, is_owner);
     }
 
     /// \brief Add bytes to storage.
@@ -37,7 +38,7 @@ class FileStorage {
     [[nodiscard]] auto AddFromBytes(std::string const& id,
                                     std::string const& bytes) const noexcept
         -> bool {
-        return AtomicAdd(id, bytes);
+        return AtomicAdd(id, bytes, /*is_owner=*/true);
     }
 
     [[nodiscard]] auto GetPath(std::string const& name) const noexcept
@@ -57,14 +58,15 @@ class FileStorage {
     /// \returns true if file exists afterward.
     template <class T>
     [[nodiscard]] auto AtomicAdd(std::string const& id,
-                                 T const& data) const noexcept -> bool {
+                                 T const& data,
+                                 bool is_owner) const noexcept -> bool {
         auto file_path = storage_root_ / id;
         if (kMode == StoreMode::LastWins or
             not FileSystemManager::Exists(file_path)) {
             auto unique_path = CreateUniquePath(file_path);
             if (unique_path and
                 FileSystemManager::CreateDirectory(file_path.parent_path()) and
-                CreateFileFromData(*unique_path, data) and
+                CreateFileFromData(*unique_path, data, is_owner) and
                 StageFile(*unique_path, file_path)) {
                 Logger::Log(
                     LogLevel::Trace, "created entry {}.", file_path.string());
@@ -77,17 +79,23 @@ class FileStorage {
     /// \brief Create file from file path.
     [[nodiscard]] static auto CreateFileFromData(
         std::filesystem::path const& file_path,
-        std::filesystem::path const& other_path) noexcept -> bool {
+        std::filesystem::path const& other_path,
+        bool is_owner) noexcept -> bool {
+        // For files owned by us (e.g., generated files from the execution
+        // directory), prefer faster creation of hard links instead of a copy.
         // Copy executables without opening any writeable file descriptors in
         // this process to avoid those from being inherited by child processes.
-        return FileSystemManager::CopyFileAs<kType>(
-            other_path, file_path, fd_less_);
+        return (is_owner and FileSystemManager::CreateFileHardlinkAs<kType>(
+                                 other_path, file_path)) or
+               FileSystemManager::CopyFileAs<kType>(
+                   other_path, file_path, fd_less_);
     }
 
     /// \brief Create file from bytes.
     [[nodiscard]] static auto CreateFileFromData(
         std::filesystem::path const& file_path,
-        std::string const& bytes) noexcept -> bool {
+        std::string const& bytes,
+        bool /*unused*/) noexcept -> bool {
         // Write executables without opening any writeable file descriptors in
         // this process to avoid those from being inherited by child processes.
         return FileSystemManager::WriteFileAs<kType>(

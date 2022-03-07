@@ -25,19 +25,22 @@ class LocalStorage {
           tree_map_{std::move(tree_map)} {}
 
     /// \brief Store blob from file path with x-bit determined from file system.
+    template <bool kOwner = false>
     [[nodiscard]] auto StoreBlob(std::filesystem::path const& file_path)
         const noexcept -> std::optional<bazel_re::Digest> {
-        return StoreBlob(file_path, FileSystemManager::IsExecutable(file_path));
+        return StoreBlob<kOwner>(file_path,
+                                 FileSystemManager::IsExecutable(file_path));
     }
 
     /// \brief Store blob from file path with x-bit.
+    template <bool kOwner = false>
     [[nodiscard]] auto StoreBlob(std::filesystem::path const& file_path,
                                  bool is_executable) const noexcept
         -> std::optional<bazel_re::Digest> {
         if (is_executable) {
-            return cas_exec_.StoreBlobFromFile(file_path);
+            return cas_exec_.StoreBlobFromFile(file_path, kOwner);
         }
-        return cas_file_.StoreBlobFromFile(file_path);
+        return cas_file_.StoreBlobFromFile(file_path, kOwner);
     }
 
     /// \brief Store blob from bytes with x-bit (default: non-executable).
