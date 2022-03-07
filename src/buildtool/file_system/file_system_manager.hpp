@@ -445,49 +445,67 @@ class FileSystemManager {
         return true;
     }
 
-    [[nodiscard]] static auto WriteFile(
-        std::string const& content,
-        std::filesystem::path const& file) noexcept -> auto {
+    [[nodiscard]] static auto WriteFile(std::string const& content,
+                                        std::filesystem::path const& file,
+                                        bool fd_less = false) noexcept -> bool {
         if (not CreateDirectory(file.parent_path())) {
             Logger::Log(LogLevel::Error,
                         "can not create directory {}",
                         file.parent_path().string());
             return false;
         }
-        try {
-            std::ofstream writer{file};
-            if (!writer.is_open()) {
+        if (fd_less) {
+            pid_t pid = ::fork();
+            if (pid == -1) {
                 Logger::Log(
-                    LogLevel::Error, "can not open file {}", file.string());
+                    LogLevel::Error,
+                    "Failed to write file: cannot fork a child process.");
                 return false;
             }
-            writer << content;
-            writer.close();
+
+            if (pid == 0) {
+                // Disable logging errors in child to avoid the use of mutexes.
+                System::ExitWithoutCleanup(
+                    WriteFileImpl</*kLogError=*/false>(content, file)
+                        ? EXIT_SUCCESS
+                        : EXIT_FAILURE);
+            }
+
+            int status{};
+            ::waitpid(pid, &status, 0);
+
+            // NOLINTNEXTLINE(hicpp-signed-bitwise)
+            if (WEXITSTATUS(status) != EXIT_SUCCESS) {
+                Logger::Log(
+                    LogLevel::Error, "Failed writing file {}", file.string());
+                return false;
+            }
             return true;
-        } catch (std::exception const& e) {
-            Logger::Log(
-                LogLevel::Error, "writing to {}:\n{}", file.string(), e.what());
-            return false;
         }
+        return WriteFileImpl(content, file);
     }
 
     template <ObjectType kType>
-    requires(IsFileObject(kType)) [[nodiscard]] static auto WriteFileAs(
-        std::string const& content,
-        std::filesystem::path const& file) noexcept -> bool {
-        return WriteFile(content, file) and
+    requires(IsFileObject(kType))
+        [[nodiscard]] static auto WriteFileAs(std::string const& content,
+                                              std::filesystem::path const& file,
+                                              bool fd_less = false) noexcept
+        -> bool {
+        return WriteFile(content, file, fd_less) and
                SetFilePermissions(file, IsExecutableObject(kType));
     }
 
     [[nodiscard]] static auto WriteFileAs(std::string const& content,
                                           std::filesystem::path const& file,
-                                          ObjectType output_type) noexcept
+                                          ObjectType output_type,
+                                          bool fd_less = false) noexcept
         -> bool {
         switch (output_type) {
             case ObjectType::File:
-                return WriteFileAs<ObjectType::File>(content, file);
+                return WriteFileAs<ObjectType::File>(content, file, fd_less);
             case ObjectType::Executable:
-                return WriteFileAs<ObjectType::Executable>(content, file);
+                return WriteFileAs<ObjectType::Executable>(
+                    content, file, fd_less);
             case ObjectType::Tree:
                 return false;
         }
@@ -585,6 +603,33 @@ class FileSystemManager {
                             "copying file from {} to {}:\n{}",
                             src.string(),
                             dst.string(),
+                            e.what());
+            }
+            return false;
+        }
+    }
+
+    template <bool kLogError = true>
+    [[nodiscard]] static auto WriteFileImpl(
+        std::string const& content,
+        std::filesystem::path const& file) noexcept -> bool {
+        try {
+            std::ofstream writer{file};
+            if (!writer.is_open()) {
+                if constexpr (kLogError) {
+                    Logger::Log(
+                        LogLevel::Error, "can not open file {}", file.string());
+                }
+                return false;
+            }
+            writer << content;
+            writer.close();
+            return true;
+        } catch (std::exception const& e) {
+            if constexpr (kLogError) {
+                Logger::Log(LogLevel::Error,
+                            "writing to {}:\n{}",
+                            file.string(),
                             e.what());
             }
             return false;

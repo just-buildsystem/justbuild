@@ -274,50 +274,67 @@ TEST_CASE("RemoveFile", "[file_system]") {
 TEST_CASE_METHOD(WriteFileFixture, "WriteFile", "[file_system]") {
     std::string const content{"This are the contents\nof the file.\n"};
 
-    CHECK(FileSystemManager::WriteFile(content, file_path_));
-    CHECK(std::filesystem::exists(file_path_));
-    CHECK(std::filesystem::is_directory(file_path_.parent_path()));
-    CHECK(std::filesystem::is_regular_file(file_path_));
+    auto run_test = [&](bool fd_less) {
+        CHECK(FileSystemManager::WriteFile(content, file_path_, fd_less));
+        CHECK(std::filesystem::exists(file_path_));
+        CHECK(std::filesystem::is_directory(file_path_.parent_path()));
+        CHECK(std::filesystem::is_regular_file(file_path_));
 
-    auto const written_content = FileSystemManager::ReadFile(file_path_);
-    CHECK(written_content.has_value());
-    CHECK(written_content == content);
+        auto const written_content = FileSystemManager::ReadFile(file_path_);
+        CHECK(written_content.has_value());
+        CHECK(written_content == content);
+    };
+
+    SECTION("direct") { run_test(false); }
+    SECTION("fd-less") { run_test(true); }
 }
 
 TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
     SECTION("as a file") {
         std::string const content{"This are the contents\nof the file.\n"};
 
-        CHECK(FileSystemManager::WriteFileAs(
-            content, file_path_, ObjectType::File));
-        CHECK(std::filesystem::exists(file_path_));
-        CHECK(std::filesystem::is_directory(file_path_.parent_path()));
-        CHECK(std::filesystem::is_regular_file(file_path_));
-        CHECK(not FileSystemManager::IsExecutable(file_path_));
+        auto run_test = [&](bool fd_less) {
+            CHECK(FileSystemManager::WriteFileAs(
+                content, file_path_, ObjectType::File, fd_less));
+            CHECK(std::filesystem::exists(file_path_));
+            CHECK(std::filesystem::is_directory(file_path_.parent_path()));
+            CHECK(std::filesystem::is_regular_file(file_path_));
+            CHECK(not FileSystemManager::IsExecutable(file_path_));
 
-        auto const written_content = FileSystemManager::ReadFile(file_path_);
-        CHECK(written_content.has_value());
-        CHECK(written_content == content);
+            auto const written_content =
+                FileSystemManager::ReadFile(file_path_);
+            CHECK(written_content.has_value());
+            CHECK(written_content == content);
 
-        // permissions should be 0444
-        CHECK(HasFilePermissions(file_path_));
+            // permissions should be 0444
+            CHECK(HasFilePermissions(file_path_));
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd-less") { run_test(true); }
     }
     SECTION("as an executable") {
         std::string const content{"\n"};
 
-        CHECK(FileSystemManager::WriteFileAs(
-            content, file_path_, ObjectType::Executable));
-        CHECK(std::filesystem::exists(file_path_));
-        CHECK(std::filesystem::is_directory(file_path_.parent_path()));
-        CHECK(std::filesystem::is_regular_file(file_path_));
-        CHECK(FileSystemManager::IsExecutable(file_path_));
+        auto run_test = [&](bool fd_less) {
+            CHECK(FileSystemManager::WriteFileAs(
+                content, file_path_, ObjectType::Executable, fd_less));
+            CHECK(std::filesystem::exists(file_path_));
+            CHECK(std::filesystem::is_directory(file_path_.parent_path()));
+            CHECK(std::filesystem::is_regular_file(file_path_));
+            CHECK(FileSystemManager::IsExecutable(file_path_));
 
-        auto const written_content = FileSystemManager::ReadFile(file_path_);
-        CHECK(written_content.has_value());
-        CHECK(written_content == content);
+            auto const written_content =
+                FileSystemManager::ReadFile(file_path_);
+            CHECK(written_content.has_value());
+            CHECK(written_content == content);
 
-        // permissions should be 0555
-        CHECK(HasExecutablePermissions(file_path_));
+            // permissions should be 0555
+            CHECK(HasExecutablePermissions(file_path_));
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd-less") { run_test(true); }
     }
 }
 
