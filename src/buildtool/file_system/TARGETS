@@ -15,17 +15,6 @@
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
-, "system_command":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["system_command"]
-  , "hdrs": ["system_command.hpp"]
-  , "deps":
-    [ "file_system_manager"
-    , ["src/buildtool/logging", "logging"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
-    ]
-  , "stage": ["src", "buildtool", "file_system"]
-  }
 , "jsonfs":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["jsonfs"]

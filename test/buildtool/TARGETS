@@ -11,6 +11,7 @@
     , [["./", "graph_traverser", "TESTS"], "graph_traverser"]
     , [["./", "logging", "TESTS"], "logging"]
     , [["./", "multithreading", "TESTS"], "multithreading"]
+    , [["./", "system", "TESTS"], "system"]
     ]
   }
 }

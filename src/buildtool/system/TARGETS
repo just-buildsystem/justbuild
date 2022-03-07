@@ -1,0 +1,12 @@
+{ "system_command":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["system_command"]
+  , "hdrs": ["system_command.hpp"]
+  , "deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "system"]
+  }
+}

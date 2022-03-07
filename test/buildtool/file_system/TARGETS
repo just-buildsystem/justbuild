@@ -10,17 +10,6 @@
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
-, "system_command":
-  { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["system_command"]
-  , "srcs": ["system_command.test.cpp"]
-  , "deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/file_system", "system_command"]
-    ]
-  , "stage": ["test", "buildtool", "file_system"]
-  }
 , "git_tree":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["git_tree"]
@@ -57,6 +46,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["file_root", "file_system_manager", "git_tree", "system_command"]
+  , "deps": ["file_root", "file_system_manager", "git_tree"]
   }
 }

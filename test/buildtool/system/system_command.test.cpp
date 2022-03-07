@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "catch2/catch.hpp"
-#include "src/buildtool/file_system/system_command.hpp"
+#include "src/buildtool/system/system_command.hpp"
 
 namespace {
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {

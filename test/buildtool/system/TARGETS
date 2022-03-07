@@ -1,0 +1,13 @@
+{ "system_command":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["system_command"]
+  , "srcs": ["system_command.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/system", "system_command"]
+    ]
+  , "stage": ["test", "buildtool", "system"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["system_command"]}
+}
