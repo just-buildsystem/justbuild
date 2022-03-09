@@ -5,5 +5,13 @@
   , "keep": ["graph.json"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["equality"]}
+, "trees":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["trees"]
+  , "test": ["nested-trees.sh"]
+  , "keep": ["blobs.json", "trees.json", "out/index.txt"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["equality", "trees"]}
 }
