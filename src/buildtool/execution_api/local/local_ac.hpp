@@ -76,7 +76,8 @@ class LocalAC {
     gsl::not_null<LocalCAS<ObjectType::File>*> cas_;
     std::filesystem::path const cache_root_{
         LocalExecutionConfig::GetCacheDir()};
-    FileStorage<ObjectType::File, kStoreMode> file_store_{cache_root_ / "ac"};
+    FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
+        file_store_{cache_root_ / "ac"};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_AC_HPP

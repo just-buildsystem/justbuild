@@ -52,8 +52,8 @@ class LocalCAS {
     Logger logger_{std::string{"LocalCAS"} + kSuffix};
     std::filesystem::path const cache_root_{
         LocalExecutionConfig::GetCacheDir()};
-    FileStorage<kType> file_store_{cache_root_ /
-                                   (std::string{"cas"} + kSuffix)};
+    FileStorage<kType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
+        file_store_{cache_root_ / (std::string{"cas"} + kSuffix)};
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {

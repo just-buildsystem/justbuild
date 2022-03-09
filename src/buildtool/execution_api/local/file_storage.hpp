@@ -17,8 +17,7 @@ enum class StoreMode {
     LastWins
 };
 
-template <ObjectType kType = ObjectType::File,
-          StoreMode kMode = StoreMode::FirstWins>
+template <ObjectType kType, StoreMode kMode, bool kSetEpochTime>
 class FileStorage {
   public:
     explicit FileStorage(std::filesystem::path storage_root) noexcept
@@ -47,8 +46,8 @@ class FileStorage {
     }
 
   private:
+    static constexpr bool kFdLess{kType == ObjectType::Executable};
     std::filesystem::path const storage_root_{};
-    static constexpr bool fd_less_{kType == ObjectType::Executable};
 
     /// \brief Add file to storage from file path via link or copy and rename.
     /// If a race-condition occurs, the winning thread will be the one
@@ -68,7 +67,8 @@ class FileStorage {
                 // Entry does not exist and we are owner of the file (e.g., file
                 // generated in the execution directory). Try to hard link it
                 // directly or check its existence if it was created by now.
-                return FileSystemManager::CreateFileHardlinkAs<kType>(
+                return FileSystemManager::CreateFileHardlinkAs<kType,
+                                                               kSetEpochTime>(
                            path, file_path) or
                        FileSystemManager::IsFile(file_path);
             };
@@ -124,10 +124,11 @@ class FileStorage {
         // directory), prefer faster creation of hard links instead of a copy.
         // Copy executables without opening any writeable file descriptors in
         // this process to avoid those from being inherited by child processes.
-        return (is_owner and FileSystemManager::CreateFileHardlinkAs<kType>(
-                                 other_path, file_path)) or
-               FileSystemManager::CopyFileAs<kType>(
-                   other_path, file_path, fd_less_);
+        return (is_owner and
+                FileSystemManager::CreateFileHardlinkAs<kType, kSetEpochTime>(
+                    other_path, file_path)) or
+               FileSystemManager::CopyFileAs<kType, kSetEpochTime>(
+                   other_path, file_path, kFdLess);
     }
 
     /// \brief Create file from bytes.
@@ -136,8 +137,8 @@ class FileStorage {
         std::string const& bytes) noexcept -> bool {
         // Write executables without opening any writeable file descriptors in
         // this process to avoid those from being inherited by child processes.
-        return FileSystemManager::WriteFileAs<kType>(
-            bytes, file_path, fd_less_);
+        return FileSystemManager::WriteFileAs<kType, kSetEpochTime>(
+            bytes, file_path, kFdLess);
     }
 
     /// \brief Stage file from source path to target path.
