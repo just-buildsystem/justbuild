@@ -30,7 +30,7 @@ class FileStorage {
                                    std::filesystem::path const& source_path,
                                    bool is_owner = false) const noexcept
         -> bool {
-        return AtomicAdd(id, source_path, is_owner);
+        return AtomicAddFromFile(id, source_path, is_owner);
     }
 
     /// \brief Add bytes to storage.
@@ -38,7 +38,7 @@ class FileStorage {
     [[nodiscard]] auto AddFromBytes(std::string const& id,
                                     std::string const& bytes) const noexcept
         -> bool {
-        return AtomicAdd(id, bytes, /*is_owner=*/true);
+        return AtomicAddFromBytes(id, bytes);
     }
 
     [[nodiscard]] auto GetPath(std::string const& name) const noexcept
@@ -50,23 +50,62 @@ class FileStorage {
     std::filesystem::path const storage_root_{};
     static constexpr bool fd_less_{kType == ObjectType::Executable};
 
-    /// \brief Add file to storage via copy and atomic rename.
+    /// \brief Add file to storage from file path via link or copy and rename.
+    /// If a race-condition occurs, the winning thread will be the one
+    /// performing the link/rename operation first or last, depending on kMode
+    /// being set to FirstWins or LastWins, respectively. All threads will
+    /// signal success.
+    /// \returns true if file exists afterward.
+    [[nodiscard]] auto AtomicAddFromFile(std::string const& id,
+                                         std::filesystem::path const& path,
+                                         bool is_owner) const noexcept -> bool {
+        auto file_path = storage_root_ / id;
+        if ((kMode == StoreMode::LastWins or
+             not FileSystemManager::Exists(file_path)) and
+            FileSystemManager::CreateDirectory(file_path.parent_path())) {
+            auto direct_create = kMode == StoreMode::FirstWins and is_owner;
+            auto create_directly = [&]() {
+                // Entry does not exist and we are owner of the file (e.g., file
+                // generated in the execution directory). Try to hard link it
+                // directly or check its existence if it was created by now.
+                return FileSystemManager::CreateFileHardlinkAs<kType>(
+                           path, file_path) or
+                       FileSystemManager::IsFile(file_path);
+            };
+            auto create_and_stage = [&]() {
+                // Entry exists and we need to overwrite it, or we are not owner
+                // of the file. Create the file in a process/thread-local
+                // temporary path and stage it.
+                auto unique_path = CreateUniquePath(file_path);
+                return unique_path and
+                       CreateFileFromPath(*unique_path, path, is_owner) and
+                       StageFile(*unique_path, file_path);
+            };
+            if (direct_create ? create_directly() : create_and_stage()) {
+                Logger::Log(
+                    LogLevel::Trace, "created entry {}.", file_path.string());
+                return true;
+            }
+        }
+        return FileSystemManager::IsFile(file_path);
+    }
+
+    /// \brief Add file to storage from bytes via write and atomic rename.
     /// If a race-condition occurs, the winning thread will be the one
     /// performing the rename operation first or last, depending on kMode being
     /// set to FirstWins or LastWins, respectively. All threads will signal
     /// success.
     /// \returns true if file exists afterward.
-    template <class T>
-    [[nodiscard]] auto AtomicAdd(std::string const& id,
-                                 T const& data,
-                                 bool is_owner) const noexcept -> bool {
+    [[nodiscard]] auto AtomicAddFromBytes(
+        std::string const& id,
+        std::string const& bytes) const noexcept -> bool {
         auto file_path = storage_root_ / id;
         if (kMode == StoreMode::LastWins or
             not FileSystemManager::Exists(file_path)) {
             auto unique_path = CreateUniquePath(file_path);
             if (unique_path and
                 FileSystemManager::CreateDirectory(file_path.parent_path()) and
-                CreateFileFromData(*unique_path, data, is_owner) and
+                CreateFileFromBytes(*unique_path, bytes) and
                 StageFile(*unique_path, file_path)) {
                 Logger::Log(
                     LogLevel::Trace, "created entry {}.", file_path.string());
@@ -77,7 +116,7 @@ class FileStorage {
     }
 
     /// \brief Create file from file path.
-    [[nodiscard]] static auto CreateFileFromData(
+    [[nodiscard]] static auto CreateFileFromPath(
         std::filesystem::path const& file_path,
         std::filesystem::path const& other_path,
         bool is_owner) noexcept -> bool {
@@ -92,10 +131,9 @@ class FileStorage {
     }
 
     /// \brief Create file from bytes.
-    [[nodiscard]] static auto CreateFileFromData(
+    [[nodiscard]] static auto CreateFileFromBytes(
         std::filesystem::path const& file_path,
-        std::string const& bytes,
-        bool /*unused*/) noexcept -> bool {
+        std::string const& bytes) noexcept -> bool {
         // Write executables without opening any writeable file descriptors in
         // this process to avoid those from being inherited by child processes.
         return FileSystemManager::WriteFileAs<kType>(
