@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 
+#include <chrono>
 #include <cstdio>  // for std::fopen
 #include <exception>
 #include <filesystem>
@@ -118,7 +119,7 @@ class FileSystemManager {
         }
     }
 
-    template <ObjectType kType>
+    template <ObjectType kType, bool kSetEpochTime = false>
     requires(IsFileObject(kType))
         [[nodiscard]] static auto CreateFileHardlinkAs(
             std::filesystem::path const& file_path,
@@ -127,20 +128,23 @@ class FileSystemManager {
         // that the created link has the correct permissions as soon as the link
         // creation is finished.
         return SetFilePermissions(file_path, IsExecutableObject(kType)) and
+               (not kSetEpochTime or SetEpochTime(file_path)) and
                CreateFileHardlink(file_path, link_path);
     }
 
+    template <bool kSetEpochTime = false>
     [[nodiscard]] static auto CreateFileHardlinkAs(
         std::filesystem::path const& file_path,
         std::filesystem::path const& link_path,
         ObjectType output_type) noexcept -> bool {
         switch (output_type) {
             case ObjectType::File:
-                return CreateFileHardlinkAs<ObjectType::File>(file_path,
-                                                              link_path);
+                return CreateFileHardlinkAs<ObjectType::File, kSetEpochTime>(
+                    file_path, link_path);
             case ObjectType::Executable:
-                return CreateFileHardlinkAs<ObjectType::Executable>(file_path,
-                                                                    link_path);
+                return CreateFileHardlinkAs<ObjectType::Executable,
+                                            kSetEpochTime>(file_path,
+                                                           link_path);
             case ObjectType::Tree:
                 return false;
         }
@@ -206,7 +210,7 @@ class FileSystemManager {
         return CopyFileImpl(src, dst, opt);
     }
 
-    template <ObjectType kType>
+    template <ObjectType kType, bool kSetEpochTime = false>
     requires(IsFileObject(kType)) [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -215,9 +219,11 @@ class FileSystemManager {
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         return CopyFile(src, dst, fd_less, opt) and
-               SetFilePermissions(dst, IsExecutableObject(kType));
+               SetFilePermissions(dst, IsExecutableObject(kType)) and
+               (not kSetEpochTime or SetEpochTime(dst));
     }
 
+    template <bool kSetEpochTime = false>
     [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -228,9 +234,10 @@ class FileSystemManager {
         -> bool {
         switch (type) {
             case ObjectType::File:
-                return CopyFileAs<ObjectType::File>(src, dst, fd_less, opt);
+                return CopyFileAs<ObjectType::File, kSetEpochTime>(
+                    src, dst, fd_less, opt);
             case ObjectType::Executable:
-                return CopyFileAs<ObjectType::Executable>(
+                return CopyFileAs<ObjectType::Executable, kSetEpochTime>(
                     src, dst, fd_less, opt);
             case ObjectType::Tree:
                 break;
@@ -513,16 +520,18 @@ class FileSystemManager {
         return WriteFileImpl(content, file);
     }
 
-    template <ObjectType kType>
+    template <ObjectType kType, bool kSetEpochTime = false>
     requires(IsFileObject(kType))
         [[nodiscard]] static auto WriteFileAs(std::string const& content,
                                               std::filesystem::path const& file,
                                               bool fd_less = false) noexcept
         -> bool {
         return WriteFile(content, file, fd_less) and
-               SetFilePermissions(file, IsExecutableObject(kType));
+               SetFilePermissions(file, IsExecutableObject(kType)) and
+               (not kSetEpochTime or SetEpochTime(file));
     }
 
+    template <bool kSetEpochTime = false>
     [[nodiscard]] static auto WriteFileAs(std::string const& content,
                                           std::filesystem::path const& file,
                                           ObjectType output_type,
@@ -530,9 +539,10 @@ class FileSystemManager {
         -> bool {
         switch (output_type) {
             case ObjectType::File:
-                return WriteFileAs<ObjectType::File>(content, file, fd_less);
+                return WriteFileAs<ObjectType::File, kSetEpochTime>(
+                    content, file, fd_less);
             case ObjectType::Executable:
-                return WriteFileAs<ObjectType::Executable>(
+                return WriteFileAs<ObjectType::Executable, kSetEpochTime>(
                     content, file, fd_less);
             case ObjectType::Tree:
                 return false;
@@ -675,6 +685,19 @@ class FileSystemManager {
                 p |= perms::owner_exec | perms::group_exec | perms::others_exec;
             }
             std::filesystem::permissions(path, p);
+            return true;
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error, e.what());
+            return false;
+        }
+    }
+
+    static auto SetEpochTime(std::filesystem::path const& file_path) noexcept
+        -> bool {
+        static auto const kPosixEpochTime =
+            System::GetPosixEpoch<std::chrono::file_clock>();
+        try {
+            std::filesystem::last_write_time(file_path, kPosixEpochTime);
             return true;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error, e.what());

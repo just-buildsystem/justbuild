@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -66,6 +67,15 @@ auto HasFilePermissions(fs::path const& path) noexcept -> bool {
 auto HasExecutablePermissions(fs::path const& path) noexcept -> bool {
     try {
         return fs::status(path).permissions() == (kFilePerms | kExecPerms);
+    } catch (...) {
+        return false;
+    }
+}
+
+auto HasEpochTime(fs::path const& path) noexcept -> bool {
+    try {
+        return fs::last_write_time(path) ==
+               System::GetPosixEpoch<std::chrono::file_clock>();
     } catch (...) {
         return false;
     }
@@ -189,9 +199,9 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFile", "[file_system]") {
 
 TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
     SECTION("as file") {
-        auto run_test = [&](bool fd_less) {
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
             // Copy as file was successful
-            CHECK(FileSystemManager::CopyFileAs(
+            CHECK(FileSystemManager::CopyFileAs<kSetEpochTime>(
                 from_, to_, ObjectType::File, fd_less));
 
             // file exists
@@ -208,15 +218,24 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
 
             // permissions should be 0444
             CHECK(HasFilePermissions(to_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(to_));
+            }
         };
 
         SECTION("direct") { run_test(false); }
         SECTION("fd_less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd_less with epoch") {
+            run_test.template operator()<true>(true);
+        }
     }
     SECTION("as executable") {
-        auto run_test = [&](bool fd_less) {
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
             // Copy as file was successful
-            CHECK(FileSystemManager::CopyFileAs(
+            CHECK(FileSystemManager::CopyFileAs<kSetEpochTime>(
                 from_, to_, ObjectType::Executable, fd_less));
 
             // file exists
@@ -233,10 +252,19 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
 
             // permissions should be 0555
             CHECK(HasExecutablePermissions(to_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(to_));
+            }
         };
 
         SECTION("direct") { run_test(false); }
         SECTION("fd_less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd_less with epoch") {
+            run_test.template operator()<true>(true);
+        }
     }
 }
 
@@ -293,8 +321,8 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
     SECTION("as a file") {
         std::string const content{"This are the contents\nof the file.\n"};
 
-        auto run_test = [&](bool fd_less) {
-            CHECK(FileSystemManager::WriteFileAs(
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
+            CHECK(FileSystemManager::WriteFileAs<kSetEpochTime>(
                 content, file_path_, ObjectType::File, fd_less));
             CHECK(std::filesystem::exists(file_path_));
             CHECK(std::filesystem::is_directory(file_path_.parent_path()));
@@ -308,16 +336,25 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
 
             // permissions should be 0444
             CHECK(HasFilePermissions(file_path_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(file_path_));
+            }
         };
 
         SECTION("direct") { run_test(false); }
         SECTION("fd-less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd-less with epoch") {
+            run_test.template operator()<true>(true);
+        }
     }
     SECTION("as an executable") {
         std::string const content{"\n"};
 
-        auto run_test = [&](bool fd_less) {
-            CHECK(FileSystemManager::WriteFileAs(
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
+            CHECK(FileSystemManager::WriteFileAs<kSetEpochTime>(
                 content, file_path_, ObjectType::Executable, fd_less));
             CHECK(std::filesystem::exists(file_path_));
             CHECK(std::filesystem::is_directory(file_path_.parent_path()));
@@ -331,10 +368,19 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
 
             // permissions should be 0555
             CHECK(HasExecutablePermissions(file_path_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(file_path_));
+            }
         };
 
         SECTION("direct") { run_test(false); }
         SECTION("fd-less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd-less with epoch") {
+            run_test.template operator()<true>(true);
+        }
     }
 }
 
@@ -448,9 +494,9 @@ TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
             from_,
             is_executable ? ObjectType::Executable : ObjectType::File));
     };
-    auto run_test = [&](bool is_executable) {
+    auto run_test = [&]<bool kSetEpochTime = false>(bool is_executable) {
         // Hard link creation was successful
-        CHECK(FileSystemManager::CreateFileHardlinkAs(
+        CHECK(FileSystemManager::CreateFileHardlinkAs<kSetEpochTime>(
             from_,
             to_,
             is_executable ? ObjectType::Executable : ObjectType::File));
@@ -463,6 +509,9 @@ TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
         // permissions should be 0555 or 0444
         CHECK((is_executable ? HasExecutablePermissions(to_)
                              : HasFilePermissions(to_)));
+        if constexpr (kSetEpochTime) {
+            CHECK(HasEpochTime(to_));
+        }
     };
     SECTION("as file") {
         SECTION("from file") {
@@ -482,6 +531,26 @@ TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
         SECTION("from executable") {
             set_perm(true);
             run_test(true);
+        }
+    }
+    SECTION("as file with epoch") {
+        SECTION("from file") {
+            set_perm(false);
+            run_test.template operator()<true>(false);
+        }
+        SECTION("from executable") {
+            set_perm(true);
+            run_test.template operator()<true>(false);
+        }
+    }
+    SECTION("as executable with epoch") {
+        SECTION("from file") {
+            set_perm(false);
+            run_test.template operator()<true>(true);
+        }
+        SECTION("from executable") {
+            set_perm(true);
+            run_test.template operator()<true>(true);
         }
     }
 }

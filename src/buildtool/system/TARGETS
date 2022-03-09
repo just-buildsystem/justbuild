@@ -9,6 +9,7 @@
     , "cond": {"type": "var", "name": "VALGRIND_BUILD"}
     , "then": ["VALGRIND_BUILD"]
     }
+  , "deps": [["src/utils/cpp", "concepts"]]
   , "stage": ["src", "buildtool", "system"]
   }
 , "system_command":

@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_CONCEPTS_HPP
 #define INCLUDED_SRC_UTILS_CPP_CONCEPTS_HPP
 
+#include <chrono>
 #include <string>
 #include <type_traits>
 
@@ -51,5 +52,18 @@ concept OutputIterableContainer = InputIterableContainer<T>and requires(T c) {
 template <class T>
 concept InputIterableStringContainer =
     InputIterableContainer<T>and ContainsString<T>;
+
+// TODO(modernize): remove this once we require clang version >= 14.0.0
+template <typename T>
+concept ClockHasFromSys =
+    requires(std::chrono::time_point<std::chrono::system_clock> const tp) {
+    T::from_sys(tp);
+};
+
+// TODO(modernize): remove this once we require clang version >= 14.0.0
+template <typename T>
+concept ClockHasFromTime = requires(std::time_t const t) {
+    T::from_time_t(t);
+};
 
 #endif  // INCLUDED_SRC_UTILS_CPP_CONCEPTS_HPP
