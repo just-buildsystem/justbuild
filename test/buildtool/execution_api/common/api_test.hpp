@@ -389,3 +389,77 @@ using ExecProps = std::map<std::string, std::string>;
               FileSystemManager::ReadFile(out_path / bar_path));
     }
 }
+
+[[nodiscard]] static inline auto TestCreateDirPriorToExecution(
+    ApiFactory const& api_factory,
+    ExecProps const& props,
+    bool is_hermetic = false) {
+    auto api = api_factory();
+
+    auto output_path = std::filesystem::path{"foo/bar/baz"};
+
+    auto action = api->CreateAction(
+        *api->UploadTree({}),
+        {"/bin/sh",
+         "-c",
+         fmt::format("set -e\n [ -d {} ]", output_path.string())},
+        {},
+        {output_path},
+        {},
+        props);
+
+    SECTION("Cache execution result in action cache") {
+        action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
+
+        // run execution
+        auto response = action->Execute();
+        REQUIRE(response);
+
+        // verify result
+        auto artifacts = response->Artifacts();
+        REQUIRE(artifacts.contains(output_path));
+        CHECK(IsTreeObject(artifacts.at(output_path).type));
+
+        if (is_hermetic) {
+            CHECK(not response->IsCached());
+
+            SECTION("Rerun execution to verify caching") {
+                // run execution
+                auto response = action->Execute();
+                REQUIRE(response);
+
+                // verify result
+                auto artifacts = response->Artifacts();
+                REQUIRE(artifacts.contains(output_path));
+                CHECK(IsTreeObject(artifacts.at(output_path).type));
+                CHECK(response->IsCached());
+            }
+        }
+    }
+
+    SECTION("Do not cache execution result in action cache") {
+        action->SetCacheFlag(IExecutionAction::CacheFlag::DoNotCacheOutput);
+
+        // run execution
+        auto response = action->Execute();
+        REQUIRE(response);
+
+        // verify result
+        auto artifacts = response->Artifacts();
+        REQUIRE(artifacts.contains(output_path));
+        CHECK(IsTreeObject(artifacts.at(output_path).type));
+        CHECK(not response->IsCached());
+
+        SECTION("Rerun execution to verify caching") {
+            // run execution
+            auto response = action->Execute();
+            REQUIRE(response);
+
+            // verify result
+            auto artifacts = response->Artifacts();
+            REQUIRE(artifacts.contains(output_path));
+            CHECK(IsTreeObject(artifacts.at(output_path).type));
+            CHECK(not response->IsCached());
+        }
+    }
+}

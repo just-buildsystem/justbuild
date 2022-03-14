@@ -38,3 +38,7 @@ TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
     TestRetrieveTwoIdenticalTreesToPath(
         api_factory, ReadPlatformPropertiesFromEnv(), "remote");
 }
+
+TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
+    TestCreateDirPriorToExecution(api_factory, ReadPlatformPropertiesFromEnv());
+}

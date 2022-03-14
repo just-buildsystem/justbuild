@@ -42,3 +42,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     TestRetrieveTwoIdenticalTreesToPath(
         api_factory, {}, "local", /*is_hermetic=*/true);
 }
+
+TEST_CASE_METHOD(HermeticLocalTestFixture,
+                 "LocalAPI: Create directory prior to execution",
+                 "[execution_api]") {
+    TestCreateDirPriorToExecution(api_factory, {}, /*is_hermetic=*/true);
+}
