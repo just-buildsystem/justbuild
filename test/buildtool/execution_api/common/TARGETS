@@ -1,0 +1,12 @@
+{ "api_test":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["api_test"]
+  , "hdrs": ["api_test.hpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["src/buildtool/common", "artifact_factory"]
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "common"]
+  }
+}

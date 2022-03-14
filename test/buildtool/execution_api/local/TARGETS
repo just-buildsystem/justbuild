@@ -45,8 +45,8 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
-    , ["src/buildtool/common", "artifact_factory"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["test/buildtool/execution_api/common", "api_test"]
     , ["test/utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]

@@ -72,6 +72,18 @@
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
+, "bazel_api":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["bazel_api"]
+  , "srcs": ["bazel_api.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "catch-main-remote-execution"]
+    , ["src/buildtool/execution_api/remote", "bazel"]
+    , ["test/buildtool/execution_api/common", "api_test"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "bazel"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -82,6 +94,7 @@
     , "execution_client"
     , "msg_factory"
     , "network"
+    , "bazel_api"
     ]
   }
 }
