@@ -104,13 +104,11 @@ auto LocalStorage::ReadObjectInfosRecursively(
         return BazelMsgFactory::ReadObjectInfosFromDirectory(
                    *dir,
                    [this, &store_info, &parent, &tree](auto path, auto info) {
-                       return IsTreeObject(info.type)
-                                  ? (not tree or tree->AddInfo(path, info)) and
-                                        ReadObjectInfosRecursively(
-                                            store_info,
-                                            parent / path,
-                                            info.digest)
-                                  : store_info(parent / path, info);
+                       return (not tree or tree->AddInfo(path, info)) and
+                              (IsTreeObject(info.type)
+                                   ? ReadObjectInfosRecursively(
+                                         store_info, parent / path, info.digest)
+                                   : store_info(parent / path, info));
                    }) and
                (not tree_map_ or tree_map_->AddTree(digest, std::move(*tree)));
     }
