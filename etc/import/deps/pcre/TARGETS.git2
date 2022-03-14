@@ -180,17 +180,24 @@
       }
     }
   }
-, "git2_pcreposix_sources":
-  { "type": "install"
-  , "deps": ["pcreposix.c"]
-  }
-, "git2_pcreposix_headers":
-  { "type": "install"
-  , "deps": ["pcreposix.h"]
-  }
-, "git2_pcre_sources":
-  { "type": "install"
-  , "deps":
+, "git2_pcre":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS"]
+  , "name": ["git2_pcre"]
+  , "pure C": ["yes"]
+  , "local defines":
+    { "type": "++"
+    , "$1":
+      [ ["HAVE_CONFIG_H"]
+      , { "type": "case"
+        , "expr": {"type": "var", "name": "OS"}
+        , "case":
+          {"windows": ["_CRT_SECURE_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS"]}
+        }
+      ]
+    }
+  , "local cflags": ["-Wno-unused-function", "-Wno-implicit-fallthrough"]
+  , "srcs":
     [ "pcre_byte_order.c"
     , "pcre_chartables.c"
     , "pcre_compile.c"
@@ -212,37 +219,14 @@
     , "pcre_valid_utf8.c"
     , "pcre_version.c"
     , "pcre_xclass.c"
-    , "git2_pcreposix_sources"
+    , "pcreposix.c"
     ]
-  }
-, "git2_pcre_headers":
-  { "type": "install"
-  , "deps":
+  , "hdrs":
     [ "config.h"
     , "pcre.h"
     , "pcre_internal.h"
     , "ucp.h"
-    , "git2_pcreposix_headers"
+    , "pcreposix.h"
     ]
-  }
-, "git2_pcre":
-  { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["OS"]
-  , "name": ["git2_pcre"]
-  , "pure C": ["yes"]
-  , "local defines":
-    { "type": "++"
-    , "$1":
-      [ ["HAVE_CONFIG_H"]
-      , { "type": "case"
-        , "expr": {"type": "var", "name": "OS"}
-        , "case":
-          {"windows": ["_CRT_SECURE_NO_DEPRECATE", "_CRT_SECURE_NO_WARNINGS"]}
-        }
-      ]
-    }
-  , "local cflags": ["-Wno-unused-function", "-Wno-implicit-fallthrough"]
-  , "srcs": ["git2_pcre_sources"]
-  , "hdrs": ["git2_pcre_headers"]
   }
 }
