@@ -23,7 +23,6 @@
         , "$1":
           [ [ "#define HAVE_STDINT_H 1"
             , "#define HAVE_INTTYPES_H 1"
-            , "#define HAVE_INTTYPES_H 1"
             ]
           , { "type": "case"
             , "expr": {"type": "var", "name": "OS"}
