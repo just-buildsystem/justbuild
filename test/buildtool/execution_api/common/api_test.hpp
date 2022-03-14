@@ -6,9 +6,20 @@
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 using ExecProps = std::map<std::string, std::string>;
+
+[[nodiscard]] static inline auto GetTestDir(std::string const& test_name)
+    -> std::filesystem::path {
+    auto* tmp_dir = std::getenv("TEST_TMPDIR");
+    if (tmp_dir != nullptr) {
+        return tmp_dir;
+    }
+    return FileSystemManager::GetCurrentDirectory() /
+           "test/buildtool/execution_api" / test_name;
+}
 
 [[nodiscard]] static inline auto TestNoInputNoOutput(
     ApiFactory const& api_factory,
@@ -310,5 +321,71 @@ using ExecProps = std::map<std::string, std::string>;
             CHECK(artifacts.at(output_path).digest == test_digest);
             CHECK(not response->IsCached());
         }
+    }
+}
+
+[[nodiscard]] static inline auto TestRetrieveTwoIdenticalTreesToPath(
+    ApiFactory const& api_factory,
+    ExecProps const& props,
+    std::string const& test_name,
+    bool is_hermetic = false) {
+    auto api = api_factory();
+
+    auto foo_path = std::filesystem::path{"foo"} / "baz";
+    auto bar_path = std::filesystem::path{"bar"} / "baz";
+
+    auto make_cmd = [&](std::string const& out_dir) {
+        return fmt::format(
+            "set -e\nmkdir -p {0}/{1} {0}/{2}\n"
+            "echo -n baz > {0}/{3}\necho -n baz > {0}/{4}",
+            out_dir,
+            foo_path.parent_path().string(),
+            bar_path.parent_path().string(),
+            foo_path.string(),
+            bar_path.string());
+    };
+
+    auto action = api->CreateAction(*api->UploadTree({}),
+                                    {"/bin/sh", "-c", make_cmd("root")},
+                                    {},
+                                    {"root"},
+                                    {},
+                                    props);
+
+    action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
+
+    // run execution
+    auto response = action->Execute();
+    REQUIRE(response);
+
+    // verify result
+    CHECK(response->ExitCode() == 0);
+
+    if (is_hermetic) {
+        CHECK_FALSE(response->IsCached());
+    }
+
+    auto artifacts = response->Artifacts();
+    REQUIRE_FALSE(artifacts.empty());
+
+    auto info = artifacts.begin()->second;
+
+    SECTION("retrieve via same API object") {
+        auto out_path = GetTestDir(test_name) / "out1";
+        CHECK(api->RetrieveToPaths({info}, {out_path}));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsFile(out_path / bar_path));
+        CHECK(FileSystemManager::ReadFile(out_path / foo_path) ==
+              FileSystemManager::ReadFile(out_path / bar_path));
+    }
+
+    SECTION("retrive from new API object but same endpoint") {
+        auto second_api = api_factory();
+        auto out_path = GetTestDir(test_name) / "out2";
+        CHECK(second_api->RetrieveToPaths({info}, {out_path}));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsFile(out_path / bar_path));
+        CHECK(FileSystemManager::ReadFile(out_path / foo_path) ==
+              FileSystemManager::ReadFile(out_path / bar_path));
     }
 }

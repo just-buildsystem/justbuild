@@ -33,3 +33,8 @@ TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
     TestNonZeroExitCodeCreateOutput(api_factory,
                                     ReadPlatformPropertiesFromEnv());
 }
+
+TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
+    TestRetrieveTwoIdenticalTreesToPath(
+        api_factory, ReadPlatformPropertiesFromEnv(), "remote");
+}

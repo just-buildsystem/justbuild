@@ -35,3 +35,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "[execution_api]") {
     TestNonZeroExitCodeCreateOutput(api_factory, {});
 }
+
+TEST_CASE_METHOD(HermeticLocalTestFixture,
+                 "LocalAPI: Retrieve two identical trees to path",
+                 "[execution_api]") {
+    TestRetrieveTwoIdenticalTreesToPath(
+        api_factory, {}, "local", /*is_hermetic=*/true);
+}
