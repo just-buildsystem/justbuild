@@ -1132,6 +1132,11 @@ auto DescribeTarget(std::string const& main_repo,
         std::cout << " Target fields\n";
         PrintFields(*target_fields, field_doc, " - ", "   | ");
     }
+    auto config_fields = rdesc.find("config_fields");
+    if (config_fields != rdesc.end() and (not config_fields->empty())) {
+        std::cout << " Config fields\n";
+        PrintFields(*config_fields, field_doc, " - ", "   | ");
+    }
     auto config_doc = nlohmann::json::object();
     auto config_doc_it = rdesc.find("config_doc");
     if (config_doc_it != rdesc.end() and config_doc_it->is_object()) {
