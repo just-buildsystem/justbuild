@@ -280,15 +280,16 @@ auto BazelNetwork::ReadObjectInfosRecursively(
                        dir_map->at(digest),
                        [this, &dir_map, &store_info, &parent, &tree](
                            auto path, auto info) {
-                           return IsTreeObject(info.type)
-                                      ? (not tree or
-                                         tree->AddInfo(path, info)) and
-                                            ReadObjectInfosRecursively(
-                                                dir_map,
-                                                store_info,
-                                                parent / path,
-                                                info.digest)
-                                      : store_info(parent / path, info);
+                           return (not tree or tree->AddInfo(path, info)) and
+                                  (IsTreeObject(info.type)
+                                       ? (not tree or
+                                          tree->AddInfo(path, info)) and
+                                             ReadObjectInfosRecursively(
+                                                 dir_map,
+                                                 store_info,
+                                                 parent / path,
+                                                 info.digest)
+                                       : store_info(parent / path, info));
                        }) and
                    (not tree_map_ or
                     tree_map_->AddTree(digest, std::move(*tree)));
@@ -305,14 +306,13 @@ auto BazelNetwork::ReadObjectInfosRecursively(
                    *dir,
                    [this, &dir_map, &store_info, &parent, &tree](auto path,
                                                                  auto info) {
-                       return IsTreeObject(info.type)
-                                  ? (not tree or tree->AddInfo(path, info)) and
-                                        ReadObjectInfosRecursively(
-                                            dir_map,
-                                            store_info,
-                                            parent / path,
-                                            info.digest)
-                                  : store_info(parent / path, info);
+                       return (not tree or tree->AddInfo(path, info)) and
+                              (IsTreeObject(info.type)
+                                   ? ReadObjectInfosRecursively(dir_map,
+                                                                store_info,
+                                                                parent / path,
+                                                                info.digest)
+                                   : store_info(parent / path, info));
                    }) and
                (not tree_map_ or tree_map_->AddTree(digest, std::move(*tree)));
     }
