@@ -191,6 +191,12 @@ auto LocalAction::CreateDirectoryStructure(
             return false;
         }
     }
+    for (auto const& local_path : output_dirs_) {
+        if (not FileSystemManager::CreateDirectory(exec_path / local_path)) {
+            logger_.Emit(LogLevel::Error, "failed to create output directory");
+            return false;
+        }
+    }
 
     return true;
 }
