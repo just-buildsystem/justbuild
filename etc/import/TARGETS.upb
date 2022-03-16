@@ -3,22 +3,14 @@
   , "name": ["upb_port"]
   , "pure C": ["YES"]
   , "srcs": ["upb/port.c"]
-  , "hdrs":
-    [ "upb/port_def.inc"
-    , "upb/port_undef.inc"
-    ]
+  , "hdrs": ["upb/port_def.inc", "upb/port_undef.inc"]
   }
 , "upb":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["upb"]
   , "pure C": ["YES"]
   , "srcs":
-    [ "upb/decode.c"
-    , "upb/encode.c"
-    , "upb/msg.c"
-    , "upb/table.c"
-    , "upb/upb.c"
-    ]
+    ["upb/decode.c", "upb/encode.c", "upb/msg.c", "upb/table.c", "upb/upb.c"]
   , "hdrs":
     [ "upb/decode.h"
     , "upb/encode.h"

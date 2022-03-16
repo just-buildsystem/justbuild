@@ -167,7 +167,13 @@
   { "doc": ["A C++ libaray"]
   , "target_fields": ["srcs", "hdrs", "private-hdrs", "deps", "proto"]
   , "string_fields":
-    ["name", "stage", "pure C", "local defines", "local cflags", "link external"]
+    [ "name"
+    , "stage"
+    , "pure C"
+    , "local defines"
+    , "local cflags"
+    , "link external"
+    ]
   , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":

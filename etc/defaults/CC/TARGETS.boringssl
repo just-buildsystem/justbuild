@@ -57,9 +57,9 @@
               , {"type": "var", "name": "posix_copts"}
               ]
             , [ { "type": "=="
-              , "$1": {"type": "var", "name": "PLATFORM"}
-              , "$2": "windows_x86_64"
-              }
+                , "$1": {"type": "var", "name": "PLATFORM"}
+                , "$2": "windows_x86_64"
+                }
               , ["-DWIN32_LEAN_AND_MEAN", "-DOPENSSL_NO_ASM"]
               ]
             ]

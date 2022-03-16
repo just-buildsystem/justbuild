@@ -2,11 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "stage": ["absl", "base"]
-  , "hdrs":
-    [ "config.h"
-    , "options.h"
-    , "policy_checks.h"
-    ]
+  , "hdrs": ["config.h", "options.h", "policy_checks.h"]
   }
 , "core_headers":
   { "type": ["@", "rules", "CC", "library"]
@@ -72,7 +68,7 @@
     , "internal/invoke.h"
     , "internal/scheduling_mode.h"
     ]
-  , "deps": ["config" , ["absl/meta", "type_traits"]]
+  , "deps": ["config", ["absl/meta", "type_traits"]]
   }
 , "spinlock_wait":
   { "type": ["@", "rules", "CC", "library"]

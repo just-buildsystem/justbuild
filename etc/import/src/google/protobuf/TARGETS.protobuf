@@ -233,7 +233,6 @@
     , "wrappers.pb.h"
     ]
   }
-
 , "protobuf_lite":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protobuf_lite"]
@@ -268,7 +267,6 @@
     , "wire_format_lite.cc"
     ]
   }
-
 , "protobuf":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protobuf"]
@@ -328,7 +326,6 @@
     ]
   , "deps": ["protobuf_lite", ["@", "zlib", "", "zlib"]]
   }
-
 , "protoc_lib":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protoc_lib"]
@@ -417,7 +414,6 @@
     ]
   , "deps": ["protobuf"]
   }
-
 , "protoc":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["protoc"]
@@ -425,7 +421,6 @@
   , "deps": ["protoc_lib"]
   , "link external": ["-pthread"]
   }
-
 , "well_known_proto_files":
   { "type": "install"
   , "deps":
@@ -443,9 +438,6 @@
     , "wrappers.proto"
     ]
   }
-
 , "well_known_protos":
-  { "type": "install"
-  , "dirs": [["well_known_proto_files", "google/protobuf"]]
-  }
+  {"type": "install", "dirs": [["well_known_proto_files", "google/protobuf"]]}
 }

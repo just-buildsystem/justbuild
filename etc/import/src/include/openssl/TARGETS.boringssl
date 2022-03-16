@@ -80,12 +80,6 @@
   { "type": ["@", "rules", "CC", "header directory"]
   , "stage": ["openssl"]
   , "public stage": ["yes"]
-  , "hdrs":
-    [ "dtls1.h"
-    , "srtp.h"
-    , "ssl.h"
-    , "ssl3.h"
-    , "tls1.h"
-    ]
+  , "hdrs": ["dtls1.h", "srtp.h", "ssl.h", "ssl3.h", "tls1.h"]
   }
 }

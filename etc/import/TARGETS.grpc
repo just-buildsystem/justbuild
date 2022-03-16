@@ -121,12 +121,7 @@
   , "name": ["ref_counted"]
   , "hdrs": ["src/core/lib/gprpp/ref_counted.h"]
   , "deps":
-    [ "atomic"
-    , "debug_location"
-    , "gpr_base"
-    , "grpc_trace"
-    , "ref_counted_ptr"
-    ]
+    ["atomic", "debug_location", "gpr_base", "grpc_trace", "ref_counted_ptr"]
   }
 , "orphanable":
   { "type": ["@", "rules", "CC", "library"]
@@ -518,8 +513,7 @@
   , "pure C": ["YES"]
   , "srcs":
     ["src/core/ext/upb-generated/udpa/data/orca/v1/orca_load_report.upb.c"]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "udpa_orca_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "udpa_orca_upb_headers"]]
   , "deps": ["proto_gen_validate_upb", ["@", "upb", ".", "upb"]]
   }
 , "grpc_health_upb":
@@ -528,8 +522,7 @@
   , "pure C": ["YES"]
   , "srcs":
     ["src/core/ext/upb-generated/src/proto/grpc/health/v1/health.upb.c"]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "grpc_health_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "grpc_health_upb_headers"]]
   , "deps": [["@", "upb", ".", "upb"]]
   }
 , "google_api_upb":
@@ -557,8 +550,7 @@
   , "pure C": ["yes"]
   , "srcs":
     ["src/core/ext/upb-generated/src/proto/grpc/lb/v1/load_balancer.upb.c"]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "grpc_lb_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "grpc_lb_upb_headers"]]
   , "deps": ["google_api_upb", ["@", "upb", ".", "upb"]]
   }
 , "grpc_client_channel":
@@ -694,8 +686,7 @@
     [ "src/core/ext/filters/workarounds/workaround_cronet_compression_filter.cc"
     ]
   , "private-hdrs":
-    [ "src/core/ext/filters/workarounds/workaround_cronet_compression_filter.h"
-    ]
+    ["src/core/ext/filters/workarounds/workaround_cronet_compression_filter.h"]
   , "deps": ["grpc_base", "grpc_server_backward_compatibility"]
   }
 , "grpc_grpclb_balancer_addresses":
@@ -719,8 +710,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_lb_policy_pick_first"]
   , "srcs":
-    [ "src/core/ext/filters/client_channel/lb_policy/pick_first/pick_first.cc"
-    ]
+    ["src/core/ext/filters/client_channel/lb_policy/pick_first/pick_first.cc"]
   , "deps": ["grpc_base", "grpc_client_channel", "grpc_lb_subchannel_list"]
   }
 , "grpc_lb_policy_round_robin":
@@ -766,8 +756,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_resolver_dns_native"]
   , "srcs":
-    [ "src/core/ext/filters/client_channel/resolver/dns/native/dns_resolver.cc"
-    ]
+    ["src/core/ext/filters/client_channel/resolver/dns/native/dns_resolver.cc"]
   , "deps": ["grpc_base", "grpc_client_channel", "grpc_resolver_dns_selection"]
   }
 , "grpc_resolver_dns_ares":
@@ -859,12 +848,7 @@
     , "src/core/tsi/alts/zero_copy_frame_protector/alts_zero_copy_grpc_protector.h"
     , "src/core/tsi/transport_security_grpc.h"
     ]
-  , "deps":
-    [ "gpr"
-    , "grpc_base"
-    , "tsi_interface"
-    , ["@", "libssl", ".", "ssl"]
-    ]
+  , "deps": ["gpr", "grpc_base", "tsi_interface", ["@", "libssl", ".", "ssl"]]
   }
 , "alts_util":
   { "type": ["@", "rules", "CC", "library"]
@@ -886,10 +870,7 @@
     , ["./", "include/grpc", "grpc_secure_public_headers"]
     ]
   , "deps":
-    [ ["./", "src/core/ext/upb-generated", "alts_upb"]
-    , "gpr"
-    , "grpc_base"
-    ]
+    [["./", "src/core/ext/upb-generated", "alts_upb"], "gpr", "grpc_base"]
   }
 , "tsi":
   { "type": ["@", "rules", "CC", "library"]
@@ -973,11 +954,7 @@
     , "src/core/ext/filters/client_channel/xds/xds_bootstrap.h"
     , "src/core/ext/filters/client_channel/xds/xds_client_stats.h"
     ]
-  , "deps":
-    [ ["@", "upb", ".", "upb"]
-    , ["@", "re2", ".", "re2"]
-    , "grpc_base"
-    ]
+  , "deps": [["@", "upb", ".", "upb"], ["@", "re2", ".", "re2"], "grpc_base"]
   }
 , "grpc_xds_client_secure":
   { "type": ["@", "rules", "CC", "library"]
@@ -1042,7 +1019,8 @@
 , "grpc_lb_policy_xds_routing":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_lb_policy_xds_routing"]
-  , "srcs": ["src/core/ext/filters/client_channel/lb_policy/xds/xds_routing.cc"]
+  , "srcs":
+    ["src/core/ext/filters/client_channel/lb_policy/xds/xds_routing.cc"]
   , "deps":
     [ "grpc_base"
     , "grpc_client_channel"
@@ -1053,7 +1031,8 @@
 , "grpc_resolver_xds_secure":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_resolver_xds_secure"]
-  , "srcs": ["src/core/ext/filters/client_channel/resolver/xds/xds_resolver.cc"]
+  , "srcs":
+    ["src/core/ext/filters/client_channel/resolver/xds/xds_resolver.cc"]
   , "private-hdrs": ["src/core/ext/transport/chttp2/alpn/alpn.h"]
   , "deps": ["grpc_base", "grpc_client_channel", "grpc_xds_client_secure"]
   }
@@ -1136,12 +1115,7 @@
     , "src/core/lib/security/util/json_util.h"
     , ["./", "include/grpc", "grpc_secure_public_headers"]
     ]
-  , "deps":
-    [ "alts_util"
-    , "grpc_base"
-    , "grpc_transport_chttp2_alpn"
-    , "tsi"
-    ]
+  , "deps": ["alts_util", "grpc_base", "grpc_transport_chttp2_alpn", "tsi"]
   }
 , "grpc_transport_chttp2":
   { "type": ["@", "rules", "CC", "library"]
@@ -1212,11 +1186,7 @@
     [ "src/core/ext/transport/chttp2/client/authority.h"
     , "src/core/ext/transport/chttp2/client/chttp2_connector.h"
     ]
-  , "deps":
-    [ "grpc_base"
-    , "grpc_client_channel"
-    , "grpc_transport_chttp2"
-    ]
+  , "deps": ["grpc_base", "grpc_client_channel", "grpc_transport_chttp2"]
   }
 , "grpc_transport_chttp2_client_insecure":
   { "type": ["@", "rules", "CC", "library"]
@@ -1250,10 +1220,7 @@
   , "name": ["grpc_transport_chttp2_server"]
   , "srcs": ["src/core/ext/transport/chttp2/server/chttp2_server.cc"]
   , "hdrs": ["src/core/ext/transport/chttp2/server/chttp2_server.h"]
-  , "deps":
-    [ "grpc_base"
-    , "grpc_transport_chttp2"
-    ]
+  , "deps": ["grpc_base", "grpc_transport_chttp2"]
   }
 , "grpc_transport_chttp2_server_insecure":
   { "type": ["@", "rules", "CC", "library"]
@@ -1263,17 +1230,13 @@
     , "src/core/ext/transport/chttp2/server/insecure/server_chttp2_posix.cc"
     ]
   , "deps":
-    [ "grpc_base"
-    , "grpc_transport_chttp2"
-    , "grpc_transport_chttp2_server"
-    ]
+    ["grpc_base", "grpc_transport_chttp2", "grpc_transport_chttp2_server"]
   }
 , "grpc_transport_chttp2_server_secure":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_transport_chttp2_server_secure"]
   , "srcs":
-    [ "src/core/ext/transport/chttp2/server/secure/server_secure_chttp2.cc"
-    ]
+    ["src/core/ext/transport/chttp2/server/secure/server_secure_chttp2.cc"]
   , "deps":
     [ "grpc_base"
     , "grpc_secure"
@@ -1330,8 +1293,7 @@
     , "src/core/ext/upb-generated/envoy/type/semantic_version.upb.c"
     , "src/core/ext/upb-generated/envoy/type/tracing/v2/custom_tag.upb.c"
     ]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "envoy_type_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "envoy_type_upb_headers"]]
   , "deps":
     [ "envoy_annotations_upb"
     , "google_api_upb"
@@ -1356,8 +1318,7 @@
     , "src/core/ext/upb-generated/envoy/api/v2/core/protocol.upb.c"
     , "src/core/ext/upb-generated/envoy/api/v2/core/socket_option.upb.c"
     ]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "envoy_core_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "envoy_core_upb_headers"]]
   , "deps":
     [ "envoy_annotations_upb"
     , "envoy_type_upb"
@@ -1404,8 +1365,7 @@
     , "src/core/ext/upb-generated/envoy/service/discovery/v2/ads.upb.c"
     , "src/core/ext/upb-generated/envoy/service/load_stats/v2/lrs.upb.c"
     ]
-  , "hdrs":
-    [["./", "src/core/ext/upb-generated", "envoy_ads_upb_headers"]]
+  , "hdrs": [["./", "src/core/ext/upb-generated", "envoy_ads_upb_headers"]]
   , "deps":
     [ "envoy_annotations_upb"
     , "envoy_core_upb"
@@ -1561,7 +1521,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc++_base"]
   , "srcs": ["grpc++_sources"]
-  , "hdrs": ["grpc++_public_headers" , "grpc++_headers"]
+  , "hdrs": ["grpc++_public_headers", "grpc++_headers"]
   , "deps":
     [ "grpc"
     , "grpc++_codegen_base"

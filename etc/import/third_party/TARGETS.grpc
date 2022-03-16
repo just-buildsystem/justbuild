@@ -1,7 +1,5 @@
 { "ares_build_h":
-  { "type": "install"
-  , "files": {"ares_build.h": "cares/ares_build.h"}
-  }
+  {"type": "install", "files": {"ares_build.h": "cares/ares_build.h"}}
 , "ares_config_h":
   { "type": "install"
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
@@ -109,7 +107,10 @@
     ]
   , "hdrs": ["address_sorting/address_sorting_internal.h"]
   , "deps":
-    [ ["./", "address_sorting/include/address_sorting", "address_sorting_headers"]
+    [ [ "./"
+      , "address_sorting/include/address_sorting"
+      , "address_sorting_headers"
+      ]
     ]
   }
 }

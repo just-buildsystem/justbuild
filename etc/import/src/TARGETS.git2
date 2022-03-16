@@ -168,10 +168,7 @@
   , "arguments_config": ["OS", "THREADSAFE"]
   , "name": ["git2_os_unix"]
   , "pure C": ["yes"]
-  , "srcs":
-    [ "unix/map.c"
-    , "unix/realpath.c"
-    ]
+  , "srcs": ["unix/map.c", "unix/realpath.c"]
   , "private-hdrs": ["git2_private_headers"]
   , "link external":
     { "type": "++"
@@ -317,13 +314,13 @@
   , "deps":
     { "type": "let*"
     , "bindings":
-      [ [ "USE_SHA1",
-          { "type": "case*"
+      [ [ "USE_SHA1"
+        , { "type": "case*"
           , "expr": {"type": "var", "name": "USE_SHA1"}
           , "case":
-            [ [ true, "CollisionDetection"]
-            , [ "HTTPS",
-                { "type": "case*"
+            [ [true, "CollisionDetection"]
+            , [ "HTTPS"
+              , { "type": "case*"
                 , "expr": {"type": "var", "name": "USE_HTTPS"}
                 , "case":
                   [ ["SecureTransport", "CommonCrypto"]
@@ -351,9 +348,7 @@
         , ["Generic", ["git2_hash_generic"]]
         ]
       , "default":
-        { "type": "fail"
-        , "msg": "Asked for unknown SHA1 backend in `USE_SHA1`"
-        }
+        {"type": "fail", "msg": "Asked for unknown SHA1 backend in `USE_SHA1`"}
       }
     }
   }
@@ -367,10 +362,7 @@
     , "then":
       { "type": "case"
       , "expr": {"type": "var", "name": "REGEX_BACKEND"}
-      , "case":
-        { "pcre2": ["-lpcre2-8"]
-        , "pcre": ["-lpcre"]
-        }
+      , "case": {"pcre2": ["-lpcre2-8"], "pcre": ["-lpcre"]}
       }
     }
   , "deps":
@@ -380,8 +372,8 @@
       { "type": "case*"
       , "expr": {"type": "var", "name": "REGEX_BACKEND"}
       , "case":
-        [ [ "builtin", [["deps/pcre", "git2_pcre"]]]
-        , [ null, [["deps/pcre", "git2_pcre"]]]
+        [ ["builtin", [["deps/pcre", "git2_pcre"]]]
+        , [null, [["deps/pcre", "git2_pcre"]]]
         ]
       }
     , "else":
@@ -414,9 +406,7 @@
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_BUNDLED_ZLIB"}
     , "then":
-      { "type": "fail"
-      , "msg": "bundled zlib from deps/zlib not supported yet."
-      }
+      {"type": "fail", "msg": "bundled zlib from deps/zlib not supported yet."}
     , "else":
       { "type": "if"
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
@@ -525,7 +515,10 @@
         , { "type": "var"
           , "name": "WINHTTP"
           , "default":
-            {"type": "==", "$1": {"type": "var", "name": "OS"}, "$2": "windows"}
+            { "type": "=="
+            , "$1": {"type": "var", "name": "OS"}
+            , "$2": "windows"
+            }
           }
         ]
       , [ "USE_HTTPS"

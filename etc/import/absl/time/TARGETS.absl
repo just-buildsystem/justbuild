@@ -3,12 +3,7 @@
   , "name": ["time"]
   , "stage": ["absl", "time"]
   , "srcs":
-    [ "civil_time.cc"
-    , "clock.cc"
-    , "duration.cc"
-    , "format.cc"
-    , "time.cc"
-    ]
+    ["civil_time.cc", "clock.cc", "duration.cc", "format.cc", "time.cc"]
   , "hdrs":
     [ "civil_time.h"
     , "clock.h"

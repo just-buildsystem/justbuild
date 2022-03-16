@@ -65,9 +65,7 @@
     ]
   }
 , "gpr_codegen":
-  { "type": ["@", "rules", "CC", "library"]
-  , "hdrs": ["gpr_codegen_headers"]
-  }
+  {"type": ["@", "rules", "CC", "library"], "hdrs": ["gpr_codegen_headers"]}
 , "grpc_codegen_headers":
   { "type": ["@", "rules", "CC", "header directory"]
   , "stage": ["grpc"]
@@ -85,10 +83,7 @@
   }
 , "grpc_codegen":
   { "type": ["@", "rules", "CC", "library"]
-  , "hdrs":
-    [ "grpc_codegen_headers"
-    , "gpr_codegen_headers"
-    ]
+  , "hdrs": ["grpc_codegen_headers", "gpr_codegen_headers"]
   }
 , "grpc_secure_public_headers":
   { "type": ["@", "rules", "CC", "header directory"]

@@ -64,9 +64,7 @@
   { "type": ["@", "rules", "CC", "header directory"]
   , "public stage": ["yes"]
   , "hdrs":
-    [ "envoy/annotations/deprecation.upb.h"
-    , "envoy/annotations/resource.upb.h"
-    ]
+    ["envoy/annotations/deprecation.upb.h", "envoy/annotations/resource.upb.h"]
   }
 , "envoy_type_upb_headers":
   { "type": ["@", "rules", "CC", "header directory"]

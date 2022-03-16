@@ -1,47 +1,28 @@
 { "just provide":
   { "expression":
     { "type": "RESULT"
-    , "provides":
-      { "type": "singleton_map"
-      , "key": "foo"
-      , "value": "bar"
-      }
+    , "provides": {"type": "singleton_map", "key": "foo", "value": "bar"}
     }
   }
 , "provide variable FOO":
-  { "config_vars":
-    [ "FOO"
-    ]
+  { "config_vars": ["FOO"]
   , "expression":
     { "type": "RESULT"
     , "provides":
       { "type": "singleton_map"
       , "key": "foo"
-      , "value":
-        { "type": "var"
-        , "name": "FOO"
-        }
+      , "value": {"type": "var", "name": "FOO"}
       }
     }
   }
 , "transition FOO":
-  { "config_fields":
-    [ "value"
-    ]
-  , "target_fields":
-    [ "deps"
-    ]
+  { "config_fields": ["value"]
+  , "target_fields": ["deps"]
   , "config_transitions":
     { "deps":
       [ { "type": "singleton_map"
         , "key": "FOO"
-        , "value":
-          { "type": "join"
-          , "$1":
-            { "type": "FIELD"
-            , "name": "value"
-            }
-          }
+        , "value": {"type": "join", "$1": {"type": "FIELD", "name": "value"}}
         }
       ]
     }
@@ -53,26 +34,15 @@
       , "value":
         { "type": "foreach"
         , "var": "x"
-        , "range":
-          { "type": "FIELD"
-          , "name": "deps"
-          }
+        , "range": {"type": "FIELD", "name": "deps"}
         , "body":
           { "type": "DEP_PROVIDES"
-          , "dep":
-            { "type": "var"
-            , "name": "x"
-            }
+          , "dep": {"type": "var", "name": "x"}
           , "transition":
             { "type": "singleton_map"
             , "key": "FOO"
             , "value":
-              { "type": "join"
-              , "$1":
-                { "type": "FIELD"
-                , "name": "value"
-                }
-              }
+              {"type": "join", "$1": {"type": "FIELD", "name": "value"}}
             }
           , "provider": "foo"
           }
@@ -81,9 +51,7 @@
     }
   }
 , "collect deps":
-  { "target_fields":
-    [ "deps"
-    ]
+  { "target_fields": ["deps"]
   , "expression":
     { "type": "RESULT"
     , "artifacts":
@@ -91,25 +59,15 @@
       , "$1":
         { "type": "foreach"
         , "var": "x"
-        , "range":
-          { "type": "FIELD"
-          , "name": "deps"
-          }
+        , "range": {"type": "FIELD", "name": "deps"}
         , "body":
-          { "type": "DEP_ARTIFACTS"
-          , "dep":
-            { "type": "var"
-            , "name": "x"
-            }
-          }
+          {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
         }
       }
     }
   }
 , "collect deps as runfiles":
-  { "target_fields":
-    [ "deps"
-    ]
+  { "target_fields": ["deps"]
   , "expression":
     { "type": "RESULT"
     , "runfiles":
@@ -117,59 +75,30 @@
       , "$1":
         { "type": "foreach"
         , "var": "x"
-        , "range":
-          { "type": "FIELD"
-          , "name": "deps"
-          }
+        , "range": {"type": "FIELD", "name": "deps"}
         , "body":
-          { "type": "DEP_ARTIFACTS"
-          , "dep":
-            { "type": "var"
-            , "name": "x"
-            }
-          }
+          {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
         }
       }
     }
   }
 , "text file":
-  { "string_fields":
-    [ "name"
-    , "content"
-    ]
-  , "target_fields":
-    [ "analyze"
-    ]
+  { "string_fields": ["name", "content"]
+  , "target_fields": ["analyze"]
   , "expression":
     { "type": "RESULT"
     , "artifacts":
       { "type": "singleton_map"
-      , "key":
-        { "type": "join"
-        , "$1":
-          { "type": "FIELD"
-          , "name": "name"
-          }
-        }
+      , "key": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
       , "value":
         { "type": "BLOB"
-        , "data":
-          { "type": "join"
-          , "$1":
-            { "type": "FIELD"
-            , "name": "content"
-            }
-          }
+        , "data": {"type": "join", "$1": {"type": "FIELD", "name": "content"}}
         }
       }
     }
   }
 , "implicit file":
-  { "implicit":
-    { "script":
-      [ "implicit_script.sh"
-      ]
-    }
+  { "implicit": {"script": ["implicit_script.sh"]}
   , "expression":
     { "type": "RESULT"
     , "artifacts":
@@ -177,25 +106,15 @@
       , "$1":
         { "type": "foreach"
         , "var": "x"
-        , "range":
-          { "type": "FIELD"
-          , "name": "script"
-          }
+        , "range": {"type": "FIELD", "name": "script"}
         , "body":
-          { "type": "DEP_ARTIFACTS"
-          , "dep":
-            { "type": "var"
-            , "name": "x"
-            }
-          }
+          {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
         }
       }
     }
   }
 , "upper case":
-  { "target_fields":
-    [ "srcs"
-    ]
+  { "target_fields": ["srcs"]
   , "expression":
     { "type": "RESULT"
     , "artifacts":
@@ -203,10 +122,7 @@
       , "$1":
         { "type": "foreach"
         , "var": "input"
-        , "range":
-          { "type": "FIELD"
-          , "name": "srcs"
-          }
+        , "range": {"type": "FIELD", "name": "srcs"}
         , "body":
           { "type": "disjoint_map_union"
           , "$1":
@@ -214,28 +130,19 @@
             , "bindings":
               [ [ "input_artifacts"
                 , { "type": "DEP_ARTIFACTS"
-                  , "dep":
-                    { "type": "var"
-                    , "name": "input"
-                    }
+                  , "dep": {"type": "var", "name": "input"}
                   }
                 ]
               , [ "names"
                 , { "type": "keys"
-                  , "$1":
-                    { "type": "var"
-                    , "name": "input_artifacts"
-                    }
+                  , "$1": {"type": "var", "name": "input_artifacts"}
                   }
                 ]
               ]
             , "body":
               { "type": "foreach"
               , "var": "x"
-              , "range":
-                { "type": "var"
-                , "name": "names"
-                }
+              , "range": {"type": "var", "name": "names"}
               , "body":
                 { "type": "let*"
                 , "bindings":
@@ -246,39 +153,21 @@
                         , "key": "in"
                         , "value":
                           { "type": "lookup"
-                          , "map":
-                            { "type": "var"
-                            , "name": "input_artifacts"
-                            }
-                          , "key":
-                            { "type": "var"
-                            , "name": "x"
-                            }
+                          , "map": {"type": "var", "name": "input_artifacts"}
+                          , "key": {"type": "var", "name": "x"}
                           }
                         }
-                      , "outs":
-                        [ "out"
-                        ]
-                      , "cmd":
-                        [ "/bin/sh"
-                        , "-c"
-                        , "tr 'a-z' 'A-Z' < in > out"
-                        ]
+                      , "outs": ["out"]
+                      , "cmd": ["/bin/sh", "-c", "tr 'a-z' 'A-Z' < in > out"]
                       }
                     ]
                   ]
                 , "body":
                   { "type": "singleton_map"
-                  , "key":
-                    { "type": "var"
-                    , "name": "x"
-                    }
+                  , "key": {"type": "var", "name": "x"}
                   , "value":
                     { "type": "lookup"
-                    , "map":
-                      { "type": "var"
-                      , "name": "upper"
-                      }
+                    , "map": {"type": "var", "name": "upper"}
                     , "key": "out"
                     }
                   }

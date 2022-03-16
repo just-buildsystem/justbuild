@@ -3,10 +3,7 @@
   , "name": ["strings_internal"]
   , "stage": ["absl", "strings"]
   , "srcs":
-    [ "internal/escaping.cc"
-    , "internal/ostringstream.cc"
-    , "internal/utf8.cc"
-    ]
+    ["internal/escaping.cc", "internal/ostringstream.cc", "internal/utf8.cc"]
   , "hdrs":
     [ "internal/char_map.h"
     , "internal/escaping.h"

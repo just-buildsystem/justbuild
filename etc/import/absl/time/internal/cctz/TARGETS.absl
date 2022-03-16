@@ -3,10 +3,7 @@
   , "name": ["civil_time"]
   , "stage": ["absl", "time", "internal", "cctz"]
   , "srcs": ["src/civil_time_detail.cc"]
-  , "hdrs":
-    [ "include/cctz/civil_time.h"
-    , "include/cctz/civil_time_detail.h"
-    ]
+  , "hdrs": ["include/cctz/civil_time.h", "include/cctz/civil_time_detail.h"]
   , "deps": [["absl/base", "config"]]
   }
 , "time_zone":
@@ -38,10 +35,7 @@
     , "src/time_zone_posix.h"
     , "src/tzfile.h"
     ]
-  , "hdrs":
-    [ "include/cctz/time_zone.h"
-    , "include/cctz/zone_info_source.h"
-    ]
+  , "hdrs": ["include/cctz/time_zone.h", "include/cctz/zone_info_source.h"]
   , "deps": ["civil_time", ["absl/base", "config"]]
   }
 }

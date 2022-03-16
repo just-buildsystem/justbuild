@@ -37,9 +37,7 @@
     , "schema_interface.h"
     ]
   , "deps":
-    [ [".", "grpc++_config_proto"]
-    , ["@", "protobuf", ".", "protoc_lib"]
-    ]
+    [[".", "grpc++_config_proto"], ["@", "protobuf", ".", "protoc_lib"]]
   }
 , "grpc_cpp_plugin":
   { "type": ["@", "rules", "CC", "binary"]

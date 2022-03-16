@@ -21,16 +21,19 @@
   , "data":
     { "type": "let*"
     , "bindings":
-      [ [ "THREADSAFE", {"type": "var", "name": "THREADSAFE", "default": true}]
+      [ ["THREADSAFE", {"type": "var", "name": "THREADSAFE", "default": true}]
       , [ "ENABLE_TRACE"
         , {"type": "var", "name": "ENABLE_TRACE", "default": true}
         ]
-      , [ "USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
+      , ["USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
       , [ "WINHTTP"
         , { "type": "var"
           , "name": "WINHTTP"
           , "default":
-            {"type": "==", "$1": {"type": "var", "name": "OS"}, "$2": "windows"}
+            { "type": "=="
+            , "$1": {"type": "var", "name": "OS"}
+            , "$2": "windows"
+            }
           }
         ]
       , [ "USE_HTTPS"
@@ -71,13 +74,13 @@
           , "default": {"type": "var", "name": "USE_GSSAPI"}
           }
         ]
-      , [ "USE_SHA1",
-          { "type": "case*"
+      , [ "USE_SHA1"
+        , { "type": "case*"
           , "expr": {"type": "var", "name": "USE_SHA1", "default": true}
           , "case":
-            [ [ true, "CollisionDetection"]
-            , [ "HTTPS",
-                { "type": "case*"
+            [ [true, "CollisionDetection"]
+            , [ "HTTPS"
+              , { "type": "case*"
                 , "expr": {"type": "var", "name": "USE_HTTPS"}
                 , "case":
                   [ ["SecureTransport", "CommonCrypto"]
@@ -156,11 +159,11 @@
             , "expr": {"type": "var", "name": "REGEX_BACKEND"}
             , "case":
               [ ["regcomp_l", ["#define GIT_REGEX_REGCOMP_L 1"]]
-              ,   ["regcomp", ["#define GIT_REGEX_REGCOMP 1"]]
-              ,      ["pcre", ["#define GIT_REGEX_PCRE 1"]]
-              ,     ["pcre2", ["#define GIT_REGEX_PCRE2 1"]]
-              ,   ["builtin", ["#define GIT_REGEX_BUILTIN 1"]]
-              ,        [null, ["#define GIT_REGEX_BUILTIN 1"]]
+              , ["regcomp", ["#define GIT_REGEX_REGCOMP 1"]]
+              , ["pcre", ["#define GIT_REGEX_PCRE 1"]]
+              , ["pcre2", ["#define GIT_REGEX_PCRE2 1"]]
+              , ["builtin", ["#define GIT_REGEX_BUILTIN 1"]]
+              , [null, ["#define GIT_REGEX_BUILTIN 1"]]
               ]
             , "default":
               { "type": "fail"
@@ -170,9 +173,7 @@
           , { "type": "if"
             , "cond": {"type": "var", "name": "USE_SSH"}
             , "then":
-              [ "#define GIT_SSH 1"
-              , "#define GIT_SSH_MEMORY_CREDENTIALS 1"
-              ]
+              ["#define GIT_SSH 1", "#define GIT_SSH_MEMORY_CREDENTIALS 1"]
             }
           , { "type": "if"
             , "cond": {"type": "var", "name": "USE_NTLMCLIENT"}
@@ -182,8 +183,8 @@
             , "expr": {"type": "var", "name": "USE_GSSAPI"}
             , "case":
               [ ["GSS.framework", ["#define GIT_GSSFRAMEWORK 1"]]
-              ,        ["gssapi", ["#define GIT_GSSAPI 1"]]
-              ,           [false, []]
+              , ["gssapi", ["#define GIT_GSSAPI 1"]]
+              , [false, []]
               ]
             , "default":
               { "type": "fail"
@@ -199,10 +200,10 @@
                 , { "type": "case*"
                   , "expr": {"type": "var", "name": "USE_HTTPS"}
                   , "case":
-                    [ [ "SecureTransport", ["#define GIT_SECURE_TRANSPORT 1"]]
-                    ,         [ "OpenSSL", ["#define GIT_OPENSSL 1"]]
-                    ,         [ "mbedTLS", ["#define GIT_MBEDTLS 1"]]
-                    ,         [ "WinHTTP", ["#define GIT_WINHTTP 1"]]
+                    [ ["SecureTransport", ["#define GIT_SECURE_TRANSPORT 1"]]
+                    , ["OpenSSL", ["#define GIT_OPENSSL 1"]]
+                    , ["mbedTLS", ["#define GIT_MBEDTLS 1"]]
+                    , ["WinHTTP", ["#define GIT_WINHTTP 1"]]
                     ]
                   , "default":
                     { "type": "fail"
@@ -216,10 +217,10 @@
             , "expr": {"type": "var", "name": "USE_SHA1"}
             , "case":
               [ ["CollisionDetection", ["#define GIT_SHA1_COLLISIONDETECT 1"]]
-              ,              ["Win32", ["#define GIT_SHA1_WIN32 1"]]
-              ,       ["CommonCrypto", ["#define GIT_SHA1_COMMON_CRYPTO 1"]]
-              ,            ["OpenSSL", ["#define GIT_SHA1_OPENSSL 1"]]
-              ,            ["mbedTLS", ["#define GIT_SHA1_MBEDTLS 1"]]
+              , ["Win32", ["#define GIT_SHA1_WIN32 1"]]
+              , ["CommonCrypto", ["#define GIT_SHA1_COMMON_CRYPTO 1"]]
+              , ["OpenSSL", ["#define GIT_SHA1_OPENSSL 1"]]
+              , ["mbedTLS", ["#define GIT_SHA1_MBEDTLS 1"]]
               ]
             }
           , ["", "#endif", ""]

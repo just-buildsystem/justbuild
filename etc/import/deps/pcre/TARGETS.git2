@@ -21,9 +21,7 @@
       , "$1":
         { "type": "++"
         , "$1":
-          [ [ "#define HAVE_STDINT_H 1"
-            , "#define HAVE_INTTYPES_H 1"
-            ]
+          [ ["#define HAVE_STDINT_H 1", "#define HAVE_INTTYPES_H 1"]
           , { "type": "case"
             , "expr": {"type": "var", "name": "OS"}
             , "case": {"windows": ["#define HAVE_WINDOWS_H 1"]}
@@ -41,14 +39,9 @@
           , { "type": "case"
             , "expr": {"type": "var", "name": "OS"}
             , "case": {"windows": ["#define HAVE__STRTOI64_H 1"]}
-            , "default":
-              [ "#define HAVE_BCOPY_H 1"
-              , "#define HAVE_STRTOQ_H 1"
-              ]
+            , "default": ["#define HAVE_BCOPY_H 1", "#define HAVE_STRTOQ_H 1"]
             }
-          , [ "#define HAVE_LONG_LONG 1"
-            , "#define HAVE_UNSIGNED_LONG_LONG 1"
-            ]
+          , ["#define HAVE_LONG_LONG 1", "#define HAVE_UNSIGNED_LONG_LONG 1"]
           , { "type": "if"
             , "cond": {"type": "var", "name": "PCRE_STATIC"}
             , "then": ["#define PCRE_STATIC 1"]
@@ -172,9 +165,7 @@
                 ]
               }
             ]
-          , [ "#define MAX_NAME_SIZE 32"
-            , "#define MAX_NAME_COUNT 10000"
-            ]
+          , ["#define MAX_NAME_SIZE 32", "#define MAX_NAME_COUNT 10000"]
           ]
         }
       }
@@ -221,12 +212,6 @@
     , "pcre_xclass.c"
     , "pcreposix.c"
     ]
-  , "hdrs":
-    [ "config.h"
-    , "pcre.h"
-    , "pcre_internal.h"
-    , "ucp.h"
-    , "pcreposix.h"
-    ]
+  , "hdrs": ["config.h", "pcre.h", "pcre_internal.h", "ucp.h", "pcreposix.h"]
   }
 }

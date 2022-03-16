@@ -1,151 +1,85 @@
 { "wrong RESULT":
   { "string_fields":
-    [ "runfiles"
-    , "runfiles_entry"
-    , "artifacts"
-    , "artifacts_entry"
-    , "provides"
-    ]
+    ["runfiles", "runfiles_entry", "artifacts", "artifacts_entry", "provides"]
   , "expression":
     { "type": "let*"
-    , "bindings":
-      [ [ "artifact"
-        , { "type": "BLOB"
-          }
-        ]
-      ]
+    , "bindings": [["artifact", {"type": "BLOB"}]]
     , "body":
       { "type": "RESULT"
       , "artifacts":
         { "type": "if"
-        , "cond":
-          { "type": "FIELD"
-          , "name": "artifacts"
-          }
+        , "cond": {"type": "FIELD", "name": "artifacts"}
         , "then":
           [ { "type": "join"
-            , "$1":
-              [ "artifacts"
-              , "not"
-              , "a"
-              , "map"
-              ]
+            , "$1": ["artifacts", "not", "a", "map"]
             , "separator": "-"
             }
           ]
         , "else":
           { "type": "if"
-          , "cond":
-            { "type": "FIELD"
-            , "name": "artifacts_entry"
-            }
+          , "cond": {"type": "FIELD", "name": "artifacts_entry"}
           , "then":
             { "type": "singleton_map"
             , "key":
               { "type": "join"
-              , "$1":
-                [ "bad"
-                , "artifact"
-                , "path"
-                ]
+              , "$1": ["bad", "artifact", "path"]
               , "separator": "-"
               }
             , "value":
               { "type": "join"
-              , "$1":
-                [ "bad"
-                , "artifact"
-                , "entry"
-                ]
+              , "$1": ["bad", "artifact", "entry"]
               , "separator": "-"
               }
             }
           , "else":
             { "type": "singleton_map"
             , "key": "OK"
-            , "value":
-              { "type": "var"
-              , "name": "artifact"
-              }
+            , "value": {"type": "var", "name": "artifact"}
             }
           }
         }
       , "runfiles":
         { "type": "if"
-        , "cond":
-          { "type": "FIELD"
-          , "name": "runfiles"
-          }
+        , "cond": {"type": "FIELD", "name": "runfiles"}
         , "then":
           [ { "type": "join"
-            , "$1":
-              [ "runfiles"
-              , "not"
-              , "a"
-              , "map"
-              ]
+            , "$1": ["runfiles", "not", "a", "map"]
             , "separator": "-"
             }
           ]
         , "else":
           { "type": "if"
-          , "cond":
-            { "type": "FIELD"
-            , "name": "runfiles_entry"
-            }
+          , "cond": {"type": "FIELD", "name": "runfiles_entry"}
           , "then":
             { "type": "singleton_map"
             , "key":
               { "type": "join"
-              , "$1":
-                [ "bad"
-                , "runfiles"
-                , "path"
-                ]
+              , "$1": ["bad", "runfiles", "path"]
               , "separator": "-"
               }
             , "value":
               { "type": "join"
-              , "$1":
-                [ "bad"
-                , "runfiles"
-                , "entry"
-                ]
+              , "$1": ["bad", "runfiles", "entry"]
               , "separator": "-"
               }
             }
           , "else":
             { "type": "singleton_map"
             , "key": "OK"
-            , "value":
-              { "type": "var"
-              , "name": "artifact"
-              }
+            , "value": {"type": "var", "name": "artifact"}
             }
           }
         }
       , "provides":
         { "type": "if"
-        , "cond":
-          { "type": "FIELD"
-          , "name": "provides"
-          }
+        , "cond": {"type": "FIELD", "name": "provides"}
         , "then":
           [ { "type": "join"
-            , "$1":
-              [ "provides"
-              , "not"
-              , "a"
-              , "map"
-              ]
+            , "$1": ["provides", "not", "a", "map"]
             , "separator": "-"
             }
           ]
-        , "else":
-          { "type": "singleton_map"
-          , "key": "OK"
-          , "value": "OK value"
-          }
+        , "else": {"type": "singleton_map", "key": "OK", "value": "OK value"}
         }
       }
     }

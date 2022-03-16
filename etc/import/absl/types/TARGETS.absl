@@ -16,10 +16,7 @@
   , "stage": ["absl", "types"]
   , "srcs": ["bad_optional_access.cc"]
   , "hdrs": ["bad_optional_access.h"]
-  , "deps":
-    [ ["absl/base", "config"]
-    , ["absl/base", "raw_logging_internal"]
-    ]
+  , "deps": [["absl/base", "config"], ["absl/base", "raw_logging_internal"]]
   }
 , "optional":
   { "type": ["@", "rules", "CC", "library"]

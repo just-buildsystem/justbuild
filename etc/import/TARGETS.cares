@@ -3,11 +3,7 @@
   , "name": ["ares"]
   , "pure C": ["YES"]
   , "local defines":
-    [ "_GNU_SOURCE"
-    , "_HAS_EXCEPTIONS=0"
-    , "HAVE_CONFIG_H"
-    , "CARES_STATICLIB"
-    ]
+    ["_GNU_SOURCE", "_HAS_EXCEPTIONS=0", "HAVE_CONFIG_H", "CARES_STATICLIB"]
   , "srcs":
     [ "ares__close_sockets.c"
     , "ares__get_hostent.c"
