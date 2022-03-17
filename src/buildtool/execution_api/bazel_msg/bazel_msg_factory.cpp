@@ -580,7 +580,7 @@ auto BazelMsgFactory::DirectoryToString(bazel_re::Directory const& dir) noexcept
                         "reading object infos from Directory failed");
             return std::nullopt;
         }
-        return json.dump(2);
+        return json.dump(2) + "\n";
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "dumping Directory to string failed with:\n{}",
