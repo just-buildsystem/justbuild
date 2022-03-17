@@ -203,6 +203,13 @@
     , "link external":
       ["Additional linker flags for linking external libraries."]
     , "deps": ["Any other libraries this library depends upon."]
+    , "proto":
+      [ "Any [\"proto\", \"library\"] this target depends upon directly."
+      , "The creation of C++ bindings for this proto library as well as of"
+      , "is dependencies will be taken care of (as anonymous targets, so no"
+      , "duplicate work will be carried out, even if the same proto library"
+      , "is used at various places)."
+      ]
     }
   , "config_doc":
     { "CXX": ["The name of the C++ compiler to be used."]
@@ -346,6 +353,13 @@
     , "link external":
       ["Additional linker flags for linking external libraries."]
     , "deps": ["Any other libraries this binary depends upon."]
+    , "proto":
+      [ "Any [\"proto\", \"library\"] this target depends upon directly."
+      , "The creation of C++ bindings for this proto library as well as of"
+      , "is dependencies will be taken care of (as anonymous targets, so no"
+      , "duplicate work will be carried out, even if the same proto library"
+      , "is used at various places)."
+      ]
     }
   , "config_doc":
     { "CXX": ["The name of the C++ compiler to be used."]
