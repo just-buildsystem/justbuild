@@ -23,4 +23,11 @@
   , "flexible_config":
     ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
   }
+, "just-ext-hdrs":
+  { "type": ["@", "rules", "CC", "configure"]
+  , "arguments_config": ["OS", "ARCH"]
+  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
+  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
+  , "target": [["etc/dev", "just-ext-hdrs"]]
+  }
 }

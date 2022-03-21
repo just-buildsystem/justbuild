@@ -1,0 +1,18 @@
+{ "just-ext-hdrs":
+  { "type": ["@", "rules", "CC/IDE", "headers"]
+  , "deps":
+    [ ["@", "ssl", "", "crypto"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "cli11", "", "cli11"]
+    , ["@", "json", "", "json"]
+    , ["@", "catch2", "", "catch2"]
+    , ["", "libgit2"]
+    ]
+  , "proto":
+    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "googleapis", "", "google_bytestream_proto"]
+    ]
+  }
+}
