@@ -2,7 +2,7 @@
   { "type": "export"
   , "target": ["src/buildtool/main", "just"]
   , "flexible_config":
-    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CC", "CXX", "AR", "ENV"]
   }
 , "just":
   { "type": ["@", "rules", "CC", "configure"]
