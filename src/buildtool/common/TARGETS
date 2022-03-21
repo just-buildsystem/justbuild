@@ -15,7 +15,6 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bazel_types"]
   , "hdrs": ["bazel_types.hpp"]
-  , "deps": [["@", "grpc", "", "grpc++"]]
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "common"]
   }
