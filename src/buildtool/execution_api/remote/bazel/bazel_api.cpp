@@ -64,6 +64,7 @@ auto BazelApi::CreateAction(
 
     // Obtain file digests from artifact infos
     std::vector<bazel_re::Digest> file_digests{};
+    std::vector<std::size_t> artifact_pos{};
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
         if (IsTreeObject(info.type)) {
@@ -76,6 +77,7 @@ auto BazelApi::CreateAction(
         }
         else {
             file_digests.emplace_back(info.digest);
+            artifact_pos.emplace_back(i);
         }
     }
 
@@ -90,7 +92,7 @@ auto BazelApi::CreateAction(
             return false;
         }
         for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
-            auto gpos = count + pos;
+            auto gpos = artifact_pos[count + pos];
             auto const& type = artifacts_info[gpos].type;
             if (not FileSystemManager::WriteFileAs(
                     blobs[pos].data, output_paths[gpos], type)) {
