@@ -73,6 +73,8 @@ def read_config(configfile):
 def git_root(*, upstream):
     if upstream in GIT_CHECKOUT_LOCATIONS:
         return GIT_CHECKOUT_LOCATIONS[upstream]
+    elif upstream and os.path.isabs(upstream):
+        return upstream
     else:
         return os.path.join(ROOT, "git")
 
@@ -293,8 +295,27 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
             git_subtree(tree=tree, subdir=desc.get("subdir", "."), upstream=None),
             git_root(upstream=None)]
 
-def describe_file(desc):
-    fpath = desc["path"]
+def file_as_git(fpath):
+    root_result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
+                                 cwd=fpath,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.DEVNULL)
+    if not root_result.returncode == 0:
+        # Fall back to file root
+        return ["file", fpath]
+    root = root_result.stdout.decode('utf-8').rstrip()
+    subdir = os.path.relpath(fpath, root)
+    root_tree = subprocess.run(["git", "log", "-n", "1", "--format=%T"],
+                               cwd = root, stdout=subprocess.PIPE
+                               ).stdout.decode('utf-8').strip()
+    return ["git tree",
+            git_subtree(tree=root_tree, subdir=subdir, upstream=root),
+            root]
+
+def file_checkout(desc):
+    fpath = os.path.abspath(desc["path"])
+    if desc.get("pragma", {}).get("to_git") and not ALWAYS_FILE:
+        return file_as_git(fpath)
     return ["file", os.path.abspath(fpath)]
 
 def resolve_repo(desc, *, seen=None, repos):
@@ -314,7 +335,7 @@ def checkout(desc, *, name, repos):
     if repo_type in ["archive", "zip"]:
         return archive_checkout(repo_desc, repo_type=repo_type)
     if repo_type == "file":
-        return describe_file(repo_desc)
+        return file_checkout(repo_desc)
     fail("Unknown repository type %s for %s"
          % (repo_type, name))
 
