@@ -36,14 +36,4 @@
     , "google_rpc_status_proto"
     ]
   }
-, "google_apis_cc_headers":
-  { "type": ["@", "rules", "CC/IDE", "headers"]
-  , "proto":
-    [ "google_api_http_proto"
-    , "google_api_annotations_proto"
-    , "google_bytestream_proto"
-    , "google_rpc_status_proto"
-    , "google_longrunning_operations_proto"
-    ]
-  }
 }

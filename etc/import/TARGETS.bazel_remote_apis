@@ -16,8 +16,4 @@
     , ["@", "google_apis", "", "google_rpc_status_proto"]
     ]
   }
-, "remote_execution_cc_headers":
-  { "type": ["@", "rules", "CC/IDE", "headers"]
-  , "proto": [["./", "", "remote_execution_proto"]]
-  }
 }
