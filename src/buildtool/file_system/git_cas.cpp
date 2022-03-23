@@ -1,5 +1,6 @@
 #include "src/buildtool/file_system/git_cas.hpp"
 
+#include <mutex>
 #include <sstream>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -154,9 +155,10 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
 }
 
 auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
+    static std::mutex repo_mutex{};
     if (initialized_) {
         {  // lock as git_repository API has no thread-safety guarantees
-            std::unique_lock lock{repo_mutex_};
+            std::unique_lock lock{repo_mutex};
             git_repository* repo = nullptr;
             if (git_repository_open(&repo, repo_path.c_str()) != 0) {
                 Logger::Log(LogLevel::Error,

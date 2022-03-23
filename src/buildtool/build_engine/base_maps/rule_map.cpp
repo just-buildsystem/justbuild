@@ -12,20 +12,20 @@ namespace BuildMaps::Base {
 
 namespace {
 
-auto rule_fields = std::unordered_set<std::string>{"anonymous",
-                                                   "config_doc",
-                                                   "config_fields",
-                                                   "config_transitions",
-                                                   "config_vars",
-                                                   "doc",
-                                                   "expression",
-                                                   "field_doc",
-                                                   "implicit",
-                                                   "imports",
-                                                   "import",
-                                                   "string_fields",
-                                                   "tainted",
-                                                   "target_fields"};
+auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
+                                                         "config_doc",
+                                                         "config_fields",
+                                                         "config_transitions",
+                                                         "config_vars",
+                                                         "doc",
+                                                         "expression",
+                                                         "field_doc",
+                                                         "implicit",
+                                                         "imports",
+                                                         "import",
+                                                         "string_fields",
+                                                         "tainted",
+                                                         "target_fields"};
 
 [[nodiscard]] auto ReadAnonymousObject(EntityName const& id,
                                        nlohmann::json const& json,
@@ -249,7 +249,7 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                 if (not reader) {
                     return;
                 }
-                reader->ExpectFields(rule_fields);
+                reader->ExpectFields(kRuleFields);
 
                 auto expr = reader->ReadExpression("expression");
                 if (not expr) {

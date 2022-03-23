@@ -31,6 +31,7 @@ auto ExtractValueAs(
 
 namespace detail {
 
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] static inline auto IndentListsOnlyUntilDepth(
     nlohmann::json const& json,
     std::string const& indent,

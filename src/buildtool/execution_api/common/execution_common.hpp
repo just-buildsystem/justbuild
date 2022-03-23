@@ -60,7 +60,7 @@
     return dist(urandom);
 }
 
-static auto kRandomConstant = GetNonDeterministicRandomNumber();
+static auto const kRandomConstant = GetNonDeterministicRandomNumber();
 
 static void EncodeUUIDVersion4(std::string* uuid) {
     constexpr auto kVersionByte = 6UL;

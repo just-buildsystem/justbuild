@@ -26,7 +26,8 @@ namespace {
     gsl::not_null<FILE*> const& stream) noexcept -> bool {
     if (auto dir = ReadDirectory(network, tree_digest)) {
         if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
-            std::fwrite(data->data(), 1, data->size(), stream);
+            auto const& str = *data;
+            std::fwrite(str.data(), 1, str.size(), stream);
             return true;
         }
     }
@@ -40,7 +41,8 @@ namespace {
     auto reader = network->IncrementalReadSingleBlob(blob_digest);
     auto data = reader.Next();
     while (data and not data->empty()) {
-        std::fwrite(data->data(), 1, data->size(), stream);
+        auto const& str = *data;
+        std::fwrite(str.data(), 1, str.size(), stream);
         data = reader.Next();
     }
     return data.has_value();
@@ -242,6 +244,7 @@ auto BazelNetwork::ReadTreeInfos(bazel_re::Digest const& tree_digest,
     return std::nullopt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto BazelNetwork::ReadObjectInfosRecursively(
     std::optional<DirectoryMap> const& dir_map,
     BazelMsgFactory::InfoStoreFunc const& store_info,
@@ -251,21 +254,24 @@ auto BazelNetwork::ReadObjectInfosRecursively(
     if (tree_map_) {
         auto const* tree = tree_map_->GetTree(digest);
         if (tree != nullptr) {
-            for (auto const& [path, info] : *tree) {
-                try {
-                    if (IsTreeObject(info->type)
-                            ? not ReadObjectInfosRecursively(dir_map,
-                                                             store_info,
-                                                             parent / path,
-                                                             info->digest)
-                            : not store_info(parent / path, *info)) {
+            return std::all_of(
+                tree->begin(),
+                tree->end(),
+                // NOLINTNEXTLINE(misc-no-recursion)
+                [this, &dir_map, &store_info, &parent](auto const& entry) {
+                    auto const& [path, info] = entry;
+                    try {
+                        return IsTreeObject(info->type)
+                                   ? ReadObjectInfosRecursively(dir_map,
+                                                                store_info,
+                                                                parent / path,
+                                                                info->digest)
+                                   : store_info(parent / path, *info);
+                    } catch (
+                        ...) {  // satisfy clang-tidy, store_info() could throw
                         return false;
                     }
-                } catch (...) {  // satisfy clang-tidy, store_info() could throw
-                    return false;
-                }
-            }
-            return true;
+                });
         }
         Logger::Log(
             LogLevel::Debug, "tree {} not found in tree map", digest.hash());

@@ -19,6 +19,24 @@
 
 /// \brief Store global build system configuration.
 class LocalExecutionConfig {
+    struct ConfigData {
+        // User root directory (Unix default: /home/${USER})
+        std::filesystem::path user_root{};
+
+        // Build root directory (default: empty)
+        std::filesystem::path build_root{};
+
+        // Disk cache directory (default: empty)
+        std::filesystem::path disk_cache{};
+
+        // Launcher to be prepended to action's command before executed.
+        // Default: ["env", "--"]
+        std::vector<std::string> launcher{"env", "--"};
+
+        // Persistent build directory option
+        bool keep_build_dir{false};
+    };
+
   public:
     [[nodiscard]] static auto SetBuildRoot(
         std::filesystem::path const& dir) noexcept -> bool {
@@ -28,7 +46,7 @@ class LocalExecutionConfig {
                         dir.string());
             return false;
         }
-        build_root_ = dir;
+        Data().build_root = dir;
         return true;
     }
 
@@ -40,14 +58,14 @@ class LocalExecutionConfig {
                         dir.string());
             return false;
         }
-        disk_cache_ = dir;
+        Data().disk_cache = dir;
         return true;
     }
 
     [[nodiscard]] static auto SetLauncher(
         std::vector<std::string> const& launcher) noexcept -> bool {
         try {
-            launcher_ = launcher;
+            Data().launcher = launcher;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "when setting the local launcher\n{}",
@@ -59,63 +77,54 @@ class LocalExecutionConfig {
 
     [[nodiscard]] static auto SetKeepBuildDir(bool is_persistent) noexcept
         -> bool {
-        keep_build_dir_ = is_persistent;
+        Data().keep_build_dir = is_persistent;
         return true;
     }
 
     /// \brief User directory.
     [[nodiscard]] static auto GetUserDir() noexcept -> std::filesystem::path {
-        if (user_root_.empty()) {
-            user_root_ = GetUserRoot() / ".cache" / "just";
+        auto& user_root = Data().user_root;
+        if (user_root.empty()) {
+            user_root = GetUserRoot() / ".cache" / "just";
         }
-        return user_root_;
+        return user_root;
     }
 
     /// \brief Build directory, defaults to user directory if not set
     [[nodiscard]] static auto GetBuildDir() noexcept -> std::filesystem::path {
-        if (build_root_.empty()) {
+        auto& build_root = Data().build_root;
+        if (build_root.empty()) {
             return GetUserDir();
         }
-        return build_root_;
+        return build_root;
     }
 
     /// \brief Cache directory, defaults to user directory if not set
     [[nodiscard]] static auto GetCacheDir() noexcept -> std::filesystem::path {
-        if (disk_cache_.empty()) {
+        auto& disk_cache = Data().disk_cache;
+        if (disk_cache.empty()) {
             return GetBuildDir();
         }
-        return disk_cache_;
+        return disk_cache;
     }
 
     [[nodiscard]] static auto GetLauncher() noexcept
         -> std::vector<std::string> {
-        return launcher_;
+        return Data().launcher;
     }
 
     [[nodiscard]] static auto KeepBuildDir() noexcept -> bool {
-        return keep_build_dir_;
+        return Data().keep_build_dir;
     }
 
   private:
-    // User root directory (Unix default: /home/${USER})
-    static inline std::filesystem::path user_root_{};
-
-    // Build root directory (default: empty)
-    static inline std::filesystem::path build_root_{};
-
-    // Disk cache directory (default: empty)
-    static inline std::filesystem::path disk_cache_{};
-
-    // Launcher to be prepended to action's command before executed.
-    // Default: ["env", "--"]
-    static inline std::vector<std::string> launcher_{"env", "--"};
-
-    // Persistent build directory option
-    static inline bool keep_build_dir_{false};
+    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
+        static ConfigData instance{};
+        return instance;
+    }
 
     /// \brief Determine user root directory
-    [[nodiscard]] static inline auto GetUserRoot() noexcept
-        -> std::filesystem::path {
+    [[nodiscard]] static auto GetUserRoot() noexcept -> std::filesystem::path {
         char const* root{nullptr};
 
 #ifdef __unix__

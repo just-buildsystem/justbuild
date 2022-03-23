@@ -16,27 +16,30 @@
 
 namespace {
 
-auto genericRuleFields = std::unordered_set<std::string>{"arguments_config",
-                                                         "cmds",
-                                                         "deps",
-                                                         "env",
-                                                         "tainted",
-                                                         "type",
-                                                         "outs"};
+auto const kGenericRuleFields =
+    std::unordered_set<std::string>{"arguments_config",
+                                    "cmds",
+                                    "deps",
+                                    "env",
+                                    "tainted",
+                                    "type",
+                                    "outs"};
 
-auto fileGenRuleFields = std::unordered_set<std::string>{"arguments_config",
-                                                         "data",
-                                                         "deps",
-                                                         "name",
-                                                         "tainted",
-                                                         "type"};
+auto const kFileGenRuleFields =
+    std::unordered_set<std::string>{"arguments_config",
+                                    "data",
+                                    "deps",
+                                    "name",
+                                    "tainted",
+                                    "type"};
 
-auto installRuleFields = std::unordered_set<std::string>{"arguments_config",
-                                                         "deps",
-                                                         "dirs",
-                                                         "files",
-                                                         "tainted",
-                                                         "type"};
+auto const kInstallRuleFields =
+    std::unordered_set<std::string>{"arguments_config",
+                                    "deps",
+                                    "dirs",
+                                    "files",
+                                    "tainted",
+                                    "type"};
 
 void FileGenRuleWithDeps(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& dependency_keys,
@@ -166,7 +169,7 @@ void FileGenRule(
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "file-generation target", logger);
-    desc->ExpectFields(fileGenRuleFields);
+    desc->ExpectFields(kFileGenRuleFields);
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
         return;
@@ -363,7 +366,7 @@ void InstallRule(
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "install target", logger);
-    desc->ExpectFields(installRuleFields);
+    desc->ExpectFields(kInstallRuleFields);
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
         return;
@@ -739,7 +742,7 @@ void GenericRule(
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "generic target", logger);
-    desc->ExpectFields(genericRuleFields);
+    desc->ExpectFields(kGenericRuleFields);
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
         return;
@@ -798,7 +801,7 @@ void GenericRule(
         logger);
 }
 
-auto built_ins = std::unordered_map<
+auto const kBuiltIns = std::unordered_map<
     std::string,
     std::function<void(
         const nlohmann::json&,
@@ -822,7 +825,7 @@ auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool {
         return false;
     }
     auto rule_name = rule_type.get<std::string>();
-    return built_ins.contains(rule_name);
+    return kBuiltIns.contains(rule_name);
 }
 
 auto HandleBuiltin(
@@ -839,8 +842,8 @@ auto HandleBuiltin(
         return false;
     }
     auto rule_name = rule_type.get<std::string>();
-    auto it = built_ins.find(rule_name);
-    if (it == built_ins.end()) {
+    auto it = kBuiltIns.find(rule_name);
+    if (it == kBuiltIns.end()) {
         return false;
     }
     auto target_logger = std::make_shared<BuildMaps::Target::TargetMap::Logger>(

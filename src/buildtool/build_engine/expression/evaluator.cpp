@@ -228,6 +228,7 @@ auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
 }
 
 template <bool kDisjoint = false>
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Union(Expression::list_t const& dicts, size_t from, size_t to)
     -> ExpressionPtr {
     if (to <= from) {
@@ -786,7 +787,7 @@ auto AssertNonEmptyExpr(SubExprEvaluator&& eval,
     throw Evaluator::EvaluationError(ss.str(), false, true);
 }
 
-auto built_in_functions =
+auto const kBuiltInFunctions =
     FunctionMap::MakePtr({{"var", VarExpr},
                           {"if", IfExpr},
                           {"cond", CondExpr},
@@ -883,7 +884,7 @@ auto Evaluator::EvaluateExpression(
         return Evaluate(
             expr,
             env,
-            FunctionMap::MakePtr(built_in_functions, provider_functions));
+            FunctionMap::MakePtr(kBuiltInFunctions, provider_functions));
     } catch (EvaluationError const& ex) {
         if (ex.UserContext()) {
             try {
@@ -910,6 +911,7 @@ auto Evaluator::EvaluateExpression(
     return ExpressionPtr{nullptr};
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Evaluator::Evaluate(ExpressionPtr const& expr,
                          Configuration const& env,
                          FunctionMapPtr const& functions) -> ExpressionPtr {
@@ -923,6 +925,7 @@ auto Evaluator::Evaluate(ExpressionPtr const& expr,
                 expr->List().cbegin(),
                 expr->List().cend(),
                 std::back_inserter(list),
+                // NOLINTNEXTLINE(misc-no-recursion)
                 [&](auto const& e) { return Evaluate(e, env, functions); });
             return ExpressionPtr{list};
         }

@@ -3,7 +3,6 @@
 
 #include <filesystem>
 #include <memory>
-#include <mutex>
 #include <optional>
 
 #include "src/buildtool/file_system/object_type.hpp"
@@ -49,7 +48,6 @@ class GitCAS {
         -> std::optional<std::pair<std::size_t, ObjectType>>;
 
   private:
-    static inline std::mutex repo_mutex_{};
     git_odb* odb_{nullptr};
     bool initialized_{false};
 

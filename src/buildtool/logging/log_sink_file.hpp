@@ -61,7 +61,7 @@ class LogSinkFile final : public ILogSink {
     LogSinkFile(std::filesystem::path const& file_path, Mode file_mode)
         : file_path_{std::filesystem::weakly_canonical(file_path).string()} {
         // create file mutex for canonical path
-        file_mutexes_.Create(file_path_, [&] {
+        FileMutexes().Create(file_path_, [&] {
             if (file_mode == Mode::Overwrite) {
                 // clear file contents
                 if (gsl::owner<FILE*> file =
@@ -108,7 +108,7 @@ class LogSinkFile final : public ILogSink {
         auto cont_prefix = std::string(prefix.size(), ' ');
 
         {
-            std::lock_guard lock{file_mutexes_.Get(file_path_)};
+            std::lock_guard lock{FileMutexes().Get(file_path_)};
             if (gsl::owner<FILE*> file = std::fopen(file_path_.c_str(), "a")) {
                 using it = std::istream_iterator<ILogSink::Line>;
                 std::istringstream iss{msg};
@@ -123,7 +123,11 @@ class LogSinkFile final : public ILogSink {
 
   private:
     std::string file_path_{};
-    static inline MutexMap<std::string> file_mutexes_{};
+
+    [[nodiscard]] static auto FileMutexes() noexcept -> MutexMap<std::string>& {
+        static MutexMap<std::string> instance{};
+        return instance;
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_FILE_HPP

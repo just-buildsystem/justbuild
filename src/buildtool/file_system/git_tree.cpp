@@ -78,6 +78,7 @@ auto ParseRawTreeObject(GitCASPtr const& cas,
     return (normalized / "").parent_path();  // strip trailing slash
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto LookupEntryPyPath(
     GitTree const& tree,
     std::filesystem::path::const_iterator it,

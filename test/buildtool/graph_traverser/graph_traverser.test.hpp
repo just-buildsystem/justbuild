@@ -79,7 +79,6 @@ class TestProject {
         "_entry_points";
     std::string example_name_{};
     std::filesystem::path root_dir_{};
-    static inline int id_{};
     bool run_local_{};
 
     void SetupConfig() {
@@ -90,6 +89,7 @@ class TestProject {
 
     auto GenerateFromEntryPoints(nlohmann::json const& entry_points)
         -> CommandLineArguments {
+        static int id{};
 
         GraphTraverser::CommandLineArguments gtargs{0, {}, {}, {}, {}};
 
@@ -98,7 +98,7 @@ class TestProject {
         clargs.graph_description = root_dir_ / "graph_description";
         clargs.gtargs.jobs = std::max(1U, std::thread::hardware_concurrency());
         clargs.gtargs.stage = StageArguments{
-            kOutputDirPrefix / (example_name_ + std::to_string(id_++))};
+            kOutputDirPrefix / (example_name_ + std::to_string(id++))};
         if (not run_local_) {
             clargs.gtargs.endpoint.remote_execution_address =
                 ReadRemoteAddressFromEnv();

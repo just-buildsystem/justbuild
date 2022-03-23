@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BYTESTREAM_CLIENT_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BYTESTREAM_CLIENT_HPP
 
+#include <algorithm>
 #include <functional>
 #include <iomanip>
 #include <optional>
@@ -156,12 +157,11 @@ class ByteStreamClient {
         std::function<std::string(T_Input const&)> const& to_resource_name,
         std::function<std::string(T_Input const&)> const& to_data)
         const noexcept -> bool {
-        for (auto const& i : inputs) {
-            if (not Write(to_resource_name(i), to_data(i))) {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(inputs.begin(),
+                           inputs.end(),
+                           [this, &to_resource_name, &to_data](auto const& i) {
+                               return Write(to_resource_name(i), to_data(i));
+                           });
     }
 
   private:

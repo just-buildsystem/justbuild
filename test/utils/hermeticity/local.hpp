@@ -9,13 +9,12 @@
 class HermeticLocalTestFixture {
   public:
     HermeticLocalTestFixture() noexcept {
+        static int id{};
         Statistics::Instance().Reset();
-        CreateAndSetCleanDiskCache(id_++);
+        CreateAndSetCleanDiskCache(id++);
     }
 
   private:
-    static inline int id_{};
-
     static void CreateAndSetCleanDiskCache(int case_id) {
         auto test_dir = FileSystemManager::GetCurrentDirectory();
         auto case_dir = test_dir / "tmp" / ("case_" + std::to_string(case_id));

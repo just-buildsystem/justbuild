@@ -184,21 +184,24 @@ auto LocalAction::CreateDirectoryStructure(
     }
 
     // create output paths
-    for (auto const& local_path : output_files_) {
-        if (not FileSystemManager::CreateDirectory(
-                (exec_path / local_path).parent_path())) {
+    auto const create_dir = [this](auto const& dir) {
+        if (not FileSystemManager::CreateDirectory(dir)) {
             logger_.Emit(LogLevel::Error, "failed to create output directory");
             return false;
         }
-    }
-    for (auto const& local_path : output_dirs_) {
-        if (not FileSystemManager::CreateDirectory(exec_path / local_path)) {
-            logger_.Emit(LogLevel::Error, "failed to create output directory");
-            return false;
-        }
-    }
-
-    return true;
+        return true;
+    };
+    return std::all_of(output_files_.begin(),
+                       output_files_.end(),
+                       [&exec_path, &create_dir](auto const& local_path) {
+                           auto dir = (exec_path / local_path).parent_path();
+                           return create_dir(dir);
+                       }) and
+           std::all_of(output_dirs_.begin(),
+                       output_dirs_.end(),
+                       [&exec_path, &create_dir](auto const& local_path) {
+                           return create_dir(exec_path / local_path);
+                       });
 }
 
 auto LocalAction::CollectOutputFile(std::filesystem::path const& exec_path,

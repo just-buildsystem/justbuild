@@ -95,16 +95,20 @@ class TestExecutor {
             build_info_->SetName(name_);
             bool const all_deps_available = AllAvailable(action->Children());
             if (all_deps_available) {
-                for (auto const& [name, node] : action->OutputFiles()) {
-                    if (not build_info_->InsertCorrectlyBuilt(
-                            node->Content().Id())) {
-                        [[maybe_unused]] auto was_it_added =
-                            build_info_->InsertIncorrectlyBuilt(
-                                node->Content().Id());
-                        return false;
-                    }
-                }
-                return true;
+                return std::all_of(
+                    action->OutputFiles().begin(),
+                    action->OutputFiles().end(),
+                    [this](auto const& entry) {
+                        auto const& [name, node] = entry;
+                        if (not build_info_->InsertCorrectlyBuilt(
+                                node->Content().Id())) {
+                            [[maybe_unused]] auto was_it_added =
+                                build_info_->InsertIncorrectlyBuilt(
+                                    node->Content().Id());
+                            return false;
+                        }
+                        return true;
+                    });
             }
             for (auto const& [name, node] : action->OutputFiles()) {
                 [[maybe_unused]] auto was_it_added =

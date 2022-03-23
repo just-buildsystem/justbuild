@@ -94,6 +94,7 @@ auto BazelCasClient::BatchReadBlobs(
     return result;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto BazelCasClient::GetTree(std::string const& instance_name,
                              bazel_re::Digest const& root_digest,
                              std::int32_t page_size,

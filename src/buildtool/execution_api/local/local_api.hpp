@@ -34,6 +34,7 @@ class LocalApi final : public IExecutionApi {
                                                      properties}};
     }
 
+    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths) noexcept

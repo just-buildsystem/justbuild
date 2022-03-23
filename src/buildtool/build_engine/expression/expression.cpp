@@ -57,6 +57,7 @@ auto Expression::operator[](size_t pos) && -> ExpressionPtr {
         fmt::format("List pos '{}' is out of bounds.", pos)};
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToJson(Expression::JsonMode mode) const -> nlohmann::json {
     if (IsBool()) {
         return Bool();
@@ -93,12 +94,14 @@ auto Expression::ToJson(Expression::JsonMode mode) const -> nlohmann::json {
         std::transform(list.begin(),
                        list.end(),
                        std::back_inserter(json),
+                       // NOLINTNEXTLINE(misc-no-recursion)
                        [mode](auto const& e) { return e->ToJson(mode); });
         return json;
     }
     if (IsMap()) {
         auto json = nlohmann::json::object();
         auto const& map = Value<map_t>()->get();
+        // NOLINTNEXTLINE(misc-no-recursion)
         std::for_each(map.begin(), map.end(), [&](auto const& p) {
             json.emplace(p.first, p.second->ToJson(mode));
         });
@@ -110,6 +113,7 @@ auto Expression::ToJson(Expression::JsonMode mode) const -> nlohmann::json {
     return nlohmann::json{};
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::IsCacheable() const -> bool {
     // Must be updated whenever we add a new non-cacheable value
     if (IsName()) {
@@ -138,10 +142,12 @@ auto Expression::IsCacheable() const -> bool {
     return true;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToString() const -> std::string {
     return ToJson().dump();
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToHash() const noexcept -> std::string {
     if (hash_.load() == nullptr) {
         if (not hash_loading_.exchange(true)) {
@@ -155,6 +161,7 @@ auto Expression::ToHash() const noexcept -> std::string {
     return *hash_.load();
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::FromJson(nlohmann::json const& json) noexcept
     -> ExpressionPtr {
     if (json.is_null()) {
@@ -176,6 +183,7 @@ auto Expression::FromJson(nlohmann::json const& json) noexcept
             std::transform(json.begin(),
                            json.end(),
                            std::back_inserter(l),
+                           // NOLINTNEXTLINE(misc-no-recursion)
                            [](auto const& j) { return FromJson(j); });
             return ExpressionPtr{l};
         }
@@ -209,6 +217,7 @@ auto Expression::TypeString() const noexcept -> std::string {
     return TypeStringForIndex();
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ComputeHash() const noexcept -> std::string {
     auto hash = std::string{};
     if (IsNone() or IsBool() or IsNumber() or IsString() or IsArtifact() or

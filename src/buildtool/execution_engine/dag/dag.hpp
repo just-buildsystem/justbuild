@@ -163,6 +163,7 @@ class DirectedAcyclicGraph {
 
   protected:
     template <typename T_Node>
+    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] static auto check_validity(
         gsl::not_null<T_Node*> node) noexcept -> bool {
         // Check node-specified validity (e.g. bipartiteness requirements)
@@ -560,13 +561,13 @@ class DependencyGraph : DirectedAcyclicGraph {
         -> std::optional<ActionIdentifier>;
 
     [[nodiscard]] auto IsValid() const noexcept -> bool {
-        for (auto const& node : artifact_nodes_) {
-            if (!DirectedAcyclicGraph::check_validity<
-                    std::remove_reference_t<decltype(*node)>>(&(*node))) {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(
+            artifact_nodes_.begin(),
+            artifact_nodes_.end(),
+            [](auto const& node) {
+                return DirectedAcyclicGraph::check_validity<
+                    std::remove_reference_t<decltype(*node)>>(&(*node));
+            });
     }
 
   private:

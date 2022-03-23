@@ -174,7 +174,8 @@ class BlobContainer {
             }
 
           private:
-            static inline BazelBlob kEmpty{bazel_re::Digest{}, std::string{}};
+            static inline BazelBlob const kEmpty{bazel_re::Digest{},
+                                                 std::string{}};
             gsl::not_null<underlaying_map_t const*> blobs_;
         };
 

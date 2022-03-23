@@ -814,6 +814,7 @@ auto DumpExpressionToMap(gsl::not_null<nlohmann::json*> const& map,
     return false;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void DumpNodesInExpressionToMap(gsl::not_null<nlohmann::json*> const& map,
                                 ExpressionPtr const& expr) {
     if (expr->IsNode()) {

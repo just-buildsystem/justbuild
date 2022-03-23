@@ -155,12 +155,11 @@ class ContainerUnorderedMatcher : public Catch::MatcherBase<LeftContainer> {
             std::iter_swap(it_to_elem, last_to_check);
             return true;
         };
-        for (auto const& element : lhs) {
-            if (not check_exists_and_remove(element)) {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(lhs.begin(),
+                           lhs.end(),
+                           [&check_exists_and_remove](auto const& element) {
+                               return check_exists_and_remove(element);
+                           });
     }
 };
 

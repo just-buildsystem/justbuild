@@ -52,6 +52,7 @@ class LocalStorage {
     }
 
     /// \brief Obtain blob path from digest with x-bit.
+    /// NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest,
                                 bool is_executable) const noexcept
         -> std::optional<std::filesystem::path> {
@@ -91,6 +92,7 @@ class LocalStorage {
     /// \param digest        Blob digest.
     /// \param to_executable Sync direction.
     /// \returns Path to blob in target CAS.
+    /// NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto TrySyncBlob(bazel_re::Digest const& digest,
                                    bool to_executable) const noexcept
         -> std::optional<std::filesystem::path> {

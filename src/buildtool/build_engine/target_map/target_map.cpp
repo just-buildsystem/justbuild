@@ -735,12 +735,12 @@ void withDependencies(
         logger(fmt::format("expected list, but got {}", ptr->ToString()));
         return false;
     }
-    for (const auto& entry : ptr->List()) {
-        if (not entry->IsMap()) {
-            logger(fmt::format("expected list of dicts, but found {}",
-                               ptr->ToString()));
-            return false;
-        }
+    if (not std::all_of(ptr->List().begin(),
+                        ptr->List().end(),
+                        [](auto const& entry) { return entry->IsMap(); })) {
+        logger(fmt::format("expected list of dicts, but found {}",
+                           ptr->ToString()));
+        return false;
     }
 
     return true;

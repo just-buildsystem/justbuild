@@ -96,22 +96,18 @@ auto DependencyGraph::LinkNodePointers(
 
 auto DependencyGraph::Add(std::vector<ActionDescription> const& actions)
     -> bool {
-    for (auto const& action : actions) {
-        if (not AddAction(action)) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(
+        actions.begin(), actions.end(), [this](auto const& action) {
+            return AddAction(action);
+        });
 }
 
 auto DependencyGraph::Add(std::vector<ActionDescription::Ptr> const& actions)
     -> bool {
-    for (auto const& action : actions) {
-        if (not AddAction(*action)) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(
+        actions.begin(), actions.end(), [this](auto const& action) {
+            return AddAction(*action);
+        });
 }
 
 auto DependencyGraph::AddArtifact(ArtifactDescription const& description)

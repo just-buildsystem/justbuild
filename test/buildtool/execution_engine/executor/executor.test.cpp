@@ -130,16 +130,13 @@ class TestApi : public IExecutionApi {
     }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
-        for (auto const& blob : blobs) {
-            if (config_.artifacts[blob.data].uploads) {
-                continue;  // for local artifacts
-            }
-            if (config_.artifacts[blob.digest.hash()].uploads) {
-                continue;  // for known and action artifacts
-            }
-            return false;
-        }
-        return true;
+        return std::all_of(
+            blobs.begin(), blobs.end(), [this](auto const& blob) {
+                return config_.artifacts[blob.data]
+                           .uploads  // for local artifacts
+                       or config_.artifacts[blob.digest.hash()]
+                              .uploads;  // for known and action artifacts
+            });
     }
     auto UploadTree(
         std::vector<

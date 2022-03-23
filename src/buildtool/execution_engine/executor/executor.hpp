@@ -237,12 +237,10 @@ class ExecutorImpl {
     [[nodiscard]] static auto CheckOutputsExist(
         IExecutionResponse::ArtifactInfos const& artifacts,
         std::vector<Action::LocalPath> const& outputs) noexcept -> bool {
-        for (auto const& output : outputs) {
-            if (not artifacts.contains(output)) {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(
+            outputs.begin(), outputs.end(), [&artifacts](auto const& output) {
+                return artifacts.contains(output);
+            });
     }
 
     /// \brief Parse response and write object info to DAG's artifact nodes.

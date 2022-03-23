@@ -361,6 +361,7 @@ class DirectoryTree {
     }
 
     /// \brief Convert tree to `DirectoryNodeBundle`.
+    /// NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto ToBundle(
         std::string const& root_name,
         std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
@@ -410,6 +411,7 @@ class DirectoryTree {
     using Node = std::variant<DirectoryTreePtr, Artifact const*>;
     std::unordered_map<std::string, Node> nodes;
 
+    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto AddArtifact(std::filesystem::path::iterator* begin,
                                    std::filesystem::path::iterator const& end,
                                    Artifact const* artifact) -> bool {

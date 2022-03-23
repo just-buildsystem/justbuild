@@ -6,12 +6,12 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 
 namespace {
-auto expectedFields = std::unordered_set<std::string>{"config_doc",
-                                                      "doc",
-                                                      "fixed_config",
-                                                      "flexible_config",
-                                                      "target",
-                                                      "type"};
+auto const kExpectedFields = std::unordered_set<std::string>{"config_doc",
+                                                             "doc",
+                                                             "fixed_config",
+                                                             "flexible_config",
+                                                             "target",
+                                                             "type"};
 
 void FinalizeExport(
     const std::vector<AnalysedTargetPtr const*>& exported,
@@ -60,7 +60,7 @@ void ExportRule(
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "export target", logger);
-    desc->ExpectFields(expectedFields);
+    desc->ExpectFields(kExpectedFields);
     auto exported_target_name = desc->ReadExpression("target");
     if (not exported_target_name) {
         return;

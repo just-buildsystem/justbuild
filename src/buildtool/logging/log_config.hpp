@@ -10,33 +10,44 @@
 /// \brief Global static logging configuration.
 /// The entire class is thread-safe.
 class LogConfig {
+    struct ConfigData {
+        std::mutex mutex{};
+        LogLevel log_limit{LogLevel::Info};
+        std::vector<ILogSink::Ptr> sinks{};
+        std::vector<LogSinkFactory> factories{};
+    };
+
   public:
     /// \brief Set the log limit.
-    static void SetLogLimit(LogLevel level) noexcept { log_limit_ = level; }
+    static void SetLogLimit(LogLevel level) noexcept {
+        Data().log_limit = level;
+    }
 
     /// \brief Replace all configured sinks.
     /// NOTE: Reinitializes all internal factories.
     static void SetSinks(std::vector<LogSinkFactory>&& factories) noexcept {
-        std::lock_guard lock{mutex_};
-        sinks_.clear();
-        sinks_.reserve(factories.size());
+        auto& data = Data();
+        std::lock_guard lock{data.mutex};
+        data.sinks.clear();
+        data.sinks.reserve(factories.size());
         std::transform(factories.cbegin(),
                        factories.cend(),
-                       std::back_inserter(sinks_),
+                       std::back_inserter(data.sinks),
                        [](auto& f) { return f(); });
-        factories_ = std::move(factories);
+        data.factories = std::move(factories);
     }
 
     /// \brief Add new a new sink.
     static void AddSink(LogSinkFactory&& factory) noexcept {
-        std::lock_guard lock{mutex_};
-        sinks_.push_back(factory());
-        factories_.push_back(std::move(factory));
+        auto& data = Data();
+        std::lock_guard lock{data.mutex};
+        data.sinks.push_back(factory());
+        data.factories.push_back(std::move(factory));
     }
 
     /// \brief Get the currently configured log limit.
     [[nodiscard]] static auto LogLimit() noexcept -> LogLevel {
-        return log_limit_;
+        return Data().log_limit;
     }
 
     /// \brief Get sink instances for all configured sink factories.
@@ -45,8 +56,9 @@ class LogConfig {
     // NOLINTNEXTLINE(readability-const-return-type)
     [[nodiscard]] static auto Sinks() noexcept
         -> std::vector<ILogSink::Ptr> const {
-        std::lock_guard lock{mutex_};
-        return sinks_;
+        auto& data = Data();
+        std::lock_guard lock{data.mutex};
+        return data.sinks;
     }
 
     /// \brief Get all configured sink factories.
@@ -55,15 +67,16 @@ class LogConfig {
     // NOLINTNEXTLINE(readability-const-return-type)
     [[nodiscard]] static auto SinkFactories() noexcept
         -> std::vector<LogSinkFactory> const {
-        std::lock_guard lock{mutex_};
-        return factories_;
+        auto& data = Data();
+        std::lock_guard lock{data.mutex};
+        return data.factories;
     }
 
   private:
-    static inline std::mutex mutex_{};
-    static inline LogLevel log_limit_{LogLevel::Info};
-    static inline std::vector<ILogSink::Ptr> sinks_{};
-    static inline std::vector<LogSinkFactory> factories_{};
+    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
+        static ConfigData instance{};
+        return instance;
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_CONFIG_HPP

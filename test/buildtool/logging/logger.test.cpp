@@ -9,25 +9,32 @@
 
 // Stores prints from test sink instances
 class TestPrints {
+    struct PrintData {
+        std::atomic<int> counter{};
+        std::unordered_map<int, std::vector<std::string>> prints{};
+    };
+
   public:
     static void Print(int sink_id, std::string const& print) noexcept {
-        prints_[sink_id].push_back(print);
+        Data().prints[sink_id].push_back(print);
     }
     [[nodiscard]] static auto Read(int sink_id) noexcept
         -> std::vector<std::string> {
-        return prints_[sink_id];
+        return Data().prints[sink_id];
     }
 
     static void Clear() noexcept {
-        prints_.clear();
-        counter_ = 0;
+        Data().prints.clear();
+        Data().counter = 0;
     }
 
-    static auto GetId() noexcept -> int { return counter_++; }
+    static auto GetId() noexcept -> int { return Data().counter++; }
 
   private:
-    static inline std::atomic<int> counter_{};
-    static inline std::unordered_map<int, std::vector<std::string>> prints_{};
+    [[nodiscard]] static auto Data() noexcept -> PrintData& {
+        static PrintData instance{};
+        return instance;
+    }
 };
 
 // Test sink, prints to TestPrints depending on its own instance id.

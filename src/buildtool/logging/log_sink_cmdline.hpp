@@ -29,6 +29,7 @@ class LogSinkCmdLine final : public ILogSink {
     void Emit(Logger const* logger,
               LogLevel level,
               std::string const& msg) const noexcept final {
+        static std::mutex mutex{};
         auto prefix = LogLevelToString(level);
 
         if (logger != nullptr) {
@@ -45,7 +46,7 @@ class LogSinkCmdLine final : public ILogSink {
         }
 
         {
-            std::lock_guard lock{mutex_};
+            std::lock_guard lock{mutex};
             if (msg_on_continuation) {
                 fmt::print(stderr, "{}\n", prefix);
                 prefix = cont_prefix;
@@ -62,7 +63,6 @@ class LogSinkCmdLine final : public ILogSink {
 
   private:
     bool colored_{};
-    static inline std::mutex mutex_{};
 
     [[nodiscard]] auto FormatPrefix(LogLevel level,
                                     std::string const& prefix) const noexcept

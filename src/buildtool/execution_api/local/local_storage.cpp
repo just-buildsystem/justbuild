@@ -23,7 +23,8 @@ namespace {
     gsl::not_null<FILE*> const& stream) noexcept -> bool {
     if (auto dir = ReadDirectory(storage, tree_digest)) {
         if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
-            std::fwrite(data->data(), 1, data->size(), stream);
+            auto const& str = *data;
+            std::fwrite(str.data(), 1, str.size(), stream);
             return true;
         }
     }
@@ -71,6 +72,7 @@ auto LocalStorage::ReadTreeInfos(
     return std::nullopt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto LocalStorage::ReadObjectInfosRecursively(
     BazelMsgFactory::InfoStoreFunc const& store_info,
     std::filesystem::path const& parent,
@@ -79,19 +81,22 @@ auto LocalStorage::ReadObjectInfosRecursively(
     if (tree_map_) {
         auto const* tree = tree_map_->GetTree(digest);
         if (tree != nullptr) {
-            for (auto const& [path, info] : *tree) {
-                try {
-                    if (IsTreeObject(info->type)
-                            ? not ReadObjectInfosRecursively(
-                                  store_info, parent / path, info->digest)
-                            : not store_info(parent / path, *info)) {
+            return std::all_of(
+                tree->begin(),
+                tree->end(),
+                // NOLINTNEXTLINE(misc-no-recursion)
+                [this, &store_info, &parent](auto const& entry) {
+                    try {
+                        auto const& [path, info] = entry;
+                        return IsTreeObject(info->type)
+                                   ? ReadObjectInfosRecursively(store_info,
+                                                                parent / path,
+                                                                info->digest)
+                                   : store_info(parent / path, *info);
+                    } catch (...) {  // satisfy clang-tidy, store_info() could
                         return false;
                     }
-                } catch (...) {  // satisfy clang-tidy, store_info() could throw
-                    return false;
-                }
-            }
-            return true;
+                });
         }
         Logger::Log(
             LogLevel::Debug, "tree {} not found in tree map", digest.hash());
