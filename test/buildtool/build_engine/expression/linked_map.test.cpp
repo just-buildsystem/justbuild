@@ -89,7 +89,7 @@ class CopyCounter {
         }
         return *this;
     }
-    auto operator=(CopyCounter &&) -> CopyCounter& = default;
+    auto operator=(CopyCounter&&) -> CopyCounter& = default;
     [[nodiscard]] auto Count() const -> std::size_t { return *count_; }
 
   private:

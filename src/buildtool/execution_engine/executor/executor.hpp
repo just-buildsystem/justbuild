@@ -325,10 +325,10 @@ class ExecutorImpl {
         if (has_err or has_out) {
             logger.Emit(LogLevel::Info, [&] {
                 using namespace std::string_literals;
-                auto message =
-                    (has_err and has_out ? "Stdout and stderr"s
-                                         : has_out ? "Stdout"s : "Stderr"s) +
-                    " of command: ";
+                auto message = (has_err and has_out ? "Stdout and stderr"s
+                                : has_out           ? "Stdout"s
+                                                    : "Stderr"s) +
+                               " of command: ";
                 message += nlohmann::json(command).dump();
                 if (response->HasStdOut()) {
                     message += "\n" + response->StdOut();

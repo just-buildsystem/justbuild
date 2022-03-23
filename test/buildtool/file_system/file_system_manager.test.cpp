@@ -16,7 +16,7 @@ class CopyFileFixture {
     CopyFileFixture(CopyFileFixture&&) = delete;
     ~CopyFileFixture() noexcept { CHECK(std::filesystem::remove(to_)); }
     auto operator=(CopyFileFixture const&) -> CopyFileFixture& = delete;
-    auto operator=(CopyFileFixture &&) -> CopyFileFixture& = delete;
+    auto operator=(CopyFileFixture&&) -> CopyFileFixture& = delete;
 
     std::filesystem::path const from_{
         "test/buildtool/file_system/data/example_file"};
@@ -32,7 +32,7 @@ class WriteFileFixture {
     WriteFileFixture(WriteFileFixture&&) = delete;
     ~WriteFileFixture() noexcept { CHECK(std::filesystem::remove(file_path_)); }
     auto operator=(WriteFileFixture const&) -> WriteFileFixture& = delete;
-    auto operator=(WriteFileFixture &&) -> WriteFileFixture& = delete;
+    auto operator=(WriteFileFixture&&) -> WriteFileFixture& = delete;
 
     std::filesystem::path const relative_path_parent_{
         GENERATE(as<std::filesystem::path>{},

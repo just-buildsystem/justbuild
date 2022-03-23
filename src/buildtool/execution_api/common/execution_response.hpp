@@ -23,7 +23,7 @@ class IExecutionResponse {
     IExecutionResponse(IExecutionResponse const&) = delete;
     IExecutionResponse(IExecutionResponse&&) = delete;
     auto operator=(IExecutionResponse const&) -> IExecutionResponse& = delete;
-    auto operator=(IExecutionResponse &&) -> IExecutionResponse& = delete;
+    auto operator=(IExecutionResponse&&) -> IExecutionResponse& = delete;
     virtual ~IExecutionResponse() = default;
 
     [[nodiscard]] virtual auto Status() const noexcept -> StatusCode = 0;

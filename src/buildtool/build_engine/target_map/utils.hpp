@@ -35,7 +35,7 @@ auto obtainTarget(const SubExprEvaluator&,
 
 auto keys_expr(const ExpressionPtr& map) -> ExpressionPtr;
 
-auto tree_conflict(const ExpressionPtr & /* map */)
+auto tree_conflict(const ExpressionPtr& /* map */)
     -> std::optional<std::string>;
 
 auto getTainted(std::set<std::string>* tainted,

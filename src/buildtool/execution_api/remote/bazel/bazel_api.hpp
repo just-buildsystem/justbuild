@@ -26,7 +26,7 @@ class BazelApi final : public IExecutionApi {
     BazelApi(BazelApi const&) = delete;
     BazelApi(BazelApi&& other) noexcept;
     auto operator=(BazelApi const&) -> BazelApi& = delete;
-    auto operator=(BazelApi &&) -> BazelApi& = delete;
+    auto operator=(BazelApi&&) -> BazelApi& = delete;
     ~BazelApi() final;
 
     auto CreateAction(

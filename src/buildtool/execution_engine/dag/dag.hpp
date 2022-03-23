@@ -56,7 +56,7 @@ class DirectedAcyclicGraph {
         Node(Node const&) = delete;
         Node(Node&&) = delete;
         auto operator=(Node const&) -> Node& = delete;
-        auto operator=(Node &&) -> Node& = delete;
+        auto operator=(Node&&) -> Node& = delete;
 
         [[nodiscard]] auto NodeId() const noexcept -> Id {
             // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
@@ -127,7 +127,7 @@ class DirectedAcyclicGraph {
         NodeTraversalState(NodeTraversalState&&) = delete;
         auto operator=(NodeTraversalState const&)
             -> NodeTraversalState& = delete;
-        auto operator=(NodeTraversalState &&) -> NodeTraversalState& = delete;
+        auto operator=(NodeTraversalState&&) -> NodeTraversalState& = delete;
         ~NodeTraversalState() noexcept = default;
 
         /// \brief Sets traversal state as discovered
@@ -215,7 +215,7 @@ class DependencyGraph : DirectedAcyclicGraph {
         ActionNodeTraversalState(ActionNodeTraversalState&&) = delete;
         auto operator=(ActionNodeTraversalState const&)
             -> ActionNodeTraversalState& = delete;
-        auto operator=(ActionNodeTraversalState &&)
+        auto operator=(ActionNodeTraversalState&&)
             -> ActionNodeTraversalState& = delete;
         ~ActionNodeTraversalState() noexcept = default;
 
@@ -257,7 +257,7 @@ class DependencyGraph : DirectedAcyclicGraph {
         ArtifactNodeTraversalState(ArtifactNodeTraversalState&&) = delete;
         auto operator=(ArtifactNodeTraversalState const&)
             -> ArtifactNodeTraversalState& = delete;
-        auto operator=(ArtifactNodeTraversalState &&)
+        auto operator=(ArtifactNodeTraversalState&&)
             -> ArtifactNodeTraversalState& = delete;
         ~ArtifactNodeTraversalState() noexcept = default;
 
@@ -518,7 +518,7 @@ class DependencyGraph : DirectedAcyclicGraph {
     DependencyGraph(DependencyGraph const&) = delete;
     DependencyGraph(DependencyGraph&&) = delete;
     auto operator=(DependencyGraph const&) -> DependencyGraph& = delete;
-    auto operator=(DependencyGraph &&) -> DependencyGraph& = delete;
+    auto operator=(DependencyGraph&&) -> DependencyGraph& = delete;
     ~DependencyGraph() noexcept = default;
 
     [[nodiscard]] auto Add(std::vector<ActionDescription> const& actions)

@@ -22,7 +22,7 @@ class LocalAC {
     LocalAC(LocalAC const&) = delete;
     LocalAC(LocalAC&&) = delete;
     auto operator=(LocalAC const&) -> LocalAC& = delete;
-    auto operator=(LocalAC &&) -> LocalAC& = delete;
+    auto operator=(LocalAC&&) -> LocalAC& = delete;
     ~LocalAC() noexcept = default;
 
     [[nodiscard]] auto StoreResult(

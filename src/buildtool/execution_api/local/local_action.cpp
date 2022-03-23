@@ -20,7 +20,7 @@ class BuildCleanupAnchor {
     BuildCleanupAnchor(BuildCleanupAnchor const&) = delete;
     BuildCleanupAnchor(BuildCleanupAnchor&&) = delete;
     auto operator=(BuildCleanupAnchor const&) -> BuildCleanupAnchor& = delete;
-    auto operator=(BuildCleanupAnchor &&) -> BuildCleanupAnchor& = delete;
+    auto operator=(BuildCleanupAnchor&&) -> BuildCleanupAnchor& = delete;
     ~BuildCleanupAnchor() {
         if (not LocalExecutionConfig::KeepBuildDir() and
             not FileSystemManager::RemoveDirectory(build_path, true)) {

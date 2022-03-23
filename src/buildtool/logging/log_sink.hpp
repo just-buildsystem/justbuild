@@ -18,7 +18,7 @@ class ILogSink {
     ILogSink(ILogSink const&) = delete;
     ILogSink(ILogSink&&) = delete;
     auto operator=(ILogSink const&) -> ILogSink& = delete;
-    auto operator=(ILogSink &&) -> ILogSink& = delete;
+    auto operator=(ILogSink&&) -> ILogSink& = delete;
     virtual ~ILogSink() noexcept = default;
 
     /// \brief Thread-safe emitting of log messages.

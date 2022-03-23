@@ -539,7 +539,7 @@ auto LookupExpr(SubExprEvaluator&& eval,
 
 auto EmptyMapExpr(SubExprEvaluator&& /*eval*/,
                   ExpressionPtr const& /*expr*/,
-                  Configuration const &
+                  Configuration const&
                   /*env*/) -> ExpressionPtr {
     return Expression::kEmptyMap;
 }

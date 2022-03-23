@@ -23,7 +23,7 @@ class LocalCAS {
     LocalCAS(LocalCAS const&) = delete;
     LocalCAS(LocalCAS&&) = delete;
     auto operator=(LocalCAS const&) -> LocalCAS& = delete;
-    auto operator=(LocalCAS &&) -> LocalCAS& = delete;
+    auto operator=(LocalCAS&&) -> LocalCAS& = delete;
     ~LocalCAS() noexcept = default;
 
     [[nodiscard]] auto StoreBlobFromBytes(std::string const& bytes)

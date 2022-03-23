@@ -33,7 +33,7 @@ class Traverser {
     Traverser(Traverser const&) = delete;
     Traverser(Traverser&&) = delete;
     auto operator=(Traverser const&) -> Traverser& = delete;
-    auto operator=(Traverser &&) -> Traverser& = delete;
+    auto operator=(Traverser&&) -> Traverser& = delete;
     ~Traverser() = default;
 
     // Traverse the whole graph

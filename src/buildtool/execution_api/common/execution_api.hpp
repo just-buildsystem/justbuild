@@ -23,7 +23,7 @@ class IExecutionApi {
     IExecutionApi(IExecutionApi const&) = delete;
     IExecutionApi(IExecutionApi&&) = default;
     auto operator=(IExecutionApi const&) -> IExecutionApi& = delete;
-    auto operator=(IExecutionApi &&) -> IExecutionApi& = default;
+    auto operator=(IExecutionApi&&) -> IExecutionApi& = default;
     virtual ~IExecutionApi() = default;
 
     /// \brief Create a new action.

@@ -215,10 +215,11 @@ auto Expression::ComputeHash() const noexcept -> std::string {
         IsResult() or IsNode() or IsName()) {
         // just hash the JSON representation, but prepend "@" for artifact,
         // "=" for result, "#" for node, and "$" for name.
-        std::string prefix{
-            IsArtifact()
-                ? "@"
-                : IsResult() ? "=" : IsNode() ? "#" : IsName() ? "$" : ""};
+        std::string prefix{IsArtifact() ? "@"
+                           : IsResult() ? "="
+                           : IsNode()   ? "#"
+                           : IsName()   ? "$"
+                                        : ""};
         hash = hash_gen_.Run(prefix + ToString()).Bytes();
     }
     else {

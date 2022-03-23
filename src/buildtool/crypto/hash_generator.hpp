@@ -82,7 +82,7 @@ class HashGenerator {
     HashGenerator(HashGenerator const&) = delete;
     HashGenerator(HashGenerator&&) = delete;
     auto operator=(HashGenerator const&) -> HashGenerator& = delete;
-    auto operator=(HashGenerator &&) -> HashGenerator& = delete;
+    auto operator=(HashGenerator&&) -> HashGenerator& = delete;
     ~HashGenerator() noexcept = default;
 
     /// \brief Run hash function on data.

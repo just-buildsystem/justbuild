@@ -31,7 +31,7 @@ class FileSystemManager {
       public:
         DirectoryAnchor(DirectoryAnchor const&) = delete;
         auto operator=(DirectoryAnchor const&) -> DirectoryAnchor& = delete;
-        auto operator=(DirectoryAnchor &&) -> DirectoryAnchor& = delete;
+        auto operator=(DirectoryAnchor&&) -> DirectoryAnchor& = delete;
         ~DirectoryAnchor() noexcept {
             if (!kRestorePath.empty()) {
                 try {

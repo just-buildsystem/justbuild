@@ -347,8 +347,9 @@ template <HasToString K, typename V>
         oss << fmt::format("Cycle detected in {}:", name) << std::endl;
         for (auto const& k : *cycle) {
             auto match = (k == cycle->back());
-            auto prefix{match ? found ? "`-- "s : ".-> "s
-                              : found ? "|   "s : "    "s};
+            auto prefix{match   ? found ? "`-- "s : ".-> "s
+                        : found ? "|   "s
+                                : "    "s};
             oss << prefix << k.ToString() << std::endl;
             found = found or match;
         }

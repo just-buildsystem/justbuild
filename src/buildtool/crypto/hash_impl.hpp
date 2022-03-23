@@ -13,7 +13,7 @@ class IHashImpl {
     IHashImpl(IHashImpl const&) = default;
     IHashImpl(IHashImpl&&) = default;
     auto operator=(IHashImpl const&) -> IHashImpl& = default;
-    auto operator=(IHashImpl &&) -> IHashImpl& = default;
+    auto operator=(IHashImpl&&) -> IHashImpl& = default;
     virtual ~IHashImpl() = default;
 
     /// \brief Feed data to the incremental hashing.

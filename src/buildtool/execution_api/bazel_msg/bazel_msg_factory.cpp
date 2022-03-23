@@ -29,7 +29,7 @@ class IBundle {
     IBundle(IBundle const&) = delete;
     IBundle(IBundle&&) = delete;
     auto operator=(IBundle const&) -> IBundle& = delete;
-    auto operator=(IBundle &&) -> IBundle& = delete;
+    auto operator=(IBundle&&) -> IBundle& = delete;
     virtual ~IBundle() noexcept = default;
 
     [[nodiscard]] virtual auto Content() const& noexcept
@@ -81,7 +81,7 @@ class SparseBundle final : public IBundle {
     SparseBundle(SparseBundle const&) = delete;
     SparseBundle(SparseBundle&&) = delete;
     auto operator=(SparseBundle const&) -> SparseBundle& = delete;
-    auto operator=(SparseBundle &&) -> SparseBundle& = delete;
+    auto operator=(SparseBundle&&) -> SparseBundle& = delete;
     ~SparseBundle() noexcept final = default;
 
   private:
@@ -130,7 +130,7 @@ class FullBundle final : public IBundle {
     FullBundle(FullBundle const&) = delete;
     FullBundle(FullBundle&&) = delete;
     auto operator=(FullBundle const&) -> FullBundle& = delete;
-    auto operator=(FullBundle &&) -> FullBundle& = delete;
+    auto operator=(FullBundle&&) -> FullBundle& = delete;
     ~FullBundle() noexcept final = default;
 
   private:

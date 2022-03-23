@@ -20,7 +20,7 @@ class TaskSystem {
     TaskSystem(TaskSystem const&) = delete;
     TaskSystem(TaskSystem&&) = delete;
     auto operator=(TaskSystem const&) -> TaskSystem& = delete;
-    auto operator=(TaskSystem &&) -> TaskSystem& = delete;
+    auto operator=(TaskSystem&&) -> TaskSystem& = delete;
 
     // Destructor calls sets to "done" all notification queues and joins the
     // threads. Note that joining the threads will wait until the Run method

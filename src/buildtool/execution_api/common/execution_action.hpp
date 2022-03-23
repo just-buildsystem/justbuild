@@ -40,7 +40,7 @@ class IExecutionAction {
     IExecutionAction(IExecutionAction const&) = delete;
     IExecutionAction(IExecutionAction&&) = delete;
     auto operator=(IExecutionAction const&) -> IExecutionAction& = delete;
-    auto operator=(IExecutionAction &&) -> IExecutionAction& = delete;
+    auto operator=(IExecutionAction&&) -> IExecutionAction& = delete;
     virtual ~IExecutionAction() = default;
 
     /// \brief Execute the action.

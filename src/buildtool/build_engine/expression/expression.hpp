@@ -25,7 +25,7 @@
 #include "src/utils/cpp/json.hpp"
 
 class Expression {
-    friend auto operator+(Expression const& /*lhs*/, Expression const & /*rhs*/)
+    friend auto operator+(Expression const& /*lhs*/, Expression const& /*rhs*/)
         -> Expression;
 
   public:
