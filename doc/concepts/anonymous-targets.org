@@ -173,7 +173,7 @@ and one with origins ["baz upper"]. The "install" target will, of
 course, not create any actions. Building sequentially ("-J 1"), we
 will get one cache hit. Even though the artifacts of "foo"/"bar"
 and "baz" are defined differently, they are extensionally equal;
-both define a file with contents "Hello World\n".
+both define a file with contents ~"Hello World\n"~.
 
 ** Anonymous targets
 
