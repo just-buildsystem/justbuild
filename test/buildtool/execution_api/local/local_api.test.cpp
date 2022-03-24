@@ -40,7 +40,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAPI: Retrieve two identical trees to path",
                  "[execution_api]") {
     TestRetrieveTwoIdenticalTreesToPath(
-        kApiFactory, {}, "local", /*is_hermetic=*/true);
+        kApiFactory, {}, "two_trees", /*is_hermetic=*/true);
+}
+
+TEST_CASE_METHOD(HermeticLocalTestFixture,
+                 "LocalAPI: Retrieve mixed blobs and trees",
+                 "[execution_api]") {
+    TestRetrieveMixedBlobsAndTrees(
+        kApiFactory, {}, "blobs_and_trees", /*is_hermetic=*/true);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,

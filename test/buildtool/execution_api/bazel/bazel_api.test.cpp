@@ -36,7 +36,12 @@ TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
 
 TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
     TestRetrieveTwoIdenticalTreesToPath(
-        kApiFactory, ReadPlatformPropertiesFromEnv(), "remote");
+        kApiFactory, ReadPlatformPropertiesFromEnv(), "two_trees");
+}
+
+TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
+    TestRetrieveMixedBlobsAndTrees(
+        kApiFactory, ReadPlatformPropertiesFromEnv(), "blobs_and_trees");
 }
 
 TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {

@@ -15,7 +15,7 @@ using ExecProps = std::map<std::string, std::string>;
     -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
     if (tmp_dir != nullptr) {
-        return tmp_dir;
+        return std::filesystem::path{tmp_dir} / test_name;
     }
     return FileSystemManager::GetCurrentDirectory() /
            "test/buildtool/execution_api" / test_name;
@@ -387,6 +387,75 @@ using ExecProps = std::map<std::string, std::string>;
         CHECK(FileSystemManager::IsFile(out_path / bar_path));
         CHECK(FileSystemManager::ReadFile(out_path / foo_path) ==
               FileSystemManager::ReadFile(out_path / bar_path));
+    }
+}
+
+[[nodiscard]] static inline auto TestRetrieveMixedBlobsAndTrees(
+    ApiFactory const& api_factory,
+    ExecProps const& props,
+    std::string const& test_name,
+    bool is_hermetic = false) {
+    auto api = api_factory();
+
+    auto foo_path = std::filesystem::path{"foo"};
+    auto bar_path = std::filesystem::path{"subdir"} / "bar";
+
+    auto cmd = fmt::format("set -e\nmkdir -p {}\ntouch {} {}",
+                           bar_path.parent_path().string(),
+                           bar_path.string(),
+                           foo_path.string());
+
+    auto action = api->CreateAction(*api->UploadTree({}),
+                                    {"/bin/sh", "-c", cmd},
+                                    {foo_path.string()},
+                                    {bar_path.parent_path().string()},
+                                    {},
+                                    props);
+
+    action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
+
+    // run execution
+    auto response = action->Execute();
+    REQUIRE(response);
+
+    // verify result
+    CHECK(response->ExitCode() == 0);
+
+    if (is_hermetic) {
+        CHECK_FALSE(response->IsCached());
+    }
+
+    auto artifacts = response->Artifacts();
+    REQUIRE_FALSE(artifacts.empty());
+
+    std::vector<std::filesystem::path> paths{};
+    std::vector<Artifact::ObjectInfo> infos{};
+
+    SECTION("retrieve via same API object") {
+        auto out_path = GetTestDir(test_name) / "out1";
+        std::for_each(artifacts.begin(),
+                      artifacts.end(),
+                      [&out_path, &paths, &infos](auto const& entry) {
+                          paths.emplace_back(out_path / entry.first);
+                          infos.emplace_back(entry.second);
+                      });
+        CHECK(api->RetrieveToPaths(infos, paths));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsFile(out_path / bar_path));
+    }
+
+    SECTION("retrieve from new API object but same endpoint") {
+        auto second_api = api_factory();
+        auto out_path = GetTestDir(test_name) / "out2";
+        std::for_each(artifacts.begin(),
+                      artifacts.end(),
+                      [&out_path, &paths, &infos](auto const& entry) {
+                          paths.emplace_back(out_path / entry.first);
+                          infos.emplace_back(entry.second);
+                      });
+        CHECK(second_api->RetrieveToPaths(infos, paths));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsFile(out_path / bar_path));
     }
 }
 
