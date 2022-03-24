@@ -3,11 +3,14 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
+#include <utility>
 
 #include "fmt/core.h"
 #include "gsl-lite/gsl-lite.hpp"
@@ -39,9 +42,22 @@ class GraphTraverser {
         std::optional<RebuildArguments> rebuild;
     };
 
+    // Type of a progress reporter. The reporter
+    // may only block in such a way that it return on a notification of the
+    // condition variable; moreover, it has to exit once the boolean is true.
+    using progress_reporter_t =
+        std::function<void(std::atomic<bool>*, std::condition_variable*)>;
+
     explicit GraphTraverser(CommandLineArguments clargs)
         : clargs_{std::move(clargs)},
-          api_{CreateExecutionApi(clargs_.endpoint)} {}
+          api_{CreateExecutionApi(clargs_.endpoint)},
+          reporter_{[](auto done, auto cv) {}} {}
+
+    explicit GraphTraverser(CommandLineArguments clargs,
+                            progress_reporter_t reporter)
+        : clargs_{std::move(clargs)},
+          api_{CreateExecutionApi(clargs_.endpoint)},
+          reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
     /// outputs specified by command line arguments
@@ -149,6 +165,7 @@ class GraphTraverser {
   private:
     CommandLineArguments const clargs_;
     gsl::not_null<IExecutionApi::Ptr> const api_;
+    progress_reporter_t reporter_;
 
     /// \brief Reads contents of graph description file as json object. In case
     /// the description is missing "blobs" or "actions" key/value pairs or they
@@ -284,8 +301,20 @@ class GraphTraverser {
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         Executor executor{
             &(*api_), clargs_.build.platform_properties, clargs_.build.timeout};
-        Traverser t{executor, g, clargs_.jobs};
-        return t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
+        bool result{};
+        std::atomic<bool> done = false;
+        std::condition_variable cv{};
+        auto observer =
+            std::thread([this, &done, &cv]() { reporter_(&done, &cv); });
+        {
+            Traverser t{executor, g, clargs_.jobs};
+            result =
+                t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
+        }
+        done = true;
+        cv.notify_all();
+        observer.join();
+        return result;
     }
 
     [[nodiscard]] auto TraverseRebuild(
