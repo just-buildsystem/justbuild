@@ -42,7 +42,7 @@ auto Expression::operator[](ExpressionPtr const& key) && -> ExpressionPtr {
 
 auto Expression::operator[](size_t pos) const& -> ExpressionPtr const& {
     if (pos < List().size()) {
-        return List().at(pos);
+        return List()[pos];
     }
     throw ExpressionTypeError{
         fmt::format("List pos '{}' is out of bounds.", pos)};
@@ -51,7 +51,7 @@ auto Expression::operator[](size_t pos) const& -> ExpressionPtr const& {
 auto Expression::operator[](size_t pos) && -> ExpressionPtr {
     auto&& list = std::move(*this).List();
     if (pos < list.size()) {
-        return list.at(pos);
+        return list[pos];
     }
     throw ExpressionTypeError{
         fmt::format("List pos '{}' is out of bounds.", pos)};
