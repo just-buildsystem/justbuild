@@ -1094,7 +1094,7 @@ void withTargetsFile(
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
-    auto desc_it = targets_file.find(key.target.name);
+    auto desc_it = targets_file.find(key.target.GetNamedTarget().name);
     if (desc_it == targets_file.end()) {
         // Not a defined taraget, treat as source target
         source_target->ConsumeAfterKeysReady(
@@ -1203,8 +1203,9 @@ void withTargetNode(
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
-    auto const& target_node = key.target.anonymous->target_node->Node();
-    auto const& rule_mapping = key.target.anonymous->rule_map->Map();
+    auto const& target_node =
+        key.target.GetAnonymousTarget().target_node->Node();
+    auto const& rule_mapping = key.target.GetAnonymousTarget().rule_map->Map();
     if (target_node.IsValue()) {
         // fixed value node, create analysed target from result
         auto const& val = target_node.GetValue();
@@ -1216,10 +1217,11 @@ void withTargetNode(
         auto const& abs = target_node.GetAbstract();
         auto rule_name = rule_mapping.Find(abs.node_type);
         if (not rule_name) {
-            (*logger)(fmt::format("Cannot resolve type of node {} via rule map "
-                                  "{}",
-                                  target_node.ToString(),
-                                  key.target.anonymous->rule_map->ToString()),
+            (*logger)(fmt::format(
+                          "Cannot resolve type of node {} via rule map "
+                          "{}",
+                          target_node.ToString(),
+                          key.target.GetAnonymousTarget().rule_map->ToString()),
                       /*fatal=*/true);
         }
         rule_map->ConsumeAfterKeysReady(
@@ -1233,7 +1235,10 @@ void withTargetNode(
              result_map,
              rn = rule_name->get()](auto values) {
                 auto data = TargetData::FromTargetNode(
-                    *values[0], abs, key.target.anonymous->rule_map, logger);
+                    *values[0],
+                    abs,
+                    key.target.GetAnonymousTarget().rule_map,
+                    logger);
                 if (not data) {
                     (*logger)(fmt::format("Failed to read data from target {} "
                                           "with rule {}",
@@ -1281,7 +1286,12 @@ auto CreateTargetMap(
     auto target_reader =
         [source_target_map, targets_file_map, rule_map, result_map](
             auto ts, auto setter, auto logger, auto subcaller, auto key) {
-            if (key.target.explicit_file_reference) {
+            if (key.target.IsAnonymousTarget()) {
+                withTargetNode(
+                    key, rule_map, ts, subcaller, setter, logger, result_map);
+            }
+            else if (key.target.GetNamedTarget().reference_t ==
+                     BuildMaps::Base::ReferenceType::kFile) {
                 // Not a defined target, treat as source target
                 source_target_map->ConsumeAfterKeysReady(
                     ts,
@@ -1296,10 +1306,6 @@ auto CreateTargetMap(
                                               msg),
                                   fatal);
                     });
-            }
-            else if (key.target.IsAnonymousTarget()) {
-                withTargetNode(
-                    key, rule_map, ts, subcaller, setter, logger, result_map);
             }
             else {
                 targets_file_map->ConsumeAfterKeysReady(

@@ -57,10 +57,10 @@ class FieldReader {
                                      AsyncMapConsumerLoggerPtr const& logger)
         -> std::optional<FieldReader> {
         if (not json.is_object()) {
-            (*logger)(
-                fmt::format(
-                    "{} definition {} is not an object.", entity_type, id.name),
-                true);
+            (*logger)(fmt::format("{} definition {} is not an object.",
+                                  entity_type,
+                                  id.GetNamedTarget().name),
+                      true);
             return std::nullopt;
         }
         return FieldReader(json, id, entity_type, logger);
@@ -72,10 +72,10 @@ class FieldReader {
                                         AsyncMapConsumerLoggerPtr const& logger)
         -> Ptr {
         if (not json.is_object()) {
-            (*logger)(
-                fmt::format(
-                    "{} definition {} is not an object.", entity_type, id.name),
-                true);
+            (*logger)(fmt::format("{} definition {} is not an object.",
+                                  entity_type,
+                                  id.GetNamedTarget().name),
+                      true);
             return nullptr;
         }
         return std::make_shared<FieldReader>(json, id, entity_type, logger);
@@ -88,7 +88,7 @@ class FieldReader {
             (*logger_)(fmt::format("Missing mandatory field {} in {} {}.",
                                    field_name,
                                    entity_type_,
-                                   id_.name),
+                                   id_.GetNamedTarget().name),
                        true);
             return ExpressionPtr{nullptr};
         }
@@ -129,7 +129,7 @@ class FieldReader {
             (*logger_)(fmt::format("Field {} in {} {} is not a list",
                                    field_name,
                                    entity_type_,
-                                   id_.name),
+                                   id_.GetNamedTarget().name),
                        true);
             return std::nullopt;
         }
@@ -147,7 +147,7 @@ class FieldReader {
             (*logger_)(fmt::format("List entry in {} of {} {} is not a string",
                                    field_name,
                                    entity_type_,
-                                   id_.name),
+                                   id_.GetNamedTarget().name),
                        true);
             return std::nullopt;
         }
@@ -163,7 +163,7 @@ class FieldReader {
             (*logger_)(fmt::format("Field {} in {} {} is not an object",
                                    field_name,
                                    entity_type_,
-                                   id_.name),
+                                   id_.GetNamedTarget().name),
                        true);
             return std::nullopt;
         }
@@ -182,7 +182,7 @@ class FieldReader {
                                            entry,
                                            field_name,
                                            entity_type_,
-                                           id_.name,
+                                           id_.GetNamedTarget().name,
                                            parse_err),
                                true);
                 });

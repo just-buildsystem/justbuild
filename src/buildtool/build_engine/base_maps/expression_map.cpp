@@ -29,11 +29,12 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
              logger,
              subcaller = std::move(subcaller),
              id](auto json_values) {
-                auto func_it = json_values[0]->find(id.name);
+                auto const& target_ = id.GetNamedTarget();
+                auto func_it = json_values[0]->find(target_.name);
                 if (func_it == json_values[0]->end()) {
                     (*logger)(fmt::format("Cannot find expression {} in {}",
-                                          id.name,
-                                          id.module),
+                                          target_.name,
+                                          target_.module),
                               true);
                     return;
                 }
@@ -79,7 +80,7 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
             },
             [logger, id](auto msg, auto fatal) {
                 (*logger)(fmt::format("While reading expression file in {}: {}",
-                                      id.module,
+                                      id.GetNamedTarget().module,
                                       msg),
                           fatal);
             });

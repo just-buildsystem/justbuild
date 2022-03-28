@@ -13,8 +13,8 @@ namespace {
 
 auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
     -> AnalysedTargetPtr {
-    auto stage =
-        ExpressionPtr{Expression::map_t{key.name, std::move(artifact)}};
+    auto stage = ExpressionPtr{
+        Expression::map_t{key.GetNamedTarget().name, std::move(artifact)}};
     return std::make_shared<AnalysedTarget>(
         TargetResult{stage, Expression::kEmptyMap, stage},
         std::vector<ActionDescription::Ptr>{},
@@ -34,43 +34,46 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
                                     auto /* unused */,
                                     auto const& key) {
         using std::filesystem::path;
-        auto name = path(key.name).lexically_normal();
+        const auto& target = key.GetNamedTarget();
+        auto name = path(target.name).lexically_normal();
         if (name.is_absolute() or *name.begin() == "..") {
             (*logger)(
                 fmt::format("Source file reference outside current module: {}",
-                            key.name),
+                            target.name),
                 true);
             return;
         }
-        auto dir = (path(key.module) / name).parent_path();
+        auto dir = (path(target.module) / name).parent_path();
         auto const* ws_root =
-            RepositoryConfig::Instance().WorkspaceRoot(key.repository);
+            RepositoryConfig::Instance().WorkspaceRoot(target.repository);
 
         auto src_file_reader = [ts, key, name, setter, logger, dir, ws_root](
                                    bool exists_in_ws_root) {
             if (ws_root != nullptr and exists_in_ws_root) {
                 if (auto desc = ws_root->ToArtifactDescription(
-                        path(key.module) / name, key.repository)) {
+                        path(key.GetNamedTarget().module) / name,
+                        key.GetNamedTarget().repository)) {
                     (*setter)(as_target(key, ExpressionPtr{std::move(*desc)}));
                     return;
                 }
             }
-            (*logger)(fmt::format("Cannot determine source file {}",
-                                  path(key.name).filename().string()),
+            (*logger)(fmt::format(
+                          "Cannot determine source file {}",
+                          path(key.GetNamedTarget().name).filename().string()),
                       true);
         };
 
         if (ws_root != nullptr and ws_root->HasFastDirectoryLookup()) {
             // by-pass directory map and directly attempt to read from ws_root
-            src_file_reader(ws_root->IsFile(path(key.module) / name));
+            src_file_reader(ws_root->IsFile(path(target.module) / name));
             return;
         }
         dirs->ConsumeAfterKeysReady(
             ts,
-            {ModuleName{key.repository, dir.string()}},
+            {ModuleName{target.repository, dir.string()}},
             [key, src_file_reader](auto values) {
-                src_file_reader(
-                    values[0]->Contains(path(key.name).filename().string()));
+                src_file_reader(values[0]->Contains(
+                    path(key.GetNamedTarget().name).filename().string()));
             },
             [logger, dir](auto msg, auto fatal) {
                 (*logger)(

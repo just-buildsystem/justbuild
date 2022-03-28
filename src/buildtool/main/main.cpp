@@ -297,7 +297,7 @@ void SetupLocalExecution(EndpointArguments const& eargs,
     if (clargs.target) {
         auto entity = Base::ParseEntityNameFromJson(
             *clargs.target,
-            Base::EntityName{main_repo, current_module, ""},
+            Base::EntityName{Base::NamedTarget{main_repo, current_module, ""}},
             [&clargs](std::string const& parse_err) {
                 Logger::Log(LogLevel::Error,
                             "Parsing target name {} failed with:\n{}.",
@@ -331,7 +331,8 @@ void SetupLocalExecution(EndpointArguments const& eargs,
         std::exit(kExitFailure);
     }
     return Target::ConfiguredTarget{
-        Base::EntityName{main_repo, current_module, json.begin().key()},
+        Base::EntityName{
+            Base::NamedTarget{main_repo, current_module, json.begin().key()}},
         std::move(config)};
 }
 
@@ -777,14 +778,16 @@ void DumpTargets(std::string const& file_path,
     auto conf_list =
         [&repo_map](Base::EntityName const& ref) -> nlohmann::json& {
         if (ref.IsAnonymousTarget()) {
+            auto const& anon = ref.GetAnonymousTarget();
             auto& anon_map = repo_map[Base::EntityName::kAnonymousMarker];
-            auto& rule_map = anon_map[ref.anonymous->rule_map.ToIdentifier()];
-            return rule_map[ref.anonymous->target_node.ToIdentifier()];
+            auto& rule_map = anon_map[anon.rule_map.ToIdentifier()];
+            return rule_map[anon.target_node.ToIdentifier()];
         }
+        auto const& named = ref.GetNamedTarget();
         auto& location_map = repo_map[Base::EntityName::kLocationMarker];
-        auto& module_map = location_map[ref.repository];
-        auto& target_map = module_map[ref.module];
-        return target_map[ref.name];
+        auto& module_map = location_map[named.repository];
+        auto& target_map = module_map[named.module];
+        return target_map[named.name];
     };
     std::for_each(
         target_ids.begin(), target_ids.end(), [&conf_list](auto const& id) {
@@ -851,10 +854,10 @@ void DumpAnonymous(std::string const& file_path,
     std::for_each(
         target_ids.begin(), target_ids.end(), [&anon_map](auto const& id) {
             if (id.target.IsAnonymousTarget()) {
-                DumpExpressionToMap(&anon_map["rule_maps"],
-                                    id.target.anonymous->rule_map);
+                auto const& anon_t = id.target.GetAnonymousTarget();
+                DumpExpressionToMap(&anon_map["rule_maps"], anon_t.rule_map);
                 DumpNodesInExpressionToMap(&anon_map["nodes"],
-                                           id.target.anonymous->target_node);
+                                           anon_t.target_node);
             }
         });
     auto const dump_string = IndentListsOnlyUntilDepth(anon_map, 2);
@@ -1016,7 +1019,7 @@ auto DescribeTarget(std::string const& main_repo,
                     std::size_t jobs,
                     AnalysisArguments const& clargs) -> int {
     auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
-    if (id.target.explicit_file_reference) {
+    if (id.target.GetNamedTarget().reference_t == Base::ReferenceType::kFile) {
         std::cout << id.ToString() << " is a source file." << std::endl;
         return kExitSuccess;
     }
@@ -1039,7 +1042,7 @@ auto DescribeTarget(std::string const& main_repo,
     if (failed) {
         return kExitFailure;
     }
-    auto desc_it = targets_file.find(id.target.name);
+    auto desc_it = targets_file.find(id.target.GetNamedTarget().name);
     if (desc_it == targets_file.end()) {
         std::cout << id.ToString() << " is implicitly a source file."
                   << std::endl;
@@ -1105,7 +1108,7 @@ auto DescribeTarget(std::string const& main_repo,
     if (failed) {
         return kExitFailure;
     }
-    auto ruledesc_it = rules_file.find(rule_name->name);
+    auto ruledesc_it = rules_file.find(rule_name->GetNamedTarget().name);
     if (ruledesc_it == rules_file.end()) {
         Logger::Log(LogLevel::Error,
                     "Rule definition of {} is missing",

@@ -33,9 +33,9 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
     -> std::optional<UserRule::anonymous_defs_t> {
     auto obj = GetOrDefault(json, "anonymous", nlohmann::json::object());
     if (not obj.is_object()) {
-        (*logger)(
-            fmt::format("Field anonymous in rule {} is not an object", id.name),
-            true);
+        (*logger)(fmt::format("Field anonymous in rule {} is not an object",
+                              id.GetNamedTarget().name),
+                  true);
         return std::nullopt;
     }
 
@@ -46,7 +46,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry {} in field anonymous in rule {} is "
                                   "not an object",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -56,7 +56,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry target for {} in field anonymous in "
                                   "rule {} is missing",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -64,7 +64,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry target for {} in field anonymous in "
                                   "rule {} is not a string",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -74,7 +74,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry provider for {} in field anonymous in "
                                   "rule {} is missing",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -82,7 +82,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry provider for {} in field anonymous in "
                                   "rule {} is not a string",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -92,7 +92,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry rule_map for {} in field anonymous in "
                                   "rule {} is missing",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -100,7 +100,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Entry rule_map for {} in field anonymous in "
                                   "rule {} is not an object",
                                   name,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -113,7 +113,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
                         fmt::format("Parsing rule name for entry {} in field "
                                     "anonymous in rule {} failed with:\n{}",
                                     name,
-                                    id.name,
+                                    id.GetNamedTarget().name,
                                     msg),
                         true);
                 });
@@ -139,9 +139,9 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
     -> std::optional<UserRule::implicit_t> {
     auto map = GetOrDefault(json, "implicit", nlohmann::json::object());
     if (not map.is_object()) {
-        (*logger)(
-            fmt::format("Field implicit in rule {} is not an object", id.name),
-            true);
+        (*logger)(fmt::format("Field implicit in rule {} is not an object",
+                              id.GetNamedTarget().name),
+                  true);
         return std::nullopt;
     }
 
@@ -152,7 +152,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
         if (not val.is_array()) {
             (*logger)(fmt::format("Entry in implicit field of rule {} is not a "
                                   "list.",
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -164,7 +164,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
                     (*logger)(fmt::format("Parsing entry {} in implicit field "
                                           "of rule {} failed with:\n{}",
                                           item.dump(),
-                                          id.name,
+                                          id.GetNamedTarget().name,
                                           parse_err),
                               true);
                 });
@@ -190,7 +190,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
     if (not map.is_object()) {
         (*logger)(
             fmt::format("Field config_transitions in rule {} is not an object",
-                        id.name),
+                        id.GetNamedTarget().name),
             true);
         return std::nullopt;
     }
@@ -204,7 +204,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             (*logger)(fmt::format("Failed to create expression for entry {} in "
                                   "config_transitions list of rule {}.",
                                   key,
-                                  id.name),
+                                  id.GetNamedTarget().name),
                       true);
             return std::nullopt;
         }
@@ -235,12 +235,14 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
             {id.ToModule()},
             [ts, expr_map, setter = std::move(setter), logger, id](
                 auto json_values) {
-                auto rule_it = json_values[0]->find(id.name);
+                const auto& target_ = id.GetNamedTarget();
+                auto rule_it = json_values[0]->find(target_.name);
                 if (rule_it == json_values[0]->end()) {
-                    (*logger)(fmt::format("Cannot find rule {} in {}",
-                                          nlohmann::json(id.name).dump(),
-                                          nlohmann::json(id.module).dump()),
-                              true);
+                    (*logger)(
+                        fmt::format("Cannot find rule {} in {}",
+                                    nlohmann::json(target_.name).dump(),
+                                    nlohmann::json(target_.module).dump()),
+                        true);
                     return;
                 }
 
@@ -352,17 +354,17 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                     [logger, id](auto msg, auto fatal) {
                         (*logger)(fmt::format("While reading expression map "
                                               "for rule {} in {}: {}",
-                                              id.name,
-                                              id.module,
+                                              id.GetNamedTarget().name,
+                                              id.GetNamedTarget().module,
                                               msg),
                                   fatal);
                     });
             },
             [logger, id](auto msg, auto fatal) {
-                (*logger)(
-                    fmt::format(
-                        "While reading rule file in {}: {}", id.module, msg),
-                    fatal);
+                (*logger)(fmt::format("While reading rule file in {}: {}",
+                                      id.GetNamedTarget().module,
+                                      msg),
+                          fatal);
             });
     };
     return UserRuleMap{user_rule_creator, jobs};
