@@ -123,7 +123,8 @@ static inline auto SetupCommonArguments(
            [clargs](auto const& limit) {
                clargs->log_limit = ToLogLevel(limit);
            },
-           fmt::format("Log limit in interval [{},{}] (Default: {}).",
+           fmt::format("Log limit (higher is more verbose) in interval [{},{}] "
+                       "(Default: {}).",
                        kFirstLogLevel,
                        kLastLogLevel,
                        kDefaultLogLevel))
