@@ -79,6 +79,9 @@ class LogSinkCmdLine final : public ILogSink {
                 case LogLevel::Info:
                     style = fg(fmt::color::lime_green);
                     break;
+                case LogLevel::Progress:
+                    style = fg(fmt::color::dark_green);
+                    break;
                 case LogLevel::Debug:
                     style = fg(fmt::color::yellow);
                     break;

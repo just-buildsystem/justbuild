@@ -46,7 +46,7 @@ cat > TARGETS <<'EOI'
 EOI
 
 
-bin/tool-under-test build -J 1 --local_build_root .tool-root -f build.log 2>&1
+bin/tool-under-test build -J 1 --local_build_root .tool-root -f build.log --log-limit 2 2>&1
 cat build.log
 echo
 grep 'Processed.* 4 actions' build.log

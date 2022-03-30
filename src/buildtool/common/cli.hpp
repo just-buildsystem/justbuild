@@ -14,7 +14,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-constexpr auto kDefaultLogLevel = LogLevel::Info;
+constexpr auto kDefaultLogLevel = LogLevel::Progress;
 constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
 
 /// \brief Arguments common to all commands.

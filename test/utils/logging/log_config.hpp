@@ -25,6 +25,7 @@ static auto ReadLogLevelFromEnv() -> LogLevel {
         case LogLevel::Error:
         case LogLevel::Warning:
         case LogLevel::Info:
+        case LogLevel::Progress:
         case LogLevel::Debug:
         case LogLevel::Trace:
             return log_level;
