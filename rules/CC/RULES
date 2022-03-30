@@ -178,12 +178,12 @@
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
     { "name":
-      ["The name of the library (without leading \"lib\" or trailing \".a\""]
+      ["The name of the library (without leading \"lib\" or trailing \".a\")."]
     , "srcs": ["The source files of the library."]
     , "hdrs": ["Any public header files of the library."]
     , "private-hdrs":
       [ "Any header files that only need to be present when compiling the"
-      , "source files, but are not needed for any consumer of the library"
+      , "source files, but are not needed for any consumer of the library."
       ]
     , "stage":
       [ "The logical location of all header and source files, as well as the"
@@ -192,7 +192,8 @@
       ]
     , "pure C":
       [ "If non-empty, compile as C sources rathter than C++ sources."
-      , "In particular, CC is used to compile rather than CXX"
+      , "In particular, CC is used to compile rather than CXX (or their"
+      , "respective defaults)."
       ]
     , "local defines":
       [ "List of defines set for source files local to this target."
@@ -201,27 +202,37 @@
     , "local cflags":
       ["List of compile flags set for source files local to this target."]
     , "link external":
-      ["Additional linker flags for linking external libraries."]
+      [ "Additional linker flags for linking external libraries (not built"
+      , "by this tool, typically system libraries)."
+      ]
     , "deps": ["Any other libraries this library depends upon."]
     , "proto":
       [ "Any [\"proto\", \"library\"] this target depends upon directly."
       , "The creation of C++ bindings for this proto library as well as of"
-      , "is dependencies will be taken care of (as anonymous targets, so no"
+      , "its dependencies will be taken care of (as anonymous targets, so no"
       , "duplicate work will be carried out, even if the same proto library"
       , "is used at various places)."
       ]
     }
   , "config_doc":
-    { "CXX": ["The name of the C++ compiler to be used."]
+    { "CXX":
+      [ "The name of the C++ compiler to be used."
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
     , "CC":
-      ["The name of the C compiler to be used (when compiling pure C code)"]
-    , "AR": ["The archive tool to used for creating the library"]
+      [ "The name of the C compiler to be used (when compiling pure C code)."
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
+    , "AR":
+      [ "The archive tool to used for creating the library"
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
     , "ENV": ["The environment for any action generated."]
     , "CXXFLAGS":
       [ "The flags for CXX to be used instead of the default ones."
       , "For libraries that should be built in a non-standard way; usually"
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
-      , "choice"
+      , "choice."
       ]
     , "CFLAGS":
       [ "The flags for CC to be used instead of the default ones."
