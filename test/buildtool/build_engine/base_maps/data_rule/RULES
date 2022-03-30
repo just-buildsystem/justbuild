@@ -84,6 +84,8 @@
   { "implicit": {"target": [["module_without_name"]]}
   , "expression": {"type": "RESULT"}
   }
+, "test_malformed_implicit_entity_name_2":
+  {"implicit": {"target": [[]]}, "expression": {"type": "RESULT"}}
 , "test_malformed_config_vars":
   {"config_vars": "not_a_list", "expression": {"type": "RESULT"}}
 , "test_malformed_config_transitions":

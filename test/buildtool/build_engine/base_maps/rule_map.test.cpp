@@ -323,6 +323,11 @@ TEST_CASE("Malformed rule description", "[rule_map]") {
                          [](auto /*values*/) {
                              CHECK(false);  // should never be called
                          }));
+        CHECK_FALSE(
+            ReadUserRule({"", ".", "test_malformed_implicit_entity_name_2"},
+                         [](auto /*values*/) {
+                             CHECK(false);  // should never be called
+                         }));
     }
 
     SECTION("Malformed config_vars") {
