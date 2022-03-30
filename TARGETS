@@ -1,4 +1,5 @@
-{ "exported-just":
+{ "": {"type": "install", "files": {"bin/just": "just"}}
+, "exported-just":
   { "type": "export"
   , "target": ["src/buildtool/main", "just"]
   , "flexible_config":
