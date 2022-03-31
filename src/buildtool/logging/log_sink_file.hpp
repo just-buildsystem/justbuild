@@ -105,7 +105,7 @@ class LogSinkFile final : public ILogSink {
             prefix = fmt::format("{} ({})", prefix, logger->Name());
         }
         prefix = fmt::format("{}:", prefix);
-        auto cont_prefix = std::string(prefix.size(), ' ');
+        const auto* cont_prefix = "  ";
 
         {
             std::lock_guard lock{FileMutexes().Get(file_path_)};
