@@ -8,6 +8,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/build_engine/base_maps", "directory_map"]
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]

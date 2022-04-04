@@ -1,0 +1,12 @@
+{ "base_progress_reporter":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["base_progress_reporter"]
+  , "hdrs": ["base_progress_reporter.hpp"]
+  , "srcs": ["base_progress_reporter.cpp"]
+  , "stage": ["src", "buildtool", "progress_reporting"]
+  , "deps":
+    [ ["src/buildtool/graph_traverser", "graph_traverser"]
+    , ["src/buildtool/common", "common"]
+    ]
+  }
+}

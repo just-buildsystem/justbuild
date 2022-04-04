@@ -20,6 +20,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
+#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #endif
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -1202,7 +1203,8 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(arguments.endpoint),
                                         std::move(arguments.build),
                                         std::move(stage_args),
-                                        std::move(rebuild_args)}};
+                                        std::move(rebuild_args)},
+                                       BaseProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             return FetchAndInstallArtifacts(traverser.ExecutionApi(),
