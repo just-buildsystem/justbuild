@@ -105,12 +105,13 @@ class FileSystemManager {
 
     [[nodiscard]] static auto CreateFileHardlink(
         std::filesystem::path const& file_path,
-        std::filesystem::path const& link_path) noexcept -> bool {
+        std::filesystem::path const& link_path,
+        LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
         try {
             std::filesystem::create_hard_link(file_path, link_path);
             return std::filesystem::is_regular_file(link_path);
         } catch (std::exception const& e) {
-            Logger::Log(LogLevel::Error,
+            Logger::Log(log_failure_at,
                         "hard linking {} to {}\n{}",
                         file_path.string(),
                         link_path.string(),
@@ -123,13 +124,14 @@ class FileSystemManager {
     requires(IsFileObject(kType))
         [[nodiscard]] static auto CreateFileHardlinkAs(
             std::filesystem::path const& file_path,
-            std::filesystem::path const& link_path) noexcept -> bool {
+            std::filesystem::path const& link_path,
+            LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
         // Set permissions first (permissions are a property of the file) so
         // that the created link has the correct permissions as soon as the link
         // creation is finished.
         return SetFilePermissions(file_path, IsExecutableObject(kType)) and
                (not kSetEpochTime or SetEpochTime(file_path)) and
-               CreateFileHardlink(file_path, link_path);
+               CreateFileHardlink(file_path, link_path, log_failure_at);
     }
 
     template <bool kSetEpochTime = false>

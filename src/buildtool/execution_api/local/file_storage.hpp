@@ -69,7 +69,9 @@ class FileStorage {
                 // directly or check its existence if it was created by now.
                 return FileSystemManager::CreateFileHardlinkAs<kType,
                                                                kSetEpochTime>(
-                           path, file_path) or
+                           path,
+                           file_path,
+                           /*log_failure_at=*/LogLevel::Debug) or
                        FileSystemManager::IsFile(file_path);
             };
             auto create_and_stage = [&]() {
