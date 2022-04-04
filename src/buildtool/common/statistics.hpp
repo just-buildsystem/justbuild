@@ -12,6 +12,7 @@ class Statistics {
 
     void Reset() noexcept {
         num_actions_queued_ = 0;
+        num_actions_executed_ = 0;
         num_actions_cached_ = 0;
         num_actions_flaky_ = 0;
         num_actions_flaky_tainted_ = 0;
@@ -19,6 +20,7 @@ class Statistics {
         num_rebuilt_actions_missing_ = 0;
     }
     void IncrementActionsQueuedCounter() noexcept { ++num_actions_queued_; }
+    void IncrementActionsExecutedCounter() noexcept { ++num_actions_executed_; }
     void IncrementActionsCachedCounter() noexcept { ++num_actions_cached_; }
     void IncrementActionsFlakyCounter() noexcept { ++num_actions_flaky_; }
     void IncrementActionsFlakyTaintedCounter() noexcept {
@@ -32,6 +34,9 @@ class Statistics {
     }
     [[nodiscard]] auto ActionsQueuedCounter() const noexcept -> int {
         return num_actions_queued_;
+    }
+    [[nodiscard]] auto ActionsExecutedCounter() const noexcept -> int {
+        return num_actions_executed_;
     }
     [[nodiscard]] auto ActionsCachedCounter() const noexcept -> int {
         return num_actions_cached_;
@@ -51,6 +56,7 @@ class Statistics {
 
   private:
     std::atomic<int> num_actions_queued_{};
+    std::atomic<int> num_actions_executed_{};
     std::atomic<int> num_actions_cached_{};
     std::atomic<int> num_actions_flaky_{};
     std::atomic<int> num_actions_flaky_tainted_{};

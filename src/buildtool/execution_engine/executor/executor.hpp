@@ -261,6 +261,9 @@ class ExecutorImpl {
             logger.Emit(LogLevel::Trace, " - served from cache");
             Statistics::Instance().IncrementActionsCachedCounter();
         }
+        else {
+            Statistics::Instance().IncrementActionsExecutedCounter();
+        }
 
         PrintInfo(logger, action->Command(), response);
         bool should_fail_outputs = false;
