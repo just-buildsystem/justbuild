@@ -22,7 +22,6 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
                                                          "field_doc",
                                                          "implicit",
                                                          "imports",
-                                                         "import",
                                                          "string_fields",
                                                          "tainted",
                                                          "target_fields"};
