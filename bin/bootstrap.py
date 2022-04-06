@@ -16,8 +16,8 @@ from pathlib import Path
 REPOS = "etc/repos.json"
 BOOTSTRAP_CC = ["clang++", "-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
 MAIN_MODULE = ""
-MAIN_TARGET = "just"
-MAIN_STAGE = "src/buildtool/main/just"
+MAIN_TARGET = ""
+MAIN_STAGE = "bin/just"
 
 # relevant directories (global variables)
 
