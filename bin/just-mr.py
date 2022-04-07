@@ -50,10 +50,10 @@ def fail(s):
     log(s)
     sys.exit(1)
 
-def run_cmd(cmd, *, env=None, cwd):
+def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd):
     result = subprocess.run(
         cmd, cwd=cwd, env=env,
-        stdout=subprocess.DEVNULL)
+        stdout=stdout, stdin=stdin)
     if result.returncode != 0:
         fail("Command %s in %s failed"
              % (cmd, cwd))
