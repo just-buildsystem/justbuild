@@ -509,8 +509,10 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
 
         // create and store file
         try {
-            if (auto digest =
-                    store_file(root / name, type == ObjectType::Executable)) {
+            const auto full_name = root / name;
+            const bool is_executable =
+                FileSystemManager::IsExecutable(full_name, true);
+            if (auto digest = store_file(full_name, is_executable)) {
                 auto file = CreateFileNode(name.string(), type, {});
                 file.set_allocated_digest(gsl::owner<bazel_re::Digest*>{
                     new bazel_re::Digest{std::move(*digest)}});

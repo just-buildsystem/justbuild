@@ -461,9 +461,9 @@ class FileSystemManager {
             for (auto const& entry : std::filesystem::directory_iterator{dir}) {
                 std::optional<ObjectType> type{};
                 if (entry.is_regular_file()) {
-                    type = Type(entry.path());
+                    type = ObjectType::File;
                 }
-                if (entry.is_directory()) {
+                else if (entry.is_directory()) {
                     type = ObjectType::Tree;
                 }
                 if (not type) {
