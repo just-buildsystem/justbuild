@@ -10,7 +10,7 @@
       , "the test result tree in the runfiles"
       ]
     , "keep":
-      [ "List of names (relativ to the test working directory) of files that"
+      [ "List of names (relative to the test working directory) of files that"
       , "the test might generate that should be kept as part of the output."
       , "This might be useful for further analysis of the test"
       ]
