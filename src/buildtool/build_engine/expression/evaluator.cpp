@@ -29,7 +29,7 @@ auto ValueIsTrue(ExpressionPtr const& val) -> bool {
         return *val != number_t{0};
     }
     if (val->IsString()) {
-        return *val != ""s and *val != "0"s and *val != "NO"s;
+        return *val != ""s;
     }
     if (val->IsList()) {
         return not val->List().empty();

@@ -418,20 +418,6 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             REQUIRE(fail1);
             REQUIRE(fail1->IsString());
             CHECK(fail1 == Expression::FromJson(R"("failure")"_json));
-
-            expr = Replace(expr, "cond", "0"s);
-            REQUIRE(expr);
-            auto fail2 = expr.Evaluate(env, fcts);
-            REQUIRE(fail2);
-            REQUIRE(fail2->IsString());
-            CHECK(fail2 == Expression::FromJson(R"("failure")"_json));
-
-            expr = Replace(expr, "cond", "NO"s);
-            REQUIRE(expr);
-            auto fail3 = expr.Evaluate(env, fcts);
-            REQUIRE(fail3);
-            REQUIRE(fail3->IsString());
-            CHECK(fail3 == Expression::FromJson(R"("failure")"_json));
         }
 
         SECTION("List condition") {
