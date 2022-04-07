@@ -72,7 +72,7 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
             ts,
             {ModuleName{target.repository, dir.string()}},
             [key, src_file_reader](auto values) {
-                src_file_reader(values[0]->Contains(
+                src_file_reader(values[0]->ContainsFile(
                     path(key.GetNamedTarget().name).filename().string()));
             },
             [logger, dir](auto msg, auto fatal) {

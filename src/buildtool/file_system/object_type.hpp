@@ -1,7 +1,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_TYPE_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_TYPE_HPP
+#include <cstdint>
 
-enum class ObjectType {
+enum class ObjectType : std::int8_t {
     File,
     Executable,
     Tree,

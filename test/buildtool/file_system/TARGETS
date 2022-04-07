@@ -37,10 +37,28 @@
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
+, "directory_entries":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["directory_entries"]
+  , "srcs": ["directory_entries.test.cpp"]
+  , "data": ["test_data"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "container_matchers"]
+    , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/file_system", "file_root"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    ["data/empty_executable", "data/example_file", "data/test_repo.bundle"]
+    [ "data/empty_executable"
+    , "data/example_file"
+    , "data/test_repo.bundle"
+    , "data/subdir/nested_file"
+    ]
   , "stage": ["test", "buildtool", "file_system"]
   }
 , "TESTS":

@@ -66,4 +66,10 @@ concept ClockHasFromTime = requires(std::time_t const t) {
     T::from_time_t(t);
 };
 
+template <typename T>
+concept StrMapConstForwardIterator = requires(T const c) {
+    { (*c).first }
+    ->same_as<std::string const>;
+};
+
 #endif  // INCLUDED_SRC_UTILS_CPP_CONCEPTS_HPP

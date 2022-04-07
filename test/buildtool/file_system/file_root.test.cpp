@@ -64,12 +64,12 @@ void TestFileRootReadEntries(FileRoot const& root,
     auto entries = root.ReadDirectory(path);
 
     CHECK_FALSE(entries.Empty());
-    CHECK(entries.Contains("foo"));
-    CHECK(entries.Contains("bar"));
+    CHECK(entries.ContainsFile("foo"));
+    CHECK(entries.ContainsFile("bar"));
     if (has_baz) {
-        CHECK(entries.Contains("baz"));
+        CHECK_FALSE(entries.ContainsFile("baz"));
     }
-    CHECK_FALSE(entries.Contains("does_not_exist"));
+    CHECK_FALSE(entries.ContainsFile("does_not_exist"));
 }
 
 void TestFileRootReadDirectory(FileRoot const& root) {

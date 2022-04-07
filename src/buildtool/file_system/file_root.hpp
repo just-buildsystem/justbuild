@@ -2,15 +2,75 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_ROOT_HPP
 
 #include <filesystem>
+#include <iterator>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/utils/cpp/concepts.hpp"
+
+/// FilteredIterator is an helper class to allow for iteration over
+/// directory-only or file-only entries stored inside the class
+/// DirectoryEntries. Internally, DirectoryEntries holds a
+/// map<string,ObjectType> or map<string, GitTree*>. While iterating, we are
+/// just interested in the name of the entry (i.e., the string).
+/// To decide which entries retain, the FilteredIterator requires a predicate.
+template <StrMapConstForwardIterator I>
+// I is a forward iterator
+// I::value_type is a std::pair<const std::string, *>
+class FilteredIterator {
+  public:
+    using value_type = std::string const;
+    using pointer = value_type*;
+    using reference = value_type&;
+    using difference_type = std::ptrdiff_t;
+    using iteratori_category = std::forward_iterator_tag;
+    using predicate_t = std::function<bool(typename I::reference)>;
+
+    FilteredIterator() noexcept = default;
+    // [first, last) is a valid sequence
+    FilteredIterator(I first, I last, predicate_t p) noexcept
+        : iterator_{std::find_if(first, last, p)},
+          end_{std::move(last)},
+          p{std::move(p)} {}
+
+    auto operator*() const noexcept -> reference { return iterator_->first; }
+
+    auto operator++() noexcept -> FilteredIterator& {
+        ++iterator_;
+        iterator_ = std::find_if(iterator_, end_, p);
+        return *this;
+    }
+
+    [[nodiscard]] auto begin() noexcept -> FilteredIterator& { return *this; }
+    [[nodiscard]] auto end() const noexcept -> FilteredIterator {
+        return FilteredIterator{end_, end_, p};
+    }
+
+    [[nodiscard]] friend auto operator==(FilteredIterator const& x,
+                                         FilteredIterator const& y) noexcept
+        -> bool {
+        return x.iterator_ == y.iterator_;
+    }
+
+    [[nodiscard]] friend auto operator!=(FilteredIterator const& x,
+                                         FilteredIterator const& y) noexcept
+        -> bool {
+        return not(x == y);
+    }
+
+  private:
+    I iterator_{};
+    const I end_{};
+    predicate_t p{};
+};
 
 class FileRoot {
     using fs_root_t = std::filesystem::path;
@@ -22,27 +82,100 @@ class FileRoot {
 
   public:
     class DirectoryEntries {
-        using names_t = std::unordered_set<std::string>;
+        friend class FileRoot;
+        using pairs_t = std::unordered_map<std::string, ObjectType>;
         using tree_t = gsl::not_null<GitTree const*>;
-        using entries_t = std::variant<std::monostate, names_t, tree_t>;
+        using entries_t = std::variant<std::monostate, tree_t, pairs_t>;
+
+        using fs_iterator_type = typename pairs_t::const_iterator;
+        using fs_iterator = FilteredIterator<fs_iterator_type>;
+
+        using git_iterator_type = GitTree::entries_t::const_iterator;
+        using git_iterator = FilteredIterator<git_iterator_type>;
+
+        /// Iterator has two FilteredIterators, one for iterating over pairs_t
+        /// and one for tree_t. Each FilteredIterator is constructed with a
+        /// proper predicate, allowing for iteration on file-only or
+        /// directory-only entries
+        class Iterator {
+          public:
+            using value_type = std::string const;
+            using pointer = value_type*;
+            using reference = value_type&;
+            using difference_type = std::ptrdiff_t;
+            using iteratori_category = std::forward_iterator_tag;
+            explicit Iterator(fs_iterator fs_it) : it_{std::move(fs_it)} {}
+            explicit Iterator(git_iterator git_it) : it_{std::move(git_it)} {}
+
+            auto operator*() const noexcept -> reference {
+                if (std::holds_alternative<fs_iterator>(it_)) {
+                    return *std::get<fs_iterator>(it_);
+                }
+                return *std::get<git_iterator>(it_);
+            }
+
+            [[nodiscard]] auto begin() noexcept -> Iterator& { return *this; }
+            [[nodiscard]] auto end() const noexcept -> Iterator {
+                if (std::holds_alternative<fs_iterator>(it_)) {
+                    return Iterator{std::get<fs_iterator>(it_).end()};
+                }
+                return Iterator{std::get<git_iterator>(it_).end()};
+            }
+            auto operator++() noexcept -> Iterator& {
+                if (std::holds_alternative<fs_iterator>(it_)) {
+                    ++(std::get<fs_iterator>(it_));
+                }
+                else {
+                    ++(std::get<git_iterator>(it_));
+                }
+                return *this;
+            }
+
+            friend auto operator==(Iterator const& x,
+                                   Iterator const& y) noexcept -> bool {
+                return x.it_ == y.it_;
+            }
+            friend auto operator!=(Iterator const& x,
+                                   Iterator const& y) noexcept -> bool {
+                return not(x == y);
+            }
+
+          private:
+            std::variant<fs_iterator, git_iterator> it_;
+        };
 
       public:
         DirectoryEntries() noexcept = default;
-        explicit DirectoryEntries(names_t names) noexcept
-            : data_{std::move(names)} {}
+
+        explicit DirectoryEntries(pairs_t pairs) noexcept
+            : data_{std::move(pairs)} {}
+
         explicit DirectoryEntries(tree_t git_tree) noexcept
             : data_{std::move(git_tree)} {}
-        [[nodiscard]] auto Contains(std::string const& name) const noexcept
+
+        [[nodiscard]] auto ContainsFile(std::string const& name) const noexcept
             -> bool {
-            if (std::holds_alternative<tree_t>(data_)) {
-                return static_cast<bool>(
-                    std::get<tree_t>(data_)->LookupEntryByName(name));
+            try {
+                if (std::holds_alternative<tree_t>(data_)) {
+                    auto const& data = std::get<tree_t>(data_);
+                    auto ptr = data->LookupEntryByName(name);
+                    if (static_cast<bool>(ptr)) {
+                        return ptr->IsBlob();
+                    }
+                    return false;
+                }
+                if (std::holds_alternative<pairs_t>(data_)) {
+                    auto const& data = std::get<pairs_t>(data_);
+                    auto it = data.find(name);
+                    return (it != data.end() and
+                            it->second == ObjectType::File);
+                }
+            } catch (...) {
             }
-            if (std::holds_alternative<names_t>(data_)) {
-                return std::get<names_t>(data_).contains(name);
-            }
+
             return false;
         }
+
         [[nodiscard]] auto Empty() const noexcept -> bool {
             if (std::holds_alternative<tree_t>(data_)) {
                 try {
@@ -52,10 +185,43 @@ class FileRoot {
                     return false;
                 }
             }
-            if (std::holds_alternative<names_t>(data_)) {
-                return std::get<names_t>(data_).empty();
+            if (std::holds_alternative<pairs_t>(data_)) {
+                return std::get<pairs_t>(data_).empty();
             }
             return true;
+        }
+
+        [[nodiscard]] auto FilesIterator() const -> Iterator {
+            if (std::holds_alternative<pairs_t>(data_)) {
+                auto const& data = std::get<pairs_t>(data_);
+                return Iterator{FilteredIterator{
+                    data.begin(), data.end(), [](auto const& x) {
+                        return x.second == ObjectType::File;
+                    }}};
+            }
+            // std::holds_alternative<tree_t>(data_) == true
+            auto const& data = std::get<tree_t>(data_);
+            return Iterator{FilteredIterator{
+                data->begin(), data->end(), [](auto const& x) noexcept -> bool {
+                    return x.second->IsBlob();
+                }}};
+        }
+
+        [[nodiscard]] auto DirectoriesIterator() const -> Iterator {
+            if (std::holds_alternative<pairs_t>(data_)) {
+                auto const& data = std::get<pairs_t>(data_);
+                return Iterator{FilteredIterator{
+                    data.begin(), data.end(), [](auto const& x) {
+                        return x.second == ObjectType::Tree;
+                    }}};
+            }
+
+            // std::holds_alternative<tree_t>(data_) == true
+            auto const& data = std::get<tree_t>(data_);
+            return Iterator{FilteredIterator{
+                data->begin(), data->end(), [](auto const& x) noexcept -> bool {
+                    return x.second->IsTree();
+                }}};
         }
 
       private:
@@ -163,14 +329,14 @@ class FileRoot {
                 }
             }
             else {
-                std::unordered_set<std::string> names{};
+                DirectoryEntries::pairs_t map{};
                 if (FileSystemManager::ReadDirectory(
                         std::get<fs_root_t>(root_) / dir_path,
-                        [&names](auto name, auto /*type*/) {
-                            names.emplace(name.string());
+                        [&map](const auto& name, auto type) {
+                            map.emplace(name.string(), type);
                             return true;
                         })) {
-                    return DirectoryEntries{std::move(names)};
+                    return DirectoryEntries{std::move(map)};
                 }
             }
         } catch (std::exception const& ex) {
