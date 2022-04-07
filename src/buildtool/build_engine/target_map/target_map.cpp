@@ -1274,6 +1274,96 @@ void withTargetNode(
     }
 }
 
+void TreeTarget(
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<TaskSystem*>& ts,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
+    const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&
+        directory_entries) {
+    const auto& target = key.target.GetNamedTarget();
+    const auto dir_name = std::filesystem::path{target.module} / target.name;
+    auto module_ = BuildMaps::Base::ModuleName{target.repository, dir_name};
+
+    directory_entries->ConsumeAfterKeysReady(
+        ts,
+        {module_},
+        [setter, subcaller, target, key, result_map, logger, dir_name](
+            auto values) {
+            // expected values.size() == 1
+            const auto& dir_entries = *values[0];
+            using BuildMaps::Target::ConfiguredTarget;
+
+            std::vector<ConfiguredTarget> v;
+
+            for (const auto& x : dir_entries.FilesIterator()) {
+                v.emplace_back(
+                    ConfiguredTarget{BuildMaps::Base::EntityName{
+                                         target.repository,
+                                         dir_name,
+                                         x,
+                                         BuildMaps::Base::ReferenceType::kFile},
+                                     Configuration{}});
+            }
+
+            for (const auto& x : dir_entries.DirectoriesIterator()) {
+                v.emplace_back(
+                    ConfiguredTarget{BuildMaps::Base::EntityName{
+                                         target.repository,
+                                         dir_name,
+                                         x,
+                                         BuildMaps::Base::ReferenceType::kTree},
+                                     Configuration{}});
+            }
+            (*subcaller)(
+                std::move(v),
+                [setter, key, result_map, name = target.name](
+                    const auto& values) mutable {
+                    std::unordered_map<std::string, ArtifactDescription>
+                        artifacts;
+
+                    artifacts.reserve(values.size());
+
+                    for (const auto& x : values) {
+                        auto val = x->get()->RunFiles();
+
+                        auto const& [input_path, artifact] =
+                            *(val->Map().begin());
+                        auto norm_path = std::filesystem::path{input_path}
+                                             .lexically_normal()
+                                             .string();
+
+                        artifacts.emplace(std::move(norm_path),
+                                          artifact->Artifact());
+                    }
+
+                    auto tree = std::make_shared<Tree>(std::move(artifacts));
+                    auto tree_id = tree->Id();
+                    auto tree_map = ExpressionPtr{Expression::map_t{
+                        name, ExpressionPtr{ArtifactDescription{tree_id}}}};
+                    auto analysis_result = std::make_shared<AnalysedTarget>(
+                        TargetResult{tree_map, {}, tree_map},
+                        std::vector<ActionDescription::Ptr>{},
+                        std::vector<std::string>{},
+                        std::vector<Tree::Ptr>{tree},
+                        std::unordered_set<std::string>{},
+                        std::set<std::string>{});
+                    analysis_result = result_map->Add(
+                        key.target, {}, std::move(analysis_result));
+                    (*setter)(std::move(analysis_result));
+                },
+                logger);
+        },
+        [logger, target = key.target](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While analysing entries of {}: {}",
+                                  target.ToString(),
+                                  msg),
+                      fatal);
+        });
+}
+
 }  // namespace
 
 namespace BuildMaps::Target {
@@ -1281,14 +1371,39 @@ auto CreateTargetMap(
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target_map,
     const gsl::not_null<BuildMaps::Base::TargetsFileMap*>& targets_file_map,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
+    const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&
+        directory_entries_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
     std::size_t jobs) -> TargetMap {
     auto target_reader =
-        [source_target_map, targets_file_map, rule_map, result_map](
+        [source_target_map,
+         targets_file_map,
+         rule_map,
+         result_map,
+         directory_entries_map](
             auto ts, auto setter, auto logger, auto subcaller, auto key) {
             if (key.target.IsAnonymousTarget()) {
                 withTargetNode(
                     key, rule_map, ts, subcaller, setter, logger, result_map);
+            }
+            else if (key.target.GetNamedTarget().reference_t ==
+                     BuildMaps::Base::ReferenceType::kTree) {
+
+                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                    [logger, target = key.target](auto const& msg, bool fatal) {
+                        (*logger)(fmt::format("While analysing {} as explicit "
+                                              "tree reference:\n{}",
+                                              target.ToString(),
+                                              msg),
+                                  fatal);
+                    });
+                TreeTarget(key,
+                           ts,
+                           subcaller,
+                           setter,
+                           wrapped_logger,
+                           result_map,
+                           directory_entries_map);
             }
             else if (key.target.GetNamedTarget().reference_t ==
                      BuildMaps::Base::ReferenceType::kFile) {

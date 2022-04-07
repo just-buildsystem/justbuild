@@ -38,7 +38,7 @@ TEST_CASE("simple targets") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -334,7 +334,7 @@ TEST_CASE("configuration deduplication") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     std::vector<AnalysedTargetPtr> result;
     bool error{false};
@@ -388,7 +388,7 @@ TEST_CASE("generator functions in string arguments") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -454,7 +454,7 @@ TEST_CASE("built-in rules") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -562,7 +562,7 @@ TEST_CASE("target reference") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -639,7 +639,7 @@ TEST_CASE("trees") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -711,7 +711,7 @@ TEST_CASE("RESULT error reporting") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -839,7 +839,7 @@ TEST_CASE("wrong arguments") {
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &result_map);
+        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};

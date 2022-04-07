@@ -14,11 +14,13 @@ namespace BuildMaps::Target {
 
 using TargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 
-auto CreateTargetMap(const gsl::not_null<BuildMaps::Base::SourceTargetMap*>&,
-                     const gsl::not_null<BuildMaps::Base::TargetsFileMap*>&,
-                     const gsl::not_null<BuildMaps::Base::UserRuleMap*>&,
-                     const gsl::not_null<ResultTargetMap*>&,
-                     std::size_t jobs = 0) -> TargetMap;
+auto CreateTargetMap(
+    const gsl::not_null<BuildMaps::Base::SourceTargetMap*>&,
+    const gsl::not_null<BuildMaps::Base::TargetsFileMap*>&,
+    const gsl::not_null<BuildMaps::Base::UserRuleMap*>&,
+    const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&,
+    const gsl::not_null<ResultTargetMap*>&,
+    std::size_t jobs = 0) -> TargetMap;
 
 auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool;
 

@@ -89,31 +89,40 @@ template <typename T>
 
 template <typename T>
 // IsList(list) == true and Size(list) >= 3
-// list[0] == kFileLocationMarker
-[[nodiscard]] inline auto ParseEntityNameFile(
+[[nodiscard]] inline auto ParseEntityNameFSReference(
+    std::string const& s0,  // list[0]
     T const& list,
     EntityName const& current,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
-        if (IsString(list[2])) {
-            const auto& name = GetString(list[2]);
-            const auto& x = current.GetNamedTarget();
-            if (IsNone(list[1])) {
-                return EntityName{
-                    x.repository, x.module, name, ReferenceType::kFile};
-            }
-            if (IsString(list[1])) {
-                const auto& middle = GetString(list[1]);
-                if (middle == "." or middle == x.module) {
-                    return EntityName{
-                        x.repository, x.module, name, ReferenceType::kFile};
+        const bool is_file = s0 == EntityName::kFileLocationMarker;
+        if (is_file or s0 == EntityName::kTreeLocationMarker) {
+            if (IsString(list[2])) {
+                const auto& name = GetString(list[2]);
+                const auto& x = current.GetNamedTarget();
+                if (IsNone(list[1])) {
+                    return EntityName{x.repository,
+                                      x.module,
+                                      name,
+                                      (is_file ? ReferenceType::kFile
+                                               : ReferenceType::kTree)};
                 }
-            }
-            if (logger) {
-                (*logger)(
-                    fmt::format("Invalid module name {} for file reference",
-                                ToString(list[1])));
+                if (IsString(list[1])) {
+                    const auto& middle = GetString(list[1]);
+                    if (middle == "." or middle == x.module) {
+                        return EntityName{x.repository,
+                                          x.module,
+                                          name,
+                                          (is_file ? ReferenceType::kFile
+                                                   : ReferenceType::kTree)};
+                    }
+                }
+                if (logger) {
+                    (*logger)(
+                        fmt::format("Invalid module name {} for file reference",
+                                    ToString(list[1])));
+                }
             }
         }
     } catch (...) {
@@ -190,9 +199,6 @@ template <typename T>
         // the first entry of the list must be a string
         if (IsString(list[0])) {
             const auto& s0 = GetString(list[0]);
-            if (s0 == EntityName::kFileLocationMarker) {
-                return ParseEntityNameFile(list, current, logger);
-            }
             if (s0 == EntityName::kRelativeLocationMarker) {
                 return ParseEntityNameRelative(list, current, logger);
             }
@@ -204,6 +210,10 @@ template <typename T>
                     "Parsing anonymous target is not "
                     "supported. Identifiers of anonymous targets should be "
                     "obtained as FIELD value of anonymous fields"));
+            }
+            else if (s0 == EntityName::kFileLocationMarker or
+                     s0 == EntityName::kTreeLocationMarker) {
+                return ParseEntityNameFSReference(s0, list, current, logger);
             }
         }
     } catch (...) {

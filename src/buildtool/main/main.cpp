@@ -619,8 +619,12 @@ struct AnalysisResult {
     auto expr_map = Base::CreateExpressionMap(&expressions_file_map, jobs);
     auto rule_map = Base::CreateRuleMap(&rule_file_map, &expr_map, jobs);
     auto source_targets = Base::CreateSourceTargetMap(&directory_entries, jobs);
-    auto target_map = Target::CreateTargetMap(
-        &source_targets, &targets_file_map, &rule_map, result_map, jobs);
+    auto target_map = Target::CreateTargetMap(&source_targets,
+                                              &targets_file_map,
+                                              &rule_map,
+                                              &directory_entries,
+                                              result_map,
+                                              jobs);
 
     auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
