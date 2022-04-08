@@ -1,5 +1,6 @@
 { "just":
   { "type": ["@", "rules", "CC", "binary"]
+  , "arguments_config": ["BUILD_STATIC_BINARY"]
   , "name": ["just"]
   , "srcs": ["main.cpp"]
   , "private-hdrs": ["main.hpp"]
@@ -18,5 +19,10 @@
     , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "main"]
+  , "link external":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
+    , "then": ["-static"]
+    }
   }
 }
