@@ -95,7 +95,8 @@ auto BazelApi::CreateAction(
         for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
             auto gpos = artifact_pos[count + pos];
             auto const& type = artifacts_info[gpos].type;
-            if (not FileSystemManager::WriteFileAs(
+            if (not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
+                                                   /*kSetWritable=*/true>(
                     blobs[pos].data, output_paths[gpos], type)) {
                 return false;
             }

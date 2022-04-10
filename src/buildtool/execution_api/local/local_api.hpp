@@ -62,7 +62,8 @@ class LocalApi final : public IExecutionApi {
                 if (not blob_path or
                     not FileSystemManager::CreateDirectory(
                         output_paths[i].parent_path()) or
-                    not FileSystemManager::CopyFileAs(
+                    not FileSystemManager::CopyFileAs</*kSetEpochTime=*/true,
+                                                      /*kSetWritable=*/true>(
                         *blob_path, output_paths[i], info.type)) {
                     return false;
                 }

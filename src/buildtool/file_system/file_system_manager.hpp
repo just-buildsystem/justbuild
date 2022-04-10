@@ -212,7 +212,9 @@ class FileSystemManager {
         return CopyFileImpl(src, dst, opt);
     }
 
-    template <ObjectType kType, bool kSetEpochTime = false>
+    template <ObjectType kType,
+              bool kSetEpochTime = false,
+              bool kSetWritable = false>
     requires(IsFileObject(kType)) [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -221,11 +223,12 @@ class FileSystemManager {
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         return CopyFile(src, dst, fd_less, opt) and
-               SetFilePermissions(dst, IsExecutableObject(kType)) and
+               SetFilePermissions<kSetWritable>(dst,
+                                                IsExecutableObject(kType)) and
                (not kSetEpochTime or SetEpochTime(dst));
     }
 
-    template <bool kSetEpochTime = false>
+    template <bool kSetEpochTime = false, bool kSetWritable = false>
     [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -236,11 +239,13 @@ class FileSystemManager {
         -> bool {
         switch (type) {
             case ObjectType::File:
-                return CopyFileAs<ObjectType::File, kSetEpochTime>(
-                    src, dst, fd_less, opt);
+                return CopyFileAs<ObjectType::File,
+                                  kSetEpochTime,
+                                  kSetWritable>(src, dst, fd_less, opt);
             case ObjectType::Executable:
-                return CopyFileAs<ObjectType::Executable, kSetEpochTime>(
-                    src, dst, fd_less, opt);
+                return CopyFileAs<ObjectType::Executable,
+                                  kSetEpochTime,
+                                  kSetWritable>(src, dst, fd_less, opt);
             case ObjectType::Tree:
                 break;
         }
@@ -522,18 +527,21 @@ class FileSystemManager {
         return WriteFileImpl(content, file);
     }
 
-    template <ObjectType kType, bool kSetEpochTime = false>
+    template <ObjectType kType,
+              bool kSetEpochTime = false,
+              bool kSetWritable = false>
     requires(IsFileObject(kType))
         [[nodiscard]] static auto WriteFileAs(std::string const& content,
                                               std::filesystem::path const& file,
                                               bool fd_less = false) noexcept
         -> bool {
         return WriteFile(content, file, fd_less) and
-               SetFilePermissions(file, IsExecutableObject(kType)) and
+               SetFilePermissions<kSetWritable>(file,
+                                                IsExecutableObject(kType)) and
                (not kSetEpochTime or SetEpochTime(file));
     }
 
-    template <bool kSetEpochTime = false>
+    template <bool kSetEpochTime = false, bool kSetWritable = false>
     [[nodiscard]] static auto WriteFileAs(std::string const& content,
                                           std::filesystem::path const& file,
                                           ObjectType output_type,
@@ -541,11 +549,13 @@ class FileSystemManager {
         -> bool {
         switch (output_type) {
             case ObjectType::File:
-                return WriteFileAs<ObjectType::File, kSetEpochTime>(
-                    content, file, fd_less);
+                return WriteFileAs<ObjectType::File,
+                                   kSetEpochTime,
+                                   kSetWritable>(content, file, fd_less);
             case ObjectType::Executable:
-                return WriteFileAs<ObjectType::Executable, kSetEpochTime>(
-                    content, file, fd_less);
+                return WriteFileAs<ObjectType::Executable,
+                                   kSetEpochTime,
+                                   kSetWritable>(content, file, fd_less);
             case ObjectType::Tree:
                 return false;
         }
@@ -677,12 +687,17 @@ class FileSystemManager {
     }
 
     /// \brief Set special permissions for files.
-    /// Set to 0444 for non-executables and set to 0555 for executables.
+    /// By default, we set to 0444 for non-executables and set to 0555 for
+    /// executables. When we install or install-cas, we add the owner write
+    /// permission to allow for, e.g., overwriting if we re-install the same
+    /// target after a recompilation
+    template <bool kSetWritable = false>
     static auto SetFilePermissions(std::filesystem::path const& path,
                                    bool is_executable) noexcept -> bool {
         try {
             using std::filesystem::perms;
-            perms p{perms::owner_read | perms::group_read | perms::others_read};
+            perms p{(kSetWritable ? perms::owner_write : perms::none) |
+                    perms::owner_read | perms::group_read | perms::others_read};
             if (is_executable) {
                 p |= perms::owner_exec | perms::group_exec | perms::others_exec;
             }

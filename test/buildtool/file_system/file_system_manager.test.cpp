@@ -53,6 +53,8 @@ namespace fs = std::filesystem;
 constexpr auto kFilePerms =
     fs::perms::owner_read | fs::perms::group_read | fs::perms::others_read;
 
+constexpr auto kInstalledPerms = fs::perms::owner_write;
+
 constexpr auto kExecPerms =
     fs::perms::owner_exec | fs::perms::group_exec | fs::perms::others_exec;
 
@@ -64,9 +66,26 @@ auto HasFilePermissions(fs::path const& path) noexcept -> bool {
     }
 }
 
+auto HasInstalledFilePermissions(fs::path const& path) noexcept -> bool {
+    try {
+        return fs::status(path).permissions() == (kFilePerms | kInstalledPerms);
+    } catch (...) {
+        return false;
+    }
+}
+
 auto HasExecutablePermissions(fs::path const& path) noexcept -> bool {
     try {
         return fs::status(path).permissions() == (kFilePerms | kExecPerms);
+    } catch (...) {
+        return false;
+    }
+}
+
+auto HasInstalledExecutablePermissions(fs::path const& path) noexcept -> bool {
+    try {
+        return fs::status(path).permissions() ==
+               (kFilePerms | kExecPerms | kInstalledPerms);
     } catch (...) {
         return false;
     }
@@ -232,6 +251,41 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
             run_test.template operator()<true>(true);
         }
     }
+    SECTION("as installed file") {
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
+            // Copy as file was successful
+            CHECK(FileSystemManager::CopyFileAs<kSetEpochTime,
+                                                /*kSetWritable=*/true>(
+                from_, to_, ObjectType::File, fd_less));
+
+            // file exists
+            CHECK(std::filesystem::exists(to_));
+            CHECK(std::filesystem::is_regular_file(to_));
+            CHECK(not FileSystemManager::IsExecutable(to_));
+
+            // Contents are equal
+            auto const content_from = FileSystemManager::ReadFile(from_);
+            CHECK(content_from.has_value());
+            auto const content_to = FileSystemManager::ReadFile(to_);
+            CHECK(content_to.has_value());
+            CHECK(content_from == content_to);
+
+            // permissions should be 0644
+            CHECK(HasInstalledFilePermissions(to_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(to_));
+            }
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd_less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd_less with epoch") {
+            run_test.template operator()<true>(true);
+        }
+    }
     SECTION("as executable") {
         auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
             // Copy as file was successful
@@ -252,6 +306,41 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
 
             // permissions should be 0555
             CHECK(HasExecutablePermissions(to_));
+            if constexpr (kSetEpochTime) {
+                CHECK(HasEpochTime(to_));
+            }
+        };
+
+        SECTION("direct") { run_test(false); }
+        SECTION("fd_less") { run_test(true); }
+        SECTION("direct with epoch") {
+            run_test.template operator()<true>(false);
+        }
+        SECTION("fd_less with epoch") {
+            run_test.template operator()<true>(true);
+        }
+    }
+    SECTION("as installed executable") {
+        auto run_test = [&]<bool kSetEpochTime = false>(bool fd_less) {
+            // Copy as file was successful
+            CHECK(FileSystemManager::CopyFileAs<kSetEpochTime,
+                                                /*kSetWritable=*/true>(
+                from_, to_, ObjectType::Executable, fd_less));
+
+            // file exists
+            CHECK(std::filesystem::exists(to_));
+            CHECK(std::filesystem::is_regular_file(to_));
+            CHECK(FileSystemManager::IsExecutable(to_));
+
+            // Contents are equal
+            auto const content_from = FileSystemManager::ReadFile(from_);
+            CHECK(content_from.has_value());
+            auto const content_to = FileSystemManager::ReadFile(to_);
+            CHECK(content_to.has_value());
+            CHECK(content_from == content_to);
+
+            // permissions should be 0755
+            CHECK(HasInstalledExecutablePermissions(to_));
             if constexpr (kSetEpochTime) {
                 CHECK(HasEpochTime(to_));
             }
