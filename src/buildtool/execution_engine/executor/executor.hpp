@@ -350,25 +350,29 @@ class ExecutorImpl {
             logger.Emit(LogLevel::Error, "response is empty");
             return;
         }
-        auto has_err = response->HasStdErr();
-        auto has_out = response->HasStdOut();
-        if (has_err or has_out) {
-            logger.Emit(LogLevel::Info, [&] {
+        auto const has_err = response->HasStdErr();
+        auto const has_out = response->HasStdOut();
+        auto build_message =
+            [has_err, has_out, &logger, &command, &response]() {
                 using namespace std::string_literals;
-                auto message = (has_err and has_out ? "Stdout and stderr"s
+                auto message = ""s;
+                if (has_err or has_out) {
+                    message += (has_err and has_out ? "Stdout and stderr"s
                                 : has_out           ? "Stdout"s
                                                     : "Stderr"s) +
                                " of command: ";
-                message += nlohmann::json(command).dump();
+                }
+                message += nlohmann::json(command).dump() + "\n";
                 if (response->HasStdOut()) {
-                    message += "\n" + response->StdOut();
+                    message += response->StdOut();
                 }
                 if (response->HasStdErr()) {
-                    message += "\n" + response->StdErr();
+                    message += response->StdErr();
                 }
                 return message;
-            });
-        }
+            };
+        logger.Emit((has_err or has_out) ? LogLevel::Info : LogLevel::Debug,
+                    std::move(build_message));
     }
 
     void static PrintError(Logger const& logger,
