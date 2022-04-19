@@ -343,27 +343,6 @@ class Expression {
     [[nodiscard]] auto ComputeHash() const noexcept -> std::string;
 };
 
-[[nodiscard]] inline auto operator+(Expression const& lhs,
-                                    Expression const& rhs) -> Expression {
-    if (lhs.data_.index() != rhs.data_.index()) {
-        throw Expression::ExpressionTypeError{
-            fmt::format("Cannot add expressions of different type: {} != {}",
-                        lhs.TypeString(),
-                        rhs.TypeString())};
-    }
-    if (not lhs.IsList()) {
-        throw Expression::ExpressionTypeError{fmt::format(
-            "Cannot add expressions of type '{}'.", lhs.TypeString())};
-    }
-    auto list = Expression::list_t{};
-    auto const& llist = lhs.List();
-    auto const& rlist = rhs.List();
-    list.reserve(llist.size() + rlist.size());
-    list.insert(list.begin(), llist.begin(), llist.end());
-    list.insert(list.end(), rlist.begin(), rlist.end());
-    return Expression{list};
-}
-
 namespace std {
 template <>
 struct hash<Expression> {

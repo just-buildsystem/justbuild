@@ -715,25 +715,6 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         REQUIRE_FALSE(dyn_result);
     }
 
-    SECTION("+ expression") {
-        auto expr = Expression::FromJson(R"(
-            { "type": "+"
-            , "$1": ["foo"]
-            , "$2": "PLACEHOLDER" })"_json);
-        REQUIRE(expr);
-
-        expr = Replace(expr, "$2", list_t{bar});
-        REQUIRE(expr);
-        auto success = expr.Evaluate(env, fcts);
-        REQUIRE(success);
-        REQUIRE(success->IsList());
-        CHECK(success == Expression::FromJson(R"(["foo", "bar"])"_json));
-
-        expr = Replace(expr, "$2", bar);
-        REQUIRE(expr);
-        CHECK_FALSE(expr.Evaluate(env, fcts));
-    }
-
     SECTION("++ expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "++"

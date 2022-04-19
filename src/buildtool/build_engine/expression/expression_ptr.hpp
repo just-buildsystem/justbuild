@@ -81,9 +81,6 @@ class ExpressionPtr {
     std::shared_ptr<Expression> ptr_;
 };
 
-[[nodiscard]] auto operator+(ExpressionPtr const& lhs, ExpressionPtr const& rhs)
-    -> ExpressionPtr;
-
 namespace std {
 template <>
 struct hash<ExpressionPtr> {

@@ -78,11 +78,6 @@ auto ExpressionPtr::Make(linked_map_t&& map) -> ExpressionPtr {
     return ExpressionPtr{std::move(map)};
 }
 
-auto operator+(ExpressionPtr const& lhs, ExpressionPtr const& rhs)
-    -> ExpressionPtr {
-    return ExpressionPtr{*lhs + *rhs};
-}
-
 auto std::hash<ExpressionPtr>::operator()(ExpressionPtr const& p) const noexcept
     -> std::size_t {
     return std::hash<Expression>{}(*p);

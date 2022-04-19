@@ -463,12 +463,6 @@ auto EqualExpr(SubExprEvaluator&& eval,
                          EvalArgument(expr, "$2", eval, env)};
 }
 
-auto AddExpr(SubExprEvaluator&& eval,
-             ExpressionPtr const& expr,
-             Configuration const& env) -> ExpressionPtr {
-    return eval(expr["$1"], env) + eval(expr["$2"], env);
-}
-
 auto ChangeEndingExpr(SubExprEvaluator&& eval,
                       ExpressionPtr const& expr,
                       Configuration const& env) -> ExpressionPtr {
@@ -799,7 +793,6 @@ auto const kBuiltInFunctions =
                           {"==", EqualExpr},
                           {"and", AndExpr},
                           {"or", OrExpr},
-                          {"+", AddExpr},
                           {"++", UnaryExpr(Flatten)},
                           {"nub_right", UnaryExpr(NubRight)},
                           {"range", UnaryExpr(Range)},
