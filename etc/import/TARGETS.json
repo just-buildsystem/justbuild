@@ -2,44 +2,6 @@
 , "json headers":
   { "type": ["@", "rules", "CC", "header directory"]
   , "stage": ["nlohmann"]
-  , "hdrs":
-    [ "adl_serializer.hpp"
-    , "byte_container_with_subtype.hpp"
-    , "detail/conversions/from_json.hpp"
-    , "detail/conversions/to_chars.hpp"
-    , "detail/conversions/to_json.hpp"
-    , "detail/exceptions.hpp"
-    , "detail/hash.hpp"
-    , "detail/input/binary_reader.hpp"
-    , "detail/input/input_adapters.hpp"
-    , "detail/input/json_sax.hpp"
-    , "detail/input/lexer.hpp"
-    , "detail/input/parser.hpp"
-    , "detail/input/position_t.hpp"
-    , "detail/iterators/internal_iterator.hpp"
-    , "detail/iterators/iteration_proxy.hpp"
-    , "detail/iterators/iterator_traits.hpp"
-    , "detail/iterators/iter_impl.hpp"
-    , "detail/iterators/json_reverse_iterator.hpp"
-    , "detail/iterators/primitive_iterator.hpp"
-    , "detail/json_pointer.hpp"
-    , "detail/json_ref.hpp"
-    , "detail/macro_scope.hpp"
-    , "detail/macro_unscope.hpp"
-    , "detail/meta/cpp_future.hpp"
-    , "detail/meta/detected.hpp"
-    , "detail/meta/is_sax.hpp"
-    , "detail/meta/type_traits.hpp"
-    , "detail/meta/void_t.hpp"
-    , "detail/output/binary_writer.hpp"
-    , "detail/output/output_adapters.hpp"
-    , "detail/output/serializer.hpp"
-    , "detail/value_t.hpp"
-    , "json_fwd.hpp"
-    , "json.hpp"
-    , "ordered_map.hpp"
-    , "thirdparty/hedley/hedley.hpp"
-    , "thirdparty/hedley/hedley_undef.hpp"
-    ]
+  , "hdrs": [["TREE", null, "."]]
   }
 }
