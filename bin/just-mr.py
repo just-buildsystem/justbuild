@@ -495,6 +495,7 @@ def main():
     config = read_config(options.repository_config)
     global ROOT
     ROOT = options.local_build_root or os.path.join(Path.home(), ".cache/just")
+    ROOT = ROOT if os.path.isabs(ROOT) else os.path.abspath(ROOT)
     global GIT_CHECKOUT_LOCATIONS
     if options.checkout_location:
         with open(options.checkout_location) as f:
