@@ -19,6 +19,7 @@
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
@@ -53,6 +54,7 @@ class ExecutorImpl {
             return std::nullopt;
         }
 
+        Progress::Instance().Start(action->Content().Id());
         Statistics::Instance().IncrementActionsQueuedCounter();
 
         logger.Emit(LogLevel::Trace, [&inputs]() {
@@ -290,6 +292,7 @@ class ExecutorImpl {
         else {
             Statistics::Instance().IncrementActionsExecutedCounter();
         }
+        Progress::Instance().Stop(action->Content().Id());
 
         PrintInfo(logger, action->Command(), response);
         bool should_fail_outputs = false;

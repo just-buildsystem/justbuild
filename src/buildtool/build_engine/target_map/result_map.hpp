@@ -18,6 +18,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Target {
@@ -106,36 +107,30 @@ class ResultTargetMap {
         result.blobs.reserve(nb);
         result.trees.reserve(nt);
 
-        std::unordered_map<
-            std::string,
-            std::vector<std::pair<ConfiguredTarget, std::size_t>>>
-            origin_map;
+        auto& origin_map = Progress::Instance().OriginMap();
+        origin_map.clear();
         origin_map.reserve(na);
-        if constexpr (kIncludeOrigins) {
-            for (const auto& target : targets_) {
+        for (const auto& target : targets_) {
+            std::for_each(target.begin(), target.end(), [&](auto const& el) {
+                auto const& actions = el.second->Actions();
+                std::size_t pos{};
                 std::for_each(
-                    target.begin(), target.end(), [&](auto const& el) {
-                        auto const& actions = el.second->Actions();
-                        std::size_t pos{};
-                        std::for_each(
-                            actions.begin(),
-                            actions.end(),
-                            [&origin_map, &pos, &el](auto const& action) {
-                                std::pair<ConfiguredTarget, std::size_t> origin{
-                                    el.first, pos++};
-                                auto id = action->Id();
-                                if (origin_map.contains(id)) {
-                                    origin_map[id].push_back(origin);
-                                }
-                                else {
-                                    origin_map[id] =
-                                        std::vector<std::pair<ConfiguredTarget,
-                                                              std::size_t>>{
-                                            origin};
-                                }
-                            });
+                    actions.begin(),
+                    actions.end(),
+                    [&origin_map, &pos, &el](auto const& action) {
+                        std::pair<ConfiguredTarget, std::size_t> origin{
+                            el.first, pos++};
+                        auto id = action->Id();
+                        if (origin_map.contains(id)) {
+                            origin_map[id].push_back(origin);
+                        }
+                        else {
+                            origin_map[id] = std::vector<
+                                std::pair<ConfiguredTarget, std::size_t>>{
+                                origin};
+                        }
                     });
-            }
+            });
             // Sort origins to get a reproducible order. We don't expect many
             // origins for a single action, so the cost of comparison is not
             // too important. Moreover, we expect most actions to have a single

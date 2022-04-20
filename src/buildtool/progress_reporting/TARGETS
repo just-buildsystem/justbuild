@@ -1,4 +1,15 @@
-{ "base_progress_reporter":
+{ "progress":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["progress"]
+  , "hdrs": ["progress.hpp"]
+  , "stage": ["src", "buildtool", "progress_reporting"]
+  , "deps":
+    [ ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "fmt", "", "fmt"]
+    ]
+  }
+, "base_progress_reporter":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["base_progress_reporter"]
   , "hdrs": ["base_progress_reporter.hpp"]
@@ -7,6 +18,7 @@
   , "deps":
     [ ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/common", "common"]
+    , "progress"
     ]
   }
 }

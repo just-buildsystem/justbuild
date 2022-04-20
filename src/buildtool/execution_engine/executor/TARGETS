@@ -10,6 +10,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]

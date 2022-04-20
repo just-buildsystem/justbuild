@@ -21,6 +21,7 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "task"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
