@@ -14,6 +14,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -112,10 +113,10 @@ class ExecutorImpl {
         // is available to the execution API
         if (object_info_opt) {
             if (not api->IsAvailable(object_info_opt->digest) and
-                not UploadGitBlob(api,
-                                  artifact->Content().Repository(),
-                                  object_info_opt->digest,
-                                  /*skip_check=*/true)) {
+                not UploadKnownArtifact(api,
+                                        artifact->Content().Repository(),
+                                        object_info_opt->digest,
+                                        /*skip_check=*/true)) {
                 Logger::Log(
                     LogLevel::Error,
                     "artifact {} should be present in CAS but is missing.",
@@ -149,25 +150,50 @@ class ExecutorImpl {
     /// \param repo         The global repository name, the artifact belongs to
     /// \param digest       The digest of the object
     /// \param skip_check   Skip check for existence before upload
+    /// \param hash         The git-sha1 hash of the object
     /// \returns true on success
     [[nodiscard]] static auto UploadGitBlob(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
         ArtifactDigest const& digest,
-        bool skip_check) noexcept -> bool {
+        bool skip_check,
+        std::string const& hash) noexcept -> bool {
         auto const& repo_config = RepositoryConfig::Instance();
         std::optional<std::string> blob{};
         if (auto const* ws_root = repo_config.WorkspaceRoot(repo)) {
             // try to obtain blob from local workspace's Git CAS, if any
-            blob = ws_root->ReadBlob(digest.hash());
+            blob = ws_root->ReadBlob(hash);
         }
         if (not blob) {
             // try to obtain blob from global Git CAS, if any
-            blob = repo_config.ReadBlobFromGitCAS(digest.hash());
+            blob = repo_config.ReadBlobFromGitCAS(hash);
         }
         return blob and
                api->Upload(BlobContainer{{BazelBlob{digest, std::move(*blob)}}},
                            skip_check);
+    }
+
+    /// \brief Lookup blob via digest in local git repositories and upload.
+    /// \param api          The endpoint used for uploading
+    /// \param repo         The global repository name, the artifact belongs to
+    /// \param digest       The digest of the object
+    /// \param skip_check   Skip check for existence before upload
+    /// \returns true on success
+    [[nodiscard]] static auto UploadKnownArtifact(
+        gsl::not_null<IExecutionApi*> const& api,
+        std::string const& repo,
+        ArtifactDigest const& digest,
+        bool skip_check) noexcept -> bool {
+        if (Compatibility::IsCompatible()) {
+            auto opt = Compatibility::GetGitEntry(digest.hash());
+            if (opt) {
+                auto const& [git_sha1_hash, comp_repo] = *opt;
+                return UploadGitBlob(
+                    api, comp_repo, digest, skip_check, git_sha1_hash);
+            }
+            return false;
+        }
+        return UploadGitBlob(api, repo, digest, skip_check, digest.hash());
     }
 
     /// \brief Lookup file via path in local workspace root and upload.

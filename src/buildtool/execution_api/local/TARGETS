@@ -3,7 +3,8 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]

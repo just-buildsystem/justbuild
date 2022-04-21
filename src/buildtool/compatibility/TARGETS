@@ -1,0 +1,8 @@
+{ "compatibility":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["compatibility"]
+  , "hdrs": ["compatibility.hpp"]
+  , "deps": [["src/buildtool/crypto", "hash_generator"]]
+  , "stage": ["src", "buildtool", "compatibility"]
+  }
+}

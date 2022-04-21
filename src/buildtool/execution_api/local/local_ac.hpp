@@ -15,10 +15,6 @@ class LocalAC {
     explicit LocalAC(gsl::not_null<LocalCAS<ObjectType::File>*> cas) noexcept
         : cas_{std::move(cas)} {};
 
-    LocalAC(gsl::not_null<LocalCAS<ObjectType::File>*> cas,
-            std::filesystem::path cache_root) noexcept
-        : cas_{std::move(cas)}, cache_root_{std::move(cache_root)} {}
-
     LocalAC(LocalAC const&) = delete;
     LocalAC(LocalAC&&) = delete;
     auto operator=(LocalAC const&) -> LocalAC& = delete;
@@ -74,10 +70,8 @@ class LocalAC {
 
     Logger logger_{"LocalAC"};
     gsl::not_null<LocalCAS<ObjectType::File>*> cas_;
-    std::filesystem::path const cache_root_{
-        LocalExecutionConfig::GetCacheDir()};
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
-        file_store_{cache_root_ / "ac"};
+        file_store_{LocalExecutionConfig::ActionCacheDir()};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_AC_HPP

@@ -188,7 +188,7 @@ def git_hash(content):
 def add_to_cas(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
-    cas_root = os.path.join(ROOT,"casf")
+    cas_root = os.path.join(ROOT,"protocol-dependent/git-sha1/casf")
     basename = git_hash(data)
     target = os.path.join(cas_root, basename)
     tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
@@ -205,7 +205,7 @@ def add_to_cas(data):
     return target
 
 def cas_path(h):
-    return os.path.join(ROOT, "casf", h)
+    return os.path.join(ROOT, "protocol-dependent/git-sha1/casf", h)
 
 def is_in_cas(h):
     return os.path.exists(cas_path(h))

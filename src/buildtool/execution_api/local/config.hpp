@@ -14,20 +14,25 @@
 #include <string>
 #include <vector>
 
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// \brief Store global build system configuration.
 class LocalExecutionConfig {
     struct ConfigData {
-        // User root directory (Unix default: /home/${USER})
-        std::filesystem::path user_root{};
 
-        // Build root directory (default: empty)
+        // Build root directory. All the cache dirs are subdirs of build_root.
+        // By default, build_root is set to $HOME/.cache/just.
+        // If the user uses --local_build_root PATH,
+        // then build_root will be set to PATH.
         std::filesystem::path build_root{};
 
-        // Disk cache directory (default: empty)
-        std::filesystem::path disk_cache{};
+        // cache_root points to one of the following
+        // build_root/protocol-dependent/{git-sha1,compatible-sha256}
+        // git-sha1 is the current default. If the user passes the flag
+        // --compatible, then the subfolder compatible_sha256 is used
+        std::filesystem::path cache_root{};
 
         // Launcher to be prepended to action's command before executed.
         // Default: ["env", "--"]
@@ -36,6 +41,13 @@ class LocalExecutionConfig {
         // Persistent build directory option
         bool keep_build_dir{false};
     };
+
+    // different folder for different caching protocol
+    [[nodiscard]] static auto UpdatePathForCompatibility(
+        std::filesystem::path const& dir) -> std::filesystem::path {
+        return dir / (Compatibility::IsCompatible() ? "compatible-sha256"
+                                                    : "git-sha1");
+    }
 
   public:
     [[nodiscard]] static auto SetBuildRoot(
@@ -47,18 +59,8 @@ class LocalExecutionConfig {
             return false;
         }
         Data().build_root = dir;
-        return true;
-    }
-
-    [[nodiscard]] static auto SetDiskCache(
-        std::filesystem::path const& dir) noexcept -> bool {
-        if (FileSystemManager::IsRelativePath(dir)) {
-            Logger::Log(LogLevel::Error,
-                        "Disk cache must be absolute path but got '{}'.",
-                        dir.string());
-            return false;
-        }
-        Data().disk_cache = dir;
+        Data().cache_root = "";  // in case we re-set build_root, we are sure
+                                 // that the cache path is recomputed as well
         return true;
     }
 
@@ -83,29 +85,42 @@ class LocalExecutionConfig {
 
     /// \brief User directory.
     [[nodiscard]] static auto GetUserDir() noexcept -> std::filesystem::path {
-        auto& user_root = Data().user_root;
-        if (user_root.empty()) {
-            user_root = GetUserRoot() / ".cache" / "just";
-        }
-        return user_root;
+        return GetUserHome() / ".cache" / "just";
     }
 
     /// \brief Build directory, defaults to user directory if not set
-    [[nodiscard]] static auto GetBuildDir() noexcept -> std::filesystem::path {
+    [[nodiscard]] static auto BuildRoot() noexcept -> std::filesystem::path {
         auto& build_root = Data().build_root;
         if (build_root.empty()) {
-            return GetUserDir();
+            build_root = GetUserDir();
         }
         return build_root;
     }
 
-    /// \brief Cache directory, defaults to user directory if not set
-    [[nodiscard]] static auto GetCacheDir() noexcept -> std::filesystem::path {
-        auto& disk_cache = Data().disk_cache;
-        if (disk_cache.empty()) {
-            return GetBuildDir();
+    [[nodiscard]] static auto CacheRoot() noexcept -> std::filesystem::path {
+        auto& cache_root = Data().cache_root;
+        if (cache_root.empty()) {
+            cache_root =
+                UpdatePathForCompatibility(BuildRoot() / "protocol-dependent");
         }
-        return disk_cache;
+        return cache_root;
+    }
+
+    // CAS directory based on the type of the file.
+    // Specialized just for regular File or Exectuable
+    template <ObjectType kType,
+              typename = std::enable_if<kType == ObjectType::File or
+                                        kType == ObjectType::Executable>>
+    [[nodiscard]] static inline auto CASDir() noexcept
+        -> std::filesystem::path {
+        static const std::string kSuffix = std::string{"cas"} + ToChar(kType);
+        return CacheRoot() / kSuffix;
+    }
+
+    /// \brief Action cache directory
+    [[nodiscard]] static auto ActionCacheDir() noexcept
+        -> std::filesystem::path {
+        return CacheRoot() / "ac";
     }
 
     [[nodiscard]] static auto GetLauncher() noexcept
@@ -124,7 +139,7 @@ class LocalExecutionConfig {
     }
 
     /// \brief Determine user root directory
-    [[nodiscard]] static auto GetUserRoot() noexcept -> std::filesystem::path {
+    [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
         char const* root{nullptr};
 
 #ifdef __unix__
@@ -135,7 +150,8 @@ class LocalExecutionConfig {
 #endif
 
         if (root == nullptr) {
-            Logger::Log(LogLevel::Error, "Cannot determine user directory.");
+            Logger::Log(LogLevel::Error,
+                        "Cannot determine user home directory.");
             std::exit(EXIT_FAILURE);
         }
 

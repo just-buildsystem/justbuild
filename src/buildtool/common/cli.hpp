@@ -12,6 +12,7 @@
 #include "fmt/core.h"
 #include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 constexpr auto kDefaultLogLevel = LogLevel::Progress;
@@ -374,4 +375,13 @@ static inline auto SetupGraphArguments(
                     "missing KNOWN artifacts.");
 }
 
+static inline auto SetupCompatibilityArguments(
+    gsl::not_null<CLI::App*> const& app) {
+    app->add_flag_function(
+        "--compatible",
+        [](auto /*unused*/) { Compatibility::SetCompatible(); },
+        "At increased computational effort, be compatible with the original "
+        "remote build execution protocol. As the change affects identifiers, "
+        "the flag must be used consistently for all related invocations.");
+}
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP

@@ -62,6 +62,7 @@
     [ "git_tree"
     , "file_system_manager"
     , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "file_system"]

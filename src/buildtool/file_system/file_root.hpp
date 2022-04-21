@@ -12,6 +12,7 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "src/utils/cpp/concepts.hpp"
@@ -387,6 +388,13 @@ class FileRoot {
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
                 if (entry->IsBlob()) {
+                    if (Compatibility::IsCompatible()) {
+                        auto compatible_hash = Compatibility::RegisterGitEntry(
+                            entry->Hash(), *entry->Blob(), repository);
+                        return ArtifactDescription{
+                            ArtifactDigest{compatible_hash, *entry->Size()},
+                            entry->Type()};
+                    }
                     return ArtifactDescription{
                         ArtifactDigest{entry->Hash(), *entry->Size()},
                         entry->Type(),

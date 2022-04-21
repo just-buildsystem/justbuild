@@ -18,6 +18,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
@@ -84,6 +85,7 @@ auto SetupBuildCommandArguments(
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupBuildArguments(app, &clargs->build);
+    SetupCompatibilityArguments(app);
 }
 
 /// \brief Setup arguments for sub command "just install".
@@ -106,6 +108,7 @@ auto SetupRebuildCommandArguments(
 auto SetupInstallCasCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
+    SetupCompatibilityArguments(app);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupFetchArguments(app, &clargs->fetch);
 }
@@ -119,6 +122,7 @@ auto SetupTraverseCommandArguments(
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis
     SetupBuildArguments(app, &clargs->build);
     SetupStageArguments(app, &clargs->stage);
+    SetupCompatibilityArguments(app);
 }
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
@@ -198,13 +202,22 @@ void SetupLocalExecution(EndpointArguments const& eargs,
     using LocalConfig = LocalExecutionConfig;
     if (not LocalConfig::SetKeepBuildDir(bargs.persistent_build_dir) or
         not(not eargs.local_root or
-            (LocalConfig::SetBuildRoot(*eargs.local_root) and
-             LocalConfig::SetDiskCache(*eargs.local_root))) or
+            (LocalConfig::SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
         Logger::Log(LogLevel::Error, "failed to configure local execution.");
     }
 }
+
+void SetupHashGenerator() {
+    if (Compatibility::IsCompatible()) {
+        HashGenerator::SetHashGenerator(HashGenerator::HashType::SHA256);
+    }
+    else {
+        HashGenerator::SetHashGenerator(HashGenerator::HashType::GIT);
+    }
+}
+
 #endif
 
 // returns path relative to `root`.
@@ -1185,6 +1198,7 @@ auto main(int argc, char* argv[]) -> int {
 
         SetupLogging(arguments.common);
 #ifndef BOOTSTRAP_BUILD_TOOL
+        SetupHashGenerator();
         SetupLocalExecution(arguments.endpoint, arguments.build);
 #endif
 
@@ -1224,6 +1238,14 @@ auto main(int argc, char* argv[]) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL
         if (arguments.cmd == SubCommand::kTraverse) {
             if (arguments.graph.git_cas) {
+                if (Compatibility::IsCompatible()) {
+                    Logger::Log(LogLevel::Error,
+                                "Command line options {} and {} cannot be used "
+                                "together.",
+                                "--git_cas",
+                                "--compatible");
+                    std::exit(EXIT_FAILURE);
+                }
                 if (not RepositoryConfig::Instance().SetGitCAS(
                         *arguments.graph.git_cas)) {
                     Logger::Log(LogLevel::Warning,

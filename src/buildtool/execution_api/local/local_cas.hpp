@@ -17,9 +17,6 @@ class LocalCAS {
   public:
     LocalCAS() noexcept = default;
 
-    explicit LocalCAS(std::filesystem::path cache_root) noexcept
-        : cache_root_{std::move(cache_root)} {}
-
     LocalCAS(LocalCAS const&) = delete;
     LocalCAS(LocalCAS&&) = delete;
     auto operator=(LocalCAS const&) -> LocalCAS& = delete;
@@ -48,12 +45,10 @@ class LocalCAS {
     }
 
   private:
-    static constexpr char kSuffix = ToChar(kType);
-    Logger logger_{std::string{"LocalCAS"} + kSuffix};
-    std::filesystem::path const cache_root_{
-        LocalExecutionConfig::GetCacheDir()};
+    Logger logger_{std::string{"LocalCAS"} + ToChar(kType)};
+
     FileStorage<kType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
-        file_store_{cache_root_ / (std::string{"cas"} + kSuffix)};
+        file_store_{LocalExecutionConfig::CASDir<kType>()};
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {

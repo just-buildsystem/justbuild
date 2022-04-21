@@ -16,14 +16,6 @@ class LocalStorage {
         std::shared_ptr<LocalTreeMap> tree_map = nullptr) noexcept
         : tree_map_{std::move(tree_map)} {}
 
-    explicit LocalStorage(
-        std::filesystem::path const& cache_root,
-        std::shared_ptr<LocalTreeMap> tree_map = nullptr) noexcept
-        : cas_file_{cache_root},
-          cas_exec_{cache_root},
-          ac_{&cas_file_, cache_root},
-          tree_map_{std::move(tree_map)} {}
-
     /// \brief Store blob from file path with x-bit determined from file system.
     template <bool kOwner = false>
     [[nodiscard]] auto StoreBlob(std::filesystem::path const& file_path)

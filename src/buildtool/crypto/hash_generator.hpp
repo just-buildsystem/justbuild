@@ -20,6 +20,19 @@ class HashGenerator {
     /// \brief Types of hash implementations supported by generator.
     enum class HashType { MD5, SHA1, SHA256, GIT };
 
+    // this function is called for the first time from the main to initialize
+    // the HashGenerator according to the command line flag --compatible
+    // note that, once the HashGenerator is initialized, it cannot be changed
+    [[maybe_unused]] static auto SetHashGenerator(
+        std::optional<HashType> const x = std::nullopt) -> HashGenerator& {
+        static HashGenerator gen{x.value_or(HashType::GIT)};
+        return gen;
+    }
+    [[nodiscard]] static auto Instance() -> HashGenerator& {
+        return SetHashGenerator();  // return the already initialized
+                                    // HashGenerator
+    }
+
     /// \brief The universal hash digest.
     /// The type of hash and the digest length depends on the hash
     /// implementation used to generated this digest.
@@ -123,8 +136,7 @@ class HashGenerator {
 /// \brief Hash function used for the entire buildtool
 [[maybe_unused]] [[nodiscard]] static inline auto ComputeHash(
     std::string const& data) noexcept -> std::string {
-    static HashGenerator gen{HashGenerator::HashType::GIT};
-    return gen.Run(data).HexString();
+    return HashGenerator::Instance().Run(data).HexString();
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_GENERATOR_HPP

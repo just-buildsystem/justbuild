@@ -7,6 +7,7 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
