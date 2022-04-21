@@ -200,7 +200,9 @@ def add_to_cas(data):
     with open(tempname, "wb") as f:
         f.write(data)
         f.flush()
+        os.chmod(f.fileno(), 0o444)
         os.fsync(f.fileno())
+    os.utime(tempname, (0,0))
     os.rename(tempname, target)
     return target
 
