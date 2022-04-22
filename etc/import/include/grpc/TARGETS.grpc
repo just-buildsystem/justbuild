@@ -1,8 +1,6 @@
 { "gpr_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "support/alloc.h"
     , "support/atm.h"
     , "support/atm_gcc_atomic.h"
@@ -22,12 +20,11 @@
     , "support/thd_id.h"
     , "support/time.h"
     ]
+  , "stage": ["grpc"]
   }
 , "grpc_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "byte_buffer.h"
     , "byte_buffer_reader.h"
     , "compression.h"
@@ -41,12 +38,11 @@
     , "load_reporting.h"
     , "support/workaround_list.h"
     ]
+  , "stage": ["grpc"]
   }
 , "gpr_codegen_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "impl/codegen/atm.h"
     , "impl/codegen/atm_gcc_atomic.h"
     , "impl/codegen/atm_gcc_sync.h"
@@ -63,14 +59,13 @@
     , "impl/codegen/sync_posix.h"
     , "impl/codegen/sync_windows.h"
     ]
+  , "stage": ["grpc"]
   }
 , "gpr_codegen":
   {"type": ["@", "rules", "CC", "library"], "hdrs": ["gpr_codegen_headers"]}
 , "grpc_codegen_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "impl/codegen/byte_buffer.h"
     , "impl/codegen/byte_buffer_reader.h"
     , "impl/codegen/compression_types.h"
@@ -80,21 +75,20 @@
     , "impl/codegen/status.h"
     , "impl/codegen/slice.h"
     ]
+  , "stage": ["grpc"]
   }
 , "grpc_codegen":
   { "type": ["@", "rules", "CC", "library"]
   , "hdrs": ["grpc_codegen_headers", "gpr_codegen_headers"]
   }
 , "grpc_secure_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["grpc_security.h"]
   , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs": ["grpc_security.h"]
   }
 , "census_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["census.h"]
   , "stage": ["grpc"]
-  , "public stage": ["yes"]
-  , "hdrs": ["census.h"]
   }
 }

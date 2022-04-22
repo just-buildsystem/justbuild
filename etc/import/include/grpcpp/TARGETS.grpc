@@ -1,8 +1,6 @@
 { "grpcpp_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpcpp"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "alarm.h"
     , "alarm_impl.h"
     , "channel.h"
@@ -75,18 +73,16 @@
     , "support/time.h"
     , "support/validate_service_config.h"
     ]
+  , "stage": ["grpcpp"]
   }
 , "grpcpp_config_proto_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["impl/codegen/config_protobuf.h"]
   , "stage": ["grpcpp"]
-  , "public stage": ["yes"]
-  , "hdrs": ["impl/codegen/config_protobuf.h"]
   }
 , "grpcpp_codegen_base_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpcpp"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "impl/codegen/async_generic_service.h"
     , "impl/codegen/async_stream.h"
     , "impl/codegen/async_stream_impl.h"
@@ -141,22 +137,21 @@
     , "impl/codegen/sync_stream_impl.h"
     , "impl/codegen/time.h"
     ]
+  , "stage": ["grpcpp"]
   }
 , "grpcpp_codegen_proto_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["grpcpp"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "impl/codegen/proto_buffer_reader.h"
     , "impl/codegen/proto_buffer_writer.h"
     , "impl/codegen/proto_utils.h"
     ]
+  , "stage": ["grpcpp"]
   }
 , "grpc++_internal_hdrs_only_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["impl/codegen/sync.h"]
   , "stage": ["grpcpp"]
-  , "public stage": ["yes"]
-  , "hdrs": ["impl/codegen/sync.h"]
   }
 , "grpc++_internal_hdrs_only":
   { "type": ["@", "rules", "CC", "library"]

@@ -1,8 +1,6 @@
 { "protobuf_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["google", "protobuf"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "any.h"
     , "any.pb.h"
     , "api.pb.h"
@@ -232,6 +230,7 @@
     , "wire_format_lite.h"
     , "wrappers.pb.h"
     ]
+  , "stage": ["google", "protobuf"]
   }
 , "protobuf_lite":
   { "type": ["@", "rules", "CC", "library"]

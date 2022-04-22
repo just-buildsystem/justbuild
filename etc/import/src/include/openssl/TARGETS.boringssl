@@ -1,8 +1,6 @@
 { "crypto_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["openssl"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "aead.h"
     , "aes.h"
     , "arm_arch.h"
@@ -75,11 +73,11 @@
     , "x509_vfy.h"
     , "x509v3.h"
     ]
+  , "stage": ["openssl"]
   }
 , "ssl_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["dtls1.h", "srtp.h", "ssl.h", "ssl3.h", "tls1.h"]
   , "stage": ["openssl"]
-  , "public stage": ["yes"]
-  , "hdrs": ["dtls1.h", "srtp.h", "ssl.h", "ssl3.h", "tls1.h"]
   }
 }

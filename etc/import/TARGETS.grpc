@@ -1,7 +1,6 @@
 { "grpc++_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ ["./", "include/grpc++", "grpc++_public_headers"]
     , ["./", "include/grpcpp", "grpcpp_public_headers"]
     ]
@@ -1427,9 +1426,8 @@
     ]
   }
 , "grpc++_sources":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "src/cpp/client/channel_cc.cc"
     , "src/cpp/client/client_callback.cc"
     , "src/cpp/client/client_context.cc"
@@ -1469,9 +1467,8 @@
     ]
   }
 , "grpc++_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "src/cpp/client/create_channel_internal.h"
     , "src/cpp/common/channel_filter.h"
     , "src/cpp/server/dynamic_thread_pool.h"

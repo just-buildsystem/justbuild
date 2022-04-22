@@ -15,9 +15,8 @@
   , "deps": [["@", "upb", ".", "upb"]]
   }
 , "envoy_core_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "envoy/api/v2/core/address.upb.h"
     , "envoy/api/v2/core/backoff.upb.h"
     , "envoy/api/v2/core/base.upb.h"
@@ -31,18 +30,16 @@
     ]
   }
 , "udpa_annotations_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "udpa/annotations/migrate.upb.h"
     , "udpa/annotations/sensitive.upb.h"
     , "udpa/annotations/status.upb.h"
     ]
   }
 , "google_api_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "google/api/annotations.upb.h"
     , "google/api/http.upb.h"
     , "google/protobuf/any.upb.h"
@@ -56,20 +53,17 @@
     ]
   }
 , "proto_gen_validate_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs": ["gogoproto/gogo.upb.h", "validate/validate.upb.h"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["gogoproto/gogo.upb.h", "validate/validate.upb.h"]
   }
 , "envoy_annotations_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     ["envoy/annotations/deprecation.upb.h", "envoy/annotations/resource.upb.h"]
   }
 , "envoy_type_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "envoy/type/http.upb.h"
     , "envoy/type/matcher/regex.upb.h"
     , "envoy/type/matcher/string.upb.h"
@@ -81,9 +75,8 @@
     ]
   }
 , "envoy_ads_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "envoy/api/v2/auth/cert.upb.h"
     , "envoy/api/v2/auth/common.upb.h"
     , "envoy/api/v2/auth/secret.upb.h"
@@ -119,18 +112,15 @@
     ]
   }
 , "udpa_orca_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs": ["udpa/data/orca/v1/orca_load_report.upb.h"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["udpa/data/orca/v1/orca_load_report.upb.h"]
   }
 , "grpc_health_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs": ["src/proto/grpc/health/v1/health.upb.h"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["src/proto/grpc/health/v1/health.upb.h"]
   }
 , "grpc_lb_upb_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs": ["src/proto/grpc/lb/v1/load_balancer.upb.h"]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["src/proto/grpc/lb/v1/load_balancer.upb.h"]
   }
 }

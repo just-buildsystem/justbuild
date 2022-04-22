@@ -1,7 +1,6 @@
 { "address_sorting_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
   , "stage": ["address_sorting"]
-  , "public stage": ["yes"]
-  , "hdrs": ["address_sorting.h"]
+  , "srcs": ["address_sorting.h"]
   }
 }

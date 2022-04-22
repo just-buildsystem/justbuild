@@ -1,7 +1,6 @@
 { "git2_private_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "alloc.h"
     , "annotated_commit.h"
     , "apply.h"

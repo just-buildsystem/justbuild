@@ -230,9 +230,8 @@
     }
   }
 , "git2_public_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "public stage": ["yes"]
-  , "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
     [ "git2.h"
     , "git2/annotated_commit.h"
     , "git2/apply.h"

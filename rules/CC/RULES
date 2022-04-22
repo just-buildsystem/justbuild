@@ -107,17 +107,12 @@
     , "efficiently by the tool."
     ]
   , "target_fields": ["hdrs"]
-  , "string_fields": ["stage", "public stage"]
+  , "string_fields": ["stage"]
   , "field_doc":
     { "hdrs": ["The header files to be put into the header directory."]
     , "stage":
       [ "The location of the header directory."
       , "Path segments are joined with \"/\"."
-      ]
-    , "public stage":
-      [ "If non-empty, no closure for the header directory's stage is created, "
-      , "so can be combined with other header directories having the same "
-      , "public staging directory."
       ]
     }
   , "expression":
@@ -141,18 +136,9 @@
           }
         ]
       , [ "dir"
-        , { "type": "if"
-          , "cond": {"type": "FIELD", "name": "public stage"}
-          , "then":
-            { "type": "to_subdir"
-            , "subdir": {"type": "var", "name": "stage"}
-            , "$1": {"type": "var", "name": "hdrs"}
-            }
-          , "else":
-            { "type": "singleton_map"
-            , "key": {"type": "var", "name": "stage"}
-            , "value": {"type": "TREE", "$1": {"type": "var", "name": "hdrs"}}
-            }
+        , { "type": "singleton_map"
+          , "key": {"type": "var", "name": "stage"}
+          , "value": {"type": "TREE", "$1": {"type": "var", "name": "hdrs"}}
           }
         ]
       ]
