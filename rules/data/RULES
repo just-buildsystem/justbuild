@@ -3,7 +3,7 @@
   , "target_fields": ["srcs"]
   , "string_fields": ["stage"]
   , "field_doc":
-    { "srcs": ["The (run)files to be staged"]
+    { "srcs": ["The files to be staged"]
     , "stage":
       [ "The logical directory to stage the files to."
       , "Individual directory components are joined with \"/\"."
@@ -36,7 +36,11 @@
           }
         ]
       ]
-    , "body": {"type": "RESULT", "runfiles": {"type": "var", "name": "staged"}}
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "staged"}
+      , "runfiles": {"type": "var", "name": "staged"}
+      }
     }
   }
 }
