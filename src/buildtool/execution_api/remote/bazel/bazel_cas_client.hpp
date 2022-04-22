@@ -118,7 +118,7 @@ class BazelCasClient {
   private:
     std::unique_ptr<ByteStreamClient> stream_{};
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
-    Logger logger_{"BazelCasClient"};
+    Logger logger_{"RemoteCasClient"};
 
     template <class T_OutputIter>
     [[nodiscard]] auto FindMissingBlobs(std::string const& instance_name,

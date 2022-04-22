@@ -52,7 +52,7 @@ class BazelExecutionClient {
 
   private:
     std::unique_ptr<bazel_re::Execution::Stub> stub_;
-    Logger logger_{"BazelExecutionClient"};
+    Logger logger_{"RemoteExecutionClient"};
 
     [[nodiscard]] auto ReadExecution(
         grpc::ClientReader<google::longrunning::Operation>* reader,

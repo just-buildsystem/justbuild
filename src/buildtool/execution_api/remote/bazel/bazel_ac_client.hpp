@@ -35,7 +35,7 @@ class BazelAcClient {
 
   private:
     std::unique_ptr<bazel_re::ActionCache::Stub> stub_;
-    Logger logger_{"BazelAcClient"};
+    Logger logger_{"RemoteAcClient"};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_AC_CLIENT_HPP
