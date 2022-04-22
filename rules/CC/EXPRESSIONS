@@ -311,6 +311,45 @@
       }
     }
   }
+, "compiler":
+  { "vars": ["CC", "CXX"]
+  , "imports": {"default-CC": "default-CC", "default-CXX": "default-CXX"}
+  , "expression":
+    { "type": "if"
+    , "cond": {"type": "FIELD", "name": "pure C"}
+    , "then":
+      { "type": "var"
+      , "name": "CC"
+      , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+      }
+    , "else":
+      { "type": "var"
+      , "name": "CXX"
+      , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+      }
+    }
+  }
+, "flags":
+  { "vars": ["CFLAGS", "CXXFLAGS"]
+  , "imports":
+    { "default-CFLAGS": "default-CFLAGS"
+    , "default-CXXFLAGS": "default-CXXFLAGS"
+    }
+  , "expression":
+    { "type": "if"
+    , "cond": {"type": "FIELD", "name": "pure C"}
+    , "then":
+      { "type": "var"
+      , "name": "CFLAGS"
+      , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+      }
+    , "else":
+      { "type": "var"
+      , "name": "CXXFLAGS"
+      , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+      }
+    }
+  }
 , "lib result":
   { "vars":
     [ "CXX"
@@ -330,11 +369,9 @@
     { "artifacts": ["./", "..", "field_artifacts"]
     , "compile-deps": "compile-deps"
     , "link-deps": "link-deps"
+    , "compiler": "compiler"
+    , "flags": "flags"
     , "objects": "objects"
-    , "default-CC": "default-CC"
-    , "default-CXX": "default-CXX"
-    , "default-CFLAGS": "default-CFLAGS"
-    , "default-CXXFLAGS": "default-CXXFLAGS"
     , "default-ENV": "default-ENV"
     }
   , "expression":
@@ -346,37 +383,8 @@
           , "$1": {"type": "FIELD", "name": "stage"}
           }
         ]
-      , [ "CXX"
-        , { "type": "if"
-          , "cond": {"type": "FIELD", "name": "pure C"}
-          , "then":
-            { "type": "var"
-            , "name": "CC"
-            , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
-            }
-          , "else":
-            { "type": "var"
-            , "name": "CXX"
-            , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
-            }
-          }
-        ]
-      , [ "CXXFLAGS"
-        , { "type": "if"
-          , "cond": {"type": "FIELD", "name": "pure C"}
-          , "then":
-            { "type": "var"
-            , "name": "CFLAGS"
-            , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
-            }
-          , "else":
-            { "type": "var"
-            , "name": "CXXFLAGS"
-            , "default":
-              {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
-            }
-          }
-        ]
+      , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags"}]
       , [ "CXXFLAGS"
         , { "type": "++"
           , "$1":
