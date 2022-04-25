@@ -690,24 +690,12 @@ struct AnalysisResult {
 }
 
 [[nodiscard]] auto ResultToJson(TargetResult const& result) -> nlohmann::json {
-    std::vector<std::string> artifacts{};
-    std::vector<std::string> runfiles{};
-    artifacts.reserve(result.artifact_stage->Map().size());
-    runfiles.reserve(result.runfiles->Map().size());
-    auto get_key = [](std::pair<std::string, ExpressionPtr> const& entry) {
-        return entry.first;
-    };
-    std::transform(result.artifact_stage->Map().begin(),
-                   result.artifact_stage->Map().end(),
-                   std::back_inserter(artifacts),
-                   get_key);
-    std::transform(result.runfiles->Map().begin(),
-                   result.runfiles->Map().end(),
-                   std::back_inserter(runfiles),
-                   get_key);
     return nlohmann::ordered_json{
-        {"artifacts", artifacts},
-        {"runfiles", runfiles},
+        {"artifacts",
+         result.artifact_stage->ToJson(
+             Expression::JsonMode::SerializeAllButNodes)},
+        {"runfiles",
+         result.runfiles->ToJson(Expression::JsonMode::SerializeAllButNodes)},
         {"provides",
          result.provides->ToJson(Expression::JsonMode::SerializeAllButNodes)}};
 }
@@ -914,10 +902,15 @@ void DumpNodes(std::string const& file_path, AnalysisResult const& result) {
 [[nodiscard]] auto DiagnoseResults(AnalysisResult const& result,
                                    Target::ResultTargetMap const& result_map,
                                    DiagnosticArguments const& clargs) {
-    Logger::Log(LogLevel::Info,
-                "Result of target {}: {}",
-                result.id.ToString(),
-                ResultToJson(result.target->Result()).dump(2));
+    Logger::Log(
+        LogLevel::Info,
+        "Result of target {}: {}",
+        result.id.ToString(),
+        IndentOnlyUntilDepth(
+            ResultToJson(result.target->Result()),
+            2,
+            2,
+            std::unordered_map<std::string, std::size_t>{{"/provides", 3}}));
     if (clargs.dump_actions) {
         DumpActions(*clargs.dump_actions, result);
     }
