@@ -1,0 +1,8 @@
+{ "flat-stage":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["flat-stage"]
+  , "test": ["flat-stage.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["flat-stage"]}
+}

@@ -560,11 +560,30 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
             std::filesystem::path k{el.first};
             auto new_path = subdir / k.filename();
             if (result.contains(new_path) && !(result[new_path] == el.second)) {
-                throw Evaluator::EvaluationError{fmt::format(
-                    "Flat staging of {} to subdir {} conflicts on path {}",
-                    d->ToString(),
-                    subdir.string(),
-                    new_path.string())};
+                // Check if the user specifed an error message for that case,
+                // otherwise just generate a generic error message.
+                auto msg_expr = expr->Map().Find("msg");
+                if (not msg_expr) {
+                    throw Evaluator::EvaluationError{fmt::format(
+                        "Flat staging of {} to subdir {} conflicts on path {}",
+                        d->ToString(),
+                        subdir.string(),
+                        new_path.string())};
+                }
+                std::string msg;
+                try {
+                    auto msg_val = eval(msg_expr->get(), env);
+                    msg = msg_val->ToString();
+                } catch (std::exception const&) {
+                    msg =
+                        "[non evaluating term] " + msg_expr->get()->ToString();
+                }
+                std::stringstream ss{};
+                ss << msg << std::endl;
+                ss << "Reason: flat staging to subdir " << subdir.string()
+                   << " conflicts on path " << new_path.string() << std::endl;
+                ss << "Map to flatly stage was " << d->ToString() << std::endl;
+                throw Evaluator::EvaluationError(ss.str(), false, true);
             }
             result[new_path] = el.second;
         }

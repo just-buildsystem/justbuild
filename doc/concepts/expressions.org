@@ -253,7 +253,9 @@ those) argument(s) to obtain the final result.
   argument ~"flat"~ (default ~false~) evaluates to a true value,
   the keys are instead replaced by the path concatenation of the
   ~"subdir"~ argument and the base name of the old key. It is an
-  error if conflicts occur in this way.
+  error if conflicts occur in this way; in case of such a user
+  error, the argument ~"msg"~ is also evaluated and the result
+  of that evaluatino reported in the error message.
 
 ***** Binary functions
 

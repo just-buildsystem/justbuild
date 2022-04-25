@@ -7,6 +7,7 @@
     [ [["./", "actions", "TESTS"], "actions"]
     , [["./", "generated-binary", "TESTS"], "generated-binary"]
     , [["./", "targets", "TESTS"], "targets"]
+    , [["./", "user-errors", "TESTS"], "user-errors"]
     ]
   }
 }
