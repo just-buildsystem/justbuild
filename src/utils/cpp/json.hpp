@@ -5,6 +5,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
@@ -70,6 +71,58 @@ namespace detail {
     return json.dump();
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] static inline auto IndentOnlyUntilDepth(
+    nlohmann::json const& json,
+    std::string const& indent,
+    std::size_t until,
+    std::size_t depth,
+    std::optional<std::string> path,
+    std::unordered_map<std::string, std::size_t> const& depths) -> std::string {
+    using iterator = std::ostream_iterator<std::string>;
+    if (path and depths.find(*path) != depths.end()) {
+        until = depths.find(*path)->second;
+    }
+    if (json.is_object() and depth < until) {
+        std::size_t i{};
+        std::ostringstream oss{};
+        oss << '{' << std::endl;
+        for (auto const& [key, value] : json.items()) {
+            std::fill_n(iterator{oss}, depth + 1, indent);
+            oss << nlohmann::json(key).dump() << ": "
+                << IndentOnlyUntilDepth(
+                       value,
+                       indent,
+                       until,
+                       depth + 1,
+                       path ? std::optional<std::string>(*path + "/" + key)
+                            : std::nullopt,
+                       depths)
+                << (++i == json.size() ? "" : ",") << std::endl;
+        }
+        std::fill_n(iterator{oss}, depth, indent);
+        oss << '}';
+        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        return oss.str();
+    }
+    if (json.is_array() and depth < until) {
+        std::size_t i{};
+        std::ostringstream oss{};
+        oss << '[' << std::endl;
+        for (auto const& value : json) {
+            std::fill_n(iterator{oss}, depth + 1, indent);
+            oss << IndentOnlyUntilDepth(
+                       value, indent, until, depth + 1, std::nullopt, depths)
+                << (++i == json.size() ? "" : ",") << std::endl;
+        }
+        std::fill_n(iterator{oss}, depth, indent);
+        oss << ']';
+        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        return oss.str();
+    }
+    return json.dump();
+}
+
 }  // namespace detail
 
 /// \brief Dump json with indent. Indent lists only until specified depth.
@@ -79,6 +132,17 @@ namespace detail {
     std::size_t until_depth = 0) -> std::string {
     return detail::IndentListsOnlyUntilDepth(
         json, std::string(indent, ' '), until_depth, 0);
+}
+
+// \brief Dump json with indent. Indent until the given list; for initial
+// pure object-paths, alternative depths can be specified
+[[nodiscard]] static inline auto IndentOnlyUntilDepth(
+    nlohmann::json const& json,
+    std::size_t indent,
+    std::size_t until_depth,
+    std::unordered_map<std::string, std::size_t> const& depths) -> std::string {
+    return detail::IndentOnlyUntilDepth(
+        json, std::string(indent, ' '), until_depth, 0, "", depths);
 }
 
 #endif  // INCLUDED_SRC_UTILS_CPP_JSON_HPP
