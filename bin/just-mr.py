@@ -8,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 from pathlib import Path
 
 JUST="just"
@@ -475,25 +475,34 @@ def fetch(*, config, args):
 
 
 def main():
-    parser = OptionParser()
-    parser.add_option("-C", dest="repository_config",
-                      help="Repository-description file to use",
-                      metavar="FILE")
-    parser.add_option("-L", dest="checkout_location",
-                      help="Specification file for checkout locations")
-    parser.add_option("--local_build_root", dest="local_build_root",
-                      help="Root for CAS, repository space, etc",
-                      metavar="PATH")
-    parser.add_option("--distdir",  dest="distdir", action="append",
-                      help="Directory to look for distfiles before fetching",
-                      metavar="PATH")
-    parser.add_option("--just", dest="just",
-                      help="Path to the just binary",
-                      metavar="PATH")
-    parser.add_option("--always_file", dest="always_file", action="store_true",
-                      default=False, help="Always create file roots")
+    parser = ArgumentParser()
+    parser.add_argument("-C",
+                        dest="repository_config",
+                        help="Repository-description file to use",
+                        metavar="FILE")
+    parser.add_argument("-L",
+                        dest="checkout_location",
+                        help="Specification file for checkout locations")
+    parser.add_argument("--local_build_root",
+                        dest="local_build_root",
+                        help="Root for CAS, repository space, etc",
+                        metavar="PATH")
+    parser.add_argument("--distdir",
+                        dest="distdir",
+                        action="append",
+                        help="Directory to look for distfiles before fetching",
+                        metavar="PATH")
+    parser.add_argument("--just",
+                        dest="just",
+                        help="Path to the just binary",
+                        metavar="PATH")
+    parser.add_argument("--always_file",
+                        dest="always_file",
+                        action="store_true",
+                        default=False,
+                        help="Always create file roots")
 
-    (options, args) = parser.parse_args()
+    (options, args) = parser.parse_known_args()
     config = read_config(options.repository_config)
     global ROOT
     ROOT = options.local_build_root or os.path.join(Path.home(), ".cache/just")

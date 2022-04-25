@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 def log(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -100,19 +100,24 @@ def traverse(*, graph, to_build, out, root, config):
              os.path.join(out, location))
 
 def main():
-    parser = OptionParser()
-    parser.add_option("-C", dest="repository_config",
-                      help="Repository-description file to use",
-                      metavar="FILE")
-    parser.add_option("-o", dest="output_directory",
-                      help="Directory to place output to")
-    parser.add_option("--local_build_root", dest="local_build_root",
-                      help="Root for storing intermediate outputs",
-                      metavar="PATH")
-    parser.add_option("--default_workspace", dest="default_workspace",
-                      help="Workspace root to use if none is specified",
-                      metavar="PATH")
-    (options, args) = parser.parse_args()
+    parser = ArgumentParser()
+    parser.add_argument("-C",
+                        dest="repository_config",
+                        help="Repository-description file to use",
+                        metavar="FILE")
+    parser.add_argument("-o",
+                        dest="output_directory",
+                        help="Directory to place output to")
+    parser.add_argument("--local_build_root",
+                        dest="local_build_root",
+                        help="Root for storing intermediate outputs",
+                        metavar="PATH")
+    parser.add_argument("--default_workspace",
+                        dest="default_workspace",
+                        help="Workspace root to use if none is specified",
+                        metavar="PATH")
+
+    (options, args) = parser.parse_known_args()
     if len(args) != 2:
         fail("usage: %r <graph> <targets_to_build>"
              % (sys.argv[0],))
