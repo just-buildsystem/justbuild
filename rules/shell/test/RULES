@@ -26,6 +26,20 @@
       ]
     }
   , "tainted": ["test"]
+  , "artifacts_doc":
+    [ "result: the result of this test (\"PASS\" or \"FAIL\"); useful for"
+    , "        generating test reports."
+    , "stdout/stderr: Any output the invocation of the test binary produced on"
+    , "        the respective file descriptor"
+    , "work:   In this directory, all the files specified to \"keep\" are staged"
+    , "time-start/time-stop: The time (decimally coded) in seconds since the"
+    , "        epoch when the test invocation started and ended."
+    ]
+  , "runfiles_doc":
+    [ "A tree consisting of the artifacts staged at the name of the test."
+    , "As the built-in \"install\" rule only takes the runfiles of its \"deps\""
+    , "argument, this gives an easy way of defining test suites."
+    ]
   , "implicit":
     {"runner": ["test_runner.sh"], "summarizer": ["test_summary.py"]}
   , "imports":

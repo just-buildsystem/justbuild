@@ -7,6 +7,9 @@
       ["The single source file to patch, typically an explict file reference."]
     , "patch": ["The patch to apply."]
     }
+  , "artifacts_doc":
+    ["The patched file, staged to the position the of the original file"]
+  , "runfiles_doc": ["Same as artifacts"]
   , "imports":
     { "stage_field": ["./", "..", "stage_singleton_field"]
     , "stage_artifact": ["./", "..", "stage_artifact_to_singleton_field"]

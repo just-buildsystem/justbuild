@@ -1,6 +1,34 @@
 { "library":
-  { "target_fields": ["srcs", "deps"]
+  { "doc":
+    [ "A proto library as abtract data structure."
+    , ""
+    , "Such a libray does not produce any artifacts itself, but it can be"
+    , "used as a dependency for various language-specific rules."
+    ]
+  , "target_fields": ["srcs", "deps"]
   , "string_fields": ["stage", "name", "service"]
+  , "field_doc":
+    { "srcs": ["The proto files for this library"]
+    , "deps": ["Any other proto library this library depends on"]
+    , "stage":
+      [ "The directory to stage the source files to."
+      , "Directory components are joined by \"/\"."
+      ]
+    , "name": ["The name of the (abstract) library."]
+    , "service":
+      [ "If non empty, generate a service library (with acces sto \"rpc\""
+      , "definitions) instead of a regular one."
+      ]
+    }
+  , "artifacts_doc": ["None"]
+  , "runfiles_doc": ["None"]
+  , "provides_doc":
+    { "proto":
+      [ "A list containing a single target-graph node with the defintion of"
+      , "this proto library. The node types generated are \"library\" and"
+      , "\"service library\"."
+      ]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":

@@ -9,6 +9,11 @@
       , "Individual directory components are joined with \"/\"."
       ]
     }
+  , "artifacts_doc":
+    [ "The runfiles of the \"srcs\" targets staged to the directory"
+    , "specified in \"stage\"."
+    ]
+  , "runfiles_doc": ["Same as artifacts"]
   , "expression":
     { "type": "let*"
     , "bindings":

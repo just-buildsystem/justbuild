@@ -115,6 +115,8 @@
       , "Path segments are joined with \"/\"."
       ]
     }
+  , "artifacts_doc": ["The single tree artifact staged to the given location"]
+  , "runfiles_doc": ["Same as artifacts"]
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -225,6 +227,23 @@
       , "For libraries that should be built in a non-standard way; usually"
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
       , "choice"
+      ]
+    }
+  , "artifacts_doc":
+    ["The actual library (libname.a) staged in the specified directory"]
+  , "runfiles_doc": ["The public headers of this library"]
+  , "provides_doc":
+    { "compile-deps":
+      [ "Map of artifacts specifying any additional files that, besides the runfiles,"
+      , "have to be present in compile actions of targets depending on this library"
+      ]
+    , "link-deps":
+      [ "Map of artifacts specifying any additional files that, besides the artifacts,"
+      , "have to be present in a link actions of targets depending on this library"
+      ]
+    , "link-args":
+      [ "List of strings that have to be added to the command line for linking actions"
+      , "in targets depending on on this library"
       ]
     }
   , "anonymous":
@@ -372,6 +391,8 @@
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     }
+  , "artifacts_doc": ["The final binary, staged to the given directory"]
+  , "runfiles_doc": ["None"]
   , "anonymous":
     { "proto-deps":
       { "target": "proto"
