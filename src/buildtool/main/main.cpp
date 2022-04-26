@@ -1163,6 +1163,26 @@ auto DescribeTarget(std::string const& main_repo,
         std::cout << " Variables taken from the configuration\n";
         PrintFields(*config_vars, config_doc, " - ", "   | ");
     }
+    std::cout << " Result\n";
+    std::cout << " - Artifacts\n";
+    auto artifacts_doc = rdesc.find("artifacts_doc");
+    if (artifacts_doc != rdesc.end()) {
+        PrintDoc(*artifacts_doc, "   | ");
+    }
+    std::cout << " - Runfiles\n";
+    auto runfiles_doc = rdesc.find("runfiles_doc");
+    if (runfiles_doc != rdesc.end()) {
+        PrintDoc(*runfiles_doc, "   | ");
+    }
+    auto provides_doc = rdesc.find("provides_doc");
+    if (provides_doc != rdesc.end()) {
+        std::cout << " - Documented providers\n";
+        for (auto& el : provides_doc->items()) {
+            std::cout << "   - " << el.key() << "\n";
+            PrintDoc(el.value(), "     | ");
+        }
+    }
+
     std::cout << std::endl;
     return kExitSuccess;
 }

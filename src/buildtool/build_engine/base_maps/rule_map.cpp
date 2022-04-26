@@ -13,6 +13,7 @@ namespace BuildMaps::Base {
 namespace {
 
 auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
+                                                         "artifacts_doc",
                                                          "config_doc",
                                                          "config_fields",
                                                          "config_transitions",
@@ -22,6 +23,8 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
                                                          "field_doc",
                                                          "implicit",
                                                          "imports",
+                                                         "provides_doc",
+                                                         "runfiles_doc",
                                                          "string_fields",
                                                          "tainted",
                                                          "target_fields"};
