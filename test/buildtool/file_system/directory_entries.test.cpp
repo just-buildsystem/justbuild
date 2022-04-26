@@ -119,3 +119,34 @@ TEST_CASE("Get entries of a git tree", "[directory_entries]") {
         CHECK(counter == 2);
     }
 }
+
+TEST_CASE("Get entries of an empty directory", "[directory_entries]") {
+    // CreateDirectoryEntriesMap returns
+    // FileRoot::DirectoryEntries{FileRoot::DirectoryEntries::pairs_t{}} in case
+    // of a missing directory, which represents an empty directory
+
+    auto dir_entries =
+        FileRoot::DirectoryEntries{FileRoot::DirectoryEntries::pairs_t{}};
+    // of course, no files should be there
+    CHECK_FALSE(dir_entries.ContainsFile("test_repo.bundle"));
+    {
+        // FilesIterator should be an empty range
+        auto counter = 0;
+        for (const auto& x : dir_entries.FilesIterator()) {
+            CHECK_FALSE(dir_entries.ContainsFile(x));  // should never be called
+            ++counter;
+        }
+
+        CHECK(counter == 0);
+    }
+    {
+        // DirectoriesIterator should be an empty range
+        auto counter = 0;
+        for (const auto& x : dir_entries.DirectoriesIterator()) {
+            CHECK(dir_entries.ContainsFile(x));  // should never be called
+            ++counter;
+        }
+
+        CHECK(counter == 0);
+    }
+}

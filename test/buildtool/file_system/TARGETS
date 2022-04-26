@@ -64,6 +64,7 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["file_root", "file_system_manager", "git_tree"]
+  , "deps":
+    ["file_root", "file_system_manager", "git_tree", "directory_entries"]
   }
 }
