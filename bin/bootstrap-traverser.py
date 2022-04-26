@@ -108,11 +108,11 @@ def main():
     parser.add_argument("-o",
                         dest="output_directory",
                         help="Directory to place output to")
-    parser.add_argument("--local_build_root",
+    parser.add_argument("--local-build-root",
                         dest="local_build_root",
                         help="Root for storing intermediate outputs",
                         metavar="PATH")
-    parser.add_argument("--default_workspace",
+    parser.add_argument("--default-workspace",
                         dest="default_workspace",
                         help="Workspace root to use if none is specified",
                         metavar="PATH")

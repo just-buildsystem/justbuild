@@ -97,7 +97,7 @@ struct GraphArguments {
 static inline auto SetupCommonArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommonArguments*> const& clargs) {
-    app->add_option("-C,--repository_config",
+    app->add_option("-C,--repository-config",
                     clargs->repository_config,
                     "Path to configuration file for multi-repository builds.")
         ->type_name("PATH");
@@ -105,7 +105,7 @@ static inline auto SetupCommonArguments(
            "--main", clargs->main, "The repository to take the target from.")
         ->type_name("NAME");
     app->add_option_function<std::string>(
-           "-w,--workspace_root",
+           "-w,--workspace-root",
            [clargs](auto const& workspace_root_raw) {
                clargs->workspace_root = std::filesystem::canonical(
                    std::filesystem::absolute(workspace_root_raw));
@@ -153,36 +153,36 @@ static inline auto SetupAnalysisArguments(
            "Module and target name to build.\n"
            "Assumes current module if module name is omitted.")
         ->expected(2);
-    app->add_option("--target_root",
+    app->add_option("--target-root",
                     clargs->target_root,
                     "Path of the target files' root directory.\n"
-                    "Default: Same as --workspace_root")
+                    "Default: Same as --workspace-root")
         ->type_name("PATH");
-    app->add_option("--rule_root",
+    app->add_option("--rule-root",
                     clargs->rule_root,
                     "Path of the rule files' root directory.\n"
-                    "Default: Same as --target_root")
+                    "Default: Same as --target-root")
         ->type_name("PATH");
-    app->add_option("--expression_root",
+    app->add_option("--expression-root",
                     clargs->expression_root,
                     "Path of the expression files' root directory.\n"
-                    "Default: Same as --rule_root")
+                    "Default: Same as --rule-root")
         ->type_name("PATH");
-    app->add_option("--target_file_name",
+    app->add_option("--target-file-name",
                     clargs->target_file_name,
                     "Name of the targets file.");
     app->add_option(
-        "--rule_file_name", clargs->rule_file_name, "Name of the rules file.");
-    app->add_option("--expression_file_name",
+        "--rule-file-name", clargs->rule_file_name, "Name of the rules file.");
+    app->add_option("--expression-file-name",
                     clargs->expression_file_name,
                     "Name of the expressions file.");
     if (with_graph) {
         app->add_option(
-               "--dump_graph",
+               "--dump-graph",
                clargs->graph_file,
                "File path for writing the action graph description to.")
             ->type_name("PATH");
-        app->add_option("--dump_artifacts_to_build",
+        app->add_option("--dump-artifacts-to-build",
                         clargs->artifacts_to_build_file,
                         "File path for writing the artifacts to build to.")
             ->type_name("PATH");
@@ -192,27 +192,27 @@ static inline auto SetupAnalysisArguments(
 static inline auto SetupDiagnosticArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<DiagnosticArguments*> const& clargs) {
-    app->add_option("--dump_actions",
+    app->add_option("--dump-actions",
                     clargs->dump_actions,
                     "Dump actions to file (use - for stdout).")
         ->type_name("PATH");
-    app->add_option("--dump_trees",
+    app->add_option("--dump-trees",
                     clargs->dump_trees,
                     "Dump trees to file (use - for stdout).")
         ->type_name("PATH");
-    app->add_option("--dump_blobs",
+    app->add_option("--dump-blobs",
                     clargs->dump_blobs,
                     "Dump blobs to file (use - for stdout).")
         ->type_name("PATH");
-    app->add_option("--dump_targets",
+    app->add_option("--dump-targets",
                     clargs->dump_targets,
                     "Dump targets to file (use - for stdout).")
         ->type_name("PATH");
-    app->add_option("--dump_anonymous",
+    app->add_option("--dump-anonymous",
                     clargs->dump_anonymous,
                     "Dump anonymous targets to file (use - for stdout).")
         ->type_name("PATH");
-    app->add_option("--dump_nodes",
+    app->add_option("--dump-nodes",
                     clargs->dump_nodes,
                     "Dump nodes of target to file (use - for stdout).")
         ->type_name("PATH");
@@ -222,7 +222,7 @@ static inline auto SetupEndpointArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option_function<std::string>(
-           "--local_build_root",
+           "--local-build-root",
            [clargs](auto const& build_root_raw) {
                clargs->local_root = std::filesystem::weakly_canonical(
                    std::filesystem::absolute(build_root_raw));
@@ -230,7 +230,7 @@ static inline auto SetupEndpointArguments(
            "Root for local CAS, cache, and build directories.")
         ->type_name("PATH");
 
-    app->add_option("-r,--remote_execution_address",
+    app->add_option("-r,--remote-execution-address",
                     clargs->remote_execution_address,
                     "Address of the remote execution service.")
         ->type_name("NAME:PORT");
@@ -244,7 +244,7 @@ static inline auto SetupBuildArguments(
                   "Do not clean build directory after execution.");
 
     app->add_option_function<std::string>(
-           "-L,--local_launcher",
+           "-L,--local-launcher",
            [clargs](auto const& launcher_raw) {
                clargs->local_launcher =
                    nlohmann::json::parse(launcher_raw)
@@ -256,7 +256,7 @@ static inline auto SetupBuildArguments(
         ->default_val(nlohmann::json{"env", "--"}.dump());
 
     app->add_option_function<std::string>(
-           "--remote_execution_property",
+           "--remote-execution-property",
            [clargs](auto const& property) {
                std::istringstream pss(property);
                std::string key;
@@ -264,7 +264,7 @@ static inline auto SetupBuildArguments(
                if (not std::getline(pss, key, ':') or
                    not std::getline(pss, val, ':')) {
                    throw CLI::ConversionError{property,
-                                              "--remote_execution_property"};
+                                              "--remote-execution-property"};
                }
                clargs->platform_properties.emplace(std::move(key),
                                                    std::move(val));
@@ -275,7 +275,7 @@ static inline auto SetupBuildArguments(
         ->expected(1, 1);
 
     app->add_option_function<unsigned int>(
-           "--action_timeout",
+           "--action-timeout",
            [clargs](auto const& seconds) {
                clargs->timeout = seconds * std::chrono::seconds{1};
            },
@@ -283,20 +283,20 @@ static inline auto SetupBuildArguments(
         ->type_name("NUM");
 
     app->add_option(
-           "-J,--build_jobs",
+           "-J,--build-jobs",
            clargs->build_jobs,
            "Number of jobs to run during build phase (Default: same as jobs).")
         ->type_name("NUM");
-    app->add_option("--dump_artifacts",
+    app->add_option("--dump-artifacts",
                     clargs->dump_artifacts,
                     "Dump artifacts to file (use - for stdout).")
         ->type_name("PATH");
 
-    app->add_flag("-s,--show_runfiles",
+    app->add_flag("-s,--show-runfiles",
                   clargs->show_runfiles,
                   "Do not omit runfiles in build report.");
 
-    app->add_option("-P,--print_to_stdout",
+    app->add_option("-P,--print-to-stdout",
                     clargs->print_to_stdout,
                     "After building, print the specified artifact to stdout.")
         ->type_name("LOGICAL_PATH");
@@ -306,7 +306,7 @@ static inline auto SetupStageArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<StageArguments*> const& clargs) {
     app->add_option_function<std::string>(
-           "-o,--output_dir",
+           "-o,--output-dir",
            [clargs](auto const& output_dir_raw) {
                clargs->output_dir = std::filesystem::weakly_canonical(
                    std::filesystem::absolute(output_dir_raw));
@@ -328,7 +328,7 @@ static inline auto SetupRebuildArguments(
         ->type_name("NAME:PORT|\"local\"");
 
     app->add_option(
-           "--dump_flaky", clargs->dump_flaky, "Dump flaky actions to file.")
+           "--dump-flaky", clargs->dump_flaky, "Dump flaky actions to file.")
         ->type_name("PATH");
 }
 
@@ -342,7 +342,7 @@ static inline auto SetupFetchArguments(
         ->required();
 
     app->add_option_function<std::string>(
-           "-o,--output_path",
+           "-o,--output-path",
            [clargs](auto const& output_path_raw) {
                clargs->output_path = std::filesystem::weakly_canonical(
                    std::filesystem::absolute(output_path_raw));
@@ -363,13 +363,13 @@ static inline auto SetupGraphArguments(
         "artifact is to be copied and the description of the artifact as json "
         "object as well.");
 
-    app->add_option("-g,--graph_file",
+    app->add_option("-g,--graph-file",
                     clargs->graph_file,
                     "Path of the file containing the description of the "
                     "actions.")
         ->required();
 
-    app->add_option("--git_cas",
+    app->add_option("--git-cas",
                     clargs->git_cas,
                     "Path to a Git repository, containing blobs of potentially "
                     "missing KNOWN artifacts.");

@@ -51,12 +51,12 @@ cat > TARGETS <<'EOI'
 EOI
 
 
-bin/tool-under-test build --local_build_root .tool-root -f build.log full 2>&1
+bin/tool-under-test build --local-build-root .tool-root -f build.log full 2>&1
 echo
 grep 'DataRuleSpecificErrorMessage' build.log && exit 1 || :
 grep 'DeBuG-InFoRmAtIoN' build.log && exit 1 || :
 
-bin/tool-under-test build --local_build_root .tool-root -f build.log flat 2>&1 && exit 1 || :
+bin/tool-under-test build --local-build-root .tool-root -f build.log flat 2>&1 && exit 1 || :
 echo
 grep 'DataRuleSpecificErrorMessage' build.log
 grep "DeBuG-InFoRmAtIoN" build.log

@@ -90,7 +90,7 @@ echo
 echo Analysis
 echo
 ../bin/tool-under-test analyse data \
-  --dump_trees ../trees.json --dump_blobs ../blobs.json 2>&1
+  --dump-trees ../trees.json --dump-blobs ../blobs.json 2>&1
 echo
 echo Blobs
 echo
@@ -104,7 +104,7 @@ cat ../trees.json
 echo
 echo Build
 echo
-../bin/tool-under-test install -o ../out  --local_build_root ../tool-root 2>&1
+../bin/tool-under-test install -o ../out  --local-build-root ../tool-root 2>&1
 echo
 echo Index
 echo

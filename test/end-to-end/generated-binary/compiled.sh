@@ -16,8 +16,8 @@ EOI
 
 echo
 echo "Analysing"
-bin/tool-under-test analyse --dump_graph graph.json 2>&1
+bin/tool-under-test analyse --dump-graph graph.json 2>&1
 
 echo
 echo "Building"
-bin/tool-under-test install -o out --local_build_root .tool-root -J 16 2>&1
+bin/tool-under-test install -o out --local-build-root .tool-root -J 16 2>&1

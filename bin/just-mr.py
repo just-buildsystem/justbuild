@@ -421,7 +421,7 @@ def build(*, config, args):
     if len(args) != 3:
         fail("Usage: %s build <repo> <moudle> <target>" % (sys.argv[0],))
     config = setup(config=config, args=[args[0]])
-    cmd = [JUST, "build", "-C", config, "--local_build_root", ROOT,
+    cmd = [JUST, "build", "-C", config, "--local-build-root", ROOT,
            args[1], args[2]]
     log("Setup finished, exec %s" % (cmd,))
     os.execvp(JUST, cmd)
@@ -430,7 +430,7 @@ def install(*, config, args):
     if len(args) != 4:
         fail("Usage: %s install <repo> <moudle> <target> <install-path>" % (sys.argv[0],))
     config = setup(config=config, args=[args[0]])
-    cmd = [JUST, "install", "-C", config, "--local_build_root", ROOT,
+    cmd = [JUST, "install", "-C", config, "--local-build-root", ROOT,
            "-o", args[3], args[1], args[2]]
     log("Setup finished, exec %s" % (cmd,))
     os.execvp(JUST, cmd)
@@ -483,7 +483,7 @@ def main():
     parser.add_argument("-L",
                         dest="checkout_location",
                         help="Specification file for checkout locations")
-    parser.add_argument("--local_build_root",
+    parser.add_argument("--local-build-root",
                         dest="local_build_root",
                         help="Root for CAS, repository space, etc",
                         metavar="PATH")
@@ -496,7 +496,7 @@ def main():
                         dest="just",
                         help="Path to the just binary",
                         metavar="PATH")
-    parser.add_argument("--always_file",
+    parser.add_argument("--always-file",
                         dest="always_file",
                         action="store_true",
                         default=False,

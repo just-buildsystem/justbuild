@@ -24,7 +24,7 @@ class LocalExecutionConfig {
 
         // Build root directory. All the cache dirs are subdirs of build_root.
         // By default, build_root is set to $HOME/.cache/just.
-        // If the user uses --local_build_root PATH,
+        // If the user uses --local-build-root PATH,
         // then build_root will be set to PATH.
         std::filesystem::path build_root{};
 

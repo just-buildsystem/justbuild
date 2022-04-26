@@ -23,8 +23,8 @@ cat > src/TARGETS <<'EOF'
 }
 EOF
 
-./bin/tool-under-test install -o out --workspace_root src \
-	--local_build_root .root . it 2>&1
+./bin/tool-under-test install -o out --workspace-root src \
+	--local-build-root .root . it 2>&1
 
 grep OK out/out
 grep BAD out/out && exit 1 || :
@@ -46,8 +46,8 @@ cat > src/deep/TARGETS <<'EOF'
 EOF
 
 
-./bin/tool-under-test install -o out2 --workspace_root src \
-	--local_build_root .root deep  'OK up' 2>&1
+./bin/tool-under-test install -o out2 --workspace-root src \
+	--local-build-root .root deep  'OK up' 2>&1
 grep OK out2/out
 
 # Upwards refernces and targets outside the repo are not OK
@@ -73,7 +73,7 @@ EOF
 
 cat src/TARGETS
 
-./bin/tool-under-test analyse --workspace_root src . it 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --workspace-root src . it 2>&1 && exit 1 || :
 
 done
 

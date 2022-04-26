@@ -74,7 +74,7 @@ EOF
 mkdir -p .root
 
 echo == Building in A ==
-./bin/tool-under-test install -C bindings.json -o . --local_build_root .root --main A . back 2>&1
+./bin/tool-under-test install -C bindings.json -o . --local-build-root .root --main A . back 2>&1
 cat back.txt
 grep -q 'I am A' back.txt
 grep -q 'This is B' back.txt
@@ -82,7 +82,7 @@ grep -q 'Hello A' back.txt
 rm -f back.txt
 
 echo == Building in B ==
-./bin/tool-under-test install -C bindings.json -o . --local_build_root .root --main B . back 2>&1
+./bin/tool-under-test install -C bindings.json -o . --local-build-root .root --main B . back 2>&1
 cat back.txt
 grep -q 'I am B' back.txt
 grep -q 'This is A' back.txt

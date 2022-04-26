@@ -140,26 +140,26 @@ def bootstrap():
     LOCAL_ROOT = os.path.join(WRKDIR, ".just")
     os.makedirs(LOCAL_ROOT, exist_ok=True)
     run(["sh", "-c",
-         "cp `./bin/just-mr.py --always_file -C %s --local_build_root=%s setup just` %s"
+         "cp `./bin/just-mr.py --always-file -C %s --local-build-root=%s setup just` %s"
          % (REPOS, LOCAL_ROOT, CONF_FILE)],
         cwd=src_wrkdir)
     GRAPH = os.path.join(WRKDIR, "graph.json")
     TO_BUILD = os.path.join(WRKDIR, "to_build.json")
     run([bootstrap_just, "analyse",
          "-C", CONF_FILE,
-         "--dump_graph", GRAPH,
-         "--dump_artifacts_to_build", TO_BUILD,
+         "--dump-graph", GRAPH,
+         "--dump-artifacts-to-build", TO_BUILD,
          MAIN_MODULE, MAIN_TARGET],
         cwd=src_wrkdir)
     run(["./bin/bootstrap-traverser.py",
          "-C", CONF_FILE,
-         "--default_workspace", src_wrkdir,
+         "--default-workspace", src_wrkdir,
          GRAPH, TO_BUILD],
         cwd=src_wrkdir)
     OUT = os.path.join(WRKDIR, "out")
     run(["./out-boot/%s" % (MAIN_STAGE,),
          "install", "-C", CONF_FILE,
-         "-o", OUT, "--local_build_root", LOCAL_ROOT,
+         "-o", OUT, "--local-build-root", LOCAL_ROOT,
          MAIN_MODULE, MAIN_TARGET],
         cwd=src_wrkdir)
 

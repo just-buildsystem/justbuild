@@ -1255,7 +1255,7 @@ auto main(int argc, char* argv[]) -> int {
                     Logger::Log(LogLevel::Error,
                                 "Command line options {} and {} cannot be used "
                                 "together.",
-                                "--git_cas",
+                                "--git-cas",
                                 "--compatible");
                     std::exit(EXIT_FAILURE);
                 }
