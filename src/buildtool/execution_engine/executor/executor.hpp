@@ -552,13 +552,11 @@ class Rebuilder {
         auto const& action_id = action.Id();
         if (msg->tellp() <= 0) {
             bool tainted = action.MayFail() or action.NoCache();
-            static constexpr auto kMaxCmdChars = 69;  // 80 - (prefix + suffix)
             auto cmd = GetCmdString(action);
             (*msg) << "Found flaky " << (tainted ? "tainted " : "")
                    << "action:" << std::endl
                    << " - id: " << action_id << std::endl
-                   << " - cmd: " << cmd.substr(0, kMaxCmdChars)
-                   << (cmd.length() > kMaxCmdChars ? "..." : "") << std::endl;
+                   << " - cmd: " << cmd << std::endl;
         }
         (*msg) << " - output '" << path << "' differs:" << std::endl
                << "   - " << rebuilt.ToString() << " (rebuilt)" << std::endl
