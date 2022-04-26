@@ -84,9 +84,11 @@ class FileRoot {
   public:
     class DirectoryEntries {
         friend class FileRoot;
+
+      public:
         using pairs_t = std::unordered_map<std::string, ObjectType>;
         using tree_t = gsl::not_null<GitTree const*>;
-        using entries_t = std::variant<std::monostate, tree_t, pairs_t>;
+        using entries_t = std::variant<tree_t, pairs_t>;
 
         using fs_iterator_type = typename pairs_t::const_iterator;
         using fs_iterator = FilteredIterator<fs_iterator_type>;
@@ -94,6 +96,7 @@ class FileRoot {
         using git_iterator_type = GitTree::entries_t::const_iterator;
         using git_iterator = FilteredIterator<git_iterator_type>;
 
+      private:
         /// Iterator has two FilteredIterators, one for iterating over pairs_t
         /// and one for tree_t. Each FilteredIterator is constructed with a
         /// proper predicate, allowing for iteration on file-only or
@@ -146,8 +149,6 @@ class FileRoot {
         };
 
       public:
-        DirectoryEntries() noexcept = default;
-
         explicit DirectoryEntries(pairs_t pairs) noexcept
             : data_{std::move(pairs)} {}
 
@@ -226,7 +227,7 @@ class FileRoot {
         }
 
       private:
-        entries_t data_{};
+        entries_t data_;
     };
 
     FileRoot() noexcept = default;
@@ -346,7 +347,7 @@ class FileRoot {
                         dir_path.string(),
                         ex.what());
         }
-        return {};
+        return DirectoryEntries{DirectoryEntries::pairs_t{}};
     }
 
     [[nodiscard]] auto FileType(std::filesystem::path const& file_path)

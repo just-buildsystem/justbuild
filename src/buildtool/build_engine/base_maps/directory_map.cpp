@@ -25,7 +25,8 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(std::size_t jobs)
         if (not ws_root->IsDirectory(key.module)) {
             // Missing directory is fine (source tree might be incomplete),
             // contains no entries.
-            (*setter)(FileRoot::DirectoryEntries{});
+            (*setter)(FileRoot::DirectoryEntries{
+                FileRoot::DirectoryEntries::pairs_t{}});
             return;
         }
         (*setter)(ws_root->ReadDirectory(key.module));
