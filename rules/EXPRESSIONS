@@ -1,43 +1,65 @@
-{ "field_artifacts":
-  { "vars": ["fieldname", "transition"]
+{ "field_artifacts_list":
+  { "doc": ["Query list of artifacts from target_field's targets"]
+  , "vars": ["fieldname", "transition"]
+  , "vars_doc":
+    { "fieldname": "The name of the target_field to query."
+    , "transition": "The optional configuration transition for the targets."
+    }
+  , "expression":
+    { "type": "foreach"
+    , "var": "x"
+    , "range": {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+    , "body":
+      { "type": "DEP_ARTIFACTS"
+      , "dep": {"type": "var", "name": "x"}
+      , "transition":
+        {"type": "var", "name": "transition", "default": {"type": "empty_map"}}
+      }
+    }
+  }
+, "field_artifacts":
+  { "doc": ["Query and merge artifacts from target_field's targets"]
+  , "vars": ["fieldname", "transition"]
+  , "vars_doc":
+    { "fieldname": "The name of the target_field to query."
+    , "transition": "The optional configuration transition for the targets."
+    }
+  , "imports": {"artifacts_list": "field_artifacts_list"}
   , "expression":
     { "type": "map_union"
-    , "$1":
-      { "type": "foreach"
-      , "var": "x"
-      , "range":
-        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-      , "body":
-        { "type": "DEP_ARTIFACTS"
-        , "dep": {"type": "var", "name": "x"}
-        , "transition":
-          { "type": "var"
-          , "name": "transition"
-          , "default": {"type": "empty_map"}
-          }
-        }
+    , "$1": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
+    }
+  }
+, "field_runfiles_list":
+  { "doc": ["Query list of runfiles from target_field's targets"]
+  , "vars": ["fieldname", "transition"]
+  , "vars_doc":
+    { "fieldname": "The name of the target_field to query."
+    , "transition": "The optional configuration transition for the targets."
+    }
+  , "expression":
+    { "type": "foreach"
+    , "var": "x"
+    , "range": {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+    , "body":
+      { "type": "DEP_RUNFILES"
+      , "dep": {"type": "var", "name": "x"}
+      , "transition":
+        {"type": "var", "name": "transition", "default": {"type": "empty_map"}}
       }
     }
   }
 , "field_runfiles":
-  { "vars": ["fieldname", "transition"]
+  { "doc": ["Query and merge runfiles from target_field's targets"]
+  , "vars": ["fieldname", "transition"]
+  , "vars_doc":
+    { "fieldname": "The name of the target_field to query."
+    , "transition": "The optional configuration transition for the targets."
+    }
+  , "imports": {"runfiles_list": "field_runfiles_list"}
   , "expression":
     { "type": "map_union"
-    , "$1":
-      { "type": "foreach"
-      , "var": "x"
-      , "range":
-        {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-      , "body":
-        { "type": "DEP_RUNFILES"
-        , "dep": {"type": "var", "name": "x"}
-        , "transition":
-          { "type": "var"
-          , "name": "transition"
-          , "default": {"type": "empty_map"}
-          }
-        }
-      }
+    , "$1": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
     }
   }
 , "action_env":

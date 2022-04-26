@@ -1,5 +1,9 @@
 { "test-action":
   { "vars": ["name", "test.sh", "ATTEMPT"]
+  , "imports":
+    { "artifacts_list": ["./", "../..", "field_artifacts_list"]
+    , "runfiles_list": ["./", "../..", "field_runfiles_list"]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -39,23 +43,13 @@
             , "$1":
               { "type": "++"
               , "$1":
-                [ { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "deps"}
-                  , "body":
-                    { "type": "DEP_RUNFILES"
-                    , "dep": {"type": "var", "name": "dep"}
-                    }
-                  }
-                , { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "deps"}
-                  , "body":
-                    { "type": "DEP_ARTIFACTS"
-                    , "dep": {"type": "var", "name": "dep"}
-                    }
-                  }
-                ]
+                { "type": "let*"
+                , "bindings": [["fieldname", "deps"]]
+                , "body":
+                  [ {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
+                  , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
+                  ]
+                }
               }
             }
           }

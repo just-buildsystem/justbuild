@@ -14,6 +14,7 @@
     , "specified in \"stage\"."
     ]
   , "runfiles_doc": ["Same as artifacts"]
+  , "imports": {"runfiles_list": ["./", "..", "field_runfiles_list"]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -26,11 +27,9 @@
       , [ "srcs"
         , { "type": "disjoint_map_union"
           , "$1":
-            { "type": "foreach"
-            , "var": "x"
-            , "range": {"type": "FIELD", "name": "srcs"}
-            , "body":
-              {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "x"}}
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
             }
           }
         ]

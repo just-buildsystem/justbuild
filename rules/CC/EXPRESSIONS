@@ -134,6 +134,7 @@
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
     }
+  , "imports": {"runfiles_list": ["./", "..", "field_runfiles_list"]}
   , "expression":
     { "type": "disjoint_map_union"
     , "$1":
@@ -156,15 +157,7 @@
                 , "default": {"type": "empty_map"}
                 }
               }
-            , { "type": "foreach"
-              , "var": "target"
-              , "range":
-                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-              , "body":
-                { "type": "DEP_RUNFILES"
-                , "dep": {"type": "var", "name": "target"}
-                }
-              }
+            , {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
             ]
           }
         }
@@ -178,6 +171,7 @@
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
     }
+  , "imports": {"artifacts_list": ["./", "..", "field_artifacts_list"]}
   , "expression":
     { "type": "disjoint_map_union"
     , "$1":
@@ -200,15 +194,7 @@
                 , "default": {"type": "empty_map"}
                 }
               }
-            , { "type": "foreach"
-              , "var": "target"
-              , "range":
-                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-              , "body":
-                { "type": "DEP_ARTIFACTS"
-                , "dep": {"type": "var", "name": "target"}
-                }
-              }
+            , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
             ]
           }
         }

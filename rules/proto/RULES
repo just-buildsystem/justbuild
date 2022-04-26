@@ -29,6 +29,7 @@
       , "\"service library\"."
       ]
     }
+  , "imports": {"artifacts_list": ["./", "..", "field_artifacts_list"]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -55,13 +56,10 @@
                   { "type": "disjoint_map_union"
                   , "msg": "Sources have to be conflict free"
                   , "$1":
-                    { "type": "foreach"
-                    , "var": "x"
-                    , "range": {"type": "FIELD", "name": "srcs"}
+                    { "type": "let*"
+                    , "bindings": [["fieldname", "srcs"]]
                     , "body":
-                      { "type": "DEP_ARTIFACTS"
-                      , "dep": {"type": "var", "name": "x"}
-                      }
+                      {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
                     }
                   }
                 }

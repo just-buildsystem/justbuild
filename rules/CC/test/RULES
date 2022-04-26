@@ -58,6 +58,7 @@
     ]
   , "imports":
     { "artifacts": ["./", "../..", "field_artifacts"]
+    , "runfiles_list": ["./", "../..", "field_runfiles_list"]
     , "compile-deps": ["./", "..", "compile-deps"]
     , "link-deps": ["./", "..", "link-deps"]
     , "objects": ["./", "..", "objects"]
@@ -236,11 +237,9 @@
         , { "type": "disjoint_map_union"
           , "msg": "Data runfiles may not conflict"
           , "$1":
-            { "type": "foreach"
-            , "var": "dep"
-            , "range": {"type": "FIELD", "name": "data"}
-            , "body":
-              {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
+            { "type": "let*"
+            , "bindings": [["fieldname", "data"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
             }
           }
         ]

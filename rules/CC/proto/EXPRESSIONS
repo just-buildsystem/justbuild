@@ -19,7 +19,7 @@
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "result": ["./", "..", "lib result"]
-    , "field_runfiles": ["", "field_runfiles"]
+    , "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "protoc-deps": "protoc-deps"
     }
   , "expression":
@@ -52,11 +52,10 @@
           , "$1":
             { "type": "disjoint_map_union"
             , "$1":
-              { "type": "foreach"
-              , "var": "x"
-              , "range": {"type": "FIELD", "name": "well_known_protos"}
-              , "body":
-                {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
+              { "type": "let*"
+              , "bindings":
+                [["fieldname", "well_known_protos"], ["transition", null]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
               }
             }
           }
@@ -65,11 +64,9 @@
         , { "type": "disjoint_map_union"
           , "msg": "Sources may not conflict"
           , "$1":
-            { "type": "foreach"
-            , "var": "x"
-            , "range": {"type": "FIELD", "name": "srcs"}
-            , "body":
-              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"], ["transition", null]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
             }
           }
         ]
