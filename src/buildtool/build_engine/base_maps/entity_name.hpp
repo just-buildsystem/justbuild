@@ -88,19 +88,20 @@ template <typename T>
 }
 
 template <typename T>
-// IsList(list) == true and Size(list) >= 3
+// IsList(list) == true
 [[nodiscard]] inline auto ParseEntityNameFSReference(
     std::string const& s0,  // list[0]
     T const& list,
+    std::size_t const list_size,
     EntityName const& current,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
-        const bool is_file = s0 == EntityName::kFileLocationMarker;
-        if (is_file or s0 == EntityName::kTreeLocationMarker) {
+        bool const is_file = s0 == EntityName::kFileLocationMarker;
+        if (list_size == 3) {
             if (IsString(list[2])) {
-                const auto& name = GetString(list[2]);
-                const auto& x = current.GetNamedTarget();
+                auto const& name = GetString(list[2]);
+                auto const& x = current.GetNamedTarget();
                 if (IsNone(list[1])) {
                     return EntityName{x.repository,
                                       x.module,
@@ -109,7 +110,7 @@ template <typename T>
                                                : ReferenceType::kTree)};
                 }
                 if (IsString(list[1])) {
-                    const auto& middle = GetString(list[1]);
+                    auto const& middle = GetString(list[1]);
                     if (middle == "." or middle == x.module) {
                         return EntityName{x.repository,
                                           x.module,
@@ -130,20 +131,21 @@ template <typename T>
     return std::nullopt;
 }
 template <typename T>
-// IsList(list) == true and Size(list) >= 3
+// IsList(list) == true
 // list[0] == kRelativeLocationMarker
 [[nodiscard]] inline auto ParseEntityNameRelative(
     T const& list,
+    std::size_t const list_size,
     EntityName const& current,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
-        if (IsString(list[1]) and IsString(list[2])) {
-            const auto& relmodule = GetString(list[1]);
-            const auto& name = GetString(list[2]);
+        if (list_size == 3 and IsString(list[1]) and IsString(list[2])) {
+            auto const& relmodule = GetString(list[1]);
+            auto const& name = GetString(list[2]);
 
             std::filesystem::path m{current.GetNamedTarget().module};
-            const auto& module = (m / relmodule).lexically_normal().string();
+            auto const& module = (m / relmodule).lexically_normal().string();
             if (module.compare(0, 3, "../") != 0) {
                 return EntityName{
                     current.GetNamedTarget().repository, module, name};
@@ -160,18 +162,20 @@ template <typename T>
 }
 
 template <typename T>
-// IsList(list) == true and Size(list) >= 3
+// IsList(list) == true
 // list[0] == EntityName::kLocationMarker
 [[nodiscard]] inline auto ParseEntityNameLocation(
     T const& list,
+    std::size_t const list_size,
     EntityName const& current,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
-        if (IsString(list[1]) and IsString(list[2]) and IsString(list[3])) {
-            const auto& local_repo_name = GetString(list[1]);
-            const auto& module = GetString(list[2]);
-            const auto& target = GetString(list[3]);
+        if (list_size == 4 and IsString(list[1]) and IsString(list[2]) and
+            IsString(list[3])) {
+            auto const& local_repo_name = GetString(list[1]);
+            auto const& module = GetString(list[2]);
+            auto const& target = GetString(list[3]);
             auto const* repo_name = RepositoryConfig::Instance().GlobalName(
                 current.GetNamedTarget().repository, local_repo_name);
             if (repo_name != nullptr) {
@@ -192,18 +196,21 @@ template <typename T>
 // IsList(list) == true and Size(list) >= 3
 [[nodiscard]] inline auto ParseEntityName_3(
     T const& list,
+    std::size_t const list_size,
     EntityName const& current,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
         // the first entry of the list must be a string
         if (IsString(list[0])) {
-            const auto& s0 = GetString(list[0]);
+            auto const& s0 = GetString(list[0]);
             if (s0 == EntityName::kRelativeLocationMarker) {
-                return ParseEntityNameRelative(list, current, logger);
+                return ParseEntityNameRelative(
+                    list, list_size, current, logger);
             }
             if (s0 == EntityName::kLocationMarker) {
-                return ParseEntityNameLocation(list, current, logger);
+                return ParseEntityNameLocation(
+                    list, list_size, current, logger);
             }
             if (s0 == EntityName::kAnonymousMarker and logger) {
                 (*logger)(fmt::format(
@@ -213,7 +220,8 @@ template <typename T>
             }
             else if (s0 == EntityName::kFileLocationMarker or
                      s0 == EntityName::kTreeLocationMarker) {
-                return ParseEntityNameFSReference(s0, list, current, logger);
+                return ParseEntityNameFSReference(
+                    s0, list, list_size, current, logger);
             }
         }
     } catch (...) {
@@ -240,7 +248,7 @@ template <typename T>
                 res = ParseEntityName_2(list, current);
             }
             else if (list_size >= 3) {
-                res = ParseEntityName_3(list, current, logger);
+                res = ParseEntityName_3(list, list_size, current, logger);
             }
         }
         if (logger and (res == std::nullopt)) {
