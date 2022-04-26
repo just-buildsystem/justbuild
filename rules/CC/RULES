@@ -474,6 +474,7 @@
             }
           }
         ]
+      , ["deps-fieldnames", ["deps", "proto-deps"]]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]

@@ -128,86 +128,90 @@
     }
   }
 , "compile-deps":
-  { "expression":
+  { "doc": ["Collect compile dependencies (headers) from given target_fields"]
+  , "vars": ["deps-fieldnames"]
+  , "vars_doc":
+    { "deps-fieldnames":
+      ["List of target_field names to collect dependencies from."]
+    }
+  , "expression":
     { "type": "disjoint_map_union"
     , "$1":
       { "type": "++"
       , "$1":
-        [ { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "deps"}
-          , "body":
-            { "type": "DEP_PROVIDES"
-            , "dep": {"type": "var", "name": "dep"}
-            , "provider": "compile-deps"
-            , "default": {"type": "empty_map"}
-            }
+        { "type": "foreach"
+        , "var": "fieldname"
+        , "range": {"type": "var", "name": "deps-fieldnames"}
+        , "body":
+          { "type": "++"
+          , "$1":
+            [ { "type": "foreach"
+              , "var": "target"
+              , "range":
+                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+              , "body":
+                { "type": "DEP_PROVIDES"
+                , "dep": {"type": "var", "name": "target"}
+                , "provider": "compile-deps"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            , { "type": "foreach"
+              , "var": "target"
+              , "range":
+                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+              , "body":
+                { "type": "DEP_RUNFILES"
+                , "dep": {"type": "var", "name": "target"}
+                }
+              }
+            ]
           }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "deps"}
-          , "body":
-            {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
-          }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "proto-deps"}
-          , "body":
-            { "type": "DEP_PROVIDES"
-            , "dep": {"type": "var", "name": "dep"}
-            , "provider": "compile-deps"
-            , "default": {"type": "empty_map"}
-            }
-          }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "proto-deps"}
-          , "body":
-            {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
-          }
-        ]
+        }
       }
     }
   }
 , "link-deps":
-  { "expression":
+  { "doc": ["Collect link dependencies (libraries) from given target_fields"]
+  , "vars": ["deps-fieldnames"]
+  , "vars_doc":
+    { "deps-fieldnames":
+      ["List of target_field names to collect dependencies from."]
+    }
+  , "expression":
     { "type": "disjoint_map_union"
     , "$1":
       { "type": "++"
       , "$1":
-        [ { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "deps"}
-          , "body":
-            { "type": "DEP_PROVIDES"
-            , "dep": {"type": "var", "name": "dep"}
-            , "provider": "link-deps"
-            , "default": {"type": "empty_map"}
-            }
+        { "type": "foreach"
+        , "var": "fieldname"
+        , "range": {"type": "var", "name": "deps-fieldnames"}
+        , "body":
+          { "type": "++"
+          , "$1":
+            [ { "type": "foreach"
+              , "var": "target"
+              , "range":
+                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+              , "body":
+                { "type": "DEP_PROVIDES"
+                , "dep": {"type": "var", "name": "target"}
+                , "provider": "link-deps"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            , { "type": "foreach"
+              , "var": "target"
+              , "range":
+                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+              , "body":
+                { "type": "DEP_ARTIFACTS"
+                , "dep": {"type": "var", "name": "target"}
+                }
+              }
+            ]
           }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "deps"}
-          , "body":
-            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
-          }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "proto-deps"}
-          , "body":
-            { "type": "DEP_PROVIDES"
-            , "dep": {"type": "var", "name": "dep"}
-            , "provider": "link-deps"
-            , "default": {"type": "empty_map"}
-            }
-          }
-        , { "type": "foreach"
-          , "var": "dep"
-          , "range": {"type": "FIELD", "name": "proto-deps"}
-          , "body":
-            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
-          }
-        ]
+        }
       }
     }
   }
@@ -408,6 +412,7 @@
             }
           }
         ]
+      , ["deps-fieldnames", ["deps", "proto-deps"]]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , [ "local hdrs"
