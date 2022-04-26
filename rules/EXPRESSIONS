@@ -62,6 +62,59 @@
     , "$1": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
     }
   }
+, "field_provider_list":
+  { "doc": ["Query list of providers from targets' provides map"]
+  , "vars": ["fieldname", "provider", "transition", "default"]
+  , "vars_doc":
+    { "fieldname": ["The name of the target_field to query."]
+    , "provider": ["The name of the map provider in the provides map."]
+    , "transition": ["The optional configuration transition for the targets."]
+    , "default": ["The default if the provider was not found (default: [])."]
+    }
+  , "expression":
+    { "type": "foreach"
+    , "var": "x"
+    , "range": {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
+    , "body":
+      { "type": "DEP_PROVIDES"
+      , "dep": {"type": "var", "name": "x"}
+      , "provider": {"type": "var", "name": "provider"}
+      , "transition":
+        {"type": "var", "name": "transition", "default": {"type": "empty_map"}}
+      , "default": {"type": "var", "name": "default", "default": []}
+      }
+    }
+  }
+, "field_map_provider":
+  { "doc": ["Query and merge map-providers from targets' provides map"]
+  , "vars": ["fieldname", "provider", "transition"]
+  , "vars_doc":
+    { "fieldname": ["The name of the target_field to query."]
+    , "provider": ["The name of the map provider in the provides map."]
+    , "transition": ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"provider_list": "field_provider_list"}
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "let*"
+      , "bindings": [["default", {"type": "empty_map"}]]
+      , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
+      }
+    }
+  }
+, "field_list_provider":
+  { "doc": ["Query and merge list-providers from targets' provides map"]
+  , "vars": ["fieldname", "provider", "transition"]
+  , "vars_doc":
+    { "fieldname": ["The name of the target_field to query."]
+    , "provider": ["The name of the list provider in the provides map."]
+    , "transition": ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"provider_list": "field_provider_list"}
+  , "expression":
+    {"type": "++", "$1": {"type": "CALL_EXPRESSION", "name": "provider_list"}}
+  }
 , "action_env":
   { "vars": ["ENV"]
   , "expression":
