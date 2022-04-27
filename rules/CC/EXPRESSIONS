@@ -1,79 +1,51 @@
 { "default-CC":
-  { "expression":
+  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
     { "type": "join"
     , "$1":
-      { "type": "++"
-      , "$1":
-        { "type": "foreach"
-        , "var": "x"
-        , "range": {"type": "FIELD", "name": "defaults"}
-        , "body":
-          { "type": "DEP_PROVIDES"
-          , "provider": "CC"
-          , "dep": {"type": "var", "name": "x"}
-          }
-        }
+      { "type": "let*"
+      , "bindings": [["fieldname", "defaults"], ["provider", "CC"]]
+      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
       }
     }
   }
 , "default-CXX":
-  { "expression":
+  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
     { "type": "join"
     , "$1":
-      { "type": "++"
-      , "$1":
-        { "type": "foreach"
-        , "var": "x"
-        , "range": {"type": "FIELD", "name": "defaults"}
-        , "body":
-          { "type": "DEP_PROVIDES"
-          , "provider": "CXX"
-          , "dep": {"type": "var", "name": "x"}
-          }
-        }
+      { "type": "let*"
+      , "bindings": [["fieldname", "defaults"], ["provider", "CXX"]]
+      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
       }
     }
   }
 , "default-CFLAGS":
-  { "expression":
-    { "type": "++"
-    , "$1":
-      { "type": "foreach"
-      , "var": "x"
-      , "range": {"type": "FIELD", "name": "defaults"}
-      , "body":
-        { "type": "DEP_PROVIDES"
-        , "provider": "CFLAGS"
-        , "dep": {"type": "var", "name": "x"}
-        }
-      }
+  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings": [["fieldname", "defaults"], ["provider", "CFLAGS"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-CXXFLAGS":
-  { "expression":
-    { "type": "++"
-    , "$1":
-      { "type": "foreach"
-      , "var": "x"
-      , "range": {"type": "FIELD", "name": "defaults"}
-      , "body":
-        { "type": "DEP_PROVIDES"
-        , "provider": "CXXFLAGS"
-        , "dep": {"type": "var", "name": "x"}
-        }
-      }
+  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings": [["fieldname", "defaults"], ["provider", "CXXFLAGS"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-ENV":
-  { "expression":
-    { "type": "foreach"
-    , "var": "x"
-    , "range": {"type": "FIELD", "name": "defaults"}
-    , "body":
-      { "type": "DEP_PROVIDES"
-      , "provider": "ENV"
-      , "dep": {"type": "var", "name": "x"}
-      }
+  { "imports": {"provider_list": ["./", "..", "field_provider_list"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "ENV"]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
     }
   }
 , "configure transition":
@@ -135,7 +107,10 @@
       ["List of target_field names to collect dependencies from."]
     , "transition": ["The optional configuration transition for the targets."]
     }
-  , "imports": {"runfiles_list": ["./", "..", "field_runfiles_list"]}
+  , "imports":
+    { "runfiles_list": ["./", "..", "field_runfiles_list"]
+    , "provider_list": ["./", "..", "field_provider_list"]
+    }
   , "expression":
     { "type": "disjoint_map_union"
     , "$1":
@@ -147,19 +122,16 @@
         , "body":
           { "type": "++"
           , "$1":
-            [ { "type": "foreach"
-              , "var": "target"
-              , "range":
-                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-              , "body":
-                { "type": "DEP_PROVIDES"
-                , "dep": {"type": "var", "name": "target"}
-                , "provider": "compile-deps"
-                , "default": {"type": "empty_map"}
-                }
-              }
-            , {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
-            ]
+            { "type": "let*"
+            , "bindings":
+              [ ["provider", "compile-deps"]
+              , ["default", {"type": "empty_map"}]
+              ]
+            , "body":
+              [ {"type": "CALL_EXPRESSION", "name": "provider_list"}
+              , {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
+              ]
+            }
           }
         }
       }
@@ -173,7 +145,10 @@
       ["List of target_field names to collect dependencies from."]
     , "transition": ["The optional configuration transition for the targets."]
     }
-  , "imports": {"artifacts_list": ["./", "..", "field_artifacts_list"]}
+  , "imports":
+    { "artifacts_list": ["./", "..", "field_artifacts_list"]
+    , "provider_list": ["./", "..", "field_provider_list"]
+    }
   , "expression":
     { "type": "disjoint_map_union"
     , "$1":
@@ -185,19 +160,14 @@
         , "body":
           { "type": "++"
           , "$1":
-            [ { "type": "foreach"
-              , "var": "target"
-              , "range":
-                {"type": "FIELD", "name": {"type": "var", "name": "fieldname"}}
-              , "body":
-                { "type": "DEP_PROVIDES"
-                , "dep": {"type": "var", "name": "target"}
-                , "provider": "link-deps"
-                , "default": {"type": "empty_map"}
-                }
-              }
-            , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
-            ]
+            { "type": "let*"
+            , "bindings":
+              [["provider", "link-deps"], ["default", {"type": "empty_map"}]]
+            , "body":
+              [ {"type": "CALL_EXPRESSION", "name": "provider_list"}
+              , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
+              ]
+            }
           }
         }
       }

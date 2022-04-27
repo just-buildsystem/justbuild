@@ -29,7 +29,10 @@
       , "\"service library\"."
       ]
     }
-  , "imports": {"artifacts_list": ["./", "..", "field_artifacts_list"]}
+  , "imports":
+    { "artifacts_list": ["./", "..", "field_artifacts_list"]
+    , "list_provider": ["./", "..", "field_list_provider"]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -68,17 +71,9 @@
           ]
         ]
       , [ "deps"
-        , { "type": "++"
-          , "$1":
-            { "type": "foreach"
-            , "var": "x"
-            , "range": {"type": "FIELD", "name": "deps"}
-            , "body":
-              { "type": "DEP_PROVIDES"
-              , "dep": {"type": "var", "name": "x"}
-              , "provider": "proto"
-              }
-            }
+        , { "type": "let*"
+          , "bindings": [["fieldname", "deps"], ["provider", "proto"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
           }
         ]
       , [ "node"

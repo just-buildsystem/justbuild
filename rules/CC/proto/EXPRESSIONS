@@ -1,16 +1,15 @@
 { "protoc-deps":
-  { "expression":
+  { "imports": {"provider_list": ["./", "../..", "field_provider_list"]}
+  , "expression":
     { "type": "disjoint_map_union"
     , "$1":
-      { "type": "foreach"
-      , "var": "dep"
-      , "range": {"type": "FIELD", "name": "deps"}
-      , "body":
-        { "type": "DEP_PROVIDES"
-        , "dep": {"type": "var", "name": "dep"}
-        , "provider": "protoc-deps"
-        , "default": {"type": "empty_map"}
-        }
+      { "type": "let*"
+      , "bindings":
+        [ ["fieldname", "deps"]
+        , ["provider", "protoc-deps"]
+        , ["default", {"type": "empty_map"}]
+        ]
+      , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
       }
     }
   }
