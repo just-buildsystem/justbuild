@@ -14,7 +14,7 @@
       , "libgit2": "com_github_libgit2_libgit2"
       , "catch2": "catch2"
       }
-    , "bootstrap": {"link": ["-lgit2", "-lpthread"]}
+    , "bootstrap": {"link": ["-lpthread"]}
     }
   , "defaults":
     { "repository":
@@ -262,6 +262,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.git2"
     , "bindings": {"rules": "rules-git2", "zlib": "zlib", "ssl": "ssl"}
+    , "bootstrap": {"include_dir": "include", "include_name": "."}
     }
   , "catch2":
     { "repository":

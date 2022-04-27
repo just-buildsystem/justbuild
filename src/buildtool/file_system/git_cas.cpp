@@ -27,6 +27,7 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
 [[nodiscard]] auto GitObjectID(std::string const& id,
                                bool is_hex_id = false) noexcept
     -> std::optional<git_oid> {
+#ifndef BOOTSTRAP_BUILD_TOOL
     if ((is_hex_id and id.size() < kOIDHexSize) or id.size() < kOIDRawSize) {
         Logger::Log(LogLevel::Error,
                     "invalid git object id {}",
@@ -48,6 +49,7 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
                 "parsing git object id {} failed with:\n{}",
                 is_hex_id ? id : ToHexString(id),
                 GitLastError());
+#endif
     return std::nullopt;
 }
 
@@ -70,6 +72,7 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
 
 auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     -> GitCASPtr {
+#ifndef BOOTSTRAP_BUILD_TOOL
     try {
         auto cas = std::make_shared<GitCAS>();
         if (cas->OpenODB(repo_path)) {
@@ -80,15 +83,19 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
                     "opening git object database failed with:\n{}",
                     ex.what());
     }
+#endif
     return nullptr;
 }
 
 GitCAS::GitCAS() noexcept {
+#ifndef BOOTSTRAP_BUILD_TOOL
     if (not(initialized_ = (git_libgit2_init() >= 0))) {
         Logger::Log(LogLevel::Error, "initializing libgit2 failed");
     }
+#endif
 }
 GitCAS::~GitCAS() noexcept {
+#ifndef BOOTSTRAP_BUILD_TOOL
     if (odb_ != nullptr) {
         git_odb_free(odb_);
         odb_ = nullptr;
@@ -96,10 +103,14 @@ GitCAS::~GitCAS() noexcept {
     if (initialized_) {
         git_libgit2_shutdown();
     }
+#endif
 }
 
 auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
     if (not initialized_) {
         return std::nullopt;
     }
@@ -123,10 +134,12 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     git_odb_object_free(obj);
 
     return data;
+#endif
 }
 
 auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::pair<std::size_t, ObjectType>> {
+#ifndef BOOTSTRAP_BUILD_TOOL
     if (not initialized_) {
         return std::nullopt;
     }
@@ -150,12 +163,15 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     if (auto obj_type = GitTypeToObjectType(type)) {
         return std::make_pair(size, *obj_type);
     }
-
+#endif
     return std::nullopt;
 }
 
 auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
     static std::mutex repo_mutex{};
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
     if (initialized_) {
         {  // lock as git_repository API has no thread-safety guarantees
             std::unique_lock lock{repo_mutex};
@@ -179,4 +195,5 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
         }
     }
     return initialized_;
+#endif
 }
