@@ -257,6 +257,16 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     if not is_in_cas(content_id):
         url = desc["fetch"]
         data = subprocess.run(["wget", "-O", "-", url], stdout=subprocess.PIPE).stdout
+        if "sha256" in desc:
+            actual_hash = hashlib.sha256(data).hexdigest()
+            if desc["sha256"] != actual_hash:
+                fail("SHA256 mismatch for %s, expected %s, found %s"
+                     % (url, desc["sha256"], actual_hash))
+        if "sha512" in desc:
+            actual_hash = hashlib.sha512(data).hexdigest()
+            if desc["sha512"] != actual_hash:
+                fail("SHA512 mismatch for %s, expected %s, found %s"
+                     % (url, desc["sha512"], actual_hash))
         add_to_cas(data)
         if not is_in_cas(content_id):
             fail("Failed to fetch a file with id %s from %s" % (content_id, url))
