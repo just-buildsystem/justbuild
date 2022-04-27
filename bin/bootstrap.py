@@ -93,8 +93,13 @@ def setup_deps():
             include_dir = os.path.join(subdir,
                                        hints.get("include_dir", "."))
             include_name = hints.get("include_name", repo)
-            os.symlink(os.path.normpath(include_dir),
-                       os.path.join(include_location, include_name))
+            if include_name == ".":
+              for entry in os.listdir(include_dir):
+                os.symlink(os.path.normpath(os.path.join(include_dir, entry)),
+                           os.path.join(include_location, entry))
+            else:
+              os.symlink(os.path.normpath(include_dir),
+                         os.path.join(include_location, include_name))
             if "build" in hints:
                 run(["sh", "-c", hints["build"]], cwd=subdir)
             if "link" in hints:
