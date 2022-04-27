@@ -78,6 +78,8 @@
       , "content": "ecbc51f342f7ad97ed4c236f36d2fb2279240d7b"
       , "distfile": "0.37.0.tar.gz"
       , "fetch": "https://github.com/gsl-lite/gsl-lite/archive/0.37.0.tar.gz"
+      , "sha256": "a31d51b73742bb234acab8d2411223cf299e760ed713f0840ffed0dabe57ca38"
+      , "sha512": "7cc94a252933bb9c66d58387e2093173c7aa810f854b38b5a9148dafb20346a9a01351f528c4e987f6abf919132dc4bd50189a58d543b476635d6f20887c7543"
       , "subdir": "gsl-lite-0.37.0/include/gsl"
       }
     , "target_root": "import targets"
@@ -89,6 +91,8 @@
       { "type": "archive"
       , "content": "3a4cf02677a25fdb4ca618de211297d001a2e7fd"
       , "fetch": "https://github.com/CLIUtils/CLI11/archive/v1.9.1.tar.gz"
+      , "sha256": "c780cf8cf3ba5ec2648a7eeb20a47e274493258f38a9b417628e0576f473a50b"
+      , "sha512": "bcccfe88695ceddd73d87738e1d5ed4372f5cf43e3866e88053dd486ea8973804022029775de781e1dbdd2e1566b77e072de00202033983217276954a07c5718"
       , "subdir": "CLI11-1.9.1/"
       }
     , "target_root": "import targets"
@@ -101,6 +105,8 @@
       { "type": "zip"
       , "content": "eb7ab4ad48f9fb6758cff4a39b76f35abead5881"
       , "fetch": "https://github.com/nlohmann/json/releases/download/v3.9.1/include.zip"
+      , "sha256": "6bea5877b1541d353bd77bdfbdb2696333ae5ed8f9e8cc22df657192218cad91"
+      , "sha512": "24984da33c5bf80eb276712d4bdc698c2724e72dc0f4c70e87527fb6b16e21f535f5a022d52c7ed2f59dcfe4a4e5b61a56101b61def09b31c827689f6c7ec673"
       , "subdir": "include/nlohmann"
       }
     , "target_root": "import targets"
@@ -113,6 +119,8 @@
       { "type": "zip"
       , "content": "939f915e9957eda2194ecf8874149e903c99d071"
       , "fetch": "https://github.com/fmtlib/fmt/releases/download/7.0.3/fmt-7.0.3.zip"
+      , "sha256": "decfdf9ad274070fa85f26407b816f5a4d82205ae86bac1990be658d0795ea4d"
+      , "sha512": "377efc454d902d925c2f889107ceb2dc7ed1c813f0035f91448f388558a732fd3df101161c679c23a950d3687cc5bf69eedee2bd90f41edd0b220e466759d62b"
       , "subdir": "fmt-7.0.3"
       }
     , "target_root": "import targets"
@@ -129,6 +137,8 @@
       { "type": "archive"
       , "content": "cdf51ff27d78e1aceb7cc01d03f9a115826501be"
       , "fetch": "https://github.com/google/boringssl/archive/e8a935e323510419e0b37638716f6df4dcbbe6f6.tar.gz"
+      , "sha256": "5bbb2bbddf5e4e5fefd02501f930436f3f45402152d7ea9f8f27916d5cf70157"
+      , "sha512": "c1cb6a94b967985e05c699ff73d1e6aebba27903d771c58008cedbbdead53eda33e112de10691af7471e823013afada466ea1abb420a3d55cfd8e2a4b09effed"
       , "subdir": "boringssl-e8a935e323510419e0b37638716f6df4dcbbe6f6"
       }
     , "target_root": "import targets"
@@ -146,6 +156,8 @@
       { "type": "archive"
       , "content": "36bbde62df284bec435f1de559094313500ade16"
       , "fetch": "https://github.com/protocolbuffers/protobuf/archive/678da4f76eb9168c9965afc2149944a66cd48546.tar.gz"
+      , "sha256": "efaf69303e01caccc2447064fc1832dfd23c0c130df0dc5fc98a13185bb7d1a7"
+      , "sha512": "ec28bbab2ae15388d7d03576b3875a01e3c971e36b1e104b15c8a4b8cf776f746d1553c195c4b50d6a6fd8d820b3e6e4f39ebf1e5b774ef112d9248577e3d7e2"
       , "subdir": "protobuf-678da4f76eb9168c9965afc2149944a66cd48546"
       }
     , "target_root": "import targets"
@@ -157,6 +169,8 @@
       { "type": "archive"
       , "content": "b5deb95d544f03f1918cc9d611c7904b8173befa"
       , "fetch": "https://github.com/bazelbuild/remote-apis/archive/v2.0.0.tar.gz"
+      , "sha256": "79204ed1fa385c03b5235f65b25ced6ac51cf4b00e45e1157beca6a28bdb8043"
+      , "sha512": "7465f4726a9cc263352f6f0ec5b065c53e2ad787611740e1a458331858bdf28d53d69ba3db3d83fbf4a578229a413ac230886b5fcd33ab76425c61b1f08ef3b3"
       , "subdir": "remote-apis-2.0.0"
       }
     , "target_root": "import targets"
@@ -172,6 +186,8 @@
       { "type": "zip"
       , "content": "8a1ca602cb7eb42094c853f0640489599962c2cc"
       , "fetch": "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip"
+      , "sha256": "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d"
+      , "sha512": "319bd988d25877bc72ab7fad8309126268f88d987a64b9ffb7956bdd442938e02ec922251de933aba8d424559fd8dc43cf7954f6c865e3f863940c1e8f533c5a"
       , "subdir": "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d"
       }
     , "target_root": "import targets"
@@ -184,6 +200,8 @@
       { "type": "archive"
       , "content": "a234f5d2ccff01ee0a36e016b482276c5078905d"
       , "fetch": "https://github.com/protocolbuffers/upb/archive/92e63da73328d01b417cf26c2de7b0a27a0f83af.tar.gz"
+      , "sha256": "79f7de61203c4ee5e4fcb2f17c5f3338119d6eb94aca8bce05332d2c1cfee108"
+      , "sha512": "9121c15ba540dbee1e09896a42b88b8616616929c4e607dbbc2f8706a8119672f34a0e81968b1d1d62b532d22bda969a32d22755b086456d031e2689aec7f24f"
       , "subdir": "upb-92e63da73328d01b417cf26c2de7b0a27a0f83af"
       }
     , "target_root": "import targets"
@@ -195,6 +213,8 @@
       { "type": "archive"
       , "content": "d9ba22c59e08577e0986c6d483f33c9fa7b2e104"
       , "fetch": "https://github.com/abseil/abseil-cpp/archive/df3ea785d8c30a9503321a3d35ee7d35808f190d.tar.gz"
+      , "sha256": "f368a8476f4e2e0eccf8a7318b98dafbe30b2600f4e3cf52636e5eb145aba06a"
+      , "sha512": "b429758c37749d3d5c5c220fe0dc00fa0e193b406545484095339b25674c4a3bb7850b76dd1a370ed2006729bcbbbb1b438995b614e149c2290bdb10038c49d1"
       , "subdir": "abseil-cpp-df3ea785d8c30a9503321a3d35ee7d35808f190d"
       }
     , "target_root": "import targets"
@@ -206,6 +226,8 @@
       { "type": "archive"
       , "content": "c47b5e6e3db9dd9f5dfec2ba28428a0444d1c052"
       , "fetch": "https://github.com/madler/zlib/archive/cacf7f1d4e3d44d871b605da3b647f07d718623f.tar.gz"
+      , "sha256": "6d4d6640ca3121620995ee255945161821218752b551a1a180f4215f7d124d45"
+      , "sha512": "c6a9e08d7cb11ed90faf40335f5378ae92cf3d973edd96be40a5dd46e9b2ab5fa26acea666ee0d3e3c69e3c7d7d709702b82ace809e59972447386c9955cf280"
       , "subdir": "zlib-cacf7f1d4e3d44d871b605da3b647f07d718623f"
       }
     , "target_root": "import targets"
@@ -217,6 +239,8 @@
       { "type": "archive"
       , "content": "987bf33d9e876431f4ab3c630ff08605f58b98a7"
       , "fetch": "https://github.com/google/re2/archive/aecba11114cf1fac5497aeb844b6966106de3eb6.tar.gz"
+      , "sha256": "9f385e146410a8150b6f4cb1a57eab7ec806ced48d427554b1e754877ff26c3e"
+      , "sha512": "bbe972e3fd65da69e0d7ac0e0b025fb09ad894315cb6c0e1268fa296599274f9f7c2e771aa577b340c8fa9412d8539fe3db2171d0e9ab9714f3f10910a1d5529"
       , "subdir": "re2-aecba11114cf1fac5497aeb844b6966106de3eb6"
       }
     , "target_root": "import targets"
@@ -228,6 +252,8 @@
       { "type": "archive"
       , "content": "229bb6835455e73a550e4dc44f8ddac22dc34aa7"
       , "fetch": "https://github.com/c-ares/c-ares/archive/e982924acee7f7313b4baa4ee5ec000c5e373c30.tar.gz"
+      , "sha256": "e8c2751ddc70fed9dc6f999acd92e232d5846f009ee1674f8aee81f19b2b915a"
+      , "sha512": "c213e2a15e5e8adfc3036d66537d4c9ca6b5685b1d0e7a57fe1abe44eebb99d5e0cb42f6a9259fd8ca75d1a4833dbc1009e2025e633b871b902b02f172fcc9bd"
       , "subdir": "c-ares-e982924acee7f7313b4baa4ee5ec000c5e373c30"
       }
     , "target_root": "import targets"
@@ -239,6 +265,8 @@
       { "type": "archive"
       , "content": "23f49d3b842f2e916c861d5150e4b7d048084888"
       , "fetch": "https://github.com/grpc/grpc/archive/v1.31.0.tar.gz"
+      , "sha256": "1236514199d3deb111a6dd7f6092f67617cd2b147f7eda7adbafccea95de7381"
+      , "sha512": "fc68079a70c39d66cb6f028e775418a90c61694406ddfa413298ec33de2f56e26eb47e10a53fc616e32c254c84e335598dc22598a95c223698ebf8eca60f7cea"
       , "subdir": "grpc-1.31.0"
       }
     , "target_root": "import targets"
@@ -259,6 +287,8 @@
       { "type": "archive"
       , "content": "15b9b9ac0236534922b46c301b0f791413ac8bae"
       , "fetch": "https://github.com/libgit2/libgit2/releases/download/v1.1.0/libgit2-1.1.0.tar.gz"
+      , "sha256": "ad73f845965cfd528e70f654e428073121a3fa0dc23caac81a1b1300277d4dba"
+      , "sha512": "a5226fbb11648168611a6daab978df59b68a3b5d809410d3e5dac6c04de5d962cdbabfbec7b0b6528bed94fe321d94c546748b7a180949f2ab30bb7c3487c9bc"
       , "subdir": "libgit2-1.1.0"
       }
     , "target_root": "import targets"
@@ -271,6 +301,8 @@
       { "type": "archive"
       , "content": "a154ae9e2daad22c95cff6186b18637d4e5f338c"
       , "fetch": "https://github.com/catchorg/Catch2/archive/v2.13.1.tar.gz"
+      , "sha256": "36bcc9e6190923961be11e589d747e606515de95f10779e29853cfeae560bd6c"
+      , "sha512": "2c5394d4ca8346d7d64203048f4ba503c2f813aa2ea7d065ffb9c63f532b7f18daee3e1a4a37314575e33f14259182edd1db030ed254b97a2e3f11d295555397"
       , "subdir": "Catch2-2.13.1/single_include/catch2"
       }
     , "target_root": "import targets"
