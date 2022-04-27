@@ -2,8 +2,8 @@
   { "doc": ["Query list of artifacts from target_field's targets"]
   , "vars": ["fieldname", "transition"]
   , "vars_doc":
-    { "fieldname": "The name of the target_field to query."
-    , "transition": "The optional configuration transition for the targets."
+    { "fieldname": ["The name of the target_field to query."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "expression":
     { "type": "foreach"
@@ -21,8 +21,8 @@
   { "doc": ["Query and merge artifacts from target_field's targets"]
   , "vars": ["fieldname", "transition"]
   , "vars_doc":
-    { "fieldname": "The name of the target_field to query."
-    , "transition": "The optional configuration transition for the targets."
+    { "fieldname": ["The name of the target_field to query."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "imports": {"artifacts_list": "field_artifacts_list"}
   , "expression":
@@ -34,8 +34,8 @@
   { "doc": ["Query list of runfiles from target_field's targets"]
   , "vars": ["fieldname", "transition"]
   , "vars_doc":
-    { "fieldname": "The name of the target_field to query."
-    , "transition": "The optional configuration transition for the targets."
+    { "fieldname": ["The name of the target_field to query."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "expression":
     { "type": "foreach"
@@ -53,8 +53,8 @@
   { "doc": ["Query and merge runfiles from target_field's targets"]
   , "vars": ["fieldname", "transition"]
   , "vars_doc":
-    { "fieldname": "The name of the target_field to query."
-    , "transition": "The optional configuration transition for the targets."
+    { "fieldname": ["The name of the target_field to query."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "imports": {"runfiles_list": "field_runfiles_list"}
   , "expression":
