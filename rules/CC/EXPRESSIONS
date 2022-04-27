@@ -129,10 +129,11 @@
   }
 , "compile-deps":
   { "doc": ["Collect compile dependencies (headers) from given target_fields"]
-  , "vars": ["deps-fieldnames"]
+  , "vars": ["deps-fieldnames", "transition"]
   , "vars_doc":
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "imports": {"runfiles_list": ["./", "..", "field_runfiles_list"]}
   , "expression":
@@ -166,10 +167,11 @@
   }
 , "link-deps":
   { "doc": ["Collect link dependencies (libraries) from given target_fields"]
-  , "vars": ["deps-fieldnames"]
+  , "vars": ["deps-fieldnames", "transition"]
   , "vars_doc":
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
+    , "transition": ["The optional configuration transition for the targets."]
     }
   , "imports": {"artifacts_list": ["./", "..", "field_artifacts_list"]}
   , "expression":
