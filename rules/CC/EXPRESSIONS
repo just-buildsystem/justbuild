@@ -203,6 +203,29 @@
       }
     }
   }
+, "link-args-deps":
+  { "doc": ["Collect linker arguments from given target_fields"]
+  , "vars": ["deps-fieldnames", "transition"]
+  , "vars_doc":
+    { "deps-fieldnames":
+      ["List of target_field names to collect arguments from."]
+    , "transition": ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "++"
+    , "$1":
+      { "type": "foreach"
+      , "var": "fieldname"
+      , "range": {"type": "var", "name": "deps-fieldnames"}
+      , "body":
+        { "type": "let*"
+        , "bindings": [["provider", "link-args"]]
+        , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+        }
+      }
+    }
+  }
 , "objects":
   { "vars": ["CXX", "CXXFLAGS", "ENV", "srcs", "compile-deps", "local hdrs"]
   , "expression":
@@ -361,6 +384,7 @@
     { "artifacts": ["./", "..", "field_artifacts"]
     , "compile-deps": "compile-deps"
     , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
     , "compiler": "compiler"
     , "flags": "flags"
     , "objects": "objects"
@@ -453,30 +477,7 @@
             { "type": "++"
             , "$1":
               [ {"type": "keys", "$1": {"type": "var", "name": "lib"}}
-              , { "type": "++"
-                , "$1":
-                  { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "deps"}
-                  , "body":
-                    { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "dep"}
-                    , "provider": "link-args"
-                    }
-                  }
-                }
-              , { "type": "++"
-                , "$1":
-                  { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "proto-deps"}
-                  , "body":
-                    { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "dep"}
-                    , "provider": "link-args"
-                    }
-                  }
-                }
+              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               , {"type": "var", "name": "link external", "default": []}
               ]
             }

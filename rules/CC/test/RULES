@@ -61,6 +61,7 @@
     , "runfiles_list": ["./", "../..", "field_runfiles_list"]
     , "compile-deps": ["./", "..", "compile-deps"]
     , "link-deps": ["./", "..", "link-deps"]
+    , "link-args-deps": ["./", "..", "link-args-deps"]
     , "objects": ["./", "..", "objects"]
     , "default-CXX": ["./", "..", "default-CXX"]
     , "default-CXXFLAGS": ["./", "..", "default-CXXFLAGS"]
@@ -152,18 +153,7 @@
             { "type": "++"
             , "$1":
               [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
-              , { "type": "++"
-                , "$1":
-                  { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "deps"}
-                  , "body":
-                    { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "dep"}
-                    , "provider": "link-args"
-                    }
-                  }
-                }
+              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               ]
             }
           }

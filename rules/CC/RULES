@@ -406,6 +406,7 @@
     { "artifacts": ["./", "..", "field_artifacts"]
     , "compile-deps": "compile-deps"
     , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
     , "objects": "objects"
     , "compiler": "compiler"
     , "flags": "flags"
@@ -500,18 +501,7 @@
             { "type": "++"
             , "$1":
               [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
-              , { "type": "++"
-                , "$1":
-                  { "type": "foreach"
-                  , "var": "dep"
-                  , "range": {"type": "FIELD", "name": "deps"}
-                  , "body":
-                    { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "dep"}
-                    , "provider": "link-args"
-                    }
-                  }
-                }
+              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               , {"type": "FIELD", "name": "link external"}
               ]
             }
