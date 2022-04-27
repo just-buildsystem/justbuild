@@ -135,8 +135,10 @@
     , "target_file_name": "TARGETS.boringssl"
     , "bindings": {"rules": "rules-boringssl"}
     , "bootstrap":
-      { "build": "SYS=`uname -s | tr 'A-Z' 'a-z'` && ARCH=`uname -m` && cc -I . -I src/include -c src/crypto/fipsmodule/*.c  $SYS-$ARCH/crypto/fipsmodule/*.S && ar cqs libcryto.a *.o"
+      { "build": "SYS=`uname -s | tr 'A-Z' 'a-z'` && ARCH=`uname -m` && cc -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c $SYS-$ARCH/crypto/fipsmodule/*.S && ar cqs libcrypto.a *.o"
       , "link": ["-lcrypto"]
+      , "include_dir": "src/include/openssl"
+      , "include_name": "openssl"
       }
     }
   , "protobuf":
