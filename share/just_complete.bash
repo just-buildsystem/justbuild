@@ -7,13 +7,20 @@ _just_subcommand_options(){
 }
 
 _just_completion(){
+    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild -h --help)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local cmd=${COMP_WORDS[1]}
-    if [[ $cmd =~ ^(build|analyse|describe|install|install-cas|rebuild) ]]
+    # first check if the current word matches a subcommand
+    # if we check directly with cmd, we fail to autocomplete install to install-cas
+    if [[ $word =~ ^(build|analyse|describe|install-cas|install|rebuild) ]]
     then
-        COMPREPLY=($(compgen -W "$(_just_subcommand_options $cmd)" -- $word ))
+        COMPREPLY=($(compgen -W "${SUBCOMMANDS[*]}" -- $word))
+    elif [[ $cmd =~ ^(build|analyse|describe|install-cas|install|rebuild) ]]
+    then
+        COMPREPLY=($(compgen -f -W "$(_just_subcommand_options $cmd)" -- $word ))
+        compopt -o plusdirs -o bashdefault
     else
-        COMPREPLY=($(compgen -W "build analyse describe install install-cas rebuild -h --help" -- $word))
+        COMPREPLY=($(compgen -W "${SUBCOMMANDS[*]}" -- $word))
     fi
 }
 
