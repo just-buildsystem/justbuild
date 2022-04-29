@@ -117,17 +117,14 @@
     }
   , "artifacts_doc": ["The single tree artifact staged to the given location"]
   , "runfiles_doc": ["Same as artifacts"]
-  , "imports": {"runfiles_list": ["./", "..", "field_runfiles_list"]}
+  , "imports": {"runfiles": ["./", "..", "field_runfiles"]}
   , "expression":
     { "type": "let*"
     , "bindings":
       [ [ "hdrs"
-        , { "type": "disjoint_map_union"
-          , "$1":
-            { "type": "let*"
-            , "bindings": [["fieldname", "hdrs"]]
-            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
-            }
+        , { "type": "let*"
+          , "bindings": [["fieldname", "hdrs"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
           }
         ]
       , [ "stage"

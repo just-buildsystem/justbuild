@@ -1,16 +1,9 @@
 { "protoc-deps":
-  { "imports": {"provider_list": ["./", "../..", "field_provider_list"]}
+  { "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
   , "expression":
-    { "type": "disjoint_map_union"
-    , "$1":
-      { "type": "let*"
-      , "bindings":
-        [ ["fieldname", "deps"]
-        , ["provider", "protoc-deps"]
-        , ["default", {"type": "empty_map"}]
-        ]
-      , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
-      }
+    { "type": "let*"
+    , "bindings": [["fieldname", "deps"], ["provider", "protoc-deps"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
     }
   }
 , "protoc-compile":
@@ -18,6 +11,7 @@
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "result": ["./", "..", "lib result"]
+    , "artifacts": ["./", "../..", "field_artifacts"]
     , "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "protoc-deps": "protoc-deps"
     }
@@ -49,13 +43,10 @@
         , { "type": "to_subdir"
           , "subdir": "work"
           , "$1":
-            { "type": "disjoint_map_union"
-            , "$1":
-              { "type": "let*"
-              , "bindings":
-                [["fieldname", "well_known_protos"], ["transition", null]]
-              , "body": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
-              }
+            { "type": "let*"
+            , "bindings":
+              [["fieldname", "well_known_protos"], ["transition", null]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
             }
           }
         ]
