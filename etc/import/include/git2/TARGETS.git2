@@ -1,0 +1,325 @@
+{ "sys/features.h":
+  { "type": "file_gen"
+  , "arguments_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "DEBUG_POOL"
+    , "ENABLE_TRACE"
+    , "THREADSAFE"
+    , "USE_ICONV"
+    , "USE_NSEC"
+    , "REGEX_BACKEND"
+    , "USE_SSH"
+    , "USE_NTLMCLIENT"
+    , "USE_GSSAPI"
+    , "USE_SHA1"
+    , "USE_HTTPS"
+    , "WINHTTP"
+    ]
+  , "name": "sys/features.h"
+  , "data":
+    { "type": "let*"
+    , "bindings":
+      [ ["THREADSAFE", {"type": "var", "name": "THREADSAFE", "default": true}]
+      , [ "ENABLE_TRACE"
+        , {"type": "var", "name": "ENABLE_TRACE", "default": true}
+        ]
+      , ["USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
+      , [ "WINHTTP"
+        , { "type": "var"
+          , "name": "WINHTTP"
+          , "default":
+            { "type": "=="
+            , "$1": {"type": "var", "name": "OS"}
+            , "$2": "windows"
+            }
+          }
+        ]
+      , [ "USE_HTTPS"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_HTTPS", "default": true}
+          , "case":
+            [ [ true
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "OS"}
+                , "case":
+                  [ [ "windows"
+                    , { "type": "if"
+                      , "cond": {"type": "var", "name": "WINHTTP"}
+                      , "then": "WinHTTP"
+                      , "else": true
+                      }
+                    ]
+                  ]
+                , "default": true
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_HTTPS"}
+          }
+        ]
+      , [ "USE_GSSAPI"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_GSSAPI", "default": true}
+          , "case":
+            [ [ true
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "OS"}
+                , "case": [["darwin", "GSS.framework"]]
+                , "default": "gssapi"
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_GSSAPI"}
+          }
+        ]
+      , [ "USE_SHA1"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_SHA1", "default": true}
+          , "case":
+            [ [true, "CollisionDetection"]
+            , [ "HTTPS"
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "USE_HTTPS"}
+                , "case":
+                  [ ["SecureTransport", "CommonCrypto"]
+                  , ["WinHTTP", "Win32"]
+                  , [false, "CollisionDetection"]
+                  , [null, "CollisionDetection"]
+                  ]
+                , "default": {"type": "var", "name": "USE_HTTPS"}
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_SHA1"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "join"
+      , "separator": "\n"
+      , "$1":
+        { "type": "++"
+        , "$1":
+          [ [ "#ifndef INCLUDE_features_h__"
+            , "#define INCLUDE_features_h__"
+            , ""
+            ]
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "DEBUG_POOL"}
+            , "then": ["#define GIT_DEBUG_POOL 1"]
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "ENABLE_TRACE"}
+            , "then": ["#define GIT_TRACE 1"]
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "THREADSAFE"}
+            , "then": ["#define GIT_THREADS 1"]
+            }
+          , { "type": "if"
+            , "cond":
+              { "type": "=="
+              , "$1":
+                { "type": "var"
+                , "name": "TARGET_ARCH"
+                , "default": {"type": "var", "name": "ARCH"}
+                }
+              , "$2": "x86_64"
+              }
+            , "then": ["#define GIT_ARCH_64 1"]
+            , "else": ["#define GIT_ARCH_32 1"]
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "USE_ICONV"}
+            , "then": ["#define GIT_USE_ICONV 1"]
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "USE_NSEC"}
+            , "then":
+              { "type": "++"
+              , "$1":
+                [ [ "#define GIT_USE_NSEC 1"
+                  , "#define GIT_USE_FUTIMENS 1"
+                  , "#define GIT_USE_STAT_MTIME_NSEC 1"
+                  ]
+                , { "type": "case*"
+                  , "expr": {"type": "var", "name": "OS"}
+                  , "case":
+                    { "darwin": ["#define GIT_USE_STAT_MTIMESPEC 1"]
+                    , "bsd": ["#define GIT_USE_STAT_MTIMESPEC 1"]
+                    }
+                  , "default": ["#define GIT_USE_STAT_MTIM 1"]
+                  }
+                ]
+              }
+            }
+          , { "type": "case*"
+            , "expr": {"type": "var", "name": "REGEX_BACKEND"}
+            , "case":
+              [ ["regcomp_l", ["#define GIT_REGEX_REGCOMP_L 1"]]
+              , ["regcomp", ["#define GIT_REGEX_REGCOMP 1"]]
+              , ["pcre", ["#define GIT_REGEX_PCRE 1"]]
+              , ["pcre2", ["#define GIT_REGEX_PCRE2 1"]]
+              , ["builtin", ["#define GIT_REGEX_BUILTIN 1"]]
+              , [null, ["#define GIT_REGEX_BUILTIN 1"]]
+              ]
+            , "default":
+              { "type": "fail"
+              , "msg": "The REGEX_BACKEND option provided is not supported"
+              }
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "USE_SSH"}
+            , "then":
+              ["#define GIT_SSH 1", "#define GIT_SSH_MEMORY_CREDENTIALS 1"]
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "USE_NTLMCLIENT"}
+            , "then": ["#define GIT_NTLM 1"]
+            }
+          , { "type": "case*"
+            , "expr": {"type": "var", "name": "USE_GSSAPI"}
+            , "case":
+              [ ["GSS.framework", ["#define GIT_GSSFRAMEWORK 1"]]
+              , ["gssapi", ["#define GIT_GSSAPI 1"]]
+              , [false, []]
+              ]
+            , "default":
+              { "type": "fail"
+              , "msg": "Backend asked for in USE_GSSAPI is not supported"
+              }
+            }
+          , { "type": "if"
+            , "cond": {"type": "var", "name": "USE_HTTPS"}
+            , "then":
+              { "type": "++"
+              , "$1":
+                [ ["#define GIT_HTTPS 1"]
+                , { "type": "case*"
+                  , "expr": {"type": "var", "name": "USE_HTTPS"}
+                  , "case":
+                    [ ["SecureTransport", ["#define GIT_SECURE_TRANSPORT 1"]]
+                    , ["OpenSSL", ["#define GIT_OPENSSL 1"]]
+                    , ["mbedTLS", ["#define GIT_MBEDTLS 1"]]
+                    , ["WinHTTP", ["#define GIT_WINHTTP 1"]]
+                    ]
+                  , "default":
+                    { "type": "fail"
+                    , "msg": "Backend asked for in USE_HTTPS is not supported"
+                    }
+                  }
+                ]
+              }
+            }
+          , { "type": "case*"
+            , "expr": {"type": "var", "name": "USE_SHA1"}
+            , "case":
+              [ ["CollisionDetection", ["#define GIT_SHA1_COLLISIONDETECT 1"]]
+              , ["Win32", ["#define GIT_SHA1_WIN32 1"]]
+              , ["CommonCrypto", ["#define GIT_SHA1_COMMON_CRYPTO 1"]]
+              , ["OpenSSL", ["#define GIT_SHA1_OPENSSL 1"]]
+              , ["mbedTLS", ["#define GIT_SHA1_MBEDTLS 1"]]
+              ]
+            }
+          , ["", "#endif", ""]
+          ]
+        }
+      }
+    }
+  }
+, "TREE":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "stage": ["git2"]
+  , "hdrs":
+    [ "annotated_commit.h"
+    , "apply.h"
+    , "attr.h"
+    , "blame.h"
+    , "blob.h"
+    , "branch.h"
+    , "buffer.h"
+    , "cert.h"
+    , "checkout.h"
+    , "cherrypick.h"
+    , "clone.h"
+    , "commit.h"
+    , "common.h"
+    , "config.h"
+    , "credential.h"
+    , "credential_helpers.h"
+    , "cred_helpers.h"
+    , "deprecated.h"
+    , "describe.h"
+    , "diff.h"
+    , "errors.h"
+    , "filter.h"
+    , "global.h"
+    , "graph.h"
+    , "ignore.h"
+    , "indexer.h"
+    , "index.h"
+    , "mailmap.h"
+    , "merge.h"
+    , "message.h"
+    , "net.h"
+    , "notes.h"
+    , "object.h"
+    , "odb_backend.h"
+    , "odb.h"
+    , "oidarray.h"
+    , "oid.h"
+    , "pack.h"
+    , "patch.h"
+    , "pathspec.h"
+    , "proxy.h"
+    , "rebase.h"
+    , "refdb.h"
+    , "reflog.h"
+    , "refs.h"
+    , "refspec.h"
+    , "remote.h"
+    , "repository.h"
+    , "reset.h"
+    , "revert.h"
+    , "revparse.h"
+    , "revwalk.h"
+    , "signature.h"
+    , "stash.h"
+    , "status.h"
+    , "stdint.h"
+    , "strarray.h"
+    , "submodule.h"
+    , "tag.h"
+    , "trace.h"
+    , "transaction.h"
+    , "transport.h"
+    , "tree.h"
+    , "types.h"
+    , "version.h"
+    , "worktree.h"
+    , "sys/alloc.h"
+    , "sys/commit.h"
+    , "sys/config.h"
+    , "sys/credential.h"
+    , "sys/cred.h"
+    , "sys/diff.h"
+    , "sys/filter.h"
+    , "sys/hashsig.h"
+    , "sys/index.h"
+    , "sys/mempack.h"
+    , "sys/merge.h"
+    , "sys/odb_backend.h"
+    , "sys/openssl.h"
+    , "sys/path.h"
+    , "sys/refdb_backend.h"
+    , "sys/reflog.h"
+    , "sys/refs.h"
+    , "sys/repository.h"
+    , "sys/stream.h"
+    , "sys/transport.h"
+    , "sys/features.h"
+    ]
+  }
+}
