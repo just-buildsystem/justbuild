@@ -59,7 +59,7 @@
     }
   , "imports": {"runfiles_list": "field_runfiles_list"}
   , "expression":
-    { "type": "map_union"
+    { "type": "disjoint_map_union"
     , "msg": "runfiles must not overlap"
     , "$1": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
     }
