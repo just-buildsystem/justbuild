@@ -263,6 +263,11 @@
               , { "type": "ACTION"
                 , "outs": [{"type": "var", "name": "work out"}]
                 , "inputs": {"type": "var", "name": "inputs"}
+                , "env":
+                  { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
                 , "cmd":
                   { "type": "++"
                   , "$1":
@@ -422,6 +427,8 @@
             { "type": "ACTION"
             , "outs": [{"type": "var", "name": "libname"}]
             , "inputs": {"type": "var", "name": "objects"}
+            , "env":
+              {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
             , "cmd":
               { "type": "++"
               , "$1":
