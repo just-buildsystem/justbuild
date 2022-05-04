@@ -40,6 +40,8 @@ GIT_NOBODY_ENV ={
     "GIT_COMMITTER_DATE": "1970-01-01T00:00Z",
     "GIT_COMMITTER_NAME": "Nobody",
     "GIT_COMMITTER_EMAIL": "nobody@example.org",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_SYSTEM": "/dev/null",
 }
 
 
@@ -281,8 +283,16 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
         run_cmd(["tar", "xf", cas_path(content_id)], cwd=target)
     if ALWAYS_FILE:
         return ["file", subdir_path(target, desc)]
-    run_cmd(["git", "init"], cwd=target)
-    run_cmd(["git", "add", "."], cwd=target)
+    run_cmd(
+        ["git", "init"],
+        cwd=target,
+        env=dict(os.environ, **GIT_NOBODY_ENV),
+    )
+    run_cmd(
+        ["git", "add", "."],
+        cwd=target,
+        env=dict(os.environ, **GIT_NOBODY_ENV),
+    )
     run_cmd(
         ["git", "commit", "-m", "Content of %s %r" % (repo_type, content_id)],
         cwd=target,
