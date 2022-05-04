@@ -75,6 +75,7 @@ auto SetupAnalyseCommandArguments(
     SetupCommonArguments(app, &clargs->common);
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupDiagnosticArguments(app, &clargs->diagnose);
+    SetupCompatibilityArguments(app);
 }
 
 /// \brief Setup arguments for sub command "just build".
