@@ -329,10 +329,14 @@ void InstallRuleWithDeps(
         // within a target, artifacts and runfiles may overlap, but artifacts
         // take perference
         for (auto const& [path, artifact] : target->Artifacts()->Map()) {
-            subdir_stage.emplace((dir_path / path).string(), artifact);
+            subdir_stage.emplace(
+                BuildMaps::Target::Utils::normal(dir_path / path).string(),
+                artifact);
         }
         for (auto const& [path, artifact] : target->RunFiles()->Map()) {
-            subdir_stage.emplace((dir_path / path).string(), artifact);
+            subdir_stage.emplace(
+                BuildMaps::Target::Utils::normal(dir_path / path).string(),
+                artifact);
         }
         auto to_stage = ExpressionPtr{Expression::map_t{subdir_stage}};
         auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());

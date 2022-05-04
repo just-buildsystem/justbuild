@@ -73,17 +73,14 @@ auto BuildMaps::Target::Utils::keys_expr(const ExpressionPtr& map)
     return ExpressionPtr{result};
 }
 
-namespace {
-
-auto normal(std::filesystem::path const& p) -> std::filesystem::path {
+auto BuildMaps::Target::Utils::normal(std::filesystem::path const& p)
+    -> std::filesystem::path {
     auto n = p.lexically_normal();
     if (not n.has_filename()) {
         return n.parent_path();
     }
     return n;
 }
-
-}  // namespace
 
 auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     -> std::optional<std::string> {

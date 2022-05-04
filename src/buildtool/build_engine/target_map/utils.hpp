@@ -35,6 +35,8 @@ auto obtainTarget(const SubExprEvaluator&,
 
 auto keys_expr(const ExpressionPtr& map) -> ExpressionPtr;
 
+auto normal(std::filesystem::path const& p) -> std::filesystem::path;
+
 auto tree_conflict(const ExpressionPtr& /* map */)
     -> std::optional<std::string>;
 
