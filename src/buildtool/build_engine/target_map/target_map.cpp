@@ -369,6 +369,14 @@ void withDependencies(
                                       input_path)};
                   }
               }
+              auto conflict_or_normal =
+                  BuildMaps::Target::Utils::artifacts_tree(inputs_exp);
+              if (std::holds_alternative<std::string>(conflict_or_normal)) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("inputs conflict on path {}",
+                                  std::get<std::string>(conflict_or_normal))};
+              }
+              inputs_exp = std::get<ExpressionPtr>(conflict_or_normal);
               auto conflict =
                   BuildMaps::Target::Utils::tree_conflict(inputs_exp);
               if (conflict) {
@@ -677,6 +685,21 @@ void withDependencies(
                                       path)};
                   }
               }
+              auto artifacts_normal =
+                  BuildMaps::Target::Utils::artifacts_tree(artifacts);
+              if (std::holds_alternative<std::string>(artifacts_normal)) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("artifacts conflict on path {}",
+                                  std::get<std::string>(artifacts_normal))};
+              }
+              artifacts = std::get<ExpressionPtr>(artifacts_normal);
+              auto artifacts_conflict =
+                  BuildMaps::Target::Utils::tree_conflict(artifacts);
+              if (artifacts_conflict) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("artifacts conflicts on subtree {}",
+                                  *artifacts_conflict)};
+              }
               if (not runfiles->IsMap()) {
                   throw Evaluator::EvaluationError{fmt::format(
                       "runfiles has to be a map of artifacts, but found {}",
@@ -690,6 +713,20 @@ void withDependencies(
                                       entry->ToString(),
                                       path)};
                   }
+              }
+              auto runfiles_normal =
+                  BuildMaps::Target::Utils::artifacts_tree(runfiles);
+              if (std::holds_alternative<std::string>(runfiles_normal)) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("runfiles conflict on path {}",
+                                  std::get<std::string>(runfiles_normal))};
+              }
+              runfiles = std::get<ExpressionPtr>(runfiles_normal);
+              auto runfiles_conflict =
+                  BuildMaps::Target::Utils::tree_conflict(runfiles);
+              if (runfiles_conflict) {
+                  throw Evaluator::EvaluationError{fmt::format(
+                      "runfiles conflicts on subtree {}", *runfiles_conflict)};
               }
               if (not provides->IsMap()) {
                   throw Evaluator::EvaluationError{

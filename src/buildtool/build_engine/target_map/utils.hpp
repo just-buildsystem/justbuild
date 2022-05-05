@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <unordered_map>
+#include <variant>
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
@@ -34,6 +35,9 @@ auto obtainTarget(const SubExprEvaluator&,
     -> AnalysedTargetPtr;
 
 auto keys_expr(const ExpressionPtr& map) -> ExpressionPtr;
+
+auto artifacts_tree(const ExpressionPtr& map)
+    -> std::variant<std::string, ExpressionPtr>;
 
 auto tree_conflict(const ExpressionPtr& /* map */)
     -> std::optional<std::string>;

@@ -150,6 +150,14 @@ archiver, etc. The action function takes the following arguments.
   not modify the input files in any way. (In-place operations can
   be simulated by staging, as is shown in the example later in
   this document.)
+
+  It is an additional requirement that no conflicts occur when
+  interpreting the keys as paths. For example, ~"foo.txt"~ and
+  ~"./foo.txt"~ are different as strings and hence legitimately
+  can be assigned different values in a map. When interpreted as
+  a path, however, they name the same path; so, if the ~"inputs"~
+  map contains both those keys, the corresponding values have
+  to be equal.
 - ~"cmd"~ The command to execute, given as ~argv~ vector, i.e.,
   a non-empty list of strings. The 0'th element of that list will
   also be the program to be executed.
@@ -169,12 +177,16 @@ environment with the given inputs).
 **** ~RESULT~
 
 The ~RESULT~ function is the only way to obtain a result value.
-It takes three (evaluated) arguments, ~artifacts~, ~runfiles~, and
-~provides~, all of which are optional and default to the empty map.
+It takes three (evaluated) arguments, ~"artifacts"~, ~"runfiles"~, and
+~"provides"~, all of which are optional and default to the empty map.
 It defines the result of a target that has the given artifacts,
-runfiles, and provided data, respectively. In particular, ~artifacts~
-and ~runfiles~ have to be maps to artifacts, and ~provides~ has
-to be a map.
+runfiles, and provided data, respectively. In particular, ~"artifacts"~
+and ~"runfiles"~ have to be maps to artifacts, and ~"provides"~ has
+to be a map. Moreover, they keys in ~"runfiles"~ and ~"artifacts"~
+are treated as paths; it is an error if this interpretation yields
+to conflicts. The keys in the artifacts or runfile maps as seen by
+other targets are the normalized paths of the keys given.
+
 
 Result values themselves are opaque in our expression language
 and cannot be deconstructed in any way. Their only purpose is to

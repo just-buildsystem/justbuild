@@ -75,6 +75,20 @@ auto BuildMaps::Target::Utils::keys_expr(const ExpressionPtr& map)
     return ExpressionPtr{result};
 }
 
+auto BuildMaps::Target::Utils::artifacts_tree(const ExpressionPtr& map)
+    -> std::variant<std::string, ExpressionPtr> {
+    auto result = Expression::map_t::underlying_map_t{};
+    for (auto const& [key, artifact] : map->Map()) {
+        auto location = ToNormalPath(std::filesystem::path{key}).string();
+        if (auto it = result.find(location);
+            it != result.end() && !(it->second == artifact)) {
+            return location;
+        }
+        result.emplace(std::move(location), artifact);
+    }
+    return ExpressionPtr{Expression::map_t{result}};
+}
+
 auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     -> std::optional<std::string> {
     std::vector<std::filesystem::path> trees{};

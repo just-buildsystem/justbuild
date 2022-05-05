@@ -12,6 +12,15 @@
   , "keep": ["blobs.json", "trees.json", "out/index.txt"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "conflicts":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["conflicts"]
+  , "test": ["conflicts.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["equality", "trees"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["equality", "trees", "conflicts"]
+  }
 }
