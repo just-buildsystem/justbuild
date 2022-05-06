@@ -162,18 +162,19 @@ Consider the following target file.
 }
 #+END_SRC
 
-Assume we build the target "ALL". Then we will analyse 7 targets, all
-the locationally different ones ("foo", "bar", "baz", "foo upper", "bar
-upper", "baz upper"). For the targets "foo" and "bar", we immediately
-see that the definition is equal; their intensional equality also
-renders "foo upper" and "bar upper" intensionally equal. Our action
-graph will contain 4 actions: one with origins ["foo", "bar"], one
-with origins ["baz"], one with origins ["foo upper", "bar upper"],
-and one with origins ["baz upper"]. The "install" target will, of
-course, not create any actions. Building sequentially ("-J 1"), we
-will get one cache hit. Even though the artifacts of "foo"/"bar"
-and "baz" are defined differently, they are extensionally equal;
-both define a file with contents ~"Hello World\n"~.
+Assume we build the target ~"ALL"~. Then we will analyse 7 targets,
+all the locationally different ones (~"foo"~, ~"bar"~, ~"baz"~,
+~"foo upper"~, ~"bar upper"~, ~"baz upper"~). For the targets ~"foo"~
+and ~"bar"~, we immediately see that the definition is equal; their
+intensional equality also renders ~"foo upper"~ and ~"bar upper"~
+intensionally equal. Our action graph will contain 4 actions: one
+with origins ~["foo", "bar"]~, one with origins ~["baz"]~, one with
+origins ~["foo upper", "bar upper"]~, and one with origins ~["baz
+upper"]~. The ~"install"~ target will, of course, not create any
+actions. Building sequentially (~-J 1~), we will get one cache hit.
+Even though the artifacts of ~"foo"~ and ~"bar"~ and of ~"baz~"
+are defined differently, they are extensionally equal; both define
+a file with contents ~"Hello World\n"~.
 
 ** Anonymous targets
 
@@ -240,7 +241,7 @@ corresponding, extensionally equal, known value.
 However, some care has to be taken in the serialisation that is
 part of the caching, as we do not want to unfold the the dag to
 a tree. Therefore, we take as JSON serialisation a simple dict
-with with "type" set to "NODE", and "value" set to the Merkle-tree
+with ~"type"~ set to ~"NODE"~, and ~"value"~ set to the Merkle-tree
 hash. That serialisation respects intensional equality. To allow
 deserialisation, we add an additional map to the serialisation from
 node hash to its definition.
@@ -260,7 +261,7 @@ It should be noted that such an anonymous target contains all the
 information needed to evaluate it in the same way as a regular (named)
 target defined by a user-defined rule. It is an analysis error
 analysing an anonymous target where there is no entry in the rules
-map for the string given as "node_type" for the corresponding node.
+map for the string given as ~"node_type"~ for the corresponding node.
 
 **** Anonymous targets as additional dependencies
 
@@ -271,24 +272,24 @@ certain fixed steps in the evaluation of a target. To still achieve
 a meaningful use of anonymous targets our rule language hanldes
 anonymous targets in the following way.
 
-***** Rules paramaeter "anonymous"
+***** Rules parameter ~"anonymous"~
 
-In the rule definition a paramter "anonymous" (with empty map as
+In the rule definition a parameter ~"anonymous"~ (with empty map as
 default) is allowed. It is used to define an additional dependency on
 anonymous targets. The value has to be a map with keys the additional
 implicitly defined field names. It is hence a requirement that the
 set of keys be disjoint from all other field names (the values of
-"config_fields", "string_fields", and "target_fields", as well as
-the keys of the "implict" parameter). Another consequence is that
-"config_transitions" map may now also have meaningful entries for
-the keys of the "anonymous" map. Each value in the map has to be
-itself a map, with entries "target", "provider", and "rule_map".
+~"config_fields"~, ~"string_fields"~, and ~"target_fields"~, as well as
+the keys of the ~"implict"~ parameter). Another consequence is that
+~"config_transitions"~ map may now also have meaningful entries for
+the keys of the ~"anonymous"~ map. Each value in the map has to be
+itself a map, with entries ~"target"~, ~"provider"~, and ~"rule_map"~.
 
-For "target", a single string has to be specifed, and the value has
-to be a member of the "target_fields" list. For provider, a single
+For ~"target"~, a single string has to be specifed, and the value has
+to be a member of the ~"target_fields"~ list. For provider, a single
 string has to be specified as well. The idea is that the nodes are
 collected from that provider of the targets in the specified target
-field. For "rule_map" a map has to be specified from strings to
+field. For ~"rule_map"~ a map has to be specified from strings to
 rule names; the latter are evaluated in the context of the rule
 definition.
 
@@ -318,11 +319,11 @@ The evaluation of a target defined by a user-defined rule is handled
 as follows. After the target fields are evaluated as usual, an
 additional step is carried out.
 
-For each anymous-target field, i.e., for each key in the "anonymous"
+For each anymous-target field, i.e., for each key in the ~"anonymous"~
 map, a list of anymous targets is generated from the corresponding
-value: take all targets from the specified "target" field in all
+value: take all targets from the specified ~"target"~ field in all
 their specified configuration transitions (they have already been
-evaluated) and take the values provided for the specifed "provider"
+evaluated) and take the values provided for the specified ~"provider"~
 key (using the empty list as default). That value has to be a list
 of nodes. All the node lists obtained that way are concatenated.
 The configuration transition for the respective field name is
