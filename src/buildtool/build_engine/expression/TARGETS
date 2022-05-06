@@ -39,6 +39,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "atomic"]
+    , ["src/utils/cpp", "path"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]

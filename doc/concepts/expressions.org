@@ -255,7 +255,10 @@ those) argument(s) to obtain the final result.
   ~"subdir"~ argument and the base name of the old key. It is an
   error if conflicts occur in this way; in case of such a user
   error, the argument ~"msg"~ is also evaluated and the result
-  of that evaluatino reported in the error message.
+  of that evaluation reported in the error message. Note that
+  conflicts can also occur in non-flat staging if two keys are
+  different as strings, but name the same path (like ~"foo.txt"~
+  and ~"./foo.txt"~), and are assigned different values.
 
 ***** Binary functions
 

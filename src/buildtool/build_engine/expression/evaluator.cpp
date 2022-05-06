@@ -10,6 +10,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 
@@ -558,8 +559,8 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
     if (flat) {
         for (auto const& el : d->Map()) {
             std::filesystem::path k{el.first};
-            auto new_path = subdir / k.filename();
-            if (result.contains(new_path) && !(result[new_path] == el.second)) {
+            auto new_key = ToNormalPath(subdir / k.filename()).string();
+            if (result.contains(new_key) && !(result[new_key] == el.second)) {
                 // Check if the user specifed an error message for that case,
                 // otherwise just generate a generic error message.
                 auto msg_expr = expr->Map().Find("msg");
@@ -568,7 +569,7 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
                         "Flat staging of {} to subdir {} conflicts on path {}",
                         d->ToString(),
                         subdir.string(),
-                        new_path.string())};
+                        new_key)};
                 }
                 std::string msg;
                 try {
@@ -581,16 +582,42 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
                 std::stringstream ss{};
                 ss << msg << std::endl;
                 ss << "Reason: flat staging to subdir " << subdir.string()
-                   << " conflicts on path " << new_path.string() << std::endl;
+                   << " conflicts on path " << new_key << std::endl;
                 ss << "Map to flatly stage was " << d->ToString() << std::endl;
                 throw Evaluator::EvaluationError(ss.str(), false, true);
             }
-            result[new_path] = el.second;
+            result[new_key] = el.second;
         }
     }
     else {
         for (auto const& el : d->Map()) {
-            result[(subdir / el.first).string()] = el.second;
+            auto new_key = ToNormalPath(subdir / el.first).string();
+            if (auto it = result.find(new_key);
+                it != result.end() && !(it->second == el.second)) {
+                auto msg_expr = expr->Map().Find("msg");
+                if (not msg_expr) {
+                    throw Evaluator::EvaluationError{fmt::format(
+                        "Staging of {} to subdir {} conflicts on path {}",
+                        d->ToString(),
+                        subdir.string(),
+                        new_key)};
+                }
+                std::string msg;
+                try {
+                    auto msg_val = eval(msg_expr->get(), env);
+                    msg = msg_val->ToString();
+                } catch (std::exception const&) {
+                    msg =
+                        "[non evaluating term] " + msg_expr->get()->ToString();
+                }
+                std::stringstream ss{};
+                ss << msg << std::endl;
+                ss << "Reason: staging to subdir " << subdir.string()
+                   << " conflicts on new path " << new_key << std::endl;
+                ss << "Map to stage was " << d->ToString() << std::endl;
+                throw Evaluator::EvaluationError(ss.str(), false, true);
+            }
+            result.emplace(std::move(new_key), el.second);
         }
     }
     return ExpressionPtr{Expression::map_t{result}};

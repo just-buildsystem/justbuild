@@ -1103,6 +1103,18 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
                   R"({"prefix/foo": "hello", "prefix/bar": "world"})"_json));
     }
 
+    SECTION("to_subdir expression with conflict") {
+        auto expr = Expression::FromJson(R"(
+            { "type": "to_subdir"
+            , "subdir": "prefix"
+            , "$1": { "type": "literal"
+                    , "$1": { "foo": "hello"
+                            , "./foo": "world" }}})"_json);
+        REQUIRE(expr);
+
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+    }
+
     SECTION("flat to_subdir without proper conflict") {
         auto expr = Expression::FromJson(R"(
             { "type": "to_subdir"
