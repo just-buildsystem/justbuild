@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <vector>
 
+#include "src/utils/cpp/path.hpp"
+
 auto BuildMaps::Target::Utils::obtainTargetByName(
     const SubExprEvaluator& eval,
     const ExpressionPtr& expr,
@@ -73,28 +75,19 @@ auto BuildMaps::Target::Utils::keys_expr(const ExpressionPtr& map)
     return ExpressionPtr{result};
 }
 
-auto BuildMaps::Target::Utils::normal(std::filesystem::path const& p)
-    -> std::filesystem::path {
-    auto n = p.lexically_normal();
-    if (not n.has_filename()) {
-        return n.parent_path();
-    }
-    return n;
-}
-
 auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     -> std::optional<std::string> {
     std::vector<std::filesystem::path> trees{};
     for (auto const& [path, artifact] : map->Map()) {
         if (artifact->Artifact().IsTree()) {
-            trees.emplace_back(normal(std::filesystem::path{path}));
+            trees.emplace_back(ToNormalPath(std::filesystem::path{path}));
         }
     }
     if (trees.empty()) {
         return std::nullopt;
     }
     for (auto const& [path, artifact] : map->Map()) {
-        auto p = normal(std::filesystem::path{path});
+        auto p = ToNormalPath(std::filesystem::path{path});
         for (auto const& treepath : trees) {
             if (not artifact->Artifact().IsTree()) {
                 if (std::mismatch(treepath.begin(), treepath.end(), p.begin())

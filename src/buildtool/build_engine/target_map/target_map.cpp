@@ -13,6 +13,7 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 
@@ -543,9 +544,8 @@ void withDependencies(
                           artifact->ToString(),
                           input_path)};
                   }
-                  auto norm_path = std::filesystem::path{input_path}
-                                       .lexically_normal()
-                                       .string();
+                  auto norm_path =
+                      ToNormalPath(std::filesystem::path{input_path});
                   if (norm_path == "." or norm_path.empty()) {
                       if (val->Map().size() > 1) {
                           throw Evaluator::EvaluationError{
@@ -1331,9 +1331,9 @@ void TreeTarget(
 
                         auto const& [input_path, artifact] =
                             *(val->Map().begin());
-                        auto norm_path = std::filesystem::path{input_path}
-                                             .lexically_normal()
-                                             .string();
+                        auto norm_path =
+                            ToNormalPath(std::filesystem::path{input_path})
+                                .string();
 
                         artifacts.emplace(std::move(norm_path),
                                           artifact->Artifact());

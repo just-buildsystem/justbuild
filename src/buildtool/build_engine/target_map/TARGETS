@@ -44,6 +44,7 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "path"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]

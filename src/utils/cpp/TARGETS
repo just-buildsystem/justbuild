@@ -37,4 +37,10 @@
   , "hdrs": ["hex_string.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "path":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["path"]
+  , "hdrs": ["path.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
