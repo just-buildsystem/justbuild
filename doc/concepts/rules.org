@@ -1,4 +1,4 @@
-* Rules
+* User-defined Rules
 
 Targets are defined in terms of high-level concepts like "libraries",
 "binaries", etc. In order to translate these high-level definitions
@@ -9,7 +9,11 @@ single point how all targets of a given type are built.
 
 Rules are defined in rules files (by default named ~RULES~). Those
 contain a JSON object mapping rule names to their rule definition.
-For rules, the same naming scheme as for targets applies.
+For rules, the same naming scheme as for targets applies. However,
+built-in rules (always named by a single string) take precedence
+in naming; to explicitly refer to a rule defined in the current
+module, the module has to be specified, possibly by a relative
+path, e.g., ~["./", ".", "install"]~.
 
 ** Basic components of a rule
 

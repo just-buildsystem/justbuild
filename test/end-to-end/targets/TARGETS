@@ -10,9 +10,16 @@
   , "test": ["repo_names.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "resolution of built-in rules":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["built-in-resolution"]
+  , "test": ["built-in-resolution.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["upwards reference", "repository naming"]
+  , "deps":
+    ["upwards reference", "repository naming", "resolution of built-in rules"]
   }
 }
