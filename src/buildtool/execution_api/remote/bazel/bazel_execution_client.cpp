@@ -57,7 +57,10 @@ auto BazelExecutionClient::ReadExecution(
     grpc::ClientReader<google::longrunning::Operation>* reader,
     bool wait) -> std::optional<google::longrunning::Operation> {
     if (reader == nullptr) {
-        // TODO(vmoreno): log error
+        LogStatus(
+            &logger_,
+            LogLevel::Error,
+            grpc::Status{grpc::StatusCode::UNKNOWN, "Reader unavailable"});
         return std::nullopt;
     }
 
@@ -65,7 +68,7 @@ auto BazelExecutionClient::ReadExecution(
     if (not reader->Read(&operation)) {
         grpc::Status status = reader->Finish();
         // TODO(vmoreno): log error using data in status and operation
-        LogStatus(&logger_, LogLevel::Debug, status);
+        LogStatus(&logger_, LogLevel::Error, status);
         return std::nullopt;
     }
     // Important note: do not call reader->Finish() unless reader->Read()
@@ -76,7 +79,7 @@ auto BazelExecutionClient::ReadExecution(
         grpc::Status status = reader->Finish();
         if (not status.ok()) {
             // TODO(vmoreno): log error from status and operation
-            LogStatus(&logger_, LogLevel::Debug, status);
+            LogStatus(&logger_, LogLevel::Error, status);
             return std::nullopt;
         }
     }
