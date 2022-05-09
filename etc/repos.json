@@ -89,11 +89,11 @@
   , "cli11":
     { "repository":
       { "type": "archive"
-      , "content": "3a4cf02677a25fdb4ca618de211297d001a2e7fd"
-      , "fetch": "https://github.com/CLIUtils/CLI11/archive/v1.9.1.tar.gz"
-      , "sha256": "c780cf8cf3ba5ec2648a7eeb20a47e274493258f38a9b417628e0576f473a50b"
-      , "sha512": "bcccfe88695ceddd73d87738e1d5ed4372f5cf43e3866e88053dd486ea8973804022029775de781e1dbdd2e1566b77e072de00202033983217276954a07c5718"
-      , "subdir": "CLI11-1.9.1/"
+      , "content": "58c912141164a5c0f0139bfa91343fefe151d525"
+      , "fetch": "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.2.0.tar.gz"
+      , "sha256": "d60440dc4d43255f872d174e416705f56ba40589f6eb07727f76376fb8378fd6"
+      , "sha512": "ee8994c99dd8119e612be0339252b863d6db9d85a10c15a6e60e56c6f387bbefaf479679bc85aed2cb6539aeb82b3e7543673a5b97eb04b61793b6946582241d"
+      , "subdir": "CLI11-2.2.0/"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.cli11"
