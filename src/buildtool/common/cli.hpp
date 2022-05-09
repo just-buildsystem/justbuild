@@ -266,13 +266,14 @@ static inline auto SetupBuildArguments(
                    throw CLI::ConversionError{property,
                                               "--remote-execution-property"};
                }
-               clargs->platform_properties.emplace(std::move(key),
-                                                   std::move(val));
+               clargs->platform_properties[std::move(key)] = std::move(val);
            },
-           "Property for remote execution as key-value pair.")
+           "Property for remote execution as key-value pair. Specifying this "
+           "option multiple times will accumulate pairs (latest wins).")
         ->type_name("KEY:VAL")
         ->allow_extra_args(false)
-        ->expected(1, 1);
+        ->expected(1, 1)
+        ->trigger_on_parse(true);  // call this everytime the option is parsed
 
     app->add_option_function<unsigned int>(
            "--action-timeout",
