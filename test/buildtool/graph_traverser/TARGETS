@@ -39,41 +39,7 @@
   }
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
-  , "srcs":
-    [ "data/copy_local_file/_entry_points"
-    , "data/copy_local_file/copy_me.hpp"
-    , "data/copy_local_file/graph_description"
-    , "data/flaky_hello_world/_entry_points"
-    , "data/flaky_hello_world/_entry_points_ctimes"
-    , "data/flaky_hello_world/_entry_points_stripped"
-    , "data/flaky_hello_world/graph_description"
-    , "data/flaky_hello_world/hello_world.cpp"
-    , "data/hello_world_copy_message/_entry_points"
-    , "data/hello_world_copy_message/_entry_points_get_executable"
-    , "data/hello_world_copy_message/_entry_points_upload_source"
-    , "data/hello_world_copy_message/graph_description"
-    , "data/hello_world_copy_message/hello_world.cpp"
-    , "data/hello_world_known_source/_entry_points"
-    , "data/hello_world_known_source/graph_description"
-    , "data/sequence_printer_build_library_only/_entry_points"
-    , "data/sequence_printer_build_library_only/_entry_points_full_build"
-    , "data/sequence_printer_build_library_only/graph_description"
-    , "data/sequence_printer_build_library_only/main.cpp"
-    , "data/sequence_printer_build_library_only/printer/printer.hpp"
-    , "data/sequence_printer_build_library_only/sequences/fibonacci.cpp"
-    , "data/sequence_printer_build_library_only/sequences/fibonacci.hpp"
-    , "data/sequence_printer_build_library_only/sequences/random_dna_sequence.cpp"
-    , "data/sequence_printer_build_library_only/sequences/random_dna_sequence.hpp"
-    , "data/sequence_printer_build_library_only/sequences/sequence.hpp"
-    , "data/use_env_variables/_entry_points"
-    , "data/use_env_variables/graph_description"
-    , "data/use_nested_trees/_entry_points"
-    , "data/use_nested_trees/graph_description"
-    , "data/use_trees/_entry_points"
-    , "data/use_trees/graph_description"
-    , "data/use_uploaded_blobs/_entry_points"
-    , "data/use_uploaded_blobs/graph_description"
-    ]
+  , "srcs": [["TREE", "test/buildtool/graph_traverser", "data"]]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "TESTS":

@@ -6,6 +6,7 @@
 #include <thread>
 
 #include "catch2/catch.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/test_env.hpp"
@@ -21,6 +22,10 @@ void wait_for_grpc_to_shutdown() {
 /// environment variable is malformed, we write a message and stop execution.
 /// \returns true   If remote execution was successfully configured.
 [[nodiscard]] auto ConfigureRemoteExecution() -> bool {
+    ReadCompatibilityFromEnv();
+    if (Compatibility::IsCompatible()) {
+        HashGenerator::SetHashGenerator(HashGenerator::HashType::SHA256);
+    }
     auto address = ReadRemoteAddressFromEnv();
     auto& config = RemoteExecutionConfig::Instance();
     if (address and not config.SetAddress(*address)) {

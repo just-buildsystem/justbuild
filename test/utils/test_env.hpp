@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "test/utils/logging/log_config.hpp"
 
 [[nodiscard]] static inline auto ReadPlatformPropertiesFromEnv()
@@ -31,6 +32,13 @@
         }
     }
     return properties;
+}
+
+static inline void ReadCompatibilityFromEnv() {
+    auto* compatible = std::getenv("COMPATIBLE");
+    if (compatible != nullptr) {
+        Compatibility::SetCompatible();
+    }
 }
 
 [[nodiscard]] static inline auto ReadRemoteAddressFromEnv()

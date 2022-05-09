@@ -1,0 +1,34 @@
+{
+    "blobs": ["test to check if blobs are uploaded", "this"],
+    "trees": {},
+    "actions": {
+        "write_test": {
+            "input": {
+                "subject": {
+                    "type": "KNOWN",
+                    "data": {
+                        "id": "1eb79602411ef02cf6fe117897015fff89f80face4eccd50425c45149b148408",
+                        "size": 4,
+                        "file_type": "f"
+                    }
+                },
+                "thing": {
+                    "type": "KNOWN",
+                    "data": {
+                    "id": "0bbd636ca17d06a5b630fe3f19844192f57fb70ae9b24686cc8a2fa7e48c9b77",
+                        "size": 35,
+                        "file_type": "f"
+                    }
+                }
+            },
+            "output": [
+                "statement"
+            ],
+            "command": [
+                "/bin/sh",
+                "-c",
+                "set -e\necho -n \"$(cat subject) is a $(cat thing)\" > statement"
+            ]
+        }
+    }
+}

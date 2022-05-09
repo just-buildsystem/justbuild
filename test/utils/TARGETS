@@ -26,7 +26,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["test_env"]
   , "hdrs": ["test_env.hpp"]
-  , "deps": ["log_config"]
+  , "deps": ["log_config", ["src/buildtool/compatibility", "compatibility"]]
   , "stage": ["test", "utils"]
   }
 , "local_hermeticity":
@@ -48,6 +48,7 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , "log_config"
     , "test_env"
     ]

@@ -95,7 +95,14 @@ class TestProject {
 
         CommandLineArguments clargs{gtargs};
         clargs.artifacts = entry_points;
-        clargs.graph_description = root_dir_ / "graph_description";
+        auto const comp_graph = root_dir_ / "graph_description_compatible";
+        if (Compatibility::IsCompatible() and
+            std::filesystem::exists(comp_graph)) {
+            clargs.graph_description = comp_graph;
+        }
+        else {
+            clargs.graph_description = root_dir_ / "graph_description";
+        }
         clargs.gtargs.jobs = std::max(1U, std::thread::hardware_concurrency());
         clargs.gtargs.stage = StageArguments{
             kOutputDirPrefix / (example_name_ + std::to_string(id++))};
@@ -233,7 +240,6 @@ class TestProject {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 0);
         CHECK(Statistics::Instance().ActionsCachedCounter() == 0);
     }
-
     TestProject hello_world_known_cpp("hello_world_known_source", run_local);
 
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
