@@ -26,6 +26,20 @@
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
+, "target_map_internals":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["target_map_internals"]
+  , "srcs": ["target_map_internals.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , [ "src/buildtool/build_engine/target_map"
+      , "target_map_testable_internals"
+      ]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["test", "buildtool", "build_engine", "target_map"]
+  }
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
@@ -67,6 +81,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["result_map", "target_map"]
+  , "deps": ["result_map", "target_map", "target_map_internals"]
   }
 }

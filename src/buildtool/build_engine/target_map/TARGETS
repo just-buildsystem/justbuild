@@ -49,4 +49,12 @@
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   }
+, "target_map_testable_internals":
+  { "type": ["@", "rules", "CC", "library"]
+  , "tainted": ["test"]
+  , "name": ["target_map_testable_internals"]
+  , "hdrs": ["utils.hpp"]
+  , "deps": ["target_map"]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
 }

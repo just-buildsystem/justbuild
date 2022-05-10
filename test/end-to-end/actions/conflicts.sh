@@ -156,6 +156,35 @@ cat > RULES <<'EOI'
       }
     }
   }
+, "file-file-conflict":
+  { "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "map"
+        , { "type": "map_union"
+          , "$1":
+            [ { "type": "singleton_map"
+              , "key": "foo/bar/baz.txt"
+              , "value": {"type": "BLOB", "data": "Some content"}
+              }
+            , { "type": "singleton_map"
+              , "key": "foo/bar/baz.txt/other/file.txt"
+              , "value": {"type": "BLOB", "data": "A different content"}
+              }
+            ]
+          }
+        ]
+      , [ "out"
+        , { "type": "ACTION"
+          , "inputs": {"type": "var", "name": "map"}
+          , "outs": ["out"]
+          , "cmd": ["cp", "foo.txt", "out"]
+          }
+        ]
+      ]
+    , "body": {"type": "RESULT", "artifacts": {"type": "var", "name": "out"}}
+    }
+  }
 }
 EOI
 cat > TARGETS <<'EOI'
@@ -166,6 +195,7 @@ cat > TARGETS <<'EOI'
 , "input-tree-conflict": {"type": "input-tree-conflict"}
 , "artifacts-tree-conflict": {"type": "artifacts-tree-conflict"}
 , "runfiles-tree-conflict": {"type": "runfiles-tree-conflict"}
+, "file-file-conflict": {"type": "file-file-conflict"}
 }
 EOI
 
@@ -195,6 +225,10 @@ grep -i 'error.*artifacts.*conflict.*tree.*foo' log
 echo
 ./bin/tool-under-test analyse -f log runfiles-tree-conflict 2>&1 && exit 1 || :
 grep -i 'error.*runfiles.*conflict.*tree.*foo' log
+
+echo
+./bin/tool-under-test analyse -f log file-file-conflict 2>&1 && exit 1 || :
+grep -i 'error.*.*conflict.*foo/bar/baz.txt' log
 
 echo
 echo DONE

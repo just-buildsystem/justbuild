@@ -554,19 +554,6 @@ void withDependencies(
                   }
                   auto norm_path =
                       ToNormalPath(std::filesystem::path{input_path});
-                  if (norm_path == "." or norm_path.empty()) {
-                      if (val->Map().size() > 1) {
-                          throw Evaluator::EvaluationError{
-                              "input path '.' or '' for TREE is only allowed "
-                              "for trees with single input artifact"};
-                      }
-                      if (not artifact->Artifact().IsTree()) {
-                          throw Evaluator::EvaluationError{
-                              "input path '.' or '' for TREE must be tree "
-                              "artifact"};
-                      }
-                      return artifact;
-                  }
                   artifacts.emplace(std::move(norm_path), artifact->Artifact());
               }
               auto conflict = BuildMaps::Target::Utils::tree_conflict(val);

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <unordered_set>
 #include <vector>
 
 #include "src/utils/cpp/path.hpp"
@@ -91,23 +92,30 @@ auto BuildMaps::Target::Utils::artifacts_tree(const ExpressionPtr& map)
 
 auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     -> std::optional<std::string> {
-    std::vector<std::filesystem::path> trees{};
-    for (auto const& [path, artifact] : map->Map()) {
-        if (artifact->Artifact().IsTree()) {
-            trees.emplace_back(ToNormalPath(std::filesystem::path{path}));
+    // Work around the fact that std::hash<std::filesystem::path> is missing
+    // in some libraries
+    struct PathHash {
+        auto operator()(std::filesystem::path const& p) const noexcept
+            -> std::size_t {
+            return std::filesystem::hash_value(p);
         }
-    }
-    if (trees.empty()) {
-        return std::nullopt;
-    }
+    };
+    std::unordered_set<std::filesystem::path, PathHash> blocked{};
+    blocked.reserve(map->Map().size());
+
     for (auto const& [path, artifact] : map->Map()) {
-        auto p = ToNormalPath(std::filesystem::path{path});
-        for (auto const& treepath : trees) {
-            if (not artifact->Artifact().IsTree()) {
-                if (std::mismatch(treepath.begin(), treepath.end(), p.begin())
-                        .first == treepath.end()) {
-                    return path;
-                }
+        if (path == "." and map->Map().size() > 1) {
+            return ".";
+        }
+        auto p = std::filesystem::path{path};
+        auto insert_result = blocked.insert(p);
+        if (not insert_result.second) {
+            return p.string();  // duplicate path
+        }
+        for (p = p.parent_path(); not p.empty(); p = p.parent_path()) {
+            if (blocked.contains(p)) {
+                // Another artifact at a parent path position
+                return p.string();
             }
         }
     }
