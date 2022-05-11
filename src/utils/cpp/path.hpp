@@ -7,7 +7,10 @@
     -> std::filesystem::path {
     auto n = p.lexically_normal();
     if (not n.has_filename()) {
-        return n.parent_path();
+        n = n.parent_path();
+    }
+    if (n.empty()) {
+        return std::filesystem::path{"."};
     }
     return n;
 }

@@ -54,5 +54,9 @@
     ]
   , "stage": ["test", "utils"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"]}
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["./", "cpp", "TESTS"], "cpp"]]
+  }
 }

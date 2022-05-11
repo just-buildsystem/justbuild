@@ -1,0 +1,13 @@
+{ "path":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["path"]
+  , "srcs": ["path.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/utils/cpp", "path"]
+    ]
+  , "stage": ["test", "utils", "cpp"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["path"]}
+}
