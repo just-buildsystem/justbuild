@@ -34,6 +34,7 @@ def build_known(desc, *, root):
     return os.path.join(root, "KNOWN", desc["data"]["id"])
 
 def link(src, dest):
+    dest = os.path.normpath(dest)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     os.symlink(src, dest)
 
@@ -50,11 +51,12 @@ def build_tree(desc, *, config, root, graph):
     tree_dir = os.path.normpath(os.path.join(root, "TREE", tree_id))
     if os.path.isdir(tree_dir):
         return tree_dir
-    os.makedirs(tree_dir)
     tree_desc = graph["trees"][tree_id]
     for location, desc in tree_desc.items():
         link(build(desc, config=config, root=root, graph=graph),
              os.path.join(tree_dir, location))
+    # correctly handle the empty tree
+    os.makedirs(tree_dir, exist_ok=True)
     return tree_dir
 
 def run_action(action_id, *, config, root, graph):
