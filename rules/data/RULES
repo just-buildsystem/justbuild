@@ -1,6 +1,6 @@
 { "staged":
   { "doc": ["Stage data to a logical subdirectory."]
-  , "target_fields": ["srcs"]
+  , "target_fields": ["srcs", "deps"]
   , "string_fields": ["stage"]
   , "field_doc":
     { "srcs": ["The files to be staged"]
@@ -8,10 +8,15 @@
       [ "The logical directory to stage the files to."
       , "Individual directory components are joined with \"/\"."
       ]
+    , "deps":
+      [ "Targets of with their runfiles should be added as well."
+      , "Their staging is not changed."
+      ]
     }
   , "artifacts_doc":
     [ "The runfiles of the \"srcs\" targets staged to the directory"
-    , "specified in \"stage\"."
+    , "specified in \"stage\" together the runfiles of the targets"
+    , "specied in the field \"deps\" (in their original location)."
     ]
   , "runfiles_doc": ["Same as artifacts"]
   , "imports": {"runfiles": ["./", "..", "field_runfiles"]}
@@ -36,11 +41,26 @@
           , "$1": {"type": "var", "name": "srcs"}
           }
         ]
+      , [ "dep stage"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "deps"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
+          }
+        ]
+      , [ "total"
+        , { "type": "disjoint_map_union"
+          , "msg": "Conflict between staged data and dependencies"
+          , "$1":
+            [ {"type": "var", "name": "dep stage"}
+            , {"type": "var", "name": "staged"}
+            ]
+          }
+        ]
       ]
     , "body":
       { "type": "RESULT"
-      , "artifacts": {"type": "var", "name": "staged"}
-      , "runfiles": {"type": "var", "name": "staged"}
+      , "artifacts": {"type": "var", "name": "total"}
+      , "runfiles": {"type": "var", "name": "total"}
       }
     }
   }
