@@ -95,22 +95,31 @@
       }
     }
   }
-, "address_sorting":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["address_sorting"]
+, "address_sorting_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["address_sorting/address_sorting_internal.h"]
   , "stage": ["third_party", "address_sorting"]
-  , "pure C": ["YES"]
-  , "srcs":
-    [ "address_sorting/address_sorting.c"
-    , "address_sorting/address_sorting_posix.c"
-    , "address_sorting/address_sorting_windows.c"
-    ]
-  , "hdrs": ["address_sorting/address_sorting_internal.h"]
   , "deps":
     [ [ "./"
       , "address_sorting/include/address_sorting"
       , "address_sorting_headers"
       ]
     ]
+  }
+, "address_sorting_srcs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "stage": ["third_party", "address_sorting"]
+  , "srcs":
+    [ "address_sorting/address_sorting.c"
+    , "address_sorting/address_sorting_posix.c"
+    , "address_sorting/address_sorting_windows.c"
+    ]
+  }
+, "address_sorting":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["address_sorting"]
+  , "pure C": ["YES"]
+  , "srcs": ["address_sorting_srcs"]
+  , "hdrs": ["address_sorting_headers"]
   }
 }

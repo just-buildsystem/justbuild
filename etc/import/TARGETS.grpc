@@ -1502,8 +1502,8 @@
   , "hdrs":
     [ ["./", "include/grpc++", "grpc++_config_proto_headers"]
     , ["./", "include/grpcpp", "grpcpp_config_proto_headers"]
+    , ["@", "protobuf", ".", "protobuf_headers"]
     ]
-  , "deps": [["@", "protobuf", ".", "protobuf_headers"]]
   }
 , "grpc++_codegen_proto":
   { "type": ["@", "rules", "CC", "library"]
