@@ -1,0 +1,362 @@
+* Hello World
+
+/justbuild/ is a true language-agnostic (there are no more-equal languages) and
+multi-repository build system. As a consequence, high-level concepts (e.g., C++
+binaries, C++ libraries, etc.) are not hardcoded built-ins of the tool, but
+rather provided via a set of rules. These rules can be specified as a true
+dependency to your project like any other external repository your project might
+depend on.
+
+For the remainder of this tutorial, we will use the rules provided in the
+open-source repository of justbuild, which we assume is checked out to the path
+~/usr/src/justbuild~.
+
+** Setting up the Multi-Repository Configuration
+
+To build a project with multi-repository dependencies, we first need to provide
+a configuration that declares the required repositories. In that configuration,
+we will have three repositories:
+
+ 1. The ~"tutorial"~ repository, which contains the targets that we want to
+    build. It has a single dependency, which is the /rules/ that are needed to
+    build the target.
+
+ 2. The ~"just-rules"~ repository, which contains the high-level concepts for
+    building C/C++ binaries and libraries. Our rules are designed in such a way
+    that the default toolchain, compile flags, and ~PATH~ are provided via a
+    /defaults/ target. The description of this target is specified in a separate
+    repository, to keep the rules independent of these definitions.
+
+ 3. The ~"just-defaults"~ repository, which contains the description of the
+    /defaults/ target (located at ~/usr/src/justbuild/etc/defaults/CC/TARGETS~).
+
+The final repository configuration contains a single ~JSON~ object with the key
+~"repositories"~ referring to an object of repository names as keys and
+repository descriptions as values. Create the configuration as ~repos.json~ with
+the following content:
+
+#+BEGIN_SRC js
+{ "repositories":
+  { "tutorial":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"rules": "just-rules"}
+    }
+  , "just-rules":
+    { "repository": {"type": "file", "path": "/usr/src/justbuild/rules"}
+    , "target_root": "just-defaults"
+    , "rule_root": "just-rules"
+    }
+  , "just-defaults":
+    { "repository": {"type": "file", "path": "/usr/src/justbuild/etc/defaults"}
+    }
+  }
+}
+#+END_SRC
+
+Note that the ~"tutorial"~ repository binds the open name ~"rules"~ to the
+repository ~"just-rules"~. By doing so, the entities provided by ~"just-rules"~
+can be accessed from within the ~"tutorial"~ repository via ~["@", "rules",
+"<module>", "<rule>"]~.
+
+Further note that the target root (search path for ~TARGETS~ files) for the
+~"just-rules"~ repository is set to the content of the ~"just-defaults"~
+repository. Setting the target root will implicitly also set the rule root
+(search path for ~RULES~ files) to the same value. Therefore, we have to
+explicitly set the rule root to the contents of the ~"just-rules"~ repository.
+
+** Description of the helloworld target
+
+First, we need to declare where the root of our workspace is located by creating
+an empty file ~ROOT~:
+
+#+BEGIN_SRC shell
+$ touch ROOT
+#+END_SRC
+
+By default, targets are described in ~TARGETS~ files. These files contain a
+~JSON~ object with the target name as key and the target description as value. A
+target description is an object with at least a single mandatory field:
+~"type"~. This field specifies which rule (built-in or user-defined) to apply
+for this target. Depending on which rule is used, specifying additional fields
+may be required. For all user-defined rules, the content of each field must be
+a list of either strings or targets.
+
+For this tutorial, we want to create a target ~helloworld~ that produces a
+binary from the C++ source ~main.cpp~. To define such a target, create a
+~TARGETS~ file with the following content:
+
+#+BEGIN_SRC js
+{ "helloworld":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["helloworld"]
+  , "srcs": ["main.cpp"]
+  }
+}
+#+END_SRC
+
+The ~"type"~ field refers to the rule ~"binary"~ from the module ~"CC"~ of the
+~"rules"~ repository. This rule additionally requires the string field ~"name"~,
+which specifies the name of the binary to produce. Furthermore, at least one
+input to the binary is required, which can be specified via the target fields
+~"srcs"~ or ~"deps"~. In our case, the former is used, which contains our single
+source file (files are considered targets). Now, the last file that is missing
+is the actual source file ~main.cpp~:
+
+#+BEGIN_SRC cpp
+#include <iostream>
+
+int main() {
+  std::cout << "Hello world!\n";
+  return 0;
+}
+#+END_SRC
+
+** Building the helloworld target
+
+To build the ~helloworld~ target, we first need to setup the multi-repository
+configuration for the ~tutorial~ project by running ~just-mr~:
+
+#+BEGIN_SRC shell
+$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
+#+END_SRC
+
+~just-mr~ reads the repository configuration, fetches externals (if any),
+generates the actual build configuration, and stores it in its cache directory
+(by default under ~$HOME/.cache/just~). It will print the path to the generated
+build configuration to stdout, which is why we assigned it to the shell variable
+~CONF~. Note that ~just-mr~ only needs to be run the very first time and only
+once again whenever the ~repos.json~ file is modified. To see the generated
+build configuration, run the following command:
+
+#+BEGIN_SRC shell
+$ cat $CONF
+{
+  "main": "tutorial",
+  "repositories": {
+    "tutorial": {
+      "bindings": {
+        "rules": "rules"
+      }
+    },
+    "rules": {
+      "rule_root": [
+        "file",
+        "/usr/src/justbuild/rules"
+      ],
+      "target_root": [
+        "file",
+        "/usr/src/justbuild/etc/defaults"
+      ],
+      "workspace_root": [
+        "file",
+        "/usr/src/justbuild/rules"
+      ]
+    }
+  }
+}
+#+END_SRC
+
+With the final configuration at hand, we can now build our ~helloworld~ target
+by using the ~build~ subcommand:
+
+#+BEGIN_SRC shell
+$ just build -C $CONF helloworld
+INFO: Requested target is [["@","tutorial","","helloworld"],{}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Discovered 2 actions, 1 trees, 0 blobs
+INFO: Building [["@","tutorial","","helloworld"],{}].
+INFO: Processed 2 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+        helloworld [9dbda53b67d1b98f106beb0ed3aecd0651ac2099:16920:x]
+#+END_SRC
+
+Note that this command just builds the binary but does not stage it to any
+user-defined location on the file system. To also stage the produced artifact to
+the working directory, use the ~install~ subcommand and specify the output
+directory:
+
+#+BEGIN_SRC shell
+$ just install -C $CONF helloworld -o .
+INFO: Requested target is [["@","tutorial","","helloworld"],{}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Discovered 2 actions, 1 trees, 0 blobs
+INFO: Building [["@","tutorial","","helloworld"],{}].
+INFO: Processed 2 actions, 2 cache hits.
+INFO: Artifacts can be found in:
+        /tmp/tutorial/helloworld [9dbda53b67d1b98f106beb0ed3aecd0651ac2099:16920:x]
+$ ./helloworld
+Hello world!
+#+END_SRC
+
+Note that the ~install~ subcommand initiates the build a second time, without
+executing any actions as all actions are being served from cache. The produced
+binary is identical, which is indicated by the same hash/size/type.
+
+** Defining project-owned /defaults/
+
+To define a project-owned defaults target it is good practice to create a
+separate file root for providing required ~TARGETS~ files. We will call that
+root ~tutorial-defaults~ and need to create a module directory ~CC~ in it:
+
+#+BEGIN_SRC shell
+$ mkdir -p ./tutorial-defaults/CC
+#+END_SRC
+
+In that module, we need to create a ~TARGETS~ file that contains the target
+~"defaults"~ and specifies which toolchain and compile flags to use:
+
+#+BEGIN_SRC js
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "CC": ["cc"]
+  , "CXX": ["c++"]
+  , "CFLAGS": ["-O2", "-Wall"]
+  , "CXXFLAGS": ["-O2", "-Wall"]
+  , "AR": ["ar"]
+  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  }
+}
+#+END_SRC
+
+Note that the target uses the rule ~["CC", "defaults"]~ without specifying any
+external repository (e.g., ~["@", "rules", ...]~). This is because
+~"tutorial-defaults"~ is not a full-fledged repository but merely a file root
+that is considered local to the ~"just-rules"~ repository. In fact, the
+~"just-rules"~ repository cannot refer to any external repository as it does not
+have any defined bindings. The modified ~repos.json~ with the project-owned
+defaults will have the following content:
+
+#+BEGIN_SRC js
+{ "repositories":
+  { "tutorial":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"rules": "just-rules"}
+    }
+  , "just-rules":
+    { "repository": {"type": "file", "path": "/usr/src/justbuild/rules"}
+    , "target_root": "tutorial-defaults"
+    , "rule_root": "just-rules"
+    }
+  , "tutorial-defaults":
+    { "repository": {"type": "file", "path": "./tutorial-defaults"}
+    }
+  }
+}
+#+END_SRC
+
+To rebuild the project, we need to rerun ~just-mr~ and call ~just~ afterwards:
+
+#+BEGIN_SRC shell
+$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
+$ just build -C $CONF helloworld
+INFO: Requested target is [["@","tutorial","","helloworld"],{}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Discovered 2 actions, 1 trees, 0 blobs
+INFO: Building [["@","tutorial","","helloworld"],{}].
+INFO: Processed 2 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+        helloworld [487dc9e47b978877ed2f7d80b3395ce84b23be92:16992:x]
+#+END_SRC
+
+Note that the output binary may have changed due to different defaults.
+
+** Modeling target dependencies
+
+For demonstration purposes, we will separate the print statements into a static
+library ~greet~, which will become a dependency to our binary. Therefore, we
+create a new subdirectory ~greet~ with the files ~greet/greet.hpp~:
+
+#+BEGIN_SRC cpp
+#include <string>
+
+void greet(std::string const& s);
+#+END_SRC
+
+and ~greet/greet.cpp~:
+
+#+BEGIN_SRC cpp
+#include "greet.hpp"
+#include <iostream>
+
+void greet(std::string const& s) {
+  std::cout << "Hello " << s << "!\n";
+}
+#+END_SRC
+
+These files can now be used to create a static library ~libgreet.a~. To do so,
+we need to create the following target description in ~greet/TARGETS~:
+
+#+BEGIN_SRC js
+{ "greet":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["greet"]
+  , "hdrs": ["greet.hpp"]
+  , "srcs": ["greet.cpp"]
+  , "stage": ["greet"]
+  }
+}
+#+END_SRC
+
+Similar to ~"binary"~, we have to provide a name and source file. Additionally,
+a library has public headers defined via ~"hdrs"~ and an optional staging
+directory ~"stage"~ (default value ~"."~). The staging directory specifies where
+the consumer of this library can expect to find the library's artifacts. Note
+that this does not need to reflect the location on the file system (i.e., a
+full-qualified path like ~["com", "example", "utils", "greet"]~ could be used to
+distinguish it from greeting libraries of other projects). The staging directory
+does not only affect the main artifact ~libgreet.a~ but also it's runfiles;
+hence, the public header will be staged to ~"greet/greet.hpp"~. With that
+knowledge, we can now perform the necessary modifications to ~main.cpp~:
+
+#+BEGIN_SRC cpp
+#include "greet/greet.hpp"
+
+int main() {
+  greet("Universe");
+  return 0;
+}
+#+END_SRC
+
+The target ~"helloworld"~ will have a direct dependency to the target ~"greet"~
+of the module ~"greet"~ in the top-level ~TARGETS~ file:
+
+#+BEGIN_SRC js
+{ "helloworld":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["helloworld"]
+  , "srcs": ["main.cpp"]
+  , "deps": [["greet", "greet"]]
+  }
+}
+#+END_SRC
+
+Note that there is no need to explicitly specify ~"greet"~'s public headers here
+as the appropriate artifacts of dependencies are automatically added to the
+inputs of compile and link actions. The new binary can be built with the same
+command as before (no need to rerun ~just-mr~):
+
+#+BEGIN_SRC shell
+$ just build -C $CONF helloworld
+INFO: Requested target is [["@","tutorial","","helloworld"],{}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Discovered 4 actions, 2 trees, 0 blobs
+INFO: Building [["@","tutorial","","helloworld"],{}].
+INFO: Processed 4 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+        helloworld [2b81e3177afc382452a2df9f294d3df90a9ccaf0:17664:x]
+#+END_SRC
+
+To only build the static library target ~"greet"~ from module ~"greet"~, run the
+following command:
+
+#+BEGIN_SRC shell
+$ just build -C $CONF greet greet
+INFO: Requested target is [["@","tutorial","greet","greet"],{}]
+INFO: Analysed target [["@","tutorial","greet","greet"],{}]
+INFO: Discovered 2 actions, 1 trees, 0 blobs
+INFO: Building [["@","tutorial","greet","greet"],{}].
+INFO: Processed 2 actions, 2 cache hits.
+INFO: Artifacts built, logical paths are:
+        greet/libgreet.a [83ed406e21f285337b0c9bd5011f56f656bba683:2992:f]
+      (1 runfiles omitted.)
+#+END_SRC
