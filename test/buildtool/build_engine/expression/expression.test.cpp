@@ -890,6 +890,24 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(result == Expression::FromJson(R"("esXcXape me XX")"_json));
     }
 
+    SECTION("enumerate expression") {
+        auto expr = Expression::FromJson(R"(
+          { "type": "enumerate"
+          , "$1": ["foo", "bar", "baz"]
+          }
+        )"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        CHECK(result == Expression::FromJson(R"(
+          { "0": "foo"
+          , "1": "bar"
+          , "2": "baz"
+          }
+        )"_json));
+    }
+
     SECTION("keys expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "keys"
