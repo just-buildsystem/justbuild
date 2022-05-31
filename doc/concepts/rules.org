@@ -140,6 +140,13 @@ which is optional and defaults to the empty string. This argument
 has to evaluate to a string. The function returns an artifact that
 is a non-executable file with the given string as content.
 
+**** ~TREE~
+
+The ~TREE~ function takes a single (evaluated) argument ~$1~ which
+has to be a map of artifacts. The result is a single tree artifact
+formed from the input map. It is an error if the map cannot be
+transformed into a tree (e.g., due to staging conflicts).
+
 **** ~ACTION~
 
 Actions are a way to define new artifacts from (zero or more) already
