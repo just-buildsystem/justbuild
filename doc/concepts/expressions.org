@@ -212,9 +212,13 @@ those) argument(s) to obtain the final result.
   "$1": "3"}~ evaluates to ~["0", "1", "2"]~.
 
 - ~"enumerate"~ The argument has to be a list. The result is a map
-  containing one entry for each element of the list; the key is the
-  decimal representation of the position in the list (starting from
-  ~0~) and the value is the element.
+  containing one entry for each element of the list. The key is
+  the decimal representation of the position in the list (starting
+  from ~0~), padded with leading zeros to length at least 10. The
+  value is the element. The padding is chosen in such a way that
+  iterating over the resulting map (which happens in lexicographic
+  order of the keys) has the same iteration order as the list for
+  all lists indexable by 32-bit integers.
 
 - ~"++"~ The argument has to be a list of lists. The result is the
   concatenation of those lists.

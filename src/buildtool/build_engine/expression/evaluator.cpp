@@ -147,7 +147,7 @@ auto Enumerate(ExpressionPtr const& expr) -> ExpressionPtr {
     auto result = Expression::map_t::underlying_map_t{};
     size_t count = 0;
     for (auto const& entry : expr->List()) {
-        result[fmt::format("{}", count)] = entry;
+        result[fmt::format("{:010d}", count)] = entry;
         count++;
     }
     return ExpressionPtr{Expression::map_t{result}};

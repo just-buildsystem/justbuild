@@ -901,9 +901,9 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         auto result = expr.Evaluate(env, fcts);
         REQUIRE(result);
         CHECK(result == Expression::FromJson(R"(
-          { "0": "foo"
-          , "1": "bar"
-          , "2": "baz"
+          { "0000000000": "foo"
+          , "0000000001": "bar"
+          , "0000000002": "baz"
           }
         )"_json));
     }
