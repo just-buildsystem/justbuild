@@ -114,7 +114,7 @@ on multi-repository builds.
 In description files, targets, rules, and expressions are referred
 to by name. As the context always fixes if a name for a target,
 rule, or expression is expected, they use the same naming scheme.
-- A single string refers to the the target with this name in the
+- A single string refers to the target with this name in the
   same module.
 - A pair ~[module, name]~ refers to the target ~name~ in the module
   ~module~ of the same repository. There are no module names with

@@ -458,7 +458,7 @@ void withDependencies(
                   if (rule->Tainted().find(entry->String()) ==
                       rule->Tainted().end()) {
                       throw Evaluator::EvaluationError{
-                          fmt::format("may_fail contains entry {} the the rule "
+                          fmt::format("may_fail contains entry {} the rule "
                                       "is not tainted with",
                                       entry->ToString())};
                   }
@@ -491,7 +491,7 @@ void withDependencies(
                   if (rule->Tainted().find(entry->String()) ==
                       rule->Tainted().end()) {
                       throw Evaluator::EvaluationError{
-                          fmt::format("no_cache contains entry {} the the rule "
+                          fmt::format("no_cache contains entry {} the rule "
                                       "is not tainted with",
                                       entry->ToString())};
                   }

@@ -107,7 +107,7 @@ For example, the invocation ~just build -C /etc/just/repos.conf
 baz~ tells our tool to build the target ~baz~ from the module the
 working directory is located in. ~foo~ will refer to the repository
 found at ~/opt/foobar/repo~ (using rules from ~/etc/just/rules~,
-taking ~base~ refer to the the repository at ~/opt/barimpl~) and
+taking ~base~ refer to the repository at ~/opt/barimpl~) and
 ~bar~ will refer to the repository at ~/opts/barimpl~.
 
 ** Naming of targets
@@ -138,7 +138,7 @@ evaluating the parameters (for target fields) and in the evaluation
 of the defining expression when requesting properties of a target
 dependent upon (via ~DEP_ARTIFACTS~ and related functions). In the
 later case, however, the only legitimate way to obtain a target
-name is by the the ~FIELD~ function. To enforce this behavior, and
+name is by the ~FIELD~ function. To enforce this behavior, and
 to avoid problems with serializing target names, our expression
 language considers target names as opaque values. More precisely,
 - in a target description, the target fields are evaluated and the

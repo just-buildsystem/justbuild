@@ -38,7 +38,7 @@ Actions are defined as Merkle-tree hash of the contents. As all
 components (input tree, list of output strings, command vector,
 environment, and cache pragma) are given by expressions, that can
 quickly be computed. This identifier also defines the notion of
-equality for actions, and hence action artifacts. Recall that eqality
+equality for actions, and hence action artifacts. Recall that equality
 of artifacts is also (implicitly) used in our notion of disjoint
 map union (where the set of keys does not have to be disjoint, as
 long as the values for all duplicate keys are equal).
@@ -197,7 +197,7 @@ if defined at different places. This can be achieved by our usual
 approach for expressions of having cached Merkle-tree hashes and
 comparing them when an equality test is required. This efficient
 test for equality also allows using graph nodes as part of a map
-key, e.g., for our asynchronous map conumers.
+key, e.g., for our asynchronous map consumers.
 
 As a graph node can only be defined with all data given, the defined
 dependency structure is cycle-free by construction. However, the
@@ -235,11 +235,11 @@ and ~"target_fields"~ be disjoint.
 
 Graph nodes are completely free of names and hence are eligible
 for exporting. As with other values, in the cache the intensional
-definition of artifacts implict in them will be replaced by the
+definition of artifacts implicit in them will be replaced by the
 corresponding, extensionally equal, known value.
 
 However, some care has to be taken in the serialisation that is
-part of the caching, as we do not want to unfold the the dag to
+part of the caching, as we do not want to unfold the dag to
 a tree. Therefore, we take as JSON serialisation a simple dict
 with ~"type"~ set to ~"NODE"~, and ~"value"~ set to the Merkle-tree
 hash. That serialisation respects intensional equality. To allow

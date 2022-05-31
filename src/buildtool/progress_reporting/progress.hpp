@@ -48,7 +48,7 @@ class Progress {
     }
 
     // Return a reference to the origin map. It is the responsibility
-    // of the caller to ensure that access happens only happens in a
+    // of the caller to ensure that access only happens in a
     // single-threaded context.
     auto OriginMap() -> std::unordered_map<
         std::string,
