@@ -545,8 +545,11 @@ TEST_CASE("CreateFileHardlink", "[file_system]") {
     REQUIRE(FileSystemManager::CreateDirectory(to.parent_path()));
 
     SECTION("Existing file") {
-        std::filesystem::path from{
-            "test/buildtool/file_system/data/example_file"};
+        std::filesystem::path from{"example_file"};
+        {
+            std::ofstream f{from};
+            f << "foo";
+        }
 
         CHECK(FileSystemManager::CreateFileHardlink(from, to));
         CHECK(std::filesystem::exists(to));
