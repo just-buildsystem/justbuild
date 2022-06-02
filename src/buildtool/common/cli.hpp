@@ -30,6 +30,7 @@ struct CommonArguments {
 
 /// \brief Arguments required for analysing targets.
 struct AnalysisArguments {
+    std::string defines{};
     std::filesystem::path config_file{};
     std::optional<nlohmann::json> target{};
     std::optional<std::string> target_file_name{};
@@ -136,6 +137,12 @@ static inline auto SetupAnalysisArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<AnalysisArguments*> const& clargs,
     bool with_graph = true) {
+    app->add_option(
+           "-D,--defines",
+           clargs->defines,
+           "Define configuration variables via an in-line JSON object.\n"
+           "Latest wins. Supersedes values provided via --config")
+        ->type_name("JSON");
     app->add_option(
            "-c,--config", clargs->config_file, "Path to configuration file.")
         ->type_name("PATH");

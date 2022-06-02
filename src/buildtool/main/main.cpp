@@ -244,6 +244,7 @@ void SetupHashGenerator() {
 
 [[nodiscard]] auto ReadConfiguration(AnalysisArguments const& clargs) noexcept
     -> Configuration {
+    Configuration config{};
     if (not clargs.config_file.empty()) {
         if (not std::filesystem::exists(clargs.config_file)) {
             Logger::Log(LogLevel::Error,
@@ -260,7 +261,7 @@ void SetupHashGenerator() {
                             clargs.config_file.string());
                 std::exit(kExitFailure);
             }
-            return Configuration{map};
+            config = Configuration{map};
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "Parsing config file {} failed with error:\n{}",
@@ -269,7 +270,28 @@ void SetupHashGenerator() {
             std::exit(kExitFailure);
         }
     }
-    return Configuration{};
+
+    if (not clargs.defines.empty()) {
+        try {
+            auto map =
+                Expression::FromJson(nlohmann::json::parse(clargs.defines));
+            if (not map->IsMap()) {
+                Logger::Log(LogLevel::Error,
+                            "Defines {} does not contain a map.",
+                            clargs.defines);
+                std::exit(kExitFailure);
+            }
+            config = config.Update(map);
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "Parsing defines {} failed with error:\n{}",
+                        clargs.defines,
+                        e.what());
+            std::exit(kExitFailure);
+        }
+    }
+
+    return config;
 }
 
 [[nodiscard]] auto DetermineCurrentModule(
