@@ -8,7 +8,8 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["notification_queue"]
   , "hdrs": ["notification_queue.hpp"]
-  , "deps": ["task", ["src/utils/cpp", "atomic"]]
+  , "deps":
+    ["task", ["src/utils/cpp", "atomic"], ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "task_system":

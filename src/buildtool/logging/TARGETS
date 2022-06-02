@@ -14,7 +14,8 @@
     , "log_sink_file.hpp"
     , "logger.hpp"
     ]
-  , "deps": ["log_level", ["@", "fmt", "", "fmt"]]
+  , "deps":
+    ["log_level", ["@", "fmt", "", "fmt"], ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "logging"]
   }
 }

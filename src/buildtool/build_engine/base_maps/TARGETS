@@ -103,6 +103,7 @@
   , "hdrs": ["expression_function.hpp"]
   , "deps":
     [ ["src/utils/cpp", "hash_combine"]
+    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]

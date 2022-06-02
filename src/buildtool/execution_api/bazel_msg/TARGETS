@@ -3,7 +3,8 @@
   , "name": ["bazel_msg"]
   , "hdrs": ["bazel_blob.hpp", "bazel_blob_container.hpp", "bazel_common.hpp"]
   , "deps":
-    [ ["src/buildtool/crypto", "hash_generator"]
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_generator"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "type_safe_arithmetic"]

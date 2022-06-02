@@ -82,6 +82,7 @@
   , "hdrs": ["tree.hpp"]
   , "deps":
     [ "common"
+    , "action_description"
     , "artifact_description"
     , ["src/buildtool/logging", "logging"]
     , ["@", "json", "", "json"]

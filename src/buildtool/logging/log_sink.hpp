@@ -5,6 +5,7 @@
 #include <istream>
 #include <memory>
 #include <string>
+#include <thread>
 
 #include "src/buildtool/logging/log_level.hpp"
 
