@@ -1,4 +1,4 @@
-* Hello World
+* Building Hello World
 
 /justbuild/ is a true language-agnostic (there are no more-equal languages) and
 multi-repository build system. As a consequence, high-level concepts (e.g., C++
@@ -15,7 +15,7 @@ open-source repository of justbuild, which we assume is checked out to the path
 
 To build a project with multi-repository dependencies, we first need to provide
 a configuration that declares the required repositories. In that configuration,
-we will have three repositories:
+we will have two repositories:
 
  1. The ~"tutorial"~ repository, which contains the targets that we want to
     build. It has a single dependency, which is the /rules/ that are needed to
@@ -24,11 +24,7 @@ we will have three repositories:
  2. The ~"just-rules"~ repository, which contains the high-level concepts for
     building C/C++ binaries and libraries. Our rules are designed in such a way
     that the default toolchain, compile flags, and ~PATH~ are provided via a
-    /defaults/ target. The description of this target is specified in a separate
-    repository, to keep the rules independent of these definitions.
-
- 3. The ~"just-defaults"~ repository, which contains the description of the
-    /defaults/ target (located at ~/usr/src/justbuild/etc/defaults/CC/TARGETS~).
+    ~"defaults"~ target (located at ~/usr/src/justbuild/rules/CC/TARGETS~).
 
 The final repository configuration contains a single ~JSON~ object with the key
 ~"repositories"~ referring to an object of repository names as keys and
@@ -43,11 +39,6 @@ the following content:
     }
   , "just-rules":
     { "repository": {"type": "file", "path": "/usr/src/justbuild/rules"}
-    , "target_root": "just-defaults"
-    , "rule_root": "just-rules"
-    }
-  , "just-defaults":
-    { "repository": {"type": "file", "path": "/usr/src/justbuild/etc/defaults"}
     }
   }
 }
@@ -57,12 +48,6 @@ Note that the ~"tutorial"~ repository binds the open name ~"rules"~ to the
 repository ~"just-rules"~. By doing so, the entities provided by ~"just-rules"~
 can be accessed from within the ~"tutorial"~ repository via ~["@", "rules",
 "<module>", "<rule>"]~.
-
-Further note that the target root (search path for ~TARGETS~ files) for the
-~"just-rules"~ repository is set to the content of the ~"just-defaults"~
-repository. Setting the target root will implicitly also set the rule root
-(search path for ~RULES~ files) to the same value. Therefore, we have to
-explicitly set the rule root to the contents of the ~"just-rules"~ repository.
 
 ** Description of the helloworld target
 
@@ -133,24 +118,16 @@ $ cat $CONF
 {
   "main": "tutorial",
   "repositories": {
-    "tutorial": {
-      "bindings": {
-        "rules": "rules"
-      }
-    },
-    "rules": {
-      "rule_root": [
-        "file",
-        "/usr/src/justbuild/rules"
-      ],
-      "target_root": [
-        "file",
-        "/usr/src/justbuild/etc/defaults"
-      ],
+    "just-rules": {
       "workspace_root": [
         "file",
         "/usr/src/justbuild/rules"
       ]
+    },
+    "tutorial": {
+      "bindings": {
+        "rules": "just-rules"
+      }
     }
   }
 }
@@ -167,7 +144,7 @@ INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [9dbda53b67d1b98f106beb0ed3aecd0651ac2099:16920:x]
+        helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
 #+END_SRC
 
 Note that this command just builds the binary but does not stage it to any
@@ -183,7 +160,7 @@ INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 2 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/tutorial/helloworld [9dbda53b67d1b98f106beb0ed3aecd0651ac2099:16920:x]
+        /tmp/tutorial/helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
 $ ./helloworld
 Hello world!
 #+END_SRC
@@ -192,11 +169,35 @@ Note that the ~install~ subcommand initiates the build a second time, without
 executing any actions as all actions are being served from cache. The produced
 binary is identical, which is indicated by the same hash/size/type.
 
-** Defining project-owned /defaults/
+By default, the BSD-default compiler front-ends (which are also defined for most
+Linux distributions) ~cc~ and ~c++~ are used for C and C++ (variables ~"CC"~ and
+~"CXX"~). If you want to temporarily use different defaults, you can use ~-D~ to
+provide a JSON object that sets different default variables. For instance, to
+use Clang as C++ compiler for a single build invocation, you can use the
+following command to provide an object that sets ~"CXX"~ to ~"clang++"~:
+#+BEGIN_SRC shell
+$ just build -C $CONF helloworld -D'{"CXX":"clang++"}'
+INFO: Requested target is [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
+INFO: Discovered 2 actions, 1 trees, 0 blobs
+INFO: Building [["@","tutorial","","helloworld"],{"CXX":"clang++"}].
+INFO: Processed 2 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+        helloworld [b8cf7b8579d9dc7172b61660139e2c14521cedae:16944:x]
+#+END_SRC
 
-To define a project-owned defaults target it is good practice to create a
-separate file root for providing required ~TARGETS~ files. We will call that
-root ~tutorial-defaults~ and need to create a module directory ~CC~ in it:
+** Defining project defaults
+
+To define a custom set of defaults (toolchain and compile flags) for your
+project, you need to create a separate file root for providing required
+~TARGETS~ file, which contains the ~"defaults"~ target that should be used by
+the rules. This file root is then used as the /target root/ for the rules (i.e.,
+the search path for ~TARGETS~ files). In this way, the description of the
+~"defaults"~ target is provided in a separate file root, to keep the rules
+repository independent of these definitions.
+
+We will call the new file root ~tutorial-defaults~ and need to create a module
+directory ~CC~ in it:
 
 #+BEGIN_SRC shell
 $ mkdir -p ./tutorial-defaults/CC
@@ -213,18 +214,14 @@ In that module, we need to create a ~TARGETS~ file that contains the target
   , "CFLAGS": ["-O2", "-Wall"]
   , "CXXFLAGS": ["-O2", "-Wall"]
   , "AR": ["ar"]
-  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  , "PATH": ["/bin", "/usr/bin"]
   }
 }
 #+END_SRC
 
-Note that the target uses the rule ~["CC", "defaults"]~ without specifying any
-external repository (e.g., ~["@", "rules", ...]~). This is because
-~"tutorial-defaults"~ is not a full-fledged repository but merely a file root
-that is considered local to the ~"just-rules"~ repository. In fact, the
-~"just-rules"~ repository cannot refer to any external repository as it does not
-have any defined bindings. The modified ~repos.json~ with the project-owned
-defaults will have the following content:
+
+To use the project defaults, modify the existing ~repos.json~ to reflect the
+following content:
 
 #+BEGIN_SRC js
 { "repositories":
@@ -243,6 +240,19 @@ defaults will have the following content:
   }
 }
 #+END_SRC
+
+Note that the target root (search path for ~TARGETS~ files) for the
+~"just-rules"~ repository is set to the content of the ~"tutorial-defaults"~
+repository. Setting the target root will implicitly also set the rule root
+(search path for ~RULES~ files) to the same value. Therefore, we have to
+explicitly set the rule root to the contents of the ~"just-rules"~ repository.
+
+Further note that the ~"defaults"~ target uses the rule ~["CC", "defaults"]~
+without specifying any external repository (e.g., ~["@", "rules", ...]~). This
+is because ~"tutorial-defaults"~ is not a full-fledged repository but merely a
+file root that is considered local to the ~"just-rules"~ repository. In fact,
+the ~"just-rules"~ repository cannot refer to any external repository as it does
+not have any defined bindings.
 
 To rebuild the project, we need to rerun ~just-mr~ and call ~just~ afterwards:
 
