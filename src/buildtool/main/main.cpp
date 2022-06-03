@@ -564,8 +564,6 @@ auto DetermineRoots(CommonArguments cargs, AnalysisArguments aargs)
                 LogLevel::Error, "Unknown root for repository {}", repo);
             std::exit(kExitFailure);
         }
-        // TODO(aehlig): Handle root-naming scheme. So far, we assume ["file",
-        // dir] without checking.
         auto info = RepositoryConfig::RepositoryInfo{std::move(ws_root)};
         if (desc.contains("target_root")) {
             info.target_root = ParseRoot(desc, repo, "target_root").first;
