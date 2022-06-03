@@ -429,9 +429,9 @@ void DetectAndReportPending(std::string const& name,
 }
 
 // returns FileRoot and optional local path, if the root is local
-auto ParseRoot(nlohmann::json desc,
-               const std::string& repo,
-               const std::string& keyword)
+auto ParseRoot(nlohmann::json const& desc,
+               std::string const& repo,
+               std::string const& keyword)
     -> std::pair<FileRoot, std::optional<std::filesystem::path>> {
     nlohmann::json root = desc[keyword];
     if ((not root.is_array()) or root.empty()) {
@@ -487,7 +487,8 @@ auto ParseRoot(nlohmann::json desc,
 
 // Set all roots and name mappings from the command-line arguments and
 // return the name of the main repository and main workspace path if local.
-auto DetermineRoots(CommonArguments cargs, AnalysisArguments aargs)
+auto DetermineRoots(CommonArguments const& cargs,
+                    AnalysisArguments const& aargs)
     -> std::pair<std::string, std::optional<std::filesystem::path>> {
     std::optional<std::filesystem::path> main_ws_root;
     auto repo_config = nlohmann::json::object();
