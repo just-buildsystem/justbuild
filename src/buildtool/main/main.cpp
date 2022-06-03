@@ -414,17 +414,13 @@ void DetectAndReportPending(std::string const& name,
     }
 }
 
-std::vector<std::string> const kRootMarkers{"ROOT", "WORKSPACE", ".git"};
-
-[[nodiscard]] auto DetermineWorkspaceRoot(CommonArguments const& clargs)
+[[nodiscard]] auto DetermineWorkspaceRootByLookingForMarkers()
     -> std::filesystem::path {
-    if (clargs.workspace_root) {
-        return *clargs.workspace_root;
-    }
     auto cwd = std::filesystem::current_path();
     auto root = cwd.root_path();
     cwd = std::filesystem::relative(cwd, root);
-    auto root_dir = FindRoot(cwd, FileRoot{root}, kRootMarkers);
+    auto root_dir =
+        FindRoot(cwd, FileRoot{root}, {"ROOT", "WORKSPACE", ".git"});
     if (not root_dir) {
         Logger::Log(LogLevel::Error, "Could not determine workspace root.");
         std::exit(kExitFailure);
@@ -546,36 +542,43 @@ auto DetermineRoots(CommonArguments cargs, AnalysisArguments aargs)
     }
 
     for (auto const& [repo, desc] : repos.items()) {
-        FileRoot ws_root{};
-
+        std::optional<FileRoot> ws_root{};
+        bool const is_main_repo{repo == main_repo};
         if (desc.contains("workspace_root")) {
             auto [root, path] = ParseRoot(desc, repo, "workspace_root");
             ws_root = std::move(root);
-            if (repo == main_repo) {
+            if (is_main_repo) {
                 main_ws_root = std::move(path);
             }
         }
-        else if (repo == main_repo) {
-            main_ws_root = DetermineWorkspaceRoot(cargs);
+        if (is_main_repo) {
+            // command line argument always overwrites what is eventually found
+            // in the config file
+            if (cargs.workspace_root) {
+                main_ws_root = *cargs.workspace_root;
+            }
+            else if (not ws_root) {
+                main_ws_root = DetermineWorkspaceRootByLookingForMarkers();
+            }
             ws_root = FileRoot{*main_ws_root};
         }
-        else {
+        if (not ws_root) {
             Logger::Log(
                 LogLevel::Error, "Unknown root for repository {}", repo);
             std::exit(kExitFailure);
         }
-        auto info = RepositoryConfig::RepositoryInfo{std::move(ws_root)};
+        auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
         if (desc.contains("target_root")) {
             info.target_root = ParseRoot(desc, repo, "target_root").first;
         }
-        if (repo == main_repo && aargs.target_root) {
+        if (is_main_repo && aargs.target_root) {
             info.target_root = FileRoot{*aargs.target_root};
         }
         info.rule_root = info.target_root;
         if (desc.contains("rule_root")) {
             info.rule_root = ParseRoot(desc, repo, "rule_root").first;
         }
-        if (repo == main_repo && aargs.rule_root) {
+        if (is_main_repo && aargs.rule_root) {
             info.rule_root = FileRoot{*aargs.rule_root};
         }
         info.expression_root = info.rule_root;
@@ -583,7 +586,7 @@ auto DetermineRoots(CommonArguments cargs, AnalysisArguments aargs)
             info.expression_root =
                 ParseRoot(desc, repo, "expression_root").first;
         }
-        if (repo == main_repo && aargs.expression_root) {
+        if (is_main_repo && aargs.expression_root) {
             info.expression_root = FileRoot{*aargs.expression_root};
         }
 
@@ -613,19 +616,19 @@ auto DetermineRoots(CommonArguments cargs, AnalysisArguments aargs)
         if (desc.contains("target_file_name")) {
             info.target_file_name = desc["target_file_name"];
         }
-        if (repo == main_repo && aargs.target_file_name) {
+        if (is_main_repo && aargs.target_file_name) {
             info.target_file_name = *aargs.target_file_name;
         }
         if (desc.contains("rule_file_name")) {
             info.rule_file_name = desc["rule_file_name"];
         }
-        if (repo == main_repo && aargs.rule_file_name) {
+        if (is_main_repo && aargs.rule_file_name) {
             info.rule_file_name = *aargs.rule_file_name;
         }
         if (desc.contains("expression_file_name")) {
             info.expression_file_name = desc["expression_file_name"];
         }
-        if (repo == main_repo && aargs.expression_file_name) {
+        if (is_main_repo && aargs.expression_file_name) {
             info.expression_file_name = *aargs.expression_file_name;
         }
 
