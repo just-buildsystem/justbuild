@@ -429,11 +429,10 @@ void DetectAndReportPending(std::string const& name,
 }
 
 // returns FileRoot and optional local path, if the root is local
-auto ParseRoot(nlohmann::json const& desc,
-               std::string const& repo,
-               std::string const& keyword)
+auto ParseRoot(std::string const& repo,
+               std::string const& keyword,
+               nlohmann::json const& root)
     -> std::pair<FileRoot, std::optional<std::filesystem::path>> {
-    nlohmann::json root = desc[keyword];
     if ((not root.is_array()) or root.empty()) {
         Logger::Log(LogLevel::Error,
                     "Expected {} for {} to be of the form [<scheme>, ...], but "
@@ -545,8 +544,9 @@ auto DetermineRoots(CommonArguments const& cargs,
     for (auto const& [repo, desc] : repos.items()) {
         std::optional<FileRoot> ws_root{};
         bool const is_main_repo{repo == main_repo};
-        if (desc.contains("workspace_root")) {
-            auto [root, path] = ParseRoot(desc, repo, "workspace_root");
+        auto it_ws = desc.find("workspace_root");
+        if (it_ws != desc.end()) {
+            auto [root, path] = ParseRoot(repo, "workspace_root", *it_ws);
             ws_root = std::move(root);
             if (is_main_repo) {
                 main_ws_root = std::move(path);
@@ -569,38 +569,39 @@ auto DetermineRoots(CommonArguments const& cargs,
             std::exit(kExitFailure);
         }
         auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
-        if (desc.contains("target_root")) {
-            info.target_root = ParseRoot(desc, repo, "target_root").first;
-        }
-        if (is_main_repo && aargs.target_root) {
-            info.target_root = FileRoot{*aargs.target_root};
-        }
-        info.rule_root = info.target_root;
-        if (desc.contains("rule_root")) {
-            info.rule_root = ParseRoot(desc, repo, "rule_root").first;
-        }
-        if (is_main_repo && aargs.rule_root) {
-            info.rule_root = FileRoot{*aargs.rule_root};
-        }
-        info.expression_root = info.rule_root;
-        if (desc.contains("expression_root")) {
-            info.expression_root =
-                ParseRoot(desc, repo, "expression_root").first;
-        }
-        if (is_main_repo && aargs.expression_root) {
-            info.expression_root = FileRoot{*aargs.expression_root};
-        }
+        auto parse_keyword_root = [&desc = desc, &repo = repo, is_main_repo](
+                                      FileRoot* keyword_root,
+                                      std::string const& keyword,
+                                      auto const& keyword_carg) {
+            auto it = desc.find(keyword);
+            if (it != desc.end()) {
+                (*keyword_root) = ParseRoot(repo, keyword, *it).first;
+            }
 
-        if (desc.contains("bindings")) {
-            if (not desc["bindings"].is_object()) {
+            if (is_main_repo && keyword_carg) {
+                *keyword_root = FileRoot{*keyword_carg};
+            }
+        };
+
+        parse_keyword_root(&info.target_root, "target_root", aargs.target_root);
+
+        info.rule_root = info.target_root;
+        parse_keyword_root(&info.rule_root, "rule_root", aargs.rule_root);
+
+        info.expression_root = info.rule_root;
+        parse_keyword_root(
+            &info.expression_root, "expression_root", aargs.expression_root);
+
+        auto it_bindings = desc.find("bindings");
+        if (it_bindings != desc.end()) {
+            if (not it_bindings->is_object()) {
                 Logger::Log(
                     LogLevel::Error,
                     "bindings has to be a string-string map, but found {}",
-                    desc["bindings"].dump());
+                    it_bindings->dump());
                 std::exit(kExitFailure);
             }
-            for (auto const& [local_name, global_name] :
-                 desc["bindings"].items()) {
+            for (auto const& [local_name, global_name] : it_bindings->items()) {
                 if (not repos.contains(global_name)) {
                     Logger::Log(LogLevel::Error,
                                 "Binding {} for {} in {} does not refer to a "
@@ -613,25 +614,29 @@ auto DetermineRoots(CommonArguments const& cargs,
                 info.name_mapping[local_name] = global_name;
             }
         }
+        auto parse_keyword_file_name = [&desc = desc, is_main_repo](
+                                           std::string* keyword_file_name,
+                                           std::string const& keyword,
+                                           auto const& keyword_carg) {
+            auto it = desc.find(keyword);
+            if (it != desc.end()) {
+                *keyword_file_name = *it;
+            }
 
-        if (desc.contains("target_file_name")) {
-            info.target_file_name = desc["target_file_name"];
-        }
-        if (is_main_repo && aargs.target_file_name) {
-            info.target_file_name = *aargs.target_file_name;
-        }
-        if (desc.contains("rule_file_name")) {
-            info.rule_file_name = desc["rule_file_name"];
-        }
-        if (is_main_repo && aargs.rule_file_name) {
-            info.rule_file_name = *aargs.rule_file_name;
-        }
-        if (desc.contains("expression_file_name")) {
-            info.expression_file_name = desc["expression_file_name"];
-        }
-        if (is_main_repo && aargs.expression_file_name) {
-            info.expression_file_name = *aargs.expression_file_name;
-        }
+            if (is_main_repo && keyword_carg) {
+                *keyword_file_name = *keyword_carg;
+            }
+        };
+
+        parse_keyword_file_name(
+            &info.target_file_name, "target_file_name", aargs.target_file_name);
+
+        parse_keyword_file_name(
+            &info.rule_file_name, "rule_file_name", aargs.rule_file_name);
+
+        parse_keyword_file_name(&info.expression_file_name,
+                                "expression_file_name",
+                                aargs.expression_file_name);
 
         RepositoryConfig::Instance().SetInfo(repo, std::move(info));
     }
