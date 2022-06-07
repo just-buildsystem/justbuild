@@ -564,8 +564,9 @@ auto DetermineRoots(CommonArguments const& cargs,
             ws_root = FileRoot{*main_ws_root};
         }
         if (not ws_root) {
-            Logger::Log(
-                LogLevel::Error, "Unknown root for repository {}", repo);
+            Logger::Log(LogLevel::Error,
+                        "Unknown workspace root for repository {}",
+                        repo);
             std::exit(kExitFailure);
         }
         auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
