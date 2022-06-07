@@ -1,5 +1,5 @@
 { "test-action":
-  { "vars": ["name", "test.sh", "ATTEMPT"]
+  { "vars": ["name", "test.sh", "ATTEMPT", "TEST_ENV"]
   , "imports":
     { "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "runfiles_list": ["./", "../..", "field_runfiles_list"]
@@ -103,6 +103,9 @@
           , "$1": [["./runner"], {"type": "FIELD", "name": "keep"}]
           }
         ]
+      , [ "test_env"
+        , {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
+        ]
       ]
     , "body":
       { "type": "if"
@@ -113,6 +116,7 @@
         , "outs": {"type": "var", "name": "outs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
+        , "env": {"type": "var", "name": "test_env"}
         , "may_fail": ["test"]
         , "fail_message":
           { "type": "join"
@@ -124,6 +128,7 @@
         , "outs": {"type": "var", "name": "outs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
+        , "env": {"type": "var", "name": "test_env"}
         , "may_fail": ["test"]
         , "no_cache": ["test"]
         , "fail_message":
@@ -141,7 +146,7 @@
     }
   }
 , "test-result":
-  { "vars": ["name", "test.sh"]
+  { "vars": ["name", "test.sh", "TEST_ENV"]
   , "imports": {"action": "test-action"}
   , "expression":
     { "type": "let*"

@@ -2,7 +2,7 @@
   { "doc": ["Shell test, given by a test script"]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
-  , "config_vars": ["RUNS_PER_TEST"]
+  , "config_vars": ["RUNS_PER_TEST", "TEST_ENV"]
   , "field_doc":
     { "test": ["The shell script for the test, launched with sh"]
     , "name":
@@ -24,6 +24,7 @@
       [ "The number of times the test should be run in order to detect flakyness."
       , "If set, no test action will be taken from cache."
       ]
+    , "TEST_ENV": ["The environment for executing the test runner."]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
