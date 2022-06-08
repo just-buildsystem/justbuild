@@ -108,6 +108,12 @@ auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
             return ".";
         }
         auto p = std::filesystem::path{path};
+        if (p.is_absolute()) {
+            return p.string();
+        }
+        if (*p.begin() == "..") {
+            return p.string();
+        }
         auto insert_result = blocked.insert(p);
         if (not insert_result.second) {
             return p.string();  // duplicate path

@@ -18,6 +18,10 @@ cat > RULES <<'EOI'
               , "key": "./foo.txt"
               , "value": {"type": "BLOB", "data": "Same String"}
               }
+            , { "type": "singleton_map"
+              , "key": "bar/baz/../../not-upwards.txt"
+              , "value": {"type": "BLOB", "data": "unrelated"}
+              }
             ]
           }
         ]
@@ -185,6 +189,27 @@ cat > RULES <<'EOI'
     , "body": {"type": "RESULT", "artifacts": {"type": "var", "name": "out"}}
     }
   }
+, "upwards-inputs":
+  { "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "map"
+        , { "type": "singleton_map"
+          , "key": "bar/../../foo.txt"
+          , "value": {"type": "BLOB", "data": "Some content"}
+          }
+        ]
+      , [ "out"
+        , { "type": "ACTION"
+          , "inputs": {"type": "var", "name": "map"}
+          , "outs": ["out"]
+          , "cmd": ["cp", "../foo.txt", "out"]
+          }
+        ]
+      ]
+    , "body": {"type": "RESULT", "artifacts": {"type": "var", "name": "out"}}
+    }
+  }
 }
 EOI
 cat > TARGETS <<'EOI'
@@ -196,6 +221,7 @@ cat > TARGETS <<'EOI'
 , "artifacts-tree-conflict": {"type": "artifacts-tree-conflict"}
 , "runfiles-tree-conflict": {"type": "runfiles-tree-conflict"}
 , "file-file-conflict": {"type": "file-file-conflict"}
+, "upwards-inputs": {"type": "upwards-inputs"}
 }
 EOI
 
@@ -229,6 +255,10 @@ grep -i 'error.*runfiles.*conflict.*tree.*foo' log
 echo
 ./bin/tool-under-test analyse -f log file-file-conflict 2>&1 && exit 1 || :
 grep -i 'error.*.*conflict.*foo/bar/baz.txt' log
+
+echo
+./bin/tool-under-test analyse -f log upwards-inputs 2>&1 && exit 1 || :
+grep -i 'error.*\.\./foo.txt' log
 
 echo
 echo DONE

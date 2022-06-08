@@ -17,6 +17,22 @@ TEST_CASE("Tree conflicts", "[tree_conflict]") {
         BuildMaps::Target::Utils::tree_conflict(root_overlap);
     CHECK(root_overlap_conflict);
     CHECK(*root_overlap_conflict == ".");
+
+    auto upwards_reference = Expression::FromJson(R"(
+      { "../foo.txt" : "content" })"_json);
+    REQUIRE(upwards_reference);
+    auto upwards_reference_conflict =
+        BuildMaps::Target::Utils::tree_conflict(upwards_reference);
+    CHECK(upwards_reference_conflict);
+    CHECK(*upwards_reference_conflict == "../foo.txt");
+
+    auto absolute_reference = Expression::FromJson(R"(
+      { "/foo.txt" : "content" })"_json);
+    REQUIRE(absolute_reference);
+    auto absolute_reference_conflict =
+        BuildMaps::Target::Utils::tree_conflict(absolute_reference);
+    CHECK(absolute_reference_conflict);
+    CHECK(*absolute_reference_conflict == "/foo.txt");
 }
 
 TEST_CASE("No conflict", "[tree_conflict]") {
