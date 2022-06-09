@@ -235,6 +235,13 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Path to configuration file for multi-repository builds.\\
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
+   *-D*, *--defines* JSON\\
+   Defines, via an in-line JSON object a configuratio to overlay
+   (in the sense of ~map_union~) to the configuration
+   obtained by the *--config* option. If *-D* is given several times,
+   only the latest *-D* option is taken.\\
+   Supported by: analyse|build|describe|install|rebuild.
+
    *--expression-file-name* TEXT\\
    Name of the expressions file.\\
    Supported by: analyse|build|describe|install|rebuild.

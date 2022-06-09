@@ -140,8 +140,8 @@ static inline auto SetupAnalysisArguments(
     app->add_option(
            "-D,--defines",
            clargs->defines,
-           "Define configuration variables via an in-line JSON object.\n"
-           "Latest wins. Supersedes values provided via --config")
+           "Define an overlay configuration via an in-line JSON object."
+           "Latest wins.")
         ->type_name("JSON");
     app->add_option(
            "-c,--config", clargs->config_file, "Path to configuration file.")
