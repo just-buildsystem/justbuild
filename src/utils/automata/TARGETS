@@ -1,0 +1,12 @@
+{ "dfa_minimizer":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["dfa_minimizer"]
+  , "hdrs": ["dfa_minimizer.hpp"]
+  , "stage": ["src", "utils", "automata"]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
+  }
+}
