@@ -35,6 +35,7 @@
     [ "expression_ptr.cpp"
     , "expression.cpp"
     , "evaluator.cpp"
+    , "target_result.cpp"
     , "target_node.cpp"
     ]
   , "deps":

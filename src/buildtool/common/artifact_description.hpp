@@ -92,6 +92,10 @@ class ArtifactDescription {
         return std::move(id_);
     }
 
+    [[nodiscard]] auto IsKnown() const noexcept -> bool {
+        return std::holds_alternative<Known>(data_);
+    }
+
     [[nodiscard]] auto IsTree() const noexcept -> bool {
         return std::holds_alternative<Tree>(data_);
     }
