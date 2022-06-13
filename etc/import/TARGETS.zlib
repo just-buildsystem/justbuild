@@ -1,4 +1,9 @@
 { "zlib":
+  { "type": "export"
+  , "target": "zlibinternal"
+  , "flexible_config": ["OS", "ARCH", "TARGET_ARCH", "CC", "AR", "ENV"]
+  }
+, "zlibinternal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["zlib"]
   , "pure C": ["YES"]
