@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -113,7 +114,11 @@ auto GitTree::Read(std::filesystem::path const& repo_path,
 auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                    std::string const& tree_id) noexcept
     -> std::optional<GitTree> {
-    auto obj = cas->ReadObject(tree_id, /*is_hex_id=*/true);
+    auto raw_id = FromHexString(tree_id);
+    if (not raw_id) {
+        return std::nullopt;
+    }
+    auto obj = cas->ReadObject(*raw_id);
     if (not obj) {
         return std::nullopt;
     }
@@ -121,7 +126,7 @@ auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
     if (not entries) {
         return std::nullopt;
     }
-    return GitTree{cas, std::move(*entries)};
+    return GitTree{cas, std::move(*entries), std::move(*raw_id)};
 }
 
 auto GitTree::LookupEntryByName(std::string const& name) const noexcept
@@ -157,7 +162,7 @@ auto GitTreeEntry::Tree() const& noexcept -> std::optional<GitTree> const& {
             if (IsTree() and (obj = cas_->ReadObject(raw_id_))) {
                 if (auto entries = ParseRawTreeObject(cas_, *obj)) {
                     ptr = std::make_shared<std::optional<GitTree>>(
-                        GitTree{cas_, std::move(*entries)});
+                        GitTree{cas_, std::move(*entries), raw_id_});
                 }
             }
             tree_cached_.store(ptr);

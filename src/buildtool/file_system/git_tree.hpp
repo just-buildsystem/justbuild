@@ -45,13 +45,20 @@ class GitTree {
 
     [[nodiscard]] auto begin() const noexcept { return entries_.begin(); }
     [[nodiscard]] auto end() const noexcept { return entries_.end(); }
+    [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
+    [[nodiscard]] auto RawHash() const noexcept { return raw_id_; }
 
   private:
     gsl::not_null<GitCASPtr> cas_;
     entries_t entries_;
+    std::string raw_id_;
 
-    GitTree(gsl::not_null<GitCASPtr> cas, entries_t&& entries) noexcept
-        : cas_{std::move(cas)}, entries_{std::move(entries)} {}
+    GitTree(gsl::not_null<GitCASPtr> cas,
+            entries_t&& entries,
+            std::string raw_id) noexcept
+        : cas_{std::move(cas)},
+          entries_{std::move(entries)},
+          raw_id_{std::move(raw_id)} {}
 };
 
 class GitTreeEntry {
