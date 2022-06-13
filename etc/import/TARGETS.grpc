@@ -1526,7 +1526,7 @@
     , "grpc_health_upb"
     ]
   }
-, "grpc++":
+, "grpc++internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc++"]
   , "srcs":
@@ -1557,5 +1557,11 @@
     , "grpc++_codegen_proto"
     , "grpc_secure"
     ]
+  }
+, "grpc++":
+  { "type": "export"
+  , "target": "grpc++internal"
+  , "flexible_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CC", "AR", "ENV"]
   }
 }
