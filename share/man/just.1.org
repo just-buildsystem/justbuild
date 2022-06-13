@@ -316,7 +316,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
    *--log-limit* NUM\\
-   Log limit (higher is more verbose) in interval [0,5] (Default: 3).\\
+   Log limit (higher is more verbose) in interval [0,6] (Default: 3).\\
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
    *-P*, *--print-to-stdout* LOGICAL_PATH\\

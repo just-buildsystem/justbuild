@@ -9,9 +9,10 @@ enum class LogLevel {
     Error,    ///< Error messages, fatal errors
     Warning,  ///< Warning messages, recoverable situations that shouldn't occur
     Info,     ///< Informative messages, such as reporting status or statistics
-    Progress,  ///< Information about the current progress of the build
-    Debug,     ///< Debug messages, such as details from internal processes
-    Trace      ///< Trace messages, verbose details such as function calls
+    Progress,     ///< Information about the current progress of the build
+    Performance,  ///< Information about performance issues
+    Debug,        ///< Debug messages, such as details from internal processes
+    Trace         ///< Trace messages, verbose details such as function calls
 };
 
 constexpr auto kFirstLogLevel = LogLevel::Error;
@@ -34,6 +35,8 @@ constexpr auto kLastLogLevel = LogLevel::Trace;
             return "INFO";
         case LogLevel::Progress:
             return "PROG";
+        case LogLevel::Performance:
+            return "PERF";
         case LogLevel::Debug:
             return "DEBUG";
         case LogLevel::Trace:
