@@ -2,23 +2,32 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_REPOSITORY_CONFIG_HPP
 
 #include <filesystem>
+#include <map>
 #include <string>
 #include <unordered_map>
 
+#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/multithreading/atomic_value.hpp"
 
 class RepositoryConfig {
+
   public:
     struct RepositoryInfo {
         FileRoot workspace_root;
         FileRoot target_root{workspace_root};
         FileRoot rule_root{target_root};
         FileRoot expression_root{rule_root};
-        std::unordered_map<std::string, std::string> name_mapping{};
+        std::map<std::string, std::string> name_mapping{};
         std::string target_file_name{"TARGETS"};
         std::string rule_file_name{"RULES"};
         std::string expression_file_name{"EXPRESSIONS"};
+
+        // Return base content description without bindings if all roots are
+        // content fixed or return std::nullopt otherwise.
+        [[nodiscard]] auto BaseContentDescription() const
+            -> std::optional<nlohmann::json>;
     };
 
     [[nodiscard]] static auto Instance() noexcept -> RepositoryConfig& {
@@ -27,7 +36,9 @@ class RepositoryConfig {
     }
 
     void SetInfo(std::string const& repo, RepositoryInfo&& info) {
-        infos_.emplace(repo, std::move(info));
+        repos_[repo].base_desc = info.BaseContentDescription();
+        repos_[repo].info = std::move(info);
+        repos_[repo].key.Reset();
     }
 
     [[nodiscard]] auto SetGitCAS(
@@ -38,9 +49,8 @@ class RepositoryConfig {
 
     [[nodiscard]] auto Info(std::string const& repo) const noexcept
         -> RepositoryInfo const* {
-        auto it = infos_.find(repo);
-        if (it != infos_.end()) {
-            return &it->second;
+        if (auto const* data = Data(repo)) {
+            return &data->info;
         }
         return nullptr;
     }
@@ -106,15 +116,34 @@ class RepositoryConfig {
             repo, [](auto const& info) { return &info.expression_file_name; });
     }
 
+    // Obtain repository's cache key if the repository is content fixed or
+    // std::nullopt otherwise.
+    [[nodiscard]] auto RepositoryKey(std::string const& repo) const noexcept
+        -> std::optional<std::string>;
+
     // used for testing
     void Reset() {
-        infos_.clear();
+        repos_.clear();
         git_cas_.reset();
+        duplicates_.Reset();
     }
 
   private:
-    std::unordered_map<std::string, RepositoryInfo> infos_;
+    using duplicates_t = std::unordered_map<std::string, std::string>;
+
+    // All data we store per repository.
+    struct RepositoryData {
+        // Info structure (roots, file names, bindings)
+        RepositoryInfo info{};
+        // Base description if content-fixed
+        std::optional<nlohmann::json> base_desc{};
+        // Cache key if content-fixed
+        AtomicValue<std::optional<std::string>> key{};
+    };
+
+    std::unordered_map<std::string, RepositoryData> repos_;
     GitCASPtr git_cas_;
+    AtomicValue<duplicates_t> duplicates_{};
 
     template <class T>
     [[nodiscard]] auto Get(std::string const& repo,
@@ -128,6 +157,27 @@ class RepositoryConfig {
         }
         return nullptr;
     }
+
+    [[nodiscard]] auto Data(std::string const& repo) const noexcept
+        -> RepositoryData const* {
+        auto it = repos_.find(repo);
+        if (it != repos_.end()) {
+            return &it->second;
+        }
+        return nullptr;
+    }
+
+    [[nodiscard]] auto DeduplicateRepo(std::string const& repo) const
+        -> std::string const&;
+
+    [[nodiscard]] auto BuildGraphForRepository(std::string const& repo) const
+        -> std::optional<nlohmann::json>;
+
+    [[nodiscard]] auto AddToGraphAndGetId(
+        gsl::not_null<nlohmann::json*> const& graph,
+        gsl::not_null<int*> const& id_counter,
+        gsl::not_null<std::unordered_map<std::string, int>*> const& repo_ids,
+        std::string const& repo) const -> std::optional<int>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REPOSITORY_CONFIG_HPP

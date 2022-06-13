@@ -93,9 +93,14 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "hdrs": ["repository_config.hpp"]
+  , "srcs": ["repository_config.cpp"]
   , "deps":
-    [ ["src/buildtool/file_system", "file_root"]
+    [ ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/multithreading", "atomic_value"]
+    , ["src/utils/automata", "dfa_minimizer"]
+    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
