@@ -32,6 +32,11 @@ class Statistics {
     void IncrementRebuiltActionComparedCounter() noexcept {
         ++num_rebuilt_actions_compared_;
     }
+    void IncrementExportsCachedCounter() noexcept { ++num_exports_cached_; }
+    void IncrementExportsUncachedCounter() noexcept { ++num_exports_uncached_; }
+    void IncrementExportsNotEligibleCounter() noexcept {
+        ++num_exports_not_eligible_;
+    }
     [[nodiscard]] auto ActionsQueuedCounter() const noexcept -> int {
         return num_actions_queued_;
     }
@@ -53,6 +58,15 @@ class Statistics {
     [[nodiscard]] auto RebuiltActionComparedCounter() const noexcept -> int {
         return num_rebuilt_actions_compared_;
     }
+    [[nodiscard]] auto ExportsCachedCounter() const noexcept -> int {
+        return num_exports_cached_;
+    }
+    [[nodiscard]] auto ExportsUncachedCounter() const noexcept -> int {
+        return num_exports_uncached_;
+    }
+    [[nodiscard]] auto ExportsNotEligibleCounter() const noexcept -> int {
+        return num_exports_not_eligible_;
+    }
 
   private:
     std::atomic<int> num_actions_queued_{};
@@ -62,6 +76,9 @@ class Statistics {
     std::atomic<int> num_actions_flaky_tainted_{};
     std::atomic<int> num_rebuilt_actions_missing_{};
     std::atomic<int> num_rebuilt_actions_compared_{};
+    std::atomic<int> num_exports_cached_{};
+    std::atomic<int> num_exports_uncached_{};
+    std::atomic<int> num_exports_not_eligible_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_STATISTICS_HPP
