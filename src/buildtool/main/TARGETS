@@ -16,6 +16,7 @@
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/build_engine/target_map", "target_cache"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
     ]

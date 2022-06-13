@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
@@ -14,6 +16,7 @@
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/cli.hpp"
@@ -1270,6 +1273,45 @@ void DumpArtifactsToBuild(
     os << dump_string << std::endl;
 }
 
+auto CollectNonKnownArtifacts(
+    std::unordered_map<TargetCache::Key, AnalysedTargetPtr> const&
+        cache_targets) -> std::vector<ArtifactDescription> {
+    auto cache_artifacts = std::unordered_set<ArtifactDescription>{};
+    for (auto const& [_, target] : cache_targets) {
+        auto artifacts = target->ContainedNonKnownArtifacts();
+        cache_artifacts.insert(std::make_move_iterator(artifacts.begin()),
+                               std::make_move_iterator(artifacts.end()));
+    }
+    return {std::make_move_iterator(cache_artifacts.begin()),
+            std::make_move_iterator(cache_artifacts.end())};
+}
+
+void WriteTargetCacheEntries(
+    std::unordered_map<TargetCache::Key, AnalysedTargetPtr> const&
+        cache_targets,
+    std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
+        extra_infos,
+    std::size_t jobs) {
+    auto ts = TaskSystem{jobs};
+    for (auto const& [key, target] : cache_targets) {
+        ts.QueueTask([&key = key, &target = target, &extra_infos]() {
+            if (auto entry =
+                    TargetCache::Entry::FromTarget(target, extra_infos)) {
+                if (not TargetCache::Instance().Store(key, *entry)) {
+                    Logger::Log(LogLevel::Warning,
+                                "Failed writing target cache entry for {}",
+                                key.Id().ToString());
+                }
+            }
+            else {
+                Logger::Log(LogLevel::Warning,
+                            "Failed creating target cache entry for {}",
+                            key.Id().ToString());
+            }
+        });
+    }
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
@@ -1384,6 +1426,10 @@ auto main(int argc, char* argv[]) -> int {
                 ReportTaintedness(*result);
                 auto const& [actions, blobs, trees] = result_map.ToResult();
 
+                // collect cache targets and artifacts for target-level caching
+                auto const cache_targets = result_map.CacheTargets();
+                auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
+
                 // Clean up result map, now that it is no longer needed
                 {
                     TaskSystem ts;
@@ -1396,9 +1442,18 @@ auto main(int argc, char* argv[]) -> int {
                     arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
                     result->id.ToString());
 
-                auto build_result = traverser.BuildAndStage(
-                    artifacts, runfiles, actions, blobs, trees);
+                auto build_result =
+                    traverser.BuildAndStage(artifacts,
+                                            runfiles,
+                                            actions,
+                                            blobs,
+                                            trees,
+                                            std::move(cache_artifacts));
                 if (build_result) {
+                    WriteTargetCacheEntries(cache_targets,
+                                            build_result->extra_infos,
+                                            arguments.common.jobs);
+
                     // Repeat taintedness message to make the user aware that
                     // the artifacts are not for production use.
                     ReportTaintedness(*result);
