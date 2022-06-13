@@ -36,6 +36,7 @@
   , "deps":
     [ "configured_target"
     , "result_map"
+    , "target_cache"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
@@ -44,6 +45,7 @@
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]

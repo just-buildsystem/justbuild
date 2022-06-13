@@ -4,6 +4,9 @@
 
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache.hpp"
+#include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/local/local_cas.hpp"
 
 namespace {
 auto const kExpectedFields = std::unordered_set<std::string>{"config_doc",
@@ -18,6 +21,7 @@ void FinalizeExport(
     const BuildMaps::Base::EntityName& target,
     const std::vector<std::string>& vars,
     const Configuration& effective_config,
+    const std::optional<TargetCache::Key>& target_cache_key,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
@@ -36,8 +40,6 @@ void FinalizeExport(
     }
     std::unordered_set<std::string> vars_set{};
     vars_set.insert(vars.begin(), vars.end());
-    // TODO(aehlig): wrap all artifacts into "save to target-cache" special
-    // action
     auto analysis_result = std::make_shared<AnalysedTarget>(
         TargetResult{(*value)->Artifacts(), provides, (*value)->RunFiles()},
         std::vector<ActionDescription::Ptr>{},
@@ -45,8 +47,8 @@ void FinalizeExport(
         std::vector<Tree::Ptr>{},
         std::move(vars_set),
         std::set<std::string>{});
-    analysis_result =
-        result_map->Add(target, effective_config, std::move(analysis_result));
+    analysis_result = result_map->Add(
+        target, effective_config, std::move(analysis_result), target_cache_key);
     (*setter)(std::move(analysis_result));
 }
 }  // namespace
@@ -83,10 +85,6 @@ void ExportRule(
     }
     auto effective_config = key.config.Prune(*flexible_vars);
 
-    // TODO(aehlig): if the respository is content-fixed, look up in target
-    // cache with key consistig of repository-description, target, and effective
-    // config.
-
     auto fixed_config =
         desc->ReadOptionalExpression("fixed_config", Expression::kEmptyMap);
     if (not fixed_config->IsMap()) {
@@ -105,6 +103,54 @@ void ExportRule(
     }
     auto target_config = effective_config.Update(fixed_config);
 
+    auto target_cache_key =
+        TargetCache::Key::Create(*exported_target, target_config);
+    if (target_cache_key) {
+        if (auto target_cache_value =
+                TargetCache::Instance().Read(*target_cache_key)) {
+            auto const& [entry, info] = *target_cache_value;
+            if (auto result = entry.ToResult()) {
+                auto analysis_result = std::make_shared<AnalysedTarget>(
+                    *result,
+                    std::vector<ActionDescription::Ptr>{},
+                    std::vector<std::string>{},
+                    std::vector<Tree::Ptr>{},
+                    std::unordered_set<std::string>{flexible_vars->begin(),
+                                                    flexible_vars->end()},
+                    std::set<std::string>{});
+
+                analysis_result = result_map->Add(
+                    key.target, effective_config, std::move(analysis_result));
+
+                Logger::Log(LogLevel::Performance,
+                            "Export target {} served from cache: {} -> {}",
+                            key.target.ToString(),
+                            target_cache_key->Id().ToString(),
+                            info.ToString());
+
+                (*setter)(std::move(analysis_result));
+                Statistics::Instance().IncrementExportsCachedCounter();
+                return;
+            }
+            (*logger)(fmt::format("Reading target entry for key {} failed",
+                                  target_cache_key->Id().ToString()),
+                      false);
+        }
+        else {
+            Statistics::Instance().IncrementExportsUncachedCounter();
+            Logger::Log(LogLevel::Performance,
+                        "Export target {} registered for caching: {}",
+                        key.target.ToString(),
+                        target_cache_key->Id().ToString());
+        }
+    }
+    else {
+        Statistics::Instance().IncrementExportsNotEligibleCounter();
+        Logger::Log(LogLevel::Performance,
+                    "Export target {} is not eligible for target caching",
+                    key.target.ToString());
+    }
+
     (*subcaller)(
         {BuildMaps::Target::ConfiguredTarget{std::move(*exported_target),
                                              std::move(target_config)}},
@@ -113,11 +159,13 @@ void ExportRule(
          vars = std::move(*flexible_vars),
          result_map,
          effective_config = std::move(effective_config),
+         target_cache_key = std::move(target_cache_key),
          target = key.target](auto const& values) {
             FinalizeExport(values,
                            target,
                            vars,
                            effective_config,
+                           target_cache_key,
                            logger,
                            setter,
                            result_map);
