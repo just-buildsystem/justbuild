@@ -1,19 +1,6 @@
 { "hdrs":
   { "type": ["@", "rules", "CC", "header directory"]
   , "stage": ["fmt"]
-  , "hdrs":
-    [ "chrono.h"
-    , "color.h"
-    , "compile.h"
-    , "core.h"
-    , "format.h"
-    , "format-inl.h"
-    , "locale.h"
-    , "os.h"
-    , "ostream.h"
-    , "posix.h"
-    , "printf.h"
-    , "ranges.h"
-    ]
+  , "hdrs": [["TREE", null, "."]]
   }
 }
