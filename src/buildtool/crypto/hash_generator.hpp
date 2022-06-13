@@ -42,8 +42,12 @@ class HashGenerator {
       public:
         /// \brief Get pointer to raw bytes of digest.
         /// Length can be obtained using \ref Length.
-        [[nodiscard]] auto Bytes() const -> std::string const& {
+        [[nodiscard]] auto Bytes() const& -> std::string const& {
             return bytes_;
+        }
+
+        [[nodiscard]] auto Bytes() && -> std::string {
+            return std::move(bytes_);
         }
 
         /// \brief Get hexadecimal string of digest.
@@ -133,10 +137,15 @@ class HashGenerator {
     }
 };
 
+[[nodiscard]] static inline auto ComputeHashDigest(
+    std::string const& data) noexcept -> HashGenerator::HashDigest {
+    return HashGenerator::Instance().Run(data);
+}
+
 /// \brief Hash function used for the entire buildtool
-[[maybe_unused]] [[nodiscard]] static inline auto ComputeHash(
-    std::string const& data) noexcept -> std::string {
-    return HashGenerator::Instance().Run(data).HexString();
+[[nodiscard]] static inline auto ComputeHash(std::string const& data) noexcept
+    -> std::string {
+    return ComputeHashDigest(data).HexString();
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_GENERATOR_HPP
