@@ -170,11 +170,8 @@ static void SetupConfig(std::filesystem::path const& ws) {
     SetupConfig(ws);
 
     auto const local_cpp_desc = ArtifactDescription{path{"local.cpp"}, ""};
-    auto const local_cpp_id = local_cpp_desc.Id();
-
     auto const known_cpp_desc =
         ArtifactDescription{ArtifactDigest{"known.cpp", 0}, ObjectType::File};
-    auto const known_cpp_id = known_cpp_desc.Id();
 
     auto const test_action_desc = ActionDescription{
         {"output1.exe", "output2.exe"},

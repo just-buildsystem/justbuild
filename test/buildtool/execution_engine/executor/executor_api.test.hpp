@@ -67,7 +67,7 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
     SetupConfig();
     auto const main_cpp_desc =
         ArtifactDescription{path{"data/hello_world/main.cpp"}, ""};
-    auto const main_cpp_id = main_cpp_desc.Id();
+    auto const& main_cpp_id = main_cpp_desc.Id();
     std::string const make_hello_id = "make_hello";
     auto const make_hello_desc = ActionDescription{
         {"out/hello_world"},
@@ -78,7 +78,7 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
         {{"src/main.cpp", main_cpp_desc}}};
     auto const exec_desc =
         ArtifactDescription{make_hello_id, "out/hello_world"};
-    auto const exec_id = exec_desc.Id();
+    auto const& exec_id = exec_desc.Id();
 
     DependencyGraph g;
     CHECK(g.AddAction(make_hello_desc));
@@ -121,10 +121,10 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
     SetupConfig();
     auto const greet_hpp_desc =
         ArtifactDescription{path{"data/greeter/greet.hpp"}, ""};
-    auto const greet_hpp_id = greet_hpp_desc.Id();
+    auto const& greet_hpp_id = greet_hpp_desc.Id();
     auto const greet_cpp_desc =
         ArtifactDescription{path{"data/greeter"} / greetcpp, ""};
-    auto const greet_cpp_id = greet_cpp_desc.Id();
+    auto const& greet_cpp_id = greet_cpp_desc.Id();
 
     std::string const compile_greet_id = "compile_greet";
     auto const compile_greet_desc =
@@ -144,7 +144,7 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
 
     auto const greet_o_desc =
         ArtifactDescription{compile_greet_id, "out/greet.o"};
-    auto const greet_o_id = greet_o_desc.Id();
+    auto const& greet_o_id = greet_o_desc.Id();
 
     std::string const make_lib_id = "make_lib";
     auto const make_lib_desc = ActionDescription{
@@ -155,11 +155,11 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
 
     auto const main_cpp_desc =
         ArtifactDescription{path{"data/greeter/main.cpp"}, ""};
-    auto const main_cpp_id = main_cpp_desc.Id();
+    auto const& main_cpp_id = main_cpp_desc.Id();
 
     auto const libgreet_desc =
         ArtifactDescription{make_lib_id, "out/libgreet.a"};
-    auto const libgreet_id = libgreet_desc.Id();
+    auto const& libgreet_id = libgreet_desc.Id();
 
     std::string const make_exe_id = "make_exe";
     auto const make_exe_desc =

@@ -87,7 +87,7 @@ TEST_CASE("AddAction({single action, single output, source file})", "[dag]") {
     using path = std::filesystem::path;
     std::string const action_id = "action_id";
     auto const src_description = ArtifactDescription{path{"main.cpp"}, "repo"};
-    auto const src_id = src_description.Id();
+    auto const& src_id = src_description.Id();
     DependencyGraph g;
     SECTION("Input file in the same path than it is locally") {
         auto const action_description =
@@ -162,20 +162,20 @@ TEST_CASE("Add executable and library", "[dag]") {
     std::vector<std::string> const make_exec_cmd = {"build", "exec"};
     std::vector<std::string> const make_lib_cmd = {"build", "lib.a"};
     auto const main_desc = ArtifactDescription{path{"main.cpp"}, ""};
-    auto const main_id = main_desc.Id();
+    auto const& main_id = main_desc.Id();
     auto const lib_hpp_desc = ArtifactDescription{path{"lib/lib.hpp"}, ""};
-    auto const lib_hpp_id = lib_hpp_desc.Id();
+    auto const& lib_hpp_id = lib_hpp_desc.Id();
     auto const lib_cpp_desc = ArtifactDescription{path{"lib/lib.cpp"}, ""};
-    auto const lib_cpp_id = lib_cpp_desc.Id();
+    auto const& lib_cpp_id = lib_cpp_desc.Id();
     auto const lib_a_desc = ArtifactDescription{make_lib_id, "lib.a"};
-    auto const lib_a_id = lib_a_desc.Id();
+    auto const& lib_a_id = lib_a_desc.Id();
 
     auto const make_exec_desc =
         ActionDescription{{"exec"},
                           {},
                           Action{make_exec_id, make_exec_cmd, {}},
                           {{"main.cpp", main_desc}, {"lib.a", lib_a_desc}}};
-    auto const exec_out_id = ArtifactDescription{make_exec_id, "exec"}.Id();
+    auto const& exec_out_id = ArtifactDescription{make_exec_id, "exec"}.Id();
 
     auto const make_lib_desc = ActionDescription{
         {"lib.a"},
@@ -250,9 +250,7 @@ TEST_CASE("Adding cyclic dependencies produces invalid graph", "[dag]") {
     std::string const action1_id = "action1";
     std::string const action2_id = "action2";
     auto const out1_desc = ArtifactDescription(action1_id, "out1");
-    auto const out1_id = out1_desc.Id();
     auto const out2_desc = ArtifactDescription(action2_id, "out2");
-    auto const out2_id = out2_desc.Id();
 
     auto const action1_desc =
         ActionDescription{{"out1"},

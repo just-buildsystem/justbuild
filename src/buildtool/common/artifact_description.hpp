@@ -85,7 +85,12 @@ class ArtifactDescription {
         return std::nullopt;
     }
 
-    [[nodiscard]] auto Id() const noexcept -> ArtifactIdentifier { return id_; }
+    [[nodiscard]] auto Id() const& noexcept -> ArtifactIdentifier const& {
+        return id_;
+    }
+    [[nodiscard]] auto Id() && noexcept -> ArtifactIdentifier {
+        return std::move(id_);
+    }
 
     [[nodiscard]] auto IsTree() const noexcept -> bool {
         return std::holds_alternative<Tree>(data_);
@@ -312,5 +317,14 @@ class ArtifactDescription {
         return std::nullopt;
     }
 };
+
+namespace std {
+template <>
+struct hash<ArtifactDescription> {
+    [[nodiscard]] auto operator()(ArtifactDescription const& a) const {
+        return std::hash<std::string>{}(a.Id());
+    }
+};
+}  // namespace std
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_DESCRIPTION_HPP
