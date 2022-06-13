@@ -1423,6 +1423,15 @@ auto main(int argc, char* argv[]) -> int {
                 Logger::Log(LogLevel::Info,
                             "Analysed target {}",
                             result->id.ToString());
+
+                auto const& stat = Statistics::Instance();
+                Logger::Log(LogLevel::Info,
+                            "Export targets found: {} cached, {} uncached, "
+                            "{} not eligible for caching",
+                            stat.ExportsCachedCounter(),
+                            stat.ExportsUncachedCounter(),
+                            stat.ExportsNotEligibleCounter());
+
                 ReportTaintedness(*result);
                 auto const& [actions, blobs, trees] = result_map.ToResult();
 
