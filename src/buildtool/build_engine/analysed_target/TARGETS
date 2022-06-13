@@ -2,9 +2,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["target"]
   , "hdrs": ["analysed_target.hpp"]
+  , "srcs": ["analysed_target.cpp"]
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "action_description"]
+    , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "tree"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]

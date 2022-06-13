@@ -11,6 +11,7 @@
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/tree.hpp"
 
 class AnalysedTarget {
@@ -88,6 +89,9 @@ class AnalysedTarget {
     [[nodiscard]] auto Result() && noexcept -> TargetResult {
         return std::move(result_);
     }
+    // Obtain a set of all non-known artifacts from artifacts/runfiles/provides.
+    [[nodiscard]] auto ContainedNonKnownArtifacts() const
+        -> std::vector<ArtifactDescription>;
 
   private:
     TargetResult result_;
