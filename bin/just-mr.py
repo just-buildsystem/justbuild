@@ -283,6 +283,16 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
         run_cmd(["tar", "xf", cas_path(content_id)], cwd=target)
     if ALWAYS_FILE:
         return ["file", subdir_path(target, desc)]
+    tree = import_to_git(target, repo_type, content_id)
+    shutil.rmtree(target)
+    os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
+    with open(tree_id_file, "w") as f:
+        f.write(tree)
+    return ["git tree",
+            git_subtree(tree=tree, subdir=desc.get("subdir", "."), upstream=None),
+            git_root(upstream=None)]
+
+def import_to_git(target, repo_type, content_id):
     run_cmd(
         ["git", "init"],
         cwd=target,
@@ -306,16 +316,9 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
                             stdout=subprocess.PIPE,
                             cwd=target).stdout.decode('utf-8').strip()
     git_keep(commit, upstream=None)
-    tree = subprocess.run(["git", "log", "-n", "1", "--format=%T"],
+    return subprocess.run(["git", "log", "-n", "1", "--format=%T"],
                           stdout=subprocess.PIPE,
                           cwd=target).stdout.decode('utf-8').strip()
-    shutil.rmtree(target)
-    os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
-    with open(tree_id_file, "w") as f:
-        f.write(tree)
-    return ["git tree",
-            git_subtree(tree=tree, subdir=desc.get("subdir", "."), upstream=None),
-            git_root(upstream=None)]
 
 def file_as_git(fpath):
     root_result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
@@ -323,8 +326,15 @@ def file_as_git(fpath):
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.DEVNULL)
     if not root_result.returncode == 0:
-        # Fall back to file root
-        return ["file", fpath]
+        # TODO: consider also doing this for pending changes
+        # copy non-git paths to tmp-workspace and import to git
+        fpath = os.path.realpath(fpath)
+        target = archive_tmp_checkout_dir(os.path.relpath(fpath, "/"), repo_type="file")
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copytree(fpath, target)
+        tree = import_to_git(target, "file", fpath)
+        shutil.rmtree(target)
+        return ["git tree", tree, git_root(upstream=None)]
     root = root_result.stdout.decode('utf-8').rstrip()
     subdir = os.path.relpath(fpath, root)
     root_tree = subprocess.run(["git", "log", "-n", "1", "--format=%T"],
