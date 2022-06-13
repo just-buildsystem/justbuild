@@ -23,6 +23,11 @@ class LocalCAS {
     auto operator=(LocalCAS&&) -> LocalCAS& = delete;
     ~LocalCAS() noexcept = default;
 
+    [[nodiscard]] static auto Instance() noexcept -> LocalCAS<kType>& {
+        static auto instance = LocalCAS<kType>{};
+        return instance;
+    }
+
     [[nodiscard]] auto StoreBlobFromBytes(std::string const& bytes)
         const noexcept -> std::optional<bazel_re::Digest> {
         return StoreBlob(bytes, /*is_owner=*/true);
