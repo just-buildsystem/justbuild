@@ -161,6 +161,9 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
         app.parse(argc, argv);
     } catch (CLI::Error& e) {
         std::exit(app.exit(e));
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error, "Command line parse error: {}", ex.what());
+        std::exit(kExitFailure);
     }
 
     if (*cmd_describe) {
@@ -188,9 +191,13 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     return clargs;
 }
 
+void SetupDefaultLogging() {
+    LogConfig::SetLogLimit(kDefaultLogLevel);
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory()});
+}
+
 void SetupLogging(CommonArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
-    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory()});
     if (clargs.log_file) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
             *clargs.log_file, LogSinkFile::Mode::Overwrite));
@@ -1237,6 +1244,7 @@ void DumpArtifactsToBuild(
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
+    SetupDefaultLogging();
     try {
         auto arguments = ParseCommandLineArguments(argc, argv);
 
