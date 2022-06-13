@@ -14,7 +14,9 @@ auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
 auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 auto const kFailId = std::string{"0123456789abcdef0123456789abcdef01234567"};
 
-[[nodiscard]] auto HexToRaw(std::string const& hex) -> std::string;
+[[nodiscard]] auto HexToRaw(std::string const& hex) -> std::string {
+    return FromHexString(hex).value_or<std::string>({});
+}
 [[nodiscard]] auto RawToHex(std::string const& raw) -> std::string {
     return ToHexString(raw);
 }
@@ -465,65 +467,3 @@ TEST_CASE("Thread-safety", "[git_tree]") {
         }
     }
 }
-
-namespace {
-
-auto HexToRaw(std::string const& hex) -> std::string {
-    if (hex.size() % 2 != 0) {
-        return {};
-    }
-    auto conv = [](char c) -> unsigned char {
-        switch (c) {
-            case '0':
-                return 0x0;
-            case '1':
-                return 0x1;
-            case '2':
-                return 0x2;
-            case '3':
-                return 0x3;
-            case '4':
-                return 0x4;
-            case '5':
-                return 0x5;  // NOLINT
-            case '6':
-                return 0x6;  // NOLINT
-            case '7':
-                return 0x7;  // NOLINT
-            case '8':
-                return 0x8;  // NOLINT
-            case '9':
-                return 0x9;  // NOLINT
-            case 'a':
-            case 'A':
-                return 0xa;  // NOLINT
-            case 'b':
-            case 'B':
-                return 0xb;  // NOLINT
-            case 'c':
-            case 'C':
-                return 0xc;  // NOLINT
-            case 'd':
-            case 'D':
-                return 0xd;  // NOLINT
-            case 'e':
-            case 'E':
-                return 0xe;  // NOLINT
-            case 'f':
-            case 'F':
-                return 0xf;  // NOLINT
-            default:
-                return '\0';
-        }
-    };
-    std::string out{};
-    out.reserve(hex.size() / 2);
-    std::size_t i{};
-    while (i < hex.size()) {
-        auto val = static_cast<unsigned>(conv(hex[i++]) << 4U);
-        out += static_cast<char>(val | conv(hex[i++]));
-    }
-    return out;
-}
-
-}  // namespace
