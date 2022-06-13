@@ -14,6 +14,7 @@
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
@@ -55,13 +56,17 @@ class ResultTargetMap {
     // element of the map after insertion.
     [[nodiscard]] auto Add(BuildMaps::Base::EntityName name,
                            Configuration conf,
-                           gsl::not_null<AnalysedTargetPtr> result)
-        -> AnalysedTargetPtr {
+                           gsl::not_null<AnalysedTargetPtr> result,
+                           std::optional<TargetCache::Key> target_cache_key =
+                               std::nullopt) -> AnalysedTargetPtr {
         auto part = std::hash<BuildMaps::Base::EntityName>{}(name) % width_;
         std::unique_lock lock{m_[part]};
         auto [entry, inserted] = targets_[part].emplace(
             ConfiguredTarget{std::move(name), std::move(conf)},
             std::move(result));
+        if (target_cache_key) {
+            cache_targets_[part].emplace(*target_cache_key, entry->second);
+        }
         if (inserted) {
             num_actions_[part] += entry->second->Actions().size();
             num_blobs_[part] += entry->second->Blobs().size();
@@ -90,6 +95,18 @@ class ResultTargetMap {
                       return lhs.ToString() < rhs.ToString();
                   });
         return targets;
+    }
+
+    [[nodiscard]] auto CacheTargets() const noexcept
+        -> std::unordered_map<TargetCache::Key, AnalysedTargetPtr> {
+        return std::accumulate(
+            cache_targets_.begin(),
+            cache_targets_.end(),
+            std::unordered_map<TargetCache::Key, AnalysedTargetPtr>{},
+            [](auto&& l, auto const& r) {
+                l.insert(r.begin(), r.end());
+                return std::forward<decltype(l)>(l);
+            });
     }
 
     template <bool kIncludeOrigins = false>
@@ -263,7 +280,10 @@ class ResultTargetMap {
 
     void Clear(gsl::not_null<TaskSystem*> const& ts) {
         for (std::size_t i = 0; i < width_; ++i) {
-            ts->QueueTask([i, this]() { targets_[i].clear(); });
+            ts->QueueTask([i, this]() {
+                targets_[i].clear();
+                cache_targets_[i].clear();
+            });
         }
     }
 
@@ -274,6 +294,9 @@ class ResultTargetMap {
     std::vector<
         std::unordered_map<ConfiguredTarget, gsl::not_null<AnalysedTargetPtr>>>
         targets_{width_};
+    std::vector<
+        std::unordered_map<TargetCache::Key, gsl::not_null<AnalysedTargetPtr>>>
+        cache_targets_{width_};
     std::vector<std::size_t> num_actions_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_blobs_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_trees_{std::vector<std::size_t>(width_)};

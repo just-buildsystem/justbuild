@@ -15,7 +15,8 @@
   , "name": ["result_map"]
   , "hdrs": ["result_map.hpp"]
   , "deps":
-    [ ["src/buildtool/common", "tree"]
+    [ "target_cache"
+    , ["src/buildtool/common", "tree"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/expression", "expression"]
