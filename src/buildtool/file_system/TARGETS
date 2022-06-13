@@ -48,7 +48,7 @@
     , "object_type"
     , "file_system_manager"
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "atomic"]
+    , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]

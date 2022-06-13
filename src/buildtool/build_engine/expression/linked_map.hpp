@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -110,32 +111,12 @@ class LinkedMap {
     }
 
     LinkedMap() noexcept = default;
-    LinkedMap(LinkedMap const& other) noexcept
-        : next_{other.next_},
-          content_{other.content_},
-          map_{other.map_},
-          items_{other.items_.load()} {}
-    LinkedMap(LinkedMap&& other) noexcept
-        : next_{std::move(other.next_)},
-          content_{std::move(other.content_)},
-          map_{std::move(other.map_)},
-          items_{other.items_.load()} {}
+    LinkedMap(LinkedMap const& other) noexcept = default;
+    LinkedMap(LinkedMap&& other) noexcept = default;
     ~LinkedMap() noexcept = default;
 
-    auto operator=(LinkedMap const& other) noexcept -> LinkedMap& {
-        next_ = other.next_;
-        content_ = other.content_;
-        map_ = other.map_;
-        items_ = other.items_.load();
-        return *this;
-    }
-    auto operator=(LinkedMap&& other) noexcept -> LinkedMap& {
-        next_ = std::move(other.next_);
-        content_ = std::move(other.content_);
-        map_ = std::move(other.map_);
-        items_ = other.items_.load();
-        return *this;
-    }
+    auto operator=(LinkedMap const& other) noexcept = delete;
+    auto operator=(LinkedMap&& other) noexcept = delete;
 
     [[nodiscard]] auto contains(K const& key) const noexcept -> bool {
         return static_cast<bool>(Find(key));
@@ -276,23 +257,10 @@ class LinkedMap {
 
     // NOTE: Expensive, needs to compute sorted items.
     [[nodiscard]] auto Items() const& -> items_t const& {
-        if (items_.load() == nullptr) {
-            if (not items_loading_.exchange(true)) {
-                items_ = std::make_shared<items_t>(ComputeSortedItems());
-                items_.notify_all();
-            }
-            else {
-                items_.wait(nullptr);
-            }
-        }
-        return *items_.load();
+        return items_.SetOnceAndGet([this] { return ComputeSortedItems(); });
     }
 
-    // NOTE: Expensive, needs to compute sorted items.
-    [[nodiscard]] auto Items() && -> items_t {
-        return items_.load() == nullptr ? ComputeSortedItems()
-                                        : std::move(*items_.load());
-    }
+    [[nodiscard]] auto Items() && = delete;
 
     // NOTE: Expensive, needs to compute sorted items.
     [[nodiscard]] auto Keys() const -> keys_t {
@@ -323,8 +291,7 @@ class LinkedMap {
     Ptr content_{};           // content of this map if set
     underlying_map_t map_{};  // content of this map if content_ is not set
 
-    mutable atomic_shared_ptr<items_t> items_{};
-    mutable std::atomic<bool> items_loading_{};
+    AtomicValue<items_t> items_{};
 
     [[nodiscard]] auto ComputeSortedItems() const noexcept -> items_t {
         auto size =

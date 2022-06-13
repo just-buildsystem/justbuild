@@ -149,16 +149,7 @@ auto Expression::ToString() const -> std::string {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToHash() const noexcept -> std::string {
-    if (hash_.load() == nullptr) {
-        if (not hash_loading_.exchange(true)) {
-            hash_ = std::make_shared<std::string>(ComputeHash());
-            hash_.notify_all();
-        }
-        else {
-            hash_.wait(nullptr);
-        }
-    }
-    return *hash_.load();
+    return hash_.SetOnceAndGet([this] { return ComputeHash(); });
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

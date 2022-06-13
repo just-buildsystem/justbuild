@@ -52,4 +52,11 @@
     ]
   , "stage": ["src", "buildtool", "multithreading"]
   }
+, "atomic_value":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["atomic_value"]
+  , "hdrs": ["atomic_value.hpp"]
+  , "deps": [["src/utils/cpp", "atomic"]]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
 }

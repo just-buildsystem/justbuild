@@ -20,7 +20,7 @@
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/crypto/hash_generator.hpp"
-#include "src/utils/cpp/atomic.hpp"
+#include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/json.hpp"
 
@@ -63,22 +63,10 @@ class Expression {
 
     Expression() noexcept = default;
     ~Expression() noexcept = default;
-    Expression(Expression const& other) noexcept
-        : data_{other.data_}, hash_{other.hash_.load()} {}
-    Expression(Expression&& other) noexcept
-        : data_{std::move(other.data_)}, hash_{other.hash_.load()} {}
-    auto operator=(Expression const& other) noexcept -> Expression& {
-        if (this != &other) {
-            data_ = other.data_;
-        }
-        hash_ = other.hash_.load();
-        return *this;
-    }
-    auto operator=(Expression&& other) noexcept -> Expression& {
-        data_ = std::move(other.data_);
-        hash_ = other.hash_.load();
-        return *this;
-    }
+    Expression(Expression const& other) noexcept = default;
+    Expression(Expression&& other) noexcept = default;
+    auto operator=(Expression const& other) noexcept = delete;
+    auto operator=(Expression&& other) noexcept = delete;
 
     template <class T>
     requires(IsValidType<std::remove_cvref_t<T>>())
@@ -256,8 +244,7 @@ class Expression {
                  map_t>
         data_{none_t{}};
 
-    mutable atomic_shared_ptr<std::string> hash_{};
-    mutable std::atomic<bool> hash_loading_{};
+    AtomicValue<std::string> hash_{};
 
     template <class T, std::size_t kIndex = 0>
     requires(IsValidType<T>()) [[nodiscard]] static consteval auto GetIndexOf()

@@ -13,9 +13,6 @@ namespace {
 
 constexpr auto kOIDRawSize{GIT_OID_RAWSZ};
 
-auto const kLoadTreeError =
-    std::make_shared<std::optional<GitTree>>(std::nullopt);
-
 [[nodiscard]] auto PermToType(std::string const& perm_str) noexcept
     -> std::optional<ObjectType> {
     constexpr auto kPermBase = 8;
@@ -154,26 +151,17 @@ auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
 }
 
 auto GitTreeEntry::Tree() const& noexcept -> std::optional<GitTree> const& {
-    auto ptr = tree_cached_.load();
-    if (not ptr) {
-        if (not tree_loading_.exchange(true)) {
-            ptr = kLoadTreeError;
-            std::optional<std::string> obj{};
-            if (IsTree() and (obj = cas_->ReadObject(raw_id_))) {
+    return tree_cached_.SetOnceAndGet([this]() -> std::optional<GitTree> {
+        std::optional<std::string> obj{};
+        if (IsTree()) {
+            if (auto obj = cas_->ReadObject(raw_id_)) {
                 if (auto entries = ParseRawTreeObject(cas_, *obj)) {
-                    ptr = std::make_shared<std::optional<GitTree>>(
-                        GitTree{cas_, std::move(*entries), raw_id_});
+                    return GitTree{cas_, std::move(*entries), raw_id_};
                 }
             }
-            tree_cached_.store(ptr);
-            tree_cached_.notify_all();
         }
-        else {
-            tree_cached_.wait(nullptr);
-            ptr = tree_cached_.load();
-        }
-    }
-    return *ptr;
+        return std::nullopt;
+    });
 }
 
 auto GitTreeEntry::Size() const noexcept -> std::optional<std::size_t> {

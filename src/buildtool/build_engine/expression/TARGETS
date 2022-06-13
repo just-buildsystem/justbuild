@@ -4,8 +4,8 @@
   , "hdrs": ["linked_map.hpp"]
   , "deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "hash_combine"]
-    , ["src/utils/cpp", "atomic"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
   }
@@ -44,12 +44,12 @@
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/crypto", "hash_generator"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "json"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "concepts"]
-    , ["src/utils/cpp", "atomic"]
     , ["src/utils/cpp", "path"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]

@@ -8,7 +8,7 @@
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
-#include "src/utils/cpp/atomic.hpp"
+#include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 class GitTreeEntry;
@@ -85,8 +85,7 @@ class GitTreeEntry {
     gsl::not_null<GitCASPtr> cas_;
     std::string raw_id_;
     ObjectType type_;
-    mutable atomic_shared_ptr<std::optional<GitTree>> tree_cached_{nullptr};
-    mutable std::atomic<bool> tree_loading_{false};
+    AtomicValue<std::optional<GitTree>> tree_cached_{};
 };
 
 using GitTreePtr = std::shared_ptr<GitTree const>;
