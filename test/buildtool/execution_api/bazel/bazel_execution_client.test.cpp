@@ -7,22 +7,23 @@
 #include "test/utils/test_env.hpp"
 
 TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     std::string instance_name{"remote-execution"};
     std::string content("test");
     auto test_digest = ArtifactDigest::Create(content);
 
-    BazelExecutionClient execution_client(info.Host(), info.Port());
+    BazelExecutionClient execution_client(info->host, info->port);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
     SECTION("Immediate execution and response") {
-        auto action_immediate = CreateAction(instance_name,
-                                             {"echo", "-n", content},
-                                             {},
-                                             ReadPlatformPropertiesFromEnv());
+        auto action_immediate =
+            CreateAction(instance_name,
+                         {"echo", "-n", content},
+                         {},
+                         RemoteExecutionConfig::PlatformProperties());
         REQUIRE(action_immediate);
 
         auto response = execution_client.Execute(
@@ -41,7 +42,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
             CreateAction(instance_name,
                          {"sh", "-c", "sleep 1s; echo -n test"},
                          {},
-                         ReadPlatformPropertiesFromEnv());
+                         RemoteExecutionConfig::PlatformProperties());
 
         SECTION("Blocking, immediately obtain result") {
             auto response = execution_client.Execute(
@@ -73,13 +74,13 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
 
 TEST_CASE("Bazel internals: Execution Client using env variables",
           "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     std::string instance_name{"remote-execution"};
     std::string content("contents of env variable");
     auto test_digest = ArtifactDigest::Create(content);
 
-    BazelExecutionClient execution_client(info.Host(), info.Port());
+    BazelExecutionClient execution_client(info->host, info->port);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -87,7 +88,7 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
         CreateAction(instance_name,
                      {"/bin/sh", "-c", "set -e\necho -n ${MYTESTVAR}"},
                      {{"MYTESTVAR", content}},
-                     ReadPlatformPropertiesFromEnv());
+                     RemoteExecutionConfig::PlatformProperties());
     REQUIRE(action);
 
     auto response =

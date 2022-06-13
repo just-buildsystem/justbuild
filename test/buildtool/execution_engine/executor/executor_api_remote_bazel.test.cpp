@@ -6,11 +6,11 @@
 
 TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     ExecutionConfiguration config;
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestBlobUpload([&] {
         return BazelApi::Ptr{
-            new BazelApi{"remote-execution", info.Host(), info.Port(), config}};
+            new BazelApi{"remote-execution", info->host, info->port, config}};
     });
 }
 
@@ -18,12 +18,12 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestHelloWorldCompilation(
         [&] {
             return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info.Host(), info.Port(), config}};
+                "remote-execution", info->host, info->port, config}};
         },
         false /* not hermetic */);
 }
@@ -32,12 +32,12 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestGreeterCompilation(
         [&] {
             return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info.Host(), info.Port(), config}};
+                "remote-execution", info->host, info->port, config}};
         },
         false /* not hermetic */);
 }
@@ -46,12 +46,12 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestUploadAndDownloadTrees(
         [&] {
             return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info.Host(), info.Port(), config}};
+                "remote-execution", info->host, info->port, config}};
         },
         false /* not hermetic */);
 }
@@ -60,12 +60,12 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestRetrieveOutputDirectories(
         [&] {
             return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info.Host(), info.Port(), config}};
+                "remote-execution", info->host, info->port, config}};
         },
         false /* not hermetic */);
 }

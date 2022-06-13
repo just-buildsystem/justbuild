@@ -10,40 +10,45 @@
 namespace {
 
 auto const kApiFactory = []() {
-    static auto const& server = RemoteExecutionConfig::Instance();
+    static auto const& server = RemoteExecutionConfig::RemoteAddress();
     return IExecutionApi::Ptr{
-        new BazelApi{"remote-execution", server.Host(), server.Port(), {}}};
+        new BazelApi{"remote-execution", server->host, server->port, {}}};
 };
 
 }  // namespace
 
 TEST_CASE("BazelAPI: No input, no output", "[execution_api]") {
-    TestNoInputNoOutput(kApiFactory, ReadPlatformPropertiesFromEnv());
+    TestNoInputNoOutput(kApiFactory,
+                        RemoteExecutionConfig::PlatformProperties());
 }
 
 TEST_CASE("BazelAPI: No input, create output", "[execution_api]") {
-    TestNoInputCreateOutput(kApiFactory, ReadPlatformPropertiesFromEnv());
+    TestNoInputCreateOutput(kApiFactory,
+                            RemoteExecutionConfig::PlatformProperties());
 }
 
 TEST_CASE("BazelAPI: One input copied to output", "[execution_api]") {
-    TestOneInputCopiedToOutput(kApiFactory, ReadPlatformPropertiesFromEnv());
+    TestOneInputCopiedToOutput(kApiFactory,
+                               RemoteExecutionConfig::PlatformProperties());
 }
 
 TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
-    TestNonZeroExitCodeCreateOutput(kApiFactory,
-                                    ReadPlatformPropertiesFromEnv());
+    TestNonZeroExitCodeCreateOutput(
+        kApiFactory, RemoteExecutionConfig::PlatformProperties());
 }
 
 TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
     TestRetrieveTwoIdenticalTreesToPath(
-        kApiFactory, ReadPlatformPropertiesFromEnv(), "two_trees");
+        kApiFactory, RemoteExecutionConfig::PlatformProperties(), "two_trees");
 }
 
 TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
-    TestRetrieveMixedBlobsAndTrees(
-        kApiFactory, ReadPlatformPropertiesFromEnv(), "blobs_and_trees");
+    TestRetrieveMixedBlobsAndTrees(kApiFactory,
+                                   RemoteExecutionConfig::PlatformProperties(),
+                                   "blobs_and_trees");
 }
 
 TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
-    TestCreateDirPriorToExecution(kApiFactory, ReadPlatformPropertiesFromEnv());
+    TestCreateDirPriorToExecution(kApiFactory,
+                                  RemoteExecutionConfig::PlatformProperties());
 }

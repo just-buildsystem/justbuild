@@ -23,9 +23,9 @@ auto CreateActionCacheEntry(BazelAcClient* ac_client,
 // run only the current test case. See issue#30 in
 // https://rnd-gitlab-eu-c.huawei.com/germany-research-center/intelligent-cloud-technologies-laboratory/9424510-devcloud-build-tool-technology-project-de/-/issues/30
 TEST_CASE("Bazel internals: AC Client", "[!hide][execution_api]") {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    BazelAcClient ac_client(info.Host(), info.Port());
+    BazelAcClient ac_client(info->host, info->port);
 
     std::string instance_name{"remote-execution"};
     std::string content("test");
@@ -34,7 +34,7 @@ TEST_CASE("Bazel internals: AC Client", "[!hide][execution_api]") {
     auto action_id = CreateAction(instance_name,
                                   {"echo", "-n", content},
                                   {},
-                                  ReadPlatformPropertiesFromEnv());
+                                  RemoteExecutionConfig::PlatformProperties());
     REQUIRE(action_id);
 
     // TODO(investigate): Upload fails due to permission issues. The BuildBarn

@@ -205,15 +205,44 @@ void SetupLogging(CommonArguments const& clargs) {
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-void SetupLocalExecution(EndpointArguments const& eargs,
-                         BuildArguments const& bargs) {
+void SetupExecutionConfig(EndpointArguments const& eargs,
+                          BuildArguments const& bargs,
+                          RebuildArguments const& rargs) {
     using LocalConfig = LocalExecutionConfig;
+    using RemoteConfig = RemoteExecutionConfig;
     if (not LocalConfig::SetKeepBuildDir(bargs.persistent_build_dir) or
         not(not eargs.local_root or
             (LocalConfig::SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
         Logger::Log(LogLevel::Error, "failed to configure local execution.");
+        std::exit(kExitFailure);
+    }
+    for (auto const& property : bargs.platform_properties) {
+        if (not RemoteConfig::AddPlatformProperty(property)) {
+            Logger::Log(LogLevel::Error,
+                        "addding platform property '{}' failed.",
+                        property);
+            std::exit(kExitFailure);
+        }
+    }
+    if (eargs.remote_execution_address) {
+        if (not RemoteConfig::SetRemoteAddress(
+                *eargs.remote_execution_address)) {
+            Logger::Log(LogLevel::Error,
+                        "setting remote execution address '{}' failed.",
+                        *eargs.remote_execution_address);
+            std::exit(kExitFailure);
+        }
+    }
+    if (rargs.cache_endpoint) {
+        if (not(RemoteConfig::SetCacheAddress(*rargs.cache_endpoint) ==
+                (*rargs.cache_endpoint != "local"))) {
+            Logger::Log(LogLevel::Error,
+                        "setting cache endpoint address '{}' failed.",
+                        *rargs.cache_endpoint);
+            std::exit(kExitFailure);
+        }
     }
 }
 
@@ -1251,7 +1280,8 @@ auto main(int argc, char* argv[]) -> int {
         SetupLogging(arguments.common);
 #ifndef BOOTSTRAP_BUILD_TOOL
         SetupHashGenerator();
-        SetupLocalExecution(arguments.endpoint, arguments.build);
+        SetupExecutionConfig(
+            arguments.endpoint, arguments.build, arguments.rebuild);
 #endif
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
@@ -1270,7 +1300,6 @@ auto main(int argc, char* argv[]) -> int {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         GraphTraverser const traverser{{jobs,
-                                        std::move(arguments.endpoint),
                                         std::move(arguments.build),
                                         std::move(stage_args),
                                         std::move(rebuild_args)},

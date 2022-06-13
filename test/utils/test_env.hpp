@@ -11,24 +11,14 @@
 #include "test/utils/logging/log_config.hpp"
 
 [[nodiscard]] static inline auto ReadPlatformPropertiesFromEnv()
-    -> std::map<std::string, std::string> {
-    std::map<std::string, std::string> properties{};
+    -> std::vector<std::string> {
+    std::vector<std::string> properties{};
     auto* execution_props = std::getenv("REMOTE_EXECUTION_PROPERTIES");
     if (execution_props not_eq nullptr) {
         std::istringstream pss(std::string{execution_props});
         std::string keyval_pair;
         while (std::getline(pss, keyval_pair, ';')) {
-            std::istringstream kvss{keyval_pair};
-            std::string key;
-            std::string val;
-            if (not std::getline(kvss, key, ':') or
-                not std::getline(kvss, val, ':')) {
-                Logger::Log(LogLevel::Error,
-                            "parsing property '{}' failed.",
-                            keyval_pair);
-                std::exit(EXIT_FAILURE);
-            }
-            properties.emplace(std::move(key), std::move(val));
+            properties.emplace_back(keyval_pair);
         }
     }
     return properties;

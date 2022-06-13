@@ -62,7 +62,7 @@ struct EndpointArguments {
 /// \brief Arguments required for building.
 struct BuildArguments {
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
-    std::map<std::string, std::string> platform_properties;
+    std::vector<std::string> platform_properties;
     std::chrono::milliseconds timeout{kDefaultTimeout};
     std::size_t build_jobs{};
     std::optional<std::string> dump_artifacts{std::nullopt};
@@ -262,25 +262,14 @@ static inline auto SetupBuildArguments(
         ->type_name("JSON")
         ->default_val(nlohmann::json{"env", "--"}.dump());
 
-    app->add_option_function<std::string>(
+    app->add_option(
            "--remote-execution-property",
-           [clargs](auto const& property) {
-               std::istringstream pss(property);
-               std::string key;
-               std::string val;
-               if (not std::getline(pss, key, ':') or
-                   not std::getline(pss, val, ':')) {
-                   throw CLI::ConversionError{property,
-                                              "--remote-execution-property"};
-               }
-               clargs->platform_properties[std::move(key)] = std::move(val);
-           },
+           clargs->platform_properties,
            "Property for remote execution as key-value pair. Specifying this "
            "option multiple times will accumulate pairs (latest wins).")
         ->type_name("KEY:VAL")
         ->allow_extra_args(false)
-        ->expected(1, 1)
-        ->trigger_on_parse(true);  // call this everytime the option is parsed
+        ->expected(1, 1);
 
     app->add_option_function<unsigned int>(
            "--action-timeout",

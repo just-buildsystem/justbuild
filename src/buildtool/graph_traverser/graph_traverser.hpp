@@ -36,7 +36,6 @@ class GraphTraverser {
   public:
     struct CommandLineArguments {
         std::size_t jobs;
-        EndpointArguments endpoint;
         BuildArguments build;
         std::optional<StageArguments> stage;
         std::optional<RebuildArguments> rebuild;
@@ -50,13 +49,13 @@ class GraphTraverser {
 
     explicit GraphTraverser(CommandLineArguments clargs)
         : clargs_{std::move(clargs)},
-          api_{CreateExecutionApi(clargs_.endpoint)},
+          api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
           reporter_{[](auto done, auto cv) {}} {}
 
     explicit GraphTraverser(CommandLineArguments clargs,
                             progress_reporter_t reporter)
         : clargs_{std::move(clargs)},
-          api_{CreateExecutionApi(clargs_.endpoint)},
+          api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
           reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
@@ -214,21 +213,14 @@ class GraphTraverser {
     }
 
     [[nodiscard]] static auto CreateExecutionApi(
-        EndpointArguments const& clargs) -> gsl::not_null<IExecutionApi::Ptr> {
-        if (clargs.remote_execution_address) {
-            auto remote = RemoteExecutionConfig{};
-            if (not remote.SetAddress(*clargs.remote_execution_address)) {
-                Logger::Log(LogLevel::Error,
-                            "parsing remote execution address '{}' failed.",
-                            *clargs.remote_execution_address);
-                std::exit(EXIT_FAILURE);
-            }
-
+        std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+        -> gsl::not_null<IExecutionApi::Ptr> {
+        if (address) {
             ExecutionConfiguration config;
             config.skip_cache_lookup = false;
 
             return std::make_unique<BazelApi>(
-                "remote-execution", remote.Host(), remote.Port(), config);
+                "remote-execution", address->host, address->port, config);
         }
         return std::make_unique<LocalApi>();
     }
@@ -299,8 +291,9 @@ class GraphTraverser {
     [[nodiscard]] auto Traverse(
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
-        Executor executor{
-            &(*api_), clargs_.build.platform_properties, clargs_.build.timeout};
+        Executor executor{&(*api_),
+                          RemoteExecutionConfig::PlatformProperties(),
+                          clargs_.build.timeout};
         bool result{};
         std::atomic<bool> done = false;
         std::condition_variable cv{};
@@ -320,20 +313,12 @@ class GraphTraverser {
     [[nodiscard]] auto TraverseRebuild(
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
-        // create second configuration for cache endpoint
-        auto cache_args = clargs_.endpoint;
-        if (not clargs_.rebuild->cache_endpoint.value_or("").empty()) {
-            cache_args.remote_execution_address =
-                *clargs_.rebuild->cache_endpoint == "local"
-                    ? std::nullopt                      // disable
-                    : clargs_.rebuild->cache_endpoint;  // set endpoint
-        }
-
         // setup rebuilder with api for cache endpoint
-        auto api_cached = CreateExecutionApi(cache_args);
+        auto api_cached =
+            CreateExecutionApi(RemoteExecutionConfig::CacheAddress());
         Rebuilder executor{&(*api_),
                            &(*api_cached),
-                           clargs_.build.platform_properties,
+                           RemoteExecutionConfig::PlatformProperties(),
                            clargs_.build.timeout};
         bool success{false};
         {

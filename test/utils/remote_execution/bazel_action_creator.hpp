@@ -16,7 +16,7 @@
     std::map<std::string, std::string> const& env_vars,
     std::map<std::string, std::string> const& properties) noexcept
     -> std::unique_ptr<bazel_re::Digest> {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     auto platform = std::make_unique<bazel_re::Platform>();
     for (auto const& [name, value] : properties) {
@@ -63,7 +63,7 @@
     auto action_id = ArtifactDigest::Create(action_data);
     blobs.emplace_back(action_id, action_data);
 
-    BazelCasClient cas_client(info.Host(), info.Port());
+    BazelCasClient cas_client(info->host, info->port);
 
     if (cas_client.BatchUpdateBlobs(instance_name, blobs.begin(), blobs.end())
             .size() == blobs.size()) {

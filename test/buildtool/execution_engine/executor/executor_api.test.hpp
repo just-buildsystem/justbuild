@@ -8,6 +8,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -84,7 +85,7 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
     CHECK(g.ArtifactNodeWithId(exec_id)->HasBuilderAction());
 
     auto api = factory();
-    Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+    Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -185,7 +186,7 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
     CHECK(g.Add({compile_greet_desc, make_lib_desc, make_exe_desc}));
 
     auto api = factory();
-    Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+    Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -284,7 +285,7 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
     auto foo_id = g.AddArtifact(foo_desc);
     auto bar_id = g.AddArtifact(bar_desc);
 
-    Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+    Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -422,7 +423,7 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+        Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -465,7 +466,7 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+        Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -524,7 +525,7 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+        Executor runner{api.get(), RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -588,7 +589,8 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
             // run action
             auto api = factory();
-            Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+            Executor runner{api.get(),
+                            RemoteExecutionConfig::PlatformProperties()};
             CHECK_FALSE(runner.Process(action));
         }
 
@@ -606,7 +608,8 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
             // run action
             auto api = factory();
-            Executor runner{api.get(), ReadPlatformPropertiesFromEnv()};
+            Executor runner{api.get(),
+                            RemoteExecutionConfig::PlatformProperties()};
             CHECK_FALSE(runner.Process(action));
         }
     }

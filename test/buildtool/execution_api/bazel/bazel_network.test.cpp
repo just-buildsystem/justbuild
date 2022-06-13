@@ -8,9 +8,9 @@
 constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 
 TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
     std::string instance_name{"remote-execution"};
-    auto network = BazelNetwork{instance_name, info.Host(), info.Port(), {}};
+    auto network = BazelNetwork{instance_name, info->host, info->port, {}};
 
     std::string content_foo("foo");
     std::string content_bar("bar");

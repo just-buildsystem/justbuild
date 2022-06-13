@@ -15,8 +15,72 @@
 
 class RemoteExecutionConfig {
   public:
+    struct ServerAddress {
+        std::string host{};
+        int port{};
+    };
+
+    // Obtain global instance
+    [[nodiscard]] static auto Instance() noexcept -> RemoteExecutionConfig& {
+        static RemoteExecutionConfig config;
+        return config;
+    }
+
+    // Set remote execution and cache address, unsets if parsing `address` fails
+    [[nodiscard]] static auto SetRemoteAddress(
+        std::string const& address) noexcept -> bool {
+        auto& inst = Instance();
+        return static_cast<bool>(inst.remote_address_ = inst.cache_address_ =
+                                     ParseAddress(address));
+    }
+
+    // Set specific cache address, unsets if parsing `address` fails
+    [[nodiscard]] static auto SetCacheAddress(
+        std::string const& address) noexcept -> bool {
+        return static_cast<bool>(Instance().cache_address_ =
+                                     ParseAddress(address));
+    }
+
+    // Add platform property from string of form "key:val"
+    [[nodiscard]] static auto AddPlatformProperty(
+        std::string const& property) noexcept -> bool {
+        if (auto pair = ParseProperty(property)) {
+            Instance().platform_properties_[std::move(pair->first)] =
+                std::move(pair->second);
+            return true;
+        }
+        return false;
+    }
+
+    // Remote execution address, if set
+    [[nodiscard]] static auto RemoteAddress() noexcept
+        -> std::optional<ServerAddress> {
+        return Instance().remote_address_;
+    }
+
+    // Cache address, if set
+    [[nodiscard]] static auto CacheAddress() noexcept
+        -> std::optional<ServerAddress> {
+        return Instance().cache_address_;
+    }
+
+    [[nodiscard]] static auto PlatformProperties() noexcept
+        -> std::map<std::string, std::string> {
+        return Instance().platform_properties_;
+    }
+
+  private:
+    // Server address of remote execution.
+    std::optional<ServerAddress> remote_address_{};
+
+    // Server address of cache endpoint for rebuild.
+    std::optional<ServerAddress> cache_address_{};
+
+    // Platform properies for execution.
+    std::map<std::string, std::string> platform_properties_{};
+
     [[nodiscard]] static auto ParseAddress(std::string const& address) noexcept
-        -> std::optional<std::pair<std::string, int>> {
+        -> std::optional<ServerAddress> {
         std::istringstream iss(address);
         std::string host;
         std::string port;
@@ -25,48 +89,34 @@ class RemoteExecutionConfig {
             return std::nullopt;
         }
         try {
-            return std::make_pair(host, std::stoi(port));
+            static constexpr int kMaxPortNumber{
+                std::numeric_limits<uint16_t>::max()};
+            auto port_num = std::stoi(port);
+            if (not host.empty() and port_num >= 0 and
+                port_num <= kMaxPortNumber) {
+                return ServerAddress{std::move(host), port_num};
+            }
         } catch (std::out_of_range const& e) {
             Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");
-            return std::nullopt;
         } catch (std::invalid_argument const& e) {
             Logger::Log(LogLevel::Error,
                         "Port raised invalid_argument exception.");
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] static auto ParseProperty(
+        std::string const& property) noexcept
+        -> std::optional<std::pair<std::string, std::string>> {
+        std::istringstream pss(property);
+        std::string key;
+        std::string val;
+        if (not std::getline(pss, key, ':') or
+            not std::getline(pss, val, ':')) {
             return std::nullopt;
         }
+        return std::make_pair(key, val);
     }
-
-    // Obtain global instance
-    [[nodiscard]] static auto Instance() noexcept -> RemoteExecutionConfig& {
-        static RemoteExecutionConfig config;
-        return config;
-    }
-
-    [[nodiscard]] auto IsValidAddress() const noexcept -> bool {
-        return valid_;
-    }
-
-    [[nodiscard]] auto SetAddress(std::string const& address) noexcept -> bool {
-        auto pair = ParseAddress(address);
-        return pair and SetAddress(pair->first, pair->second);
-    }
-
-    [[nodiscard]] auto SetAddress(std::string const& host, int port) noexcept
-        -> bool {
-        host_ = host;
-        port_ = port,
-        valid_ = (not host.empty() and port >= 0 and port <= kMaxPortNumber);
-        return valid_;
-    }
-
-    [[nodiscard]] auto Host() const noexcept -> std::string { return host_; }
-    [[nodiscard]] auto Port() const noexcept -> int { return port_; }
-
-  private:
-    static constexpr int kMaxPortNumber{std::numeric_limits<uint16_t>::max()};
-    std::string host_{};
-    int port_{};
-    bool valid_{false};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP

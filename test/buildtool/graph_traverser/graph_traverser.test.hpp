@@ -30,18 +30,15 @@ class TestProject {
     };
 
     // NOLINTNEXTLINE(modernize-pass-by-value)
-    explicit TestProject(std::string const& example_name,
-                         bool run_local = false)
+    explicit TestProject(std::string const& example_name)
         : example_name_{example_name},
-          root_dir_{kWorkspacePrefix / example_name_},
-          run_local_{run_local} {
+          root_dir_{kWorkspacePrefix / example_name_} {
         SetupConfig();
     }
 
-    explicit TestProject(std::string&& example_name, bool run_local = false)
+    explicit TestProject(std::string&& example_name)
         : example_name_{std::move(example_name)},
-          root_dir_{kWorkspacePrefix / example_name_},
-          run_local_{run_local} {
+          root_dir_{kWorkspacePrefix / example_name_} {
         SetupConfig();
     }
 
@@ -79,7 +76,6 @@ class TestProject {
         "_entry_points";
     std::string example_name_{};
     std::filesystem::path root_dir_{};
-    bool run_local_{};
 
     void SetupConfig() {
         auto info = RepositoryConfig::RepositoryInfo{FileRoot{root_dir_}};
@@ -91,7 +87,7 @@ class TestProject {
         -> CommandLineArguments {
         static int id{};
 
-        GraphTraverser::CommandLineArguments gtargs{0, {}, {}, {}, {}};
+        GraphTraverser::CommandLineArguments gtargs{0, {}, {}, {}};
 
         CommandLineArguments clargs{gtargs};
         clargs.artifacts = entry_points;
@@ -106,18 +102,6 @@ class TestProject {
         clargs.gtargs.jobs = std::max(1U, std::thread::hardware_concurrency());
         clargs.gtargs.stage = StageArguments{
             kOutputDirPrefix / (example_name_ + std::to_string(id++))};
-        if (not run_local_) {
-            clargs.gtargs.endpoint.remote_execution_address =
-                ReadRemoteAddressFromEnv();
-            clargs.gtargs.build.platform_properties =
-                ReadPlatformPropertiesFromEnv();
-            if (not clargs.gtargs.endpoint.remote_execution_address) {
-                Logger::Log(LogLevel::Error,
-                            "Missing env var 'REMOTE_EXECUTION_ADDRESS' for "
-                            "non-local graph_traverser tests.");
-                std::exit(EXIT_FAILURE);
-            }
-        }
         return clargs;
     }
 };
@@ -125,9 +109,8 @@ class TestProject {
 }  // namespace
 
 [[maybe_unused]] static void TestHelloWorldCopyMessage(
-    bool run_local,
     bool is_hermetic = true) {
-    TestProject p("hello_world_copy_message", run_local);
+    TestProject p("hello_world_copy_message");
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
@@ -169,9 +152,8 @@ class TestProject {
     }
 }
 
-[[maybe_unused]] static void TestCopyLocalFile(bool run_local,
-                                               bool is_hermetic = true) {
-    TestProject p("copy_local_file", run_local);
+[[maybe_unused]] static void TestCopyLocalFile(bool is_hermetic = true) {
+    TestProject p("copy_local_file");
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
@@ -189,9 +171,8 @@ class TestProject {
 }
 
 [[maybe_unused]] static void TestSequencePrinterBuildLibraryOnly(
-    bool run_local,
     bool is_hermetic = true) {
-    TestProject p("sequence_printer_build_library_only", run_local);
+    TestProject p("sequence_printer_build_library_only");
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
@@ -221,9 +202,8 @@ class TestProject {
 }
 
 [[maybe_unused]] static void TestHelloWorldWithKnownSource(
-    bool run_local,
     bool is_hermetic = true) {
-    TestProject full_hello_world("hello_world_copy_message", run_local);
+    TestProject full_hello_world("hello_world_copy_message");
 
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
@@ -240,7 +220,7 @@ class TestProject {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 0);
         CHECK(Statistics::Instance().ActionsCachedCounter() == 0);
     }
-    TestProject hello_world_known_cpp("hello_world_known_source", run_local);
+    TestProject hello_world_known_cpp("hello_world_known_source");
 
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
@@ -260,8 +240,8 @@ class TestProject {
     }
 }
 
-static void TestBlobsUploadedAndUsed(bool run_local, bool is_hermetic = true) {
-    TestProject p("use_uploaded_blobs", run_local);
+static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
+    TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
@@ -286,9 +266,8 @@ static void TestBlobsUploadedAndUsed(bool run_local, bool is_hermetic = true) {
     }
 }
 
-static void TestEnvironmentVariablesSetAndUsed(bool run_local,
-                                               bool is_hermetic = true) {
-    TestProject p("use_env_variables", run_local);
+static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
+    TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
@@ -313,8 +292,8 @@ static void TestEnvironmentVariablesSetAndUsed(bool run_local,
     }
 }
 
-static void TestTreesUsed(bool run_local, bool is_hermetic = true) {
-    TestProject p("use_trees", run_local);
+static void TestTreesUsed(bool is_hermetic = true) {
+    TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
@@ -339,8 +318,8 @@ static void TestTreesUsed(bool run_local, bool is_hermetic = true) {
     }
 }
 
-static void TestNestedTreesUsed(bool run_local, bool is_hermetic = true) {
-    TestProject p("use_nested_trees", run_local);
+static void TestNestedTreesUsed(bool is_hermetic = true) {
+    TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
@@ -365,9 +344,8 @@ static void TestNestedTreesUsed(bool run_local, bool is_hermetic = true) {
     }
 }
 
-static void TestFlakyHelloWorldDetected(bool run_local,
-                                        bool /*is_hermetic*/ = true) {
-    TestProject p("flaky_hello_world", run_local);
+static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
+    TestProject p("flaky_hello_world");
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");

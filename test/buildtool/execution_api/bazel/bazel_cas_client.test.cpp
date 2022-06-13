@@ -6,13 +6,13 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 
 TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::Instance();
+    auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     std::string instance_name{"remote-execution"};
     std::string content("test");
 
     // Create CAS client
-    BazelCasClient cas_client(info.Host(), info.Port());
+    BazelCasClient cas_client(info->host, info->port);
 
     SECTION("Valid digest and blob") {
         // digest of "test"

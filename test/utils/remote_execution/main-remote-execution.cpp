@@ -27,12 +27,18 @@ void wait_for_grpc_to_shutdown() {
         HashGenerator::SetHashGenerator(HashGenerator::HashType::SHA256);
     }
     auto address = ReadRemoteAddressFromEnv();
-    auto& config = RemoteExecutionConfig::Instance();
-    if (address and not config.SetAddress(*address)) {
+    if (address and not RemoteExecutionConfig::SetRemoteAddress(*address)) {
         Logger::Log(LogLevel::Error, "parsing address '{}' failed.", *address);
         std::exit(EXIT_FAILURE);
     }
-    return config.IsValidAddress();
+    for (auto const& property : ReadPlatformPropertiesFromEnv()) {
+        if (not RemoteExecutionConfig::AddPlatformProperty(property)) {
+            Logger::Log(
+                LogLevel::Error, "parsing property '{}' failed.", property);
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    return static_cast<bool>(RemoteExecutionConfig::RemoteAddress());
 }
 
 }  // namespace
