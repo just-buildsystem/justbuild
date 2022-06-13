@@ -140,6 +140,7 @@ by using the ~build~ subcommand:
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
@@ -156,6 +157,7 @@ directory:
 $ just install -C $CONF helloworld -o .
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 2 cache hits.
@@ -179,6 +181,7 @@ following command to provide an object that sets ~"CXX"~ to ~"clang++"~:
 $ just build -C $CONF helloworld -D'{"CXX":"clang++"}'
 INFO: Requested target is [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{"CXX":"clang++"}].
 INFO: Processed 2 actions, 0 cache hits.
@@ -261,6 +264,7 @@ $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
@@ -349,6 +353,7 @@ command as before (no need to rerun ~just-mr~):
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 4 actions, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 0 cache hits.
@@ -363,6 +368,7 @@ following command:
 $ just build -C $CONF greet greet
 INFO: Requested target is [["@","tutorial","greet","greet"],{}]
 INFO: Analysed target [["@","tutorial","greet","greet"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","greet","greet"],{}].
 INFO: Processed 2 actions, 2 cache hits.
