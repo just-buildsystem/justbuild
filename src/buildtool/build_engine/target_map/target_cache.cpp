@@ -16,9 +16,10 @@ auto TargetCache::Key::Create(BuildMaps::Base::EntityName const& target,
         if (auto repo_key =
                 repos.RepositoryKey(target.GetNamedTarget().repository)) {
             // target's repository is content-fixed, we can compute a cache key
+            auto const& name = target.GetNamedTarget();
             auto target_desc = nlohmann::json{
                 {{"repo_key", *repo_key},
-                 {"target_name", target.ToString()},
+                 {"target_name", nlohmann::json{name.module, name.name}.dump()},
                  {"effective_config", effective_config.ToString()}}};
             static auto const& cas = LocalCAS<ObjectType::File>::Instance();
             if (auto target_key = cas.StoreBlobFromBytes(target_desc.dump(2))) {
