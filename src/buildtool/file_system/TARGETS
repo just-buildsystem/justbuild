@@ -64,6 +64,7 @@
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

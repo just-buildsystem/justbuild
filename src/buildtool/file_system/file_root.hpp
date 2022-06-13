@@ -11,6 +11,7 @@
 #include <variant>
 
 #include "gsl-lite/gsl-lite.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -82,6 +83,8 @@ class FileRoot {
     using root_t = std::variant<fs_root_t, git_root_t>;
 
   public:
+    static constexpr auto kGitTreeMarker = "git tree";
+
     class DirectoryEntries {
         friend class FileRoot;
 
@@ -248,6 +251,22 @@ class FileRoot {
                 } catch (...) {
                 }
             }
+        }
+        return std::nullopt;
+    }
+
+    // Return a complete description of the content of this root, if that can be
+    // done without any file-system access.
+    [[nodiscard]] auto ContentDescription() const noexcept
+        -> std::optional<nlohmann::json> {
+        try {
+            if (std::holds_alternative<git_root_t>(root_)) {
+                nlohmann::json j;
+                j.push_back(kGitTreeMarker);
+                j.push_back(std::get<git_root_t>(root_).tree->Hash());
+                return j;
+            }
+        } catch (...) {
         }
         return std::nullopt;
     }

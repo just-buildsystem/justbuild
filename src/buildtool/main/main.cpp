@@ -462,7 +462,7 @@ auto ParseRoot(std::string const& repo,
         auto path = std::filesystem::path{root[1]};
         return {FileRoot{path}, std::move(path)};
     }
-    if (root[0] == "git tree") {
+    if (root[0] == FileRoot::kGitTreeMarker) {
         if (root.size() != 3 or (not root[1].is_string()) or
             (not root[2].is_string())) {
             Logger::Log(LogLevel::Error,
