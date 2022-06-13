@@ -123,6 +123,12 @@ class LocalExecutionConfig {
         return CacheRoot() / "ac";
     }
 
+    /// \brief Target cache directory
+    [[nodiscard]] static auto TargetCacheDir() noexcept
+        -> std::filesystem::path {
+        return CacheRoot() / "tc";
+    }
+
     [[nodiscard]] static auto GetLauncher() noexcept
         -> std::vector<std::string> {
         return Data().launcher;

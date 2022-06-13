@@ -35,6 +35,7 @@
   , "deps":
     [ "configured_target"
     , "result_map"
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "field_reader"]
@@ -55,6 +56,21 @@
   , "name": ["target_map_testable_internals"]
   , "hdrs": ["utils.hpp"]
   , "deps": ["target_map"]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
+, "target_cache":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_cache"]
+  , "hdrs": ["target_cache.hpp"]
+  , "srcs": ["target_cache.cpp"]
+  , "deps":
+    [ ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   }
 }
