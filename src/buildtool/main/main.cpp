@@ -1402,12 +1402,13 @@ auto main(int argc, char* argv[]) -> int {
                     // Repeat taintedness message to make the user aware that
                     // the artifacts are not for production use.
                     ReportTaintedness(*result);
-                    if (build_result->second) {
+                    if (build_result->failed_artifacts) {
                         Logger::Log(LogLevel::Warning,
                                     "Build result contains failed artifacts.");
                     }
-                    return build_result->second ? kExitSuccessFailedArtifacts
-                                                : kExitSuccess;
+                    return build_result->failed_artifacts
+                               ? kExitSuccessFailedArtifacts
+                               : kExitSuccess;
                 }
             }
 #endif

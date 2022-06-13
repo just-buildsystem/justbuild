@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_GRAPH_TRAVERSER_GRAPH_TRAVERSER_HPP
 #define INCLUDED_SRC_BUILDTOOL_GRAPH_TRAVERSER_GRAPH_TRAVERSER_HPP
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
@@ -41,6 +42,14 @@ class GraphTraverser {
         std::optional<RebuildArguments> rebuild;
     };
 
+    struct BuildResult {
+        std::vector<std::filesystem::path> output_paths;
+        // Object infos of extra artifacts requested to build.
+        std::unordered_map<ArtifactDescription, Artifact::ObjectInfo>
+            extra_infos;
+        bool failed_artifacts;
+    };
+
     // Type of a progress reporter. The reporter
     // may only block in such a way that it return on a notification of the
     // condition variable; moreover, it has to exit once the boolean is true.
@@ -59,43 +68,64 @@ class GraphTraverser {
           reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
-    /// outputs specified by command line arguments
+    /// outputs specified by command line arguments.
+    /// \param artifact_descriptions Artifacts to build (and stage).
+    /// \param runfile_descriptions  Runfiles to build (and stage).
+    /// \param action_descriptions   All required actions for building.
+    /// \param blobs                 Blob artifacts to upload before the build.
+    /// \param trees                 Tree artifacts to compute graph nodes from.
+    /// \param extra_artifacts       Extra artifacts to obtain object infos for.
     [[nodiscard]] auto BuildAndStage(
         std::map<std::string, ArtifactDescription> const& artifact_descriptions,
         std::map<std::string, ArtifactDescription> const& runfile_descriptions,
         std::vector<ActionDescription::Ptr> const& action_descriptions,
         std::vector<std::string> const& blobs,
-        std::vector<Tree::Ptr> const& trees) const
-        -> std::optional<std::pair<std::vector<std::filesystem::path>, bool>> {
+        std::vector<Tree::Ptr> const& trees,
+        std::vector<ArtifactDescription>&& extra_artifacts = {}) const
+        -> std::optional<BuildResult> {
         DependencyGraph graph;  // must outlive artifact_nodes
         auto artifacts = BuildArtifacts(&graph,
                                         artifact_descriptions,
                                         runfile_descriptions,
                                         action_descriptions,
                                         trees,
-                                        blobs);
+                                        blobs,
+                                        extra_artifacts);
         if (not artifacts) {
             return std::nullopt;
         }
-        auto const [rel_paths, artifact_nodes] = *artifacts;
+        auto const [rel_paths, artifact_nodes, extra_nodes] = *artifacts;
 
         auto const object_infos = CollectObjectInfos(artifact_nodes);
-        if (not object_infos) {
+        auto extra_infos = CollectObjectInfos(extra_nodes);
+        if (not object_infos or not extra_infos) {
             return std::nullopt;
         }
-        bool failed_artifacts = false;
-        for (auto const& obj_info : *object_infos) {
-            failed_artifacts = failed_artifacts || obj_info.failed;
-        }
+
+        gsl_Expects(extra_artifacts.size() == extra_infos->size());
+        std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> infos;
+        infos.reserve(extra_infos->size());
+        std::transform(
+            std::make_move_iterator(extra_artifacts.begin()),
+            std::make_move_iterator(extra_artifacts.end()),
+            std::make_move_iterator(extra_infos->begin()),
+            std::inserter(infos, infos.end()),
+            std::make_pair<ArtifactDescription&&, Artifact::ObjectInfo&&>);
+
+        bool failed_artifacts = std::any_of(
+            object_infos->begin(), object_infos->end(), [](auto const& info) {
+                return info.failed;
+            });
 
         if (not clargs_.stage) {
             PrintOutputs("Artifacts built, logical paths are:",
                          rel_paths,
                          artifact_nodes,
                          runfile_descriptions);
-            MaybePrintToStdout(*artifacts);
-            return std::make_pair(std::move(artifacts->first),
-                                  failed_artifacts);
+            MaybePrintToStdout(rel_paths, artifact_nodes);
+            return BuildResult{std::move(std::get<0>(*artifacts)),
+                               std::move(infos),
+                               failed_artifacts};
         }
 
         auto output_paths = RetrieveOutputs(rel_paths, *object_infos);
@@ -107,17 +137,16 @@ class GraphTraverser {
                      artifact_nodes,
                      runfile_descriptions);
 
-        MaybePrintToStdout(*artifacts);
+        MaybePrintToStdout(rel_paths, artifact_nodes);
 
-        return std::make_pair(*output_paths, failed_artifacts);
+        return BuildResult{*output_paths, std::move(infos), failed_artifacts};
     }
 
     /// \brief Parses graph description into graph, traverses it and retrieves
     /// outputs specified by command line arguments
     [[nodiscard]] auto BuildAndStage(
         std::filesystem::path const& graph_description,
-        nlohmann::json const& artifacts) const
-        -> std::optional<std::pair<std::vector<std::filesystem::path>, bool>> {
+        nlohmann::json const& artifacts) const -> std::optional<BuildResult> {
         // Read blobs to upload and actions from graph description file
         auto desc = ReadGraphDescription(graph_description);
         if (not desc) {
@@ -388,10 +417,12 @@ class GraphTraverser {
         std::map<std::string, ArtifactDescription> const& runfiles,
         std::vector<ActionDescription::Ptr> const& actions,
         std::vector<Tree::Ptr> const& trees,
-        std::vector<std::string> const& blobs) const
+        std::vector<std::string> const& blobs,
+        std::vector<ArtifactDescription> const& extra_artifacts = {}) const
         -> std::optional<
-            std::pair<std::vector<std::filesystem::path>,
-                      std::vector<DependencyGraph::ArtifactNode const*>>> {
+            std::tuple<std::vector<std::filesystem::path>,
+                       std::vector<DependencyGraph::ArtifactNode const*>,
+                       std::vector<DependencyGraph::ArtifactNode const*>>> {
         if (not UploadBlobs(blobs)) {
             return std::nullopt;
         }
@@ -402,6 +433,12 @@ class GraphTraverser {
             return std::nullopt;
         }
         auto& [output_paths, artifact_ids] = *artifact_infos;
+
+        // Add extra artifacts to ids to build
+        artifact_ids.reserve(artifact_ids.size() + extra_artifacts.size());
+        for (auto const& artifact : extra_artifacts) {
+            artifact_ids.emplace_back(graph->AddArtifact(artifact));
+        }
 
         std::vector<ActionDescription> tree_actions{};
         tree_actions.reserve(trees.size());
@@ -435,8 +472,18 @@ class GraphTraverser {
         if (not artifact_nodes) {
             return std::nullopt;
         }
-        return std::make_pair(std::move(output_paths),
-                              std::move(*artifact_nodes));
+
+        // split extra artifacts' nodes from artifact nodes
+        auto extra_nodes = std::vector<DependencyGraph::ArtifactNode const*>{
+            std::make_move_iterator(artifact_nodes->begin() +
+                                    output_paths.size()),
+            std::make_move_iterator(artifact_nodes->end())};
+        artifact_nodes->erase(artifact_nodes->begin() + output_paths.size(),
+                              artifact_nodes->end());
+
+        return std::make_tuple(std::move(output_paths),
+                               std::move(*artifact_nodes),
+                               std::move(extra_nodes));
     }
 
     [[nodiscard]] auto PrepareOutputPaths(
@@ -552,13 +599,13 @@ class GraphTraverser {
     }
 
     void MaybePrintToStdout(
-        std::pair<std::vector<std::filesystem::path>,
-                  std::vector<DependencyGraph::ArtifactNode const*>> artifacts)
+        std::vector<std::filesystem::path> const& paths,
+        std::vector<DependencyGraph::ArtifactNode const*> const& artifacts)
         const {
         if (clargs_.build.print_to_stdout) {
-            for (size_t i = 0; i < artifacts.first.size(); i++) {
-                if (artifacts.first[i] == *(clargs_.build.print_to_stdout)) {
-                    auto info = artifacts.second[i]->Content().Info();
+            for (size_t i = 0; i < paths.size(); i++) {
+                if (paths[i] == *(clargs_.build.print_to_stdout)) {
+                    auto info = artifacts[i]->Content().Info();
                     if (info) {
                         if (not api_->RetrieveToFds({*info},
                                                     {dup(fileno(stdout))})) {

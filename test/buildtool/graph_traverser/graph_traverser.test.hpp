@@ -114,14 +114,14 @@ class TestProject {
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
     auto const contents =
-        FileSystemManager::ReadFile(output_paths->first.at(0));
+        FileSystemManager::ReadFile(result->output_paths.at(0));
     CHECK(contents.has_value());
     CHECK(contents == "Hello, World!\n");
 
@@ -133,12 +133,12 @@ class TestProject {
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         GraphTraverser const gt_get_exec{clargs_exec.gtargs};
-        auto const exec_output_paths = gt_get_exec.BuildAndStage(
+        auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
-        REQUIRE(exec_output_paths);
-        REQUIRE(exec_output_paths->first.size() == 1);
-        auto const exec_path = exec_output_paths->first.at(0);
+        REQUIRE(exec_result);
+        REQUIRE(exec_result->output_paths.size() == 1);
+        auto const exec_path = exec_result->output_paths.at(0);
         CHECK(FileSystemManager::IsFile(exec_path));
         CHECK(FileSystemManager::IsExecutable(exec_path));
         CHECK(FileSystemManager::Type(exec_path) == ObjectType::Executable);
@@ -157,12 +157,12 @@ class TestProject {
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     if (is_hermetic) {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 0);
@@ -176,21 +176,21 @@ class TestProject {
 
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
     GraphTraverser const gt_full_build{clargs_full_build.gtargs};
-    auto const full_build_output_paths = gt_full_build.BuildAndStage(
+    auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
-    REQUIRE(full_build_output_paths);
-    REQUIRE(full_build_output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(full_build_output_paths->first.at(0)));
+    REQUIRE(full_build_result);
+    REQUIRE(full_build_result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(full_build_result->output_paths.at(0)));
 
     if (is_hermetic) {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 8);
@@ -208,13 +208,13 @@ class TestProject {
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs};
-    auto const cpp_output_path = gt_upload.BuildAndStage(
+    auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
 
-    REQUIRE(cpp_output_path);
-    REQUIRE(cpp_output_path->first.size() == 1);
+    REQUIRE(cpp_result);
+    REQUIRE(cpp_result->output_paths.size() == 1);
 
-    CHECK(FileSystemManager::IsFile(cpp_output_path->first.at(0)));
+    CHECK(FileSystemManager::IsFile(cpp_result->output_paths.at(0)));
 
     if (is_hermetic) {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 0);
@@ -224,12 +224,12 @@ class TestProject {
 
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     if (is_hermetic) {
         CHECK(Statistics::Instance().ActionsQueuedCounter() == 2);
@@ -245,15 +245,15 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const contents =
-        FileSystemManager::ReadFile(output_paths->first.at(0));
+        FileSystemManager::ReadFile(result->output_paths.at(0));
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 
@@ -271,15 +271,15 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const contents =
-        FileSystemManager::ReadFile(output_paths->first.at(0));
+        FileSystemManager::ReadFile(result->output_paths.at(0));
     CHECK(contents.has_value());
     CHECK(contents == "content from environment variable");
 
@@ -297,15 +297,15 @@ static void TestTreesUsed(bool is_hermetic = true) {
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const contents =
-        FileSystemManager::ReadFile(output_paths->first.at(0));
+        FileSystemManager::ReadFile(result->output_paths.at(0));
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 
@@ -323,15 +323,15 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
     auto const clargs = p.CmdLineArgs();
 
     GraphTraverser gt{clargs.gtargs};
-    auto const output_paths =
+    auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-    REQUIRE(output_paths);
-    REQUIRE(output_paths->first.size() == 1);
-    CHECK(FileSystemManager::IsFile(output_paths->first.at(0)));
+    REQUIRE(result);
+    REQUIRE(result->output_paths.size() == 1);
+    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const contents =
-        FileSystemManager::ReadFile(output_paths->first.at(0));
+        FileSystemManager::ReadFile(result->output_paths.at(0));
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 
@@ -350,11 +350,11 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{clargs.gtargs};
-        auto const output_paths =
+        auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
-        REQUIRE(output_paths);
-        REQUIRE(output_paths->first.size() == 1);
+        REQUIRE(result);
+        REQUIRE(result->output_paths.size() == 1);
     }
 
     using namespace std::chrono_literals;
