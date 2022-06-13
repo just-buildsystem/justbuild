@@ -33,9 +33,26 @@
     ]
   , "stage": ["test", "buildtool", "common"]
   }
+, "repository_config":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["repository_config"]
+  , "srcs": ["repository_config.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "config"]
+    , ["test/utils", "local_hermeticity"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["action_description", "artifact_description", "artifact_factory"]
+  , "deps":
+    [ "action_description"
+    , "artifact_description"
+    , "artifact_factory"
+    , "repository_config"
+    ]
   }
 }
