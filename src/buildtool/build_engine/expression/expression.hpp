@@ -63,7 +63,7 @@ class Expression {
 
     Expression() noexcept = default;
     ~Expression() noexcept = default;
-    Expression(Expression const& other) noexcept = default;
+    Expression(Expression const& other) noexcept = delete;
     Expression(Expression&& other) noexcept = default;
     auto operator=(Expression const& other) noexcept = delete;
     auto operator=(Expression&& other) noexcept = delete;

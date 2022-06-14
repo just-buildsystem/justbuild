@@ -156,7 +156,7 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(list != list_t{});
         CHECK(list != Expression{list_t{}});
         CHECK(list != map);
-        CHECK(list != Expression{*map});
+        CHECK(list != *map);
         CHECK(list != Expression::FromJson(R"({"1":1})"_json));
 
         CHECK(map == map);
@@ -166,7 +166,7 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(map != map_t{});
         CHECK(map != Expression{map_t{}});
         CHECK(map != list);
-        CHECK(map != Expression{*list});
+        CHECK(map != *list);
         CHECK(map != Expression::FromJson(R"(["3",1])"_json));
 
         // compare nullptr != null != false != 0 != "" != [] != {}
