@@ -587,7 +587,7 @@ auto DetermineRoots(CommonArguments const& cargs,
         if (it_ws != desc.end()) {
             auto [root, path] = ParseRoot(repo, "workspace_root", *it_ws);
             ws_root = std::move(root);
-            if (is_main_repo) {
+            if (is_main_repo and path.has_value()) {
                 main_ws_root = std::move(path);
             }
         }
@@ -600,7 +600,9 @@ auto DetermineRoots(CommonArguments const& cargs,
             else if (not ws_root) {
                 main_ws_root = DetermineWorkspaceRootByLookingForMarkers();
             }
-            ws_root = FileRoot{*main_ws_root};
+            if (main_ws_root.has_value()) {
+                ws_root = FileRoot{*main_ws_root};
+            }
         }
         if (not ws_root) {
             Logger::Log(LogLevel::Error,
@@ -623,6 +625,7 @@ auto DetermineRoots(CommonArguments const& cargs,
             }
         };
 
+        info.target_root = info.workspace_root;
         parse_keyword_root(&info.target_root, "target_root", aargs.target_root);
 
         info.rule_root = info.target_root;
