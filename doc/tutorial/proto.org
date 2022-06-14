@@ -1,0 +1,417 @@
+* Using protocol buffers
+
+The rules /justbuild/ uses for itself also support protocol
+buffers. This tutorial shows how to use those rules and the targets
+associated with them. It is not a tutorial on protocol buffers
+itself; rather, it is assumed that the reader has some knowledge on
+[[https://developers.google.com/protocol-buffers/][protocol buffers]].
+
+** Setting up the repository configuration
+
+The ~protobuf~ repository conveniently contains an
+[[https://github.com/protocolbuffers/protobuf/tree/678da4f76eb9168c9965afc2149944a66cd48546/examples][example]],
+so we can use this and just add our own target files. We create
+file ~repos.json~ as follows.
+
+#+BEGIN_SRC js
+{ "repositories":
+  { "":
+    { "repository": "protobuf"
+    , "target_root": "tutorial"
+    , "bindings": {"rules": "rules"}
+    }
+  , "tutorial": {"repository": {"type": "file", "path": "."}}
+  , ...
+  }
+}
+#+END_SRC
+
+The remaining entries are just the ones from ~etc/repos.json~ from
+the /justbuild/ repository; here we keep in mind that we're now working
+in a different location, and hence have to replace the relative paths
+by appropriate absolute ones.
+
+To build the example with ~just~, the only task is to write a targets
+file at ~examples/TARGETS~. As that contains a couple of new concepts,
+we will do this step by step.
+
+** The proto library
+
+First, we have to declare the proto library. In this case, it only
+contains one file and has no dependencies.
+
+#+BEGIN_SRC js
+{ "address":
+  { "type": ["@", "rules", "proto", "library"]
+  , "name": ["addressbook"]
+  , "srcs": ["addressbook.proto"]
+  }
+...
+#+END_SRC
+
+In general, proto libraries could also depend on other proto libraries;
+those would be added to the ~"deps"~ field.
+
+When building the library, there's very little to do.
+
+#+BEGIN_SRC shell
+$ CONF=$(just-mr -C repos.json setup)
+$ just build -C $CONF examples address
+INFO: Requested target is [["@","","examples","address"],{}]
+INFO: Analysed target [["@","","examples","address"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Discovered 0 actions, 0 trees, 0 blobs
+INFO: Building [["@","","examples","address"],{}].
+INFO: Processed 0 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+$
+#+END_SRC
+
+On the other hand, what did we expect? A proto library is an abstract
+description of a protocol, so, as long as we don't specify for which
+language we want to have bindings, there is nothing to generate.
+
+Nevertheless, a proto library target is not empty. In fact, it can't be empty,
+as other targets can only access the values of a target and have no
+insights into its definitions. We already relied on this design principle
+implicitly, when we exploited target-level caching for our external dependencies
+and did not even construct the dependency graph for that target. A proto
+library simply provides the dependency structure of the ~.proto~ files.
+
+#+BEGIN_SRC shell
+$ just analyse --dump-nodes - -C $CONF examples address
+INFO: Requested target is [["@","","examples","address"],{}]
+INFO: Result of target [["@","","examples","address"],{}]: {
+        "artifacts": {
+        },
+        "provides": {
+          "proto": [
+            {"id":"6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50","type":"NODE"}
+          ]
+        },
+        "runfiles": {
+        }
+      }
+INFO: Target nodes of target [["@","","examples","address"],{}]:
+{
+  "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": {
+    "node_type": "library",
+    "string_fields": {
+      "name": ["addressbook"],
+      "stage": [""]
+    },
+    "target_fields": {
+      "deps": [],
+      "srcs": [{"id":"dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce","type":"NODE"}]
+    },
+    "type": "ABSTRACT_NODE"
+  },
+  "dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce": {
+    "result": {
+      "artifact_stage": {
+        "addressbook.proto": {
+          "data": {
+            "file_type": "f",
+            "id": "b4b33b4c658924f0321ab4e7a9dc9cf8da1acec3",
+            "size": 1234
+          },
+          "type": "KNOWN"
+        }
+      },
+      "provides": {
+      },
+      "runfiles": {
+      }
+    },
+    "type": "VALUE_NODE"
+  }
+}
+
+$
+#+END_SRC
+
+The target has one provider ~"proto"~, which is a node. Nodes are
+an abstract representation of a target graph. More precisely, there
+are two kind of nodes, and our example contains one of each.
+
+The simple kind of nodes are the value nodes; they represent a
+target that has a fixed value, and hence are given by artifacts,
+runfiles, and provided data. In our case, we have one value node,
+the one for the ~.proto~ file.
+
+The other kind of nodes are the abstract nodes. They describe the
+arguments for a target, but only have an abstract name (i.e., a
+string) for the rule. Combining such an abstract target with a
+binding for the abstract rule names gives a concrete "anonymous"
+target that, in our case, will generate the library with the bindings
+for the concrete language. In this example, the abstract name is
+~"library"~. The alternative in our proto rules would have been
+~"service library"~, for proto libraries that also contain ~rpc~
+definitions (which is used by [[https://grpc.io/][gRPC]]).
+
+** Using proto libraries
+
+Using proto libraries requires, as discussed, bindings for the
+abstract names. Fortunately, our ~CC~ rules are aware of proto
+libraries, so we can simply use them. Our target file hence
+continues as follows.
+
+#+BEGIN_SRC js
+...
+, "add_person":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["add_person"]
+  , "srcs": ["add_person.cc"]
+  , "proto": ["address"]
+  }
+, "list_people":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["list_people"]
+  , "srcs": ["list_people.cc"]
+  , "proto": ["address"]
+  }
+...
+#+END_SRC
+
+The first time, we build a target that requires the proto compiler
+(in that particular version, built in that particular way), it takes
+a bit of time, as the proto compiler has to be built. But in follow-up
+builds, also in different projects, the target-level cache is filled already.
+
+#+BEGIN_SRC shell
+$ just build -C $CONF examples add_person
+...
+$ just build -C $CONF examples add_person
+NFO: Requested target is [["@","","examples","add_person"],{}]
+INFO: Analysed target [["@","","examples","add_person"],{}]
+INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
+INFO: Discovered 5 actions, 2 trees, 0 blobs
+INFO: Building [["@","","examples","add_person"],{}].
+INFO: Processed 5 actions, 5 cache hits.
+INFO: Artifacts built, logical paths are:
+        add_person [462a5e5cd39679e8246a19d38f7b7c04c41a0b27:1980320:x]
+$
+#+END_SRC
+
+If we look at the actions associated with the binary, we find that those
+are still the two actions we expect: a compile action and a link action.
+
+#+BEGIN_SRC shell
+$ just analyse -C $CONF examples add_person --dump-actions -
+INFO: Requested target is [["@","","examples","add_person"],{}]
+INFO: Result of target [["@","","examples","add_person"],{}]: {
+        "artifacts": {
+          "add_person": {"data":{"id":"5f24376e976c2262b0572063056d80bd48abf2825d6d7fdc3ad80280e9c58caf","path":"add_person"},"type":"ACTION"}
+        },
+        "provides": {
+        },
+        "runfiles": {
+        }
+      }
+INFO: Actions for target [["@","","examples","add_person"],{}]:
+[
+  {
+    "command": ["clang++","-std=c++20","-O2","-Wall","-Wextra","-Wpedantic","-Wsign-conversion","-I","work","-isystem","include","-c","work/add_person.cc","-o","work/add_person.o"],
+    "env": {
+      "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
+    },
+    "input": {
+      ...
+      }
+    },
+    "output": ["work/add_person.o"]
+  },
+  {
+    "command": ["clang++","-o","add_person","add_person.o","libaddressbook.a","libprotobuf.a","libprotobuf_lite.a","libzlib.a"],
+    "env": {
+      "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
+    },
+    "input": {
+      ...
+    },
+    "output": ["add_person"]
+  }
+]
+$
+#+END_SRC
+
+As discussed, the ~libaddressbook.a~ that is conveniently available
+during the linking of the binary (as well as the ~addressbook.pb.h~
+available in the ~include~ tree for the compile action) are generated
+by an anonymous target. Using that during the build we already
+filled the target-level cache, we can have a look at all targets
+still analysed. In the one anonymous target, we find again the
+abstract node we discussed earlier.
+
+#+BEGIN_SRC shell
+$ just analyse -C $CONF examples add_person  --dump-targets -
+INFO: Requested target is [["@","","examples","add_person"],{}]
+INFO: Result of target [["@","","examples","add_person"],{}]: {
+        "artifacts": {
+          "add_person": {"data":{"id":"5f24376e976c2262b0572063056d80bd48abf2825d6d7fdc3ad80280e9c58caf","path":"add_person"},"type":"ACTION"}
+        },
+        "provides": {
+        },
+        "runfiles": {
+        }
+      }
+INFO: List of analysed targets:
+{
+  "#": {
+    "d49997ba8d7bec7df4ba71a46f59737c4ff7a4f6453b66e7c15abcc7e68626b1": {
+      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    }
+  },
+  "@": {
+    "": {
+      "examples": {
+        "add_person": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "address": [{}]
+      }
+    },
+    "protobuf": {
+      "": {
+        "C++ runtime": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "protoc": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "well_known_protos": [{}]
+      }
+    },
+    "rules": {
+      "CC": {
+        "defaults": [{}]
+      }
+    }
+  }
+}
+$
+#+END_SRC
+
+It should be noted, however, that this tight integration of proto
+into our ~C++~ rules is just convenience of our code base. If had
+to cooperate with rules not aware of proto, we could have created
+a separate rule delegating the library creation to the anonymous
+target and then simply reflecting the values of that target.
+
+** Adding a test
+
+Finally, let's add a test. As we use the ~protobuf~ repository as
+workspace root, we add the test script ad hoc into the targets file,
+using the ~"file_gen"~ rule. For debugging a potentially failing
+test, we also keep the intermediate files the test generates.
+
+#+BEGIN_SRC js
+...
+, "test.sh":
+  { "type": "file_gen"
+  , "name": "test.sh"
+  , "data":
+    { "type": "join"
+    , "separator": "\n"
+    , "$1":
+      [ "set -e"
+      , "(echo 12345; echo 'John Doe'; echo 'jdoe@example.org'; echo) | ./add_person addressbook.data"
+      , "./list_people addressbook.data > out.txt"
+      , "grep Doe out.txt"
+      ]
+    }
+  }
+, "test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["read-write-test"]
+  , "test": ["test.sh"]
+  , "deps": ["add_person", "list_people"]
+  , "keep": ["addressbook.data", "out.txt"]
+  }
+}
+
+#+END_SRC
+
+That example also shows why it is important that the generation
+of the language bindings is delegated to an anonymous target: we
+want to analyse only once how the ~C++~ bindings are generated.
+Nevertheless, many targets can depend (directly or indirectly) on
+the same proto library. And, indeed, analysing the test, we get
+the expected additional targets and the one anonymous target is
+reused by both binaries.
+
+#+BEGIN_SRC shell
+$ just analyse -C $CONF examples test  --dump-targets -
+INFO: Requested target is [["@","","examples","test"],{}]
+INFO: Result of target [["@","","examples","test"],{}]: {
+        "artifacts": {
+          "result": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"result"},"type":"ACTION"},
+          "stderr": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"stderr"},"type":"ACTION"},
+          "stdout": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"stdout"},"type":"ACTION"},
+          "time-start": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"time-start"},"type":"ACTION"},
+          "time-stop": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"time-stop"},"type":"ACTION"},
+          "work/addressbook.data": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"work/addressbook.data"},"type":"ACTION"},
+          "work/out.txt": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"work/out.txt"},"type":"ACTION"}
+        },
+        "provides": {
+        },
+        "runfiles": {
+          "read-write-test": {"data":{"id":"2d0015ddd3e053ea071d8b2915954f5a185368ce"},"type":"TREE"}
+        }
+      }
+INFO: List of analysed targets:
+{
+  "#": {
+    "d49997ba8d7bec7df4ba71a46f59737c4ff7a4f6453b66e7c15abcc7e68626b1": {
+      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    }
+  },
+  "@": {
+    "": {
+      "examples": {
+        "add_person": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "address": [{}],
+        "list_people": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "test": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TARGET_ARCH":null,"TEST_ENV":null}],
+        "test.sh": [{}]
+      }
+    },
+    "protobuf": {
+      "": {
+        "C++ runtime": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "protoc": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "well_known_protos": [{}]
+      }
+    },
+    "rules": {
+      "CC": {
+        "defaults": [{}]
+      }
+    }
+  }
+}
+INFO: Target tainted ["test"].
+$
+#+END_SRC
+
+Finally, the test passes and the output is as expected.
+
+#+BEGIN_SRC shell
+$ just build -C $CONF examples test -Pwork/out.txt
+INFO: Requested target is [["@","","examples","test"],{}]
+INFO: Analysed target [["@","","examples","test"],{}]
+INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
+INFO: Target tainted ["test"].
+INFO: Discovered 8 actions, 4 trees, 1 blobs
+INFO: Building [["@","","examples","test"],{}].
+INFO: Processed 8 actions, 8 cache hits.
+INFO: Artifacts built, logical paths are:
+        result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
+        stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
+        stdout [7fab9dd1ee66a1e76a3697a27524f905600afbd0:196:f]
+        time-start [63ded2cf5b06678ec3558f83529d7a04ab20d6c8:11:f]
+        time-stop [63ded2cf5b06678ec3558f83529d7a04ab20d6c8:11:f]
+        work/addressbook.data [006b8b8ce4391e9e5f3944c5dedeffe77ec3208a:41:f]
+        work/out.txt [29a9ea5f996d6267933f9058c2f020bf60c4d349:101:f]
+      (1 runfiles omitted.)
+Person ID: 12345
+  Name: John Doe
+  E-mail address: jdoe@example.org
+  Updated: 2022-06-14T14:35:30Z
+INFO: Target tainted ["test"].
+$
+#+END_SRC
