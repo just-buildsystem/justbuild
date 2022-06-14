@@ -12,8 +12,7 @@ template <class T>
 class AtomicValue {
   public:
     AtomicValue() noexcept = default;
-    AtomicValue(AtomicValue const& other) noexcept
-        : data_{other.data_.load()} {}
+    AtomicValue(AtomicValue const& other) noexcept = delete;
     AtomicValue(AtomicValue&& other) noexcept : data_{other.data_.load()} {}
     ~AtomicValue() noexcept = default;
 
