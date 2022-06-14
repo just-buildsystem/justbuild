@@ -16,8 +16,8 @@ class Configuration {
         : expr_{std::move(expr)} {
         gsl_ExpectsAudit(expr_->IsMap());
     }
-    explicit Configuration(Expression::map_t const& map) noexcept
-        : expr_{ExpressionPtr{map}} {}
+    explicit Configuration(Expression::map_t&& map) noexcept
+        : expr_{ExpressionPtr{std::move(map)}} {}
 
     Configuration() noexcept = default;
     ~Configuration() noexcept = default;

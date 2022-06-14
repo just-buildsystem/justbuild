@@ -111,7 +111,7 @@ class LinkedMap {
     }
 
     LinkedMap() noexcept = default;
-    LinkedMap(LinkedMap const& other) noexcept = default;
+    LinkedMap(LinkedMap const& other) noexcept = delete;
     LinkedMap(LinkedMap&& other) noexcept = default;
     ~LinkedMap() noexcept = default;
 
