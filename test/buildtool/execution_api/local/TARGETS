@@ -5,7 +5,7 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
-    , ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["test/utils", "local_hermeticity"]

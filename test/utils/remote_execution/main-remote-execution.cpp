@@ -23,9 +23,9 @@ void wait_for_grpc_to_shutdown() {
 /// \returns true   If remote execution was successfully configured.
 [[nodiscard]] auto ConfigureRemoteExecution() -> bool {
     ReadCompatibilityFromEnv();
-    if (Compatibility::IsCompatible()) {
-        HashGenerator::SetHashGenerator(HashGenerator::HashType::SHA256);
-    }
+    HashFunction::SetHashType(Compatibility::IsCompatible()
+                                  ? HashFunction::JustHash::Compatible
+                                  : HashFunction::JustHash::Native);
     auto address = ReadRemoteAddressFromEnv();
     if (address and not RemoteExecutionConfig::SetRemoteAddress(*address)) {
         Logger::Log(LogLevel::Error, "parsing address '{}' failed.", *address);

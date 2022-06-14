@@ -17,8 +17,6 @@
 
 namespace BuildMaps::Target::Utils {
 
-constexpr HashGenerator::HashType kActionHash = HashGenerator::HashType::SHA256;
-
 auto obtainTargetByName(const SubExprEvaluator&,
                         const ExpressionPtr&,
                         const Configuration&,

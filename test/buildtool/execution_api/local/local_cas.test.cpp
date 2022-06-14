@@ -1,7 +1,7 @@
 #include <string>
 
 #include "catch2/catch.hpp"
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/hermeticity/local.hpp"

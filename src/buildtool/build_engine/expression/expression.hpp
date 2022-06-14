@@ -19,7 +19,7 @@
 #include "src/buildtool/build_engine/expression/target_node.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/json.hpp"
@@ -229,9 +229,6 @@ class Expression {
         Expression::FromJson(R"({"type": "empty_map"})"_json);
 
   private:
-    inline static HashGenerator const hash_gen_{
-        HashGenerator::HashType::SHA256};
-
     std::variant<none_t,
                  bool,
                  number_t,

@@ -6,7 +6,7 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 // Wrapper for bazel_re::Digest. Can be implicitly cast to bazel_re::Digest.
@@ -41,7 +41,8 @@ class ArtifactDigest {
 
     [[nodiscard]] static auto Create(std::string const& content) noexcept
         -> ArtifactDigest {
-        return ArtifactDigest{ComputeHash(content), content.size()};
+        return ArtifactDigest{
+            HashFunction::ComputeBlobHash(content).HexString(), content.size()};
     }
 
   private:

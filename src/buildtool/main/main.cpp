@@ -249,13 +249,10 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     }
 }
 
-void SetupHashGenerator() {
-    if (Compatibility::IsCompatible()) {
-        HashGenerator::SetHashGenerator(HashGenerator::HashType::SHA256);
-    }
-    else {
-        HashGenerator::SetHashGenerator(HashGenerator::HashType::GIT);
-    }
+void SetupHashFunction() {
+    HashFunction::SetHashType(Compatibility::IsCompatible()
+                                  ? HashFunction::JustHash::Compatible
+                                  : HashFunction::JustHash::Native);
 }
 
 #endif
@@ -1324,7 +1321,7 @@ auto main(int argc, char* argv[]) -> int {
 
         SetupLogging(arguments.common);
 #ifndef BOOTSTRAP_BUILD_TOOL
-        SetupHashGenerator();
+        SetupHashFunction();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
 #endif

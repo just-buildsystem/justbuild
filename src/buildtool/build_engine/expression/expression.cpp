@@ -220,10 +220,10 @@ auto Expression::ComputeHash() const noexcept -> std::string {
                            : IsNode()   ? "#"
                            : IsName()   ? "$"
                                         : ""};
-        hash = hash_gen_.Run(prefix + ToString()).Bytes();
+        hash = HashFunction::ComputeHash(prefix + ToString()).Bytes();
     }
     else {
-        auto hasher = hash_gen_.IncrementalHasher();
+        auto hasher = HashFunction::Hasher();
         if (IsList()) {
             auto list = Value<Expression::list_t>();
             hasher.Update("[");
@@ -235,7 +235,7 @@ auto Expression::ComputeHash() const noexcept -> std::string {
             auto map = Value<Expression::map_t>();
             hasher.Update("{");
             for (auto const& el : map->get()) {
-                hasher.Update(hash_gen_.Run(el.first).Bytes());
+                hasher.Update(HashFunction::ComputeHash(el.first).Bytes());
                 hasher.Update(el.second->ToHash());
             }
         }

@@ -177,15 +177,13 @@ class ArtifactDescription {
     }
 
   private:
-    inline static HashGenerator const hash_gen_{
-        HashGenerator::HashType::SHA256};
     std::variant<Local, Known, Action, Tree> data_;
     ArtifactIdentifier id_{ComputeId(ToJson())};
 
     [[nodiscard]] static auto ComputeId(nlohmann::json const& desc) noexcept
         -> ArtifactIdentifier {
         try {
-            return hash_gen_.Run(desc.dump()).Bytes();
+            return HashFunction::ComputeHash(desc.dump()).Bytes();
         } catch (std::exception const& ex) {
             Logger::Log(LogLevel::Error,
                         "Computing artifact id failed with error:\n{}",

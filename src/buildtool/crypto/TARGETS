@@ -28,4 +28,11 @@
   , "deps": ["hash_impl"]
   , "stage": ["src", "buildtool", "crypto"]
   }
+, "hash_function":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_function"]
+  , "hdrs": ["hash_function.hpp"]
+  , "deps": ["hash_generator"]
+  , "stage": ["src", "buildtool", "crypto"]
+  }
 }

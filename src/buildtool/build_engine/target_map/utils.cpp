@@ -165,12 +165,9 @@ auto BuildMaps::Target::Utils::getTainted(
 
 namespace {
 auto hash_vector(std::vector<std::string> const& vec) -> std::string {
-    auto hasher = HashGenerator{BuildMaps::Target::Utils::kActionHash}
-                      .IncrementalHasher();
+    auto hasher = HashFunction::Hasher();
     for (auto const& s : vec) {
-        hasher.Update(HashGenerator{BuildMaps::Target::Utils::kActionHash}
-                          .Run(s)
-                          .Bytes());
+        hasher.Update(HashFunction::ComputeHash(s).Bytes());
     }
     auto digest = std::move(hasher).Finalize();
     if (not digest) {
@@ -189,8 +186,7 @@ auto BuildMaps::Target::Utils::createAction(
     std::optional<std::string> may_fail,
     bool no_cache,
     const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
-    auto hasher = HashGenerator{BuildMaps::Target::Utils::kActionHash}
-                      .IncrementalHasher();
+    auto hasher = HashFunction::Hasher();
     hasher.Update(hash_vector(output_files));
     hasher.Update(hash_vector(output_dirs));
     hasher.Update(hash_vector(command));

@@ -17,7 +17,7 @@
 #include <thread>
 
 #include "gsl-lite/gsl-lite.hpp"
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
@@ -89,7 +89,7 @@ static void EncodeUUIDVariant1(std::string* uuid) {
     constexpr auto kHexDashPos = std::array{8UL, 12UL, 16UL, 20UL};
 
     auto value = fmt::format("{}-{}", std::to_string(kRandomConstant), seed);
-    auto uuid = HashGenerator::Instance().Run(value).Bytes();
+    auto uuid = HashFunction::ComputeHash(value).Bytes();
     EncodeUUIDVersion4(&uuid);
     EncodeUUIDVariant1(&uuid);
     gsl_Expects(uuid.size() >= kRawLength);

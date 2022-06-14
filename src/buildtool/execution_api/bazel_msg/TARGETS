@@ -4,7 +4,7 @@
   , "hdrs": ["bazel_blob.hpp", "bazel_blob_container.hpp", "bazel_common.hpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/crypto", "hash_generator"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "type_safe_arithmetic"]

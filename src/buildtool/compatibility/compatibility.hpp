@@ -4,15 +4,15 @@
 #include <unordered_map>
 #include <utility>
 
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/logger.hpp"
 class Compatibility {
     using git_hash = std::string;
-    using sha256_hash = std::string;
+    using compat_hash = std::string;
     using git_repo = std::string;
-    using GitToComaptibleMap = std::unordered_map<git_hash, sha256_hash>;
+    using GitToCompatibleMap = std::unordered_map<git_hash, compat_hash>;
     using CompatibleToGitMap =
-        std::unordered_map<sha256_hash, std::pair<git_hash, git_repo>>;
+        std::unordered_map<compat_hash, std::pair<git_hash, git_repo>>;
 
   public:
     [[nodiscard]] static auto Instance() noexcept -> Compatibility& {
@@ -24,9 +24,10 @@ class Compatibility {
     }
     static void SetCompatible() noexcept { Instance().compatible_ = true; }
 
-    static auto RegisterGitEntry(std::string const& git_hash,
-                                 std::string const& data,
-                                 std::string const& repo) -> sha256_hash {
+    [[nodiscard]] static auto RegisterGitEntry(std::string const& git_hash,
+                                               std::string const& data,
+                                               std::string const& repo)
+        -> compat_hash {
 
         {
             auto& git_to_compatible = Instance().git_to_compatible_;
@@ -36,14 +37,16 @@ class Compatibility {
                 return it->second;
             }
         }
-        auto compatible_hash = ComputeHash(data);
+        // This is only used in compatible mode. Therefore, the default hash
+        // function produces the compatible hash.
+        auto compatible_hash = HashFunction::ComputeHash(data).HexString();
         std::unique_lock lock_{Instance().mutex_};
         Instance().git_to_compatible_[git_hash] = compatible_hash;
         Instance().compatible_to_git_[compatible_hash] = {git_hash, repo};
         return compatible_hash;
     }
 
-    static auto GetGitEntry(std::string const& compatible_hash)
+    [[nodiscard]] static auto GetGitEntry(std::string const& compatible_hash)
         -> std::optional<std::pair<git_hash const&, git_repo const&>> {
         auto const& compatible_to_git = Instance().compatible_to_git_;
         std::shared_lock lock_{Instance().mutex_};
@@ -59,8 +62,7 @@ class Compatibility {
     }
 
   private:
-    GitToComaptibleMap git_to_compatible_{};
-
+    GitToCompatibleMap git_to_compatible_{};
     CompatibleToGitMap compatible_to_git_{};
     bool compatible_{false};
     std::shared_mutex mutex_;

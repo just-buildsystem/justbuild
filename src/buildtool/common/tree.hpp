@@ -67,7 +67,8 @@ class Tree {
     }
 
     static auto ComputeId(inputs_t const& inputs) -> std::string {
-        return ComputeHash(ComputeDescription(inputs).dump());
+        return HashFunction::ComputeHash(ComputeDescription(inputs).dump())
+            .HexString();
     }
 };
 

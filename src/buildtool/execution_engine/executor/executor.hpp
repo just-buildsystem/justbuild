@@ -221,7 +221,9 @@ class ExecutorImpl {
         if (not content.has_value()) {
             return std::nullopt;
         }
-        auto digest = ArtifactDigest{ComputeHash(*content), content->size()};
+        auto digest =
+            ArtifactDigest{HashFunction::ComputeBlobHash(*content).HexString(),
+                           content->size()};
         if (not api->Upload(
                 BlobContainer{{BazelBlob{digest, std::move(*content)}}})) {
             return std::nullopt;
