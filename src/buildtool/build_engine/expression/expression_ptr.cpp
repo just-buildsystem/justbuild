@@ -5,10 +5,6 @@
 
 ExpressionPtr::ExpressionPtr() noexcept : ptr_{Expression::kNone.ptr_} {}
 
-auto ExpressionPtr::operator*() && -> Expression {
-    return *ptr_;
-}
-
 auto ExpressionPtr::operator[](
     std::string const& key) const& -> ExpressionPtr const& {
     return (*ptr_)[key];

@@ -748,7 +748,7 @@ void withDependencies(
         return;
     }
     auto analysis_result =
-        std::make_shared<AnalysedTarget>((*std::move(result)).Result(),
+        std::make_shared<AnalysedTarget>(std::move(*result).Result(),
                                          std::move(actions),
                                          std::move(blobs),
                                          std::move(trees),

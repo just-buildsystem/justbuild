@@ -34,8 +34,9 @@ class ExpressionPtr {
     auto operator=(ExpressionPtr&&) noexcept -> ExpressionPtr& = default;
 
     explicit operator bool() const { return static_cast<bool>(ptr_); }
+    [[nodiscard]] auto operator*() & -> Expression& { return *ptr_; }
     [[nodiscard]] auto operator*() const& -> Expression const& { return *ptr_; }
-    [[nodiscard]] auto operator*() && -> Expression;
+    [[nodiscard]] auto operator*() && -> Expression = delete;
     [[nodiscard]] auto operator->() const& -> Expression const* {
         return ptr_.get();
     }
