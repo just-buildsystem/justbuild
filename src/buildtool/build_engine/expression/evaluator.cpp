@@ -158,6 +158,13 @@ auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
         throw Evaluator::EvaluationError{fmt::format(
             "nub_right expects list but instead got: {}.", expr->ToString())};
     }
+    if (not expr->IsCacheable()) {
+        throw Evaluator::EvaluationError{
+            fmt::format("Implicit comparison by passing name-containing value "
+                        "to nub_right: {}",
+                        expr->ToString())};
+    }
+    // short-cut evaluation for efficiency
     if (expr->List().empty()) {
         return expr;
     }
@@ -456,6 +463,10 @@ auto SeqCaseExpr(SubExprEvaluator&& eval,
             throw Evaluator::EvaluationError{"missing expr in case"};
         }
         auto const& cmp = eval(e->get(), env);
+        if (not cmp->IsCacheable()) {
+            throw Evaluator::EvaluationError{fmt::format(
+                "Comparison of name-containing values: {}", cmp->ToString())};
+        }
         for (const auto& pair : cases->get()->List()) {
             if (not pair->IsList() or pair->List().size() != 2) {
                 throw Evaluator::EvaluationError{
@@ -474,8 +485,19 @@ auto SeqCaseExpr(SubExprEvaluator&& eval,
 auto EqualExpr(SubExprEvaluator&& eval,
                ExpressionPtr const& expr,
                Configuration const& env) -> ExpressionPtr {
-    return ExpressionPtr{EvalArgument(expr, "$1", eval, env) ==
-                         EvalArgument(expr, "$2", eval, env)};
+    auto a = EvalArgument(expr, "$1", eval, env);
+    if (not a->IsCacheable()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "Comparison of name-containing values; first argument is {}",
+            a->ToString())};
+    }
+    auto b = EvalArgument(expr, "$2", eval, env);
+    if (not b->IsCacheable()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "Comparison of name-containing values; second argument is {}",
+            b->ToString())};
+    }
+    return ExpressionPtr{a == b};
 }
 
 auto ChangeEndingExpr(SubExprEvaluator&& eval,
@@ -574,7 +596,8 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
         for (auto const& el : d->Map()) {
             std::filesystem::path k{el.first};
             auto new_key = ToNormalPath(subdir / k.filename()).string();
-            if (result.contains(new_key) && !(result[new_key] == el.second)) {
+            if (result.contains(new_key) &&
+                !((result[new_key] == el.second) && el.second->IsCacheable())) {
                 // Check if the user specifed an error message for that case,
                 // otherwise just generate a generic error message.
                 auto msg_expr = expr->Map().Find("msg");
@@ -607,7 +630,8 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
         for (auto const& el : d->Map()) {
             auto new_key = ToNormalPath(subdir / el.first).string();
             if (auto it = result.find(new_key);
-                it != result.end() && !(it->second == el.second)) {
+                it != result.end() &&
+                (!((it->second == el.second) && el.second->IsCacheable()))) {
                 auto msg_expr = expr->Map().Find("msg");
                 if (not msg_expr) {
                     throw Evaluator::EvaluationError{fmt::format(
@@ -785,6 +809,11 @@ auto DisjointUnionExpr(SubExprEvaluator&& eval,
                        ExpressionPtr const& expr,
                        Configuration const& env) -> ExpressionPtr {
     auto argument = EvalArgument(expr, "$1", eval, env);
+    if (not argument->IsCacheable()) {
+        throw Evaluator::EvaluationError{
+            fmt::format("Argument to disjoint_map_union is name-containing: {}",
+                        argument->ToString())};
+    }
     try {
         return Union</*kDisjoint=*/true>(argument);
     } catch (std::exception const& ex) {

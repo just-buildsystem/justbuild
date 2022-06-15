@@ -121,7 +121,8 @@ expression.
 ****** Sequential case distinction on arbitrary values: ~"case*"~
 
 If the key ~"case"~ is present, it has to be a list of pairs. In this
-case, the key ~"expr"~ is evaluated. The result of that evaluation
+case, the key ~"expr"~ is evaluated. It is an error if that evaluates
+to a name-containg value. The result of that evaluation
 is sequentially compared to the evaluation of the first components
 of the ~"case"~ list until an equal value is found. In this case,
 the evalaution of the second component of the pair is the value of
@@ -188,7 +189,8 @@ those) argument(s) to obtain the final result.
 
 ***** Unary functions
 
-- ~"nub_right"~ The argument has to be a list. The result is the
+- ~"nub_right"~ The argument has to be a list. It is an error if that list
+  contains (directly or indirectly) a name. The result is the
   input list, except that for all duplicate values, all but the
   rightmost occurence is removed.
 
@@ -268,11 +270,14 @@ those) argument(s) to obtain the final result.
   conflicts can also occur in non-flat staging if two keys are
   different as strings, but name the same path (like ~"foo.txt"~
   and ~"./foo.txt"~), and are assigned different values.
+  It also is an error if the values for keys in conflicting positions
+  are name-containing.
 
 ***** Binary functions
 
 - ~"=="~ The result is ~true~ is the arguments are equal, ~false~
-  otherwise.
+  otherwise. It is an error if one of the arguments are name-containing
+  values.
 
 - ~"concat_target_name"~ This function is only present to simplify
   transitions from some other build systems and normally not used
@@ -325,4 +330,5 @@ that evaluation included in the error message presented to the user.
 
 - ~"disjoint_map_union"~ Like ~"map_union"~ but it is an error,
   if two (or more) maps contain the same key, but map it to
-  different values.
+  different values. It is also an error if the argument is a
+  name-containing value.
