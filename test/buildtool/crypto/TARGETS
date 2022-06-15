@@ -9,5 +9,17 @@
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["crypto"]}
+, "hash_function":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["hash_function"]
+  , "srcs": ["hash_function.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/crypto", "hash_function"]
+    ]
+  , "stage": ["test", "buildtool", "crypto"]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["crypto", "hash_function"]}
 }
