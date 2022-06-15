@@ -83,7 +83,7 @@ auto RepositoryConfig::BuildGraphForRepository(std::string const& repo) const
     -> std::optional<nlohmann::json> {
     auto graph = nlohmann::json::object();
     int id_counter{};
-    std::unordered_map<std::string, int> repo_ids{};
+    std::unordered_map<std::string, std::string> repo_ids{};
     if (AddToGraphAndGetId(&graph, &id_counter, &repo_ids, repo)) {
         return graph;
     }
@@ -98,8 +98,9 @@ auto RepositoryConfig::BuildGraphForRepository(std::string const& repo) const
 auto RepositoryConfig::AddToGraphAndGetId(
     gsl::not_null<nlohmann::json*> const& graph,
     gsl::not_null<int*> const& id_counter,
-    gsl::not_null<std::unordered_map<std::string, int>*> const& repo_ids,
-    std::string const& repo) const -> std::optional<int> {
+    gsl::not_null<std::unordered_map<std::string, std::string>*> const&
+        repo_ids,
+    std::string const& repo) const -> std::optional<std::string> {
     auto const& unique_repo = DeduplicateRepo(repo);
     auto repo_it = repo_ids->find(unique_repo);
     if (repo_it != repo_ids->end()) {
@@ -110,7 +111,7 @@ auto RepositoryConfig::AddToGraphAndGetId(
     auto const* data = Data(unique_repo);
     if (data != nullptr and data->base_desc) {
         // Compute the unique id (traversal order) and store it
-        auto repo_id = (*id_counter)++;
+        auto repo_id = std::to_string((*id_counter)++);
         repo_ids->emplace(unique_repo, repo_id);
 
         // Compute repository description from content-fixed base
@@ -123,11 +124,11 @@ auto RepositoryConfig::AddToGraphAndGetId(
             if (not global_id) {
                 return std::nullopt;
             }
-            repo_desc["bindings"][local_name] = *global_id;
+            repo_desc["bindings"][local_name] = std::move(*global_id);
         }
 
         // Add repository description to graph with unique id as key
-        (*graph)[std::to_string(repo_id)] = std::move(repo_desc);
+        (*graph)[repo_id] = std::move(repo_desc);
         return repo_id;
     }
     return std::nullopt;

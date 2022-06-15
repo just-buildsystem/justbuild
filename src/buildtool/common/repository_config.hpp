@@ -176,8 +176,9 @@ class RepositoryConfig {
     [[nodiscard]] auto AddToGraphAndGetId(
         gsl::not_null<nlohmann::json*> const& graph,
         gsl::not_null<int*> const& id_counter,
-        gsl::not_null<std::unordered_map<std::string, int>*> const& repo_ids,
-        std::string const& repo) const -> std::optional<int>;
+        gsl::not_null<std::unordered_map<std::string, std::string>*> const&
+            repo_ids,
+        std::string const& repo) const -> std::optional<std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REPOSITORY_CONFIG_HPP

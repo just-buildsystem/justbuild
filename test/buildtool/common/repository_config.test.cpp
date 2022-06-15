@@ -70,7 +70,7 @@ template <class T>
 // build graph: {"0": (info0 + bindings0), "1": (info1 + bindings1), ...}
 [[nodiscard]] auto BuildGraph(
     std::vector<RepositoryConfig::RepositoryInfo const*> const& infos,
-    std::vector<std::unordered_map<std::string, int>> const& bindings)
+    std::vector<std::unordered_map<std::string, std::string>> const& bindings)
     -> nlohmann::json {
     auto graph = nlohmann::json::object();
     for (std::size_t i{}; i < infos.size(); ++i) {
@@ -169,7 +169,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         // verify created graph from CAS
         CHECK(ReadGraph(*foo_key) ==
               BuildGraph({config.Info("foo"), config.Info("baz0")},
-                         {{{"dep", 1}}, {}}));
+                         {{{"dep", "1"}}, {}}));
     }
 
     SECTION("with cyclic dependency") {
@@ -188,7 +188,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         // verify created graph from CAS
         CHECK(ReadGraph(*foo_key) ==
               BuildGraph({config.Info("foo"), config.Info("baz0")},
-                         {{{"dep", 1}}, {{"foo", 0}, {"bar", 0}}}));
+                         {{{"dep", "1"}}, {{"foo", "0"}, {"bar", "0"}}}));
     }
 
     SECTION("with two separate cyclic graphs") {
@@ -205,7 +205,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
         // verify created graph from CAS
         CHECK(ReadGraph(*foo_key) ==
-              BuildGraph({config.Info("foo")}, {{{"dep", 0}}}));
+              BuildGraph({config.Info("foo")}, {{{"dep", "0"}}}));
     }
 
     SECTION("for graph with leaf repos refering to themselfs") {
@@ -227,6 +227,6 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
         // verify created graph from CAS
         CHECK(ReadGraph(*foo_key) ==
-              BuildGraph({config.Info("foo")}, {{{"dep", 0}}}));
+              BuildGraph({config.Info("foo")}, {{{"dep", "0"}}}));
     }
 }
