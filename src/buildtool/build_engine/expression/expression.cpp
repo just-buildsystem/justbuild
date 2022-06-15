@@ -114,7 +114,7 @@ auto Expression::ToJson(Expression::JsonMode mode) const -> nlohmann::json {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-auto Expression::IsCacheable() const -> bool {
+auto Expression::ComputeIsCacheable() const -> bool {
     // Must be updated whenever we add a new non-cacheable value
     if (IsName()) {
         return false;
@@ -150,6 +150,11 @@ auto Expression::ToString() const -> std::string {
 // NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToHash() const noexcept -> std::string {
     return hash_.SetOnceAndGet([this] { return ComputeHash(); });
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
+auto Expression::IsCacheable() const -> bool {
+    return is_cachable_.SetOnceAndGet([this] { return ComputeIsCacheable(); });
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

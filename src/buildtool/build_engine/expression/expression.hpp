@@ -242,6 +242,7 @@ class Expression {
         data_{none_t{}};
 
     AtomicValue<std::string> hash_{};
+    AtomicValue<bool> is_cachable_{};
 
     template <class T, std::size_t kIndex = 0>
     requires(IsValidType<T>()) [[nodiscard]] static consteval auto GetIndexOf()
@@ -325,6 +326,7 @@ class Expression {
     [[nodiscard]] auto TypeStringForIndex() const noexcept -> std::string;
     [[nodiscard]] auto TypeString() const noexcept -> std::string;
     [[nodiscard]] auto ComputeHash() const noexcept -> std::string;
+    [[nodiscard]] auto ComputeIsCacheable() const -> bool;
 };
 
 namespace std {
