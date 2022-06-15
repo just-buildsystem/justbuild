@@ -1,11 +1,12 @@
+#include "src/buildtool/crypto/hash_impl_sha1.hpp"
+
 #include <array>
 #include <cstdint>
 
 #include "openssl/sha.h"
-#include "src/buildtool/crypto/hash_impl.hpp"
 
 /// \brief Hash implementation for SHA-1
-class HashImplSha1 final : public IHashImpl {
+class HashImplSha1 final : public Hasher::IHashImpl {
   public:
     HashImplSha1() { initialized_ = SHA1_Init(&ctx_) == 1; }
 
@@ -35,16 +36,12 @@ class HashImplSha1 final : public IHashImpl {
         return {};
     }
 
-    [[nodiscard]] auto DigestLength() const noexcept -> std::size_t final {
-        return SHA_DIGEST_LENGTH;
-    }
-
   private:
     SHA_CTX ctx_{};
     bool initialized_{};
 };
 
 /// \brief Factory for SHA-1 implementation
-auto CreateHashImplSha1() -> std::unique_ptr<IHashImpl> {
+auto CreateHashImplSha1() -> std::unique_ptr<Hasher::IHashImpl> {
     return std::make_unique<HashImplSha1>();
 }

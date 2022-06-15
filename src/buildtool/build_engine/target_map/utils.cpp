@@ -169,12 +169,7 @@ auto hash_vector(std::vector<std::string> const& vec) -> std::string {
     for (auto const& s : vec) {
         hasher.Update(HashFunction::ComputeHash(s).Bytes());
     }
-    auto digest = std::move(hasher).Finalize();
-    if (not digest) {
-        Logger::Log(LogLevel::Error, "Failed to finalize hash.");
-        std::terminate();
-    }
-    return digest->Bytes();
+    return std::move(hasher).Finalize().Bytes();
 }
 }  // namespace
 
@@ -196,12 +191,7 @@ auto BuildMaps::Target::Utils::createAction(
     hasher.Update(no_cache ? std::string{"N"} : std::string{"Y"});
     hasher.Update(inputs_exp->ToHash());
 
-    auto digest = std::move(hasher).Finalize();
-    if (not digest) {
-        Logger::Log(LogLevel::Error, "Failed to finalize hash.");
-        std::terminate();
-    }
-    auto action_id = digest->HexString();
+    auto action_id = std::move(hasher).Finalize().HexString();
 
     std::map<std::string, std::string> env_vars{};
     for (auto const& [env_var, env_value] : env->Map()) {

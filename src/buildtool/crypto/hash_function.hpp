@@ -6,7 +6,7 @@
 #include <optional>
 #include <string>
 
-#include "src/buildtool/crypto/hash_generator.hpp"
+#include "src/buildtool/crypto/hasher.hpp"
 
 /// \brief Hash function used for the entire buildtool.
 class HashFunction {
@@ -23,13 +23,13 @@ class HashFunction {
 
     /// \brief Compute a plain hash.
     [[nodiscard]] static auto ComputeHash(std::string const& data) noexcept
-        -> HashGenerator::HashDigest {
+        -> Hasher::HashDigest {
         return ComputeTaggedHash(data);
     }
 
     /// \brief Compute a blob hash.
     [[nodiscard]] static auto ComputeBlobHash(std::string const& data) noexcept
-        -> HashGenerator::HashDigest {
+        -> Hasher::HashDigest {
         static auto const kBlobTagCreator =
             [](std::string const& data) -> std::string {
             return {"blob " + std::to_string(data.size()) + '\0'};
@@ -39,7 +39,7 @@ class HashFunction {
 
     /// \brief Compute a tree hash.
     [[nodiscard]] static auto ComputeTreeHash(std::string const& data) noexcept
-        -> HashGenerator::HashDigest {
+        -> Hasher::HashDigest {
         static auto const kTreeTagCreator =
             [](std::string const& data) -> std::string {
             return {"tree " + std::to_string(data.size()) + '\0'};
@@ -48,14 +48,12 @@ class HashFunction {
     }
 
     /// \brief Obtain incremental hasher for computing plain hashes.
-    [[nodiscard]] static auto Hasher() noexcept -> HashGenerator::Hasher {
+    [[nodiscard]] static auto Hasher() noexcept -> ::Hasher {
         switch (HashType()) {
             case JustHash::Native:
-                return HashGenerator{HashGenerator::HashType::SHA1}
-                    .IncrementalHasher();
+                return ::Hasher{Hasher::HashType::SHA1};
             case JustHash::Compatible:
-                return HashGenerator{HashGenerator::HashType::SHA256}
-                    .IncrementalHasher();
+                return ::Hasher{Hasher::HashType::SHA256};
         }
     }
 
@@ -74,13 +72,13 @@ class HashFunction {
     [[nodiscard]] static auto ComputeTaggedHash(
         std::string const& data,
         std::function<std::string(std::string const&)> const& tag_creator =
-            {}) noexcept -> HashGenerator::HashDigest {
+            {}) noexcept -> Hasher::HashDigest {
         auto hasher = Hasher();
         if (tag_creator and HashType() == JustHash::Native) {
             hasher.Update(tag_creator(data));
         }
         hasher.Update(data);
-        return *std::move(hasher).Finalize();
+        return std::move(hasher).Finalize();
     }
 };
 

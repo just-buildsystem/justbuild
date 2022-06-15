@@ -19,7 +19,7 @@ TEST_CASE("Hash Function", "[crypto]") {
 
         auto hasher = HashFunction::Hasher();
         hasher.Update(bytes);
-        CHECK(std::move(hasher).Finalize()->HexString() ==  // NOLINT
+        CHECK(std::move(hasher).Finalize().HexString() ==  // NOLINT
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
     }
 
@@ -40,7 +40,7 @@ TEST_CASE("Hash Function", "[crypto]") {
         auto hasher = HashFunction::Hasher();
         hasher.Update(bytes);
         CHECK(
-            std::move(hasher).Finalize()->HexString() ==  // NOLINT
+            std::move(hasher).Finalize().HexString() ==  // NOLINT
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
     }
 }

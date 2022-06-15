@@ -239,12 +239,7 @@ auto Expression::ComputeHash() const noexcept -> std::string {
                 hasher.Update(el.second->ToHash());
             }
         }
-        auto digest = std::move(hasher).Finalize();
-        if (not digest) {
-            Logger::Log(LogLevel::Error, "Failed to finalize hash.");
-            std::terminate();
-        }
-        hash = digest->Bytes();
+        hash = std::move(hasher).Finalize().Bytes();
     }
     return hash;
 }
