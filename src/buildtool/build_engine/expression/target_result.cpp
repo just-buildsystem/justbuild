@@ -1,6 +1,7 @@
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl-lite/gsl-lite.hpp"
@@ -32,11 +33,18 @@ namespace {
     return expr->ToJson();
 }
 
+// forward declare as we have mutually recursive functions
+auto SerializeTargetResultWithReplacement(
+    TargetResult const& result,
+    std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
+        replacements = {}) -> nlohmann::json;
+
 // Serialize arbitrary expression to JSON. This and any sub-expressions will be
 // collected in `nodes`. Any possible duplicate will be collected only once. As
 // pure JSON values can coincide with our JSON encoding of artifacts, the hash
 // of artifact expressions is recorded in `provided_artifacts` to differentiate
-// them from non-artifacts. If replacements is set, replace any contained
+// them from non-artifacts. Similarly for result and node values.
+// If replacements is set, replace any contained
 // non-known artifact by known artifact from replacement. Throws runtime_error
 // if no replacement is found.
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -44,6 +52,8 @@ namespace {
     gsl::not_null<std::unordered_map<std::string, nlohmann::json>*> const&
         nodes,
     gsl::not_null<std::vector<std::string>*> const& provided_artifacts,
+    gsl::not_null<std::vector<std::string>*> const& provided_nodes,
+    gsl::not_null<std::vector<std::string>*> const& provided_results,
     ExpressionPtr const& expr,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         replacements) -> std::string {
@@ -55,8 +65,12 @@ namespace {
             std::unordered_map<std::string, std::string> hashes{};
             hashes.reserve(map.size());
             for (auto const& [key, val] : map) {
-                auto hash = SerializeExpression(
-                    nodes, provided_artifacts, val, replacements);
+                auto hash = SerializeExpression(nodes,
+                                                provided_artifacts,
+                                                provided_nodes,
+                                                provided_results,
+                                                val,
+                                                replacements);
                 hashes[key] = std::move(hash);
             }
             json = std::move(hashes);
@@ -66,11 +80,52 @@ namespace {
             std::vector<std::string> hashes{};
             hashes.reserve(list.size());
             for (auto const& val : list) {
-                auto hash = SerializeExpression(
-                    nodes, provided_artifacts, val, replacements);
+                auto hash = SerializeExpression(nodes,
+                                                provided_artifacts,
+                                                provided_nodes,
+                                                provided_results,
+                                                val,
+                                                replacements);
                 hashes.emplace_back(std::move(hash));
             }
             json = std::move(hashes);
+        }
+        else if (expr->IsNode()) {
+            auto const& node = expr->Node();
+            provided_nodes->emplace_back(id);
+            if (node.IsValue()) {
+                auto hash = SerializeExpression(nodes,
+                                                provided_artifacts,
+                                                provided_nodes,
+                                                provided_results,
+                                                node.GetValue(),
+                                                replacements);
+                json = nlohmann::json{{"type", "VALUE_NODE"}, {"result", hash}};
+            }
+            else {
+                auto const& data = node.GetAbstract();
+                auto string_fields = SerializeExpression(nodes,
+                                                         provided_artifacts,
+                                                         provided_nodes,
+                                                         provided_results,
+                                                         data.string_fields,
+                                                         replacements);
+                auto target_fields = SerializeExpression(nodes,
+                                                         provided_artifacts,
+                                                         provided_nodes,
+                                                         provided_results,
+                                                         data.target_fields,
+                                                         replacements);
+                json = nlohmann::json{{"type", "ABSTRACT_NODE"},
+                                      {"node_type", data.node_type},
+                                      {"string_fields", string_fields},
+                                      {"target_fields", target_fields}};
+            }
+        }
+        else if (expr->IsResult()) {
+            provided_results->emplace_back(id);
+            json = SerializeTargetResultWithReplacement(expr->Result(),
+                                                        replacements);
         }
         else if (expr->IsArtifact()) {
             provided_artifacts->emplace_back(id);
@@ -89,52 +144,121 @@ namespace {
 [[nodiscard]] auto DeserializeExpression(
     nlohmann::json const& entry,
     nlohmann::json const& nodes,
-    nlohmann::json const& provided_artifacts) -> ExpressionPtr {
-    static auto contains = [](auto const& a, auto const& v) -> bool {
-        return std::find(a.begin(), a.end(), v) != a.end();
-    };
+    std::unordered_set<std::string> const& provided_artifacts,
+    std::unordered_set<std::string> const& provided_nodes,
+    std::unordered_set<std::string> const& provided_results,
+    gsl::not_null<std::unordered_map<std::string, ExpressionPtr>*> const& sofar)
+    -> ExpressionPtr {
+
     auto id = entry.get<std::string>();
+
+    auto it = sofar->find(id);
+    if (it != sofar->end()) {
+        return it->second;
+    }
+
     auto const& json = nodes.at(id);
     if (json.is_object()) {
-        if (contains(provided_artifacts, id)) {
+        if (provided_artifacts.contains(id)) {
             if (auto artifact = ArtifactDescription::FromJson(json)) {
-                return ExpressionPtr{*artifact};
+                auto result = ExpressionPtr{*artifact};
+                sofar->emplace(id, result);
+                return result;
+            }
+            return ExpressionPtr{nullptr};
+        }
+        if (provided_nodes.contains(id)) {
+            if (json["type"] == "ABSTRACT_NODE") {
+                auto node_type = json["node_type"].get<std::string>();
+                auto target_fields =
+                    DeserializeExpression(json["target_fields"],
+                                          nodes,
+                                          provided_artifacts,
+                                          provided_nodes,
+                                          provided_results,
+                                          sofar);
+                auto string_fields =
+                    DeserializeExpression(json["string_fields"],
+                                          nodes,
+                                          provided_artifacts,
+                                          provided_nodes,
+                                          provided_results,
+                                          sofar);
+                auto result = ExpressionPtr{TargetNode{TargetNode::Abstract{
+                    node_type, string_fields, target_fields}}};
+                sofar->emplace(id, result);
+                return result;
+            }
+            if (json["type"] == "VALUE_NODE") {
+                auto value = DeserializeExpression(json["result"],
+                                                   nodes,
+                                                   provided_artifacts,
+                                                   provided_nodes,
+                                                   provided_results,
+                                                   sofar);
+                auto result = ExpressionPtr{TargetNode{value}};
+                sofar->emplace(id, result);
+                return result;
+            }
+            return ExpressionPtr{nullptr};
+        }
+        if (provided_results.contains(id)) {
+            auto result = TargetResult::FromJson(json);
+            if (result) {
+                auto result_exp = ExpressionPtr{*result};
+                sofar->emplace(id, result_exp);
+                return result_exp;
             }
             return ExpressionPtr{nullptr};
         }
 
         Expression::map_t::underlying_map_t map{};
         for (auto const& [key, val] : json.items()) {
-            auto new_val = DeserializeExpression(
-                val.get<std::string>(), nodes, provided_artifacts);
+            auto new_val = DeserializeExpression(val.get<std::string>(),
+                                                 nodes,
+                                                 provided_artifacts,
+                                                 provided_nodes,
+                                                 provided_results,
+                                                 sofar);
             if (not new_val) {
                 return new_val;
             }
             map.emplace(key, std::move(new_val));
         }
-        return ExpressionPtr{Expression::map_t{map}};
+        auto result = ExpressionPtr{Expression::map_t{map}};
+        sofar->emplace(id, result);
+        return result;
     }
 
     if (json.is_array()) {
         Expression::list_t list{};
         list.reserve(json.size());
         for (auto const& val : json) {
-            auto new_val = DeserializeExpression(
-                val.get<std::string>(), nodes, provided_artifacts);
+            auto new_val = DeserializeExpression(val.get<std::string>(),
+                                                 nodes,
+                                                 provided_artifacts,
+                                                 provided_nodes,
+                                                 provided_results,
+                                                 sofar);
             if (not new_val) {
                 return new_val;
             }
             list.emplace_back(std::move(new_val));
         }
-        return ExpressionPtr{list};
+        auto result = ExpressionPtr{list};
+        sofar->emplace(id, result);
+        return result;
     }
 
-    return Expression::FromJson(json);
+    auto result = Expression::FromJson(json);
+    sofar->emplace(id, result);
+    return result;
 }
 
 // Serialize artifact map to JSON. If replacements is set, replace
 // non-known artifacts by known artifacts from replacement. Throws runtime_error
 // if no replacement is found.
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeArtifactMap(
     ExpressionPtr const& expr,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
@@ -171,33 +295,59 @@ namespace {
 // Serialize provides map to JSON. If replacements is set, replace
 // non-known artifacts by known artifacts from replacement. Throws runtime_error
 // if no replacement is found.
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeProvidesMap(
     ExpressionPtr const& expr,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         replacements) -> nlohmann::json {
     auto provided_artifacts = std::vector<std::string>{};
+    auto provided_nodes = std::vector<std::string>{};
+    auto provided_results = std::vector<std::string>{};
     auto nodes = std::unordered_map<std::string, nlohmann::json>{};
-    auto entry =
-        SerializeExpression(&nodes, &provided_artifacts, expr, replacements);
-    return nlohmann::json{
-        {"entry", std::move(entry)},
-        {"nodes", std::move(nodes)},
-        {"provided_artifacts", std::move(provided_artifacts)}};
+    auto entry = SerializeExpression(&nodes,
+                                     &provided_artifacts,
+                                     &provided_nodes,
+                                     &provided_results,
+                                     expr,
+                                     replacements);
+    return nlohmann::json{{"entry", std::move(entry)},
+                          {"nodes", std::move(nodes)},
+                          {"provided_artifacts", std::move(provided_artifacts)},
+                          {"provided_nodes", std::move(provided_nodes)},
+                          {"provided_results", std::move(provided_results)}
+
+    };
 }
 
+auto JsonSet(nlohmann::json const& j) -> std::unordered_set<std::string> {
+    std::unordered_set<std::string> result{};
+    result.reserve(j.size());
+    for (auto const& it : j) {
+        result.emplace(it.get<std::string>());
+    }
+    return result;
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DeserializeProvidesMap(nlohmann::json const& json)
     -> ExpressionPtr {
-    return DeserializeExpression(
-        json["entry"], json["nodes"], json["provided_artifacts"]);
+    std::unordered_map<std::string, ExpressionPtr> sofar{};
+    return DeserializeExpression(json["entry"],
+                                 json["nodes"],
+                                 JsonSet(json["provided_artifacts"]),
+                                 JsonSet(json["provided_nodes"]),
+                                 JsonSet(json["provided_results"]),
+                                 &sofar);
 }
 
 // Serialize TargetResult to JSON. If replacements is set, replace non-known
 // artifacts by known artifacts from replacement. Throws runtime_error if no
 // replacement is found.
+// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeTargetResultWithReplacement(
     TargetResult const& result,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
-        replacements = {}) -> nlohmann::json {
+        replacements) -> nlohmann::json {
     return nlohmann::json{
         {"artifacts",
          SerializeArtifactMap(result.artifact_stage, replacements)},
@@ -224,6 +374,7 @@ auto TargetResult::ReplaceNonKnownAndToJson(
     return std::nullopt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto TargetResult::FromJson(nlohmann::json const& json) noexcept
     -> std::optional<TargetResult> {
     try {
