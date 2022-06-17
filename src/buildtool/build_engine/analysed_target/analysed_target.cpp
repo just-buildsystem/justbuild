@@ -21,6 +21,24 @@ void CollectNonKnownArtifacts(
                 CollectNonKnownArtifacts(val, artifacts, traversed);
             }
         }
+        else if (expr->IsNode()) {
+            auto const& node = expr->Node();
+            if (node.IsAbstract()) {
+                CollectNonKnownArtifacts(
+                    node.GetAbstract().target_fields, artifacts, traversed);
+            }
+            else {
+                // value node
+                CollectNonKnownArtifacts(node.GetValue(), artifacts, traversed);
+            }
+        }
+        else if (expr->IsResult()) {
+            auto const& result = expr->Result();
+            CollectNonKnownArtifacts(
+                result.artifact_stage, artifacts, traversed);
+            CollectNonKnownArtifacts(result.runfiles, artifacts, traversed);
+            CollectNonKnownArtifacts(result.provides, artifacts, traversed);
+        }
         else if (expr->IsArtifact()) {
             auto const& artifact = expr->Artifact();
             if (not artifact.IsKnown()) {
