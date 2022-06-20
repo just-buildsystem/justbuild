@@ -131,6 +131,7 @@ $ cat $CONF
     }
   }
 }
+$
 #+END_SRC
 
 With the final configuration at hand, we can now build our ~helloworld~ target
@@ -146,6 +147,7 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
+$
 #+END_SRC
 
 Note that this command just builds the binary but does not stage it to any
@@ -165,6 +167,7 @@ INFO: Artifacts can be found in:
         /tmp/tutorial/helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
 $ ./helloworld
 Hello world!
+$
 #+END_SRC
 
 Note that the ~install~ subcommand initiates the build a second time, without
@@ -187,6 +190,7 @@ INFO: Building [["@","tutorial","","helloworld"],{"CXX":"clang++"}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [b8cf7b8579d9dc7172b61660139e2c14521cedae:16944:x]
+$
 #+END_SRC
 
 ** Defining project defaults
@@ -270,6 +274,7 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [487dc9e47b978877ed2f7d80b3395ce84b23be92:16992:x]
+$
 #+END_SRC
 
 Note that the output binary may have changed due to different defaults.
@@ -359,6 +364,7 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [2b81e3177afc382452a2df9f294d3df90a9ccaf0:17664:x]
+$
 #+END_SRC
 
 To only build the static library target ~"greet"~ from module ~"greet"~, run the
@@ -375,4 +381,5 @@ INFO: Processed 2 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
         greet/libgreet.a [83ed406e21f285337b0c9bd5011f56f656bba683:2992:f]
       (1 runfiles omitted.)
+$
 #+END_SRC

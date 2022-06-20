@@ -185,6 +185,7 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 7 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [e489bdd234787c49c4fefdd3b8a03c399a2d46f5:133000:x]
+$
 #+END_SRC
 
 Note that the single cache hit we observe, is the compile action of ~main.cpp~,
@@ -274,6 +275,7 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [e489bdd234787c49c4fefdd3b8a03c399a2d46f5:133000:x]
+$
 #+END_SRC
 
 Note that in the second run the export target ~"fmt"~ was taken from cache and

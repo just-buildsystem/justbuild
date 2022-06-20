@@ -86,7 +86,7 @@ INFO: Result of target [["@","","examples","address"],{}]: {
         },
         "provides": {
           "proto": [
-            {"id":"6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50","type":"NODE"}
+            {"id":"2a483a2de7f25c1bc066e47245f55ec9a2d4a719","type":"NODE"}
           ]
         },
         "runfiles": {
@@ -94,19 +94,7 @@ INFO: Result of target [["@","","examples","address"],{}]: {
       }
 INFO: Target nodes of target [["@","","examples","address"],{}]:
 {
-  "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": {
-    "node_type": "library",
-    "string_fields": {
-      "name": ["addressbook"],
-      "stage": [""]
-    },
-    "target_fields": {
-      "deps": [],
-      "srcs": [{"id":"dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce","type":"NODE"}]
-    },
-    "type": "ABSTRACT_NODE"
-  },
-  "dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce": {
+  "089f6cae7ca77bb786578d3e0138b6ff445c5c92": {
     "result": {
       "artifact_stage": {
         "addressbook.proto": {
@@ -124,9 +112,20 @@ INFO: Target nodes of target [["@","","examples","address"],{}]:
       }
     },
     "type": "VALUE_NODE"
+  },
+  "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": {
+    "node_type": "library",
+    "string_fields": {
+      "name": ["addressbook"],
+      "stage": [""]
+    },
+    "target_fields": {
+      "deps": [],
+      "srcs": [{"id":"089f6cae7ca77bb786578d3e0138b6ff445c5c92","type":"NODE"}]
+    },
+    "type": "ABSTRACT_NODE"
   }
 }
-
 $
 #+END_SRC
 
@@ -201,7 +200,7 @@ $ just analyse -C $CONF examples add_person --dump-actions -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"5f24376e976c2262b0572063056d80bd48abf2825d6d7fdc3ad80280e9c58caf","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"7b49c4dcdc960f041620879a84c40d75586d7682","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
         },
@@ -248,7 +247,7 @@ $ just analyse -C $CONF examples add_person  --dump-targets -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"5f24376e976c2262b0572063056d80bd48abf2825d6d7fdc3ad80280e9c58caf","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"7b49c4dcdc960f041620879a84c40d75586d7682","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
         },
@@ -258,8 +257,8 @@ INFO: Result of target [["@","","examples","add_person"],{}]: {
 INFO: List of analysed targets:
 {
   "#": {
-    "d49997ba8d7bec7df4ba71a46f59737c4ff7a4f6453b66e7c15abcc7e68626b1": {
-      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    "acde278315be59c6bdf436efa9dc9782a6c59f36": {
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
     }
   },
   "@": {
@@ -323,7 +322,6 @@ test, we also keep the intermediate files the test generates.
   , "keep": ["addressbook.data", "out.txt"]
   }
 }
-
 #+END_SRC
 
 That example also shows why it is important that the generation
@@ -339,25 +337,25 @@ $ just analyse -C $CONF examples test  --dump-targets -
 INFO: Requested target is [["@","","examples","test"],{}]
 INFO: Result of target [["@","","examples","test"],{}]: {
         "artifacts": {
-          "result": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"result"},"type":"ACTION"},
-          "stderr": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"stderr"},"type":"ACTION"},
-          "stdout": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"stdout"},"type":"ACTION"},
-          "time-start": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"time-start"},"type":"ACTION"},
-          "time-stop": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"time-stop"},"type":"ACTION"},
-          "work/addressbook.data": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"work/addressbook.data"},"type":"ACTION"},
-          "work/out.txt": {"data":{"id":"1f2af985a48ebd90ffd7505c8055914184bccf3f62ce0fbe7f7f30f3aa41efba","path":"work/out.txt"},"type":"ACTION"}
+          "result": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"result"},"type":"ACTION"},
+          "stderr": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"stderr"},"type":"ACTION"},
+          "stdout": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"stdout"},"type":"ACTION"},
+          "time-start": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"time-start"},"type":"ACTION"},
+          "time-stop": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"time-stop"},"type":"ACTION"},
+          "work/addressbook.data": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"work/addressbook.data"},"type":"ACTION"},
+          "work/out.txt": {"data":{"id":"4396958840bca3480f3384845a798b33f8b8f50f","path":"work/out.txt"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
-          "read-write-test": {"data":{"id":"2d0015ddd3e053ea071d8b2915954f5a185368ce"},"type":"TREE"}
+          "read-write-test": {"data":{"id":"5734dae66d1fc864a8760476b2de70529ef93af7"},"type":"TREE"}
         }
       }
 INFO: List of analysed targets:
 {
   "#": {
-    "d49997ba8d7bec7df4ba71a46f59737c4ff7a4f6453b66e7c15abcc7e68626b1": {
-      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    "acde278315be59c6bdf436efa9dc9782a6c59f36": {
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
     }
   },
   "@": {
@@ -398,20 +396,20 @@ INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 8 actions, 4 trees, 1 blobs
 INFO: Building [["@","","examples","test"],{}].
-INFO: Processed 8 actions, 8 cache hits.
+INFO: Processed 8 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [7fab9dd1ee66a1e76a3697a27524f905600afbd0:196:f]
-        time-start [63ded2cf5b06678ec3558f83529d7a04ab20d6c8:11:f]
-        time-stop [63ded2cf5b06678ec3558f83529d7a04ab20d6c8:11:f]
-        work/addressbook.data [006b8b8ce4391e9e5f3944c5dedeffe77ec3208a:41:f]
-        work/out.txt [29a9ea5f996d6267933f9058c2f020bf60c4d349:101:f]
+        time-start [9c73282ca81c255bfb3fed35078d85f8d0a19069:11:f]
+        time-stop [9c73282ca81c255bfb3fed35078d85f8d0a19069:11:f]
+        work/addressbook.data [cf2083a8b51b139eaf790cbaac5808546b37d4e1:41:f]
+        work/out.txt [11ef576d822163e1a2ea5074c9d9a196d849e65f:101:f]
       (1 runfiles omitted.)
 Person ID: 12345
   Name: John Doe
   E-mail address: jdoe@example.org
-  Updated: 2022-06-14T14:35:30Z
+  Updated: 2022-06-20T10:37:50Z
 INFO: Target tainted ["test"].
 $
 #+END_SRC
