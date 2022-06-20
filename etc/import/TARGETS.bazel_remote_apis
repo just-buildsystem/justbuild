@@ -3,7 +3,7 @@
   , "name": ["semver_proto"]
   , "srcs": ["build/bazel/semver/semver.proto"]
   }
-, "remote_execution_proto":
+, "remote_execution_proto impl":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["remote_execution_proto"]
   , "service": ["yes"]
@@ -14,6 +14,16 @@
     , ["@", "google_apis", "", "google_api_http_proto"]
     , ["@", "google_apis", "", "google_longrunning_operations_proto"]
     , ["@", "google_apis", "", "google_rpc_status_proto"]
+    ]
+  }
+, "remote_execution_proto":
+  { "type": "export"
+  , "target": "remote_execution_proto impl"
+  , "doc":
+    [ "Remote Execution API"
+    , ""
+    , "The Remote Execution API is an API that, at its most general, allows clients"
+    , "to request execution of binaries on a remote system."
     ]
   }
 }
