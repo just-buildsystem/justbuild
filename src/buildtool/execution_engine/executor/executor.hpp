@@ -20,6 +20,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
@@ -108,7 +109,7 @@ class ExecutorImpl {
         if (not object_info_opt and not file_path_opt) {
             Logger::Log(LogLevel::Error,
                         "artifact {} can not be processed.",
-                        artifact->Content().Id());
+                        ToHexString(artifact->Content().Id()));
             return false;
         }
         // If the artifact has digest, we check that an object with this digest
@@ -122,7 +123,7 @@ class ExecutorImpl {
                 Logger::Log(
                     LogLevel::Error,
                     "artifact {} should be present in CAS but is missing.",
-                    artifact->Content().Id());
+                    ToHexString(artifact->Content().Id()));
                 return false;
             }
             return true;

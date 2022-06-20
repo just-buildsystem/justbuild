@@ -11,6 +11,7 @@
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
