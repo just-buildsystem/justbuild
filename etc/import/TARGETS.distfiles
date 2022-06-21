@@ -1,0 +1,6 @@
+{ "distdir":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["TREE", null, "."], "distdir"]]
+  }
+}

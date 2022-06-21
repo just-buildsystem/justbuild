@@ -3,6 +3,7 @@
     { "repository": {"type": "file", "path": "."}
     , "bindings":
       { "rules": "rules"
+      , "just-distfiles": "just-distfiles"
       , "gsl-lite": "gsl-lite"
       , "cli11": "cli11"
       , "json": "json"
@@ -15,6 +16,31 @@
       , "catch2": "catch2"
       }
     , "bootstrap": {"link": ["-lpthread"]}
+    }
+  , "just-distfiles":
+    { "repository":
+      { "type": "distdir"
+      , "repositories":
+        [ "gsl-lite"
+        , "cli11"
+        , "json"
+        , "fmt"
+        , "ssl"
+        , "protobuf"
+        , "bazel_remote_apis"
+        , "google_apis"
+        , "upb"
+        , "com_google_absl"
+        , "zlib"
+        , "re2"
+        , "com_github_cares_cares"
+        , "com_github_grpc_grpc"
+        , "com_github_libgit2_libgit2"
+        , "catch2"
+        ]
+      }
+    , "target_root": "import targets"
+    , "target_file_name": "TARGETS.distfiles"
     }
   , "defaults":
     { "repository":
