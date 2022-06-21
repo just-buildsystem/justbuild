@@ -11,29 +11,29 @@ import tempfile
 from argparse import ArgumentParser
 from pathlib import Path
 
-JUST="just"
-ROOT="/justroot"
-DISTDIR=[]
+JUST = "just"
+ROOT = "/justroot"
+DISTDIR = []
 
-ALWAYS_FILE=False
+ALWAYS_FILE = False
 
-GIT_CHECKOUT_LOCATIONS={}
+GIT_CHECKOUT_LOCATIONS = {}
 
-TAKE_OVER= [
+TAKE_OVER = [
     "bindings",
     "target_file_name",
     "index_file_name",
     "rule_file_name",
     "expression_file_name",
 ]
-ALT_DIRS=[
+ALT_DIRS = [
     "target_root",
     "rule_root",
     "expression_root",
     "index_root",
 ]
 
-GIT_NOBODY_ENV ={
+GIT_NOBODY_ENV = {
     "GIT_AUTHOR_DATE": "1970-01-01T00:00Z",
     "GIT_AUTHOR_NAME": "Nobody",
     "GIT_AUTHOR_EMAIL": "nobody@example.org",
@@ -48,17 +48,17 @@ GIT_NOBODY_ENV ={
 def log(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+
 def fail(s):
     log(s)
     sys.exit(1)
 
+
 def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd):
-    result = subprocess.run(
-        cmd, cwd=cwd, env=env,
-        stdout=stdout, stdin=stdin)
+    result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stdin=stdin)
     if result.returncode != 0:
-        fail("Command %s in %s failed"
-             % (cmd, cwd))
+        fail("Command %s in %s failed" % (cmd, cwd))
+
 
 def read_config(configfile):
     if configfile:
@@ -72,6 +72,7 @@ def read_config(configfile):
 
     return {}
 
+
 def git_root(*, upstream):
     if upstream in GIT_CHECKOUT_LOCATIONS:
         return GIT_CHECKOUT_LOCATIONS[upstream]
@@ -80,17 +81,21 @@ def git_root(*, upstream):
     else:
         return os.path.join(ROOT, "git")
 
+
 def git_keep(commit, *, upstream):
     if upstream in GIT_CHECKOUT_LOCATIONS:
         # for those, we assume the referenced commit is kept by
         # some branch anyway
         return
     run_cmd(
-        ["git", "tag", "-f", "-m", "Keep referenced tree alive",
-         "keep-%s" % (commit,), commit],
+        [
+            "git", "tag", "-f", "-m", "Keep referenced tree alive",
+            "keep-%s" % (commit, ), commit
+        ],
         cwd=git_root(upstream=upstream),
-        env = dict(os.environ, **GIT_NOBODY_ENV),
+        env=dict(os.environ, **GIT_NOBODY_ENV),
     )
+
 
 def git_init_options(*, upstream):
     if upstream in GIT_CHECKOUT_LOCATIONS:
@@ -98,13 +103,14 @@ def git_init_options(*, upstream):
     else:
         return ["--bare"]
 
+
 def ensure_git(*, upstream):
     root = git_root(upstream=upstream)
     if os.path.exists(root):
         return
     os.makedirs(root)
-    run_cmd(["git", "init"] + git_init_options(upstream=upstream),
-            cwd=root)
+    run_cmd(["git", "init"] + git_init_options(upstream=upstream), cwd=root)
+
 
 def git_commit_present(commit, *, upstream):
     result = subprocess.run(["git", "show", "--oneline", commit],
@@ -113,25 +119,31 @@ def git_commit_present(commit, *, upstream):
                             cwd=git_root(upstream=upstream))
     return result.returncode == 0
 
+
 def git_url_is_path(url):
     for prefix in ["ssh://", "http://", "https://"]:
         if url.startswith(prefix):
             return False
     return True
 
+
 def git_fetch(*, repo, branch):
     if git_url_is_path(repo):
         repo = os.path.abspath(repo)
     run_cmd(["git", "fetch", repo, branch], cwd=git_root(upstream=repo))
 
+
 def subdir_path(checkout, desc):
     return os.path.normpath(os.path.join(checkout, desc.get("subdir", ".")))
 
+
 def git_tree(*, commit, subdir, upstream):
-    tree = subprocess.run(["git", "log", "-n", "1", "--format=%T", commit],
-                          stdout=subprocess.PIPE,
-                          cwd=git_root(upstream=upstream)).stdout.decode('utf-8').strip()
+    tree = subprocess.run(
+        ["git", "log", "-n", "1", "--format=%T", commit],
+        stdout=subprocess.PIPE,
+        cwd=git_root(upstream=upstream)).stdout.decode('utf-8').strip()
     return git_subtree(tree=tree, subdir=subdir, upstream=upstream)
+
 
 def git_subtree(*, tree, subdir, upstream):
     if subdir == ".":
@@ -140,57 +152,64 @@ def git_subtree(*, tree, subdir, upstream):
         ["git", "cat-file", "--batch-check=%(objectname)"],
         stdout=subprocess.PIPE,
         stdin=subprocess.PIPE,
-        cwd=git_root(upstream=upstream)
-    ).communicate(input=("%s:%s" % (tree, subdir)).encode())[0].decode('utf-8').strip()
+        cwd=git_root(upstream=upstream)).communicate(
+            input=("%s:%s" %
+                   (tree, subdir)).encode())[0].decode('utf-8').strip()
+
 
 def git_checkout_dir(commit):
     return os.path.join(ROOT, "workspaces", "git", commit)
+
 
 def git_checkout(desc):
     commit = desc["commit"]
     target = git_checkout_dir(commit)
     if ALWAYS_FILE and os.path.exists(target):
-       return ["file", subdir_path(target, desc)]
-    repo=desc["repository"]
+        return ["file", subdir_path(target, desc)]
+    repo = desc["repository"]
     root = git_root(upstream=repo)
     ensure_git(upstream=repo)
     if not git_commit_present(commit, upstream=repo):
-        branch=desc["branch"]
+        branch = desc["branch"]
         log("Fetching %s from %s (in %s)" % (branch, repo, root))
         git_fetch(repo=repo, branch=branch)
         if not git_commit_present(commit, upstream=repo):
-            fail("Fetching %s from %s failed to fetch %s"
-                 % (branch, repo, commit))
+            fail("Fetching %s from %s failed to fetch %s" %
+                 (branch, repo, commit))
         git_keep(commit, upstream=repo)
     if ALWAYS_FILE:
         os.makedirs(target)
         with tempfile.TemporaryFile() as f:
-            run_cmd(["git", "archive", commit],
-                    cwd=root, stdout=f)
+            run_cmd(["git", "archive", commit], cwd=root, stdout=f)
             f.seek(0)
             run_cmd(["tar", "x"], cwd=target, stdin=f)
             return ["file", subdir_path(target, desc)]
-    tree = git_tree(commit=commit, subdir=desc.get("subdir", "."), upstream=repo)
+    tree = git_tree(commit=commit,
+                    subdir=desc.get("subdir", "."),
+                    upstream=repo)
     return ["git tree", tree, root]
 
+
 def update_git(desc):
-    repo=desc["repository"]
-    branch=desc["branch"]
+    repo = desc["repository"]
+    branch = desc["branch"]
     lsremote = subprocess.run(["git", "ls-remote", repo, branch],
                               stdout=subprocess.PIPE).stdout
     desc["commit"] = lsremote.decode('utf-8').split('\t')[0]
 
+
 def git_hash(content):
-  header = "blob {}\0".format(len(content)).encode('utf-8')
-  h = hashlib.sha1()
-  h.update(header)
-  h.update(content)
-  return h.hexdigest()
+    header = "blob {}\0".format(len(content)).encode('utf-8')
+    h = hashlib.sha1()
+    h.update(header)
+    h.update(content)
+    return h.hexdigest()
+
 
 def add_to_cas(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
-    cas_root = os.path.join(ROOT,"protocol-dependent/git-sha1/casf")
+    cas_root = os.path.join(ROOT, "protocol-dependent/git-sha1/casf")
     basename = git_hash(data)
     target = os.path.join(cas_root, basename)
     tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
@@ -204,15 +223,18 @@ def add_to_cas(data):
         f.flush()
         os.chmod(f.fileno(), 0o444)
         os.fsync(f.fileno())
-    os.utime(tempname, (0,0))
+    os.utime(tempname, (0, 0))
     os.rename(tempname, target)
     return target
+
 
 def cas_path(h):
     return os.path.join(ROOT, "protocol-dependent/git-sha1/casf", h)
 
+
 def is_in_cas(h):
     return os.path.exists(cas_path(h))
+
 
 def add_file_to_cas(filename):
     # TODO: avoid going through memory
@@ -220,20 +242,25 @@ def add_file_to_cas(filename):
         data = f.read()
     add_to_cas(data)
 
+
 def add_distfile_to_cas(distfile):
     for d in DISTDIR:
         candidate = os.path.join(d, distfile)
         if os.path.exists(candidate):
             add_file_to_cas(candidate)
 
+
 def archive_checkout_dir(content, repo_type):
     return os.path.join(ROOT, "workspaces", repo_type, content)
+
 
 def archive_tmp_checkout_dir(content, repo_type):
     return os.path.join(ROOT, "tmp-workspaces", repo_type, content)
 
+
 def archive_tree_id_file(content, repo_type):
     return os.path.join(ROOT, "tree-map", repo_type, content)
+
 
 def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     content_id = desc["content"]
@@ -243,10 +270,11 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     tree_id_file = archive_tree_id_file(content_id, repo_type=repo_type)
     if (not ALWAYS_FILE) and os.path.exists(tree_id_file):
         with open(tree_id_file) as f:
-           archive_tree_id = f.read()
+            archive_tree_id = f.read()
         return [
             "git tree",
-            git_subtree(tree=archive_tree_id, subdir=desc.get("subdir", "."),
+            git_subtree(tree=archive_tree_id,
+                        subdir=desc.get("subdir", "."),
                         upstream=None),
             git_root(upstream=None),
         ]
@@ -258,20 +286,22 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
             add_distfile_to_cas(distfile)
     if not is_in_cas(content_id):
         url = desc["fetch"]
-        data = subprocess.run(["wget", "-O", "-", url], stdout=subprocess.PIPE).stdout
+        data = subprocess.run(["wget", "-O", "-", url],
+                              stdout=subprocess.PIPE).stdout
         if "sha256" in desc:
             actual_hash = hashlib.sha256(data).hexdigest()
             if desc["sha256"] != actual_hash:
-                fail("SHA256 mismatch for %s, expected %s, found %s"
-                     % (url, desc["sha256"], actual_hash))
+                fail("SHA256 mismatch for %s, expected %s, found %s" %
+                     (url, desc["sha256"], actual_hash))
         if "sha512" in desc:
             actual_hash = hashlib.sha512(data).hexdigest()
             if desc["sha512"] != actual_hash:
-                fail("SHA512 mismatch for %s, expected %s, found %s"
-                     % (url, desc["sha512"], actual_hash))
+                fail("SHA512 mismatch for %s, expected %s, found %s" %
+                     (url, desc["sha512"], actual_hash))
         add_to_cas(data)
         if not is_in_cas(content_id):
-            fail("Failed to fetch a file with id %s from %s" % (content_id, url))
+            fail("Failed to fetch a file with id %s from %s" %
+                 (content_id, url))
     if fetch_only:
         return
     if not ALWAYS_FILE:
@@ -288,9 +318,12 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
     with open(tree_id_file, "w") as f:
         f.write(tree)
-    return ["git tree",
-            git_subtree(tree=tree, subdir=desc.get("subdir", "."), upstream=None),
-            git_root(upstream=None)]
+    return [
+        "git tree",
+        git_subtree(tree=tree, subdir=desc.get("subdir", "."), upstream=None),
+        git_root(upstream=None)
+    ]
+
 
 def import_to_git(target, repo_type, content_id):
     run_cmd(
@@ -304,14 +337,14 @@ def import_to_git(target, repo_type, content_id):
         env=dict(os.environ, **GIT_NOBODY_ENV),
     )
     run_cmd(
-        ["git", "commit", "-m", "Content of %s %r" % (repo_type, content_id)],
+        ["git", "commit", "-m",
+         "Content of %s %r" % (repo_type, content_id)],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
     )
 
     ensure_git(upstream=None)
-    run_cmd(["git", "fetch", target],
-            cwd=git_root(upstream=None))
+    run_cmd(["git", "fetch", target], cwd=git_root(upstream=None))
     commit = subprocess.run(["git", "log", "-n", "1", "--format=%H"],
                             stdout=subprocess.PIPE,
                             cwd=target).stdout.decode('utf-8').strip()
@@ -319,6 +352,7 @@ def import_to_git(target, repo_type, content_id):
     return subprocess.run(["git", "log", "-n", "1", "--format=%T"],
                           stdout=subprocess.PIPE,
                           cwd=target).stdout.decode('utf-8').strip()
+
 
 def file_as_git(fpath):
     root_result = subprocess.run(["git", "rev-parse", "--show-toplevel"],
@@ -329,7 +363,8 @@ def file_as_git(fpath):
         # TODO: consider also doing this for pending changes
         # copy non-git paths to tmp-workspace and import to git
         fpath = os.path.realpath(fpath)
-        target = archive_tmp_checkout_dir(os.path.relpath(fpath, "/"), repo_type="file")
+        target = archive_tmp_checkout_dir(os.path.relpath(fpath, "/"),
+                                          repo_type="file")
         os.makedirs(os.path.dirname(target), exist_ok=True)
         shutil.copytree(fpath, target)
         tree = import_to_git(target, "file", fpath)
@@ -337,12 +372,15 @@ def file_as_git(fpath):
         return ["git tree", tree, git_root(upstream=None)]
     root = root_result.stdout.decode('utf-8').rstrip()
     subdir = os.path.relpath(fpath, root)
-    root_tree = subprocess.run(["git", "log", "-n", "1", "--format=%T"],
-                               cwd = root, stdout=subprocess.PIPE
-                               ).stdout.decode('utf-8').strip()
-    return ["git tree",
-            git_subtree(tree=root_tree, subdir=subdir, upstream=root),
-            root]
+    root_tree = subprocess.run(
+        ["git", "log", "-n", "1", "--format=%T"],
+        cwd=root,
+        stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+    return [
+        "git tree",
+        git_subtree(tree=root_tree, subdir=subdir, upstream=root), root
+    ]
+
 
 def file_checkout(desc):
     fpath = os.path.abspath(desc["path"])
@@ -350,14 +388,17 @@ def file_checkout(desc):
         return file_as_git(fpath)
     return ["file", os.path.abspath(fpath)]
 
+
 def resolve_repo(desc, *, seen=None, repos):
     seen = seen or []
     if not isinstance(desc, str):
         return desc
     if desc in seen:
-        fail("Cyclic reference in repository source definition: %r" % (seen,))
+        fail("Cyclic reference in repository source definition: %r" % (seen, ))
     return resolve_repo(repos[desc]["repository"],
-                        seen = seen + [desc], repos=repos)
+                        seen=seen + [desc],
+                        repos=repos)
+
 
 def checkout(desc, *, name, repos):
     repo_desc = resolve_repo(desc, repos=repos)
@@ -368,8 +409,8 @@ def checkout(desc, *, name, repos):
         return archive_checkout(repo_desc, repo_type=repo_type)
     if repo_type == "file":
         return file_checkout(repo_desc)
-    fail("Unknown repository type %s for %s"
-         % (repo_type, name))
+    fail("Unknown repository type %s for %s" % (repo_type, name))
+
 
 def reachable_repositories(repo, *, repos):
     # First compute the set of repositories transitively reachable via bindings
@@ -397,6 +438,7 @@ def reachable_repositories(repo, *, repos):
 
     return reachable, to_fetch
 
+
 def setup(*, config, args, interactive=False):
     repos = config.get("repositories", {})
     repos_to_setup = repos.keys()
@@ -406,8 +448,7 @@ def setup(*, config, args, interactive=False):
 
     if args:
         if len(args) > 1:
-            fail("Usage: %s setup [<main repo>]"
-                 % (sys.argv[0], ))
+            fail("Usage: %s setup [<main repo>]" % (sys.argv[0], ))
         main = args[0]
         repos_to_include, repos_to_setup = reachable_repositories(main,
                                                                   repos=repos)
@@ -419,13 +460,15 @@ def setup(*, config, args, interactive=False):
         if repo == main and interactive:
             config = {}
         else:
-            workspace = checkout(desc.get("repository", {}), name=repo, repos=repos)
-            config = { "workspace_root": workspace }
+            workspace = checkout(desc.get("repository", {}),
+                                 name=repo,
+                                 repos=repos)
+            config = {"workspace_root": workspace}
         for key in TAKE_OVER:
             val = desc.get(key, {})
             if val:
                 config[key] = val
-        mr_repos[repo] =  config
+        mr_repos[repo] = config
     # Alternate directories are specifies as the workspace of
     # some other repository. So we have to iterate over all repositories again
     # to add those directories. We do this only for the repositories we include
@@ -447,23 +490,31 @@ def setup(*, config, args, interactive=False):
 
     return add_to_cas(json.dumps(mr_config, indent=2, sort_keys=True))
 
+
 def build(*, config, args):
     if len(args) != 3:
-        fail("Usage: %s build <repo> <moudle> <target>" % (sys.argv[0],))
+        fail("Usage: %s build <repo> <moudle> <target>" % (sys.argv[0], ))
     config = setup(config=config, args=[args[0]])
-    cmd = [JUST, "build", "-C", config, "--local-build-root", ROOT,
-           args[1], args[2]]
-    log("Setup finished, exec %s" % (cmd,))
+    cmd = [
+        JUST, "build", "-C", config, "--local-build-root", ROOT, args[1],
+        args[2]
+    ]
+    log("Setup finished, exec %s" % (cmd, ))
     os.execvp(JUST, cmd)
+
 
 def install(*, config, args):
     if len(args) != 4:
-        fail("Usage: %s install <repo> <moudle> <target> <install-path>" % (sys.argv[0],))
+        fail("Usage: %s install <repo> <moudle> <target> <install-path>" %
+             (sys.argv[0], ))
     config = setup(config=config, args=[args[0]])
-    cmd = [JUST, "install", "-C", config, "--local-build-root", ROOT,
-           "-o", args[3], args[1], args[2]]
-    log("Setup finished, exec %s" % (cmd,))
+    cmd = [
+        JUST, "install", "-C", config, "--local-build-root", ROOT, "-o",
+        args[3], args[1], args[2]
+    ]
+    log("Setup finished, exec %s" % (cmd, ))
     os.execvp(JUST, cmd)
+
 
 def update(*, config, args):
     for repo in args:
@@ -473,33 +524,36 @@ def update(*, config, args):
         if repo_type == "git":
             update_git(desc)
         else:
-            fail("Don't know how to update %s repositories" % (repo_type,))
+            fail("Don't know how to update %s repositories" % (repo_type, ))
     print(json.dumps(config, indent=2))
     sys.exit(0)
 
+
 def fetch(*, config, args):
     if args:
-        print("Warning: ignoring arguments %r" % (args,))
+        print("Warning: ignoring arguments %r" % (args, ))
     fetch_dir = None
     for d in DISTDIR:
         if os.path.isdir(d):
             fetch_dir = os.path.abspath(d)
             break
     if not fetch_dir:
-        print("No directory found to fetch to, considered %r" % (DISTDIR,))
+        print("No directory found to fetch to, considered %r" % (DISTDIR, ))
         sys.exit(1)
-    print("Fetching to %r" % (fetch_dir,))
+    print("Fetching to %r" % (fetch_dir, ))
 
     repos = config["repositories"]
     for repo, desc in repos.items():
         if ("repository" in desc and isinstance(desc["repository"], dict)
-            and desc["repository"]["type"] in ["zip", "archive"]):
+                and desc["repository"]["type"] in ["zip", "archive"]):
             repo_desc = desc["repository"]
-            distfile = repo_desc.get("distfile") or os.path.basename(repo_desc["fetch"])
+            distfile = repo_desc.get("distfile") or os.path.basename(
+                repo_desc["fetch"])
             content = repo_desc["content"]
             print("%r --> %r (content: %s)" % (repo, distfile, content))
             archive_checkout(repo_desc, repo_desc["type"], fetch_only=True)
-            shutil.copyfile(cas_path(content), os.path.join(fetch_dir, distfile))
+            shutil.copyfile(cas_path(content),
+                            os.path.join(fetch_dir, distfile))
 
     sys.exit(0)
 
@@ -540,10 +594,12 @@ def main():
     global GIT_CHECKOUT_LOCATIONS
     if options.checkout_location:
         with open(options.checkout_location) as f:
-            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",{}).get("git", {})
+            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
+                                                      {}).get("git", {})
     elif os.path.isfile(os.path.join(Path().home(), ".just-local.json")):
         with open(os.path.join(Path().home(), ".just-local.json")) as f:
-            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",{}).get("git", {})
+            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
+                                                      {}).get("git", {})
     global DISTDIR
     if options.distdir:
         DISTDIR = options.distdir
@@ -552,13 +608,13 @@ def main():
 
     global JUST
     if options.just:
-        JUST=os.path.abspath(options.just)
+        JUST = os.path.abspath(options.just)
 
     global ALWAYS_FILE
-    ALWAYS_FILE=options.always_file
+    ALWAYS_FILE = options.always_file
 
     if not args:
-        fail("Usage: %s <cmd> [<args>]" % (sys.argv[0],))
+        fail("Usage: %s <cmd> [<args>]" % (sys.argv[0], ))
     if args[0] == "setup":
         # Setup for interactive use, i.e., fetch the required repositories
         # and generate an appropriate multi-repository configuration file.
@@ -579,7 +635,7 @@ def main():
         update(config=config, args=args[1:])
     if args[0] == "fetch":
         fetch(config=config, args=args[1:])
-    fail("Unknown subcommand %s" % (args[0],))
+    fail("Unknown subcommand %s" % (args[0], ))
 
 
 if __name__ == "__main__":
