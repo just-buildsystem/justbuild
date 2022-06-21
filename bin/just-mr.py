@@ -262,6 +262,34 @@ def archive_tree_id_file(content, repo_type):
     return os.path.join(ROOT, "tree-map", repo_type, content)
 
 
+def archive_fetch(desc, content):
+    """ Makes sure archive is available and accounted for in cas
+    """
+    if not is_in_cas(content):
+        distfile = desc.get("distfile")
+        if not distfile:
+            distfile = os.path.basename(desc.get("fetch"))
+        if distfile:
+            add_distfile_to_cas(distfile)
+    if not is_in_cas(content):
+        url = desc["fetch"]
+        data = subprocess.run(["wget", "-O", "-", url],
+                              stdout=subprocess.PIPE).stdout
+        if "sha256" in desc:
+            actual_hash = hashlib.sha256(data).hexdigest()
+            if desc["sha256"] != actual_hash:
+                fail("SHA256 mismatch for %s, expected %s, found %s" %
+                     (url, desc["sha256"], actual_hash))
+        if "sha512" in desc:
+            actual_hash = hashlib.sha512(data).hexdigest()
+            if desc["sha512"] != actual_hash:
+                fail("SHA512 mismatch for %s, expected %s, found %s" %
+                     (url, desc["sha512"], actual_hash))
+        add_to_cas(data)
+        if not is_in_cas(content):
+            fail("Failed to fetch a file with id %s from %s" % (content, url))
+
+
 def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     content_id = desc["content"]
     target = archive_checkout_dir(content_id, repo_type=repo_type)
@@ -278,30 +306,7 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
                         upstream=None),
             git_root(upstream=None),
         ]
-    if not is_in_cas(content_id):
-        distfile = desc.get("distfile")
-        if not distfile:
-            distfile = os.path.basename(desc.get("fetch"))
-        if distfile:
-            add_distfile_to_cas(distfile)
-    if not is_in_cas(content_id):
-        url = desc["fetch"]
-        data = subprocess.run(["wget", "-O", "-", url],
-                              stdout=subprocess.PIPE).stdout
-        if "sha256" in desc:
-            actual_hash = hashlib.sha256(data).hexdigest()
-            if desc["sha256"] != actual_hash:
-                fail("SHA256 mismatch for %s, expected %s, found %s" %
-                     (url, desc["sha256"], actual_hash))
-        if "sha512" in desc:
-            actual_hash = hashlib.sha512(data).hexdigest()
-            if desc["sha512"] != actual_hash:
-                fail("SHA512 mismatch for %s, expected %s, found %s" %
-                     (url, desc["sha512"], actual_hash))
-        add_to_cas(data)
-        if not is_in_cas(content_id):
-            fail("Failed to fetch a file with id %s from %s" %
-                 (content_id, url))
+    archive_fetch(desc, content=content_id)
     if fetch_only:
         return
     if not ALWAYS_FILE:
