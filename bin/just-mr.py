@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import hashlib
+from importlib.resources import path
 import json
 import os
 import shutil
@@ -262,13 +263,18 @@ def archive_tree_id_file(content, repo_type):
     return os.path.join(ROOT, "tree-map", repo_type, content)
 
 
+def get_distfile(desc):
+    distfile = desc.get("distfile")
+    if not distfile:
+        distfile = os.path.basename(desc.get("fetch"))
+    return distfile
+
+
 def archive_fetch(desc, content):
     """ Makes sure archive is available and accounted for in cas
     """
     if not is_in_cas(content):
-        distfile = desc.get("distfile")
-        if not distfile:
-            distfile = os.path.basename(desc.get("fetch"))
+        distfile = get_distfile(desc)
         if distfile:
             add_distfile_to_cas(distfile)
     if not is_in_cas(content):
@@ -405,6 +411,80 @@ def resolve_repo(desc, *, seen=None, repos):
                         repos=repos)
 
 
+def distdir_repo_dir(content):
+    return os.path.join(ROOT, "distdir", content)
+
+
+def distdir_tree_id_file(content):
+    return os.path.join(ROOT, "distfiles-tree-map", content)
+
+
+def distdir_checkout(desc, repos):
+    """ Logic for processing the distdir repo type.
+    """
+    content = {}
+
+    # All repos in distdir list are considered, irrespective of reachability
+    distdir_repos = desc.get("repositories", [])
+    for repo in distdir_repos:
+        # If repo does not exist, fail
+        if repo not in repos:
+            print("No configuration for repository %s found" % ())
+            sys.exit(1)
+        repo_desc = repos[repo].get("repository", {})
+        repo_desc_type = repo_desc.get("type")
+        # Only do work for archived types
+        if repo_desc_type in ["archive", "zip"]:
+            # fetch repo
+            content_id = repo_desc["content"]
+            archive_fetch(repo_desc, content=content_id)
+            # Store the relevant info in the map
+            content[get_distfile(repo_desc)] = content_id
+
+    # Hash the map as unique id for the distdir repo entry
+    distdir_content_id = git_hash(json.dumps(content).encode('utf-8'))
+    target_distdir_dir = distdir_repo_dir(distdir_content_id)
+
+    # Check if content already exists
+    if ALWAYS_FILE and os.path.exists(target_distdir_dir):
+        return ["file", target_distdir_dir]
+    tree_id_file = distdir_tree_id_file(distdir_content_id)
+    if (not ALWAYS_FILE) and os.path.exists(tree_id_file):
+        with open(tree_id_file) as f:
+            distdir_tree_id = f.read()
+        return [
+            "git tree",
+            git_subtree(tree=distdir_tree_id, subdir=".", upstream=None),
+            git_root(upstream=None)
+        ]
+
+    # Create the dirstdir repo folder content
+    os.makedirs(target_distdir_dir)
+    for name, content_id in content.items():
+        target = os.path.join(target_distdir_dir, name)
+        os.link(cas_path(content_id), target)
+
+    if (ALWAYS_FILE):
+        # Return with path to distdir repo
+        return ["file", target_distdir_dir]
+
+    # Gitify the distdir repo folder
+    tree = import_to_git(target_distdir_dir, "distdir", distdir_content_id)
+    shutil.rmtree(target_distdir_dir)
+
+    # Cache git info to tree id file
+    os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
+    with open(tree_id_file, "w") as f:
+        f.write(tree)
+
+    # Return git tree info
+    return [
+        "git tree",
+        git_subtree(tree=tree, subdir=".", upstream=None),
+        git_root(upstream=None)
+    ]
+
+
 def checkout(desc, *, name, repos):
     repo_desc = resolve_repo(desc, repos=repos)
     repo_type = repo_desc.get("type")
@@ -414,6 +494,8 @@ def checkout(desc, *, name, repos):
         return archive_checkout(repo_desc, repo_type=repo_type)
     if repo_type == "file":
         return file_checkout(repo_desc)
+    if repo_type == "distdir":
+        return distdir_checkout(repo_desc, repos=repos)
     fail("Unknown repository type %s for %s" % (repo_type, name))
 
 
