@@ -40,4 +40,19 @@
   , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
   , "target": [["etc/dev", "just-ext-hdrs"]]
   }
+, "bootstrap-src":
+  { "type": "install"
+  , "files": {"ROOT": "ROOT", "TARGETS": "TARGETS"}
+  , "dirs":
+    [ [["TREE", null, "bin"], "."]
+    , [["TREE", null, "rules"], "."]
+    , [["TREE", null, "etc"], "."]
+    , [["TREE", null, "src"], "."]
+    ]
+  }
+, "large-tests":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["test", "bootstrap-test"], "bootstrap-test"]]
+  }
 }

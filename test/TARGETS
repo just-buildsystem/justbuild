@@ -22,4 +22,10 @@
   , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
   , "target": ["TESTS"]
   }
+, "bootstrap-test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["bootstrap-test"]
+  , "test": ["test-bootstrap.sh"]
+  , "deps": [["", "bootstrap-src"], ["@", "just-distfiles", "", "distdir"]]
+  }
 }
