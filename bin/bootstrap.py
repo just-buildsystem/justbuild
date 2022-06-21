@@ -146,10 +146,11 @@ def bootstrap():
     CONF_FILE = os.path.join(WRKDIR, "repo-conf.json")
     LOCAL_ROOT = os.path.join(WRKDIR, ".just")
     os.makedirs(LOCAL_ROOT, exist_ok=True)
+    distdirs = " --distdir=".join(DISTDIR)
     run([
         "sh", "-c",
-        "cp `./bin/just-mr.py --always-file -C %s --local-build-root=%s setup just` %s"
-        % (REPOS, LOCAL_ROOT, CONF_FILE)
+        "cp `./bin/just-mr.py --always-file -C %s --local-build-root=%s --distdir=%s setup just` %s"
+        % (REPOS, LOCAL_ROOT, distdirs, CONF_FILE)
     ],
         cwd=src_wrkdir)
     GRAPH = os.path.join(WRKDIR, "graph.json")
@@ -166,8 +167,8 @@ def bootstrap():
         cwd=src_wrkdir)
     OUT = os.path.join(WRKDIR, "out")
     run([
-        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-o",
-        OUT, "--local-build-root", LOCAL_ROOT, MAIN_MODULE, MAIN_TARGET
+        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-o", OUT,
+        "--local-build-root", LOCAL_ROOT, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
 
@@ -180,6 +181,8 @@ def main(args):
         SRCDIR = os.path.abspath(args[1])
     if len(args) > 2:
         WRKDIR = os.path.abspath(args[2])
+    if len(args) > 3:
+        DISTDIR = [os.path.abspath(p) for p in args[3:]]
 
     if not WRKDIR:
         WRKDIR = tempfile.mkdtemp()
