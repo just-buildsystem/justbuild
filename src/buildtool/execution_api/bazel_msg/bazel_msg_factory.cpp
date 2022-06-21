@@ -370,7 +370,7 @@ class DirectoryTree {
         -> DirectoryNodeBundle::Ptr {
         std::vector<bazel_re::FileNode> file_nodes;
         std::vector<bazel_re::DirectoryNode> dir_nodes;
-        for (auto const& [name, node] : nodes) {
+        for (auto const& [name, node] : nodes_) {
             if (std::holds_alternative<DirectoryTreePtr>(node)) {
                 auto const& dir = std::get<DirectoryTreePtr>(node);
                 auto const dir_bundle =
@@ -409,7 +409,7 @@ class DirectoryTree {
 
   private:
     using Node = std::variant<DirectoryTreePtr, Artifact const*>;
-    std::unordered_map<std::string, Node> nodes;
+    std::unordered_map<std::string, Node> nodes_;
 
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto AddArtifact(std::filesystem::path::iterator* begin,
@@ -420,10 +420,10 @@ class DirectoryTree {
             return false;
         }
         if (*begin == end) {
-            return nodes.emplace(segment, artifact).second;
+            return nodes_.emplace(segment, artifact).second;
         }
         auto const [it, success] =
-            nodes.emplace(segment, std::make_unique<DirectoryTree>());
+            nodes_.emplace(segment, std::make_unique<DirectoryTree>());
         return (success or
                 std::holds_alternative<DirectoryTreePtr>(it->second)) and
                std::get<DirectoryTreePtr>(it->second)
