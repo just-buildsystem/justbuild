@@ -1,0 +1,253 @@
+* Creating Tests
+
+To run tests with justbuild, we do /not/ have dedicated ~test~ subcommand.
+Instead, we consider tests being a specific action that generates a test report.
+Consequently, we use the ~build~ subcommand to build the test report, and
+thereby run the test action. Those actions have to be tainted, in our case with
+the string ~"test"~, causing that they can only be depended on by other targets
+that are also tainted with ~"test"~. In this way, it is ensured that no test
+target will end up in a production build.
+
+For the remainder of this section, we expect to have the project files available
+resulting from successfully completing the tutorial section on /Building Hello
+World/. We will demonstrate how to write a test binary for the ~greet~ library
+and a shell test for the ~helloworld~ binary.
+
+** Creating a C++ test binary
+
+First, we will create a C++ test binary for testing the correct functionality of
+the ~greet~ library. Therefore, we need to provide a C++ source file that performs
+the actual testing and returns non-~0~ on failure. For simplicity reasons, we do
+not use a testing framework for this tutorial. A simple test that captures
+standard output and verifies it with the expected output should be provided in
+the file ~greet/greet.test.cpp~:
+
+#+BEGIN_SRC cpp
+#include <functional>
+#include <iostream>
+#include <string>
+#include <unistd.h>
+#include "greet/greet.hpp"
+
+template <std::size_t kMaxBufSize = 1024>
+auto capture_stdout(std::function<void()> const& func) -> std::string {
+  int fd[2];
+  if (pipe(fd) < 0) return {};
+  int fd_stdout = dup(fileno(stdout));
+  fflush(stdout);
+  dup2(fd[1], fileno(stdout));
+
+  func();
+  fflush(stdout);
+
+  std::string buf(kMaxBufSize, '\0');
+  auto n = read(fd[0], &(*buf.begin()), kMaxBufSize);
+  close(fd[0]);
+  close(fd[1]);
+  dup2(fd_stdout, fileno(stdout));
+  return buf.substr(0, n);
+}
+
+auto test_greet(std::string const& name) -> bool {
+  auto expect = std::string{"Hello "} + name + "!\n";
+  auto result = capture_stdout([&name] { greet(name); });
+  std::cout << "greet output: " << result << std::endl;
+  return result == expect;
+}
+
+int main() {
+  return test_greet("World") && test_greet("Universe") ? 0 : 1;
+}
+#+END_SRC
+
+Next, a new test target needs to be created in module ~greet~. This target uses
+the rule ~["@", "rules", "CC/test", "test"]~ and needs to depend on the
+~"greet"~ target. To create the test target, add the following to
+~greet/TARGETS~:
+
+#+BEGIN_SRC js
+{ "greet":
+  { /* ... unchanged ... */ }
+, "test":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["test_greet"]
+  , "srcs": ["greet.test.cpp"]
+  , "deps": ["greet"]
+  }
+}
+#+END_SRC
+
+Before we can run the test, a proper default module for ~CC/test~ must be
+provided. By specifying the appropriate target in this module the default test
+runner can be overwritten by a different test runner fom the rule's workspace
+root. However, in our case, we want to use the default runner and therefore it
+is sufficient to create an empty module:
+
+Create ~tutorial-defaults/CC/test/TARGETS~:
+#+BEGIN_SRC shell
+$ mkdir -p tutorial-defaults/CC/test
+$ echo '{}' > tutorial-defaults/CC/test/TARGETS
+#+END_SRC
+
+Now we can run the test (i.e., build the test result):
+
+#+BEGIN_SRC shell
+$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
+$ just build -C $CONF greet test
+INFO: Requested target is [["@","tutorial","greet","test"],{}]
+INFO: Analysed target [["@","tutorial","greet","test"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Target tainted ["test"].
+INFO: Discovered 5 actions, 3 trees, 0 blobs
+INFO: Building [["@","tutorial","greet","test"],{}].
+INFO: Processed 5 actions, 2 cache hits.
+INFO: Artifacts built, logical paths are:
+        result [359456b7b6a1f91dc435e483cc2b1fc4e8981bf0:8:f]
+        stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
+        stdout [21ac68aa0bceffd6d5ad49ba17df80f44f7f3735:59:f]
+        time-start [c119fd0e22e79555f2446410fd90de4c091039d9:11:f]
+        time-stop [c119fd0e22e79555f2446410fd90de4c091039d9:11:f]
+      (1 runfiles omitted.)
+INFO: Target tainted ["test"].
+$
+#+END_SRC
+
+Note that the target is correctly reported as tainted with ~"test"~. It will
+produce 3 additional actions for compiling, linking and running the test binary.
+
+The result of the test target are 5 artifacts: ~result~ (containing ~UNKNOWN~,
+~PASS~, or ~FAIL~), ~stderr~, ~stdout~, ~time-start~, and ~time-stop~, and a
+single runfile (omitted in the output above), which is a tree artifact with the
+name ~test_greet~ that contains all of the above artifacts. The test was run
+successfully as otherwise all reported artifacts would have been tagged with
+~FAILED~ in the output, and justbuild would have returned the exit code ~2~.
+
+To immediately print the standard output produced by the test binary on the
+command line, the ~-P~ option can be used. Argument to this option is the name
+of the artifact that should be printed on the command line, in our case
+~stdout~:
+
+#+BEGIN_SRC shell
+$ just build -C $CONF greet test --log-limit 1 -P stdout
+greet output: Hello World!
+
+greet output: Hello Universe!
+
+$
+#+END_SRC
+
+Note that ~--log-limit 1~ was just added to omit justbuild's ~INFO:~ prints.
+
+** Creating a shell test
+
+Similarly, to create a shell test for testing the ~helloworld~ binary, a test
+script must be provided:
+
+~test.sh~:
+#+BEGIN_SRC shell
+set -e
+[ "$(./helloworld)" = "Hello Universe!" ]
+#+END_SRC
+
+The test target for this shell tests uses the rule
+~["@", "rules", "shell/test", "script"]~ and must depend on the ~"helloworld"~
+target. To create the test target, add the following to the top-level ~TARGETS~
+file:
+
+#+BEGIN_SRC js
+{ "helloworld":
+  { /* ... unchanged ... */ }
+, "test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["test_helloworld"]
+  , "test": ["test.sh"]
+  , "deps": ["helloworld"]
+  }
+}
+#+END_SRC
+
+Similar to the binary tests, also for shell tests we need to provide at least an
+empty module for the test rule defaults:
+
+Create ~tutorial-defaults/shell/test/TARGETS~:
+#+BEGIN_SRC shell
+$ mkdir -p tutorial-defaults/shell/test
+$ echo '{}' > tutorial-defaults/shell/test/TARGETS
+#+END_SRC
+
+Now we can run the shell test (i.e., build the test result):
+
+#+BEGIN_SRC shell
+$ just build -C $CONF test
+INFO: Requested target is [["@","tutorial","","test"],{}]
+INFO: Analysed target [["@","tutorial","","test"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Target tainted ["test"].
+INFO: Discovered 5 actions, 4 trees, 0 blobs
+INFO: Building [["@","tutorial","","test"],{}].
+INFO: Processed 5 actions, 4 cache hits.
+INFO: Artifacts built, logical paths are:
+        result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
+        stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
+        stdout [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
+        time-start [9b4a96cc3b929d2909f74395d0317e93a59e621f:11:f]
+        time-stop [9b4a96cc3b929d2909f74395d0317e93a59e621f:11:f]
+      (1 runfiles omitted.)
+INFO: Target tainted ["test"].
+$
+#+END_SRC
+
+The result is also similar, containing also the 5 artifacts and a single runfile
+(omitted in the output above), which is a tree artifact with the name
+~test_helloworld~ that contains all of the above artifacts.
+
+** Creating a compound test target
+
+As most people probably do not want to call every test target by hand, it is
+desirable to compound test target that triggers the build of multiple test
+reports. To do so, an ~"install"~ target can be used. It depends on the tests
+that should be triggered and collects the runfiles of those (which happen to be
+tree artifacts named the same way as the test and containing all test results).
+Furthermore, as the dependent test targets are tainted by ~"test"~, also the
+compound test target must be tainted by the same string. To create the compound
+test target combining the two tests above, add the following to the top-level
+~TARGETS~ file:
+
+#+BEGIN_SRC js
+{ "helloworld":
+  { /* ... unchanged ... */ }
+, "test":
+  { /* ... unchanged ... */ }
+, "all_tests":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps":
+    [ "test"
+    , ["greet", "test"]
+    ]
+  }
+}
+#+END_SRC
+
+Now we can run all tests at once by just building the compound test target
+~"all_tests"~:
+
+#+BEGIN_SRC shell
+$ just build -C $CONF all_tests
+INFO: Requested target is [["@","tutorial","","all_tests"],{}]
+INFO: Analysed target [["@","tutorial","","all_tests"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Target tainted ["test"].
+INFO: Discovered 8 actions, 5 trees, 0 blobs
+INFO: Building [["@","tutorial","","all_tests"],{}].
+INFO: Processed 8 actions, 8 cache hits.
+INFO: Artifacts built, logical paths are:
+        test_greet [7116c231e3a6da3d23b0549340d75d36a0a0c4ef:285:t]
+        test_helloworld [c5a0d9fb4ba586d88dc5cddadedb6ddb670e95c4:283:t]
+INFO: Target tainted ["test"].
+$
+#+END_SRC
+
+As a result it reports the runfiles (result directories) of both tests as
+artifacts. Both tests ran successfully as none of those artifacts in this output
+above are tagged as ~FAILED~.
