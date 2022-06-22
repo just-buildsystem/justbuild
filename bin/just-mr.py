@@ -179,6 +179,8 @@ def git_checkout(desc):
                  (branch, repo, commit))
         git_keep(commit, upstream=repo)
     if ALWAYS_FILE:
+        if os.path.exists(target):
+            shutil.rmtree(target)
         os.makedirs(target)
         with tempfile.TemporaryFile() as f:
             run_cmd(["git", "archive", commit], cwd=root, stdout=f)
@@ -317,6 +319,8 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
         return
     if not ALWAYS_FILE:
         target = archive_tmp_checkout_dir(content_id, repo_type=repo_type)
+    if os.path.exists(target):
+        shutil.rmtree(target)
     os.makedirs(target)
     if repo_type == "zip":
         run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target)
@@ -459,6 +463,8 @@ def distdir_checkout(desc, repos):
         ]
 
     # Create the dirstdir repo folder content
+    if os.path.exists(target_distdir_dir):
+        shutil.rmtree(target_distdir_dir)
     os.makedirs(target_distdir_dir)
     for name, content_id in content.items():
         target = os.path.join(target_distdir_dir, name)
