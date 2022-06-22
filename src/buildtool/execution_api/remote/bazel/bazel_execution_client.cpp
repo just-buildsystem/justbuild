@@ -6,6 +6,31 @@
 
 namespace bazel_re = build::bazel::remote::execution::v2;
 
+namespace {
+
+void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
+                        google::rpc::Status const& s) noexcept {
+    switch (s.code()) {
+        case grpc::StatusCode::DEADLINE_EXCEEDED:
+            logger->Emit(LogLevel::Error, "Execution timed out.");
+            break;
+        case grpc::StatusCode::UNAVAILABLE:
+            // quote from remote_execution.proto:
+            // Due to a transient condition, such as all workers being occupied
+            // (and the server does not support a queue), the action could not
+            // be started. The client should retry.
+            logger->Emit(LogLevel::Error,
+                         "Execution could not be started. Retry later.");
+            break;
+        default:
+            // fallback to default status logging
+            LogStatus(logger, LogLevel::Debug, s);
+            break;
+    }
+}
+
+}  // namespace
+
 BazelExecutionClient::BazelExecutionClient(std::string const& server,
                                            Port port,
                                            std::string const& user,
@@ -109,7 +134,6 @@ auto BazelExecutionClient::ExtractContents(
 
     // Get execution response Unpacked from Protobufs Any type to the actual
     // type in our case
-    bazel_re::ExecuteResponse exec_response;
     auto const& raw_response = op.response();
     if (not raw_response.Is<bazel_re::ExecuteResponse>()) {
         // Fatal error, the type should be correct
@@ -117,9 +141,15 @@ auto BazelExecutionClient::ExtractContents(
         return response;
     }
 
-    response.state = ExecutionResponse::State::Finished;
-
+    bazel_re::ExecuteResponse exec_response;
     raw_response.UnpackTo(&exec_response);
+
+    if (exec_response.status().code() != grpc::StatusCode::OK) {
+        // For now, treat all execution errors (e.g., action timeout) as fatal.
+        LogExecutionStatus(&logger_, exec_response.status());
+        response.state = ExecutionResponse::State::Failed;
+        return response;
+    }
 
     ExecutionOutput output;
     output.action_result = exec_response.result();
@@ -127,6 +157,7 @@ auto BazelExecutionClient::ExtractContents(
     output.message = exec_response.message();
     output.server_logs = exec_response.server_logs();
     response.output = output;
+    response.state = ExecutionResponse::State::Finished;
 
     return response;
 }

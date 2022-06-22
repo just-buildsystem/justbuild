@@ -146,7 +146,8 @@ auto BazelNetwork::ExecuteBazelActionSync(
     if (response.state !=
             BazelExecutionClient::ExecutionResponse::State::Finished or
         not response.output) {
-        // TODO(oreiche): logging
+        Logger::Log(
+            LogLevel::Error, "Failed to execute action {}.", action.hash());
         return std::nullopt;
     }
 
