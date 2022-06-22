@@ -153,12 +153,12 @@
     }
   , "protobuf":
     { "repository":
-      { "type": "archive"
-      , "content": "36bbde62df284bec435f1de559094313500ade16"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/archive/678da4f76eb9168c9965afc2149944a66cd48546.tar.gz"
-      , "sha256": "efaf69303e01caccc2447064fc1832dfd23c0c130df0dc5fc98a13185bb7d1a7"
-      , "sha512": "ec28bbab2ae15388d7d03576b3875a01e3c971e36b1e104b15c8a4b8cf776f746d1553c195c4b50d6a6fd8d820b3e6e4f39ebf1e5b774ef112d9248577e3d7e2"
-      , "subdir": "protobuf-678da4f76eb9168c9965afc2149944a66cd48546"
+      { "type": "zip"
+      , "content": "7af7165b585e4aed714555a747b6822376176ef4"
+      , "fetch": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.12.4.zip"
+      , "sha256": "c5dc4cacbb303d5d0aa20c5cbb5cb88ef82ac61641c951cdf6b8e054184c5e22"
+      , "sha512": "11e7584f44994ed6e9745bf6cbbac791bb090615d362fb3bd9aa8ebc08504042303ff945007030274359e268f8d62e116eaba2bb4910431ea3f7845af23cc7c5"
+      , "subdir": "protobuf-3.12.4"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
