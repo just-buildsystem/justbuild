@@ -19,6 +19,7 @@
     , ["src/buildtool/build_engine/target_map", "target_cache"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
+    , "version"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "link external":
@@ -26,5 +27,28 @@
     , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
     , "then": ["-static"]
     }
+  }
+, "version":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["SOURCE_DATE_EPOCH"]
+  , "name": ["version"]
+  , "hdrs": ["version.hpp"]
+  , "srcs": ["version.cpp"]
+  , "local defines":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
+    , "then":
+      [ { "type": "join"
+        , "$1":
+          [ "SOURCE_DATE_EPOCH="
+          , { "type": "json_encode"
+            , "$1": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
+            }
+          ]
+        }
+      ]
+    }
+  , "deps": [["@", "json", "", "json"], ["src/utils/cpp", "json"]]
+  , "stage": ["src", "buildtool", "main"]
   }
 }

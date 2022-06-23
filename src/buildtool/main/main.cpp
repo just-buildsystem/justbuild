@@ -29,6 +29,7 @@
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
+#include "src/buildtool/main/version.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/utils/cpp/concepts.hpp"
@@ -41,6 +42,7 @@ namespace Target = BuildMaps::Target;
 
 enum class SubCommand {
     kUnknown,
+    kVersion,
     kDescribe,
     kAnalyse,
     kBuild,
@@ -134,6 +136,8 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     CLI::App app("just");
     app.option_defaults()->take_last();
 
+    auto* cmd_version = app.add_subcommand(
+        "version", "Print version information in JSON format.");
     auto* cmd_describe = app.add_subcommand(
         "describe", "Describe the rule generating a target.");
     auto* cmd_analyse =
@@ -152,6 +156,7 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     app.require_subcommand(1);
 
     CommandLineArguments clargs;
+    SetupDescribeCommandArguments(cmd_version, &clargs);
     SetupDescribeCommandArguments(cmd_describe, &clargs);
     SetupAnalyseCommandArguments(cmd_analyse, &clargs);
     SetupBuildCommandArguments(cmd_build, &clargs);
@@ -169,7 +174,10 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
         std::exit(kExitFailure);
     }
 
-    if (*cmd_describe) {
+    if (*cmd_version) {
+        clargs.cmd = SubCommand::kVersion;
+    }
+    else if (*cmd_describe) {
         clargs.cmd = SubCommand::kDescribe;
     }
     else if (*cmd_analyse) {
@@ -1318,6 +1326,11 @@ auto main(int argc, char* argv[]) -> int {
     SetupDefaultLogging();
     try {
         auto arguments = ParseCommandLineArguments(argc, argv);
+
+        if (arguments.cmd == SubCommand::kVersion) {
+            std::cerr << version() << std::endl;
+            return kExitSuccess;
+        }
 
         SetupLogging(arguments.common);
 #ifndef BOOTSTRAP_BUILD_TOOL

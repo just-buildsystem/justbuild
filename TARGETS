@@ -12,6 +12,7 @@
     , "AR"
     , "ENV"
     , "BUILD_STATIC_BINARY"
+    , "SOURCE_DATE_EPOCH"
     ]
   }
 , "just":

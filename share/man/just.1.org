@@ -94,6 +94,22 @@ the multi-repository configuration file.
 
 * SUBCOMMANDS
 
+** version
+
+Print on stdout a JSON object providing version information about
+the version of the tool used. This JSON object will contain at
+least the following keys.
+- ~"version"~ The version, as a list of numbers of length at least
+  3, following the usual convention that version numbers are compared
+  lexicographically.
+- ~"suffix"~ The version suffix as a string. Generally, suffixes
+  starting with a ~+~ symbol are positive offsets to the version,
+  while suffixes starting with a ~~~ symbol are negative offsets.
+- ~"SOURCE_DATE_EPOCH"~ Either a number or ~null~. If it is a
+  number, it is the time, in seconds since the epoch, of the last
+  commit that went into this binary. It is ~null~ if that time is
+  not known (e.g., in development builds).
+
 ** analyse|build|install
 
 The subcommands ~analyse~, ~build~, and ~install~ are strictly

@@ -34,7 +34,7 @@ EOF
 }
 
 _just_completion(){
-    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild -h --help)
+    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild -h --help version)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=${COMP_WORDS[1]}
