@@ -4,7 +4,15 @@
   , "string_fields": ["keep", "name"]
   , "config_vars": ["RUNS_PER_TEST", "TEST_ENV"]
   , "field_doc":
-    { "test": ["The shell script for the test, launched with sh"]
+    { "test":
+      [ "The shell script for the test, launched with sh."
+      , ""
+      , "An empty directory is created to store any temporary files needed"
+      , "by the test, and it is made available in the environment variable"
+      , "TEST_TMPDIR. The test should not assume write permissions"
+      , "outside the working directory and the TEST_TMPDIR."
+      , "For convenience, the environment variable TMPDIR is also set to TEST_TMPDIR."
+      ]
     , "name":
       [ "A name for the test, used in reporting, as well as for staging"
       , "the test result tree in the runfiles"
