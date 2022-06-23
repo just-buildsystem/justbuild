@@ -98,12 +98,17 @@ class ActionDescription {
             bool no_cache{};
             auto may_fail_it = desc.find("may_fail");
             if (may_fail_it != desc.end()) {
-                if (not may_fail_it->is_string()) {
+                if (may_fail_it->is_null()) {
+                    may_fail = std::nullopt;
+                }
+                else if (may_fail_it->is_string()) {
+                    may_fail = *may_fail_it;
+                }
+                else {
                     Logger::Log(LogLevel::Error,
-                                "may_fail has to be a boolean");
+                                "may_fail has to be a null or a string");
                     return std::nullopt;
                 }
-                may_fail = *may_fail_it;
             }
             auto no_cache_it = desc.find("no_cache");
             if (no_cache_it != desc.end()) {
