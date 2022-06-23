@@ -224,7 +224,8 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 ** Build configuration options
 
    *--action-timeout* NUM\\
-   Action timeout in seconds. (Default: 300).\\
+   Action timeout in seconds. (Default: 300). The timeout is honored
+   only for the remote build.\\
    Supported by: build|install|rebuild|traverse.
 
    *-c*, *--config* PATH\\
@@ -312,7 +313,9 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Supported by: analyse|build|install|rebuild.
 
    *-f,--log-file* PATH\\
-   Path to local log file.\\
+   Path to local log file. ~just~ will store the information printed
+   on stderr in the log file along with the thread id and timestamp
+   when the output has been generated.\\
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
    *--log-limit* NUM\\
