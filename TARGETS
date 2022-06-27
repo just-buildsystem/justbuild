@@ -13,6 +13,7 @@
     , "ENV"
     , "BUILD_STATIC_BINARY"
     , "SOURCE_DATE_EPOCH"
+    , "VERSION_EXTRA_SUFFIX"
     ]
   }
 , "just":

@@ -30,19 +30,36 @@
   }
 , "version":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["SOURCE_DATE_EPOCH"]
+  , "arguments_config": ["SOURCE_DATE_EPOCH", "VERSION_EXTRA_SUFFIX"]
   , "name": ["version"]
   , "hdrs": ["version.hpp"]
   , "srcs": ["version.cpp"]
   , "local defines":
-    { "type": "if"
-    , "cond": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
-    , "then":
-      [ { "type": "join"
-        , "$1":
-          [ "SOURCE_DATE_EPOCH="
-          , { "type": "json_encode"
-            , "$1": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
+    { "type": "++"
+    , "$1":
+      [ { "type": "if"
+        , "cond": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
+        , "then":
+          [ { "type": "join"
+            , "$1":
+              [ "SOURCE_DATE_EPOCH="
+              , { "type": "json_encode"
+                , "$1": {"type": "var", "name": "SOURCE_DATE_EPOCH"}
+                }
+              ]
+            }
+          ]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "VERSION_EXTRA_SUFFIX"}
+        , "then":
+          [ { "type": "join"
+            , "$1":
+              [ "VERSION_EXTRA_SUFFIX="
+              , { "type": "json_encode"
+                , "$1": {"type": "var", "name": "VERSION_EXTRA_SUFFIX"}
+                }
+              ]
             }
           ]
         }
