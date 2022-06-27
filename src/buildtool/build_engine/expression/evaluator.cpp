@@ -922,7 +922,7 @@ auto Evaluator::EvaluationError::WhileEvaluating(ExpressionPtr const& expr,
     }
     ss << expr->ToString() << std::endl;
     ss << "  environment " << std::endl;
-    ss << env.Enumerate("  - ", kLineWidth) << std::endl;
+    ss << env.Enumerate("  - ", Config().expression_log_limit) << std::endl;
     ss << ex.what();
     return EvaluationError{ss.str(), true /* while_eval */};
 }

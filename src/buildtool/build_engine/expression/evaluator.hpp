@@ -10,7 +10,17 @@
 class Configuration;
 
 class Evaluator {
+    struct ConfigData {
+        std::size_t expression_log_limit{kDefaultExpressionLogLimit};
+    };
+
   public:
+    /// \brief Set the limit for the size of logging a single expression
+    /// in an error message.
+    static void SetExpressionLogLimit(std::size_t width) {
+        Config().expression_log_limit = width;
+    }
+
     class EvaluationError : public std::exception {
       public:
         explicit EvaluationError(std::string const& msg,
@@ -65,12 +75,17 @@ class Evaluator {
         std::function<void(void)> const& note_user_context = []() {}) noexcept
         -> ExpressionPtr;
 
+    constexpr static std::size_t kDefaultExpressionLogLimit = 320;
+
   private:
-    constexpr static std::size_t kLineWidth = 80;
     [[nodiscard]] static auto Evaluate(ExpressionPtr const& expr,
                                        Configuration const& env,
                                        FunctionMapPtr const& functions)
         -> ExpressionPtr;
+    [[nodiscard]] static auto Config() noexcept -> ConfigData& {
+        static ConfigData instance{};
+        return instance;
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EVALUATOR_HPP

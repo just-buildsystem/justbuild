@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
+#include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
@@ -1333,6 +1334,10 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         SetupLogging(arguments.common);
+        if (arguments.analysis.expression_log_limit) {
+            Evaluator::SetExpressionLogLimit(
+                *arguments.analysis.expression_log_limit);
+        }
 #ifndef BOOTSTRAP_BUILD_TOOL
         SetupHashFunction();
         SetupExecutionConfig(

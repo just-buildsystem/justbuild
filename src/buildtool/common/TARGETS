@@ -3,7 +3,8 @@
   , "name": ["cli"]
   , "hdrs": ["cli.hpp"]
   , "deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["@", "cli11", "", "cli11"]
     , ["@", "json", "", "json"]

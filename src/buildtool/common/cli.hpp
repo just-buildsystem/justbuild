@@ -12,6 +12,7 @@
 #include "fmt/core.h"
 #include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
@@ -30,6 +31,7 @@ struct CommonArguments {
 
 /// \brief Arguments required for analysing targets.
 struct AnalysisArguments {
+    std::optional<std::size_t> expression_log_limit{};
     std::string defines{};
     std::filesystem::path config_file{};
     std::optional<nlohmann::json> target{};
@@ -137,6 +139,12 @@ static inline auto SetupAnalysisArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<AnalysisArguments*> const& clargs,
     bool with_graph = true) {
+    app->add_option("--expression-log-limit",
+                    clargs->expression_log_limit,
+                    fmt::format("Maximal size for logging a single expression "
+                                "in error messages (Default {})",
+                                Evaluator::kDefaultExpressionLogLimit))
+        ->type_name("NUM");
     app->add_option(
            "-D,--defines",
            clargs->defines,
