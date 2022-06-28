@@ -1,0 +1,9 @@
+{ "generic_out_dirs":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["generic_out_dirs"]
+  , "test": ["generic_out_dirs.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["generic_out_dirs"]}
+}

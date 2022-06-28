@@ -3,17 +3,22 @@
 #include <algorithm>
 #include <filesystem>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 
+#include <fmt/format.h>
+#include <nlohmann/json.hpp>
+
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/export.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/vector.hpp"
 
 namespace {
 
@@ -24,6 +29,7 @@ auto const kGenericRuleFields =
                                     "env",
                                     "tainted",
                                     "type",
+                                    "out_dirs",
                                     "outs"};
 
 auto const kFileGenRuleFields =
@@ -609,36 +615,98 @@ void GenericRuleWithDeps(
              }}});
     auto const& empty_list = Expression::kEmptyList;
     auto param_config = key.config.Prune(*param_vars);
+
     auto outs_exp = desc->ReadOptionalExpression("outs", empty_list);
-    if (not outs_exp) {
-        return;
-    }
-    auto outs_value = outs_exp.Evaluate(
-        param_config, string_fields_fcts, [&logger](auto const& msg) {
-            (*logger)(fmt::format("While evaluating outs:\n{}", msg), true);
-        });
-    if (not outs_value) {
-        return;
-    }
-    if ((not outs_value->IsList()) or outs_value->List().empty()) {
-        (*logger)(fmt::format("outs has to evaluate to a non-empty list of "
-                              "strings, but found {}",
-                              outs_value->ToString()),
-                  true);
-        return;
-    }
+    auto out_dirs_exp = desc->ReadOptionalExpression("out_dirs", empty_list);
+
     std::vector<std::string> outs{};
-    outs.reserve(outs_value->List().size());
-    for (auto const& x : outs_value->List()) {
-        if (not x->IsString()) {
-            (*logger)(fmt::format("outs has to evaluate to a non-empty list of "
-                                  "strings, but found entry {}",
-                                  x->ToString()),
+    std::vector<std::string> out_dirs{};
+    if (outs_exp) {
+        auto outs_value = outs_exp.Evaluate(
+            param_config, string_fields_fcts, [&logger](auto const& msg) {
+                (*logger)(fmt::format("While evaluating outs:\n{}", msg), true);
+            });
+        if (not outs_value) {
+            return;
+        }
+        if (not outs_value->IsList()) {
+            (*logger)(fmt::format("outs has to evaluate to a list of "
+                                  "strings, but found {}",
+                                  outs_value->ToString()),
                       true);
             return;
         }
-        outs.emplace_back(x->String());
+        if (not outs_value->List().empty()) {
+            outs.reserve(outs_value->List().size());
+            for (auto const& x : outs_value->List()) {
+                if (not x->IsString()) {
+                    (*logger)(fmt::format("outs has to evaluate to a list of "
+                                          "strings, but found entry {}",
+                                          x->ToString()),
+                              true);
+                    return;
+                }
+                outs.emplace_back(x->String());
+            }
+        }
     }
+    if (out_dirs_exp) {
+        auto out_dirs_value = out_dirs_exp.Evaluate(
+            param_config, string_fields_fcts, [&logger](auto const& msg) {
+                (*logger)(fmt::format("While evaluating out_dirs:\n{}", msg),
+                          true);
+            });
+        if (not out_dirs_value) {
+            return;
+        }
+        if (not out_dirs_value->IsList()) {
+            (*logger)(fmt::format("out_dirs has to evaluate to a list of "
+                                  "strings, but found {}",
+                                  out_dirs_value->ToString()),
+                      true);
+            return;
+        }
+        if (not out_dirs_value->List().empty()) {
+            out_dirs.reserve(out_dirs_value->List().size());
+            for (auto const& x : out_dirs_value->List()) {
+                if (not x->IsString()) {
+                    (*logger)(
+                        fmt::format("out_dirs has to evaluate to a list of "
+                                    "strings, but found entry {}",
+                                    x->ToString()),
+                        true);
+                    return;
+                }
+                out_dirs.emplace_back(x->String());
+            }
+        }
+    }
+
+    if (outs.empty() and out_dirs.empty()) {
+        (*logger)(
+            R"(At least one of "outs" and "out_dirs" must be specified for "generic")",
+            true);
+        return;
+    }
+
+    sort_and_deduplicate(&outs);
+    sort_and_deduplicate(&out_dirs);
+
+    // looking for same paths in both outs and out_dirs
+    std::vector<std::string> intersection;
+    std::set_intersection(outs.begin(),
+                          outs.end(),
+                          out_dirs.begin(),
+                          out_dirs.end(),
+                          std::back_inserter(intersection));
+    if (not intersection.empty()) {
+        (*logger)(fmt::format("outs and out_dirs for generic must be disjoint. "
+                              "Found repeated entries:\n{}",
+                              nlohmann::json(intersection).dump()),
+                  true);
+        return;
+    }
+
     auto cmd_exp = desc->ReadOptionalExpression("cmds", empty_list);
     if (not cmd_exp) {
         return;
@@ -709,7 +777,7 @@ void GenericRuleWithDeps(
     // Construct our single action, and its artifacts
     auto action =
         BuildMaps::Target::Utils::createAction(outs,
-                                               {},
+                                               out_dirs,
                                                {"sh", "-c", cmd_ss.str()},
                                                env_val,
                                                std::nullopt,
@@ -717,10 +785,13 @@ void GenericRuleWithDeps(
                                                inputs);
     auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;
-    for (auto const& path : outs) {
-        artifacts.emplace(path,
-                          ExpressionPtr{ArtifactDescription{
-                              action_identifier, std::filesystem::path{path}}});
+    for (const auto& container : {outs, out_dirs}) {
+        for (const auto& path : container) {
+            artifacts.emplace(
+                path,
+                ExpressionPtr{ArtifactDescription{
+                    action_identifier, std::filesystem::path{path}}});
+        }
     }
 
     auto const& empty_map = Expression::kEmptyMap;

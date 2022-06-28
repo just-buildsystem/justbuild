@@ -87,19 +87,25 @@ by giving precedence to the artifacts over the runfiles; conflicts
 within artifacts or runfiles are resolved in a latest-wins fashion
 using the order of the targets in the evaluated ~"deps"~ argument.
 
-The fields ~"cmds"~, ~"outs"~, and ~"env"~ are evaluated fields
-where ~"cmds"~ and ~"outs"~ have to evalaute to a list of strings,
-and ~"env"~ has to evaluate to a map of strings. During their
-evaluation, the functions ~"outs"~ and ~"runfiles"~ can be used to
-access the logical paths of the artifcats and runfiles, respectively,
-of a target specified in ~"deps"~. Here, ~"env"~ specifies the
-environment in which the action is carried out and ~"outs"~ the
-outputs, the action has to produce. Finally, the strings in ~"cmds"~
-are extended by a newline character and joined, and command of the
-action is interpreting this string by ~sh~.
+The fields ~"cmds"~, ~"out_dirs"~, ~"outs"~, and ~"env"~ are evaluated
+fields where ~"cmds"~, ~"out_dirs"~, and ~"outs"~ have to evaluate to
+a list of strings, and ~"env"~ has to evaluate to a map of
+strings. During their evaluation, the functions ~"out_dirs"~, ~"outs"~
+and ~"runfiles"~ can be used to access the logical paths of the
+directories, artifacts and runfiles, respectively, of a target
+specified in ~"deps"~. Here, ~"env"~ specifies the environment in
+which the action is carried out. ~"out_dirs"~ and ~"outs"~ define the
+output directories and files, respectively, the action has to
+produce. Since some artifacts are to be produced, at least one of
+~"out_dirs"~ or ~"outs"~ must be a non-empty list of strings. It is an
+error if one or more paths are present in both the ~"out_dirs"~ and
+~"outs"~. Finally, the strings in ~"cmds"~ are extended by a newline
+character and joined, and command of the action is interpreting this
+string by ~sh~.
 
 The artifacts of this target are the outputs (as declared by
-~"outs"~) of this action. Runfiles and provider map are empty.
+~"out_dirs"~ and ~"outs"~) of this action. Runfiles and provider map
+are empty.
 
 ** ~"file_gen"~
 
