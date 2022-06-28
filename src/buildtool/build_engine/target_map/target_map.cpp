@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -405,7 +406,9 @@ void withDependencies(
                                     std::back_inserter(dups));
               if (not dups.empty()) {
                   throw Evaluator::EvaluationError{
-                      "outs and out_dirs for ACTION must be disjoint"};
+                      fmt::format("outs and out_dirs for ACTION must be "
+                                  "disjoint. Found repeated entries:\n{}",
+                                  nlohmann::json(dups).dump())};
               }
 
               std::vector<std::string> cmd;

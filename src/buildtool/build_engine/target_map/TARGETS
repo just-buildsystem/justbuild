@@ -49,7 +49,9 @@
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]
+    , ["@", "fmt", "", "fmt"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   }
