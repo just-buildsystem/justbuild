@@ -145,4 +145,58 @@ namespace detail {
         json, std::string(indent, ' '), until_depth, 0, "", depths);
 }
 
+// \brief Dump json, replacing subexpressions at the given depths by "*".
+// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] static inline auto TruncateJson(nlohmann::json const& json,
+                                              std::size_t depth)
+    -> std::string {
+    if (depth == 0) {
+        return "*";
+    }
+    if (json.is_object()) {
+        std::size_t i{};
+        std::ostringstream oss{};
+        oss << '{';
+        for (auto const& [key, value] : json.items()) {
+            oss << nlohmann::json(key).dump() << ":"
+                << TruncateJson(value, depth - 1)
+                << (++i == json.size() ? "" : ",");
+        }
+        oss << '}';
+        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        return oss.str();
+    }
+    if (json.is_array()) {
+        std::size_t i{};
+        std::ostringstream oss{};
+        oss << '[';
+        for (auto const& value : json) {
+            oss << TruncateJson(value, depth - 1)
+                << (++i == json.size() ? "" : ",");
+        }
+        oss << ']';
+        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        return oss.str();
+    }
+    return json.dump();
+}
+
+[[nodiscard]] static inline auto AbbreviateJson(nlohmann::json const& json,
+                                                std::size_t len)
+    -> std::string {
+    auto json_string = json.dump();
+    if (json_string.size() <= len) {
+        return json_string;
+    }
+    std::size_t i = 1;
+    auto old_abbrev = TruncateJson(json, i);
+    auto new_abbrev = old_abbrev;
+    while (new_abbrev.size() <= len) {
+        old_abbrev = new_abbrev;
+        ++i;
+        new_abbrev = TruncateJson(json, i);
+    }
+    return old_abbrev;
+}
+
 #endif  // INCLUDED_SRC_UTILS_CPP_JSON_HPP
