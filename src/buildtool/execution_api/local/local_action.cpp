@@ -209,7 +209,7 @@ auto LocalAction::CollectOutputFile(std::filesystem::path const& exec_path,
     const noexcept -> std::optional<bazel_re::OutputFile> {
     auto file_path = exec_path / local_path;
     auto type = FileSystemManager::Type(file_path);
-    if (not type or not IsFileObject(*type)) {
+    if ((not type) or (not IsFileObject(*type))) {
         Logger::Log(LogLevel::Error, "expected file at {}", local_path);
         return std::nullopt;
     }
@@ -232,7 +232,7 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
     -> std::optional<bazel_re::OutputDirectory> {
     auto dir_path = exec_path / local_path;
     auto type = FileSystemManager::Type(dir_path);
-    if (not type or not IsTreeObject(*type)) {
+    if ((not type) or (not IsTreeObject(*type))) {
         Logger::Log(LogLevel::Error, "expected directory at {}", local_path);
         return std::nullopt;
     }
