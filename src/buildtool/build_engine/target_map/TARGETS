@@ -50,6 +50,7 @@
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]
     , ["@", "fmt", "", "fmt"]
+    , ["src/utils/cpp", "vector"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["@", "json", "", "json"]
     ]

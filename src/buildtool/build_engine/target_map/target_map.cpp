@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/vector.hpp"
 
 namespace {
 
@@ -396,8 +397,10 @@ void withDependencies(
                       "either outs or out_dirs must be specified for ACTION"};
               }
 
-              std::sort(outputs.begin(), outputs.end());
-              std::sort(output_dirs.begin(), output_dirs.end());
+              sort_and_deduplicate(&outputs);
+              sort_and_deduplicate(&output_dirs);
+
+              // find entries present on both fields
               std::vector<std::string> dups{};
               std::set_intersection(outputs.begin(),
                                     outputs.end(),
