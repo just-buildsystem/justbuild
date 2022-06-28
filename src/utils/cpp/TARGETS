@@ -43,4 +43,10 @@
   , "hdrs": ["path.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "vector":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["vector"]
+  , "hdrs": ["vector.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
