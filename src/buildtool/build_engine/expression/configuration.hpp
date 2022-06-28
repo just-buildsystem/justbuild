@@ -47,10 +47,10 @@ class Configuration {
             size_t actual_width = width - prefix.size();
             for (auto const& [key, value] : expr_->Map()) {
                 std::string key_str = Expression{key}.ToString();
-                std::string val_str = value->ToString();
                 if (actual_width > key_str.size() + 3) {
                     ss << prefix << key_str << " : ";
                     size_t remain = actual_width - key_str.size() - 3;
+                    std::string val_str = value->ToAbbrevString(remain);
                     if (val_str.size() >= remain) {
                         ss << val_str.substr(0, remain - 3) << "...";
                     }

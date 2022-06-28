@@ -147,6 +147,9 @@ auto Expression::ToString() const -> std::string {
     return ToJson().dump();
 }
 
+[[nodiscard]] auto Expression::ToAbbrevString(size_t len) const -> std::string {
+    return AbbreviateJson(ToJson(), len);
+}
 // NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ToHash() const noexcept -> std::string {
     return hash_.SetOnceAndGet([this] { return ComputeHash(); });

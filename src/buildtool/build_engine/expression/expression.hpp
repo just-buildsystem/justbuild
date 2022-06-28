@@ -212,6 +212,7 @@ class Expression {
         -> nlohmann::json;
     [[nodiscard]] auto IsCacheable() const -> bool;
     [[nodiscard]] auto ToString() const -> std::string;
+    [[nodiscard]] auto ToAbbrevString(size_t len) const -> std::string;
     [[nodiscard]] auto ToHash() const noexcept -> std::string;
     [[nodiscard]] auto ToIdentifier() const noexcept -> std::string {
         return ToHexString(ToHash());
