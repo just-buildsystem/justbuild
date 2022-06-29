@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -54,6 +55,15 @@ def fail(s):
     log(s)
     sys.exit(1)
 
+
+def try_rmtree(tree):
+    for _ in range(10):
+        try:
+            shutil.rmtree(tree)
+            return
+        except:
+          time.sleep(1.0)
+    fail("Failed to remove %s" % (tree,))
 
 def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd):
     result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stdin=stdin)
@@ -180,7 +190,7 @@ def git_checkout(desc):
         git_keep(commit, upstream=repo)
     if ALWAYS_FILE:
         if os.path.exists(target):
-            shutil.rmtree(target)
+            try_rmtree(target)
         os.makedirs(target)
         with tempfile.TemporaryFile() as f:
             run_cmd(["git", "archive", commit], cwd=root, stdout=f)
@@ -320,7 +330,7 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     if not ALWAYS_FILE:
         target = archive_tmp_checkout_dir(content_id, repo_type=repo_type)
     if os.path.exists(target):
-        shutil.rmtree(target)
+        try_rmtree(target)
     os.makedirs(target)
     if repo_type == "zip":
         run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target)
@@ -329,7 +339,7 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     if ALWAYS_FILE:
         return ["file", subdir_path(target, desc)]
     tree = import_to_git(target, repo_type, content_id)
-    shutil.rmtree(target)
+    try_rmtree(target)
     os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
     with open(tree_id_file, "w") as f:
         f.write(tree)
@@ -383,7 +393,7 @@ def file_as_git(fpath):
         os.makedirs(os.path.dirname(target), exist_ok=True)
         shutil.copytree(fpath, target)
         tree = import_to_git(target, "file", fpath)
-        shutil.rmtree(target)
+        try_rmtree(target)
         return ["git tree", tree, git_root(upstream=None)]
     root = root_result.stdout.decode('utf-8').rstrip()
     subdir = os.path.relpath(fpath, root)
@@ -464,7 +474,7 @@ def distdir_checkout(desc, repos):
 
     # Create the dirstdir repo folder content
     if os.path.exists(target_distdir_dir):
-        shutil.rmtree(target_distdir_dir)
+        try_rmtree(target_distdir_dir)
     os.makedirs(target_distdir_dir)
     for name, content_id in content.items():
         target = os.path.join(target_distdir_dir, name)
@@ -476,7 +486,7 @@ def distdir_checkout(desc, repos):
 
     # Gitify the distdir repo folder
     tree = import_to_git(target_distdir_dir, "distdir", distdir_content_id)
-    shutil.rmtree(target_distdir_dir)
+    try_rmtree(target_distdir_dir)
 
     # Cache git info to tree id file
     os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
