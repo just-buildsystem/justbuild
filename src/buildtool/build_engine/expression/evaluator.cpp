@@ -920,7 +920,7 @@ auto Evaluator::EvaluationError::WhileEvaluating(ExpressionPtr const& expr,
         expr["type"]->IsString()) {
         ss << expr["type"]->ToString() << "-expression ";
     }
-    ss << expr->ToString() << std::endl;
+    ss << expr->ToAbbrevString(Config().expression_log_limit) << std::endl;
     ss << "  environment " << std::endl;
     ss << env.Enumerate("  - ", Config().expression_log_limit) << std::endl;
     ss << ex.what();

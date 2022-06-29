@@ -341,7 +341,8 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 
    *--expression-log-limit* NUM\\
    In error messages, truncate the entries in the enumeration of the active
-   environment to the specified number of characters (default: 320).\\
+   environment, as well as the expression to be evaluated, to the specified
+   number of characters (default: 320).\\
    Supported by: analyse|build|install
 
    *-P*, *--print-to-stdout* LOGICAL_PATH\\
