@@ -340,7 +340,7 @@
       }
     }
   }
-, "lib result":
+, "lib artifact":
   { "vars":
     [ "CXX"
     , "CXXFLAGS"
@@ -352,15 +352,10 @@
     , "hdrs"
     , "private-hdrs"
     , "local cflags"
-    , "link external"
-    , "extra-provides"
+    , "compile-deps"
     ]
   , "imports":
-    { "artifacts": ["./", "..", "field_artifacts"]
-    , "compile-deps": "compile-deps"
-    , "link-deps": "link-deps"
-    , "link-args-deps": "link-args-deps"
-    , "compiler": "compiler"
+    { "compiler": "compiler"
     , "flags": "flags"
     , "objects": "objects"
     , "default-ENV": "default-ENV"
@@ -400,8 +395,6 @@
           }
         ]
       , ["deps-fieldnames", ["deps", "proto-deps"]]
-      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
-      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , [ "local hdrs"
         , { "type": "disjoint_map_union"
           , "$1":
@@ -448,6 +441,42 @@
           , "$1": {"type": "var", "name": "lib"}
           }
         ]
+      ]
+    , "body":
+      { "type": "to_subdir"
+      , "subdir": {"type": "var", "name": "stage"}
+      , "$1": {"type": "var", "name": "lib"}
+      }
+    }
+  }
+, "lib result":
+  { "vars":
+    [ "CXX"
+    , "CXXFLAGS"
+    , "CC"
+    , "CFLAGS"
+    , "ENV"
+    , "AR"
+    , "srcs"
+    , "hdrs"
+    , "private-hdrs"
+    , "local cflags"
+    , "link external"
+    , "extra-provides"
+    ]
+  , "imports":
+    { "compile-deps": "compile-deps"
+    , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
+    , "lib artifact": "lib artifact"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["deps-fieldnames", ["deps", "proto-deps"]]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , ["lib", {"type": "CALL_EXPRESSION", "name": "lib artifact"}]
       , [ "link-args"
         , { "type": "nub_right"
           , "$1":
