@@ -696,7 +696,44 @@ auto DetermineRoots(CommonArguments const& cargs,
 struct AnalysisResult {
     Target::ConfiguredTarget id;
     AnalysedTargetPtr target;
+    bool modified;
 };
+
+[[nodiscard]] auto GetActionNumber(const AnalysedTarget& target, int number)
+    -> std::optional<ActionDescription::Ptr> {
+    auto const& actions = target.Actions();
+    if (number >= 0) {
+        if (actions.size() > static_cast<std::size_t>(number)) {
+            return actions[static_cast<std::size_t>(number)];
+        }
+    }
+    else {
+        if (((static_cast<int64_t>(actions.size())) +
+             static_cast<int64_t>(number)) >= 0) {
+            return actions[static_cast<std::size_t>(
+                (static_cast<int64_t>(actions.size())) +
+                static_cast<int64_t>(number))];
+        }
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto SwitchToActionInput(
+    const std::shared_ptr<AnalysedTarget>& target,
+    const ActionDescription::Ptr& action) -> std::shared_ptr<AnalysedTarget> {
+    auto inputs = Expression::map_t::underlying_map_t{};
+    for (auto const& [k, v] : action->Inputs()) {
+        inputs[k] = ExpressionPtr{Expression{v}};
+    }
+    auto inputs_exp = ExpressionPtr{Expression::map_t{inputs}};
+    return std::make_shared<AnalysedTarget>(
+        TargetResult{inputs_exp, Expression::kEmptyMap, Expression::kEmptyMap},
+        std::vector<ActionDescription::Ptr>{action},
+        target->Blobs(),
+        target->Trees(),
+        target->Vars(),
+        target->Tainted());
+}
 
 [[nodiscard]] auto AnalyseTarget(
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
@@ -717,7 +754,6 @@ struct AnalysisResult {
                                               &directory_entries,
                                               result_map,
                                               jobs);
-
     auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     std::shared_ptr<AnalysedTarget> target{};
@@ -764,8 +800,71 @@ struct AnalysisResult {
         expr_map.Clear(&ts);
         rule_map.Clear(&ts);
     }
+    bool modified{false};
 
-    return AnalysisResult{id, target};
+    if (clargs.request_action_input) {
+        modified = true;
+        if (clargs.request_action_input->starts_with("%")) {
+            auto action_id = clargs.request_action_input->substr(1);
+            auto action = result_map->GetAction(action_id);
+            if (action) {
+                Logger::Log(LogLevel::Info,
+                            "Request is input of action %{}",
+                            action_id);
+                target = SwitchToActionInput(target, *action);
+            }
+            else {
+                Logger::Log(LogLevel::Error,
+                            "Action {} not part of the action graph of the "
+                            "requested target",
+                            action_id);
+                return std::nullopt;
+            }
+        }
+        else if (clargs.request_action_input->starts_with("#")) {
+            auto number =
+                std::atoi(clargs.request_action_input->substr(1).c_str());
+            auto action = GetActionNumber(*target, number);
+            if (action) {
+                Logger::Log(
+                    LogLevel::Info, "Request is input of action #{}", number);
+                target = SwitchToActionInput(target, *action);
+            }
+            else {
+                Logger::Log(LogLevel::Error,
+                            "Action #{} out of range for the requested target",
+                            number);
+                return std::nullopt;
+            }
+        }
+        else {
+            auto action = result_map->GetAction(*clargs.request_action_input);
+            if (action) {
+                Logger::Log(LogLevel::Info,
+                            "Request is input of action %{}",
+                            *clargs.request_action_input);
+                target = SwitchToActionInput(target, *action);
+            }
+            else {
+                auto number = std::atoi(clargs.request_action_input->c_str());
+                auto action = GetActionNumber(*target, number);
+                if (action) {
+                    Logger::Log(LogLevel::Info,
+                                "Request is input of action #{}",
+                                number);
+                    target = SwitchToActionInput(target, *action);
+                }
+                else {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Action #{} out of range for the requested target",
+                        number);
+                    return std::nullopt;
+                }
+            }
+        }
+    }
+    return AnalysisResult{id, target, modified};
 }
 
 [[nodiscard]] auto ResultToJson(TargetResult const& result) -> nlohmann::json {
@@ -1465,8 +1564,9 @@ auto main(int argc, char* argv[]) -> int {
 
                 Logger::Log(
                     LogLevel::Info,
-                    "{}ing {}.",
+                    "{}ing{} {}.",
                     arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
+                    result->modified ? " parts of" : "",
                     result->id.ToString());
 
                 auto build_result =

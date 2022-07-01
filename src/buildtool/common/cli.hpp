@@ -35,6 +35,7 @@ struct AnalysisArguments {
     std::string defines{};
     std::filesystem::path config_file{};
     std::optional<nlohmann::json> target{};
+    std::optional<std::string> request_action_input{};
     std::optional<std::string> target_file_name{};
     std::optional<std::string> rule_file_name{};
     std::optional<std::string> expression_file_name{};
@@ -154,6 +155,11 @@ static inline auto SetupAnalysisArguments(
     app->add_option(
            "-c,--config", clargs->config_file, "Path to configuration file.")
         ->type_name("PATH");
+    app->add_option(
+           "--request-action-input",
+           clargs->request_action_input,
+           "Instead of the target result, request input for this action.")
+        ->type_name("ACTION");
     app->add_option_function<std::vector<std::string>>(
            "target",
            [clargs](auto const& target_raw) {

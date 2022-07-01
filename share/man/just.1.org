@@ -260,6 +260,21 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    only the latest *-D* option is taken.\\
    Supported by: analyse|build|describe|install|rebuild.
 
+   *--request-action-input* ACTION\\
+   Modify the request to be, instead of the analysis result of the requested
+   target, the input stage of the specified action as artifacts, with empty
+   runfiles and provides map. An action can be specified in the following
+   ways
+   - an action identifier prefixed by the ~%~ character
+   - a number prefixed by the ~#~ character (note that it requires quoting
+     on most shells). This specifies the action with that index of the actions
+     associated directly with that target; the indices start from ~0~ onwards,
+     and negative indices count from the end of the array of actions.
+   - an action identifier or number without prefix, provided the action
+     identifier does not start with either ~%~ or ~#~ and the number does not
+     happen to be a valid action identifier.
+   Supported by: analyse|build|describe|install|rebuild.
+
    *--expression-file-name* TEXT\\
    Name of the expressions file.\\
    Supported by: analyse|build|describe|install|rebuild.
