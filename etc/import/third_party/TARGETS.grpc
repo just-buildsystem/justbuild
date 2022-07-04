@@ -7,7 +7,21 @@
     { "ares_config.h":
       { "type": "let*"
       , "bindings":
-        [ [ "PLATFORM"
+        [ [ "OS"
+          , { "type": "var"
+            , "name": "OS"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'OS' is not set."}
+            }
+          ]
+        , [ "ARCH"
+          , { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          ]
+        , [ "PLATFORM"
           , { "type": "join"
             , "separator": "_"
             , "$1":
