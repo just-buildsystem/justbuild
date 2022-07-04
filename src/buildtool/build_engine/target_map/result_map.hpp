@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <fstream>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -107,6 +108,20 @@ class ResultTargetMap {
                 l.insert(r.begin(), r.end());
                 return std::forward<decltype(l)>(l);
             });
+    }
+
+    [[nodiscard]] auto GetAction(const ActionIdentifier& identifier)
+        -> std::optional<ActionDescription::Ptr> {
+        for (const auto& target : targets_) {
+            for (const auto& el : target) {
+                for (const auto& action : el.second->Actions()) {
+                    if (action->Id() == identifier) {
+                        return action;
+                    }
+                }
+            }
+        }
+        return std::nullopt;
     }
 
     template <bool kIncludeOrigins = false>
