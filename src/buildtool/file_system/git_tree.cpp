@@ -78,6 +78,13 @@ auto GitTree::LookupEntryByPath(
     return LookupEntryPyPath(*this, resolved.begin(), resolved.end());
 }
 
+auto GitTree::Size() const noexcept -> std::optional<std::size_t> {
+    if (auto header = cas_->ReadHeader(raw_id_)) {
+        return header->first;
+    }
+    return std::nullopt;
+}
+
 auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
     if (not IsBlob()) {
         return std::nullopt;

@@ -47,6 +47,7 @@ class GitTree {
     [[nodiscard]] auto end() const noexcept { return entries_.end(); }
     [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
     [[nodiscard]] auto RawHash() const noexcept { return raw_id_; }
+    [[nodiscard]] auto Size() const noexcept -> std::optional<std::size_t>;
 
   private:
     gsl::not_null<GitCASPtr> cas_;
