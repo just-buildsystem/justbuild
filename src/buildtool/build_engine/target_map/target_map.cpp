@@ -1323,6 +1323,24 @@ void TreeTarget(
             auto values) {
             // expected values.size() == 1
             const auto& dir_entries = *values[0];
+            auto known_tree = dir_entries.AsKnownTree(target.repository);
+            if (known_tree) {
+                auto tree = ExpressionPtr{
+                    Expression::map_t{target.name, ExpressionPtr{*known_tree}}};
+
+                auto analysis_result = std::make_shared<AnalysedTarget>(
+                    TargetResult{tree, {}, tree},
+                    std::vector<ActionDescription::Ptr>{},
+                    std::vector<std::string>{},
+                    std::vector<Tree::Ptr>{},
+                    std::unordered_set<std::string>{},
+                    std::set<std::string>{});
+                analysis_result =
+                    result_map->Add(key.target, {}, std::move(analysis_result));
+                (*setter)(std::move(analysis_result));
+                return;
+            }
+
             using BuildMaps::Target::ConfiguredTarget;
 
             std::vector<ConfiguredTarget> v;
