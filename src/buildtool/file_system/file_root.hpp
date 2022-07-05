@@ -196,6 +196,29 @@ class FileRoot {
             return true;
         }
 
+        [[nodiscard]] auto AsKnownTree(std::string const& repository)
+            const noexcept -> std::optional<ArtifactDescription> {
+            if (Compatibility::IsCompatible()) {
+                return std::nullopt;
+            }
+            if (std::holds_alternative<tree_t>(data_)) {
+                try {
+                    auto const& data = std::get<tree_t>(data_);
+                    auto const& id = data->Hash();
+                    auto const& size = data->Size();
+                    if (size) {
+                        return ArtifactDescription{
+                            ArtifactDigest{id, *size, /*is_tree=*/true},
+                            ObjectType::Tree,
+                            repository};
+                    }
+                } catch (...) {
+                    return std::nullopt;
+                }
+            }
+            return std::nullopt;
+        }
+
         [[nodiscard]] auto FilesIterator() const -> Iterator {
             if (std::holds_alternative<pairs_t>(data_)) {
                 auto const& data = std::get<pairs_t>(data_);
