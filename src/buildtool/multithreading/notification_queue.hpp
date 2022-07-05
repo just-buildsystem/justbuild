@@ -5,6 +5,7 @@
 #include <deque>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <utility>  // std::forward
 
 #include "gsl-lite/gsl-lite.hpp"
@@ -17,23 +18,36 @@ class WaitableZeroCounter {
     explicit WaitableZeroCounter(std::size_t init = 0) : count_{init} {}
 
     void Decrement() {
+        std::shared_lock lock{mutex_};
         if (--count_ == 0) {
-            count_.notify_all();
+            cv_.notify_all();
         }
     }
 
     void Increment() { ++count_; }
 
     void WaitForZero() {
-        auto val = count_.load();
-        while (val != 0) {  // loop to protect against spurious wakeups
-            count_.wait(val);
-            val = count_.load();
+        while (not IsZero()) {  // loop to protect against spurious wakeups
+            std::unique_lock lock{mutex_};
+            cv_.wait(lock, [this] { return IsZero(); });
         }
     }
 
+    void Abort() {
+        std::shared_lock lock{mutex_};
+        done_ = true;
+        cv_.notify_all();
+    }
+
   private:
-    atomic<std::size_t> count_{};
+    std::shared_mutex mutex_{};
+    std::condition_variable_any cv_{};
+    std::atomic<std::size_t> count_{};
+    std::atomic<bool> done_{};
+
+    [[nodiscard]] auto IsZero() noexcept -> bool {
+        return count_ == 0 or done_;
+    }
 };
 
 class NotificationQueue {

@@ -48,6 +48,9 @@ class TaskSystem {
         return thread_count_;
     }
 
+    // Initiate shutdown, skip execution of pending tasks
+    void Shutdown() noexcept;
+
     // Wait for all queues to become empty _and_ all tasks to finish.
     void Finish() noexcept;
 
@@ -57,6 +60,7 @@ class TaskSystem {
     std::vector<std::thread> threads_{};
     std::vector<NotificationQueue> queues_{};
     std::atomic<std::size_t> index_{0};
+    std::atomic<bool> shutdown_{};
     WaitableZeroCounter total_workload_{};
 
     static constexpr std::size_t kNumberOfAttempts = 5;

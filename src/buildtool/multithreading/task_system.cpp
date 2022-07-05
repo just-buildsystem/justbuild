@@ -17,12 +17,21 @@ TaskSystem::TaskSystem(std::size_t number_of_threads)
 }
 
 TaskSystem::~TaskSystem() {
-    Finish();
-    for (auto& q : queues_) {
-        q.done();
-    }
+    Finish();    // wait for tasks to finish
+    Shutdown();  // stop the threads
     for (auto& t : threads_) {
         t.join();
+    }
+}
+
+void TaskSystem::Shutdown() noexcept {
+    shutdown_ = true;
+    // Abort the workload counter in case a system shut down was requested while
+    // the task queues (workload) are not yet empty and someone is still waiting
+    // on this counter to become zero.
+    total_workload_.Abort();
+    for (auto& q : queues_) {
+        q.done();
     }
 }
 
@@ -38,7 +47,7 @@ void TaskSystem::Finish() noexcept {
 void TaskSystem::Run(std::size_t idx) {
     gsl_Expects(thread_count_ > 0);
 
-    while (true) {
+    while (not shutdown_) {
         std::optional<Task> t{};
         for (std::size_t i = 0; i < thread_count_; ++i) {
             t = queues_[(idx + i) % thread_count_].try_pop();
@@ -50,7 +59,7 @@ void TaskSystem::Run(std::size_t idx) {
         // NOLINTNEXTLINE(clang-analyzer-core.DivideZero)
         t = t ? t : queues_[idx % thread_count_].pop();
 
-        if (!t) {
+        if (not t or shutdown_) {
             break;
         }
 

@@ -258,3 +258,38 @@ TEST_CASE("Use finish as system-wide barrier", "[task_system]") {
     }
     CHECK(vec == exp2);
 }
+
+TEST_CASE("Shut down a running task system", "[task_system]") {
+    using namespace std::chrono_literals;
+    static auto const kNumThreads = std::thread::hardware_concurrency();
+
+    std::atomic<int> count{0};
+    std::atomic<bool> finished{false};
+    std::function<void()> sleeper{};
+    {
+        TaskSystem ts{kNumThreads};
+
+        // sleeper, recursively runs forever
+        sleeper = [&count, &ts, &sleeper]() {
+            ++count;
+            std::this_thread::sleep_for(1s);
+            ts.QueueTask(sleeper);
+        };
+
+        // waiter, asynchronous task waiting for task system to finish
+        std::thread waiter{[&finished, &ts] {
+            ts.Finish();
+            finished = true;
+        }};
+
+        // run sleeper
+        ts.QueueTask(sleeper);
+        std::this_thread::sleep_for(1s);
+
+        // initiate shutdown and join with waiter
+        ts.Shutdown();
+        waiter.join();
+    }
+    CHECK(count > 0);
+    CHECK(finished);
+}
