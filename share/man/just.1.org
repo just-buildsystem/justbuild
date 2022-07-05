@@ -389,16 +389,20 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 
 
 ** Remote execution options
+   As remote execution properties shard the target-level cache, they are also
+   available for analysis. In this way, the same action identifiers can be
+   achieved despite the extensional projection inherent to target level caching,
+   e.g., in conjunction with *--request-action-input*.
 
    *--remote-execution-property* KEY:VAL\\
    Property for remote execution as key-value pair. Specifying this
    option multiple times will accumulate pairs. If multiple pairs with
    the same key are given, the latest wins.\\
-   Supported by: build|install|rebuild|traverse.
+   Supported by: analysis|build|install|rebuild|traverse.
 
    *-r*, *--remote-execution-address* NAME:PORT\\
    Address of the remote execution service.\\
-   Supported by: build|install-cas|install|rebuild|traverse.
+   Supported by: analysis|build|install-cas|install|rebuild|traverse.
 
 
 ** *analyse* specific options

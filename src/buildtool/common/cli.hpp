@@ -56,16 +56,16 @@ struct DiagnosticArguments {
     std::optional<std::string> dump_nodes{std::nullopt};
 };
 
-/// \brief Arguments required for specifying cache/build endpoint.
+/// \brief Arguments required for specifying build endpoint.
 struct EndpointArguments {
     std::optional<std::filesystem::path> local_root{};
     std::optional<std::string> remote_execution_address;
+    std::vector<std::string> platform_properties;
 };
 
 /// \brief Arguments required for building.
 struct BuildArguments {
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
-    std::vector<std::string> platform_properties;
     std::chrono::milliseconds timeout{kDefaultTimeout};
     std::size_t build_jobs{};
     std::optional<std::string> dump_artifacts{std::nullopt};
@@ -254,6 +254,14 @@ static inline auto SetupEndpointArguments(
                     clargs->remote_execution_address,
                     "Address of the remote execution service.")
         ->type_name("NAME:PORT");
+    app->add_option(
+           "--remote-execution-property",
+           clargs->platform_properties,
+           "Property for remote execution as key-value pair. Specifying this "
+           "option multiple times will accumulate pairs (latest wins).")
+        ->type_name("KEY:VAL")
+        ->allow_extra_args(false)
+        ->expected(1, 1);
 }
 
 static inline auto SetupBuildArguments(
@@ -270,15 +278,6 @@ static inline auto SetupBuildArguments(
            "prepend actions' commands before being executed locally.")
         ->type_name("JSON")
         ->default_val(nlohmann::json{"env", "--"}.dump());
-
-    app->add_option(
-           "--remote-execution-property",
-           clargs->platform_properties,
-           "Property for remote execution as key-value pair. Specifying this "
-           "option multiple times will accumulate pairs (latest wins).")
-        ->type_name("KEY:VAL")
-        ->allow_extra_args(false)
-        ->expected(1, 1);
 
     app->add_option_function<unsigned int>(
            "--action-timeout",

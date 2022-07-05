@@ -80,6 +80,7 @@ auto SetupAnalyseCommandArguments(
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
     SetupAnalysisArguments(app, &clargs->analysis);
+    SetupEndpointArguments(app, &clargs->endpoint);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupCompatibilityArguments(app);
 }
@@ -229,7 +230,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
         Logger::Log(LogLevel::Error, "failed to configure local execution.");
         std::exit(kExitFailure);
     }
-    for (auto const& property : bargs.platform_properties) {
+    for (auto const& property : eargs.platform_properties) {
         if (not RemoteConfig::AddPlatformProperty(property)) {
             Logger::Log(LogLevel::Error,
                         "addding platform property '{}' failed.",
