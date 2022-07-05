@@ -1329,7 +1329,7 @@ auto main(int argc, char* argv[]) -> int {
         auto arguments = ParseCommandLineArguments(argc, argv);
 
         if (arguments.cmd == SubCommand::kVersion) {
-            std::cerr << version() << std::endl;
+            std::cout << version() << std::endl;
             return kExitSuccess;
         }
 
