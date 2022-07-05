@@ -37,9 +37,6 @@ class LocalExecutionConfig {
         // Launcher to be prepended to action's command before executed.
         // Default: ["env", "--"]
         std::vector<std::string> launcher{"env", "--"};
-
-        // Persistent build directory option
-        bool keep_build_dir{false};
     };
 
     // different folder for different caching protocol
@@ -74,12 +71,6 @@ class LocalExecutionConfig {
                         e.what());
             return false;
         }
-        return true;
-    }
-
-    [[nodiscard]] static auto SetKeepBuildDir(bool is_persistent) noexcept
-        -> bool {
-        Data().keep_build_dir = is_persistent;
         return true;
     }
 
@@ -132,10 +123,6 @@ class LocalExecutionConfig {
     [[nodiscard]] static auto GetLauncher() noexcept
         -> std::vector<std::string> {
         return Data().launcher;
-    }
-
-    [[nodiscard]] static auto KeepBuildDir() noexcept -> bool {
-        return Data().keep_build_dir;
     }
 
   private:

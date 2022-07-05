@@ -298,10 +298,6 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    The repository to take the target from.\\
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
-   *-p*, *--persistent* \\
-   Do not clean build directory after execution.\\
-   Supported by: build|install|rebuild|traverse.
-
    *--rule-file-name* TEXT\\
    Name of the rules file.\\
    Supported by: analyse|build|describe|install|rebuild.

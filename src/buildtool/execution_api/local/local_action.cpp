@@ -22,8 +22,7 @@ class BuildCleanupAnchor {
     auto operator=(BuildCleanupAnchor const&) -> BuildCleanupAnchor& = delete;
     auto operator=(BuildCleanupAnchor&&) -> BuildCleanupAnchor& = delete;
     ~BuildCleanupAnchor() {
-        if (not LocalExecutionConfig::KeepBuildDir() and
-            not FileSystemManager::RemoveDirectory(build_path, true)) {
+        if (not FileSystemManager::RemoveDirectory(build_path, true)) {
             Logger::Log(LogLevel::Error,
                         "Could not cleanup build directory {}",
                         build_path.string());

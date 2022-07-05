@@ -70,7 +70,6 @@ struct BuildArguments {
     std::size_t build_jobs{};
     std::optional<std::string> dump_artifacts{std::nullopt};
     std::optional<std::string> print_to_stdout{std::nullopt};
-    bool persistent_build_dir{false};
     bool show_runfiles{false};
 };
 
@@ -260,10 +259,6 @@ static inline auto SetupEndpointArguments(
 static inline auto SetupBuildArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<BuildArguments*> const& clargs) {
-    app->add_flag("-p,--persistent",
-                  clargs->persistent_build_dir,
-                  "Do not clean build directory after execution.");
-
     app->add_option_function<std::string>(
            "-L,--local-launcher",
            [clargs](auto const& launcher_raw) {

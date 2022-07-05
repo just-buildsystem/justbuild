@@ -222,8 +222,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
                           RebuildArguments const& rargs) {
     using LocalConfig = LocalExecutionConfig;
     using RemoteConfig = RemoteExecutionConfig;
-    if (not LocalConfig::SetKeepBuildDir(bargs.persistent_build_dir) or
-        not(not eargs.local_root or
+    if (not(not eargs.local_root or
             (LocalConfig::SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
