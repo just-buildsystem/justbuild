@@ -263,8 +263,11 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    *--request-action-input* ACTION\\
    Modify the request to be, instead of the analysis result of the requested
    target, the input stage of the specified action as artifacts, with empty
-   runfiles and provides map. An action can be specified in the following
-   ways
+   runfiles and a provides map providing the remaining information about the
+   action, in particular as ~"cmd"~ the arguments vector and ~"env"~ the
+   environment.
+
+   An action can be specified in the following ways
    - an action identifier prefixed by the ~%~ character
    - a number prefixed by the ~#~ character (note that it requires quoting
      on most shells). This specifies the action with that index of the actions

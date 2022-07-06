@@ -696,7 +696,7 @@ auto DetermineRoots(CommonArguments const& cargs,
 struct AnalysisResult {
     Target::ConfiguredTarget id;
     AnalysedTargetPtr target;
-    bool modified;
+    std::optional<std::string> modified;
 };
 
 [[nodiscard]] auto GetActionNumber(const AnalysedTarget& target, int number)
@@ -726,8 +726,18 @@ struct AnalysisResult {
         inputs[k] = ExpressionPtr{Expression{v}};
     }
     auto inputs_exp = ExpressionPtr{Expression::map_t{inputs}};
+    auto provides = nlohmann::json::object();
+    provides["cmd"] = action->GraphAction().Command();
+    provides["env"] = action->GraphAction().Env();
+    provides["output"] = action->OutputFiles();
+    provides["output_dirs"] = action->OutputDirs();
+    if (action->GraphAction().MayFail()) {
+        provides["may_fail"] = *(action->GraphAction().MayFail());
+    }
+
+    auto provides_exp = Expression::FromJson(provides);
     return std::make_shared<AnalysedTarget>(
-        TargetResult{inputs_exp, Expression::kEmptyMap, Expression::kEmptyMap},
+        TargetResult{inputs_exp, provides_exp, Expression::kEmptyMap},
         std::vector<ActionDescription::Ptr>{action},
         target->Blobs(),
         target->Trees(),
@@ -800,10 +810,9 @@ struct AnalysisResult {
         expr_map.Clear(&ts);
         rule_map.Clear(&ts);
     }
-    bool modified{false};
+    std::optional<std::string> modified{};
 
     if (clargs.request_action_input) {
-        modified = true;
         if (clargs.request_action_input->starts_with("%")) {
             auto action_id = clargs.request_action_input->substr(1);
             auto action = result_map->GetAction(action_id);
@@ -812,6 +821,7 @@ struct AnalysisResult {
                             "Request is input of action %{}",
                             action_id);
                 target = SwitchToActionInput(target, *action);
+                modified = fmt::format("%{}", action_id);
             }
             else {
                 Logger::Log(LogLevel::Error,
@@ -829,6 +839,7 @@ struct AnalysisResult {
                 Logger::Log(
                     LogLevel::Info, "Request is input of action #{}", number);
                 target = SwitchToActionInput(target, *action);
+                modified = fmt::format("#{}", number);
             }
             else {
                 Logger::Log(LogLevel::Error,
@@ -844,6 +855,7 @@ struct AnalysisResult {
                             "Request is input of action %{}",
                             *clargs.request_action_input);
                 target = SwitchToActionInput(target, *action);
+                modified = fmt::format("%{}", *clargs.request_action_input);
             }
             else {
                 auto number = std::atoi(clargs.request_action_input->c_str());
@@ -853,6 +865,7 @@ struct AnalysisResult {
                                 "Request is input of action #{}",
                                 number);
                     target = SwitchToActionInput(target, *action);
+                    modified = fmt::format("#{}", number);
                 }
                 else {
                     Logger::Log(
@@ -1082,7 +1095,10 @@ void DumpNodes(std::string const& file_path, AnalysisResult const& result) {
                                    DiagnosticArguments const& clargs) {
     Logger::Log(
         LogLevel::Info,
-        "Result of target {}: {}",
+        "Result of{} target {}: {}",
+        result.modified
+            ? fmt::format(" input of action {} of", *result.modified)
+            : "",
         result.id.ToString(),
         IndentOnlyUntilDepth(
             ResultToJson(result.target->Result()),
@@ -1566,7 +1582,9 @@ auto main(int argc, char* argv[]) -> int {
                     LogLevel::Info,
                     "{}ing{} {}.",
                     arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
-                    result->modified ? " parts of" : "",
+                    result->modified ? fmt::format(" input of action {} of",
+                                                   *(result->modified))
+                                     : "",
                     result->id.ToString());
 
                 auto build_result =
