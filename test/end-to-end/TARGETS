@@ -9,6 +9,7 @@
     , [["./", "targets", "TESTS"], "targets"]
     , [["./", "user-errors", "TESTS"], "user-errors"]
     , [["./", "built-in-rules", "TESTS"], "built-in-rules"]
+    , [["./", "build-fails", "TESTS"], "build-fails"]
     ]
   }
 }

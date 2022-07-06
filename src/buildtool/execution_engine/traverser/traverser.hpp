@@ -1,6 +1,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TRAVERSER_TRAVERSER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TRAVERSER_TRAVERSER_HPP
 
+#include <atomic>
+
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -27,8 +29,14 @@ concept Runnable = requires(T const r,
 template <Runnable Executor>
 class Traverser {
   public:
-    Traverser(Executor const& r, DependencyGraph const& graph, std::size_t jobs)
-        : runner_{r}, graph_{graph}, tasker_{jobs} {}
+    Traverser(Executor const& r,
+              DependencyGraph const& graph,
+              std::size_t jobs,
+              gsl::not_null<std::atomic<bool>*> fail_flag)
+        : runner_{r},
+          graph_{graph},
+          failed_{std::move(fail_flag)},
+          tasker_{jobs} {}
     Traverser() = delete;
     Traverser(Traverser const&) = delete;
     Traverser(Traverser&&) = delete;
@@ -52,6 +60,7 @@ class Traverser {
   private:
     Executor const& runner_{};
     DependencyGraph const& graph_;
+    gsl::not_null<std::atomic<bool>*> failed_;
     TaskSystem tasker_{};  // THIS SHOULD BE THE LAST MEMBER VARIABLE
 
     // Visits discover nodes and queue visits to their children nodes.
@@ -77,7 +86,7 @@ class Traverser {
     void QueueVisit(NodeTypePtr node) noexcept {
         // in case the node was already discovered, there is no need to queue
         // the visit
-        if (node->TraversalState()->GetAndMarkDiscovered()) {
+        if (failed_->load() or node->TraversalState()->GetAndMarkDiscovered()) {
             return;
         }
         tasker_.QueueTask([this, node]() noexcept { Visit(node); });
@@ -89,7 +98,7 @@ class Traverser {
     // was successful
     template <typename NodeTypePtr>
     void QueueProcessing(NodeTypePtr node) noexcept {
-        if (not node->TraversalState()->IsRequired() or
+        if (failed_->load() or not node->TraversalState()->IsRequired() or
             node->TraversalState()->GetAndMarkQueuedToBeProcessed()) {
             return;
         }
@@ -99,11 +108,15 @@ class Traverser {
                 NotifyAvailable(node);
             }
             else {
-                Logger::Log(LogLevel::Error, "Build failed.");
-                std::exit(EXIT_FAILURE);
+                Abort();
             }
         };
         tasker_.QueueTask(process_node);
+    }
+
+    void Abort() noexcept {
+        failed_->store(true);
+        tasker_.Shutdown();  // skip execution of pending tasks
     }
 };
 
@@ -116,6 +129,7 @@ auto Traverser<Executor>::Traverse(
             QueueVisit(artifact_node);
         }
         else {
+            Abort();
             Logger::Log(
                 LogLevel::Error,
                 "artifact with id {} can not be found in dependency graph.",

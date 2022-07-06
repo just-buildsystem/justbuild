@@ -324,20 +324,21 @@ class GraphTraverser {
         Executor executor{&(*api_),
                           RemoteExecutionConfig::PlatformProperties(),
                           clargs_.build.timeout};
-        bool result{};
+        bool traversing{};
         std::atomic<bool> done = false;
+        std::atomic<bool> failed = false;
         std::condition_variable cv{};
         auto observer =
             std::thread([this, &done, &cv]() { reporter_(&done, &cv); });
         {
-            Traverser t{executor, g, clargs_.jobs};
-            result =
+            Traverser t{executor, g, clargs_.jobs, &failed};
+            traversing =
                 t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
         }
         done = true;
         cv.notify_all();
         observer.join();
-        return result;
+        return traversing and not failed;
     }
 
     [[nodiscard]] auto TraverseRebuild(
@@ -350,18 +351,19 @@ class GraphTraverser {
                            &(*api_cached),
                            RemoteExecutionConfig::PlatformProperties(),
                            clargs_.build.timeout};
-        bool success{false};
+        bool traversing{false};
+        std::atomic<bool> failed{false};
         {
-            Traverser t{executor, g, clargs_.jobs};
-            success =
+            Traverser t{executor, g, clargs_.jobs, &failed};
+            traversing =
                 t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
         }
 
-        if (success and clargs_.rebuild->dump_flaky) {
+        if (traversing and not failed and clargs_.rebuild->dump_flaky) {
             std::ofstream file{*clargs_.rebuild->dump_flaky};
             file << executor.DumpFlakyActions().dump(2);
         }
-        return success;
+        return traversing and not failed;
     }
 
     /// \brief Retrieves nodes corresponding to artifacts with ids in artifacts.
@@ -463,7 +465,7 @@ class GraphTraverser {
 
         if (clargs_.rebuild ? not TraverseRebuild(*graph, artifact_ids)
                             : not Traverse(*graph, artifact_ids)) {
-            Logger::Log(LogLevel::Error, "traversing graph failed.");
+            Logger::Log(LogLevel::Error, "Build failed.");
             return std::nullopt;
         }
 

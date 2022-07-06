@@ -212,14 +212,16 @@ TEST_CASE("Executable", "[traverser]") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Traverse()") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -235,7 +237,7 @@ TEST_CASE("Executable", "[traverser]") {
     SECTION("Traverse(executable)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
 
             auto const exec_id = ArtifactFactory::Identifier(
                 ArtifactFactory::DescribeActionArtifact("action",
@@ -272,14 +274,16 @@ TEST_CASE("Executable depends on library", "[traverser]") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Full build (without specifying artifacts)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -295,12 +299,13 @@ TEST_CASE("Executable depends on library", "[traverser]") {
     SECTION("Full build (executable)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const exec_id = ArtifactFactory::Identifier(
                 ArtifactFactory::DescribeActionArtifact("make_exe",
                                                         "executable"));
             CHECK(traverser.Traverse({exec_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -318,9 +323,10 @@ TEST_CASE("Executable depends on library", "[traverser]") {
             ArtifactFactory::DescribeActionArtifact("make_lib", "library"));
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({lib_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -354,14 +360,16 @@ TEST_CASE("Two artifacts depend on another", "[traverser]") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Full build") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -379,9 +387,10 @@ TEST_CASE("Two artifacts depend on another", "[traverser]") {
             ArtifactFactory::DescribeActionArtifact("action1", "toplevel1"));
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({toplevel1_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -406,14 +415,16 @@ TEST_CASE("Action with two outputs, no deps", "[traverser]") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Traverse()") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -430,7 +441,7 @@ TEST_CASE("Action with two outputs, no deps", "[traverser]") {
 
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({output1_id});
             CHECK(traversed);
         }
@@ -449,7 +460,7 @@ TEST_CASE("Action with two outputs, no deps", "[traverser]") {
     SECTION("Traverse(output1, output2)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({output1_id, output2_id});
             CHECK(traversed);
         }
@@ -480,14 +491,16 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Traverse()") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -503,7 +516,7 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
     SECTION("Traverse(output1)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({output1_id});
             CHECK(traversed);
         }
@@ -522,7 +535,7 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
     SECTION("Traverse(output1, output2)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({output1_id, output2_id});
             CHECK(traversed);
         }
@@ -543,7 +556,7 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
             ArtifactFactory::DescribeLocalArtifact("dep", "repo"));
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({dep_id, output2_id});
             CHECK(traversed);
         }
@@ -583,14 +596,16 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted";
     build_info.SetName(name);
     SECTION("Traverse()") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -606,7 +621,7 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
     SECTION("Traverse(exec1)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({exec1_id});
             CHECK(traversed);
         }
@@ -625,7 +640,7 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
     SECTION("Traverse(exec2, output1)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({output1_id, exec2_id});
             CHECK(traversed);
         }
@@ -644,7 +659,7 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
     SECTION("Traverse(exec1, exec2)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             auto const traversed = traverser.Traverse({exec1_id, exec2_id});
             CHECK(traversed);
         }
@@ -697,14 +712,16 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
+    std::atomic<bool> failed{};
     std::string name = "This is a long name that shouldn't be corrupted ";
     build_info.SetName(name);
     SECTION(" Full build(without specifying artifacts) ") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse());
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -720,9 +737,10 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     SECTION("Full build (executable)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({exec_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -738,9 +756,10 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     SECTION("Full build (executable + lib1)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({exec_id, lib1_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -756,9 +775,10 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     SECTION("Full build (executable + lib2)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({exec_id, lib2_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -774,9 +794,10 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     SECTION("Full build (executable + lib1 + lib2)") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({exec_id, lib1_id, lib2_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -792,10 +813,11 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     SECTION("First call does not build all artifacts") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({lib1_id}));
             CHECK(traverser.Traverse({exec_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -814,9 +836,10 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
         "action") {
         {
             TestExecutor runner{&build_info};
-            Traverser traverser(runner, g, kNumJobs);
+            Traverser traverser(runner, g, kNumJobs, &failed);
             CHECK(traverser.Traverse({lib2_id}));
         }
+        CHECK_FALSE(failed);
         CHECK_THAT(
             build_info.CorrectlyBuilt(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
