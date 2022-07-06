@@ -1,8 +1,11 @@
 { "compatibility":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["compatibility"]
-  , "hdrs": ["compatibility.hpp"]
-  , "deps": [["src/buildtool/crypto", "hash_function"]]
+  , "hdrs": ["compatibility.hpp", "native_support.hpp"]
+  , "deps":
+    [ ["src/buildtool/crypto", "hash_function"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
   , "stage": ["src", "buildtool", "compatibility"]
   }
 }
