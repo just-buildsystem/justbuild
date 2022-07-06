@@ -5,7 +5,14 @@
   , "data":
     { "type": "let*"
     , "bindings":
-      [ ["SUPPORT_PCRE8", 1]
+      [ [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , ["SUPPORT_PCRE8", 1]
       , ["PCRE_LINK_SIZE", "2"]
       , ["PCRE_PARENS_NEST_LIMIT", "250"]
       , ["PCRE_MATCH_LIMIT", "10000000"]
