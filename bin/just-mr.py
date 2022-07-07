@@ -65,6 +65,16 @@ def try_rmtree(tree):
           time.sleep(1.0)
     fail("Failed to remove %s" % (tree,))
 
+def move_to_place(src, dst):
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    try:
+        os.rename(src, dst)
+    except Exception as e:
+        if not os.path.exists(dst):
+            fail("Failed to move %s to %s: %s" % (src, dst, e))
+    if not os.path.exists(dst):
+        fail("%s not present after move" % (dst,))
+
 def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd):
     result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stdin=stdin)
     if result.returncode != 0:
@@ -268,7 +278,8 @@ def archive_checkout_dir(content, repo_type):
 
 
 def archive_tmp_checkout_dir(content, repo_type):
-    return os.path.join(ROOT, "tmp-workspaces", repo_type, content)
+    return os.path.join(ROOT, "tmp-workspaces", repo_type,
+                        "%d-%s" % (os.getpid(), content))
 
 
 def archive_tree_id_file(content, repo_type):
@@ -327,19 +338,19 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     archive_fetch(desc, content=content_id)
     if fetch_only:
         return
-    if not ALWAYS_FILE:
-        target = archive_tmp_checkout_dir(content_id, repo_type=repo_type)
-    if os.path.exists(target):
-        try_rmtree(target)
-    os.makedirs(target)
+    target_tmp = archive_tmp_checkout_dir(content_id, repo_type=repo_type)
+    if os.path.exists(target_tmp):
+        try_rmtree(target_tmp)
+    os.makedirs(target_tmp)
     if repo_type == "zip":
-        run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target)
+        run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target_tmp)
     else:
-        run_cmd(["tar", "xf", cas_path(content_id)], cwd=target)
+        run_cmd(["tar", "xf", cas_path(content_id)], cwd=target_tmp)
     if ALWAYS_FILE:
+        move_to_place(target_tmp, target)
         return ["file", subdir_path(target, desc)]
-    tree = import_to_git(target, repo_type, content_id)
-    try_rmtree(target)
+    tree = import_to_git(target_tmp, repo_type, content_id)
+    try_rmtree(target_tmp)
     os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
     with open(tree_id_file, "w") as f:
         f.write(tree)
@@ -428,6 +439,9 @@ def resolve_repo(desc, *, seen=None, repos):
 def distdir_repo_dir(content):
     return os.path.join(ROOT, "distdir", content)
 
+def distdir_tmp_dir(content):
+    return os.path.join(ROOT, "tmp-workspaces", "distdir",
+                        "%d-%s" % (os.getpid(), content))
 
 def distdir_tree_id_file(content):
     return os.path.join(ROOT, "distfiles-tree-map", content)
@@ -473,20 +487,22 @@ def distdir_checkout(desc, repos):
         ]
 
     # Create the dirstdir repo folder content
-    if os.path.exists(target_distdir_dir):
-        try_rmtree(target_distdir_dir)
-    os.makedirs(target_distdir_dir)
+    target_tmp_dir = distdir_tmp_dir(distdir_content_id)
+    if os.path.exists(target_tmp_dir):
+        try_rmtree(target_tmp_dir)
+    os.makedirs(target_tmp_dir)
     for name, content_id in content.items():
-        target = os.path.join(target_distdir_dir, name)
+        target = os.path.join(target_tmp_dir, name)
         os.link(cas_path(content_id), target)
 
     if (ALWAYS_FILE):
         # Return with path to distdir repo
+        move_to_place(target_tmp_dir, target_distdir_dir)
         return ["file", target_distdir_dir]
 
     # Gitify the distdir repo folder
-    tree = import_to_git(target_distdir_dir, "distdir", distdir_content_id)
-    try_rmtree(target_distdir_dir)
+    tree = import_to_git(target_tmp_dir, "distdir", distdir_content_id)
+    try_rmtree(target_tmp_dir)
 
     # Cache git info to tree id file
     os.makedirs(os.path.dirname(tree_id_file), exist_ok=True)
