@@ -43,6 +43,11 @@ class LocalStorage {
                              : cas_file_.StoreBlobFromBytes(bytes);
     }
 
+    [[nodiscard]] auto StoreTree(std::string const& bytes) const noexcept
+        -> std::optional<bazel_re::Digest> {
+        return cas_tree_.StoreBlobFromBytes(bytes);
+    }
+
     /// \brief Obtain blob path from digest with x-bit.
     /// NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest,
@@ -51,6 +56,11 @@ class LocalStorage {
         auto const path = is_executable ? cas_exec_.BlobPath(digest)
                                         : cas_file_.BlobPath(digest);
         return path ? path : TrySyncBlob(digest, is_executable);
+    }
+
+    [[nodiscard]] auto TreePath(bazel_re::Digest const& digest) const noexcept
+        -> std::optional<std::filesystem::path> {
+        return cas_tree_.BlobPath(digest);
     }
 
     [[nodiscard]] auto StoreActionResult(
@@ -70,13 +80,14 @@ class LocalStorage {
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
 
-    [[nodiscard]] auto DumpToStream(
-        Artifact::ObjectInfo const& info,
-        gsl::not_null<FILE*> const& stream) const noexcept -> bool;
+    [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
+                                    gsl::not_null<FILE*> const& stream,
+                                    bool raw_tree) const noexcept -> bool;
 
   private:
     LocalCAS<ObjectType::File> cas_file_{};
     LocalCAS<ObjectType::Executable> cas_exec_{};
+    LocalCAS<ObjectType::Tree> cas_tree_{};
     LocalAC ac_{&cas_file_};
     std::shared_ptr<LocalTreeMap> tree_map_;
 

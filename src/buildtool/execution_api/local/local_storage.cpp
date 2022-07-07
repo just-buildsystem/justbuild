@@ -17,15 +17,46 @@ namespace {
     return std::nullopt;
 }
 
+[[nodiscard]] auto ReadGitTree(
+    gsl::not_null<LocalStorage const*> const& storage,
+    bazel_re::Digest const& digest) noexcept
+    -> std::optional<GitCAS::tree_entries_t> {
+    if (auto const path = storage->TreePath(digest)) {
+        if (auto const content = FileSystemManager::ReadFile(*path)) {
+            return GitCAS::ReadTreeData(
+                *content,
+                HashFunction::ComputeTreeHash(*content).Bytes(),
+                /*is_hex_id=*/false);
+        }
+    }
+    Logger::Log(LogLevel::Error, "Tree {} not found in CAS", digest.hash());
+    return std::nullopt;
+}
+
+[[nodiscard]] auto DumpToStream(gsl::not_null<FILE*> const& stream,
+                                std::optional<std::string> const& data) noexcept
+    -> bool {
+    if (data) {
+        std::fwrite(data->data(), 1, data->size(), stream);
+        return true;
+    }
+    return false;
+}
+
 [[nodiscard]] auto TreeToStream(
     gsl::not_null<LocalStorage const*> const& storage,
     bazel_re::Digest const& tree_digest,
     gsl::not_null<FILE*> const& stream) noexcept -> bool {
-    if (auto dir = ReadDirectory(storage, tree_digest)) {
-        if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
-            auto const& str = *data;
-            std::fwrite(str.data(), 1, str.size(), stream);
-            return true;
+    if (Compatibility::IsCompatible()) {
+        if (auto dir = ReadDirectory(storage, tree_digest)) {
+            return DumpToStream(stream,
+                                BazelMsgFactory::DirectoryToString(*dir));
+        }
+    }
+    else {
+        if (auto entries = ReadGitTree(storage, tree_digest)) {
+            return DumpToStream(stream,
+                                BazelMsgFactory::GitTreeToString(*entries));
         }
     }
     return false;
@@ -36,8 +67,13 @@ namespace {
     Artifact::ObjectInfo const& blob_info,
     gsl::not_null<FILE*> const& stream) noexcept -> bool {
     constexpr std::size_t kChunkSize{512};
-    if (auto const path = storage->BlobPath(
-            blob_info.digest, IsExecutableObject(blob_info.type))) {
+    auto path =
+        storage->BlobPath(blob_info.digest, IsExecutableObject(blob_info.type));
+    if (not path and not Compatibility::IsCompatible()) {
+        // in native mode, lookup object in tree cas to dump tree as blob
+        path = storage->TreePath(blob_info.digest);
+    }
+    if (path) {
         std::string data(kChunkSize, '\0');
         if (gsl::owner<FILE*> in = std::fopen(path->c_str(), "rb")) {
             while (auto size = std::fread(data.data(), 1, kChunkSize, in)) {
@@ -103,26 +139,53 @@ auto LocalStorage::ReadObjectInfosRecursively(
     }
 
     // fallback read from CAS and cache it in in-memory tree map
-    if (auto dir = ReadDirectory(this, digest)) {
-        auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
-                              : std::nullopt;
-        return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                   *dir,
-                   [this, &store_info, &parent, &tree](auto path, auto info) {
-                       return (not tree or tree->AddInfo(path, info)) and
-                              (IsTreeObject(info.type)
-                                   ? ReadObjectInfosRecursively(
-                                         store_info, parent / path, info.digest)
-                                   : store_info(parent / path, info));
-                   }) and
-               (not tree_map_ or tree_map_->AddTree(digest, std::move(*tree)));
+    if (Compatibility::IsCompatible()) {
+        if (auto dir = ReadDirectory(this, digest)) {
+            auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
+                                  : std::nullopt;
+            return BazelMsgFactory::ReadObjectInfosFromDirectory(
+                       *dir,
+                       [this, &store_info, &parent, &tree](auto path,
+                                                           auto info) {
+                           return (not tree or tree->AddInfo(path, info)) and
+                                  (IsTreeObject(info.type)
+                                       ? ReadObjectInfosRecursively(
+                                             store_info,
+                                             parent / path,
+                                             info.digest)
+                                       : store_info(parent / path, info));
+                       }) and
+                   (not tree_map_ or
+                    tree_map_->AddTree(digest, std::move(*tree)));
+        }
+    }
+    else {
+        if (auto entries = ReadGitTree(this, digest)) {
+            auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
+                                  : std::nullopt;
+            return BazelMsgFactory::ReadObjectInfosFromGitTree(
+                       *entries,
+                       [this, &store_info, &parent, &tree](auto path,
+                                                           auto info) {
+                           return (not tree or tree->AddInfo(path, info)) and
+                                  (IsTreeObject(info.type)
+                                       ? ReadObjectInfosRecursively(
+                                             store_info,
+                                             parent / path,
+                                             info.digest)
+                                       : store_info(parent / path, info));
+                       }) and
+                   (not tree_map_ or
+                    tree_map_->AddTree(digest, std::move(*tree)));
+        }
     }
     return false;
 }
 
-auto LocalStorage::DumpToStream(
-    Artifact::ObjectInfo const& info,
-    gsl::not_null<FILE*> const& stream) const noexcept -> bool {
-    return IsTreeObject(info.type) ? TreeToStream(this, info.digest, stream)
-                                   : BlobToStream(this, info, stream);
+auto LocalStorage::DumpToStream(Artifact::ObjectInfo const& info,
+                                gsl::not_null<FILE*> const& stream,
+                                bool raw_tree) const noexcept -> bool {
+    return IsTreeObject(info.type) and not raw_tree
+               ? TreeToStream(this, info.digest, stream)
+               : BlobToStream(this, info, stream);
 }

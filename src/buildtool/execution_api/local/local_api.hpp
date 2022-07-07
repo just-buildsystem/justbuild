@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "gsl-lite/gsl-lite.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/local_tree_map.hpp"
@@ -75,7 +76,7 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool /*raw_tree*/) noexcept -> bool final {
+        bool raw_tree) noexcept -> bool final {
         if (artifacts_info.size() != fds.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and file descriptors.");
@@ -87,7 +88,8 @@ class LocalApi final : public IExecutionApi {
             auto const& info = artifacts_info[i];
 
             if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
-                auto const success = storage_->DumpToStream(info, out);
+                auto const success =
+                    storage_->DumpToStream(info, out, raw_tree);
                 std::fclose(out);
                 if (not success) {
                     Logger::Log(LogLevel::Error,
@@ -112,7 +114,9 @@ class LocalApi final : public IExecutionApi {
                               bool /*skip_find_missing*/) noexcept
         -> bool final {
         for (auto const& blob : blobs) {
-            auto cas_digest = storage_->StoreBlob(blob.data);
+            auto const is_tree = NativeSupport::IsTree(blob.digest.hash());
+            auto cas_digest = is_tree ? storage_->StoreTree(blob.data)
+                                      : storage_->StoreBlob(blob.data);
             if (not cas_digest or not std::equal_to<bazel_re::Digest>{}(
                                       *cas_digest, blob.digest)) {
                 return false;
@@ -148,7 +152,9 @@ class LocalApi final : public IExecutionApi {
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final {
-        return storage_->BlobPath(digest, false).has_value();
+        return static_cast<bool>(digest.is_tree()
+                                     ? storage_->TreePath(digest)
+                                     : storage_->BlobPath(digest, false));
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)

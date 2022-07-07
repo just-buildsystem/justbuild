@@ -11,7 +11,9 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-/// \brief Maps digest of `bazel_re::Directory` to `LocalTree`.
+/// \brief Maps `bazel_re::Digest` to `LocalTree`.
+/// Digest may refer to `bazel_re::Directory` or Git tree object, depending on
+/// mode being compatible or native, respectively.
 class LocalTreeMap {
     /// \brief Thread-safe pool of unique object infos.
     class ObjectInfoPool {
