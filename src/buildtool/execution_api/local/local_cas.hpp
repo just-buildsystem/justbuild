@@ -51,14 +51,18 @@ class LocalCAS {
     }
 
   private:
+    // For `Tree` the underlying storage type is non-executable file.
+    static constexpr auto kStorageType =
+        kType == ObjectType::Tree ? ObjectType::File : kType;
+
     Logger logger_{std::string{"LocalCAS"} + ToChar(kType)};
 
-    FileStorage<kType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
+    FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
         file_store_{LocalExecutionConfig::CASDir<kType>()};
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {
-        return ArtifactDigest::Create(bytes);
+        return ArtifactDigest::Create<kType>(bytes);
     }
 
     [[nodiscard]] static auto CreateDigest(
@@ -66,7 +70,7 @@ class LocalCAS {
         -> std::optional<bazel_re::Digest> {
         auto const bytes = FileSystemManager::ReadFile(file_path);
         if (bytes.has_value()) {
-            return ArtifactDigest::Create(*bytes);
+            return ArtifactDigest::Create<kType>(*bytes);
         }
         return std::nullopt;
     }
