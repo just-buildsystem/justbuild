@@ -54,6 +54,9 @@ class BazelNetwork {
     [[nodiscard]] auto IsAvailable(
         bazel_re::Digest const& digest) const noexcept -> bool;
 
+    [[nodiscard]] auto IsAvailable(std::vector<bazel_re::Digest> const& digests)
+        const noexcept -> std::vector<bazel_re::Digest>;
+
     /// \brief Uploads blobs to CAS
     /// \param blobs              The blobs to upload
     /// \param skip_find_missing  Skip finding missing blobs, just upload all

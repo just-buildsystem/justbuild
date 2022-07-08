@@ -73,6 +73,10 @@ class IExecutionApi {
 
     [[nodiscard]] virtual auto IsAvailable(
         ArtifactDigest const& digest) const noexcept -> bool = 0;
+
+    [[nodiscard]] virtual auto IsAvailable(
+        std::vector<ArtifactDigest> const& digests) const noexcept
+        -> std::vector<ArtifactDigest> = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP

@@ -170,7 +170,7 @@ auto BazelApi::CreateAction(
         return std::nullopt;
     }
     if (tree_map_->AddTree(*digest, std::move(tree))) {
-        return ArtifactDigest{std::move(*digest)};
+        return ArtifactDigest{*digest};
     }
     return std::nullopt;
 }
@@ -178,4 +178,24 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::IsAvailable(
     ArtifactDigest const& digest) const noexcept -> bool {
     return network_->IsAvailable(digest);
+}
+
+[[nodiscard]] auto BazelApi::IsAvailable(
+    std::vector<ArtifactDigest> const& digests) const noexcept
+    -> std::vector<ArtifactDigest> {
+    std::vector<bazel_re::Digest> bazel_digests;
+    bazel_digests.reserve(digests.size());
+    std::transform(digests.begin(),
+                   digests.end(),
+                   std::back_inserter(bazel_digests),
+                   [](ArtifactDigest const& digest) { return digest; });
+    auto bazel_result = network_->IsAvailable(bazel_digests);
+    std::vector<ArtifactDigest> result;
+    result.reserve(bazel_result.size());
+    std::transform(
+        bazel_result.begin(),
+        bazel_result.end(),
+        std::back_inserter(result),
+        [](bazel_re::Digest& digest) { return ArtifactDigest{digest}; });
+    return result;
 }

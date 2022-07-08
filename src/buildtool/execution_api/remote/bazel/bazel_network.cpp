@@ -70,6 +70,11 @@ auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
         .empty();
 }
 
+auto BazelNetwork::IsAvailable(std::vector<bazel_re::Digest> const& digests)
+    const noexcept -> std::vector<bazel_re::Digest> {
+    return cas_->FindMissingBlobs(instance_name_, digests);
+}
+
 template <class T_Iter>
 auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
                                  T_Iter const& last) noexcept -> bool {

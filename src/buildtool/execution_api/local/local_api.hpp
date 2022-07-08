@@ -150,6 +150,17 @@ class LocalApi final : public IExecutionApi {
         return storage_->BlobPath(digest, false).has_value();
     }
 
+    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
+        const noexcept -> std::vector<ArtifactDigest> final {
+        std::vector<ArtifactDigest> result;
+        for (auto const& digest : digests) {
+            if (not storage_->BlobPath(digest, false).has_value()) {
+                result.push_back(digest);
+            }
+        }
+        return result;
+    }
+
   private:
     std::shared_ptr<LocalTreeMap> tree_map_{std::make_shared<LocalTreeMap>()};
     std::shared_ptr<LocalStorage> storage_{

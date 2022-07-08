@@ -154,6 +154,20 @@ class TestApi : public IExecutionApi {
             return false;
         }
     }
+    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
+        const noexcept -> std::vector<ArtifactDigest> final {
+        std::vector<ArtifactDigest> result;
+        try {
+            for (auto const& digest : digests) {
+                if (not config_.artifacts.at(digest.hash()).available) {
+                    result.push_back(digest);
+                }
+            }
+        } catch (std::exception const& /* unused */) {
+            return result;
+        }
+        return result;
+    }
 
   private:
     TestApiConfig config_{};
