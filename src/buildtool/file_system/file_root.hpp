@@ -421,6 +421,19 @@ class FileRoot {
         return std::nullopt;
     }
 
+    [[nodiscard]] auto ReadTree(std::string const& tree_id) const noexcept
+        -> std::optional<GitTree> {
+        if (std::holds_alternative<git_root_t>(root_)) {
+            try {
+                auto const& cas = std::get<git_root_t>(root_).cas;
+                return GitTree::Read(cas, tree_id);
+            } catch (...) {
+                return std::nullopt;
+            }
+        }
+        return std::nullopt;
+    }
+
     // Create LOCAL or KNOWN artifact. Does not check existence for LOCAL.
     // `file_path` must reference a blob.
     [[nodiscard]] auto ToArtifactDescription(

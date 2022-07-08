@@ -61,6 +61,11 @@ class RepositoryConfig {
                         : std::nullopt;
     }
 
+    [[nodiscard]] auto ReadTreeFromGitCAS(
+        std::string const& hex_id) const noexcept -> std::optional<GitTree> {
+        return git_cas_ ? GitTree::Read(git_cas_, hex_id) : std::nullopt;
+    }
+
     [[nodiscard]] auto WorkspaceRoot(std::string const& repo) const noexcept
         -> FileRoot const* {
         return Get<FileRoot>(
