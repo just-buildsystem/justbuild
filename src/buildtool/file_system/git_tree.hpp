@@ -48,6 +48,7 @@ class GitTree {
     [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
     [[nodiscard]] auto RawHash() const noexcept { return raw_id_; }
     [[nodiscard]] auto Size() const noexcept -> std::optional<std::size_t>;
+    [[nodiscard]] auto RawData() const noexcept -> std::optional<std::string>;
 
   private:
     gsl::not_null<GitCASPtr> cas_;
@@ -101,6 +102,7 @@ class GitTreeEntry {
     // Use with care. Implementation might read entire object to obtain
     // size. Consider using Blob()->size() instead.
     [[nodiscard]] auto Size() const noexcept -> std::optional<std::size_t>;
+    [[nodiscard]] auto RawData() const noexcept -> std::optional<std::string>;
 
   private:
     gsl::not_null<GitCASPtr> cas_;

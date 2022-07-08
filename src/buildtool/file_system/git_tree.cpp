@@ -85,6 +85,10 @@ auto GitTree::Size() const noexcept -> std::optional<std::size_t> {
     return std::nullopt;
 }
 
+auto GitTree::RawData() const noexcept -> std::optional<std::string> {
+    return cas_->ReadObject(raw_id_);
+}
+
 auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
     if (not IsBlob()) {
         return std::nullopt;
@@ -108,4 +112,8 @@ auto GitTreeEntry::Size() const noexcept -> std::optional<std::size_t> {
         return header->first;
     }
     return std::nullopt;
+}
+
+auto GitTreeEntry::RawData() const noexcept -> std::optional<std::string> {
+    return cas_->ReadObject(raw_id_);
 }
