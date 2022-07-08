@@ -30,6 +30,7 @@
     , "identifier.hpp"
     , "statistics.hpp"
     ]
+  , "srcs": ["artifact.cpp"]
   , "deps":
     [ "bazel_types"
     , ["src/buildtool/crypto", "hash_function"]

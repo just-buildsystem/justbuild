@@ -182,9 +182,24 @@ rule definition can also reside in a git-tree root.
 
 ** install-cas
 
-~install-cas~ fetches artifacts from CAS (Content Addressable Storage)
-by means of their object identifier with the format
-~[<hash>:<size>:<type>]~. Depending on whether the output path is set
+~install-cas~ fetches artifacts from CAS (Content Addressable
+Storage) by means of their object identifier. The canonical format
+of an object identifier is ~[<hash>:<size>:<type>]~; however, when
+parsing an object identifier, ~install-cas~ uses the following
+default rules, to make usage more simple.
+- The square brackets are optional.
+- If the size is missing (e.g., because the argument contains no
+  colon), or cannot be parsed as a number, this is not an error,
+  and the value ~0~ is assumed. While this is almost never the
+  correct size, many CAS implementations, including the local CAS
+  of just itself, ignore the size for lookups.
+- From the type, only the first letter (~f~ for non-executable
+  file, ~x~ for executable file, and ~t~ for tree) is significant;
+  the rest is ignored. If the type is missing (e.g., because the
+  argument contains less than two colons), or its first letter is
+  not one of the valid ones, ~f~ is assumed.
+
+Depending on whether the output path is set
 or not, the behavior is different.
 
 *** Output path is omitted

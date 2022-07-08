@@ -33,6 +33,17 @@
     ]
   , "stage": ["test", "buildtool", "common"]
   }
+, "common":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["common"]
+  , "srcs": ["common.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/common", "common"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
 , "repository_config":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["repository_config"]
@@ -52,6 +63,7 @@
     [ "action_description"
     , "artifact_description"
     , "artifact_factory"
+    , "common"
     , "repository_config"
     ]
   }
