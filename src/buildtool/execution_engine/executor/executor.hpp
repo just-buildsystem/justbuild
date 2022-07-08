@@ -116,10 +116,10 @@ class ExecutorImpl {
         // is available to the execution API
         if (object_info_opt) {
             if (not api->IsAvailable(object_info_opt->digest) and
-                not UploadKnownArtifact(api,
-                                        artifact->Content().Repository(),
-                                        object_info_opt->digest,
-                                        /*skip_check=*/true)) {
+                not VerifyOrUploadKnownArtifact(
+                    api,
+                    artifact->Content().Repository(),
+                    object_info_opt->digest)) {
                 Logger::Log(
                     LogLevel::Error,
                     "artifact {} should be present in CAS but is missing.",
@@ -148,19 +148,116 @@ class ExecutorImpl {
         return true;
     }
 
+    /// \brief Uploads the content of a git tree recursively to the CAS. It is
+    /// first checked which elements of a directory are not available in the
+    /// CAS and the missing elements are uploaded accordingly. This ensures the
+    /// invariant that if a git tree is known to the CAS all its content is also
+    /// existing in the CAS.
+    /// \param[in] api      The remote execution API of the CAS.
+    /// \param[in] tree     The git tree to be uploaded.
+    /// \returns True if the upload was successful, False in case of any error.
+    // NOLINTNEXTLINE(misc-no-recursion)
+    [[nodiscard]] static auto VerifyOrUploadTree(
+        gsl::not_null<IExecutionApi*> const& api,
+        gsl::not_null<GitTreePtr> const& tree) noexcept -> bool {
+
+        // create list of digests for batch check of CAS availability
+        std::vector<ArtifactDigest> digests;
+        std::unordered_map<ArtifactDigest, gsl::not_null<GitTreeEntryPtr>>
+            entry_map;
+        for (auto const& [path, entry] : *tree) {
+            auto digest =
+                ArtifactDigest{entry->Hash(), *entry->Size(), entry->IsTree()};
+            digests.emplace_back(digest);
+            try {
+                entry_map.emplace(std::move(digest), entry);
+            } catch (...) {
+                return false;
+            }
+        }
+
+        // find missing digests
+        auto missing_digests = api->IsAvailable(digests);
+
+        // process missing trees
+        for (auto const& digest : missing_digests) {
+            if (auto it = entry_map.find(digest); it != entry_map.end()) {
+                auto const& entry = it->second;
+                if (entry->IsTree()) {
+                    if (not VerifyOrUploadTree(
+                            api,
+                            std::make_shared<GitTree const>(*entry->Tree()))) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // upload missing entries (blobs or trees)
+        BlobContainer container;
+        for (auto const& digest : missing_digests) {
+            if (auto it = entry_map.find(digest); it != entry_map.end()) {
+                auto const& entry = it->second;
+                auto content = entry->RawData();
+                if (not content) {
+                    return false;
+                }
+                try {
+                    container.Emplace(
+                        std::move(BazelBlob{digest, std::move(*content)}));
+                } catch (std::exception const& ex) {
+                    Logger::Log(LogLevel::Error,
+                                "failed to create blob with: ",
+                                ex.what());
+                    return false;
+                }
+            }
+        }
+
+        return api->Upload(container, /*skip_find_missing=*/true);
+    }
+
     /// \brief Lookup blob via digest in local git repositories and upload.
     /// \param api          The endpoint used for uploading
     /// \param repo         The global repository name, the artifact belongs to
     /// \param digest       The digest of the object
-    /// \param skip_check   Skip check for existence before upload
     /// \param hash         The git-sha1 hash of the object
     /// \returns true on success
-    [[nodiscard]] static auto UploadGitBlob(
+    [[nodiscard]] static auto VerifyOrUploadGitArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
         ArtifactDigest const& digest,
-        bool skip_check,
         std::string const& hash) noexcept -> bool {
+        std::optional<std::string> content;
+        if (digest.is_tree()) {
+            // if known tree is not available, recursively upload its content
+            auto tree = ReadGitTree(repo, hash);
+            if (not tree) {
+                return false;
+            }
+            if (not VerifyOrUploadTree(
+                    api, std::make_shared<GitTree const>(*tree))) {
+                return false;
+            }
+            content = tree->RawData();
+        }
+        else {
+            // if known blob is not available, read and upload it
+            content = ReadGitBlob(repo, hash);
+        }
+        if (not content) {
+            return false;
+        }
+
+        // upload artifact content
+        auto container =
+            BlobContainer{{BazelBlob{digest, std::move(*content)}}};
+        return api->Upload(container, /*skip_find_missing=*/true);
+    }
+
+    [[nodiscard]] static auto ReadGitBlob(std::string const& repo,
+                                          std::string const& hash) noexcept
+        -> std::optional<std::string> {
         auto const& repo_config = RepositoryConfig::Instance();
         std::optional<std::string> blob{};
         if (auto const* ws_root = repo_config.WorkspaceRoot(repo)) {
@@ -171,32 +268,44 @@ class ExecutorImpl {
             // try to obtain blob from global Git CAS, if any
             blob = repo_config.ReadBlobFromGitCAS(hash);
         }
-        return blob and
-               api->Upload(BlobContainer{{BazelBlob{digest, std::move(*blob)}}},
-                           skip_check);
+        return blob;
+    }
+
+    [[nodiscard]] static auto ReadGitTree(std::string const& repo,
+                                          std::string const& hash) noexcept
+        -> std::optional<GitTree> {
+        auto const& repo_config = RepositoryConfig::Instance();
+        std::optional<GitTree> tree{};
+        if (auto const* ws_root = repo_config.WorkspaceRoot(repo)) {
+            // try to obtain tree from local workspace's Git CAS, if any
+            tree = ws_root->ReadTree(hash);
+        }
+        if (not tree) {
+            // try to obtain tree from global Git CAS, if any
+            tree = repo_config.ReadTreeFromGitCAS(hash);
+        }
+        return tree;
     }
 
     /// \brief Lookup blob via digest in local git repositories and upload.
     /// \param api          The endpoint used for uploading
     /// \param repo         The global repository name, the artifact belongs to
     /// \param digest       The digest of the object
-    /// \param skip_check   Skip check for existence before upload
     /// \returns true on success
-    [[nodiscard]] static auto UploadKnownArtifact(
+    [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        ArtifactDigest const& digest,
-        bool skip_check) noexcept -> bool {
+        ArtifactDigest const& digest) noexcept -> bool {
         if (Compatibility::IsCompatible()) {
             auto opt = Compatibility::GetGitEntry(digest.hash());
             if (opt) {
                 auto const& [git_sha1_hash, comp_repo] = *opt;
-                return UploadGitBlob(
-                    api, comp_repo, digest, skip_check, git_sha1_hash);
+                return VerifyOrUploadGitArtifact(
+                    api, comp_repo, digest, git_sha1_hash);
             }
             return false;
         }
-        return UploadGitBlob(api, repo, digest, skip_check, digest.hash());
+        return VerifyOrUploadGitArtifact(api, repo, digest, digest.hash());
     }
 
     /// \brief Lookup file via path in local workspace root and upload.
