@@ -203,6 +203,58 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     }
 }
 
+TEST_CASE("Read Git Tree Data", "[git_cas]") {
+    auto repo_path = CreateTestRepo(true);
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+
+    SECTION("empty tree") {
+        auto entries = GitCAS::ReadTreeData(
+            "", "4b825dc642cb6eb9a060e54bf8d69288fbee4904", /*is_hex_id=*/true);
+        REQUIRE(entries);
+        CHECK(entries->empty());
+    }
+
+    SECTION("existing tree") {
+        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        REQUIRE(entries);
+
+        auto data = cas->ReadObject(kTreeId, /*is_hex_id=*/true);
+        REQUIRE(data);
+
+        auto from_data =
+            GitCAS::ReadTreeData(*data, kTreeId, /*is_hex_id=*/true);
+        REQUIRE(from_data);
+        CHECK(*from_data == *entries);
+    }
+}
+
+TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
+    auto repo_path = CreateTestRepo(true);
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+
+    SECTION("empty tree") {
+        auto tree = GitCAS::CreateShallowTree({});
+        REQUIRE(tree);
+        CHECK(ToHexString(tree->first) ==
+              "4b825dc642cb6eb9a060e54bf8d69288fbee4904");
+        CHECK(tree->second.empty());
+    }
+
+    SECTION("existing tree from other CAS") {
+        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        REQUIRE(entries);
+
+        auto tree = GitCAS::CreateShallowTree(*entries);
+        REQUIRE(tree);
+        CHECK(ToHexString(tree->first) == kTreeId);
+        CHECK_FALSE(tree->second.empty());
+    }
+}
+
 TEST_CASE("Read Git Tree", "[git_tree]") {
     SECTION("Bare repository") {
         auto repo_path = CreateTestRepo(true);

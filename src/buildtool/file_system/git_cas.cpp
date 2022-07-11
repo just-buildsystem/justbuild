@@ -9,6 +9,7 @@
 
 extern "C" {
 #include <git2.h>
+#include <git2/sys/odb_backend.h>
 }
 
 namespace {
@@ -168,6 +169,122 @@ auto const treebuilder_closer = [](gsl::owner<git_treebuilder*> builder) {
     }
     return -1;  // fail
 }
+
+struct InMemoryODBBackend {
+    git_odb_backend parent;
+    GitCAS::tree_entries_t const* entries{nullptr};        // object headers
+    std::unordered_map<std::string, std::string> trees{};  // solid tree objects
+};
+
+[[nodiscard]] auto backend_read_header(size_t* len_p,
+                                       git_object_t* type_p,
+                                       git_odb_backend* _backend,
+                                       const git_oid* oid) -> int {
+    if (len_p != nullptr and type_p != nullptr and _backend != nullptr and
+        oid != nullptr) {
+        auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
+        if (auto id = ToRawString(*oid)) {
+            if (auto it = b->trees.find(*id); it != b->trees.end()) {
+                *type_p = GIT_OBJECT_TREE;
+                *len_p = it->second.size();
+                return GIT_OK;
+            }
+            if (b->entries != nullptr) {
+                if (auto it = b->entries->find(*id); it != b->entries->end()) {
+                    if (not it->second.empty()) {
+                        // pretend object is in database, size is ignored.
+                        *type_p = IsTreeObject(it->second.front().type)
+                                      ? GIT_OBJECT_TREE
+                                      : GIT_OBJECT_BLOB;
+                        *len_p = 0;
+                        return GIT_OK;
+                    }
+                }
+            }
+            return GIT_ENOTFOUND;
+        }
+    }
+    return GIT_ERROR;
+}
+
+[[nodiscard]] auto backend_read(void** data_p,
+                                size_t* len_p,
+                                git_object_t* type_p,
+                                git_odb_backend* _backend,
+                                const git_oid* oid) -> int {
+    if (data_p != nullptr and len_p != nullptr and type_p != nullptr and
+        _backend != nullptr and oid != nullptr) {
+        auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
+        if (auto id = ToRawString(*oid)) {
+            if (auto it = b->trees.find(*id); it != b->trees.end()) {
+                *type_p = GIT_OBJECT_TREE;
+                *len_p = it->second.size();
+                *data_p = git_odb_backend_data_alloc(_backend, *len_p);
+                if (*data_p == nullptr) {
+                    return GIT_ERROR;
+                }
+                std::memcpy(*data_p, it->second.data(), *len_p);
+                return GIT_OK;
+            }
+            return GIT_ENOTFOUND;
+        }
+    }
+    return GIT_ERROR;
+}
+
+[[nodiscard]] auto backend_exists(git_odb_backend* _backend, const git_oid* oid)
+    -> int {
+    if (_backend != nullptr and oid != nullptr) {
+        auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
+        if (auto id = ToRawString(*oid)) {
+            return (b->entries != nullptr and b->entries->contains(*id)) or
+                           b->trees.contains(*id)
+                       ? 1
+                       : 0;
+        }
+    }
+    return GIT_ERROR;
+}
+
+[[nodiscard]] auto backend_write(git_odb_backend* _backend,
+                                 const git_oid* oid,
+                                 const void* data,
+                                 size_t len,
+                                 git_object_t type) -> int {
+    if (data != nullptr and _backend != nullptr and oid != nullptr) {
+        auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
+        if (auto id = ToRawString(*oid)) {
+            if (auto t = GitTypeToObjectType(type)) {
+                std::string s(static_cast<char const*>(data), len);
+                if (type == GIT_OBJECT_TREE) {
+                    b->trees.emplace(std::move(*id), std::move(s));
+                    return GIT_OK;
+                }
+            }
+        }
+    }
+    return GIT_ERROR;
+}
+
+void backend_free(git_odb_backend* /*_backend*/) {}
+
+[[nodiscard]] auto CreateInMemoryODBParent() -> git_odb_backend {
+    git_odb_backend b{};
+    b.version = GIT_ODB_BACKEND_VERSION;
+    b.read_header = &backend_read_header;
+    b.read = &backend_read;
+    b.exists = &backend_exists;
+    b.write = &backend_write;
+    b.free = &backend_free;
+    return b;
+}
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+
+// A backend that can be used to read and create tree objects in-memory.
+auto const kInMemoryODBParent = CreateInMemoryODBParent();
+
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 }  // namespace
 
@@ -402,4 +519,52 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
     }
     return initialized_;
 #endif
+}
+
+auto GitCAS::ReadTreeData(std::string const& data,
+                          std::string const& id,
+                          bool is_hex_id) noexcept
+    -> std::optional<tree_entries_t> {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    InMemoryODBBackend b{kInMemoryODBParent};
+    GitCAS cas{};
+    if (auto raw_id = is_hex_id ? FromHexString(id) : std::make_optional(id)) {
+        try {
+            b.trees.emplace(*raw_id, data);
+        } catch (...) {
+            return std::nullopt;
+        }
+        // create a GitCAS from a special-purpose in-memory object database.
+        if (git_odb_new(&cas.odb_) == 0 and
+            git_odb_add_backend(
+                cas.odb_,
+                reinterpret_cast<git_odb_backend*>(&b),  // NOLINT
+                0) == 0) {
+            return cas.ReadTree(*raw_id, /*is_hex_id=*/false);
+        }
+    }
+#endif
+    return std::nullopt;
+}
+
+auto GitCAS::CreateShallowTree(GitCAS::tree_entries_t const& entries) noexcept
+    -> std::optional<std::pair<std::string, std::string>> {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    InMemoryODBBackend b{kInMemoryODBParent, &entries};
+    GitCAS cas{};
+    // create a GitCAS from a special-purpose in-memory object database.
+    if (git_odb_new(&cas.odb_) == 0 and
+        git_odb_add_backend(cas.odb_,
+                            reinterpret_cast<git_odb_backend*>(&b),  // NOLINT
+                            0) == 0) {
+        if (auto raw_id = cas.CreateTree(entries)) {
+            // read result from in-memory trees
+            if (auto it = b.trees.find(*raw_id); it != b.trees.end()) {
+                return std::make_pair(std::move(*raw_id),
+                                      std::move(it->second));
+            }
+        }
+    }
+#endif
+    return std::nullopt;
 }

@@ -87,6 +87,27 @@ class GitCAS {
     [[nodiscard]] auto CreateTree(GitCAS::tree_entries_t const& entries)
         const noexcept -> std::optional<std::string>;
 
+    /// \brief Read entries from tree data (without object db).
+    /// \param data       The tree object as plain data.
+    /// \param id         The object id.
+    /// \param is_hex_id  Specify whether `id` is hex string or raw.
+    /// \returns The tree entries.
+    [[nodiscard]] static auto ReadTreeData(std::string const& data,
+                                           std::string const& id,
+                                           bool is_hex_id = false) noexcept
+        -> std::optional<tree_entries_t>;
+
+    /// \brief Create a flat shallow (without objects in db) tree and return it.
+    /// Creates a tree object from the entries without access to the actual
+    /// blobs. Objects are not required to be available in the underlying object
+    /// database. It is sufficient to provide the raw object id and and object
+    /// type for every entry.
+    /// \param entries  The entries to create the tree from.
+    /// \returns A pair of raw object id and the tree object content.
+    [[nodiscard]] static auto CreateShallowTree(
+        GitCAS::tree_entries_t const& entries) noexcept
+        -> std::optional<std::pair<std::string, std::string>>;
+
   private:
     git_odb* odb_{nullptr};
     bool initialized_{false};
