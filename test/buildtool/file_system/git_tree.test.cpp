@@ -162,6 +162,47 @@ TEST_CASE("Read Git Trees", "[git_cas]") {
     }
 }
 
+TEST_CASE("Create Git Trees", "[git_cas]") {
+    auto repo_path = CreateTestRepo(true);
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+
+    SECTION("empty tree") {
+        auto tree_id = cas->CreateTree({});
+        REQUIRE(tree_id);
+        CHECK(ToHexString(*tree_id) ==
+              "4b825dc642cb6eb9a060e54bf8d69288fbee4904");
+    }
+
+    SECTION("existing tree") {
+        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        REQUIRE(entries);
+
+        auto tree_id = cas->CreateTree(*entries);
+        REQUIRE(tree_id);
+        CHECK(ToHexString(*tree_id) == kTreeId);
+    }
+
+    SECTION("entry order") {
+        auto foo_bar = GitCAS::tree_entries_t{
+            {HexToRaw(kFooId),
+             {GitCAS::tree_entry_t{"foo", ObjectType::File},
+              GitCAS::tree_entry_t{"bar", ObjectType::Executable}}}};
+        auto foo_bar_id = cas->CreateTree(foo_bar);
+        REQUIRE(foo_bar_id);
+
+        auto bar_foo = GitCAS::tree_entries_t{
+            {HexToRaw(kFooId),
+             {GitCAS::tree_entry_t{"bar", ObjectType::Executable},
+              GitCAS::tree_entry_t{"foo", ObjectType::File}}}};
+        auto bar_foo_id = cas->CreateTree(bar_foo);
+        REQUIRE(bar_foo_id);
+
+        CHECK(foo_bar_id == bar_foo_id);
+    }
+}
+
 TEST_CASE("Read Git Tree", "[git_tree]") {
     SECTION("Bare repository") {
         auto repo_path = CreateTestRepo(true);

@@ -91,6 +91,18 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
     }
 }
 
+[[nodiscard]] constexpr auto ObjectTypeToGitFileMode(ObjectType type) noexcept
+    -> git_filemode_t {
+    switch (type) {
+        case ObjectType::File:
+            return GIT_FILEMODE_BLOB;
+        case ObjectType::Executable:
+            return GIT_FILEMODE_BLOB_EXECUTABLE;
+        case ObjectType::Tree:
+            return GIT_FILEMODE_TREE;
+    }
+}
+
 [[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept
     -> std::optional<ObjectType> {
     switch (type) {
@@ -130,6 +142,12 @@ auto const repo_closer = [](gsl::owner<git_repository*> repo) {
 auto const tree_closer = [](gsl::owner<git_tree*> tree) {
     if (tree != nullptr) {
         git_tree_free(tree);
+    }
+};
+
+auto const treebuilder_closer = [](gsl::owner<git_treebuilder*> builder) {
+    if (builder != nullptr) {
+        git_treebuilder_free(builder);
     }
 };
 
@@ -297,6 +315,62 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     }
 #endif
     return std::nullopt;
+}
+
+auto GitCAS::CreateTree(GitCAS::tree_entries_t const& entries) const noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    gsl_ExpectsAudit(ValidateEntries(entries));
+
+    // create fake repository from ODB
+    git_repository* repo_ptr{nullptr};
+    if (git_repository_wrap_odb(&repo_ptr, odb_) != 0) {
+        Logger::Log(LogLevel::Debug,
+                    "failed to create fake Git repository from object db");
+        return std::nullopt;
+    }
+    auto fake_repo = std::unique_ptr<git_repository, decltype(repo_closer)>{
+        repo_ptr, repo_closer};
+
+    git_treebuilder* builder_ptr{nullptr};
+    if (git_treebuilder_new(&builder_ptr, fake_repo.get(), nullptr) != 0) {
+        Logger::Log(LogLevel::Debug, "failed to create Git tree builder");
+        return std::nullopt;
+    }
+    auto builder =
+        std::unique_ptr<git_treebuilder, decltype(treebuilder_closer)>{
+            builder_ptr, treebuilder_closer};
+
+    for (auto const& [raw_id, es] : entries) {
+        auto id = GitObjectID(raw_id, /*is_hex_id=*/false);
+        for (auto const& entry : es) {
+            git_tree_entry const* tree_entry{nullptr};
+            if (not id or git_treebuilder_insert(
+                              &tree_entry,
+                              builder.get(),
+                              entry.name.c_str(),
+                              &(*id),
+                              ObjectTypeToGitFileMode(entry.type)) != 0) {
+                Logger::Log(LogLevel::Debug,
+                            "failed adding object {} to Git tree",
+                            ToHexString(raw_id));
+                return std::nullopt;
+            }
+        }
+    }
+
+    git_oid oid;
+    if (git_treebuilder_write(&oid, builder.get()) != 0) {
+        return std::nullopt;
+    }
+    auto raw_id = ToRawString(oid);
+    if (not raw_id) {
+        return std::nullopt;
+    }
+    return std::move(*raw_id);
+#endif
 }
 
 auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {

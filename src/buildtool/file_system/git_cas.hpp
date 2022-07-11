@@ -77,6 +77,16 @@ class GitCAS {
                                 bool is_hex_id = false) const noexcept
         -> std::optional<tree_entries_t>;
 
+    /// \brief Create a flat tree from entries and store tree in CAS.
+    /// Creating a tree must be backed by an object database. Therefore, a valid
+    /// instance of this class is required. Furthermore, all entries must be
+    /// available in the underlying object database and object types must
+    /// correctly reflect the type of the object found in the database.
+    /// \param entries  The entries to create the tree from.
+    /// \returns The raw object id as string, if successful.
+    [[nodiscard]] auto CreateTree(GitCAS::tree_entries_t const& entries)
+        const noexcept -> std::optional<std::string>;
+
   private:
     git_odb* odb_{nullptr};
     bool initialized_{false};
