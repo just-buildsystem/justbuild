@@ -450,6 +450,8 @@ A typical invocation of that rule would be a target file like the following.
   }
 }
 #+END_SRC
+As the input file has the same name as a target (in the same module),
+we use the explict file reference in the specification of the sources.
 
 *** Implicit dependencies and config transitions
 
@@ -458,7 +460,7 @@ from some high-level description using our actively developed code
 generator. Then we have to do some additional considerations.
 - First of all, every target defined by this rule not only depends
   on the targets the user specifies. Additionally, our code
-  generator is also an implicit dependecy. And as it is under
+  generator is also an implicit dependency. And as it is under
   active development, we certainly do not want it to be taken from
   the ambient build environment (as we did in the previous exmaple
   with ~ed~ which, however, is a pretty stable tool). So we use an
@@ -469,13 +471,13 @@ generator. Then we have to do some additional considerations.
   the target platform we build our final binaries for. Therefore,
   we have to use a configuration transition.
 - As our defining expression also needs the configuration transition
-  to access the artifacts of that implict target, we better define
+  to access the artifacts of that implicit target, we better define
   it as a reusable expression. Other rules in our rule collection
   might also have the same task; so ~["transitions", "for host"]~
   might be a good place to define it. In fact, it can look like
   the expression with that name in our own code base.
 
-So, the overall organisation of our rule might be as follows.
+So, the overall organization of our rule might be as follows.
 
 #+BEGIN_SRC
 { "generated code":
@@ -489,3 +491,61 @@ So, the overall organisation of our rule might be as follows.
   }
 }
 #+END_SRC
+
+*** Providing information to consuming targets
+
+In the simple case of patching, the resulting file is indeed the
+only information the consumer of that target needs; in fact, the main
+point was that the resulting target could be a drop-in replacement
+of a source file. A typical rule, however, defines something like
+a library and a library is much more, than just the actual library
+file and the public headers: a library may depend on other libraries;
+therefore, in order to use it, we need
+- to have the header files of dependencies available that might be
+  included by the public header files of that library,
+- to have the libraries transitively depended upon available during
+  linking, and
+- to know the order in which to link the dependencies (as they
+  might have dependencies among each other).
+In order to keep a maintainable build description, all this should
+be taken care of by simply depending on that library. We do _not_
+want the consumer of a target having to be aware of such transitive
+dependencies (e.g., when constructing the link command line), as
+it used to be the case in early build tools like ~make~.
+
+It is a deliberate design choice that a target is given only by
+the result of its analysis, regardless of where it is coming from.
+Therefore, all this information needs to be part of the result of
+a target. Such kind of information is precisely, what the mentioned
+~"provides"~ map is for. As a map, it can contain an arbitrary
+amount of information and the interface function ~"DEP_PROVIDES"~
+is in such a way that adding more providers does not affect targets
+not aware of them (there is no function asking for all providers
+of a target). The keys and their meaning have to be agreed upon
+by a target and its consumers. As the latter, however, typically
+are a target of the same family (authored by the same group), this
+usually is not a problem.
+
+A typical example of computing a provided value is the ~"link-args"~
+in the rules used by ~just~ itself. They are defined by the following
+expression.
+#+BEGIN_SRC
+{ "type": "nub_right"
+, "$1":
+  { "type": "++"
+  , "$1":
+    [ {"type": "keys", "$1": {"type": "var", "name": "lib"}}
+    , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
+    , {"type": "var", "name": "link external", "default": []}
+    ]
+  }
+}
+#+END_SRC
+This expression
+- collects the respective provider of its dependencies,
+- adds itself in front, and
+- deduplicates the resulting list, keeping only the right-most
+  occurrence of each entry.
+In this way, the invariant is kept, that the ~"link-args"~ from a
+topological ordering of the dependencies (in the order that a each
+entry is mentioned before its dependencies).
