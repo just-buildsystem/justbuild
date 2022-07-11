@@ -6,54 +6,78 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
-// Wrapper for bazel_re::Digest. Can be implicitly cast to bazel_re::Digest.
-// Provides getter for size with convenient non-protobuf type.
+// Provides getter for size with convenient non-protobuf type. Contains a
+// unprefixed hex string as hash. For communication with the exeution API it can
+// be cast to bazel_re::Digest which is the wire format that contains prefixed
+// hashes in native mode.
 class ArtifactDigest {
   public:
     ArtifactDigest() noexcept = default;
-    explicit ArtifactDigest(bazel_re::Digest digest) noexcept
+
+    explicit ArtifactDigest(bazel_re::Digest const& digest) noexcept
         : size_{gsl::narrow<std::size_t>(digest.size_bytes())},
-          digest_{std::move(digest)} {}
-    ArtifactDigest(std::string hash, std::size_t size) noexcept
-        : size_{size}, digest_{CreateBazelDigest(std::move(hash), size)} {}
+          hash_{NativeSupport::Unprefix(digest.hash())},
+          is_tree_{NativeSupport::IsTree(digest.hash())} {}
+
+    ArtifactDigest(std::string hash, std::size_t size, bool is_tree) noexcept
+        : size_{size}, hash_{std::move(hash)}, is_tree_{is_tree} {
+        gsl_ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
+    }
 
     [[nodiscard]] auto hash() const& noexcept -> std::string const& {
-        return digest_.hash();
+        return hash_;
     }
 
     [[nodiscard]] auto hash() && noexcept -> std::string {
-        return std::move(*digest_.mutable_hash());
+        return std::move(hash_);
     }
 
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
 
+    [[nodiscard]] auto is_tree() const noexcept -> bool { return is_tree_; }
+
     // NOLINTNEXTLINE allow implicit casts
-    [[nodiscard]] operator bazel_re::Digest const &() const& { return digest_; }
-    // NOLINTNEXTLINE allow implicit casts
-    [[nodiscard]] operator bazel_re::Digest() && { return std::move(digest_); }
+    [[nodiscard]] operator bazel_re::Digest() const {
+        return CreateBazelDigest(hash_, size_, is_tree_);
+    }
 
     [[nodiscard]] auto operator==(ArtifactDigest const& other) const -> bool {
         return std::equal_to<bazel_re::Digest>{}(*this, other);
     }
 
+    template <ObjectType kType = ObjectType::File>
     [[nodiscard]] static auto Create(std::string const& content) noexcept
         -> ArtifactDigest {
-        return ArtifactDigest{
-            HashFunction::ComputeBlobHash(content).HexString(), content.size()};
+        if constexpr (kType == ObjectType::Tree) {
+            return ArtifactDigest{
+                HashFunction::ComputeTreeHash(content).HexString(),
+                content.size(),
+                /*is_tree=*/true};
+        }
+        else {
+            return ArtifactDigest{
+                HashFunction::ComputeBlobHash(content).HexString(),
+                content.size(),
+                /*is_tree=*/false};
+        }
     }
 
   private:
     std::size_t size_{};
-    bazel_re::Digest digest_{};
+    std::string hash_{};
+    bool is_tree_{};
 
-    [[nodiscard]] static auto CreateBazelDigest(std::string&& hash,
-                                                std::size_t size)
+    [[nodiscard]] static auto CreateBazelDigest(std::string const& hash,
+                                                std::size_t size,
+                                                bool is_tree)
         -> bazel_re::Digest {
         bazel_re::Digest d;
-        d.set_hash(std::move(hash));
+        d.set_hash(NativeSupport::Prefix(hash, is_tree));
         d.set_size_bytes(gsl::narrow<google::protobuf::int64>(size));
         return d;
     }
@@ -67,6 +91,7 @@ struct hash<ArtifactDigest> {
         std::size_t seed{};
         hash_combine(&seed, digest.hash());
         hash_combine(&seed, digest.size());
+        hash_combine(&seed, digest.is_tree());
         return seed;
     }
 };

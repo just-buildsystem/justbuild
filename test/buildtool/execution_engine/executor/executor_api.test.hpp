@@ -28,7 +28,8 @@ static inline void RunBlobUpload(ApiFactory const& factory) {
     std::string const blob = "test";
     CHECK(api->Upload(BlobContainer{{BazelBlob{
         ArtifactDigest{HashFunction::ComputeBlobHash(blob).HexString(),
-                       blob.size()},
+                       blob.size(),
+                       /*is_tree=*/false},
         blob}}}));
 }
 
@@ -273,10 +274,14 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
-    auto foo_digest = ArtifactDigest{
-        HashFunction::ComputeBlobHash(foo).HexString(), foo.size()};
-    auto bar_digest = ArtifactDigest{
-        HashFunction::ComputeBlobHash(bar).HexString(), bar.size()};
+    auto foo_digest =
+        ArtifactDigest{HashFunction::ComputeBlobHash(foo).HexString(),
+                       foo.size(),
+                       /*is_tree=*/false};
+    auto bar_digest =
+        ArtifactDigest{HashFunction::ComputeBlobHash(bar).HexString(),
+                       bar.size(),
+                       /*is_tree=*/false};
 
     // upload blobs
     auto api = factory();

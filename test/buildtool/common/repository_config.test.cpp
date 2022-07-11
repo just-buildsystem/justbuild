@@ -59,7 +59,8 @@ template <class T>
 // Read graph from CAS
 [[nodiscard]] auto ReadGraph(std::string const& hash) -> nlohmann::json {
     auto& cas = LocalCAS<ObjectType::File>::Instance();
-    auto blob = cas.BlobPath(ArtifactDigest{hash, /*does not matter*/ 0});
+    auto blob = cas.BlobPath(
+        ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false});
     REQUIRE(blob);
     auto content = FileSystemManager::ReadFile(*blob);
     REQUIRE(content);

@@ -536,9 +536,7 @@ void withDependencies(
               }
               blobs.emplace_back(data->String());
               return ExpressionPtr{ArtifactDescription{
-                  {HashFunction::ComputeBlobHash(data->String()).HexString(),
-                   data->String().size()},
-                  ObjectType::File}};
+                  ArtifactDigest::Create(data->String()), ObjectType::File}};
           }},
          {"TREE",
           [&trees](auto&& eval, auto const& expr, auto const& env) {

@@ -140,7 +140,7 @@ class LocalApi final : public IExecutionApi {
         }
 
         if (tree_map_->AddTree(*digest, std::move(tree))) {
-            return ArtifactDigest{std::move(*digest)};
+            return ArtifactDigest{*digest};
         }
         return std::nullopt;
     }

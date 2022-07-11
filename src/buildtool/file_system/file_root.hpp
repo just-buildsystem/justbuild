@@ -399,6 +399,7 @@ class FileRoot {
     }
 
     // Create LOCAL or KNOWN artifact. Does not check existence for LOCAL.
+    // `file_path` must reference a blob.
     [[nodiscard]] auto ToArtifactDescription(
         std::filesystem::path const& file_path,
         std::string const& repository) const noexcept
@@ -412,11 +413,14 @@ class FileRoot {
                         auto compatible_hash = Compatibility::RegisterGitEntry(
                             entry->Hash(), *entry->Blob(), repository);
                         return ArtifactDescription{
-                            ArtifactDigest{compatible_hash, *entry->Size()},
+                            ArtifactDigest{compatible_hash,
+                                           *entry->Size(),
+                                           /*is_tree=*/false},
                             entry->Type()};
                     }
                     return ArtifactDescription{
-                        ArtifactDigest{entry->Hash(), *entry->Size()},
+                        ArtifactDigest{
+                            entry->Hash(), *entry->Size(), /*is_tree=*/false},
                         entry->Type(),
                         repository};
                 }

@@ -18,18 +18,21 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string content("foobar");
 
         // digest of "foobar"
-        auto digest = ArtifactDigest::Create(content);
+        auto digest =
+            static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
                                        uuid,
                                        digest.hash(),
-                                       digest.size()),
+                                       digest.size_bytes()),
                            content));
 
         SECTION("Download small blob") {
-            auto data = stream.Read(fmt::format(
-                "{}/blobs/{}/{}", instance_name, digest.hash(), digest.size()));
+            auto data = stream.Read(fmt::format("{}/blobs/{}/{}",
+                                                instance_name,
+                                                digest.hash(),
+                                                digest.size_bytes()));
 
             CHECK(data == content);
         }
@@ -44,25 +47,31 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         // digest of "instance_nameinstance_nameinstance_..."
-        auto digest = ArtifactDigest::Create(content);
+        auto digest =
+            static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
                                        uuid,
                                        digest.hash(),
-                                       digest.size()),
+                                       digest.size_bytes()),
                            content));
 
         SECTION("Download large blob") {
-            auto data = stream.Read(fmt::format(
-                "{}/blobs/{}/{}", instance_name, digest.hash(), digest.size()));
+            auto data = stream.Read(fmt::format("{}/blobs/{}/{}",
+                                                instance_name,
+                                                digest.hash(),
+                                                digest.size_bytes()));
 
             CHECK(data == content);
         }
 
         SECTION("Incrementally download large blob") {
-            auto reader = stream.IncrementalRead(fmt::format(
-                "{}/blobs/{}/{}", instance_name, digest.hash(), digest.size()));
+            auto reader =
+                stream.IncrementalRead(fmt::format("{}/blobs/{}/{}",
+                                                   instance_name,
+                                                   digest.hash(),
+                                                   digest.size_bytes()));
 
             std::string data{};
             auto chunk = reader.Next();

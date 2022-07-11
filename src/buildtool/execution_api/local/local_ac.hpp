@@ -27,12 +27,14 @@ class LocalAC {
         auto bytes = result.SerializeAsString();
         auto digest = cas_->StoreBlobFromBytes(bytes);
         return (digest and file_store_.AddFromBytes(
-                               action_id.hash(), digest->SerializeAsString()));
+                               NativeSupport::Unprefix(action_id.hash()),
+                               digest->SerializeAsString()));
     }
 
     [[nodiscard]] auto CachedResult(bazel_re::Digest const& action_id)
         const noexcept -> std::optional<bazel_re::ActionResult> {
-        auto entry_path = file_store_.GetPath(action_id.hash());
+        auto entry_path =
+            file_store_.GetPath(NativeSupport::Unprefix(action_id.hash()));
         bazel_re::Digest digest{};
         auto const entry =
             FileSystemManager::ReadFile(entry_path, ObjectType::File);

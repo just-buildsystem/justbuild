@@ -63,9 +63,11 @@ class TestResponse : public IExecutionResponse {
         // collect files and store them
         for (auto const& path : config_.execution.outputs) {
             try {
-                artifacts.emplace(path,
-                                  Artifact::ObjectInfo{ArtifactDigest{path, 0},
-                                                       ObjectType::File});
+                artifacts.emplace(
+                    path,
+                    Artifact::ObjectInfo{
+                        ArtifactDigest{path, 0, /*is_tree=*/false},
+                        ObjectType::File});
             } catch (...) {
                 return {};
             }
@@ -170,8 +172,8 @@ static void SetupConfig(std::filesystem::path const& ws) {
     SetupConfig(ws);
 
     auto const local_cpp_desc = ArtifactDescription{path{"local.cpp"}, ""};
-    auto const known_cpp_desc =
-        ArtifactDescription{ArtifactDigest{"known.cpp", 0}, ObjectType::File};
+    auto const known_cpp_desc = ArtifactDescription{
+        ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File};
 
     auto const test_action_desc = ActionDescription{
         {"output1.exe", "output2.exe"},

@@ -9,11 +9,13 @@
 namespace {
 
 [[nodiscard]] auto ToDigest(std::string const& s) {
-    return static_cast<bazel_re::Digest>(ArtifactDigest{s, 0});
+    return static_cast<bazel_re::Digest>(
+        ArtifactDigest{s, 0, /*is_tree=*/false});
 }
 
 [[nodiscard]] auto ToInfo(std::string const& s) {
-    return Artifact::ObjectInfo{ArtifactDigest{s, 0}, ObjectType::File};
+    return Artifact::ObjectInfo{ArtifactDigest{s, 0, /*is_tree=*/false},
+                                ObjectType::File};
 }
 
 }  // namespace

@@ -150,9 +150,7 @@ void FileGenRuleWithDeps(
     auto stage = ExpressionPtr{Expression::map_t{
         file_name_val->String(),
         ExpressionPtr{ArtifactDescription{
-            {HashFunction::ComputeBlobHash(data_val->String()).HexString(),
-             data_val->String().size()},
-            ObjectType::File}}}};
+            ArtifactDigest::Create(data_val->String()), ObjectType::File}}}};
 
     auto vars_set = std::unordered_set<std::string>{};
     vars_set.insert(param_vars->begin(), param_vars->end());

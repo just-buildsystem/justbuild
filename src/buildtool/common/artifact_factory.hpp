@@ -45,7 +45,8 @@ class ArtifactFactory {
         std::string const& blob_id,
         std::size_t size,
         ObjectType type = ObjectType::File) noexcept -> nlohmann::json {
-        return ArtifactDescription{ArtifactDigest{blob_id, size}, type}
+        return ArtifactDescription{
+            ArtifactDigest{blob_id, size, IsTreeObject(type)}, type}
             .ToJson();
     }
 

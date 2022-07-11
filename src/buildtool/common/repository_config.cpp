@@ -30,7 +30,7 @@ auto RepositoryConfig::RepositoryKey(std::string const& repo) const noexcept
                 if (auto graph = BuildGraphForRepository(unique)) {
                     auto& cas = LocalCAS<ObjectType::File>::Instance();
                     if (auto digest = cas.StoreBlobFromBytes(graph->dump(2))) {
-                        return digest->hash();
+                        return ArtifactDigest{*digest}.hash();
                     }
                 }
                 return std::nullopt;

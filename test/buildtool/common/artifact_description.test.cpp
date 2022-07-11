@@ -20,16 +20,17 @@ TEST_CASE("Local artifact", "[artifact_description]") {
 TEST_CASE("Known artifact", "[artifact_description]") {
     SECTION("File object") {
         auto known_desc = ArtifactDescription{
-            ArtifactDigest{std::string{"f_fake_hash"}, 0}, ObjectType::File};
+            ArtifactDigest{std::string{"f_fake_hash"}, 0, /*is_tree=*/false},
+            ObjectType::File};
         auto known = known_desc.ToArtifact();
         auto known_from_factory =
             ArtifactFactory::FromDescription(known_desc.ToJson());
         CHECK(known == *known_from_factory);
     }
     SECTION("Executable object") {
-        auto known_desc =
-            ArtifactDescription{ArtifactDigest{std::string{"x_fake_hash"}, 1},
-                                ObjectType::Executable};
+        auto known_desc = ArtifactDescription{
+            ArtifactDigest{std::string{"x_fake_hash"}, 1, /*is_tree=*/false},
+            ObjectType::Executable};
         auto known = known_desc.ToArtifact();
         auto known_from_factory =
             ArtifactFactory::FromDescription(known_desc.ToJson());

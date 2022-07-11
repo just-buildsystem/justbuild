@@ -41,11 +41,12 @@ class LocalCAS {
 
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest) const noexcept
         -> std::optional<std::filesystem::path> {
-        auto blob_path = file_store_.GetPath(digest.hash());
+        auto id = NativeSupport::Unprefix(digest.hash());
+        auto blob_path = file_store_.GetPath(id);
         if (FileSystemManager::IsFile(blob_path)) {
             return blob_path;
         }
-        logger_.Emit(LogLevel::Debug, "Blob not found {}", digest.hash());
+        logger_.Emit(LogLevel::Debug, "Blob not found {}", id);
         return std::nullopt;
     }
 
@@ -90,7 +91,8 @@ class LocalCAS {
         -> std::optional<bazel_re::Digest> {
         auto digest = CreateDigest(data);
         if (digest) {
-            if (StoreBlobData(digest->hash(), data, is_owner)) {
+            if (StoreBlobData(
+                    NativeSupport::Unprefix(digest->hash()), data, is_owner)) {
                 return digest;
             }
             logger_.Emit(

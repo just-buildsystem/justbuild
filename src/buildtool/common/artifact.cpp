@@ -19,6 +19,7 @@ auto Artifact::ObjectInfo::LiberalFromString(std::string const& s) noexcept
         std::getline(iss, type, ']');
     }
     auto size = static_cast<std::size_t>(std::atol(size_str.c_str()));
-    return Artifact::ObjectInfo{ArtifactDigest{id, size},
-                                FromChar(*type.c_str())};
+    auto const& object_type = FromChar(*type.c_str());
+    return Artifact::ObjectInfo{
+        ArtifactDigest{id, size, IsTreeObject(object_type)}, object_type};
 }

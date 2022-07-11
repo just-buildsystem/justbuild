@@ -63,8 +63,10 @@ class Artifact {
             }
             try {
                 std::size_t size = std::stoul(size_str);
-                return ObjectInfo{ArtifactDigest{id, size},
-                                  FromChar(*type.c_str())};
+                auto const& object_type = FromChar(*type.c_str());
+                return ObjectInfo{
+                    ArtifactDigest{id, size, IsTreeObject(object_type)},
+                    object_type};
             } catch (std::out_of_range const& e) {
                 Logger::Log(LogLevel::Error,
                             "size raised out_of_range exception.");
@@ -79,10 +81,12 @@ class Artifact {
             -> std::optional<ObjectInfo> {
             if (j.is_object() and j["id"].is_string() and
                 j["size"].is_number() and j["type"].is_string()) {
-                return ObjectInfo{
-                    ArtifactDigest{j["id"].get<std::string>(),
-                                   j["size"].get<std::size_t>()},
-                    FromChar(*(j["type"].get<std::string>().c_str()))};
+                auto const& object_type =
+                    FromChar(*(j["type"].get<std::string>().c_str()));
+                return ObjectInfo{ArtifactDigest{j["id"].get<std::string>(),
+                                                 j["size"].get<std::size_t>(),
+                                                 IsTreeObject(object_type)},
+                                  object_type};
             }
             return std::nullopt;
         }
@@ -168,7 +172,8 @@ class Artifact {
         std::size_t size,
         ObjectType type,
         std::optional<std::string> const& repo) noexcept -> Artifact {
-        return Artifact{id, {hash, size}, type, false, repo};
+        return Artifact{
+            id, {hash, size, IsTreeObject(type)}, type, false, repo};
     }
 
     [[nodiscard]] static auto CreateActionArtifact(

@@ -29,7 +29,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     // create known artifacts
     auto artifact1_opt =
         ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            file1_blob->digest.hash(),
+            NativeSupport::Unprefix(file1_blob->digest.hash()),
             static_cast<std::size_t>(file1_blob->digest.size_bytes()),
             ObjectType::File));
     CHECK(artifact1_opt.has_value());
@@ -37,7 +37,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
 
     auto artifact2_opt =
         ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            file2_blob->digest.hash(),
+            NativeSupport::Unprefix(file2_blob->digest.hash()),
             static_cast<std::size_t>(file2_blob->digest.size_bytes()),
             ObjectType::File));
     CHECK(artifact2_opt.has_value());

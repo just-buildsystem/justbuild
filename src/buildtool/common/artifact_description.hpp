@@ -272,8 +272,10 @@ class ArtifactDescription {
             });
         if (blob_id.has_value() and size.has_value() and
             file_type.has_value() and file_type->size() == 1) {
-            return ArtifactDescription{ArtifactDigest{*blob_id, *size},
-                                       FromChar((*file_type)[0])};
+            auto const& object_type = FromChar((*file_type)[0]);
+            return ArtifactDescription{
+                ArtifactDigest{*blob_id, *size, IsTreeObject(object_type)},
+                object_type};
         }
         return std::nullopt;
     }

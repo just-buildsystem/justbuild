@@ -23,8 +23,7 @@ auto TargetCache::Key::Create(BuildMaps::Base::EntityName const& target,
                  {"effective_config", effective_config.ToString()}}};
             static auto const& cas = LocalCAS<ObjectType::File>::Instance();
             if (auto target_key = cas.StoreBlobFromBytes(target_desc.dump(2))) {
-                return Key{
-                    {ArtifactDigest{std::move(*target_key)}, ObjectType::File}};
+                return Key{{ArtifactDigest{*target_key}, ObjectType::File}};
             }
         }
     } catch (std::exception const& ex) {
@@ -54,9 +53,9 @@ auto TargetCache::Entry::ToResult() const -> std::optional<TargetResult> {
 auto TargetCache::Store(Key const& key, Entry const& value) const noexcept
     -> bool {
     if (auto digest = CAS().StoreBlobFromBytes(value.ToJson().dump(2))) {
-        auto data = Artifact::ObjectInfo{ArtifactDigest{std::move(*digest)},
-                                         ObjectType::File}
-                        .ToString();
+        auto data =
+            Artifact::ObjectInfo{ArtifactDigest{*digest}, ObjectType::File}
+                .ToString();
         logger_.Emit(LogLevel::Debug,
                      "Adding entry for key {} as {}",
                      key.Id().ToString(),

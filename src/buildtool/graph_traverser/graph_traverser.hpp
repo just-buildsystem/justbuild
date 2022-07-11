@@ -261,8 +261,7 @@ class GraphTraverser {
         std::vector<std::string> const& blobs) const noexcept -> bool {
         BlobContainer container;
         for (auto const& blob : blobs) {
-            auto digest = ArtifactDigest{
-                HashFunction::ComputeBlobHash(blob).HexString(), blob.size()};
+            auto digest = ArtifactDigest::Create(blob);
             Logger::Log(LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Uploaded blob {}, its digest has id {} and size {}.",
