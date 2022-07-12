@@ -1,0 +1,8 @@
+{ "bundled-test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["bootstrap-test-bundled"]
+  , "test": ["test-bootstrap.sh"]
+  , "deps": [["", "bootstrap-src"], ["@", "just-distfiles", "", "distdir"]]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["bundled-test"]}
+}
