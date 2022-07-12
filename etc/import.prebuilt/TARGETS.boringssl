@@ -1,0 +1,12 @@
+{ "crypto":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": [["TREE", null, "."]]
+  , "stage": ["openssl"]
+  , "link external": ["-lcrypto"]
+  }
+, "ssl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "link external": ["-lssl"]
+  , "deps": ["crypto"]
+  }
+}

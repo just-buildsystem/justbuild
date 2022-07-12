@@ -1,0 +1,13 @@
+{ "protoc":
+  {"type": ["@", "rules", "data", "staged"], "srcs": [["bin", "protoc"]]}
+, "C++ runtime":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["protobuf"]
+  , "hdrs": [["include", "protobuf"]]
+  , "link external": ["-lprotobuf", "-lprotobuf_lite"]
+  }
+, "well_known_protos":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": [["proto/google/protobuf", "well_known_protos"]]
+  }
+}

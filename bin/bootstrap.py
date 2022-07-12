@@ -18,12 +18,19 @@ MAIN_MODULE = ""
 MAIN_TARGET = ""
 MAIN_STAGE = "bin/just"
 
+LOCAL_LINK_DIRS_MODULE = "src/buildtool/main"
+LOCAL_LINK_DIRS_TARGET = "just"
+
 # relevant directories (global variables)
 
 SRCDIR = os.getcwd()
 WRKDIR = None
 DISTDIR = []
+LOCALBASE = "/"
 
+# other global variables
+
+LOCAL_DEPS = False
 
 def git_hash(content):
     header = "blob {}\0".format(len(content)).encode('utf-8')
@@ -58,10 +65,10 @@ def run(cmd, *, cwd, **kwargs):
     subprocess.run(cmd, cwd=cwd, check=True, **kwargs)
 
 
-def setup_deps():
+def setup_deps(src_wrkdir):
     # unpack all dependencies and return a list of
     # additional C++ flags required
-    with open(os.path.join(SRCDIR, REPOS)) as f:
+    with open(os.path.join(src_wrkdir, REPOS)) as f:
         config = json.load(f)["repositories"]
     include_location = os.path.join(WRKDIR, "dep_includes")
     link_flags = []
@@ -112,18 +119,80 @@ def setup_deps():
 
     return {"include": ["-I", include_location], "link": link_flags}
 
+def config_to_local(*, repos_file, link_targets_file):
+    with open(repos_file) as f:
+        repos = json.load(f)
+    global_link_dirs = set()
+    for repo in repos["repositories"]:
+        desc = repos["repositories"][repo]
+        repo_desc = desc.get("repository")
+        if not isinstance(repo_desc, dict):
+            repo_desc = {}
+        if repo_desc.get("type") in ["archive", "zip"]:
+            local_bootstrap = desc.get("local_bootstrap", {})
+            desc["repository"] = {
+                "type": "file",
+                "path": os.path.normpath(
+                    os.path.join(
+                        LOCALBASE,
+                        local_bootstrap.get("local_path", ".")))
+            }
+            if "link_dirs" in local_bootstrap:
+                link = []
+                for entry in local_bootstrap["link_dirs"]:
+                    link += ["-L", os.path.join(LOCALBASE, entry)]
+                    global_link_dirs.add(entry)
+                link += local_bootstrap.get("link", [])
+                local_bootstrap["link"] = link
+            desc["bootstrap"] = local_bootstrap
+            if "local_bootstrap" in desc:
+                del desc["local_bootstrap"]
+        if repo_desc.get("type") == "file":
+            local_bootstrap = desc.get("local_bootstrap", {})
+            desc["repository"] = {
+                "type": "file",
+                "path": local_bootstrap.get("local_path", desc["repository"].get("path"))
+            }
+            desc["bootstrap"] = local_bootstrap
+            if "local_bootstrap" in desc:
+                del desc["local_bootstrap"]
+
+    print("just-mr config rewritten to local:\n%s\n"
+          % (json.dumps(repos, indent=2)))
+    os.unlink(repos_file)
+    with open(repos_file, "w") as f:
+        json.dump(repos, f, indent=2)
+
+    with open(link_targets_file) as f:
+        target = json.load(f)
+    main = target[LOCAL_LINK_DIRS_TARGET]
+    link_external = ["-L%s" % (os.path.join(LOCALBASE, d),)
+                     for d in global_link_dirs]
+    print("External link arguments %r" % (link_external,))
+    main["link external"] = link_external
+    target[LOCAL_LINK_DIRS_TARGET] = main
+    os.unlink(link_targets_file)
+    with open(link_targets_file, "w") as f:
+        json.dump(target, f, indent=2)
 
 def bootstrap():
-    # TODO: add package build mode, building against preinstalled dependencies
-    # rather than building dependencies ourselves.
-    print("Bootstrapping in %r from sources %r, taking files from %r" %
-          (WRKDIR, SRCDIR, DISTDIR))
+    if LOCAL_DEPS:
+        print("Bootstrap build in %r from sources %r against LOCALBASE %r"
+              % (WRKDIR, SRCDIR, LOCALBASE))
+    else:
+        print("Bootstrapping in %r from sources %r, taking files from %r" %
+              (WRKDIR, SRCDIR, DISTDIR))
     os.makedirs(WRKDIR, exist_ok=True)
-    dep_flags = setup_deps()
-    # handle proto
     src_wrkdir = os.path.join(WRKDIR, "src")
     shutil.copytree(SRCDIR, src_wrkdir)
-    flags = ["-I", src_wrkdir] + dep_flags["include"]
+    if LOCAL_DEPS:
+        config_to_local(
+            repos_file =os.path.join(src_wrkdir, REPOS),
+            link_targets_file=os.path.join(src_wrkdir, LOCAL_LINK_DIRS_MODULE, "TARGETS")
+        )
+    dep_flags = setup_deps(src_wrkdir)
+    # handle proto
+    flags = ["-I", src_wrkdir] + dep_flags["include"] + ["-I", os.path.join(LOCALBASE, "include")]
     cpp_files = []
     for root, dirs, files in os.walk(src_wrkdir):
         if 'test' in dirs:
@@ -177,6 +246,8 @@ def main(args):
     global SRCDIR
     global WRKDIR
     global DISTDIR
+    global LOCAL_DEPS
+    global LOCALBASE
     if len(args) > 1:
         SRCDIR = os.path.abspath(args[1])
     if len(args) > 2:
@@ -188,6 +259,9 @@ def main(args):
         WRKDIR = tempfile.mkdtemp()
     if not DISTDIR:
         DISTDIR = [os.path.join(Path.home(), ".distfiles")]
+
+    LOCAL_DEPS = "PACKAGE" in os.environ
+    LOCALBASE = os.environ.get("LOCALBASE", "/")
     bootstrap()
 
 

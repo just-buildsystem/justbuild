@@ -1,0 +1,5 @@
+{ "grpc_cpp_plugin":
+  { "type": "install"
+  , "files": {"grpc_cpp_plugin": ["", "bin/grpc_cpp_plugin"]}
+  }
+}

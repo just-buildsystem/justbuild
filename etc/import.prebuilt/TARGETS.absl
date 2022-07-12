@@ -1,0 +1,21 @@
+{ "absl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["absl"]
+  , "link external":
+    [ "-lbad_optional_access"
+    , "-lstr_format_internal"
+    , "-ltime"
+    , "-lstrings"
+    , "-lstrings_internal"
+    , "-lbase"
+    , "-ldynamic_annotations"
+    , "-lspinlock_wait"
+    , "-lthrow_delegate"
+    , "-lraw_logging_internal"
+    , "-llog_severity"
+    , "-lint128"
+    , "-ltime_zone"
+    , "-lcivil_time"
+    ]
+  }
+}

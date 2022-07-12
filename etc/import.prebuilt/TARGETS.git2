@@ -1,0 +1,13 @@
+{ "git2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": ["git2.h", ["TREE", null, "git2"]]
+  , "link external":
+    [ "-lgit2"
+    , "-lgit2_os_unix"
+    , "-lgit2_hash_openssl"
+    , "-lgit2_pcre"
+    , "-lgit2_http_parser"
+    , "-lpthread"
+    ]
+  }
+}
