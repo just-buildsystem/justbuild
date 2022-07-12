@@ -40,6 +40,12 @@ class BazelMsgFactory {
         bazel_re::Directory const& dir,
         InfoStoreFunc const& store_info) noexcept -> bool;
 
+    /// \brief Read object infos from git tree.
+    /// \returns true on success.
+    [[nodiscard]] static auto ReadObjectInfosFromGitTree(
+        GitCAS::tree_entries_t const& entries,
+        InfoStoreFunc const& store_info) noexcept -> bool;
+
     /// \brief Create Directory digest from artifact tree structure.
     /// Recursively traverse entire tree and create blobs for sub-directories.
     /// \param artifacts    Artifact tree structure.

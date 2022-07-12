@@ -457,6 +457,32 @@ auto BazelMsgFactory::ReadObjectInfosFromDirectory(
     return true;
 }
 
+auto BazelMsgFactory::ReadObjectInfosFromGitTree(
+    GitCAS::tree_entries_t const& entries,
+    InfoStoreFunc const& store_info) noexcept -> bool {
+    try {
+        for (auto const& [raw_id, es] : entries) {
+            auto const hex_id = ToHexString(raw_id);
+            for (auto const& entry : es) {
+                if (not store_info(entry.name,
+                                   Artifact::ObjectInfo{
+                                       ArtifactDigest{hex_id,
+                                                      /*size is unknown*/ 0,
+                                                      IsTreeObject(entry.type)},
+                                       entry.type})) {
+                    return false;
+                }
+            }
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "reading object infos from Git tree failed with:\n{}",
+                    ex.what());
+        return false;
+    }
+    return true;
+}
+
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts,
     std::optional<BlobStoreFunc> const& store_blob,
