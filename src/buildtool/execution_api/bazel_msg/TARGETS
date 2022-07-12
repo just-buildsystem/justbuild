@@ -21,6 +21,7 @@
     [ "bazel_msg"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["@", "gsl-lite", "", "gsl-lite"]

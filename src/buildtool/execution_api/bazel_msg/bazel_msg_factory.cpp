@@ -14,6 +14,8 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 namespace {
 
@@ -408,6 +410,64 @@ class DirectoryTree {
             root_name, CreateDirectory(file_nodes, dir_nodes, {}, {}));
     }
 
+    /// \brief Convert tree to `BazelBlob`.
+    /// NOLINTNEXTLINE(misc-no-recursion)
+    [[nodiscard]] auto ToBlob(
+        std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
+        std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
+        std::filesystem::path const& parent = "") const
+        -> std::optional<BazelBlob> {
+        GitCAS::tree_entries_t entries;
+        entries.reserve(nodes_.size());
+        for (auto const& [name, node] : nodes_) {
+            if (std::holds_alternative<DirectoryTreePtr>(node)) {
+                auto const& dir = std::get<DirectoryTreePtr>(node);
+                auto blob = dir->ToBlob(store_blob, store_info, parent / name);
+                if (not blob) {
+                    return std::nullopt;
+                }
+                auto raw_id =
+                    FromHexString(NativeSupport::Unprefix(blob->digest.hash()));
+                if (not raw_id) {
+                    return std::nullopt;
+                }
+                entries[std::move(*raw_id)].emplace_back(name,
+                                                         ObjectType::Tree);
+                if (store_blob) {
+                    (*store_blob)(std::move(*blob));
+                }
+            }
+            else {
+                auto const& artifact = std::get<Artifact const*>(node);
+                auto const& object_info = artifact->Info();
+                if (not object_info) {
+                    return std::nullopt;
+                }
+                auto raw_id = FromHexString(object_info->digest.hash());
+                if (not raw_id) {
+                    return std::nullopt;
+                }
+                entries[std::move(*raw_id)].emplace_back(name,
+                                                         object_info->type);
+                if (store_info and
+                    not(*store_info)(parent / name, *object_info)) {
+                    return std::nullopt;
+                }
+            }
+        }
+
+        if (auto git_tree = GitCAS::CreateShallowTree(entries)) {
+            bazel_re::Digest digest{};
+            digest.set_hash(NativeSupport::Prefix(ToHexString(git_tree->first),
+                                                  /*is_tree=*/true));
+            digest.set_size_bytes(
+                gsl::narrow<google::protobuf::int64>(git_tree->second.size()));
+            return BazelBlob{digest, std::move(git_tree->second)};
+        }
+
+        return std::nullopt;
+    }
+
   private:
     using Node = std::variant<DirectoryTreePtr, Artifact const*>;
     std::unordered_map<std::string, Node> nodes_;
@@ -500,14 +560,24 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
         }
     }
 
-    auto bundle = build_root.ToBundle("", store_blob, store_info);
-    if (not bundle) {
-        return std::nullopt;
+    if (Compatibility::IsCompatible()) {
+        if (auto bundle = build_root.ToBundle("", store_blob, store_info)) {
+            if (store_blob) {
+                (*store_blob)(bundle->MakeBlob());
+            }
+            return bundle->Digest();
+        }
     }
-    if (store_blob) {
-        (*store_blob)(bundle->MakeBlob());
+    else {
+        if (auto blob = build_root.ToBlob(store_blob, store_info)) {
+            auto digest = blob->digest;
+            if (store_blob) {
+                (*store_blob)(std::move(*blob));
+            }
+            return digest;
+        }
     }
-    return bundle->Digest();
+    return std::nullopt;
 }
 
 auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
