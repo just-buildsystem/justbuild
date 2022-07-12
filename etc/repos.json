@@ -14,6 +14,7 @@
       , "bazel_remote_apis": "bazel_remote_apis"
       , "libgit2": "com_github_libgit2_libgit2"
       , "catch2": "catch2"
+      , "protoc": "protobuf"
       }
     , "bootstrap": {"link": ["-lpthread"]}
     , "bootstrap_local": {"link": ["-lpthread"]}

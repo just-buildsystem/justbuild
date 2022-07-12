@@ -1,0 +1,208 @@
+{ "stage-deps":
+  { "doc":
+    [ "Set up depending libraries in a way they could occur in a distribution"
+    , ""
+    , "Runfiles and \"compile-deps\" of \"libs\" are staged to \"include\","
+    , "artifacts and \"link-deps\" to \"lib\", in a flat way."
+    , "Articats of \"bins\" are staged to \"bin\"."
+    , "The source files underlying \"protos\" are staged to \"proto\"."
+    , "The artifacts of \"deps\" are directly added to the stage."
+    , "This is only for testing bootstrapping against preinstalled dependencies."
+    ]
+  , "tainted": ["test"]
+  , "target_fields": ["libs", "bins", "protos", "deps"]
+  , "string_fields": ["prefix"]
+  , "anonymous":
+    { "proto-srcs":
+      { "target": "protos"
+      , "provider": "proto"
+      , "rule_map":
+        {"library": "stage-proto", "service library": "stage-proto"}
+      }
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "prefix"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "prefix"}
+          }
+        ]
+      , [ "runfiles"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "foreach"
+                , "var": "dep"
+                , "range": {"type": "FIELD", "name": "libs"}
+                , "body":
+                  { "type": "DEP_RUNFILES"
+                  , "dep": {"type": "var", "name": "dep"}
+                  }
+                }
+              , { "type": "foreach"
+                , "var": "dep"
+                , "range": {"type": "FIELD", "name": "libs"}
+                , "body":
+                  { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "dep"}
+                  , "provider": "compile-deps"
+                  , "default": {"type": "empty_map"}
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      , [ "artifacts"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "foreach"
+                , "var": "dep"
+                , "range": {"type": "FIELD", "name": "libs"}
+                , "body":
+                  { "type": "DEP_ARTIFACTS"
+                  , "dep": {"type": "var", "name": "dep"}
+                  }
+                }
+              , { "type": "foreach"
+                , "var": "dep"
+                , "range": {"type": "FIELD", "name": "libs"}
+                , "body":
+                  { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "dep"}
+                  , "provider": "link-deps"
+                  , "default": {"type": "empty_map"}
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      , [ "bins"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "bins"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+            }
+          }
+        ]
+      , [ "protos"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "proto-srcs"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+            }
+          }
+        ]
+      , [ "deps"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "deps"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+            }
+          }
+        ]
+      , [ "stage"
+        , { "type": "map_union"
+          , "$1":
+            [ { "type": "to_subdir"
+              , "subdir": "include"
+              , "$1": {"type": "var", "name": "runfiles"}
+              }
+            , { "type": "to_subdir"
+              , "subdir": "lib"
+              , "flat": true
+              , "$1": {"type": "var", "name": "artifacts"}
+              }
+            , { "type": "to_subdir"
+              , "subdir": "bin"
+              , "$1": {"type": "var", "name": "bins"}
+              }
+            , { "type": "to_subdir"
+              , "subdir": "proto"
+              , "$1": {"type": "var", "name": "protos"}
+              }
+            , {"type": "var", "name": "deps"}
+            ]
+          }
+        ]
+      , [ "stage"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "prefix"}
+          , "$1": {"type": "var", "name": "stage"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "runfiles": {"type": "var", "name": "stage"}
+      , "artifacts": {"type": "var", "name": "stage"}
+      }
+    }
+  }
+, "stage-proto":
+  { "string_fields": ["name", "stage"]
+  , "target_fields": ["srcs", "deps"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "srcs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "src"
+            , "range": {"type": "FIELD", "name": "srcs"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "src"}}
+            }
+          }
+        ]
+      , [ "srcs"
+        , { "type": "to_subdir"
+          , "subdir":
+            { "type": "join"
+            , "separator": "/"
+            , "$1": {"type": "FIELD", "name": "stage"}
+            }
+          , "$1": {"type": "var", "name": "srcs"}
+          }
+        ]
+      , [ "transitive srcs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "src"
+            , "range": {"type": "FIELD", "name": "deps"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "src"}}
+            }
+          }
+        ]
+      , [ "all srcs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            [ {"type": "var", "name": "srcs"}
+            , {"type": "var", "name": "transitive srcs"}
+            ]
+          }
+        ]
+      ]
+    , "body":
+      {"type": "RESULT", "artifacts": {"type": "var", "name": "all srcs"}}
+    }
+  }
+}
