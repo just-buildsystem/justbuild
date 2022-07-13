@@ -131,6 +131,13 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 
 auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
                                       BazelBlob const& blob) noexcept -> bool {
+    logger_.Emit(LogLevel::Trace, [&blob]() {
+        std::ostringstream oss{};
+        oss << "upload single blob" << std::endl;
+        oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
+        return oss.str();
+    });
+
     thread_local static std::string uuid{};
     if (uuid.empty()) {
         auto id = CreateProcessUniqueId();
@@ -185,6 +192,20 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
         LogStatus(&logger_, LogLevel::Debug, status);
     }
 
+    logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+        std::ostringstream oss{};
+        oss << "find missing blobs" << std::endl;
+        std::for_each(start, end, [&oss](auto const& digest) {
+            oss << fmt::format(" - {}", digest.hash()) << std::endl;
+        });
+        oss << "missing blobs" << std::endl;
+        std::for_each(
+            result.cbegin(), result.cend(), [&oss](auto const& digest) {
+                oss << fmt::format(" - {}", digest.hash()) << std::endl;
+            });
+        return oss.str();
+    });
+
     return result;
 }
 
@@ -224,6 +245,20 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
             }
         }
     }
+
+    logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+        std::ostringstream oss{};
+        oss << "upload blobs" << std::endl;
+        std::for_each(start, end, [&oss](auto const& blob) {
+            oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
+        });
+        oss << "received blobs" << std::endl;
+        std::for_each(
+            result.cbegin(), result.cend(), [&oss](auto const& digest) {
+                oss << fmt::format(" - {}", digest.hash()) << std::endl;
+            });
+        return oss.str();
+    });
 
     return result;
 }

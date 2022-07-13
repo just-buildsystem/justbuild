@@ -37,6 +37,23 @@ class ExecutorImpl {
         IExecutionAction::CacheFlag cache_flag)
         -> std::optional<IExecutionResponse::Ptr> {
         auto const& inputs = action->Dependencies();
+        auto const tree_action = action->Content().IsTreeAction();
+
+        logger.Emit(LogLevel::Trace, [&inputs, tree_action]() {
+            std::ostringstream oss{};
+            oss << "execute " << (tree_action ? "tree " : "") << "action"
+                << std::endl;
+            for (auto const& [local_path, artifact] : inputs) {
+                auto const& info = artifact->Content().Info();
+                oss << fmt::format(
+                           " - needs {} {}",
+                           local_path,
+                           info ? info->ToString() : std::string{"[???]"})
+                    << std::endl;
+            }
+            return oss.str();
+        });
+
         auto const root_digest = CreateRootDigest(api, inputs);
         if (not root_digest) {
             Logger::Log(LogLevel::Error,
@@ -44,7 +61,7 @@ class ExecutorImpl {
             return nullptr;
         }
 
-        if (action->Content().IsTreeAction()) {
+        if (tree_action) {
             auto const& tree_artifact = action->OutputDirs()[0].node->Content();
             bool failed_inputs = false;
             for (auto const& [local_path, artifact] : inputs) {
@@ -57,20 +74,6 @@ class ExecutorImpl {
 
         Progress::Instance().Start(action->Content().Id());
         Statistics::Instance().IncrementActionsQueuedCounter();
-
-        logger.Emit(LogLevel::Trace, [&inputs]() {
-            std::ostringstream oss{};
-            oss << "start processing" << std::endl;
-            for (auto const& [local_path, artifact] : inputs) {
-                auto const& info = artifact->Content().Info();
-                oss << fmt::format(
-                           " - needs {} {}",
-                           local_path,
-                           info ? info->ToString() : std::string{"[???]"})
-                    << std::endl;
-            }
-            return oss.str();
-        });
 
         auto remote_action = api->CreateAction(*root_digest,
                                                action->Command(),
@@ -99,6 +102,7 @@ class ExecutorImpl {
     /// \returns True if artifact is available at the point of return, false
     /// otherwise
     [[nodiscard]] static auto VerifyOrUploadArtifact(
+        Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
         gsl::not_null<IExecutionApi*> const& api) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
@@ -115,6 +119,13 @@ class ExecutorImpl {
         // If the artifact has digest, we check that an object with this digest
         // is available to the execution API
         if (object_info_opt) {
+            logger.Emit(LogLevel::Trace, [&object_info_opt]() {
+                std::ostringstream oss{};
+                oss << fmt::format("upload KNOWN artifact: {}",
+                                   object_info_opt->ToString())
+                    << std::endl;
+                return oss.str();
+            });
             if (not api->IsAvailable(object_info_opt->digest) and
                 not VerifyOrUploadKnownArtifact(
                     api,
@@ -134,6 +145,13 @@ class ExecutorImpl {
         // Note that we can be sure now that file_path_opt has a value and
         // that the path stored is relative to the workspace dir, so we need to
         // prepend it
+        logger.Emit(LogLevel::Trace, [&file_path_opt]() {
+            std::ostringstream oss{};
+            oss << fmt::format("upload LOCAL artifact: {}",
+                               file_path_opt->string())
+                << std::endl;
+            return oss.str();
+        });
         auto repo = artifact->Content().Repository();
         auto new_info = UploadFile(api, repo, *file_path_opt);
         if (not new_info) {
@@ -175,6 +193,16 @@ class ExecutorImpl {
                 return false;
             }
         }
+
+        Logger::Log(LogLevel::Trace, [&tree]() {
+            std::ostringstream oss{};
+            oss << "upload directory content" << std::endl;
+            for (auto const& [path, entry] : *tree) {
+                oss << fmt::format(" - {}: {}", path, entry->Hash())
+                    << std::endl;
+            }
+            return oss.str();
+        });
 
         // find missing digests
         auto missing_digests = api->IsAvailable(digests);
@@ -532,7 +560,8 @@ class Executor {
     [[nodiscard]] auto Process(
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
-        return Impl::VerifyOrUploadArtifact(artifact, api_);
+        Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
+        return Impl::VerifyOrUploadArtifact(logger, artifact, api_);
     }
 
   private:
@@ -595,7 +624,8 @@ class Rebuilder {
     [[nodiscard]] auto Process(
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
-        return Impl::VerifyOrUploadArtifact(artifact, api_);
+        Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
+        return Impl::VerifyOrUploadArtifact(logger, artifact, api_);
     }
 
     [[nodiscard]] auto DumpFlakyActions() const noexcept -> nlohmann::json {

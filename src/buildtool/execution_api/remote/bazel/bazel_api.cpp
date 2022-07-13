@@ -166,6 +166,14 @@ auto BazelApi::CreateAction(
         Logger::Log(LogLevel::Debug, "failed to create digest for tree.");
         return std::nullopt;
     }
+
+    Logger::Log(LogLevel::Trace, [&digest]() {
+        std::ostringstream oss{};
+        oss << "upload root directory" << std::endl;
+        oss << fmt::format(" - root digest: {}", digest->hash()) << std::endl;
+        return oss.str();
+    });
+
     if (not Upload(blobs, /*skip_find_missing=*/false)) {
         Logger::Log(LogLevel::Debug, "failed to upload blobs for tree.");
         return std::nullopt;

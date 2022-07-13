@@ -45,7 +45,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      "start execution\n"
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
-                     root_digest_.hash(),
+                     static_cast<bazel_re::Digest>(root_digest_).hash(),
                      action.hash());
     }
 
