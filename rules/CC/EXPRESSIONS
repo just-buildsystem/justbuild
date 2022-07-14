@@ -499,8 +499,8 @@
             { "type": "++"
             , "$1":
               [ {"type": "keys", "$1": {"type": "var", "name": "lib"}}
-              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               , {"type": "var", "name": "link external", "default": []}
+              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               ]
             }
           }
