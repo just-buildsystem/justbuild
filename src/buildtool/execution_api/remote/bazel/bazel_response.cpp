@@ -18,7 +18,8 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
     ArtifactInfos artifacts{};
     auto const& action_result = output_.action_result;
     artifacts.reserve(
-        static_cast<std::size_t>(action_result.output_files().size()));
+        static_cast<std::size_t>(action_result.output_files().size()) +
+        static_cast<std::size_t>(action_result.output_directories().size()));
 
     // collect files and store them
     for (auto const& file : action_result.output_files()) {
