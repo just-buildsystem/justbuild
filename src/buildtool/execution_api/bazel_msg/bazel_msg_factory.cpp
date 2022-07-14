@@ -680,3 +680,26 @@ auto BazelMsgFactory::DirectoryToString(bazel_re::Directory const& dir) noexcept
         return std::nullopt;
     }
 }
+
+auto BazelMsgFactory::GitTreeToString(
+    GitCAS::tree_entries_t const& entries) noexcept
+    -> std::optional<std::string> {
+    auto json = nlohmann::json::object();
+    try {
+        if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
+                entries, [&json](auto path, auto info) {
+                    json[path.string()] = info.ToString(/*size_unknown=*/true);
+                    return true;
+                })) {
+            Logger::Log(LogLevel::Error,
+                        "reading object infos from Directory failed");
+            return std::nullopt;
+        }
+        return json.dump(2) + "\n";
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "dumping Directory to string failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+}

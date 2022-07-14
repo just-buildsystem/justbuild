@@ -113,6 +113,11 @@ class BazelMsgFactory {
     [[nodiscard]] static auto DirectoryToString(
         bazel_re::Directory const& dir) noexcept -> std::optional<std::string>;
 
+    /// \brief Create descriptive string from Git tree entries.
+    [[nodiscard]] static auto GitTreeToString(
+        GitCAS::tree_entries_t const& entries) noexcept
+        -> std::optional<std::string>;
+
     /// \brief Create message vector from std::map.
     /// \param[in]  input   map
     /// \tparam     T       protobuf message type. It must be a name-value
