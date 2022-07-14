@@ -1,6 +1,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
 #include "gsl-lite/gsl-lite.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -32,6 +33,22 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
         } catch (...) {
             return {};
         }
+    }
+
+    if (not Compatibility::IsCompatible()) {
+        // in native mode: just collect and store tree digests
+        for (auto const& tree : action_result.output_directories()) {
+            gsl_ExpectsAudit(NativeSupport::IsTree(tree.tree_digest().hash()));
+            try {
+                artifacts.emplace(
+                    tree.path(),
+                    Artifact::ObjectInfo{ArtifactDigest{tree.tree_digest()},
+                                         ObjectType::Tree});
+            } catch (...) {
+                return {};
+            }
+        }
+        return artifacts;
     }
 
     // obtain tree digests for output directories
