@@ -12,6 +12,7 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
 namespace {
@@ -536,6 +537,67 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
             } catch (std::exception const& ex) {
                 Logger::Log(LogLevel::Error,
                             "storing directory failed with:\n{}",
+                            ex.what());
+            }
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
+}
+
+auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+    std::filesystem::path const& root,
+    FileStoreFunc const& store_file,
+    TreeStoreFunc const& store_tree) noexcept
+    -> std::optional<bazel_re::Digest> {
+    GitCAS::tree_entries_t entries{};
+    auto dir_reader = [&entries, &root, &store_file, &store_tree](auto name,
+                                                                  auto type) {
+        if (IsTreeObject(type)) {
+            // create and store sub directory
+            if (auto digest = CreateGitTreeDigestFromLocalTree(
+                    root / name, store_file, store_tree)) {
+                if (auto raw_id = FromHexString(
+                        NativeSupport::Unprefix(digest->hash()))) {
+                    entries[std::move(*raw_id)].emplace_back(name.string(),
+                                                             ObjectType::Tree);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // create and store file
+        try {
+            const auto full_name = root / name;
+            const bool is_executable =
+                FileSystemManager::IsExecutable(full_name, true);
+            if (auto digest = store_file(full_name, is_executable)) {
+                if (auto raw_id = FromHexString(
+                        NativeSupport::Unprefix(digest->hash()))) {
+                    entries[std::move(*raw_id)].emplace_back(
+                        name.string(),
+                        is_executable ? ObjectType::Executable
+                                      : ObjectType::File);
+                    return true;
+                }
+            }
+        } catch (std::exception const& ex) {
+            Logger::Log(
+                LogLevel::Error, "storing file failed with:\n{}", ex.what());
+        }
+        return false;
+    };
+
+    if (FileSystemManager::ReadDirectory(root, dir_reader)) {
+        if (auto tree = GitCAS::CreateShallowTree(entries)) {
+            try {
+                if (auto digest = store_tree(tree->second, entries)) {
+                    return *digest;
+                }
+            } catch (std::exception const& ex) {
+                Logger::Log(LogLevel::Error,
+                            "storing tree failed with:\n{}",
                             ex.what());
             }
             return std::nullopt;

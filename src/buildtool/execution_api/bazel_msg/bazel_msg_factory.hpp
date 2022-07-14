@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
 
 /// \brief Factory for creating Bazel API protobuf messages.
 /// Responsible for creating protobuf messages necessary for Bazel API server
@@ -29,6 +30,9 @@ class BazelMsgFactory {
     using DirStoreFunc = std::function<std::optional<bazel_re::Digest>(
         std::string const&,
         bazel_re::Directory const&)>;
+    using TreeStoreFunc = std::function<std::optional<bazel_re::Digest>(
+        std::string const&,
+        GitCAS::tree_entries_t const&)>;
 
     /// \brief Read object infos from directory.
     /// \returns true on success.
@@ -58,6 +62,18 @@ class BazelMsgFactory {
         std::filesystem::path const& root,
         FileStoreFunc const& store_file,
         DirStoreFunc const& store_dir) noexcept
+        -> std::optional<bazel_re::Digest>;
+
+    /// \brief Create Git tree digest from local file root.
+    /// Recursively traverse entire root and store files and directories.
+    /// \param root         Path to local file root.
+    /// \param store_file   Function for storing local file via path.
+    /// \param store_tree   Function for storing git trees.
+    /// \returns Digest representing the entire file root.
+    [[nodiscard]] static auto CreateGitTreeDigestFromLocalTree(
+        std::filesystem::path const& root,
+        FileStoreFunc const& store_file,
+        TreeStoreFunc const& store_tree) noexcept
         -> std::optional<bazel_re::Digest>;
 
     /// \brief Creates Action digest from command line.
