@@ -32,10 +32,13 @@ class Artifact {
         }
 
         // Create string of the form '[hash:size:type]'
-        [[nodiscard]] auto ToString() const noexcept -> std::string {
+        [[nodiscard]] auto ToString(bool size_unknown = false) const noexcept
+            -> std::string {
+            auto size_str =
+                size_unknown ? std::string{} : std::to_string(digest.size());
             return fmt::format("[{}:{}:{}]{}",
                                digest.hash(),
-                               digest.size(),
+                               size_str,
                                ToChar(type),
                                failed ? " FAILED" : "");
         }
