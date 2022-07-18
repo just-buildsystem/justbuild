@@ -1189,7 +1189,8 @@ void ReportTaintedness(const AnalysisResult& result) {
                     output_path.string());
     }
     else {  // dump to stdout
-        if (not api->RetrieveToFds({object_info}, {dup(fileno(stdout))})) {
+        if (not api->RetrieveToFds(
+                {object_info}, {dup(fileno(stdout))}, clargs.raw_tree)) {
             Logger::Log(LogLevel::Error, "failed to dump artifact.");
             return false;
         }

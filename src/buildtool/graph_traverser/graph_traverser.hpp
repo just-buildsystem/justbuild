@@ -610,7 +610,8 @@ class GraphTraverser {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
                         if (not api_->RetrieveToFds({*info},
-                                                    {dup(fileno(stdout))})) {
+                                                    {dup(fileno(stdout))},
+                                                    /*raw_tree=*/false)) {
                             Logger::Log(LogLevel::Error,
                                         "Failed to retrieve {}",
                                         *(clargs_.build.print_to_stdout));

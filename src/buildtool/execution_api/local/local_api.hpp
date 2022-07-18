@@ -74,7 +74,8 @@ class LocalApi final : public IExecutionApi {
 
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        std::vector<int> const& fds) noexcept -> bool final {
+        std::vector<int> const& fds,
+        bool /*raw_tree*/) noexcept -> bool final {
         if (artifacts_info.size() != fds.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and file descriptors.");

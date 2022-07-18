@@ -52,11 +52,14 @@ class IExecutionApi {
         -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
-    /// Tree artifacts are not resolved and instead the raw protobuf message
-    /// will be written to fd.
+    /// Tree artifacts are not resolved and instead the tree object will be
+    /// pretty-printed before writing to fd. If `raw_tree` is set, pretty
+    /// printing will be omitted and the raw tree object will be written
+    /// instead.
     [[nodiscard]] virtual auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        std::vector<int> const& fds) noexcept -> bool = 0;
+        std::vector<int> const& fds,
+        bool raw_tree) noexcept -> bool = 0;
 
     /// \brief Upload blobs to CAS. Uploads only the blobs that are not yet
     /// available in CAS, unless `skip_find_missing` is specified.

@@ -115,7 +115,8 @@ auto BazelApi::CreateAction(
 
 [[nodiscard]] auto BazelApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
-    std::vector<int> const& fds) noexcept -> bool {
+    std::vector<int> const& fds,
+    bool /*raw_tree*/) noexcept -> bool {
     if (artifacts_info.size() != fds.size()) {
         Logger::Log(LogLevel::Error,
                     "different number of digests and file descriptors.");

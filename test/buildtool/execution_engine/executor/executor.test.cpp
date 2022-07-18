@@ -126,8 +126,8 @@ class TestApi : public IExecutionApi {
         return false;  // not needed by Executor
     }
     auto RetrieveToFds(std::vector<Artifact::ObjectInfo> const& /*unused*/,
-                       std::vector<int> const& /*unused*/) noexcept
-        -> bool final {
+                       std::vector<int> const& /*unused*/,
+                       bool /*unused*/) noexcept -> bool final {
         return false;  // not needed by Executor
     }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept

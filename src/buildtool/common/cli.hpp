@@ -97,6 +97,7 @@ struct RebuildArguments {
 struct FetchArguments {
     std::string object_id{};
     std::optional<std::filesystem::path> output_path{};
+    bool raw_tree{};
 };
 
 /// \brief Arguments required for running from graph file.
@@ -377,6 +378,10 @@ static inline auto SetupFetchArguments(
            },
            "Install path for the artifact. (omit to dump to stdout)")
         ->type_name("PATH");
+
+    app->add_flag("--raw-tree",
+                  clargs->raw_tree,
+                  "Dump raw tree object (omit pretty printting)");
 }
 
 static inline auto SetupGraphArguments(
