@@ -97,7 +97,7 @@ def read_config(configfile):
 def git_root(*, upstream):
     if upstream in GIT_CHECKOUT_LOCATIONS:
         return GIT_CHECKOUT_LOCATIONS[upstream]
-    elif upstream and os.path.isabs(upstream):
+    elif upstream and os.path.isabs(upstream) and os.path.isdir(upstream):
         return upstream
     else:
         return os.path.join(ROOT, "git")
