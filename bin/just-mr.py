@@ -103,8 +103,13 @@ def git_root(*, upstream):
         return os.path.join(ROOT, "git")
 
 
+def is_cache_git_root(upstream):
+    """return true if upstream is the default git root in the cache directory"""
+    return git_root(upstream=upstream) == git_root(upstream=None)
+
+
 def git_keep(commit, *, upstream):
-    if upstream in GIT_CHECKOUT_LOCATIONS:
+    if not is_cache_git_root(upstream):
         # for those, we assume the referenced commit is kept by
         # some branch anyway
         return
@@ -188,6 +193,8 @@ def git_checkout(desc):
     if ALWAYS_FILE and os.path.exists(target):
         return ["file", subdir_path(target, desc)]
     repo = desc["repository"]
+    if git_url_is_path(repo):
+        repo = os.path.abspath(repo)
     root = git_root(upstream=repo)
     ensure_git(upstream=repo)
     if not git_commit_present(commit, upstream=repo):
