@@ -405,7 +405,23 @@
         ]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
       , [ "base name"
-        , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+        , { "type": "let*"
+          , "bindings":
+            [ [ "name"
+              , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+              ]
+            ]
+          , "body":
+            { "type": "if"
+            , "cond": {"type": "var", "name": "objects"}
+            , "then":
+              { "type": "assert_non_empty"
+              , "msg": "A name has to be provided for non-header-only libraries"
+              , "$1": {"type": "var", "name": "name"}
+              }
+            , "else": {"type": "var", "name": "name"}
+            }
+          }
         ]
       , [ "libname"
         , { "type": "join"

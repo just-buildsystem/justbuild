@@ -476,7 +476,10 @@
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
       , [ "base name"
-        , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+        , { "type": "assert_non_empty"
+          , "msg": "A non-empty name has to be provided for binaries"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
         ]
       , [ "binary name"
         , { "type": "if"

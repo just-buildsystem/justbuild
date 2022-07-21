@@ -129,7 +129,7 @@
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
       , [ "base name"
         , { "type": "assert_non_empty"
-          , "msg": "A non-empy name has to be provided"
+          , "msg": "A non-empty name has to be provided"
           , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
           }
         ]
