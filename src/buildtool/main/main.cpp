@@ -58,6 +58,7 @@ struct CommandLineArguments {
     CommonArguments common;
     LogArguments log;
     AnalysisArguments analysis;
+    DescribeArguments describe;
     DiagnosticArguments diagnose;
     EndpointArguments endpoint;
     BuildArguments build;
@@ -74,6 +75,7 @@ auto SetupDescribeCommandArguments(
     SetupCommonArguments(app, &clargs->common);
     SetupAnalysisArguments(app, &clargs->analysis, false);
     SetupLogArguments(app, &clargs->log);
+    SetupDescribeArguments(app, &clargs->describe);
 }
 
 /// \brief Setup arguments for sub command "just analyse".
@@ -1221,15 +1223,113 @@ void PrintFields(nlohmann::json const& fields,
     }
 }
 
-auto DescribeTarget(std::string const& main_repo,
-                    std::optional<std::filesystem::path> const& main_ws_root,
-                    std::size_t jobs,
-                    AnalysisArguments const& clargs) -> int {
+auto DetermineNonExplicitTarget(
+    std::string const& main_repo,
+    std::optional<std::filesystem::path> const& main_ws_root,
+    AnalysisArguments const& clargs)
+    -> std::optional<BuildMaps::Target::ConfiguredTarget> {
     auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
-    if (id.target.GetNamedTarget().reference_t == Base::ReferenceType::kFile) {
-        std::cout << id.ToString() << " is a source file." << std::endl;
-        return kExitSuccess;
+    switch (id.target.GetNamedTarget().reference_t) {
+        case Base::ReferenceType::kFile:
+            std::cout << id.ToString() << " is a source file." << std::endl;
+            return std::nullopt;
+        case Base::ReferenceType::kTree:
+            std::cout << id.ToString() << " is a tree." << std::endl;
+            return std::nullopt;
+        case Base::ReferenceType::kTarget:
+            return id;
     }
+}
+
+auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
+                             std::size_t jobs) -> int {
+    bool failed{};
+    auto rule_file_map = Base::CreateRuleFileMap(jobs);
+    nlohmann::json rules_file;
+    {
+        TaskSystem ts{jobs};
+        rule_file_map.ConsumeAfterKeysReady(
+            &ts,
+            {rule_name.ToModule()},
+            [&rules_file](auto values) { rules_file = *values[0]; },
+            [&failed](auto const& msg, bool fatal) {
+                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
+                            "While searching for rule definition:\n{}",
+                            msg);
+                failed = failed or fatal;
+            });
+    }
+    if (failed) {
+        return kExitFailure;
+    }
+    auto ruledesc_it = rules_file.find(rule_name.GetNamedTarget().name);
+    if (ruledesc_it == rules_file.end()) {
+        Logger::Log(LogLevel::Error,
+                    "Rule definition of {} is missing",
+                    rule_name.ToString());
+        return kExitFailure;
+    }
+    auto const& rdesc = *ruledesc_it;
+    auto doc = rdesc.find("doc");
+    if (doc != rdesc.end()) {
+        PrintDoc(*doc, " | ");
+    }
+    auto field_doc = nlohmann::json::object();
+    auto field_doc_it = rdesc.find("field_doc");
+    if (field_doc_it != rdesc.end() and field_doc_it->is_object()) {
+        field_doc = *field_doc_it;
+    }
+    auto string_fields = rdesc.find("string_fields");
+    if (string_fields != rdesc.end() and (not string_fields->empty())) {
+        std::cout << " String fields\n";
+        PrintFields(*string_fields, field_doc, " - ", "   | ");
+    }
+    auto target_fields = rdesc.find("target_fields");
+    if (target_fields != rdesc.end() and (not target_fields->empty())) {
+        std::cout << " Target fields\n";
+        PrintFields(*target_fields, field_doc, " - ", "   | ");
+    }
+    auto config_fields = rdesc.find("config_fields");
+    if (config_fields != rdesc.end() and (not config_fields->empty())) {
+        std::cout << " Config fields\n";
+        PrintFields(*config_fields, field_doc, " - ", "   | ");
+    }
+    auto config_doc = nlohmann::json::object();
+    auto config_doc_it = rdesc.find("config_doc");
+    if (config_doc_it != rdesc.end() and config_doc_it->is_object()) {
+        config_doc = *config_doc_it;
+    }
+    auto config_vars = rdesc.find("config_vars");
+    if (config_vars != rdesc.end() and (not config_vars->empty())) {
+        std::cout << " Variables taken from the configuration\n";
+        PrintFields(*config_vars, config_doc, " - ", "   | ");
+    }
+    std::cout << " Result\n";
+    std::cout << " - Artifacts\n";
+    auto artifacts_doc = rdesc.find("artifacts_doc");
+    if (artifacts_doc != rdesc.end()) {
+        PrintDoc(*artifacts_doc, "   | ");
+    }
+    std::cout << " - Runfiles\n";
+    auto runfiles_doc = rdesc.find("runfiles_doc");
+    if (runfiles_doc != rdesc.end()) {
+        PrintDoc(*runfiles_doc, "   | ");
+    }
+    auto provides_doc = rdesc.find("provides_doc");
+    if (provides_doc != rdesc.end()) {
+        std::cout << " - Documented providers\n";
+        for (auto& el : provides_doc->items()) {
+            std::cout << "   - " << el.key() << "\n";
+            PrintDoc(el.value(), "     | ");
+        }
+    }
+
+    std::cout << std::endl;
+    return kExitSuccess;
+}
+
+auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
+                    std::size_t jobs) -> int {
     auto targets_file_map = Base::CreateTargetsFileMap(jobs);
     nlohmann::json targets_file{};
     bool failed{false};
@@ -1297,90 +1397,9 @@ auto DescribeTarget(std::string const& main_repo,
     if (not rule_name) {
         return kExitFailure;
     }
-    auto rule_file_map = Base::CreateRuleFileMap(jobs);
-    nlohmann::json rules_file;
-    {
-        TaskSystem ts{jobs};
-        rule_file_map.ConsumeAfterKeysReady(
-            &ts,
-            {rule_name->ToModule()},
-            [&rules_file](auto values) { rules_file = *values[0]; },
-            [&failed](auto const& msg, bool fatal) {
-                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While searching for rule definition:\n{}",
-                            msg);
-                failed = failed or fatal;
-            });
-    }
-    if (failed) {
-        return kExitFailure;
-    }
-    auto ruledesc_it = rules_file.find(rule_name->GetNamedTarget().name);
-    if (ruledesc_it == rules_file.end()) {
-        Logger::Log(LogLevel::Error,
-                    "Rule definition of {} is missing",
-                    rule_name->ToString());
-        return kExitFailure;
-    }
     std::cout << id.ToString() << " is defined by user-defined rule "
               << rule_name->ToString() << ".\n\n";
-    auto const& rdesc = *ruledesc_it;
-    auto doc = rdesc.find("doc");
-    if (doc != rdesc.end()) {
-        PrintDoc(*doc, " | ");
-    }
-    auto field_doc = nlohmann::json::object();
-    auto field_doc_it = rdesc.find("field_doc");
-    if (field_doc_it != rdesc.end() and field_doc_it->is_object()) {
-        field_doc = *field_doc_it;
-    }
-    auto string_fields = rdesc.find("string_fields");
-    if (string_fields != rdesc.end() and (not string_fields->empty())) {
-        std::cout << " String fields\n";
-        PrintFields(*string_fields, field_doc, " - ", "   | ");
-    }
-    auto target_fields = rdesc.find("target_fields");
-    if (target_fields != rdesc.end() and (not target_fields->empty())) {
-        std::cout << " Target fields\n";
-        PrintFields(*target_fields, field_doc, " - ", "   | ");
-    }
-    auto config_fields = rdesc.find("config_fields");
-    if (config_fields != rdesc.end() and (not config_fields->empty())) {
-        std::cout << " Config fields\n";
-        PrintFields(*config_fields, field_doc, " - ", "   | ");
-    }
-    auto config_doc = nlohmann::json::object();
-    auto config_doc_it = rdesc.find("config_doc");
-    if (config_doc_it != rdesc.end() and config_doc_it->is_object()) {
-        config_doc = *config_doc_it;
-    }
-    auto config_vars = rdesc.find("config_vars");
-    if (config_vars != rdesc.end() and (not config_vars->empty())) {
-        std::cout << " Variables taken from the configuration\n";
-        PrintFields(*config_vars, config_doc, " - ", "   | ");
-    }
-    std::cout << " Result\n";
-    std::cout << " - Artifacts\n";
-    auto artifacts_doc = rdesc.find("artifacts_doc");
-    if (artifacts_doc != rdesc.end()) {
-        PrintDoc(*artifacts_doc, "   | ");
-    }
-    std::cout << " - Runfiles\n";
-    auto runfiles_doc = rdesc.find("runfiles_doc");
-    if (runfiles_doc != rdesc.end()) {
-        PrintDoc(*runfiles_doc, "   | ");
-    }
-    auto provides_doc = rdesc.find("provides_doc");
-    if (provides_doc != rdesc.end()) {
-        std::cout << " - Documented providers\n";
-        for (auto& el : provides_doc->items()) {
-            std::cout << "   - " << el.key() << "\n";
-            PrintDoc(el.value(), "     | ");
-        }
-    }
-
-    std::cout << std::endl;
-    return kExitSuccess;
+    return DescribeUserDefinedRule(*rule_name, jobs);
 }
 
 void DumpArtifactsToBuild(
@@ -1517,10 +1536,14 @@ auto main(int argc, char* argv[]) -> int {
             }
         }
         else if (arguments.cmd == SubCommand::kDescribe) {
-            return DescribeTarget(main_repo,
-                                  main_ws_root,
-                                  arguments.common.jobs,
-                                  arguments.analysis);
+            if (auto id = DetermineNonExplicitTarget(
+                    main_repo, main_ws_root, arguments.analysis)) {
+                return arguments.describe.describe_rule
+                           ? DescribeUserDefinedRule(id->target,
+                                                     arguments.common.jobs)
+                           : DescribeTarget(*id, arguments.common.jobs);
+            }
+            return kExitFailure;
         }
 
         else {

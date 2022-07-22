@@ -49,6 +49,11 @@ struct AnalysisArguments {
     std::optional<std::filesystem::path> artifacts_to_build_file{};
 };
 
+/// \brief Arguments required for describing targets/rules.
+struct DescribeArguments {
+    bool describe_rule{};
+};
+
 /// \brief Arguments required for running diagnostics.
 struct DiagnosticArguments {
     std::optional<std::string> dump_actions{std::nullopt};
@@ -215,6 +220,14 @@ static inline auto SetupAnalysisArguments(
                         "File path for writing the artifacts to build to.")
             ->type_name("PATH");
     }
+}
+
+static inline auto SetupDescribeArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<DescribeArguments*> const& clargs) {
+    app->add_flag("--rule",
+                  clargs->describe_rule,
+                  "Positional arguments refer to rule instead of target.");
 }
 
 static inline auto SetupDiagnosticArguments(
