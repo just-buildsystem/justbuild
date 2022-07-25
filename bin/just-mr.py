@@ -75,8 +75,14 @@ def move_to_place(src, dst):
     if not os.path.exists(dst):
         fail("%s not present after move" % (dst,))
 
-def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd):
-    result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stdin=stdin)
+def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd,
+            attempts=1):
+    for _ in range(attempts):
+        result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout,
+                                stdin=stdin)
+        if result.returncode == 0:
+            return
+        time.sleep(1.0)
     if result.returncode != 0:
         fail("Command %s in %s failed" % (cmd, cwd))
 
@@ -120,6 +126,7 @@ def git_keep(commit, *, upstream):
         ],
         cwd=git_root(upstream=upstream),
         env=dict(os.environ, **GIT_NOBODY_ENV),
+        attempts=3
     )
 
 
