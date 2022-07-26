@@ -342,6 +342,8 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
     if (not ALWAYS_FILE) and os.path.exists(tree_id_file):
         with open(tree_id_file) as f:
             archive_tree_id = f.read()
+        # ensure git cache exists
+        ensure_git(upstream=None)
         return [
             "git tree",
             git_subtree(tree=archive_tree_id,
@@ -494,6 +496,8 @@ def distdir_checkout(desc, repos):
     if (not ALWAYS_FILE) and os.path.exists(tree_id_file):
         with open(tree_id_file) as f:
             distdir_tree_id = f.read()
+        # ensure git cache exists
+        ensure_git(upstream=None)
         return [
             "git tree",
             git_subtree(tree=distdir_tree_id, subdir=".", upstream=None),
