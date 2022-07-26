@@ -4,7 +4,7 @@
 
 ```
 CONF=$(./bin/just-mr.py -C etc/repos.json setup just)
-just -C $CONF build
+just build -C $CONF
 ```
 
 ## Bootstrapping `just`
@@ -21,7 +21,7 @@ script to download the dependencies itself, `wget` is required as well.
 
 In this case, the command is simply
 ```
-ptyhon3 ./bin/bootstrap.py
+python3 ./bin/bootstrap.py
 ```
 
 The script also takes optionally the following positional arguments (in
