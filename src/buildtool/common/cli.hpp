@@ -51,6 +51,7 @@ struct AnalysisArguments {
 
 /// \brief Arguments required for describing targets/rules.
 struct DescribeArguments {
+    bool print_json{};
     bool describe_rule{};
 };
 
@@ -225,6 +226,7 @@ static inline auto SetupAnalysisArguments(
 static inline auto SetupDescribeArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<DescribeArguments*> const& clargs) {
+    app->add_flag("--json", clargs->print_json, "Print description as JSON.");
     app->add_flag("--rule",
                   clargs->describe_rule,
                   "Positional arguments refer to rule instead of target.");

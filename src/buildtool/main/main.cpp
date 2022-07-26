@@ -1241,35 +1241,7 @@ auto DetermineNonExplicitTarget(
     }
 }
 
-auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
-                             std::size_t jobs) -> int {
-    bool failed{};
-    auto rule_file_map = Base::CreateRuleFileMap(jobs);
-    nlohmann::json rules_file;
-    {
-        TaskSystem ts{jobs};
-        rule_file_map.ConsumeAfterKeysReady(
-            &ts,
-            {rule_name.ToModule()},
-            [&rules_file](auto values) { rules_file = *values[0]; },
-            [&failed](auto const& msg, bool fatal) {
-                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While searching for rule definition:\n{}",
-                            msg);
-                failed = failed or fatal;
-            });
-    }
-    if (failed) {
-        return kExitFailure;
-    }
-    auto ruledesc_it = rules_file.find(rule_name.GetNamedTarget().name);
-    if (ruledesc_it == rules_file.end()) {
-        Logger::Log(LogLevel::Error,
-                    "Rule definition of {} is missing",
-                    rule_name.ToString());
-        return kExitFailure;
-    }
-    auto const& rdesc = *ruledesc_it;
+void PrettyPrintRule(nlohmann::json const& rdesc) {
     auto doc = rdesc.find("doc");
     if (doc != rdesc.end()) {
         PrintDoc(*doc, " | ");
@@ -1323,13 +1295,67 @@ auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
             PrintDoc(el.value(), "     | ");
         }
     }
-
     std::cout << std::endl;
+}
+
+// fields relevant for describing a rule
+auto const kRuleDescriptionFields = std::vector<std::string>{"config_fields",
+                                                             "string_fields",
+                                                             "target_fields",
+                                                             "config_vars",
+                                                             "doc",
+                                                             "field_doc",
+                                                             "config_doc",
+                                                             "artifacts_doc",
+                                                             "runfiles_doc",
+                                                             "provides_doc"};
+
+auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
+                             std::size_t jobs,
+                             bool print_json) -> int {
+    bool failed{};
+    auto rule_file_map = Base::CreateRuleFileMap(jobs);
+    nlohmann::json rules_file;
+    {
+        TaskSystem ts{jobs};
+        rule_file_map.ConsumeAfterKeysReady(
+            &ts,
+            {rule_name.ToModule()},
+            [&rules_file](auto values) { rules_file = *values[0]; },
+            [&failed](auto const& msg, bool fatal) {
+                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
+                            "While searching for rule definition:\n{}",
+                            msg);
+                failed = failed or fatal;
+            });
+    }
+    if (failed) {
+        return kExitFailure;
+    }
+    auto ruledesc_it = rules_file.find(rule_name.GetNamedTarget().name);
+    if (ruledesc_it == rules_file.end()) {
+        Logger::Log(LogLevel::Error,
+                    "Rule definition of {} is missing",
+                    rule_name.ToString());
+        return kExitFailure;
+    }
+    if (print_json) {
+        auto json = nlohmann::ordered_json({{"type", rule_name.ToJson()}});
+        for (auto const& f : kRuleDescriptionFields) {
+            if (ruledesc_it->contains(f)) {
+                json[f] = ruledesc_it->at(f);
+            }
+        }
+        std::cout << json.dump(2) << std::endl;
+        return kExitSuccess;
+    }
+    PrettyPrintRule(*ruledesc_it);
     return kExitSuccess;
 }
 
 auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
-                    std::size_t jobs) -> int {
+                    std::size_t jobs,
+                    bool print_json) -> int {
     auto targets_file_map = Base::CreateTargetsFileMap(jobs);
     nlohmann::json targets_file{};
     bool failed{false};
@@ -1364,6 +1390,11 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         return kExitFailure;
     }
     if (BuildMaps::Target::IsBuiltInRule(*rule_it)) {
+        if (print_json) {
+            std::cout << nlohmann::json({{"type", *rule_it}}).dump(2)
+                      << std::endl;
+            return kExitSuccess;
+        }
         std::cout << id.ToString() << " is defined by built-in rule "
                   << rule_it->dump() << "." << std::endl;
         if (*rule_it == "export") {
@@ -1397,9 +1428,11 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
     if (not rule_name) {
         return kExitFailure;
     }
-    std::cout << id.ToString() << " is defined by user-defined rule "
-              << rule_name->ToString() << ".\n\n";
-    return DescribeUserDefinedRule(*rule_name, jobs);
+    if (not print_json) {
+        std::cout << id.ToString() << " is defined by user-defined rule "
+                  << rule_name->ToString() << ".\n\n";
+    }
+    return DescribeUserDefinedRule(*rule_name, jobs, print_json);
 }
 
 void DumpArtifactsToBuild(
@@ -1539,9 +1572,13 @@ auto main(int argc, char* argv[]) -> int {
             if (auto id = DetermineNonExplicitTarget(
                     main_repo, main_ws_root, arguments.analysis)) {
                 return arguments.describe.describe_rule
-                           ? DescribeUserDefinedRule(id->target,
-                                                     arguments.common.jobs)
-                           : DescribeTarget(*id, arguments.common.jobs);
+                           ? DescribeUserDefinedRule(
+                                 id->target,
+                                 arguments.common.jobs,
+                                 arguments.describe.print_json)
+                           : DescribeTarget(*id,
+                                            arguments.common.jobs,
+                                            arguments.describe.print_json);
             }
             return kExitFailure;
         }
