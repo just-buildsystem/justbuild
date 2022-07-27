@@ -56,6 +56,7 @@ enum class SubCommand {
 struct CommandLineArguments {
     SubCommand cmd{SubCommand::kUnknown};
     CommonArguments common;
+    LogArguments log;
     AnalysisArguments analysis;
     DiagnosticArguments diagnose;
     EndpointArguments endpoint;
@@ -72,6 +73,7 @@ auto SetupDescribeCommandArguments(
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
     SetupAnalysisArguments(app, &clargs->analysis, false);
+    SetupLogArguments(app, &clargs->log);
 }
 
 /// \brief Setup arguments for sub command "just analyse".
@@ -79,6 +81,7 @@ auto SetupAnalyseCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
+    SetupLogArguments(app, &clargs->log);
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupDiagnosticArguments(app, &clargs->diagnose);
@@ -90,6 +93,7 @@ auto SetupBuildCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
+    SetupLogArguments(app, &clargs->log);
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupBuildArguments(app, &clargs->build);
@@ -119,6 +123,7 @@ auto SetupInstallCasCommandArguments(
     SetupCompatibilityArguments(app);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupFetchArguments(app, &clargs->fetch);
+    SetupLogArguments(app, &clargs->log);
 }
 
 /// \brief Setup arguments for sub command "just traverse".
@@ -126,6 +131,7 @@ auto SetupTraverseCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
+    SetupLogArguments(app, &clargs->log);
     SetupEndpointArguments(app, &clargs->endpoint);
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis
     SetupBuildArguments(app, &clargs->build);
@@ -209,7 +215,7 @@ void SetupDefaultLogging() {
     LogConfig::SetSinks({LogSinkCmdLine::CreateFactory()});
 }
 
-void SetupLogging(CommonArguments const& clargs) {
+void SetupLogging(LogArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
     if (clargs.log_file) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
@@ -1444,7 +1450,7 @@ auto main(int argc, char* argv[]) -> int {
             return kExitSuccess;
         }
 
-        SetupLogging(arguments.common);
+        SetupLogging(arguments.log);
         if (arguments.analysis.expression_log_limit) {
             Evaluator::SetExpressionLogLimit(
                 *arguments.analysis.expression_log_limit);

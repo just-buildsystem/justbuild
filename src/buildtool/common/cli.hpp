@@ -24,8 +24,11 @@ struct CommonArguments {
     std::optional<std::filesystem::path> workspace_root{};
     std::optional<std::filesystem::path> repository_config{};
     std::optional<std::string> main{};
-    std::optional<std::filesystem::path> log_file{};
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
+};
+
+struct LogArguments {
+    std::optional<std::filesystem::path> log_file{};
     LogLevel log_limit{kDefaultLogLevel};
 };
 
@@ -119,6 +122,11 @@ static inline auto SetupCommonArguments(
                     clargs->jobs,
                     "Number of jobs to run (Default: Number of cores).")
         ->type_name("NUM");
+}
+
+static inline auto SetupLogArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<LogArguments*> const& clargs) {
     app->add_option(
            "-f,--log-file", clargs->log_file, "Path to local log file.")
         ->type_name("PATH");
