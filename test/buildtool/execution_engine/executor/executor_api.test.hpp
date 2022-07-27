@@ -106,6 +106,7 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
     // retrieve ALL artifacts
     REQUIRE(FileSystemManager::CreateDirectory(tmpdir));
     for (auto const& artifact_id : g.ArtifactIdentifiers()) {
+        REQUIRE(g.ArtifactNodeWithId(artifact_id)->Content().Info());
         CHECK(api->RetrieveToPaths(
             {*g.ArtifactNodeWithId(artifact_id)->Content().Info()},
             {(tmpdir / "output").string()}));
@@ -213,6 +214,7 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
     // retrieve ALL artifacts
     REQUIRE(FileSystemManager::CreateDirectory(tmpdir));
     for (auto const& artifact_id : g.ArtifactIdentifiers()) {
+        REQUIRE(g.ArtifactNodeWithId(artifact_id)->Content().Info());
         CHECK(api->RetrieveToPaths(
             {*g.ArtifactNodeWithId(artifact_id)->Content().Info()},
             {(tmpdir / "output").string()}));
@@ -363,6 +365,7 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         std::vector<Artifact::ObjectInfo> infos{};
         std::vector<std::filesystem::path> paths{};
         for (auto const& [path, node] : action_node->OutputFiles()) {
+            REQUIRE(node->Content().Info());
             paths.emplace_back(tmpdir / path);
             infos.emplace_back(*node->Content().Info());
         }
