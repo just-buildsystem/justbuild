@@ -496,6 +496,14 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Path to a Git repository, containing blobs of potentially missing
    KNOWN artifacts.
 
+** *describe* specific options
+
+   *--json*\\
+   Omit pretty-printing and describe rule in JSON format.
+
+   *--rule*\\
+   Module and target arguments refer to a rule instead of a target.
+
 * EXIT STATUS
 
 The exit status of ~just~ is one of the following values:
