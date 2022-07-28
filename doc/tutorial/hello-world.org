@@ -125,6 +125,10 @@ $ cat $CONF
       ]
     },
     "tutorial": {
+      "workspace_root": [
+        "file",
+        "/tmp/tutorial"
+      ]
       "bindings": {
         "rules": "just-rules"
       }
