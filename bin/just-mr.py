@@ -62,8 +62,9 @@ def try_rmtree(tree):
             shutil.rmtree(tree)
             return
         except:
-          time.sleep(1.0)
-    fail("Failed to remove %s" % (tree,))
+            time.sleep(1.0)
+    fail("Failed to remove %s" % (tree, ))
+
 
 def move_to_place(src, dst):
     os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -73,12 +74,21 @@ def move_to_place(src, dst):
         if not os.path.exists(dst):
             fail("Failed to move %s to %s: %s" % (src, dst, e))
     if not os.path.exists(dst):
-        fail("%s not present after move" % (dst,))
+        fail("%s not present after move" % (dst, ))
 
-def run_cmd(cmd, *, env=None, stdout=subprocess.DEVNULL, stdin=None, cwd,
+
+def run_cmd(cmd,
+            *,
+            env=None,
+            stdout=subprocess.DEVNULL,
+            stdin=None,
+            cwd,
             attempts=1):
     for _ in range(attempts):
-        result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout,
+        result = subprocess.run(cmd,
+                                cwd=cwd,
+                                env=env,
+                                stdout=stdout,
                                 stdin=stdin)
         if result.returncode == 0:
             return
@@ -119,15 +129,13 @@ def git_keep(commit, *, upstream):
         # for those, we assume the referenced commit is kept by
         # some branch anyway
         return
-    run_cmd(
-        [
-            "git", "tag", "-f", "-m", "Keep referenced tree alive",
-            "keep-%s" % (commit, ), commit
-        ],
-        cwd=git_root(upstream=upstream),
-        env=dict(os.environ, **GIT_NOBODY_ENV),
-        attempts=3
-    )
+    run_cmd([
+        "git", "tag", "-f", "-m", "Keep referenced tree alive",
+        "keep-%s" % (commit, ), commit
+    ],
+            cwd=git_root(upstream=upstream),
+            env=dict(os.environ, **GIT_NOBODY_ENV),
+            attempts=3)
 
 
 def git_init_options(*, upstream):
@@ -455,9 +463,11 @@ def resolve_repo(desc, *, seen=None, repos):
 def distdir_repo_dir(content):
     return os.path.join(ROOT, "distdir", content)
 
+
 def distdir_tmp_dir(content):
     return os.path.join(ROOT, "tmp-workspaces", "distdir",
                         "%d-%s" % (os.getpid(), content))
+
 
 def distdir_tree_id_file(content):
     return os.path.join(ROOT, "distfiles-tree-map", content)
