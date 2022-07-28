@@ -20,15 +20,42 @@ namespace {
     return std::nullopt;
 }
 
+[[nodiscard]] auto ReadGitTree(
+    gsl::not_null<BazelNetwork const*> const& network,
+    bazel_re::Digest const& digest) noexcept
+    -> std::optional<GitCAS::tree_entries_t> {
+    auto blobs = network->ReadBlobs({digest}).Next();
+    if (blobs.size() == 1) {
+        auto const& content = blobs.at(0).data;
+        return GitCAS::ReadTreeData(
+            content,
+            HashFunction::ComputeTreeHash(content).Bytes(),
+            /*is_hex_id=*/false);
+    }
+    Logger::Log(LogLevel::Error, "Tree {} not found in CAS", digest.hash());
+    return std::nullopt;
+}
+
 [[nodiscard]] auto TreeToStream(
     gsl::not_null<BazelNetwork const*> const& network,
     bazel_re::Digest const& tree_digest,
     gsl::not_null<FILE*> const& stream) noexcept -> bool {
-    if (auto dir = ReadDirectory(network, tree_digest)) {
-        if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
-            auto const& str = *data;
-            std::fwrite(str.data(), 1, str.size(), stream);
-            return true;
+    if (Compatibility::IsCompatible()) {
+        if (auto dir = ReadDirectory(network, tree_digest)) {
+            if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
+                auto const& str = *data;
+                std::fwrite(str.data(), 1, str.size(), stream);
+                return true;
+            }
+        }
+    }
+    else {
+        if (auto entries = ReadGitTree(network, tree_digest)) {
+            if (auto data = BazelMsgFactory::GitTreeToString(*entries)) {
+                auto const& str = *data;
+                std::fwrite(str.data(), 1, str.size(), stream);
+                return true;
+            }
         }
     }
     return false;
@@ -311,22 +338,47 @@ auto BazelNetwork::ReadObjectInfosRecursively(
     }
 
     // fallback read from CAS and cache it in in-memory tree map
-    if (auto dir = ReadDirectory(this, digest)) {
-        auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
-                              : std::nullopt;
-        return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                   *dir,
-                   [this, &dir_map, &store_info, &parent, &tree](auto path,
-                                                                 auto info) {
-                       return (not tree or tree->AddInfo(path, info)) and
-                              (IsTreeObject(info.type)
-                                   ? ReadObjectInfosRecursively(dir_map,
-                                                                store_info,
-                                                                parent / path,
-                                                                info.digest)
-                                   : store_info(parent / path, info));
-                   }) and
-               (not tree_map_ or tree_map_->AddTree(digest, std::move(*tree)));
+    if (Compatibility::IsCompatible()) {
+        if (auto dir = ReadDirectory(this, digest)) {
+            auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
+                                  : std::nullopt;
+            return BazelMsgFactory::ReadObjectInfosFromDirectory(
+                       *dir,
+                       [this, &dir_map, &store_info, &parent, &tree](
+                           auto path, auto info) {
+                           return (not tree or tree->AddInfo(path, info)) and
+                                  (IsTreeObject(info.type)
+                                       ? ReadObjectInfosRecursively(
+                                             dir_map,
+                                             store_info,
+                                             parent / path,
+                                             info.digest)
+                                       : store_info(parent / path, info));
+                       }) and
+                   (not tree_map_ or
+                    tree_map_->AddTree(digest, std::move(*tree)));
+        }
+    }
+    else {
+        if (auto entries = ReadGitTree(this, digest)) {
+            auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
+                                  : std::nullopt;
+            return BazelMsgFactory::ReadObjectInfosFromGitTree(
+                       *entries,
+                       [this, &dir_map, &store_info, &parent, &tree](
+                           auto path, auto info) {
+                           return (not tree or tree->AddInfo(path, info)) and
+                                  (IsTreeObject(info.type)
+                                       ? ReadObjectInfosRecursively(
+                                             dir_map,
+                                             store_info,
+                                             parent / path,
+                                             info.digest)
+                                       : store_info(parent / path, info));
+                       }) and
+                   (not tree_map_ or
+                    tree_map_->AddTree(digest, std::move(*tree)));
+        }
     }
     return false;
 }
