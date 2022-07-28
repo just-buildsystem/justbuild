@@ -762,7 +762,7 @@ def main():
 
     if not args:
         fail("Usage: %s <cmd> [<args>]" % (sys.argv[0], ))
-    if args[0] == "setup":
+    if args[0] == "setup-env":
         # Setup for interactive use, i.e., fetch the required repositories
         # and generate an appropriate multi-repository configuration file.
         # Store it in the CAS and print its path on stdout.
@@ -773,6 +773,11 @@ def main():
         # repository is possible, while having all dependencies set up
         # correctly.
         print(setup(config=config, args=args[1:], interactive=True))
+        return
+    if args[0] == "setup":
+        # Setup such that the main repository keeps its workspace given in
+        # the input config.
+        print(setup(config=config, args=args[1:]))
         return
     if args[0] == "build":
         build(config=config, args=args[1:])
