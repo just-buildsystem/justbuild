@@ -4,6 +4,15 @@
   , "test": ["native-protocol.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
   }
+, "large-blobs":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["large-blobs"]
+  , "test": ["large-blobs.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["native-protocol"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["native-protocol", "large-blobs"]
+  }
 }
