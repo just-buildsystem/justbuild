@@ -7,7 +7,7 @@ auto version() -> std::string {
     std::size_t major = 0;
     std::size_t minor = 1;
     std::size_t revision = 1;
-    std::string suffix = "";
+    std::string suffix = "+devel";
 #ifdef VERSION_EXTRA_SUFFIX
     suffix += VERSION_EXTRA_SUFFIX;
 #endif
