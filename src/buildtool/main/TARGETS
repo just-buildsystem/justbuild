@@ -3,7 +3,6 @@
   , "arguments_config": ["BUILD_STATIC_BINARY"]
   , "name": ["just"]
   , "srcs": ["main.cpp"]
-  , "private-hdrs": ["main.hpp"]
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "config"]
@@ -19,8 +18,10 @@
     , ["src/buildtool/build_engine/target_map", "target_cache"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
+    , "common"
     , "version"
     , "install_cas"
+    , "describe"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "link external":
@@ -28,6 +29,29 @@
     , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
     , "then": ["-static"]
     }
+  }
+, "describe":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["describe"]
+  , "hdrs": ["describe.hpp"]
+  , "srcs": ["describe.cpp"]
+  , "deps":
+    [ ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "json", "", "json"]
+    , "common"
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  }
+, "common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common"]
+  , "hdrs": ["exit_codes.hpp"]
+  , "stage": ["src", "buildtool", "main"]
   }
 , "install_cas":
   { "type": ["@", "rules", "CC", "library"]
