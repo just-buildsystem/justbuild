@@ -191,8 +191,11 @@ auto BazelNetwork::BlobReader::Next() noexcept -> std::vector<BazelBlob> {
     std::vector<BazelBlob> blobs{};
 
     while (current_ != ids_.end()) {
-        size += gsl::narrow<std::size_t>(current_->size_bytes());
-        if (size > kMaxBatchTransferSize) {
+        auto blob_size = gsl::narrow<std::size_t>(current_->size_bytes());
+        size += blob_size;
+        // read if size is 0 (unknown) or exceeds transfer size
+        if (blob_size == 0 or size > kMaxBatchTransferSize) {
+            // perform read of range [begin_, current_)
             if (begin_ == current_) {
                 auto blob = cas_->ReadSingleBlob(instance_name_, *begin_);
                 if (blob) {
