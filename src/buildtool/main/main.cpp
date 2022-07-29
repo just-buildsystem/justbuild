@@ -23,6 +23,7 @@
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/main/install_cas.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
@@ -1163,42 +1164,6 @@ void ReportTaintedness(const AnalysisResult& result) {
     }
     Logger::Log(LogLevel::Info, "Target tainted {}.", tainted.dump());
 }
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-[[nodiscard]] auto FetchAndInstallArtifacts(
-    gsl::not_null<IExecutionApi*> const& api,
-    FetchArguments const& clargs) -> bool {
-    auto object_info =
-        Artifact::ObjectInfo::LiberalFromString(clargs.object_id);
-
-    if (clargs.output_path) {
-        auto output_path = (*clargs.output_path / "").parent_path();
-        if (FileSystemManager::IsDirectory(output_path)) {
-            output_path /= object_info.digest.hash();
-        }
-
-        if (not FileSystemManager::CreateDirectory(output_path.parent_path()) or
-            not api->RetrieveToPaths({object_info}, {output_path})) {
-            Logger::Log(LogLevel::Error, "failed to retrieve artifact.");
-            return false;
-        }
-
-        Logger::Log(LogLevel::Info,
-                    "artifact {} was installed to {}",
-                    object_info.ToString(),
-                    output_path.string());
-    }
-    else {  // dump to stdout
-        if (not api->RetrieveToFds(
-                {object_info}, {dup(fileno(stdout))}, clargs.raw_tree)) {
-            Logger::Log(LogLevel::Error, "failed to dump artifact.");
-            return false;
-        }
-    }
-
-    return true;
-}
-#endif
 
 void PrintDoc(const nlohmann::json& doc, const std::string& indent) {
     if (not doc.is_array()) {

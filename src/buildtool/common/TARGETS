@@ -30,12 +30,13 @@
     , "identifier.hpp"
     , "statistics.hpp"
     ]
-  , "srcs": ["artifact.cpp"]
   , "deps":
     [ "bazel_types"
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "json", "", "json"]

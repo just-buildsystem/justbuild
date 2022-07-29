@@ -20,6 +20,7 @@
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
     , "version"
+    , "install_cas"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "link external":
@@ -27,6 +28,23 @@
     , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
     , "then": ["-static"]
     }
+  }
+, "install_cas":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["install_cas"]
+  , "hdrs": ["install_cas.hpp"]
+  , "srcs": ["install_cas.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
   }
 , "version":
   { "type": ["@", "rules", "CC", "library"]

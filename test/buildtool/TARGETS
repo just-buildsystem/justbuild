@@ -10,6 +10,7 @@
     , [["./", "file_system", "TESTS"], "file_system"]
     , [["./", "graph_traverser", "TESTS"], "graph_traverser"]
     , [["./", "logging", "TESTS"], "logging"]
+    , [["./", "main", "TESTS"], "main"]
     , [["./", "multithreading", "TESTS"], "multithreading"]
     , [["./", "system", "TESTS"], "system"]
     ]

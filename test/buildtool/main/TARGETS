@@ -1,0 +1,13 @@
+{ "install_cas":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["install_cas"]
+  , "srcs": ["install_cas.test.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/main", "install_cas"]
+    ]
+  , "stage": ["test", "buildtool", "main"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["install_cas"]}
+}

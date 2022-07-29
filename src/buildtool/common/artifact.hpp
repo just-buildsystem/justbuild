@@ -93,9 +93,6 @@ class Artifact {
             }
             return std::nullopt;
         }
-
-        [[nodiscard]] static auto LiberalFromString(
-            std::string const& s) noexcept -> ObjectInfo;
     };
 
     explicit Artifact(ArtifactIdentifier id) noexcept : id_{std::move(id)} {}
