@@ -4,11 +4,24 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
-auto ObjectInfoFromLiberalString(std::string const& s) noexcept
+namespace {
+
+[[nodiscard]] auto InvalidSizeString(std::string const& size_str,
+                                     std::string const& hash) noexcept -> bool {
+    static auto const kEmptyHash = HashFunction::ComputeBlobHash("");
+    return Compatibility::IsCompatible() and          // native mode is fine
+           (size_str == "0" or size_str.empty()) and  // not "0" or "" is fine
+           kEmptyHash.HexString() != hash and         // empty hash is fine
+           RemoteExecutionConfig::RemoteAddress();    // local is fine
+}
+
+}  // namespace
+
+[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s) noexcept
     -> Artifact::ObjectInfo {
     std::istringstream iss(s);
     std::string id{};
-    std::string size_str{"0"};
+    std::string size_str{};
     std::string type{"f"};
     if (iss.peek() == '[') {
         (void)iss.get();
@@ -19,6 +32,12 @@ auto ObjectInfoFromLiberalString(std::string const& s) noexcept
     }
     if (not iss.eof()) {
         std::getline(iss, type, ']');
+    }
+    if (InvalidSizeString(size_str, id)) {
+        Logger::Log(
+            LogLevel::Warning,
+            "{} size in object-id is not supported in compatiblity mode.",
+            size_str.empty() ? "omitting the" : "zero");
     }
     auto size = static_cast<std::size_t>(
         size_str.empty() ? 0 : std::atol(size_str.c_str()));
