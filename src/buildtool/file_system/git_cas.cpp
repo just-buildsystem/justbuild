@@ -28,14 +28,14 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
                                bool is_hex_id = false) noexcept
     -> std::optional<git_oid> {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    if ((is_hex_id and id.size() < kOIDHexSize) or id.size() < kOIDRawSize) {
+    if (id.size() < (is_hex_id ? kOIDHexSize : kOIDRawSize)) {
         Logger::Log(LogLevel::Error,
                     "invalid git object id {}",
                     is_hex_id ? id : ToHexString(id));
         return std::nullopt;
     }
     git_oid oid{};
-    if (is_hex_id and git_oid_fromstr(&oid, id.data()) == 0) {
+    if (is_hex_id and git_oid_fromstr(&oid, id.c_str()) == 0) {
         return oid;
     }
     if (not is_hex_id and
@@ -53,6 +53,44 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
     return std::nullopt;
 }
 
+[[nodiscard]] auto ToHexString(git_oid const& oid) noexcept
+    -> std::optional<std::string> {
+    std::string hex_id(GIT_OID_HEXSZ, '\0');
+#ifndef BOOTSTRAP_BUILD_TOOL
+    if (git_oid_fmt(hex_id.data(), &oid) != 0) {
+        return std::nullopt;
+    }
+#endif
+    return hex_id;
+}
+
+[[nodiscard]] auto ToRawString(git_oid const& oid) noexcept
+    -> std::optional<std::string> {
+    if (auto hex_id = ToHexString(oid)) {
+        return FromHexString(*hex_id);
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] auto GitFileModeToObjectType(git_filemode_t const& mode) noexcept
+    -> std::optional<ObjectType> {
+    switch (mode) {
+        case GIT_FILEMODE_BLOB:
+            return ObjectType::File;
+        case GIT_FILEMODE_BLOB_EXECUTABLE:
+            return ObjectType::Executable;
+        case GIT_FILEMODE_TREE:
+            return ObjectType::Tree;
+        default: {
+            std::ostringstream str;
+            str << std::oct << static_cast<int>(mode);
+            Logger::Log(
+                LogLevel::Error, "unsupported git filemode {}", str.str());
+            return std::nullopt;
+        }
+    }
+}
+
 [[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept
     -> std::optional<ObjectType> {
     switch (type) {
@@ -66,6 +104,51 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
                         git_object_type2string(type));
             return std::nullopt;
     }
+}
+
+[[maybe_unused]] [[nodiscard]] auto ValidateEntries(
+    GitCAS::tree_entries_t const& entries) -> bool {
+    return std::all_of(entries.begin(), entries.end(), [](auto entry) {
+        auto const& [id, nodes] = entry;
+        // for a given raw id, either all entries are trees or none of them
+        return std::all_of(
+                   nodes.begin(),
+                   nodes.end(),
+                   [](auto entry) { return IsTreeObject(entry.type); }) or
+               std::none_of(nodes.begin(), nodes.end(), [](auto entry) {
+                   return IsTreeObject(entry.type);
+               });
+    });
+}
+
+auto const repo_closer = [](gsl::owner<git_repository*> repo) {
+    if (repo != nullptr) {
+        git_repository_free(repo);
+    }
+};
+
+auto const tree_closer = [](gsl::owner<git_tree*> tree) {
+    if (tree != nullptr) {
+        git_tree_free(tree);
+    }
+};
+
+[[nodiscard]] auto flat_tree_walker(const char* /*root*/,
+                                    const git_tree_entry* entry,
+                                    void* payload) noexcept -> int {
+    auto* entries =
+        reinterpret_cast<GitCAS::tree_entries_t*>(payload);  // NOLINT
+
+    std::string name = git_tree_entry_name(entry);
+    auto const* oid = git_tree_entry_id(entry);
+    if (auto raw_id = ToRawString(*oid)) {
+        if (auto type =
+                GitFileModeToObjectType(git_tree_entry_filemode(entry))) {
+            (*entries)[*raw_id].emplace_back(std::move(name), *type);
+            return 1;  // return >=0 on success, 1 == skip subtrees (flat)
+        }
+    }
+    return -1;  // fail
 }
 
 }  // namespace
@@ -134,6 +217,55 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     git_odb_object_free(obj);
 
     return data;
+#endif
+}
+
+auto GitCAS::ReadTree(std::string const& id, bool is_hex_id) const noexcept
+    -> std::optional<tree_entries_t> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    // create object id
+    auto oid = GitObjectID(id, is_hex_id);
+    if (not oid) {
+        return std::nullopt;
+    }
+
+    // create fake repository from ODB
+    git_repository* repo_ptr{nullptr};
+    if (git_repository_wrap_odb(&repo_ptr, odb_) != 0) {
+        Logger::Log(LogLevel::Debug,
+                    "failed to create fake Git repository from object db");
+        return std::nullopt;
+    }
+    auto fake_repo = std::unique_ptr<git_repository, decltype(repo_closer)>{
+        repo_ptr, repo_closer};
+
+    // lookup tree
+    git_tree* tree_ptr{nullptr};
+    if (git_tree_lookup(&tree_ptr, fake_repo.get(), &(*oid)) != 0) {
+        Logger::Log(LogLevel::Debug,
+                    "failed to lookup Git tree {}",
+                    is_hex_id ? std::string{id} : ToHexString(id));
+        return std::nullopt;
+    }
+    auto tree =
+        std::unique_ptr<git_tree, decltype(tree_closer)>{tree_ptr, tree_closer};
+
+    // walk tree (flat) and create entries
+    tree_entries_t entries{};
+    entries.reserve(git_tree_entrycount(tree.get()));
+    if (git_tree_walk(
+            tree.get(), GIT_TREEWALK_PRE, flat_tree_walker, &entries) != 0) {
+        Logger::Log(LogLevel::Debug,
+                    "failed to walk Git tree {}",
+                    is_hex_id ? std::string{id} : ToHexString(id));
+        return std::nullopt;
+    }
+
+    gsl_EnsuresAudit(ValidateEntries(entries));
+
+    return entries;
 #endif
 }
 

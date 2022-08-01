@@ -128,6 +128,40 @@ TEST_CASE("Read Git Headers", "[git_cas]") {
     }
 }
 
+TEST_CASE("Read Git Trees", "[git_cas]") {
+    auto repo_path = CreateTestRepo(true);
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+
+    SECTION("invalid trees") {
+        CHECK_FALSE(cas->ReadTree("", /*is_hex_id=*/true));
+        CHECK_FALSE(cas->ReadTree("", /*is_hex_id=*/false));
+
+        CHECK_FALSE(cas->ReadTree(kFailId, /*is_hex_id=*/true));
+        CHECK_FALSE(cas->ReadTree(HexToRaw(kFailId), /*is_hex_id=*/false));
+
+        CHECK_FALSE(cas->ReadTree(RawToHex("to_short"), /*is_hex_id=*/true));
+        CHECK_FALSE(cas->ReadTree("to_short", /*is_hex_id=*/false));
+
+        CHECK_FALSE(cas->ReadTree("invalid_chars", /*is_hex_id=*/true));
+
+        CHECK_FALSE(cas->ReadTree(kFooId, /*is_hex_id=*/true));
+        CHECK_FALSE(cas->ReadTree(HexToRaw(kFooId), /*is_hex_id=*/false));
+
+        CHECK_FALSE(cas->ReadTree(kBarId, /*is_hex_id=*/true));
+        CHECK_FALSE(cas->ReadTree(HexToRaw(kBarId), /*is_hex_id=*/false));
+    }
+
+    SECTION("valid trees") {
+        auto entries0 = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries1 = cas->ReadTree(HexToRaw(kTreeId), /*is_hex_id=*/false);
+        REQUIRE(entries0);
+        REQUIRE(entries1);
+        CHECK(*entries0 == *entries1);
+    }
+}
+
 TEST_CASE("Read Git Tree", "[git_tree]") {
     SECTION("Bare repository") {
         auto repo_path = CreateTestRepo(true);
@@ -391,6 +425,28 @@ TEST_CASE("Thread-safety", "[git_tree]") {
                     CHECK(header->second == ObjectType::File);
                 },
                 id);
+        }
+
+        starting_signal = true;
+        starting_signal.notify_all();
+
+        // wait for threads to finish
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    }
+
+    SECTION("Parsing same tree with same CAS") {
+        auto cas = GitCAS::Open(*repo_path);
+        REQUIRE(cas);
+
+        for (int id{}; id < kNumThreads; ++id) {
+            threads.emplace_back([&cas, &starting_signal]() {
+                starting_signal.wait(false);
+
+                auto entries = cas->ReadTree(kTreeId, true);
+                REQUIRE(entries);
+            });
         }
 
         starting_signal = true;

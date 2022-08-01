@@ -59,6 +59,26 @@ class GitTree {
         : cas_{std::move(cas)},
           entries_{std::move(entries)},
           raw_id_{std::move(raw_id)} {}
+
+    [[nodiscard]] static auto FromEntries(gsl::not_null<GitCASPtr> cas,
+                                          GitCAS::tree_entries_t&& entries,
+                                          std::string raw_id) noexcept
+        -> std::optional<GitTree> {
+        entries_t e{};
+        e.reserve(entries.size());
+        for (auto& [id, es] : entries) {
+            for (auto& entry : es) {
+                try {
+                    e.emplace(
+                        std::move(entry.name),
+                        std::make_shared<GitTreeEntry>(cas, id, entry.type));
+                } catch (...) {
+                    return std::nullopt;
+                }
+            }
+        }
+        return GitTree(std::move(cas), std::move(e), std::move(raw_id));
+    }
 };
 
 class GitTreeEntry {
@@ -77,8 +97,8 @@ class GitTreeEntry {
 
     [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
     [[nodiscard]] auto Type() const noexcept { return type_; }
-    // Use with care. Implementation might read entire object to obtain size.
-    // Consider using Blob()->size() instead.
+    // Use with care. Implementation might read entire object to obtain
+    // size. Consider using Blob()->size() instead.
     [[nodiscard]] auto Size() const noexcept -> std::optional<std::size_t>;
 
   private:

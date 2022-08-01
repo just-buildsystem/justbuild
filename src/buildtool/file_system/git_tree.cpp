@@ -11,64 +11,6 @@ extern "C" {
 
 namespace {
 
-constexpr auto kOIDRawSize{GIT_OID_RAWSZ};
-
-[[nodiscard]] auto PermToType(std::string const& perm_str) noexcept
-    -> std::optional<ObjectType> {
-    constexpr auto kPermBase = 8;
-    constexpr auto kTreePerm = 040000;
-    constexpr auto kFilePerm = 0100644;
-    constexpr auto kExecPerm = 0100755;
-    constexpr auto kLinkPerm = 0120000;
-
-    int perm = std::stoi(perm_str, nullptr, kPermBase);
-
-    switch (perm) {
-        case kTreePerm:
-            return ObjectType::Tree;
-        case kFilePerm:
-            return ObjectType::File;
-        case kExecPerm:
-            return ObjectType::Executable;
-        case kLinkPerm:
-            Logger::Log(LogLevel::Error, "symlinks are not yet supported");
-            return std::nullopt;
-        default:
-            Logger::Log(LogLevel::Error, "unsupported permission {}", perm_str);
-            return std::nullopt;
-    }
-}
-
-auto ParseRawTreeObject(GitCASPtr const& cas,
-                        std::string const& raw_tree) noexcept
-    -> std::optional<GitTree::entries_t> {
-    std::string perm{};
-    std::string path{};
-    std::string hash(kOIDRawSize, '\0');
-    std::istringstream iss{raw_tree};
-    GitTree::entries_t entries{};
-    // raw tree format is: "<perm> <path>\0<hash>[next entries...]"
-    while (std::getline(iss, perm, ' ') and   // <perm>
-           std::getline(iss, path, '\0') and  // <path>
-           iss.read(hash.data(),              // <hash>
-                    static_cast<std::streamsize>(hash.size()))) {
-        auto type = PermToType(perm);
-        if (not type) {
-            return std::nullopt;
-        }
-        try {
-            entries.emplace(path,
-                            std::make_shared<GitTreeEntry>(cas, hash, *type));
-        } catch (std::exception const& ex) {
-            Logger::Log(LogLevel::Error,
-                        "parsing git raw tree object failed with:\n{}",
-                        ex.what());
-            return std::nullopt;
-        }
-    }
-    return entries;
-}
-
 // resolve '.' and '..' in path.
 [[nodiscard]] auto ResolveRelativePath(
     std::filesystem::path const& path) noexcept -> std::filesystem::path {
@@ -111,19 +53,12 @@ auto GitTree::Read(std::filesystem::path const& repo_path,
 auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                    std::string const& tree_id) noexcept
     -> std::optional<GitTree> {
-    auto raw_id = FromHexString(tree_id);
-    if (not raw_id) {
-        return std::nullopt;
+    if (auto raw_id = FromHexString(tree_id)) {
+        if (auto entries = cas->ReadTree(*raw_id)) {
+            return GitTree::FromEntries(cas, std::move(*entries), *raw_id);
+        }
     }
-    auto obj = cas->ReadObject(*raw_id);
-    if (not obj) {
-        return std::nullopt;
-    }
-    auto entries = ParseRawTreeObject(cas, *obj);
-    if (not entries) {
-        return std::nullopt;
-    }
-    return GitTree{cas, std::move(*entries), std::move(*raw_id)};
+    return std::nullopt;
 }
 
 auto GitTree::LookupEntryByName(std::string const& name) const noexcept
@@ -152,12 +87,9 @@ auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
 
 auto GitTreeEntry::Tree() const& noexcept -> std::optional<GitTree> const& {
     return tree_cached_.SetOnceAndGet([this]() -> std::optional<GitTree> {
-        std::optional<std::string> obj{};
         if (IsTree()) {
-            if (auto obj = cas_->ReadObject(raw_id_)) {
-                if (auto entries = ParseRawTreeObject(cas_, *obj)) {
-                    return GitTree{cas_, std::move(*entries), raw_id_};
-                }
+            if (auto entries = cas_->ReadTree(raw_id_)) {
+                return GitTree::FromEntries(cas_, std::move(*entries), raw_id_);
             }
         }
         return std::nullopt;
