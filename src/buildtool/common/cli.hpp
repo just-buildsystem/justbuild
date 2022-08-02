@@ -30,6 +30,7 @@ struct CommonArguments {
 struct LogArguments {
     std::optional<std::filesystem::path> log_file{};
     LogLevel log_limit{kDefaultLogLevel};
+    bool plain_log{false};
 };
 
 /// \brief Arguments required for analysing targets.
@@ -148,6 +149,9 @@ static inline auto SetupLogArguments(
                        kLastLogLevel,
                        kDefaultLogLevel))
         ->type_name("NUM");
+    app->add_flag("--plain-log",
+                  clargs->plain_log,
+                  "Do not use ANSI escape sequences to highlight messages.");
 }
 
 static inline auto SetupAnalysisArguments(

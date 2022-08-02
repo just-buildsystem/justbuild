@@ -220,6 +220,7 @@ void SetupDefaultLogging() {
 
 void SetupLogging(LogArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
     if (clargs.log_file) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
             *clargs.log_file, LogSinkFile::Mode::Overwrite));
