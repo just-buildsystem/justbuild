@@ -163,7 +163,6 @@ namespace detail {
                 << (++i == json.size() ? "" : ",");
         }
         oss << '}';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     if (json.is_array()) {
@@ -175,7 +174,6 @@ namespace detail {
                 << (++i == json.size() ? "" : ",");
         }
         oss << ']';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     return json.dump();
