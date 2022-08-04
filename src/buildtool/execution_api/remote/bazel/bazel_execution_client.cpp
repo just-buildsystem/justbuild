@@ -20,7 +20,8 @@ void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
             // (and the server does not support a queue), the action could not
             // be started. The client should retry.
             logger->Emit(LogLevel::Error,
-                         "Execution could not be started. Retry later.");
+                         fmt::format("Execution could not be started.\n{}",
+                                     s.DebugString()));
             break;
         default:
             // fallback to default status logging
