@@ -1,11 +1,17 @@
 { "file":
-  { "doc": ["Replace a file, logically in pace, by a patched version"]
+  { "doc": ["Replace a file, logically in place, by a patched version"]
   , "target_fields": ["src", "patch"]
+  , "string_fields": ["patch-part"]
   , "config_vars": ["PATCH"]
   , "field_doc":
     { "src":
       ["The single source file to patch, typically an explict file reference."]
     , "patch": ["The patch to apply."]
+    , "patch-part":
+      [ "If the patch contains hunks for multiple files, only apply hunks for"
+      , "the specified file path. Individual directory components are joined"
+      , "with \"/\". Note that the patch must be provided in unified format."
+      ]
     }
   , "artifacts_doc":
     ["The patched file, staged to the position the of the original file"]
@@ -27,6 +33,66 @@
         , { "type": "let*"
           , "bindings": [["fieldname", "patch"], ["location", "patch"]]
           , "body": {"type": "CALL_EXPRESSION", "name": "stage_field"}
+          }
+        ]
+      , [ "patch-part"
+        , { "type": "join"
+          , "separator": "\\/"
+          , "$1": {"type": "FIELD", "name": "patch-part"}
+          }
+        ]
+      , [ "splitpatch"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ "set -e"
+              , { "type": "join"
+                , "$1":
+                  [ { "type": "join_cmd"
+                    , "$1":
+                      [ "sed"
+                      , "-n"
+                      , { "type": "join"
+                        , "$1":
+                          [ "/^--- "
+                          , {"type": "var", "name": "patch-part"}
+                          , "/,"
+                          , "/^[^-+@\\ ]\\|^---\\ /p"
+                          ]
+                        }
+                      ]
+                    }
+                  , " $1 | sed '$d' > patch"
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      , [ "patch"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "patch-part"}
+          , "then":
+            { "type": "ACTION"
+            , "inputs":
+              { "type": "map_union"
+              , "$1":
+                [ { "type": "to_subdir"
+                  , "subdir": "in"
+                  , "$1": {"type": "var", "name": "patch"}
+                  }
+                , { "type": "singleton_map"
+                  , "key": "splitpatch"
+                  , "value": {"type": "var", "name": "splitpatch"}
+                  }
+                ]
+              }
+            , "outs": ["patch"]
+            , "cmd": ["sh", "./splitpatch", "in/patch"]
+            }
+          , "else": {"type": "var", "name": "patch"}
           }
         ]
       , [ "inputs"
