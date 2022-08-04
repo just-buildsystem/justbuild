@@ -10,16 +10,14 @@
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
-    , ["src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["src/buildtool/build_engine/base_maps", "rule_map"]
-    , ["src/buildtool/build_engine/base_maps", "source_map"]
-    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
-    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/target_map", "target_cache"]
+    , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
     , "common"
     , "version"
+    , "analyse"
     , "install_cas"
     , "describe"
     ]
@@ -67,6 +65,26 @@
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  }
+, "analyse":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["analyse"]
+  , "hdrs": ["analyse.hpp"]
+  , "srcs": ["analyse.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["src/buildtool/build_engine/base_maps", "source_map"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
     ]
   , "stage": ["src", "buildtool", "main"]
   }
