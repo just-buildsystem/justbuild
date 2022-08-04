@@ -557,6 +557,8 @@ class GraphTraverser {
         std::vector<DependencyGraph::ArtifactNode const*> const& artifact_nodes,
         std::map<std::string, ArtifactDescription> const& runfiles) const {
         std::string msg_dbg{"Artifact ids:"};
+        std::string msg_failed{"Failed artifacts:"};
+        bool failed{false};
         nlohmann::json json{};
         for (std::size_t pos = 0; pos < paths.size(); ++pos) {
             auto path = paths[pos].string();
@@ -570,6 +572,11 @@ class GraphTraverser {
                 auto info = artifact_nodes[pos]->Content().Info();
                 if (info) {
                     message += fmt::format("\n  {} {}", path, info->ToString());
+                    if (info->failed) {
+                        msg_failed +=
+                            fmt::format("\n  {} {}", path, info->ToString());
+                        failed = true;
+                    }
                     if (clargs_.build.dump_artifacts) {
                         json[path] = info->ToJson();
                     }
@@ -588,6 +595,9 @@ class GraphTraverser {
 
         Logger::Log(LogLevel::Info, "{}", message);
         Logger::Log(LogLevel::Debug, "{}", msg_dbg);
+        if (failed) {
+            Logger::Log(LogLevel::Info, "{}", msg_failed);
+        }
 
         if (clargs_.build.dump_artifacts) {
             if (*clargs_.build.dump_artifacts == "-") {
