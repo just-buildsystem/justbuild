@@ -229,6 +229,12 @@
       }
     }
   }
+, "sys/repository.h":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "sys/repository.h"]]
+  , "patch": [["@", "patches", "", "libgit2_v1.1.0_fix-fake-repo.patch"]]
+  , "patch-part": ["a", "include", "git2", "sys", "repository.h"]
+  }
 , "TREE":
   { "type": ["@", "rules", "CC", "header directory"]
   , "stage": ["git2"]

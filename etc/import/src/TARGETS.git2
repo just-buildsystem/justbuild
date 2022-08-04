@@ -580,6 +580,12 @@
       }
     }
   }
+, "repository.c":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "repository.c"]]
+  , "patch": [["@", "patches", "", "libgit2_v1.1.0_fix-fake-repo.patch"]]
+  , "patch-part": ["a", "src", "repository.c"]
+  }
 , "git2internal":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS"]

@@ -334,7 +334,12 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.git2"
-    , "bindings": {"rules": "rules-git2", "zlib": "zlib", "ssl": "ssl"}
+    , "bindings":
+      { "rules": "rules-git2"
+      , "zlib": "zlib"
+      , "ssl": "ssl"
+      , "patches": "patches"
+      }
     , "bootstrap": {"include_dir": "include", "include_name": "."}
     , "local_bootstrap": {"local_path": "include"}
     }
