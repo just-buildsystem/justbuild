@@ -766,7 +766,11 @@ void DumpTargets(std::string const& file_path,
     };
     std::for_each(
         target_ids.begin(), target_ids.end(), [&conf_list](auto const& id) {
-            conf_list(id.target).push_back(id.config.ToJson());
+            if ((not id.target.IsNamedTarget()) or
+                id.target.GetNamedTarget().reference_t ==
+                    BuildMaps::Base::ReferenceType::kTarget) {
+                conf_list(id.target).push_back(id.config.ToJson());
+            }
         });
     auto const dump_string = IndentListsOnlyUntilDepth(repo_map, 2);
     if (file_path == "-") {
