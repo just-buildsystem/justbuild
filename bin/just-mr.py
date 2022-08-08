@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import hashlib
-from importlib.resources import path
 import json
 import os
 import shutil
@@ -60,14 +58,45 @@ GIT_NOBODY_ENV = {
     "GIT_CONFIG_SYSTEM": "/dev/null",
 }
 
+KNOWN_JUST_SUBCOMMANDS = {
+    "version": {
+        "config": False,
+        "build root": False
+    },
+    "describe": {
+        "config": True,
+        "build root": False
+    },
+    "analyse": {
+        "config": True,
+        "build root": True
+    },
+    "build": {
+        "config": True,
+        "build root": True
+    },
+    "install": {
+        "config": True,
+        "build root": True
+    },
+    "rebuild": {
+        "config": True,
+        "build root": True
+    },
+    "install-cas": {
+        "config": False,
+        "build root": True
+    }
+}
+
 
 def log(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def fail(s):
-    log(s)
-    sys.exit(1)
+def fail(s, exit_code=65):
+    log(f"Error: {s}")
+    sys.exit(exit_code)
 
 
 def try_rmtree(tree):
@@ -269,7 +298,8 @@ def add_to_cas(data):
     if isinstance(data, str):
         data = data.encode('utf-8')
     h = git_hash(data)
-    cas_root = os.path.join(ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
+    cas_root = os.path.join(
+        ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
     basename = h[2:]
     target = os.path.join(cas_root, basename)
     tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
@@ -289,7 +319,8 @@ def add_to_cas(data):
 
 
 def cas_path(h):
-    return os.path.join(ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}", h[2:])
+    return os.path.join(
+        ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}", h[2:])
 
 
 def is_in_cas(h):
@@ -599,20 +630,27 @@ def reachable_repositories(repo, *, repos):
     return reachable, to_fetch
 
 
-def setup(*, config, args, interactive=False):
+def setup(*, config, main, setup_all=False, interactive=False):
     repos = config.get("repositories", {})
     repos_to_setup = repos.keys()
     repos_to_include = repos.keys()
     mr_config = {}
-    main = None
 
-    if args:
-        if len(args) > 1:
-            fail("Usage: %s setup [<main repo>]" % (sys.argv[0], ))
-        main = args[0]
+    if main == None:
+        main = config.setdefault("main", None)
+        if not isinstance(main, str) and main != None:
+            fail("Unsupported value for field 'main' in configuration.")
+
+    if main != None:
+        # pass on main that was explicitly set via command line or config
+        mr_config["main"] = main
+
+    if main == None and len(repos_to_setup) > 0:
+        main = sorted(list(repos_to_setup))[0]
+
+    if main != None and not setup_all:
         repos_to_include, repos_to_setup = reachable_repositories(main,
                                                                   repos=repos)
-        mr_config["main"] = main
 
     mr_repos = {}
     for repo in repos_to_setup:
@@ -651,33 +689,34 @@ def setup(*, config, args, interactive=False):
     return add_to_cas(json.dumps(mr_config, indent=2, sort_keys=True))
 
 
-def build(*, config, args):
-    if len(args) != 3:
-        fail("Usage: %s build <repo> <moudle> <target>" % (sys.argv[0], ))
-    config = setup(config=config, args=[args[0]])
-    cmd = [
-        JUST, "build", "-C", config, "--local-build-root", ROOT, args[1],
-        args[2]
-    ]
+def call_just(*, config, main, args):
+    subcommand = args[0] if len(args) > 0 else None
+    args = args[1:]
+    use_config = False
+    use_build_root = False
+    if subcommand in KNOWN_JUST_SUBCOMMANDS:
+        if KNOWN_JUST_SUBCOMMANDS[subcommand]["config"]:
+            use_config = True
+            config = setup(config=config, main=main)
+        use_build_root = KNOWN_JUST_SUBCOMMANDS[subcommand]["build root"]
+    cmd = [JUST]
+    cmd += [subcommand] if subcommand else []
+    cmd += ["-C", config] if use_config else []
+    cmd += ["--local-build-root", ROOT] if use_build_root else []
+    if subcommand in JUST_ARGS:
+        cmd += JUST_ARGS[subcommand]
+    cmd += args
     log("Setup finished, exec %s" % (cmd, ))
-    os.execvp(JUST, cmd)
+    try:
+        os.execvp(JUST, cmd)
+    except Exception as e:
+        log(e)
+    finally:
+        fail(f"exec failed", 64)
 
 
-def install(*, config, args):
-    if len(args) != 4:
-        fail("Usage: %s install <repo> <moudle> <target> <install-path>" %
-             (sys.argv[0], ))
-    config = setup(config=config, args=[args[0]])
-    cmd = [
-        JUST, "install", "-C", config, "--local-build-root", ROOT, "-o",
-        args[3], args[1], args[2]
-    ]
-    log("Setup finished, exec %s" % (cmd, ))
-    os.execvp(JUST, cmd)
-
-
-def update(*, config, args):
-    for repo in args:
+def update(*, config, repos):
+    for repo in repos:
         desc = config["repositories"][repo]["repository"]
         desc = resolve_repo(desc, repos=config["repositories"])
         repo_type = desc.get("type")
@@ -689,21 +728,28 @@ def update(*, config, args):
     sys.exit(0)
 
 
-def fetch(*, config, args):
-    if args:
-        print("Warning: ignoring arguments %r" % (args, ))
-    fetch_dir = None
-    for d in DISTDIR:
-        if os.path.isdir(d):
-            fetch_dir = os.path.abspath(d)
-            break
+def fetch(*, config, fetch_dir, main, fetch_all=False):
+    if not fetch_dir:
+        for d in DISTDIR:
+            if os.path.isdir(d):
+                fetch_dir = os.path.abspath(d)
+                break
     if not fetch_dir:
         print("No directory found to fetch to, considered %r" % (DISTDIR, ))
         sys.exit(1)
     print("Fetching to %r" % (fetch_dir, ))
 
     repos = config["repositories"]
-    for repo, desc in repos.items():
+    repos_to_fetch = repos.keys()
+
+    if not fetch_all:
+        if main == None and len(repos_to_fetch) > 0:
+            main = sorted(list(repos_to_fetch))[0]
+        if main != None:
+            repos_to_fetch = reachable_repositories(main, repos=repos)[0]
+
+    for repo in repos_to_fetch:
+        desc = repos[repo]
         if ("repository" in desc and isinstance(desc["repository"], dict)
                 and desc["repository"]["type"] in ["zip", "archive"]):
             repo_desc = desc["repository"]
@@ -734,6 +780,7 @@ def main():
     parser.add_argument("--distdir",
                         dest="distdir",
                         action="append",
+                        default=[],
                         help="Directory to look for distfiles before fetching",
                         metavar="PATH")
     parser.add_argument("--just",
@@ -745,6 +792,64 @@ def main():
                         action="store_true",
                         default=False,
                         help="Always create file roots")
+    parser.add_argument(
+        "--main",
+        dest="main",
+        default=None,
+        help="Main repository to consider from the configuration.")
+    subcommands = parser.add_subparsers(dest="subcommand",
+                                        title="subcommands",
+                                        required=True)
+
+    repo_parser = ArgumentParser(add_help=False)
+    repo_parser.add_argument(
+        "--all",
+        dest="sub_all",
+        action="store_true",
+        default=False,
+        help="Consider all repositories in the configuration.")
+    repo_parser.add_argument(
+        "sub_main",
+        metavar="main-repo",
+        nargs="?",
+        default=None,
+        help="Main repository to consider from the configuration.")
+
+    subcommands.add_parser("setup",
+                           parents=[repo_parser],
+                           help="Setup and generate just configuration.")
+
+    subcommands.add_parser(
+        "setup-env",
+        parents=[repo_parser],
+        help="Setup without workspace root for the main repository.")
+
+    fetch_parser = subcommands.add_parser(
+        "fetch",
+        parents=[repo_parser],
+        help="Fetch and store distribution files.")
+    fetch_parser.add_argument("-o",
+                              dest="fetch_dir",
+                              help="Directory to write distfiles when fetching",
+                              metavar="PATH")
+
+    update_parser = subcommands.add_parser(
+        "update",
+        help="Advance Git commit IDs and print updated just-mr configuration.")
+    update_parser.add_argument("update_repos",
+                               metavar="repo",
+                               nargs="*",
+                               default=[],
+                               help="Repository to update.")
+
+    subcommands.add_parser("do",
+                           help="Canonical way of specifying just subcommands",
+                           add_help=False)
+
+    for cmd in KNOWN_JUST_SUBCOMMANDS:
+        subcommands.add_parser(cmd,
+                               help=f"Run setup and call 'just {cmd}'",
+                               add_help=False)
 
     (options, args) = parser.parse_known_args()
     config = read_config(options.repository_config)
@@ -773,9 +878,25 @@ def main():
     global ALWAYS_FILE
     ALWAYS_FILE = options.always_file
 
-    if not args:
-        fail("Usage: %s <cmd> [<args>]" % (sys.argv[0], ))
-    if args[0] == "setup-env":
+    sub_main = options.sub_main if hasattr(options, "sub_main") else None
+    sub_all = options.sub_all if hasattr(options, "sub_all") else None
+    if not sub_all and options.main and sub_main and options.main != sub_main:
+        print(
+            "Warning: conflicting options for main repository, selecting '%s'."
+            % (sub_main, ))
+    main = sub_main or options.main
+
+    if options.subcommand in KNOWN_JUST_SUBCOMMANDS:
+        call_just(config=config, main=main, args=[options.subcommand] + args)
+        return
+    if options.subcommand == "do":
+        call_just(config=config, main=main, args=args)
+        return
+
+    if args:
+        print("Warning: ignoring unknown arguments %r" % (args, ))
+
+    if options.subcommand == "setup-env":
         # Setup for interactive use, i.e., fetch the required repositories
         # and generate an appropriate multi-repository configuration file.
         # Store it in the CAS and print its path on stdout.
@@ -785,22 +906,25 @@ def main():
         # the working directory; in this way, working on a checkout of that
         # repository is possible, while having all dependencies set up
         # correctly.
-        print(setup(config=config, args=args[1:], interactive=True))
+        print(
+            setup(config=config,
+                  main=main,
+                  setup_all=options.sub_all,
+                  interactive=True))
         return
-    if args[0] == "setup":
+    if options.subcommand == "setup":
         # Setup such that the main repository keeps its workspace given in
         # the input config.
-        print(setup(config=config, args=args[1:]))
+        print(setup(config=config, main=main, setup_all=options.sub_all))
         return
-    if args[0] == "build":
-        build(config=config, args=args[1:])
-    if args[0] == "install":
-        install(config=config, args=args[1:])
-    if args[0] == "update":
-        update(config=config, args=args[1:])
-    if args[0] == "fetch":
-        fetch(config=config, args=args[1:])
-    fail("Unknown subcommand %s" % (args[0], ))
+    if options.subcommand == "update":
+        update(config=config, repos=options.update_repos)
+    if options.subcommand == "fetch":
+        fetch(config=config,
+              fetch_dir=options.fetch_dir,
+              main=main,
+              fetch_all=options.sub_all)
+    fail("Unknown subcommand %s" % (options.subcommand, ))
 
 
 if __name__ == "__main__":
