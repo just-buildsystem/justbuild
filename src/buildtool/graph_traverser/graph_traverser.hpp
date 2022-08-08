@@ -351,12 +351,19 @@ class GraphTraverser {
                            RemoteExecutionConfig::PlatformProperties(),
                            clargs_.build.timeout};
         bool traversing{false};
-        std::atomic<bool> failed{false};
+        std::atomic<bool> done = false;
+        std::atomic<bool> failed = false;
+        std::condition_variable cv{};
+        auto observer =
+            std::thread([this, &done, &cv]() { reporter_(&done, &cv); });
         {
             Traverser t{executor, g, clargs_.jobs, &failed};
             traversing =
                 t.Traverse({std::begin(artifact_ids), std::end(artifact_ids)});
         }
+        done = true;
+        cv.notify_all();
+        observer.join();
 
         if (traversing and not failed and clargs_.rebuild->dump_flaky) {
             std::ofstream file{*clargs_.rebuild->dump_flaky};

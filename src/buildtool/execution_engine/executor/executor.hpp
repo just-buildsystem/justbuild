@@ -72,8 +72,11 @@ class ExecutorImpl {
             return std::nullopt;
         }
 
-        Progress::Instance().Start(action->Content().Id());
-        Statistics::Instance().IncrementActionsQueuedCounter();
+        // do not count statistics for rebuilder fetching from cache
+        if (cache_flag != IExecutionAction::CacheFlag::FromCacheOnly) {
+            Progress::Instance().Start(action->Content().Id());
+            Statistics::Instance().IncrementActionsQueuedCounter();
+        }
 
         auto remote_action = api->CreateAction(*root_digest,
                                                action->Command(),
@@ -414,8 +417,8 @@ class ExecutorImpl {
     [[nodiscard]] static auto ParseResponse(
         Logger const& logger,
         IExecutionResponse::Ptr const& response,
-        gsl::not_null<DependencyGraph::ActionNode const*> const& action)
-        -> bool {
+        gsl::not_null<DependencyGraph::ActionNode const*> const& action,
+        bool count_as_executed = false) -> bool {
         logger.Emit(LogLevel::Trace, "finished execution");
 
         if (!response) {
@@ -423,7 +426,7 @@ class ExecutorImpl {
             return false;
         }
 
-        if (response->IsCached()) {
+        if (not count_as_executed and response->IsCached()) {
             logger.Emit(LogLevel::Trace, " - served from cache");
             Statistics::Instance().IncrementActionsCachedCounter();
         }
@@ -618,7 +621,8 @@ class Rebuilder {
         }
 
         DetectFlakyAction(*response, *response_cached, action->Content());
-        return Impl::ParseResponse(logger, *response, action);
+        return Impl::ParseResponse(
+            logger, *response, action, /*count_as_executed=*/true);
     }
 
     [[nodiscard]] auto Process(
