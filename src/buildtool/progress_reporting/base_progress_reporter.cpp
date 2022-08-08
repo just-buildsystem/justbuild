@@ -4,6 +4,8 @@
 
 #include <mutex>
 
+#include <gsl-lite/gsl-lite.hpp>
+
 #include "fmt/core.h"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -15,6 +17,7 @@ auto BaseProgressReporter::Reporter() -> GraphTraverser::progress_reporter_t {
         auto const& stats = Statistics::Instance();
         std::unique_lock<std::mutex> lock(m);
         int64_t delay = kStartDelayMillis;
+        int total = gsl::narrow<int>(Progress::Instance().OriginMap().size());
         while (not *done) {
             cv->wait_for(lock, std::chrono::milliseconds(delay));
             if (not *done) {
@@ -41,8 +44,10 @@ auto BaseProgressReporter::Reporter() -> GraphTraverser::progress_reporter_t {
                             " ({}{})", sample, active > 1 ? ", ..." : "");
                     }
                 }
+                constexpr int kOneHundred{100};
                 Logger::Log(LogLevel::Progress,
-                            "{} cached, {} run, {} processing{}.",
+                            "[{:3}%] {} cached, {} run, {} processing{}.",
+                            (cached + run) * kOneHundred / total,
                             cached,
                             run,
                             active,

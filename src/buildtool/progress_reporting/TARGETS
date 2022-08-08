@@ -18,6 +18,7 @@
   , "deps":
     [ ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/common", "common"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
     , "progress"
     ]
   }
