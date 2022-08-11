@@ -451,12 +451,6 @@
             }
           }
         ]
-      , [ "lib"
-        , { "type": "to_subdir"
-          , "subdir": {"type": "var", "name": "stage"}
-          , "$1": {"type": "var", "name": "lib"}
-          }
-        ]
       ]
     , "body":
       { "type": "to_subdir"
