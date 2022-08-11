@@ -71,6 +71,7 @@ the second list element is always ~null~ as we only want to allow tree
 references from the current module.
 
 
+#+SRCNAME: fmt-layer/include/fmt/TARGETS
 #+BEGIN_SRC js
 { "hdrs":
   { "type": ["@", "rules", "CC", "header directory"]
@@ -86,6 +87,7 @@ fully-qualified target name (~["include/fmt", "hdrs"]~). Source files are the
 two local files ~format.cc~, and ~os.cc~. The final target description in
 ~src/TARGETS~ will look like this:
 
+#+SRCNAME: fmt-layer/src/TARGETS
 #+BEGIN_SRC js
 { "fmt":
   { "type": ["@", "rules", "CC", "library"]
@@ -102,14 +104,15 @@ that may be used by another project. Exported targets are subject to high-level
 target caching, which allows to skip the analysis and traversal of entire
 subgraphs in the action graph. Therefore, we create an export target that
 exports the target ~["src", "fmt"]~, with only the variables in the field
-~"flexible_config"~ being propagated. The top-level ~TARGET~ file contains the
+~"flexible_config"~ being propagated. The top-level ~TARGETS~ file contains the
 following content:
 
+#+SRCNAME: fmt-layer/TARGETS
 #+BEGIN_SRC js
 { "fmt":
   { "type": "export"
   , "target": ["src", "fmt"]
-  , "flexible_config": ["CXX", "CXXFLAGS", "AR", "ENV"]
+  , "flexible_config": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
   }
 }
 #+END_SRC
@@ -122,14 +125,20 @@ is based on the Git repository with its target root being overlayed.
 Furthermore, we want to use ~"fmtlib"~ in the repository ~"tutorial"~, and
 therefore need to introduce an additional binding ~"format"~ for it:
 
+#+SRCNAME: repos.json
 #+BEGIN_SRC js
-{ "repositories":
-  { "tutorial":
+{ "main": "tutorial"
+, "repositories":
+  { "just-rules":
+    { "repository": {"type": "file", "path": "/tmp/justbuild/rules"}
+    }
+  , "tutorial":
     { "repository": {"type": "file", "path": "."}
     , "bindings": {"rules": "just-rules", "format": "fmtlib"}
     }
-  , "just-rules": { /* ... unchanged ... */ }
-  , "tutorial-defaults": { /* ... unchanged ... */ }
+  , "tutorial-defaults":
+    { "repository": {"type": "file", "path": "./tutorial-defaults"}
+    }
   , "fmt-targets-layer":
     { "repository": {"type": "file", "path": "./fmt-layer"}
     }
@@ -150,6 +159,7 @@ therefore need to introduce an additional binding ~"format"~ for it:
 This ~"format"~ binding can you be used to add a new dependency in
 ~greet/TARGETS~:
 
+#+SRCNAME: greet/TARGETS
 #+BEGIN_SRC js
 { "greet":
   { "type": ["@", "rules", "CC", "library"]
@@ -164,6 +174,7 @@ This ~"format"~ binding can you be used to add a new dependency in
 
 Consequently, the ~fmtlib~ library can now be used by ~greet/greet.cpp~:
 
+#+SRCNAME: greet/greet.cpp
 #+BEGIN_SRC cpp
 #include "greet.hpp"
 #include <fmt/format.h>
@@ -177,48 +188,72 @@ Due to changes made to ~repos.json~, building this tutorial requires to rerun
 ~just-mr~, which will fetch the necessary sources for the external repositories:
 
 #+BEGIN_SRC sh
-$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
-$ just build -C $CONF helloworld
+$ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
-INFO: Discovered 7 actions, 5 trees, 0 blobs
+INFO: Discovered 7 actions, 4 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
-INFO: Processed 7 actions, 1 cache hits.
+INFO: Processed 7 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [e489bdd234787c49c4fefdd3b8a03c399a2d46f5:133000:x]
+        helloworld [ccca0c1aa443e5b2adce16949de24b50d6826636:324432:x]
 $
 #+END_SRC
 
-Note that the single cache hit we observe, is the compile action of ~main.cpp~,
-which is unchanged.
+Note to build the ~fmt~ target alone, its containing repository ~fmtlib~ must be
+specified via the ~--main~ option:
+#+BEGIN_SRC sh
+$ just-mr --main fmtlib build fmt
+INFO: Requested target is [["@","fmtlib","","fmt"],{}]
+INFO: Analysed target [["@","fmtlib","","fmt"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
+INFO: Discovered 3 actions, 2 trees, 0 blobs
+INFO: Building [["@","fmtlib","","fmt"],{}].
+INFO: Processed 3 actions, 3 cache hits.
+INFO: Artifacts built, logical paths are:
+        libfmt.a [14c5156a6a988f417928970e750c8c8f928460ab:863452:f]
+      (1 runfiles omitted.)
+$
+#+END_SRC
 
 ** Employing high-level target caching
 
 The make use of high-level target caching for exported targets, we need to
 ensure that all inputs to an export target are transitively content-fixed. This
-is automatically the case for Git repositories. However, the ~"fmtlib"~
+is automatically the case for ~"type":"git"~ repositories. However, the ~libfmt~
 repository also depends on ~"fmt-target-layer"~, ~"just-rules"~, and
-~"tutorial-defaults"~. To enforce those repositories to be content-fixed as
-well, the pragma ~"to_git"~ can be set, which instructs ~just-mr~ to create a
-Git repository from those file roots (or determine the committed ~tree-id~ if
-those roots are already under Git versioning). The ~repos.json~ with support for
-high-level target caching will look like this:
+~"tutorial-defaults"~.  As those are ~"type":"file"~ repositories, they must be
+put under Git versioning first:
 
+#+BEGIN_SRC sh
+$ git init .
+$ git add tutorial-defaults fmt-layer
+$ git commit -m"fix compile flags and fmt targets layer"
+#+END_SRC
+
+Note that ~just-rules~ already is under Git versioning as it is a subtree of the
+checked out justbuild repository.
+
+Now, to instruct ~just-mr~ to use the content-fixed, committed source trees of
+those ~"type":"file"~ repositories the pragma ~"to_git"~ must be set for them in
+~repos.json~:
+
+#+SRCNAME: repos.json
 #+BEGIN_SRC js
-{ "repositories":
-  { "tutorial":
-    { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
-    }
-  , "just-rules":
+{ "main": "tutorial"
+, "repositories":
+  { "just-rules":
     { "repository":
       { "type": "file"
-      , "path": "/usr/src/justbuild/rules"
+      , "path": "/tmp/justbuild/rules"
       , "pragma": {"to_git": true}
       }
     , "target_root": "tutorial-defaults"
     , "rule_root": "just-rules"
+    }
+  , "tutorial":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
     }
   , "tutorial-defaults":
     { "repository":
@@ -248,27 +283,21 @@ high-level target caching will look like this:
 }
 #+END_SRC
 
-Due to changes in the repository configuration, ~just-mr~ needs to be rerun and
-the benefits of the target cache should be visible on the second build:
+Due to changes in the repository configuration, we need to rebuild and the
+benefits of the target cache should be visible on the second build:
 
 #+BEGIN_SRC sh
-$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
-From ~/.cache/just/tmp-workspaces/file/tmp/tutorial/tutorial-defaults
- * branch              HEAD       -> FETCH_HEAD
-From ~/.cache/just/tmp-workspaces/file/tmp/tutorial/fmt-layer
- * branch              HEAD       -> FETCH_HEAD
-
-$ just build -C $CONF helloworld
+$ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
-INFO: Discovered 7 actions, 5 trees, 0 blobs
+INFO: Discovered 7 actions, 4 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
-INFO: Processed 7 actions, 7 cache hits.
+INFO: Processed 7 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [e489bdd234787c49c4fefdd3b8a03c399a2d46f5:133000:x]
-
-$ just build -C $CONF helloworld
+        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
+$
+$ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 1 cached, 0 uncached, 0 not eligible for caching
@@ -276,7 +305,7 @@ INFO: Discovered 4 actions, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [e489bdd234787c49c4fefdd3b8a03c399a2d46f5:133000:x]
+        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
 $
 #+END_SRC
 
@@ -302,7 +331,9 @@ repositories ~"fmtlib"~ and ~"gsl-lite"~, respectively:
   +--TARGETS.gsl
   +--include
   |  +--fmt
-  |     +--TARGETS.fmt
+  |  |  +--TARGETS.fmt
+  |  +--gsl
+  |     +--TARGETS.gsl
   |
   +--src
      +--TARGETS.fmt
@@ -315,11 +346,30 @@ repository is implemented. For the given example, the following ~repos.json~
 defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
 ~"gsl-lite"~:
 
+#+SRCNAME: repos.json
 #+BEGIN_SRC js
-{ "repositories":
-  { "tutorial": { /* ... unchanged ... */ }
-  , "just-rules": { /* ... unchanged ... */ }
-  , "tutorial-defaults": { /* ... unchanged ... */ }
+{ "main": "tutorial"
+, "repositories":
+  { "just-rules":
+    { "repository":
+      { "type": "file"
+      , "path": "/tmp/justbuild/rules"
+      , "pragma": {"to_git": true}
+      }
+    , "target_root": "tutorial-defaults"
+    , "rule_root": "just-rules"
+    }
+  , "tutorial":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
+    }
+  , "tutorial-defaults":
+    { "repository":
+      { "type": "file"
+      , "path": "./tutorial-defaults"
+      , "pragma": {"to_git": true}
+      }
+    }
   , "common-targets-layer":
     { "repository":
       { "type": "file"
