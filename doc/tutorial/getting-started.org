@@ -1,0 +1,98 @@
+* Getting Started
+
+In order to use /justbuild/, first make sure that ~just~ is available in your
+~PATH~.
+
+** Creating a new project
+
+/justbuild/ needs to know the root of the project worked on. By default, it
+searches upwards from the current directory till it finds a marker. Currently,
+we support three different markers: the files ~ROOT~ and ~WORKSPACE~ or the
+directory ~.git~. Lets create a new project by creating one of those markers:
+
+#+BEGIN_SRC sh
+$ touch ROOT
+#+END_SRC
+
+** Creating a generic target
+
+By default, targets are described in ~TARGETS~ files. These files contain a
+~JSON~ object with the target name as key and the target description as value. A
+target description is an object with at least a single mandatory field:
+~"type"~. This field specifies which rule (built-in or user-defined) to apply
+for this target.
+
+A simple target that only executes commands can be created using the built-in
+~"generic"~ rule, which requires at least one command and one output file or
+directory. To create such a target, create the file ~TARGETS~ with the following
+content:
+
+#+SRCNAME: TARGETS
+#+BEGIN_SRC js
+{ "greeter":
+  { "type": "generic"
+  , "cmds": ["echo -n 'Hello ' > out.txt", "cat name.txt >> out.txt"]
+  , "outs": ["out.txt"]
+  , "deps": ["name.txt"]
+  }
+}
+#+END_SRC
+
+In this example, the ~"greeter"~ target will run two commands to produce the
+output file ~out.txt~. The second command depends on the input file ~name.txt~
+that we need to create as well:
+
+#+BEGIN_SRC sh
+$ echo World > name.txt
+#+END_SRC
+
+** Building a generic target
+
+To build a target, we need to run ~just~ with the subcommand ~build~:
+
+#+BEGIN_SRC sh
+$ just build greeter
+INFO: Requested target is [["@","","","greeter"],{}]
+INFO: Analysed target [["@","","","greeter"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Building [["@","","","greeter"],{}].
+INFO: Processed 1 actions, 0 cache hits.
+INFO: Artifacts built, logical paths are:
+        out.txt [557db03de997c86a4a028e1ebd3a1ceb225be238:12:f]
+$
+#+END_SRC
+
+The subcommand ~build~ just builds the binary but does not stage it to any
+user-defined location on the file system. To also stage the produced artifact to
+the working directory, use the ~install~ subcommand and specify the output
+directory:
+
+#+BEGIN_SRC sh
+$ just install greeter -o .
+INFO: Requested target is [["@","","","greeter"],{}]
+INFO: Analysed target [["@","","","greeter"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Building [["@","","","greeter"],{}].
+INFO: Processed 1 actions, 1 cache hits.
+INFO: Artifacts can be found in:
+        /tmp/tutorial/out.txt [557db03de997c86a4a028e1ebd3a1ceb225be238:12:f]
+$ cat out.txt
+Hello World
+$
+#+END_SRC
+
+Note that the ~install~ subcommand initiates the build a second time, without
+executing any actions as all actions are being served from cache. The produced
+artifact is identical, which is indicated by the same hash/size/type.
+
+Alternatively, we could also directly request the artifact ~out.txt~ from
+/justbuild/'s CAS (content-addressable storage) and print it on the command line
+via:
+
+#+BEGIN_SRC sh
+$ just install-cas [557db03de997c86a4a028e1ebd3a1ceb225be238:12:f]
+Hello World
+$
+#+END_SRC

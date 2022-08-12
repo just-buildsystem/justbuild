@@ -1,4 +1,4 @@
-* Building Hello World
+* Building C++ Hello World
 
 /justbuild/ is a true language-agnostic (there are no more-equal languages) and
 multi-repository build system. As a consequence, high-level concepts (e.g., C++
@@ -57,14 +57,6 @@ an empty file ~ROOT~:
 #+BEGIN_SRC sh
 $ touch ROOT
 #+END_SRC
-
-By default, targets are described in ~TARGETS~ files. These files contain a
-~JSON~ object with the target name as key and the target description as value. A
-target description is an object with at least a single mandatory field:
-~"type"~. This field specifies which rule (built-in or user-defined) to apply
-for this target. Depending on which rule is used, specifying additional fields
-may be required. For all user-defined rules, the content of each field must be
-a list of either strings or targets.
 
 For this tutorial, we want to create a target ~helloworld~ that produces a
 binary from the C++ source ~main.cpp~. To define such a target, create a
@@ -153,30 +145,6 @@ INFO: Artifacts built, logical paths are:
         helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
 $
 #+END_SRC
-
-Note that this command just builds the binary but does not stage it to any
-user-defined location on the file system. To also stage the produced artifact to
-the working directory, use the ~install~ subcommand and specify the output
-directory:
-
-#+BEGIN_SRC sh
-$ just install -C $CONF helloworld -o .
-INFO: Requested target is [["@","tutorial","","helloworld"],{}]
-INFO: Analysed target [["@","tutorial","","helloworld"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
-INFO: Discovered 2 actions, 1 trees, 0 blobs
-INFO: Building [["@","tutorial","","helloworld"],{}].
-INFO: Processed 2 actions, 2 cache hits.
-INFO: Artifacts can be found in:
-        /tmp/tutorial/helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
-$ ./helloworld
-Hello world!
-$
-#+END_SRC
-
-Note that the ~install~ subcommand initiates the build a second time, without
-executing any actions as all actions are being served from cache. The produced
-binary is identical, which is indicated by the same hash/size/type.
 
 By default, the BSD-default compiler front-ends (which are also defined for most
 Linux distributions) ~cc~ and ~c++~ are used for C and C++ (variables ~"CC"~ and
