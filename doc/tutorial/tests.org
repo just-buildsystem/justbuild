@@ -84,14 +84,14 @@ root. However, in our case, we want to use the default runner and therefore it
 is sufficient to create an empty module:
 
 Create ~tutorial-defaults/CC/test/TARGETS~:
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ mkdir -p tutorial-defaults/CC/test
 $ echo '{}' > tutorial-defaults/CC/test/TARGETS
 #+END_SRC
 
 Now we can run the test (i.e., build the test result):
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 $ just build -C $CONF greet test
 INFO: Requested target is [["@","tutorial","greet","test"],{}]
@@ -127,7 +127,7 @@ command line, the ~-P~ option can be used. Argument to this option is the name
 of the artifact that should be printed on the command line, in our case
 ~stdout~:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF greet test --log-limit 1 -P stdout
 greet output: Hello World!
 
@@ -144,7 +144,7 @@ Similarly, to create a shell test for testing the ~helloworld~ binary, a test
 script must be provided:
 
 ~test.sh~:
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 set -e
 [ "$(./helloworld)" = "Hello Universe!" ]
 #+END_SRC
@@ -170,14 +170,14 @@ Similar to the binary tests, also for shell tests we need to provide at least an
 empty module for the test rule defaults:
 
 Create ~tutorial-defaults/shell/test/TARGETS~:
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ mkdir -p tutorial-defaults/shell/test
 $ echo '{}' > tutorial-defaults/shell/test/TARGETS
 #+END_SRC
 
 Now we can run the shell test (i.e., build the test result):
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF test
 INFO: Requested target is [["@","tutorial","","test"],{}]
 INFO: Analysed target [["@","tutorial","","test"],{}]
@@ -232,7 +232,7 @@ test target combining the two tests above, add the following to the top-level
 Now we can run all tests at once by just building the compound test target
 ~"all_tests"~:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF all_tests
 INFO: Requested target is [["@","tutorial","","all_tests"],{}]
 INFO: Analysed target [["@","tutorial","","all_tests"],{}]

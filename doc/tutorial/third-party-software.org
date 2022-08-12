@@ -49,7 +49,7 @@ following structure for the overlay:
 
 Let's create the overlay structure:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ mkdir -p fmt-layer/include/fmt
 $ mkdir -p fmt-layer/src
 #+END_SRC
@@ -174,7 +174,7 @@ void greet(std::string const& s) {
 Due to changes made to ~repos.json~, building this tutorial requires to rerun
 ~just-mr~, which will fetch the necessary sources for the external repositories:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
@@ -249,7 +249,7 @@ high-level target caching will look like this:
 Due to changes in the repository configuration, ~just-mr~ needs to be rerun and
 the benefits of the target cache should be visible on the second build:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 From ~/.cache/just/tmp-workspaces/file/tmp/tutorial/tutorial-defaults
  * branch              HEAD       -> FETCH_HEAD

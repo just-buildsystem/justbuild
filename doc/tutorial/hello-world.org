@@ -54,7 +54,7 @@ can be accessed from within the ~"tutorial"~ repository via ~["@", "rules",
 First, we need to declare where the root of our workspace is located by creating
 an empty file ~ROOT~:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ touch ROOT
 #+END_SRC
 
@@ -101,7 +101,7 @@ int main() {
 To build the ~helloworld~ target, we first need to setup the multi-repository
 configuration for the ~tutorial~ project by running ~just-mr~:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 #+END_SRC
 
@@ -113,7 +113,7 @@ build configuration to stdout, which is why we assigned it to the shell variable
 once again whenever the ~repos.json~ file is modified. To see the generated
 build configuration, run the following command:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ cat $CONF
 {
   "main": "tutorial",
@@ -141,7 +141,7 @@ $
 With the final configuration at hand, we can now build our ~helloworld~ target
 by using the ~build~ subcommand:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
@@ -159,7 +159,7 @@ user-defined location on the file system. To also stage the produced artifact to
 the working directory, use the ~install~ subcommand and specify the output
 directory:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just install -C $CONF helloworld -o .
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
@@ -184,7 +184,7 @@ Linux distributions) ~cc~ and ~c++~ are used for C and C++ (variables ~"CC"~ and
 provide a JSON object that sets different default variables. For instance, to
 use Clang as C++ compiler for a single build invocation, you can use the
 following command to provide an object that sets ~"CXX"~ to ~"clang++"~:
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF helloworld -D'{"CXX":"clang++"}'
 INFO: Requested target is [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
@@ -210,7 +210,7 @@ repository independent of these definitions.
 We will call the new file root ~tutorial-defaults~ and need to create a module
 directory ~CC~ in it:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ mkdir -p ./tutorial-defaults/CC
 #+END_SRC
 
@@ -267,7 +267,7 @@ not have any defined bindings.
 
 To rebuild the project, we need to rerun ~just-mr~ and call ~just~ afterwards:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
@@ -358,7 +358,7 @@ as the appropriate artifacts of dependencies are automatically added to the
 inputs of compile and link actions. The new binary can be built with the same
 command as before (no need to rerun ~just-mr~):
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
@@ -374,7 +374,7 @@ $
 To only build the static library target ~"greet"~ from module ~"greet"~, run the
 following command:
 
-#+BEGIN_SRC shell
+#+BEGIN_SRC sh
 $ just build -C $CONF greet greet
 INFO: Requested target is [["@","tutorial","greet","greet"],{}]
 INFO: Analysed target [["@","tutorial","greet","greet"],{}]
