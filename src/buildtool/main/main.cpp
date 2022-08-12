@@ -963,6 +963,7 @@ auto DetermineNonExplicitTarget(
         case Base::ReferenceType::kTarget:
             return id;
     }
+    return std::nullopt;  // make gcc happy
 }
 
 void DumpArtifactsToBuild(

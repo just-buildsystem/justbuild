@@ -68,7 +68,9 @@ concept ClockHasFromTime = requires(std::time_t const t) {
 
 template <typename T>
 concept StrMapConstForwardIterator = requires(T const c) {
-    { (*c).first }
+    {
+        std::remove_reference_t<decltype((*c).first)> { (*c).first }
+    }
     ->same_as<std::string const>;
 };
 

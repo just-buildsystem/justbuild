@@ -89,4 +89,4 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
                                                            jobs);
 }
 
-};  // namespace BuildMaps::Base
+}  // namespace BuildMaps::Base

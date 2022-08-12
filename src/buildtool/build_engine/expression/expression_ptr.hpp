@@ -75,7 +75,7 @@ class ExpressionPtr {
 
     using linked_map_t = LinkedMap<std::string, ExpressionPtr, ExpressionPtr>;
     [[nodiscard]] auto IsNotNull() const noexcept -> bool;
-    [[nodiscard]] auto LinkedMap() const& -> linked_map_t const&;
+    [[nodiscard]] auto Map() const& -> linked_map_t const&;
     [[nodiscard]] static auto Make(linked_map_t&& map) -> ExpressionPtr;
 
   private:

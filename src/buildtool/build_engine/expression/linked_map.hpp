@@ -35,7 +35,7 @@ class LinkedMapPtr {
     [[nodiscard]] auto IsNotNull() const noexcept -> bool {
         return static_cast<bool>(ptr_);
     }
-    [[nodiscard]] auto LinkedMap() const& -> map_t const& { return *ptr_; }
+    [[nodiscard]] auto Map() const& -> map_t const& { return *ptr_; }
     [[nodiscard]] static auto Make(map_t&& map) -> ptr_t {
         return ptr_t{std::make_shared<map_t>(std::move(map))};
     }
@@ -143,15 +143,15 @@ class LinkedMap {
     }
 
     [[nodiscard]] auto empty() const noexcept -> bool {
-        return (content_.IsNotNull() ? content_.LinkedMap().empty()
+        return (content_.IsNotNull() ? content_.Map().empty()
                                      : map_.empty()) and
-               (not next_.IsNotNull() or next_.LinkedMap().empty());
+               (not next_.IsNotNull() or next_.Map().empty());
     }
 
     [[nodiscard]] auto Find(K const& key) const& noexcept
         -> std::optional<std::reference_wrapper<V const>> {
         if (content_.IsNotNull()) {
-            auto val = content_.LinkedMap().Find(key);
+            auto val = content_.Map().Find(key);
             if (val) {
                 return val;
             }
@@ -163,7 +163,7 @@ class LinkedMap {
             }
         }
         if (next_.IsNotNull()) {
-            auto val = next_.LinkedMap().Find(key);
+            auto val = next_.Map().Find(key);
             if (val) {
                 return val;
             }
@@ -173,7 +173,7 @@ class LinkedMap {
 
     [[nodiscard]] auto Find(K const& key) && noexcept -> std::optional<V> {
         if (content_.IsNotNull()) {
-            auto val = content_.LinkedMap().Find(key);
+            auto val = content_.Map().Find(key);
             if (val) {
                 return val->get();
             }
@@ -185,7 +185,7 @@ class LinkedMap {
             }
         }
         if (next_.IsNotNull()) {
-            auto val = next_.LinkedMap().Find(key);
+            auto val = next_.Map().Find(key);
             if (val) {
                 return val->get();
             }
@@ -294,10 +294,9 @@ class LinkedMap {
     AtomicValue<items_t> items_{};
 
     [[nodiscard]] auto ComputeSortedItems() const noexcept -> items_t {
-        auto size =
-            content_.IsNotNull() ? content_.LinkedMap().size() : map_.size();
+        auto size = content_.IsNotNull() ? content_.Map().size() : map_.size();
         if (next_.IsNotNull()) {
-            size += next_.LinkedMap().size();
+            size += next_.Map().size();
         }
 
         auto items = items_t{};
@@ -311,7 +310,7 @@ class LinkedMap {
         typename items_t::const_iterator nitemsend;
 
         if (content_.IsNotNull()) {
-            auto const& citems = content_.LinkedMap().Items();
+            auto const& citems = content_.Map().Items();
             citemsit = citems.begin();
             citemsend = citems.end();
         }
@@ -322,7 +321,7 @@ class LinkedMap {
             citemsend = map_copy.end();
         }
         if (next_.IsNotNull()) {
-            auto const& nitems = next_.LinkedMap().Items();
+            auto const& nitems = next_.Map().Items();
             nitemsit = nitems.begin();
             nitemsend = nitems.end();
         }

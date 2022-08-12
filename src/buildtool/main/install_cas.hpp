@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include <gsl-lite/gsl-lite.h>
+#include <gsl-lite/gsl-lite.hpp>
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/cli.hpp"

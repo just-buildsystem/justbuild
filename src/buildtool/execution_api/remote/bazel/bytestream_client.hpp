@@ -10,6 +10,7 @@
 
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "src/buildtool/execution_api/remote/bazel/bazel_client_common.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for google.bytestream.ByteStream service.

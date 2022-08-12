@@ -156,7 +156,8 @@ template <class T>
     -> std::optional<std::string> {
     try {
         std::string content(message.ByteSizeLong(), '\0');
-        message.SerializeToArray(content.data(), content.size());
+        message.SerializeToArray(content.data(),
+                                 gsl::narrow<int>(content.size()));
         return content;
     } catch (...) {
     }
@@ -184,7 +185,7 @@ template <class T>
     bazel_re::Directory dir{};
 
     auto copy_nodes = [](auto* pb_container, auto const& nodes) {
-        pb_container->Reserve(nodes.size());
+        pb_container->Reserve(gsl::narrow<int>(nodes.size()));
         std::copy(nodes.begin(), nodes.end(), pb::back_inserter(pb_container));
         std::sort(
             pb_container->begin(),

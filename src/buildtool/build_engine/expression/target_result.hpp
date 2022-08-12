@@ -33,7 +33,7 @@ struct TargetResult {
 
 namespace std {
 template <>
-struct std::hash<TargetResult> {
+struct hash<TargetResult> {
     [[nodiscard]] auto operator()(TargetResult const& r) noexcept
         -> std::size_t {
         auto seed = std::hash<ExpressionPtr>{}(r.artifact_stage);

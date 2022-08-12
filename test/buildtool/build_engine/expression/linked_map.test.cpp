@@ -186,7 +186,7 @@ class CustomContainer {
         [[nodiscard]] auto IsNotNull() const noexcept -> bool {
             return static_cast<bool>(*this);
         }
-        [[nodiscard]] auto LinkedMap() const& -> linked_map_t const& {
+        [[nodiscard]] auto Map() const& -> linked_map_t const& {
             return (*this)->Map();
         }
         [[nodiscard]] static auto Make(linked_map_t&& map) -> Ptr {

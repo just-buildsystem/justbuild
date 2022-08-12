@@ -41,13 +41,6 @@ class ResultTargetMap {
         std::vector<Tree::Ptr> trees{};
     };
 
-    template <>
-    struct ResultType</*kIncludeOrigins=*/true> {
-        std::vector<ActionWithOrigin> actions{};
-        std::vector<std::string> blobs{};
-        std::vector<Tree::Ptr> trees{};
-    };
-
     explicit ResultTargetMap(std::size_t jobs) : width_{ComputeWidth(jobs)} {}
 
     ResultTargetMap() = default;
@@ -349,6 +342,13 @@ class ResultTargetMap {
     }
 
 };  // namespace BuildMaps::Target
+
+template <>
+struct ResultTargetMap::ResultType</*kIncludeOrigins=*/true> {
+    std::vector<ActionWithOrigin> actions{};
+    std::vector<std::string> blobs{};
+    std::vector<Tree::Ptr> trees{};
+};
 
 }  // namespace BuildMaps::Target
 

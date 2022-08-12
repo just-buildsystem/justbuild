@@ -11,4 +11,5 @@ auto Hasher::CreateHashImpl(HashType type) noexcept
         case HashType::SHA256:
             return CreateHashImplSha256();
     }
+    return nullptr;  // make gcc happy
 }

@@ -14,8 +14,8 @@ extern "C" {
 
 namespace {
 
-constexpr auto kOIDRawSize{GIT_OID_RAWSZ};
-constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
+constexpr std::size_t kOIDRawSize{GIT_OID_RAWSZ};
+constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
 
 [[nodiscard]] auto GitLastError() noexcept -> std::string {
     git_error const* err{nullptr};
@@ -102,6 +102,8 @@ constexpr auto kOIDHexSize{GIT_OID_HEXSZ};
         case ObjectType::Tree:
             return GIT_FILEMODE_TREE;
     }
+
+    return GIT_FILEMODE_UNREADABLE;  // make gcc happy
 }
 
 [[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept

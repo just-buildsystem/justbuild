@@ -8,6 +8,7 @@
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for serivce defined here:

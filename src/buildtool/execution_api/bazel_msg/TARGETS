@@ -8,7 +8,6 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/utils/cpp", "concepts"]
-    , ["src/utils/cpp", "type_safe_arithmetic"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }

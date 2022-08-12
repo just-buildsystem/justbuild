@@ -11,6 +11,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/local_tree_map.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 
 // forward declaration for actual implementations
 class BazelNetwork;

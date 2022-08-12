@@ -1,6 +1,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -12,12 +13,17 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/type_safe_arithmetic.hpp"
+
+// Port
+struct PortTag : type_safe_arithmetic_tag<std::uint16_t> {};
+using Port = type_safe_arithmetic<PortTag>;
 
 class RemoteExecutionConfig {
   public:
     struct ServerAddress {
         std::string host{};
-        int port{};
+        Port port{};
     };
 
     // Obtain global instance
@@ -94,7 +100,8 @@ class RemoteExecutionConfig {
             auto port_num = std::stoi(port);
             if (not host.empty() and port_num >= 0 and
                 port_num <= kMaxPortNumber) {
-                return ServerAddress{std::move(host), port_num};
+                return ServerAddress{std::move(host),
+                                     gsl::narrow_cast<Port::value_t>(port_num)};
             }
         } catch (std::out_of_range const& e) {
             Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");

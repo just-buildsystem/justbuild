@@ -66,7 +66,7 @@ auto ExpressionPtr::IsNotNull() const noexcept -> bool {
     return static_cast<bool>(ptr_) and not(ptr_->IsNone());
 }
 
-auto ExpressionPtr::LinkedMap() const& -> ExpressionPtr::linked_map_t const& {
+auto ExpressionPtr::Map() const& -> ExpressionPtr::linked_map_t const& {
     return ptr_->Map();
 }
 

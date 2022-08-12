@@ -12,6 +12,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for serivce defined here:

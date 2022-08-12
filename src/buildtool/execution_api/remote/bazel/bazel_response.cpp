@@ -63,7 +63,7 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
     // collect root digests from trees and store them
     auto blob_reader = network_->ReadBlobs(tree_digests);
     auto tree_blobs = blob_reader.Next();
-    std::size_t pos{};
+    int pos{};
     while (not tree_blobs.empty()) {
         for (auto const& tree_blob : tree_blobs) {
             try {
