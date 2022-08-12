@@ -6,7 +6,7 @@
 TaskSystem::TaskSystem() : TaskSystem(std::thread::hardware_concurrency()) {}
 
 TaskSystem::TaskSystem(std::size_t number_of_threads)
-    : thread_count_{std::max(1UL, number_of_threads)},
+    : thread_count_{std::max(std::size_t{1}, number_of_threads)},
       total_workload_{thread_count_} {
     for (std::size_t index = 0; index < thread_count_; ++index) {
         queues_.emplace_back(&total_workload_);
