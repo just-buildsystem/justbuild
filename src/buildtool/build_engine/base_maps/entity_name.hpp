@@ -98,25 +98,23 @@ template <typename T>
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
         bool const is_file = s0 == EntityName::kFileLocationMarker;
+        auto const ref_type =
+            s0 == EntityName::kFileLocationMarker
+                ? ReferenceType::kFile
+                : (s0 == EntityName::kGlobMarker ? ReferenceType::kGlob
+                                                 : ReferenceType::kTree);
         if (list_size == 3) {
             if (IsString(list[2])) {
                 auto const& name = GetString(list[2]);
                 auto const& x = current.GetNamedTarget();
                 if (IsNone(list[1])) {
-                    return EntityName{x.repository,
-                                      x.module,
-                                      name,
-                                      (is_file ? ReferenceType::kFile
-                                               : ReferenceType::kTree)};
+                    return EntityName{x.repository, x.module, name, ref_type};
                 }
                 if (IsString(list[1])) {
                     auto const& middle = GetString(list[1]);
                     if (middle == "." or middle == x.module) {
-                        return EntityName{x.repository,
-                                          x.module,
-                                          name,
-                                          (is_file ? ReferenceType::kFile
-                                                   : ReferenceType::kTree)};
+                        return EntityName{
+                            x.repository, x.module, name, ref_type};
                     }
                 }
                 if (logger) {
@@ -219,7 +217,8 @@ template <typename T>
                     "obtained as FIELD value of anonymous fields"));
             }
             else if (s0 == EntityName::kFileLocationMarker or
-                     s0 == EntityName::kTreeLocationMarker) {
+                     s0 == EntityName::kTreeLocationMarker or
+                     s0 == EntityName::kGlobMarker) {
                 return ParseEntityNameFSReference(
                     s0, list, list_size, current, logger);
             }

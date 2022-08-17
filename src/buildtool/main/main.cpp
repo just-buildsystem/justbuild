@@ -949,6 +949,9 @@ auto DetermineNonExplicitTarget(
         case Base::ReferenceType::kTree:
             std::cout << id.ToString() << " is a tree." << std::endl;
             return std::nullopt;
+        case Base::ReferenceType::kGlob:
+            std::cout << id.ToString() << " is a glob." << std::endl;
+            return std::nullopt;
         case Base::ReferenceType::kTarget:
             return id;
     }

@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 
+#include <fnmatch.h>
+
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
@@ -1411,6 +1413,55 @@ void TreeTarget(
         });
 }
 
+void GlobResult(const std::vector<AnalysedTargetPtr const*>& values,
+                const BuildMaps::Target::TargetMap::SetterPtr& setter) {
+    auto result = Expression::map_t::underlying_map_t{};
+    for (auto const& value : values) {
+        for (auto const& [k, v] : (*value)->Artifacts()->Map()) {
+            result[k] = v;
+        }
+    }
+    auto stage = ExpressionPtr{Expression::map_t{result}};
+    auto target = std::make_shared<AnalysedTarget>(
+        TargetResult{stage, Expression::kEmptyMap, stage},
+        std::vector<ActionDescription::Ptr>{},
+        std::vector<std::string>{},
+        std::vector<Tree::Ptr>{},
+        std::unordered_set<std::string>{},
+        std::set<std::string>{});
+    (*setter)(std::move(target));
+}
+
+void GlobTargetWithDirEntry(
+    const BuildMaps::Base::EntityName& key,
+    const gsl::not_null<TaskSystem*>& ts,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target_map,
+    const FileRoot::DirectoryEntries& dir) {
+    auto const& target = key.GetNamedTarget();
+    auto const& pattern = target.name;
+    std::vector<BuildMaps::Base::EntityName> matches;
+    for (auto const& x : dir.FilesIterator()) {
+        if (fnmatch(pattern.c_str(), x.c_str(), 0) == 0) {
+            matches.emplace_back(BuildMaps::Base::EntityName{
+                target.repository,
+                target.module,
+                x,
+                BuildMaps::Base::ReferenceType::kFile});
+        }
+    }
+    source_target_map->ConsumeAfterKeysReady(
+        ts,
+        matches,
+        [setter](auto values) { GlobResult(values, setter); },
+        [logger](auto const& msg, bool fatal) {
+            (*logger)(
+                fmt::format("While handling matching file targets:\n{}", msg),
+                fatal);
+        });
+}
+
 }  // namespace
 
 namespace BuildMaps::Target {
@@ -1422,84 +1473,117 @@ auto CreateTargetMap(
         directory_entries_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
     std::size_t jobs) -> TargetMap {
-    auto target_reader =
-        [source_target_map,
-         targets_file_map,
-         rule_map,
-         result_map,
-         directory_entries_map](
-            auto ts, auto setter, auto logger, auto subcaller, auto key) {
-            if (key.target.IsAnonymousTarget()) {
-                withTargetNode(
-                    key, rule_map, ts, subcaller, setter, logger, result_map);
-            }
-            else if (key.target.GetNamedTarget().reference_t ==
-                     BuildMaps::Base::ReferenceType::kTree) {
+    auto target_reader = [source_target_map,
+                          targets_file_map,
+                          rule_map,
+                          result_map,
+                          directory_entries_map](auto ts,
+                                                 auto setter,
+                                                 auto logger,
+                                                 auto subcaller,
+                                                 auto key) {
+        if (key.target.IsAnonymousTarget()) {
+            withTargetNode(
+                key, rule_map, ts, subcaller, setter, logger, result_map);
+        }
+        else if (key.target.GetNamedTarget().reference_t ==
+                 BuildMaps::Base::ReferenceType::kTree) {
 
-                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [logger, target = key.target](auto const& msg, bool fatal) {
-                        (*logger)(fmt::format("While analysing {} as explicit "
-                                              "tree reference:\n{}",
-                                              target.ToString(),
-                                              msg),
-                                  fatal);
-                    });
-                TreeTarget(key,
-                           ts,
-                           subcaller,
-                           setter,
-                           wrapped_logger,
-                           result_map,
-                           directory_entries_map);
-            }
-            else if (key.target.GetNamedTarget().reference_t ==
-                     BuildMaps::Base::ReferenceType::kFile) {
-                // Not a defined target, treat as source target
-                source_target_map->ConsumeAfterKeysReady(
-                    ts,
-                    {key.target},
-                    [setter](auto values) {
-                        (*setter)(AnalysedTargetPtr{*values[0]});
-                    },
-                    [logger, target = key.target](auto const& msg, auto fatal) {
-                        (*logger)(fmt::format("While analysing target {} as "
-                                              "explicit source target:\n{}",
-                                              target.ToString(),
-                                              msg),
-                                  fatal);
-                    });
-            }
-            else {
-                targets_file_map->ConsumeAfterKeysReady(
-                    ts,
-                    {key.target.ToModule()},
-                    [key,
-                     source_target_map,
-                     rule_map,
-                     ts,
-                     subcaller = std::move(subcaller),
-                     setter = std::move(setter),
-                     logger,
-                     result_map](auto values) {
-                        withTargetsFile(key,
-                                        *values[0],
-                                        source_target_map,
-                                        rule_map,
-                                        ts,
-                                        subcaller,
-                                        setter,
-                                        logger,
-                                        result_map);
-                    },
-                    [logger, target = key.target](auto const& msg, auto fatal) {
-                        (*logger)(fmt::format("While searching targets "
-                                              "description for {}:\n{}",
-                                              target.ToString(),
-                                              msg),
-                                  fatal);
-                    });
-            }
-        };
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger, target = key.target](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While analysing {} as explicit "
+                                          "tree reference:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+            TreeTarget(key,
+                       ts,
+                       subcaller,
+                       setter,
+                       wrapped_logger,
+                       result_map,
+                       directory_entries_map);
+        }
+        else if (key.target.GetNamedTarget().reference_t ==
+                 BuildMaps::Base::ReferenceType::kFile) {
+            // Not a defined target, treat as source target
+            source_target_map->ConsumeAfterKeysReady(
+                ts,
+                {key.target},
+                [setter](auto values) {
+                    (*setter)(AnalysedTargetPtr{*values[0]});
+                },
+                [logger, target = key.target](auto const& msg, auto fatal) {
+                    (*logger)(fmt::format("While analysing target {} as "
+                                          "explicit source target:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+        }
+        else if (key.target.GetNamedTarget().reference_t ==
+                 BuildMaps::Base::ReferenceType::kGlob) {
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger, target = key.target](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While analysing {} as glob:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+            auto const& target = key.target;
+            directory_entries_map->ConsumeAfterKeysReady(
+                ts,
+                {target.ToModule()},
+                [target, ts, setter, wrapped_logger, source_target_map](
+                    auto values) {
+                    GlobTargetWithDirEntry(target,
+                                           ts,
+                                           setter,
+                                           wrapped_logger,
+                                           source_target_map,
+                                           *values[0]);
+                },
+                [target, logger](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While reading directory for {}:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                }
+
+            );
+        }
+        else {
+            targets_file_map->ConsumeAfterKeysReady(
+                ts,
+                {key.target.ToModule()},
+                [key,
+                 source_target_map,
+                 rule_map,
+                 ts,
+                 subcaller = std::move(subcaller),
+                 setter = std::move(setter),
+                 logger,
+                 result_map](auto values) {
+                    withTargetsFile(key,
+                                    *values[0],
+                                    source_target_map,
+                                    rule_map,
+                                    ts,
+                                    subcaller,
+                                    setter,
+                                    logger,
+                                    result_map);
+                },
+                [logger, target = key.target](auto const& msg, auto fatal) {
+                    (*logger)(fmt::format("While searching targets "
+                                          "description for {}:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+        }
+    };
     return AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>(target_reader,
                                                                  jobs);
 }
