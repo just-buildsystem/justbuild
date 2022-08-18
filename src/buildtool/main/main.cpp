@@ -348,13 +348,11 @@ void SetupHashFunction() {
 [[nodiscard]] auto DetermineCurrentModule(
     std::filesystem::path const& workspace_root,
     FileRoot const& target_root,
-    std::optional<std::string> const& target_file_name_opt) -> std::string {
+    std::string const& target_file_name) -> std::string {
     auto cwd = std::filesystem::current_path();
     auto subdir = std::filesystem::proximate(cwd, workspace_root);
     if (subdir.is_relative() and (*subdir.begin() != "..")) {
         // cwd is subdir of workspace_root
-        std::string target_file_name =
-            target_file_name_opt ? *target_file_name_opt : "TARGETS";
         if (auto root_dir = FindRoot(subdir, target_root, {target_file_name})) {
             return root_dir->string();
         }
@@ -376,10 +374,12 @@ void SetupHashFunction() {
         std::exit(kExitFailure);
     }
     auto current_module = std::string{"."};
+    std::string target_file_name =
+        *RepositoryConfig::Instance().TargetFileName(main_repo);
     if (main_ws_root) {
         // module detection only works if main workspace is on the file system
         current_module = DetermineCurrentModule(
-            *main_ws_root, *target_root, clargs.target_file_name);
+            *main_ws_root, *target_root, target_file_name);
     }
     auto config = ReadConfiguration(clargs);
     if (clargs.target) {
@@ -397,8 +397,6 @@ void SetupHashFunction() {
         }
         return Target::ConfiguredTarget{std::move(*entity), std::move(config)};
     }
-    std::string target_file_name =
-        clargs.target_file_name ? *clargs.target_file_name : "TARGETS";
     auto const target_file =
         (std::filesystem::path{current_module} / target_file_name).string();
     auto file_content = target_root->ReadFile(target_file);

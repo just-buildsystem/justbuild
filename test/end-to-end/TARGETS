@@ -5,6 +5,7 @@
   , "tainted": ["test"]
   , "dirs":
     [ [["./", "actions", "TESTS"], "actions"]
+    , [["./", "cli", "TESTS"], "cli"]
     , [["./", "generated-binary", "TESTS"], "generated-binary"]
     , [["./", "targets", "TESTS"], "targets"]
     , [["./", "user-errors", "TESTS"], "user-errors"]
