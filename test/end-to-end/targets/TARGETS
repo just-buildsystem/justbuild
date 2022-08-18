@@ -16,10 +16,20 @@
   , "test": ["built-in-resolution.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "glob expansion":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["glob"]
+  , "test": ["glob.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
   , "deps":
-    ["upwards reference", "repository naming", "resolution of built-in rules"]
+    [ "upwards reference"
+    , "repository naming"
+    , "resolution of built-in rules"
+    , "glob expansion"
+    ]
   }
 }
