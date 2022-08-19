@@ -994,13 +994,18 @@ auto CollectNonKnownArtifacts(
             std::make_move_iterator(cache_artifacts.end())};
 }
 
+#ifndef BOOTSTRAP_BUILD_TOOL
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCache::Key, AnalysedTargetPtr> const&
         cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
-    std::size_t jobs) {
+    std::size_t jobs,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    gsl::not_null<IExecutionApi*> const& remote_api) {
     auto ts = TaskSystem{jobs};
+    TargetCache::Instance().SetLocalApi(local_api);
+    TargetCache::Instance().SetRemoteApi(remote_api);
     for (auto const& [key, target] : cache_targets) {
         ts.QueueTask([&key = key, &target = target, &extra_infos]() {
             if (auto entry =
@@ -1019,6 +1024,7 @@ void WriteTargetCacheEntries(
         });
     }
 }
+#endif
 
 }  // namespace
 
@@ -1065,7 +1071,7 @@ auto main(int argc, char* argv[]) -> int {
                                        BaseProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
-            return FetchAndInstallArtifacts(traverser.ExecutionApi(),
+            return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
                                             arguments.fetch)
                        ? kExitSuccess
                        : kExitFailure;
@@ -1188,7 +1194,9 @@ auto main(int argc, char* argv[]) -> int {
                 if (build_result) {
                     WriteTargetCacheEntries(cache_targets,
                                             build_result->extra_infos,
-                                            arguments.common.jobs);
+                                            arguments.common.jobs,
+                                            traverser.GetLocalApi(),
+                                            traverser.GetRemoteApi());
 
                     // Repeat taintedness message to make the user aware that
                     // the artifacts are not for production use.

@@ -1,5 +1,7 @@
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
 
+#include <gsl-lite/gsl-lite.hpp>
+
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/file_storage.hpp"
@@ -52,6 +54,12 @@ auto TargetCache::Entry::ToResult() const -> std::optional<TargetResult> {
 
 auto TargetCache::Store(Key const& key, Entry const& value) const noexcept
     -> bool {
+    // Before a target-cache entry is stored in local CAS, make sure any created
+    // artifact for this target is downloaded from the remote CAS to the local
+    // CAS.
+    if (not DownloadKnownArtifacts(value)) {
+        return false;
+    }
     if (auto digest = CAS().StoreBlobFromBytes(value.ToJson().dump(2))) {
         auto data =
             Artifact::ObjectInfo{ArtifactDigest{*digest}, ObjectType::File}
@@ -95,6 +103,45 @@ auto TargetCache::Read(Key const& key) const noexcept
                  "Reading entry for key {} failed",
                  key.Id().ToString());
     return std::nullopt;
+}
+
+auto TargetCache::DownloadKnownArtifactsFromMap(
+    Expression::map_t const& expr_map) const noexcept -> bool {
+
+    // Get object infos of KNOWN artifacts from map.
+    std::vector<Artifact::ObjectInfo> infos;
+    infos.reserve(expr_map.size());
+    for (auto const& item : expr_map) {
+        try {
+            auto const& desc = item.second->Artifact();
+            // The assumption is that all artifacts mentioned in a target cache
+            // entry are KNOWN to the remote side. So they can be fetched to the
+            // local CAS.
+            gsl_ExpectsAudit(desc.IsKnown());
+            infos.push_back(*desc.ToArtifact().Info());
+        } catch (...) {
+            return false;
+        }
+    }
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+    // Sync KNOWN artifacts from remote to local CAS.
+    return remote_api_->RetrieveToCas(infos, local_api_);
+#else
+    return true;
+#endif
+}
+
+auto TargetCache::DownloadKnownArtifacts(Entry const& value) const noexcept
+    -> bool {
+    auto const& result = value.ToResult();
+    if (not DownloadKnownArtifactsFromMap(result->artifact_stage->Map())) {
+        return false;
+    }
+    if (not DownloadKnownArtifactsFromMap(result->runfiles->Map())) {
+        return false;
+    }
+    return true;
 }
 
 auto TargetCache::ComputeCacheDir() -> std::filesystem::path {

@@ -8,6 +8,9 @@
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#endif
 #include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -85,13 +88,33 @@ class TargetCache {
     [[nodiscard]] auto Read(Key const& key) const noexcept
         -> std::optional<std::pair<Entry, Artifact::ObjectInfo>>;
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+    auto SetLocalApi(gsl::not_null<IExecutionApi*> const& api) noexcept
+        -> void {
+        local_api_ = api;
+    };
+
+    auto SetRemoteApi(gsl::not_null<IExecutionApi*> const& api) noexcept
+        -> void {
+        remote_api_ = api;
+    };
+#endif
+
   private:
     Logger logger_{"TargetCache"};
     FileStorage<ObjectType::File,
                 StoreMode::LastWins,
                 /*kSetEpochTime=*/false>
         file_store_{ComputeCacheDir()};
+#ifndef BOOTSTRAP_BUILD_TOOL
+    IExecutionApi* local_api_{};
+    IExecutionApi* remote_api_{};
+#endif
 
+    [[nodiscard]] auto DownloadKnownArtifacts(Entry const& value) const noexcept
+        -> bool;
+    [[nodiscard]] auto DownloadKnownArtifactsFromMap(
+        Expression::map_t const& expr_map) const noexcept -> bool;
     [[nodiscard]] static auto CAS() noexcept -> LocalCAS<ObjectType::File>& {
         return LocalCAS<ObjectType::File>::Instance();
     }

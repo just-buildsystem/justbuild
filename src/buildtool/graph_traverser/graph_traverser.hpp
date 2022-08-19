@@ -58,13 +58,17 @@ class GraphTraverser {
 
     explicit GraphTraverser(CommandLineArguments clargs)
         : clargs_{std::move(clargs)},
-          api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
+          local_api_{CreateExecutionApi(std::nullopt)},
+          remote_api_{
+              CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
           reporter_{[](auto done, auto cv) {}} {}
 
     explicit GraphTraverser(CommandLineArguments clargs,
                             progress_reporter_t reporter)
         : clargs_{std::move(clargs)},
-          api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
+          local_api_{CreateExecutionApi(std::nullopt)},
+          remote_api_{
+              CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
           reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
@@ -186,13 +190,18 @@ class GraphTraverser {
             artifact_descriptions, {}, action_descriptions, blobs, trees);
     }
 
-    [[nodiscard]] auto ExecutionApi() const -> gsl::not_null<IExecutionApi*> {
-        return &(*api_);
+    [[nodiscard]] auto GetLocalApi() const -> gsl::not_null<IExecutionApi*> {
+        return &(*local_api_);
+    }
+
+    [[nodiscard]] auto GetRemoteApi() const -> gsl::not_null<IExecutionApi*> {
+        return &(*remote_api_);
     }
 
   private:
     CommandLineArguments const clargs_;
-    gsl::not_null<IExecutionApi::Ptr> const api_;
+    gsl::not_null<IExecutionApi::Ptr> const local_api_;
+    gsl::not_null<IExecutionApi::Ptr> const remote_api_;
     progress_reporter_t reporter_;
 
     /// \brief Reads contents of graph description file as json object. In case
@@ -277,7 +286,7 @@ class GraphTraverser {
                 return false;
             }
         }
-        return api_->Upload(container);
+        return remote_api_->Upload(container);
     }
 
     /// \brief Adds the artifacts to be retrieved to the graph
@@ -320,7 +329,7 @@ class GraphTraverser {
     [[nodiscard]] auto Traverse(
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
-        Executor executor{&(*api_),
+        Executor executor{&(*remote_api_),
                           RemoteExecutionConfig::PlatformProperties(),
                           clargs_.build.timeout};
         bool traversing{};
@@ -346,7 +355,7 @@ class GraphTraverser {
         // setup rebuilder with api for cache endpoint
         auto api_cached =
             CreateExecutionApi(RemoteExecutionConfig::CacheAddress());
-        Rebuilder executor{&(*api_),
+        Rebuilder executor{&(*remote_api_),
                            &(*api_cached),
                            RemoteExecutionConfig::PlatformProperties(),
                            clargs_.build.timeout};
@@ -550,7 +559,7 @@ class GraphTraverser {
         auto output_paths = PrepareOutputPaths(rel_paths);
 
         if (not output_paths or
-            not api_->RetrieveToPaths(object_infos, *output_paths)) {
+            not remote_api_->RetrieveToPaths(object_infos, *output_paths)) {
             Logger::Log(LogLevel::Error, "Could not retrieve outputs.");
             return std::nullopt;
         }
@@ -626,9 +635,10 @@ class GraphTraverser {
                 if (paths[i] == *(clargs_.build.print_to_stdout)) {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
-                        if (not api_->RetrieveToFds({*info},
-                                                    {dup(fileno(stdout))},
-                                                    /*raw_tree=*/false)) {
+                        if (not remote_api_->RetrieveToFds(
+                                {*info},
+                                {dup(fileno(stdout))},
+                                /*raw_tree=*/false)) {
                             Logger::Log(LogLevel::Error,
                                         "Failed to retrieve {}",
                                         *(clargs_.build.print_to_stdout));
