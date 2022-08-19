@@ -214,7 +214,7 @@ class FieldReader {
                 EntityName id,
                 std::string entity_type,
                 AsyncMapConsumerLoggerPtr logger) noexcept
-        : json_{std::move(json)},
+        : json_(std::move(json)),
           id_{std::move(id)},
           entity_type_{std::move(entity_type)},
           logger_{std::move(logger)} {}

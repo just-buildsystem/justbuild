@@ -59,7 +59,7 @@ class TargetCache {
       private:
         nlohmann::json desc_;
 
-        explicit Entry(nlohmann::json desc) : desc_{std::move(desc)} {}
+        explicit Entry(nlohmann::json desc) : desc_(std::move(desc)) {}
         [[nodiscard]] auto ToJson() const& -> nlohmann::json const& {
             return desc_;
         }
