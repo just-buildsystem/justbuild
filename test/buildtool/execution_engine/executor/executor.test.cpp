@@ -130,8 +130,8 @@ class TestApi : public IExecutionApi {
                        bool /*unused*/) noexcept -> bool final {
         return false;  // not needed by Executor
     }
-    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& artifacts_info,
-                       gsl::not_null<IExecutionApi*> api) noexcept
+    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& /*unused*/,
+                       gsl::not_null<IExecutionApi*> const& /*unused*/) noexcept
         -> bool final {
         return false;  // not needed by Executor
     }
@@ -235,7 +235,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -245,7 +245,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["local.cpp"].uploads = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -255,7 +255,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["known.cpp"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(not runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -288,7 +288,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -301,7 +301,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.cached = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -314,7 +314,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.artifacts["output2.exe"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -330,7 +330,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.failed = true;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -343,7 +343,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.exit_code = 1;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -359,7 +359,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), {}};
+        Executor runner{api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));

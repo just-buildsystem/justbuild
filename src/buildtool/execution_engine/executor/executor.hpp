@@ -107,7 +107,8 @@ class ExecutorImpl {
     [[nodiscard]] static auto VerifyOrUploadArtifact(
         Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
-        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool {
+        gsl::not_null<IExecutionApi*> const& remote_api,
+        gsl::not_null<IExecutionApi*> const& local_api) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
         auto const file_path_opt = artifact->Content().FilePath();
         // If there is no object info and no file path, the artifact can not be
@@ -129,16 +130,24 @@ class ExecutorImpl {
                     << std::endl;
                 return oss.str();
             });
-            if (not api->IsAvailable(object_info_opt->digest) and
-                not VerifyOrUploadKnownArtifact(
-                    api,
-                    artifact->Content().Repository(),
-                    object_info_opt->digest)) {
-                Logger::Log(
-                    LogLevel::Error,
-                    "artifact {} should be present in CAS but is missing.",
-                    ToHexString(artifact->Content().Id()));
-                return false;
+            if (not remote_api->IsAvailable(object_info_opt->digest)) {
+                // Check if requested artifact is available in local CAS and
+                // upload to remote CAS in case it is.
+                if (local_api->IsAvailable(object_info_opt->digest) and
+                    local_api->RetrieveToCas({*object_info_opt}, remote_api)) {
+                    return true;
+                }
+
+                if (not VerifyOrUploadKnownArtifact(
+                        remote_api,
+                        artifact->Content().Repository(),
+                        object_info_opt->digest)) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "artifact {} should be present in CAS but is missing.",
+                        ToHexString(artifact->Content().Id()));
+                    return false;
+                }
             }
             return true;
         }
@@ -156,7 +165,7 @@ class ExecutorImpl {
             return oss.str();
         });
         auto repo = artifact->Content().Repository();
-        auto new_info = UploadFile(api, repo, *file_path_opt);
+        auto new_info = UploadFile(remote_api, repo, *file_path_opt);
         if (not new_info) {
             Logger::Log(LogLevel::Error,
                         "artifact in {} could not be uploaded to CAS.",
@@ -532,10 +541,14 @@ class Executor {
 
   public:
     explicit Executor(
-        IExecutionApi* api,
+        IExecutionApi* local_api,
+        IExecutionApi* remote_api,
         std::map<std::string, std::string> properties,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
-        : api_{api}, properties_{std::move(properties)}, timeout_{timeout} {}
+        : local_api_{local_api},
+          remote_api_{remote_api},
+          properties_{std::move(properties)},
+          timeout_{timeout} {}
 
     /// \brief Run an action in a blocking manner
     /// This method must be thread-safe as it could be called in parallel
@@ -549,7 +562,7 @@ class Executor {
         auto const response = Impl::ExecuteAction(
             logger,
             action,
-            api_,
+            remote_api_,
             properties_,
             timeout_,
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
@@ -565,11 +578,13 @@ class Executor {
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
-        return Impl::VerifyOrUploadArtifact(logger, artifact, api_);
+        return Impl::VerifyOrUploadArtifact(
+            logger, artifact, remote_api_, local_api_);
     }
 
   private:
-    gsl::not_null<IExecutionApi*> api_;
+    gsl::not_null<IExecutionApi*> local_api_;
+    gsl::not_null<IExecutionApi*> remote_api_;
     std::map<std::string, std::string> properties_;
     std::chrono::milliseconds timeout_;
 };
@@ -586,11 +601,13 @@ class Rebuilder {
     /// \param properties   Platform properties for execution.
     /// \param timeout      Timeout for action execution.
     Rebuilder(
-        IExecutionApi* api,
+        IExecutionApi* local_api,
+        IExecutionApi* remote_api,
         IExecutionApi* api_cached,
         std::map<std::string, std::string> properties,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
-        : api_{api},
+        : local_api_{local_api},
+          remote_api_{remote_api},
           api_cached_{api_cached},
           properties_{std::move(properties)},
           timeout_{timeout} {}
@@ -600,8 +617,12 @@ class Rebuilder {
         const noexcept -> bool {
         auto const& action_id = action->Content().Id();
         Logger logger("rebuild:" + action_id);
-        auto response = Impl::ExecuteAction(
-            logger, action, api_, properties_, timeout_, CF::PretendCached);
+        auto response = Impl::ExecuteAction(logger,
+                                            action,
+                                            remote_api_,
+                                            properties_,
+                                            timeout_,
+                                            CF::PretendCached);
 
         if (not response) {
             return true;  // action without response (e.g., tree action)
@@ -630,7 +651,8 @@ class Rebuilder {
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
-        return Impl::VerifyOrUploadArtifact(logger, artifact, api_);
+        return Impl::VerifyOrUploadArtifact(
+            logger, artifact, remote_api_, local_api_);
     }
 
     [[nodiscard]] auto DumpFlakyActions() const noexcept -> nlohmann::json {
@@ -646,7 +668,8 @@ class Rebuilder {
     }
 
   private:
-    gsl::not_null<IExecutionApi*> api_;
+    gsl::not_null<IExecutionApi*> local_api_;
+    gsl::not_null<IExecutionApi*> remote_api_;
     gsl::not_null<IExecutionApi*> api_cached_;
     std::map<std::string, std::string> properties_;
     std::chrono::milliseconds timeout_;
