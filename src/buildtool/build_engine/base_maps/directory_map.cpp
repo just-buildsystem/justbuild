@@ -5,6 +5,7 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/utils/cpp/path.hpp"
 
 auto BuildMaps::Base::CreateDirectoryEntriesMap(std::size_t jobs)
     -> DirectoryEntriesMap {
@@ -22,14 +23,15 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(std::size_t jobs)
                 true);
             return;
         }
-        if (not ws_root->IsDirectory(key.module)) {
+        auto dir_path = key.module.empty() ? "." : key.module;
+        if (not ws_root->IsDirectory(dir_path)) {
             // Missing directory is fine (source tree might be incomplete),
             // contains no entries.
             (*setter)(FileRoot::DirectoryEntries{
                 FileRoot::DirectoryEntries::pairs_t{}});
             return;
         }
-        (*setter)(ws_root->ReadDirectory(key.module));
+        (*setter)(ws_root->ReadDirectory(dir_path));
     };
     return AsyncMapConsumer<BuildMaps::Base::ModuleName,
                             FileRoot::DirectoryEntries>{directory_reader, jobs};

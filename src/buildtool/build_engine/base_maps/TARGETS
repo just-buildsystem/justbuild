@@ -13,6 +13,7 @@
   , "deps":
     [ ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/utils/cpp", "path"]
     , "module_name"
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
