@@ -68,10 +68,30 @@
   , "outs": ["data/test_repo.bundle"]
   , "cmds": ["sh create_fs_test_git_bundle.sh"]
   }
+, "git_repo":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["git_repo_test"]
+  , "srcs": ["git_repo.test.cpp"]
+  , "data": ["test_data"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/utils/cpp", "atomic"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
   , "deps":
-    ["file_root", "file_system_manager", "git_tree", "directory_entries"]
+    [ "file_root"
+    , "file_system_manager"
+    , "git_tree"
+    , "directory_entries"
+    , "git_repo"
+    ]
   }
 }
