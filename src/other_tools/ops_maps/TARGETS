@@ -1,0 +1,13 @@
+{ "critical_git_op_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["critical_git_op_map"]
+  , "hdrs": ["critical_git_op_map.hpp"]
+  , "srcs": ["critical_git_op_map.cpp"]
+  , "deps":
+    [ ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/other_tools/git_operations", "git_operations"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  }
+}
