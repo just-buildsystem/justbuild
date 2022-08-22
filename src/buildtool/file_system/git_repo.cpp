@@ -292,6 +292,52 @@ auto const kInMemoryODBParent = CreateInMemoryODBParent();
 
 #endif  // BOOTSTRAP_BUILD_TOOL
 
+struct FetchIntoODBBackend {
+    git_odb_backend parent;
+    git_odb* target_odb;  // the odb where the fetch objects will end up into
+};
+
+[[nodiscard]] auto fetch_backend_writepack(git_odb_writepack** _writepack,
+                                           git_odb_backend* _backend,
+                                           [[maybe_unused]] git_odb* odb,
+                                           git_indexer_progress_cb progress_cb,
+                                           void* progress_payload) -> int {
+    if (_backend != nullptr) {
+        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+        return git_odb_write_pack(
+            _writepack, b->target_odb, progress_cb, progress_payload);
+    }
+    return GIT_ERROR;
+}
+
+[[nodiscard]] auto fetch_backend_exists(git_odb_backend* _backend,
+                                        const git_oid* oid) -> int {
+    if (_backend != nullptr) {
+        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+        return git_odb_exists(b->target_odb, oid);
+    }
+    return GIT_ERROR;
+}
+
+void fetch_backend_free(git_odb_backend* /*_backend*/) {}
+
+[[nodiscard]] auto CreateFetchIntoODBParent() -> git_odb_backend {
+    git_odb_backend b{};
+    b.version = GIT_ODB_BACKEND_VERSION;
+    // only populate the functions needed
+    b.writepack = &fetch_backend_writepack;  // needed for fetch
+    b.exists = &fetch_backend_exists;
+    b.free = &fetch_backend_free;
+    return b;
+}
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+
+// A backend that can be used to fetch from the remote of another repository.
+auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
+
+#endif  // BOOTSTRAP_BUILD_TOOL
+
 }  // namespace
 
 auto GitRepo::Open(GitCASPtr git_cas) noexcept -> std::optional<GitRepo> {
@@ -856,6 +902,339 @@ auto GitRepo::FetchFromRemote(std::string const& repo_url,
     } catch (std::exception const& ex) {
         Logger::Log(
             LogLevel::Error, "fetch from remote failed with:\n{}", ex.what());
+        return false;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
+                                   std::string const& subdir,
+                                   anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            (*logger)(
+                "WARNING: subtree id retireval from commit called on a real "
+                "repository!\n",
+                false /*fatal*/);
+        }
+        // get commit object
+        git_oid commit_oid;
+        git_oid_fromstr(&commit_oid, commit.c_str());
+        git_commit* commit_obj = nullptr;
+        if (git_commit_lookup(&commit_obj, repo_, &commit_oid) != 0) {
+            (*logger)(fmt::format("retrieving commit {} in git repository {} "
+                                  "failed with:\n{}",
+                                  commit,
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_commit_free(commit_obj);
+            return std::nullopt;
+        }
+        // get tree of commit
+        git_tree* tree = nullptr;
+        if (git_commit_tree(&tree, commit_obj) != 0) {
+            (*logger)(fmt::format(
+                          "retrieving tree for commit {} in git repository {} "
+                          "failed with:\n{}",
+                          commit,
+                          GetGitCAS()->git_path_.string(),
+                          GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_tree_free(tree);
+            git_commit_free(commit_obj);
+            return std::nullopt;
+        }
+        if (subdir != ".") {
+            // get hash for actual subdir
+            git_tree_entry* subtree_entry = nullptr;
+            if (git_tree_entry_bypath(&subtree_entry, tree, subdir.c_str()) !=
+                0) {
+                (*logger)(
+                    fmt::format("retrieving subtree at {} in git repository "
+                                "{} failed with:\n{}",
+                                subdir,
+                                GetGitCAS()->git_path_.string(),
+                                GitLastError()),
+                    true /*fatal*/);
+                // cleanup resources
+                git_tree_entry_free(subtree_entry);
+                git_tree_free(tree);
+                git_commit_free(commit_obj);
+                return std::nullopt;
+            }
+            std::string subtree_hash{
+                git_oid_tostr_s(git_tree_entry_id(subtree_entry))};
+            // cleanup resources
+            git_tree_entry_free(subtree_entry);
+            git_tree_free(tree);
+            git_commit_free(commit_obj);
+            return subtree_hash;
+        }
+        // if no subdir, get hash from tree
+        std::string tree_hash{git_oid_tostr_s(git_tree_id(tree))};
+        // cleanup resources
+        git_tree_free(tree);
+        git_commit_free(commit_obj);
+        return tree_hash;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get subtree from commit failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
+                                 std::string const& subdir,
+                                 anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // check if subdir is not trivial
+        if (subdir != ".") {
+            // preferably with a "fake" repository!
+            if (not IsRepoFake()) {
+                (*logger)(
+                    "WARNING: subtree id retrieval from tree called on a real "
+                    "repository!\n",
+                    false /*fatal*/);
+            }
+            // get tree object from tree id
+            git_oid tree_oid;
+            git_oid_fromstr(&tree_oid, tree_id.c_str());
+            git_tree* tree = nullptr;
+            if (git_tree_lookup(&tree, repo_, &tree_oid) != 0) {
+                (*logger)(fmt::format(
+                              "retrieving tree {} in git repository {} failed "
+                              "with:\n{}",
+                              tree_id,
+                              GetGitCAS()->git_path_.string(),
+                              GitLastError()),
+                          true /*fatal*/);
+                // cleanup resources
+                git_tree_free(tree);
+                return std::nullopt;
+            }
+
+            // get hash for actual subdir
+            git_tree_entry* subtree_entry = nullptr;
+            if (git_tree_entry_bypath(&subtree_entry, tree, subdir.c_str()) !=
+                0) {
+                (*logger)(
+                    fmt::format("retrieving subtree at {} in git repository "
+                                "{} failed with:\n{}",
+                                subdir,
+                                GetGitCAS()->git_path_.string(),
+                                GitLastError()),
+                    true /*fatal*/);
+                // cleanup resources
+                git_tree_entry_free(subtree_entry);
+                git_tree_free(tree);
+                return std::nullopt;
+            }
+            std::string subtree_hash{
+                git_oid_tostr_s(git_tree_entry_id(subtree_entry))};
+            // cleanup resources
+            git_tree_entry_free(subtree_entry);
+            git_tree_free(tree);
+            return subtree_hash;
+        }
+        // if no subdir, return given tree hash
+        return tree_id;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get subtree from tree failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
+                                 std::string const& head_commit,
+                                 anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            (*logger)(
+                "WARNING: subtree id retrieval from path called on a real "
+                "repository!\n",
+                false /*fatal*/);
+        }
+        // setup wrapped logger
+        auto wrapped_logger = std::make_shared<anon_logger_t>(
+            [&logger](auto const& msg, bool fatal) {
+                (*logger)(
+                    fmt::format("While getting repo root from path:\n{}", msg),
+                    fatal);
+            });
+        // find root dir of this repository
+        auto root = GetRepoRootFromPath(fpath, wrapped_logger);
+        if (root == std::nullopt) {
+            return std::nullopt;
+        }
+
+        // setup wrapped logger
+        wrapped_logger = std::make_shared<anon_logger_t>(
+            [&logger](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While going subtree hash retrieval from "
+                                      "path:\n{}",
+                                      msg),
+                          fatal);
+            });
+        // find relative path from root to given path
+        auto subdir = std::filesystem::relative(fpath, *root).string();
+        // get subtree from head commit and subdir
+        return GetSubtreeFromCommit(head_commit, subdir, wrapped_logger);
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get subtree from path failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::CheckCommitExists(std::string const& commit,
+                                anon_logger_ptr const& logger) noexcept
+    -> std::optional<bool> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            (*logger)("WARNING: commit lookup called on a real repository!\n",
+                      false /*fatal*/);
+        }
+        // lookup commit in current repo state
+        git_oid commit_oid;
+        git_oid_fromstr(&commit_oid, commit.c_str());
+        git_commit* commit_obj = nullptr;
+        auto lookup_res = git_commit_lookup(&commit_obj, repo_, &commit_oid);
+        if (lookup_res != 0) {
+            if (lookup_res == GIT_ENOTFOUND) {
+                // cleanup resources
+                git_commit_free(commit_obj);
+                return false;  // commit not found
+            }
+            // failure
+            (*logger)(
+                fmt::format("lookup of commit {} in git repository {} failed "
+                            "with:\n{}",
+                            commit,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_commit_free(commit_obj);
+            return std::nullopt;
+        }
+        // cleanup resources
+        git_commit_free(commit_obj);
+        return true;  // commit exists
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "check commit exists failed with:\n{}", ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::UpdateCommitViaTmpRepo(std::filesystem::path const& tmp_repo_path,
+                                     std::string const& repo_url,
+                                     std::string const& branch_refname,
+                                     anon_logger_ptr const& logger)
+    const noexcept -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            (*logger)("WARNING: commit update called on a real repository!\n",
+                      false /*fatal*/);
+        }
+        // create the temporary real repository
+        auto tmp_repo = GitRepo::InitAndOpen(tmp_repo_path, /*is_bare=*/true);
+        if (tmp_repo == std::nullopt) {
+            return std::nullopt;
+        }
+        // setup wrapped logger
+        auto wrapped_logger = std::make_shared<anon_logger_t>(
+            [&logger](auto const& msg, bool fatal) {
+                (*logger)(
+                    fmt::format("While doing commit update via tmp repo:\n{}",
+                                msg),
+                    fatal);
+            });
+        return tmp_repo->GetCommitFromRemote(
+            repo_url, branch_refname, wrapped_logger);
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "update commit via tmp repo failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
+                              std::string const& repo_url,
+                              std::string const& refspec,
+                              anon_logger_ptr const& logger) noexcept -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            (*logger)("WARNING: branch fetch called on a real repository!\n",
+                      false /*fatal*/);
+        }
+        // create the temporary real repository
+        // it can be bare, as the refspecs for this fetch will be given
+        // explicitly.
+        auto tmp_repo = GitRepo::InitAndOpen(tmp_repo_path, /*is_bare=*/true);
+        if (tmp_repo == std::nullopt) {
+            return false;
+        }
+        // add backend, with max priority
+        FetchIntoODBBackend b{kFetchIntoODBParent, git_cas_->odb_};
+        if (git_odb_add_backend(
+                tmp_repo->GetGitCAS()->odb_,
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                reinterpret_cast<git_odb_backend*>(&b),
+                std::numeric_limits<int>::max()) == 0) {
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<anon_logger_t>(
+                [&logger](auto const& msg, bool fatal) {
+                    (*logger)(
+                        fmt::format(
+                            "While doing branch fetch via tmp repo:\n{}", msg),
+                        fatal);
+                });
+            return tmp_repo->FetchFromRemote(repo_url, refspec, wrapped_logger);
+        }
+        return false;
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "fetch via tmp repo failed with:\n{}", ex.what());
         return false;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL

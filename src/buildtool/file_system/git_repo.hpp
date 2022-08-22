@@ -168,6 +168,74 @@ class GitRepo {
                                        anon_logger_ptr const& logger) noexcept
         -> bool;
 
+    /// \brief Get the tree id of a subtree given the root commit
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Returns the subtree hash, as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetSubtreeFromCommit(
+        std::string const& commit,
+        std::string const& subdir,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Get the tree id of a subtree given the root tree hash
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Returns the subtree hash, as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetSubtreeFromTree(
+        std::string const& tree_id,
+        std::string const& subdir,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Get the tree id of a subtree given a filesystem directory path.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Will search for the root of the repository containing the path,
+    /// and deduce the subdir relationship in the Git tree.
+    /// Requires for the HEAD commit to be already known.
+    /// Returns the tree hash, as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetSubtreeFromPath(
+        std::filesystem::path const& fpath,
+        std::string const& head_commit,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Check if given commit is part of the local repository.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Returns a status of commit presence, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto CheckCommitExists(std::string const& commit,
+                                         anon_logger_ptr const& logger) noexcept
+        -> std::optional<bool>;
+
+    /// \brief Get commit from remote via a temporary repository.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Creates a temporary real repository at the given location and uses it to
+    /// retrieve from the remote the commit of a branch given its refname.
+    /// Caller needs to make sure the temporary directory exists and that the
+    /// given path is thread- and process-safe!
+    /// Returns the commit hash, as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto UpdateCommitViaTmpRepo(
+        std::filesystem::path const& tmp_repo_path,
+        std::string const& repo_url,
+        std::string const& branch_refname,
+        anon_logger_ptr const& logger) const noexcept
+        -> std::optional<std::string>;
+
+    /// \brief Fetch from a remote via a temporary repository.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Creates a temporary real repository at the given location and uses a
+    /// custom backend to redirect the fetched objects into the desired odb.
+    /// Caller needs to make sure the temporary directory exists and that the
+    /// given path is thread- and process-safe!
+    /// Uses either a given branch refspec, or fetches all (if refspec empty).
+    /// Returns a success flag.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto FetchViaTmpRepo(
+        std::filesystem::path const& tmp_repo_path,
+        std::string const& repo_url,
+        std::string const& refspec,
+        anon_logger_ptr const& logger) noexcept -> bool;
+
     /// \brief Try to retrieve the root of the repository containing the
     /// given path, if the path is actually part of a repository.
     /// Returns the git folder if path is in a git repo, empty string if path is
