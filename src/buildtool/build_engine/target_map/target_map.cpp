@@ -16,6 +16,8 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
 
@@ -1342,6 +1344,12 @@ void TreeTarget(
                 (*setter)(std::move(analysis_result));
                 return;
             }
+            Logger::Log(LogLevel::Debug, [&key]() {
+                return fmt::format(
+                    "Source tree reference for non-known tree {}",
+                    key.target.ToString());
+            });
+            Statistics::Instance().IncrementTreesAnalysedCounter();
 
             using BuildMaps::Target::ConfiguredTarget;
 

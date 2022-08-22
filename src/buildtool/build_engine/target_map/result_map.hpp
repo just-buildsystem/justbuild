@@ -16,6 +16,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
@@ -252,6 +253,12 @@ class ResultTargetMap {
                         });
         result.actions.erase(lastaction, result.actions.end());
 
+        int trees_traversed = Statistics::Instance().TreesAnalysedCounter();
+        if (trees_traversed > 0) {
+            Logger::Log(LogLevel::Performance,
+                        "Analysed {} non-known source trees",
+                        trees_traversed);
+        }
         Logger::Log(LogLevel::Info,
                     "Discovered {} actions, {} trees, {} blobs",
                     result.actions.size(),

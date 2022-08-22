@@ -18,6 +18,7 @@ class Statistics {
         num_actions_flaky_tainted_ = 0;
         num_rebuilt_actions_compared_ = 0;
         num_rebuilt_actions_missing_ = 0;
+        num_trees_analysed_ = 0;
     }
     void IncrementActionsQueuedCounter() noexcept { ++num_actions_queued_; }
     void IncrementActionsExecutedCounter() noexcept { ++num_actions_executed_; }
@@ -37,6 +38,7 @@ class Statistics {
     void IncrementExportsNotEligibleCounter() noexcept {
         ++num_exports_not_eligible_;
     }
+    void IncrementTreesAnalysedCounter() noexcept { ++num_trees_analysed_; }
     [[nodiscard]] auto ActionsQueuedCounter() const noexcept -> int {
         return num_actions_queued_;
     }
@@ -67,6 +69,9 @@ class Statistics {
     [[nodiscard]] auto ExportsNotEligibleCounter() const noexcept -> int {
         return num_exports_not_eligible_;
     }
+    [[nodiscard]] auto TreesAnalysedCounter() const noexcept -> int {
+        return num_trees_analysed_;
+    }
 
   private:
     std::atomic<int> num_actions_queued_{};
@@ -79,6 +84,7 @@ class Statistics {
     std::atomic<int> num_exports_cached_{};
     std::atomic<int> num_exports_uncached_{};
     std::atomic<int> num_exports_not_eligible_{};
+    std::atomic<int> num_trees_analysed_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_STATISTICS_HPP
