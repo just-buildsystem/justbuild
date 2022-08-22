@@ -14,9 +14,11 @@
 
 #include "src/buildtool/file_system/git_cas.hpp"
 
+#include <cstring>
 #include <mutex>
 #include <sstream>
 
+#include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
@@ -507,6 +509,10 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
             return false;
         }
         git_repository_odb(&odb_, repo);
+        // set root
+        git_path_ = std::filesystem::weakly_canonical(std::filesystem::absolute(
+            std::filesystem::path(git_repository_path(repo))));
+        // release resources
         git_repository_free(repo);
     }
     if (odb_ == nullptr) {

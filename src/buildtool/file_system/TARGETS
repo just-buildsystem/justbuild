@@ -64,6 +64,20 @@
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps": [["src/buildtool/logging", "logging"], ["", "libgit2"]]
   }
+, "git_repo":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_repo"]
+  , "hdrs": ["git_repo.hpp"]
+  , "srcs": ["git_repo.cpp"]
+  , "deps":
+    [ "git_cas"
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/logging", "logging"]
+    , ["", "libgit2"]
+    , ["src/utils/cpp", "path"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 , "file_root":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["file_root"]
