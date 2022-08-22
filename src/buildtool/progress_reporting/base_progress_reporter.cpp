@@ -45,9 +45,15 @@ auto BaseProgressReporter::Reporter() -> GraphTraverser::progress_reporter_t {
                     }
                 }
                 constexpr int kOneHundred{100};
+                int total_work = total - cached;
+                int progress =
+                    kOneHundred;  // default if no work has to be done
+                if (total_work > 0) {
+                    progress = run * kOneHundred / total_work;
+                }
                 Logger::Log(LogLevel::Progress,
                             "[{:3}%] {} cached, {} run, {} processing{}.",
-                            (cached + run) * kOneHundred / total,
+                            progress,
                             cached,
                             run,
                             active,
