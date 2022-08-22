@@ -16,10 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_REPO_HPP
 
 #include "src/buildtool/file_system/git_cas.hpp"
-#include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 extern "C" {
 using git_repository = struct git_repository;
+using git_strarray = struct git_strarray;
 }
 
 /// \brief Git repository logic.
@@ -114,6 +114,70 @@ class GitRepo {
         GitRepo::tree_entries_t const& entries) noexcept
         -> std::optional<std::pair<std::string, std::string>>;
 
+    using anon_logger_t = std::function<void(std::string const&, bool)>;
+    using anon_logger_ptr = std::shared_ptr<anon_logger_t>;
+
+    /// \brief Stage all in current path and commit with given message.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns the commit hash, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto StageAndCommitAllAnonymous(
+        std::string const& message,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Create annotated tag for given commit.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns success flag.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto KeepTag(std::string const& commit,
+                               std::string const& message,
+                               anon_logger_ptr const& logger) noexcept -> bool;
+
+    /// \brief Retrieves the commit of the HEAD reference.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns the commit hash as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetHeadCommit(anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::string>;
+
+    /// \brief Get the local refname of a given branch.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns the refname as a string, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetBranchLocalRefname(
+        std::string const& branch,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Retrieve commit hash from remote branch given its refname.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns the retrieved commit hash, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto GetCommitFromRemote(
+        std::string const& repo_url,
+        std::string const& branch_refname_local,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
+    /// \brief Fetch from given remote using refspec (usually for a branch).
+    /// Only possible with real repository and thus non-thread-safe.
+    /// If the refspec string in empty, performs a fetch of all branches with
+    /// default refspecs.
+    /// Returns a success flag.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto FetchFromRemote(std::string const& repo_url,
+                                       std::string const& refspec,
+                                       anon_logger_ptr const& logger) noexcept
+        -> bool;
+
+    /// \brief Try to retrieve the root of the repository containing the
+    /// given path, if the path is actually part of a repository.
+    /// Returns the git folder if path is in a git repo, empty string if path is
+    /// not in a git repo, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] static auto GetRepoRootFromPath(
+        std::filesystem::path const& fpath,
+        anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::filesystem::path>;
+
     ~GitRepo() noexcept;
 
   private:
@@ -126,6 +190,14 @@ class GitRepo {
     explicit GitRepo(GitCASPtr git_cas) noexcept;
     /// \brief Open real repository at given location.
     explicit GitRepo(std::filesystem::path const& repo_path) noexcept;
+
+    /// \brief Helper function to allocate and populate the char** pointer of a
+    /// git_strarray from a vector of standard strings. User MUST use
+    /// git_strarray_dispose to deallocate the inner pointer when the strarray
+    /// is not needed anymore!
+    static void PopulateStrarray(
+        git_strarray* array,
+        std::vector<std::string> const& string_list) noexcept;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_REPO_HPP

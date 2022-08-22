@@ -446,6 +446,469 @@ auto GitRepo::GetGitCAS() const noexcept -> GitCASPtr {
     return git_cas_;
 }
 
+auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
+                                         anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot stage and commit files using a fake repository!",
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // add all files to be staged
+        git_index* index = nullptr;
+        git_repository_index(&index, repo_);
+        git_strarray array{};
+        PopulateStrarray(&array, {"."});
+
+        if (git_index_add_all(index, &array, 0, nullptr, nullptr) != 0) {
+            (*logger)(fmt::format(
+                          "staging files in git repository {} failed with:\n{}",
+                          GetGitCAS()->git_path_.string(),
+                          GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_index_free(index);
+            git_strarray_dispose(&array);
+            return std::nullopt;
+        }
+        // release unused resources
+        git_strarray_dispose(&array);
+        // build tree from staged files
+        git_oid tree_oid;
+        if (git_index_write_tree(&tree_oid, index) != 0) {
+            (*logger)(fmt::format("building tree from index in git repository "
+                                  "{} failed with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_index_free(index);
+            return std::nullopt;
+        }
+        // set committer signature
+        git_signature* signature = nullptr;
+        if (git_signature_new(
+                &signature, "Nobody", "nobody@example.org", 0, 0) != 0) {
+            (*logger)(
+                fmt::format("creating signature in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_signature_free(signature);
+            git_index_free(index);
+            return std::nullopt;
+        }
+        // get tree object
+        git_tree* tree = nullptr;
+        if (git_tree_lookup(&tree, repo_, &tree_oid) != 0) {
+            (*logger)(
+                fmt::format("tree lookup in git repository {} failed with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_tree_free(tree);
+            git_signature_free(signature);
+            git_index_free(index);
+            return std::nullopt;
+        }
+        // commit the tree containing the staged files
+        git_buf buffer{};
+        git_message_prettify(&buffer, message.c_str(), 0, '#');
+        git_oid commit_oid;
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
+        if (git_commit_create_v(&commit_oid,
+                                repo_,
+                                "HEAD",
+                                signature,
+                                signature,
+                                nullptr,
+                                buffer.ptr,
+                                tree,
+                                0) != 0) {
+            (*logger)(
+                fmt::format("git commit in repository {} failed with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_buf_dispose(&buffer);
+            git_tree_free(tree);
+            git_signature_free(signature);
+            git_index_free(index);
+            return std::nullopt;
+        }
+        std::string commit_hash{git_oid_tostr_s(&commit_oid)};
+        // release resources
+        git_buf_dispose(&buffer);
+        git_tree_free(tree);
+        git_signature_free(signature);
+        git_index_free(index);
+        return commit_hash;  // success!
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "stage and commit all failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::KeepTag(std::string const& commit,
+                      std::string const& message,
+                      anon_logger_ptr const& logger) noexcept -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot tag commits using a fake repository!",
+                      true /*fatal*/);
+            return false;
+        }
+        // get commit spec
+        git_object* target = nullptr;
+        if (git_revparse_single(&target, repo_, commit.c_str()) != 0) {
+            (*logger)(fmt::format("rev-parse commit {} in repository {} failed "
+                                  "with:\n{}",
+                                  commit,
+                                  git_repository_path(repo_),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return false;
+        }
+        // set tagger signature
+        git_signature* tagger = nullptr;
+        if (git_signature_new(&tagger, "Nobody", "nobody@example.org", 0, 0) !=
+            0) {
+            (*logger)(
+                fmt::format("creating signature in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_signature_free(tagger);
+            git_object_free(target);
+            return false;
+        }
+        // create tag
+        git_oid oid;
+        auto name = fmt::format("keep-{}", commit);
+
+        size_t max_attempts = 3;  // number of tries
+        int err = 0;
+        git_strarray tag_names{};
+        while (max_attempts > 0) {
+            --max_attempts;
+            err = git_tag_create(&oid,
+                                 repo_,
+                                 name.c_str(),
+                                 target,
+                                 tagger,
+                                 message.c_str(),
+                                 1 /*force*/);
+            if (err == 0) {
+                return true;  // success!
+            }
+            // check if tag hasn't already been added by another process
+            if (git_tag_list_match(&tag_names, name.c_str(), repo_) == 0 and
+                tag_names.count > 0) {
+                git_strarray_dispose(&tag_names);
+                return true;  // success!
+            }
+            // tag still not in, so sleep and try again
+            std::this_thread::sleep_for(std::chrono::milliseconds(kWaitTime));
+        }
+        (*logger)(fmt::format("tag creation in git repository {} failed",
+                              GetGitCAS()->git_path_.string()),
+                  true /*fatal*/);
+        return false;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error, "keep tag failed with:\n{}", ex.what());
+        return false;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot access HEAD ref using a fake repository!",
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // get root commit id
+        git_oid head_oid;
+        if (git_reference_name_to_id(&head_oid, repo_, "HEAD") != 0) {
+            (*logger)(fmt::format("retrieving head commit in git repository {} "
+                                  "failed with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        return std::string(git_oid_tostr_s(&head_oid));
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "get head commit failed with:\n{}", ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetBranchLocalRefname(std::string const& branch,
+                                    anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot retrieve branch refname using a fake repository!",
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // get local reference of branch
+        git_reference* local_ref = nullptr;
+        if (git_branch_lookup(
+                &local_ref, repo_, branch.c_str(), GIT_BRANCH_LOCAL) != 0) {
+            (*logger)(fmt::format("retrieving branch {} local reference in git "
+                                  "repository {} failed with:\n{}",
+                                  branch,
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            // release resources
+            git_reference_free(local_ref);
+            return std::nullopt;
+        }
+        auto refname = std::string(git_reference_name(local_ref));
+        // release resources
+        git_reference_free(local_ref);
+        return refname;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get branch local refname failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
+                                  std::string const& branch_refname_local,
+                                  anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot update commit using a fake repository!",
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // create remote
+        git_remote* remote = nullptr;
+        if (git_remote_create_anonymous(&remote, repo_, repo_url.c_str()) !=
+            0) {
+            (*logger)(
+                fmt::format("creating anonymous remote for git repository {} "
+                            "failed with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            return std::nullopt;
+        }
+        // connect to remote
+        git_remote_callbacks callbacks{};
+        git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+        if (git_remote_connect(
+                remote, GIT_DIRECTION_FETCH, &callbacks, nullptr, nullptr) !=
+            0) {
+            (*logger)(
+                fmt::format("connecting to remote {} for git repository {} "
+                            "failed with:\n{}",
+                            repo_url,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_remote_free(remote);
+            return std::nullopt;
+        }
+        // get the list of refs from remote
+        // NOTE: refs will be owned by remote, so we DON'T have to free it!
+        git_remote_head const** refs = nullptr;
+        size_t refs_len = 0;
+        if (git_remote_ls(&refs, &refs_len, remote) != 0) {
+            (*logger)(
+                fmt::format("refs retrieval from remote {} failed with:\n{}",
+                            repo_url,
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_remote_free(remote);
+            return std::nullopt;
+        }
+        // figure out what remote branch the local one is tracking
+        for (size_t i = 0; i < refs_len; ++i) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            std::string ref_name{refs[i]->name};
+            if (ref_name == branch_refname_local) {
+                // branch found!
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+                std::string new_commit_hash{git_oid_tostr_s(&refs[i]->oid)};
+                // cleanup resources
+                git_remote_free(remote);
+                return new_commit_hash;
+            }
+        }
+        (*logger)(
+            fmt::format("could not find branch with refname {} for remote {}",
+                        branch_refname_local,
+                        repo_url,
+                        GitLastError()),
+            true /*fatal*/);
+        // cleanup resources
+        git_remote_free(remote);
+        return std::nullopt;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get commit from remote failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::FetchFromRemote(std::string const& repo_url,
+                              std::string const& refspec,
+                              anon_logger_ptr const& logger) noexcept -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot fetch commit using a fake repository!",
+                      true /*fatal*/);
+            return false;
+        }
+        // create remote from repo
+        git_remote* remote = nullptr;
+        if (git_remote_create_anonymous(&remote, repo_, repo_url.c_str()) !=
+            0) {
+            (*logger)(fmt::format("creating remote {} for git repository {} "
+                                  "failed with:\n{}",
+                                  repo_url,
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_remote_free(remote);
+            return false;
+        }
+        // setup fetch refspecs array
+        git_strarray refspecs_array{};
+        if (not refspec.empty()) {
+            PopulateStrarray(&refspecs_array, {refspec});
+        }
+        // do the fetch
+        git_fetch_options fetch_opts{};
+        git_fetch_init_options(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+        if (git_remote_fetch(remote,
+                             refspec.empty() ? nullptr : &refspecs_array,
+                             &fetch_opts,
+                             nullptr) != 0) {
+            (*logger)(
+                fmt::format("fetch of refspec {} in git repository {} failed "
+                            "with:\n{}",
+                            refspec,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_remote_free(remote);
+            git_strarray_dispose(&refspecs_array);
+            return false;
+        }
+        // cleanup resources
+        git_remote_free(remote);
+        git_strarray_dispose(&refspecs_array);
+        return true;  // success!
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "fetch from remote failed with:\n{}", ex.what());
+        return false;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetRepoRootFromPath(std::filesystem::path const& fpath,
+                                  anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::filesystem::path> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        auto git_state = GitContext();  // initialize libgit2
+
+        git_buf buffer = GIT_BUF_INIT_CONST(NULL, 0);
+        auto res = git_repository_discover(&buffer, fpath.c_str(), 0, nullptr);
+        if (res != 0) {
+            if (res == GIT_ENOTFOUND) {
+                // cleanup resources
+                git_buf_dispose(&buffer);
+                return std::filesystem::path{};  // empty path cause nothing
+                                                 // found
+            }
+            // failure
+            (*logger)(fmt::format(
+                          "repository root search failed at path {} with:\n{}!",
+                          fpath.string(),
+                          GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_buf_dispose(&buffer);
+            return std::nullopt;
+        }
+        // found root repo path
+        std::string result{buffer.ptr};
+        // cleanup resources
+        git_buf_dispose(&buffer);
+        // normalize root result
+        auto actual_root =
+            std::filesystem::path{result}.parent_path();  // remove trailing "/"
+        if (actual_root.parent_path() / ".git" == actual_root) {
+            return actual_root.parent_path();  // remove ".git" folder from path
+        }
+        return actual_root;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "get repo root from path failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 GitRepo::~GitRepo() noexcept {
     // release resources
     git_repository_free(repo_);
@@ -607,4 +1070,18 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
     }
 #endif
     return std::nullopt;
+}
+
+void GitRepo::PopulateStrarray(
+    git_strarray* array,
+    std::vector<std::string> const& string_list) noexcept {
+    array->count = string_list.size();
+    array->strings = gsl::owner<char**>(new char*[string_list.size()]);
+    for (auto const& elem : string_list) {
+        auto i = static_cast<size_t>(&elem - &string_list[0]);  // get index
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        array->strings[i] = gsl::owner<char*>(new char[elem.size() + 1]);
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+        strncpy(array->strings[i], elem.c_str(), elem.size() + 1);
+    }
 }
