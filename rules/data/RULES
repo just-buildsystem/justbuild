@@ -64,4 +64,37 @@
       }
     }
   }
+, "overlay":
+  { "doc":
+    ["Overlay the artifacts of \"deps\" targets in a latest-wins fashion."]
+  , "target_fields": ["deps"]
+  , "field_doc": {"deps": ["The targets of which to overlay the artifacts"]}
+  , "artifacts_doc":
+    [ "Artifacts of the targets specified in \"deps\". For conflicting"
+    , "logical paths, the artifact is taken from the latest target (in"
+    , "the \"deps\" field) that defines that logical path"
+    ]
+  , "runfiles_doc": ["Same as artifacts"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "all"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "deps"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "dep"}}
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "all"}
+      , "runfiles": {"type": "var", "name": "all"}
+      }
+    }
+  }
 }
