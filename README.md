@@ -15,9 +15,11 @@ taken from user-defined rules described by functional expressions.
   [installation guide](INSTALL.md).
 
 * Tutorial
+  - [Getting Started](doc/tutorial/getting-started.org)
   - [Hello World](doc/tutorial/hello-world.org)
   - [Third party dependencies](doc/tutorial/third-party-software.org)
   - [Tests](doc/tutorial/tests.org)
+  - [Targets versus `FILE`, `GLOB`, and `TREE`](doc/tutorial/target-file-glob-tree.org)
   - [Using protobuf](doc/tutorial/proto.org)
 
 ## Documentation
