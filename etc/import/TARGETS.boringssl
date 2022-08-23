@@ -2,13 +2,31 @@
   { "type": "export"
   , "target": "crypto-lib"
   , "flexible_config":
-    ["OS", "ARCH", "TARGET_ARCH", "CC", "CFLAGS", "ENV", "AR"]
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "AR"
+    , "ENV"
+    ]
   }
 , "ssl":
   { "type": "export"
   , "target": "ssl-lib"
   , "flexible_config":
-    ["OS", "ARCH", "TARGET_ARCH", "CC", "CFLAGS", "ENV", "AR"]
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "AR"
+    , "ENV"
+    ]
   }
 , "crypto-lib":
   { "type": ["@", "rules", "CC", "library"]

@@ -1,7 +1,16 @@
 { "zlib":
   { "type": "export"
   , "target": "zlibinternal"
-  , "flexible_config": ["OS", "ARCH", "TARGET_ARCH", "CC", "AR", "ENV"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "AR"
+    , "ENV"
+    ]
   }
 , "zlibinternal":
   { "type": ["@", "rules", "CC", "library"]

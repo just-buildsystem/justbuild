@@ -8,6 +8,15 @@
   { "type": "export"
   , "target": "fmt-lib"
   , "flexible_config":
-    ["OS", "ARCH", "TARGET_ARCH", "CXX", "CXXFLAGS", "AR", "ENV"]
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CXX"
+    , "CXXFLAGS"
+    , "AR"
+    , "ENV"
+    ]
   }
 }

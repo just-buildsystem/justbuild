@@ -7,6 +7,8 @@
     , "ARCH"
     , "HOST_ARCH"
     , "TARGET_ARCH"
+    , "DEBUG"
+    , "COMPILER_FAMILY"
     , "CC"
     , "CXX"
     , "AR"
@@ -33,7 +35,17 @@
     , "USE_GSSAPI": false
     }
   , "flexible_config":
-    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CXX", "AR", "ENV"]
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CXX"
+    , "CC"
+    , "AR"
+    , "ENV"
+    ]
   }
 , "just-ext-hdrs":
   { "type": ["@", "rules", "CC", "configure"]

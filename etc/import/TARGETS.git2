@@ -5,6 +5,8 @@
     [ "OS"
     , "ARCH"
     , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
     , "CC"
     , "AR"
     , "ENV"

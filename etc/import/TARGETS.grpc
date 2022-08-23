@@ -1577,6 +1577,15 @@
   { "type": "export"
   , "target": "grpc++internal"
   , "flexible_config":
-    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "CC", "AR", "ENV"]
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "AR"
+    , "ENV"
+    ]
   }
 }
