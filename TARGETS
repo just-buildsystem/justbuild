@@ -22,9 +22,17 @@
   }
 , "just":
   { "type": ["@", "rules", "CC", "configure"]
-  , "arguments_config": ["OS", "ARCH"]
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "os": [{"type": "var", "name": "OS", "default": "linux"}]
   , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
+  , "target_arch":
+    [ { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH", "default": "x86_64"}
+      }
+    ]
+  , "compiler_family":
+    [{"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}]
   , "target": ["exported-just"]
   }
 , "libgit2":

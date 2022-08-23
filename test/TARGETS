@@ -20,6 +20,14 @@
   , "arguments_config": ["OS", "ARCH"]
   , "os": [{"type": "var", "name": "OS", "default": "linux"}]
   , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
+  , "target_arch":
+    [ { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH", "default": "x86_64"}
+      }
+    ]
+  , "compiler_family":
+    [{"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}]
   , "target": ["TESTS"]
   }
 , "bootstrap-test":
