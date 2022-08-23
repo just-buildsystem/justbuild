@@ -243,7 +243,7 @@ to understand this in detail and the rational behind it.
   way, only one directory has to be read during analysis; allowing
   deeper globs would require traversal of subdirectories requiring
   larger cost. While the explicit ~"TREE"~ reference allows recursive
-  traversal in typical use case of the respective workspace root
+  traversal, in the typical use case of the respective workspace root
   being a ~git~ root, it is actually cheap; we can look up the
   ~git~ tree identifier without traversing the tree. Such a quick
   look up would not be possible if matches had to be selected.
@@ -256,7 +256,7 @@ file in favour of the patched one is deliberate. For this, there is
 the rule ~["data", "overlay"]~ taking the union of the artifacts of
 the specified targets, accepting conflicts and resolving them in a
 latest-wins fashion. Keep in mind, that our target fields are list,
-not sets. Looking at the definition of the target, one finds that
+not sets. Looking at the definition of the rule, one finds that
 it is simply a ~"map_union"~. Hence we refine our ~"data"~ target.
 
 #+BEGIN_SRC js
@@ -404,5 +404,3 @@ $ /tmp/testinstall/bin/units 'area_saarland' 'area_soccerfield'
 	/ 2.7782101e-06
 $
 #+END_SRC
-
-
