@@ -118,18 +118,17 @@
             , "cond": {"type": "var", "name": "THREADSAFE"}
             , "then": ["#define GIT_THREADS 1"]
             }
-          , { "type": "if"
-            , "cond":
-              { "type": "=="
-              , "$1":
-                { "type": "var"
-                , "name": "TARGET_ARCH"
-                , "default": {"type": "var", "name": "ARCH"}
-                }
-              , "$2": "x86_64"
+          , { "type": "case"
+            , "expr":
+              { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
               }
-            , "then": ["#define GIT_ARCH_64 1"]
-            , "else": ["#define GIT_ARCH_32 1"]
+            , "case":
+              { "x86_64": ["#define GIT_ARCH_64 1"]
+              , "arm64": ["#define GIT_ARCH_64 1"]
+              }
+            , "default": ["#define GIT_ARCH_32 1"]
             }
           , { "type": "if"
             , "cond": {"type": "var", "name": "USE_ICONV"}

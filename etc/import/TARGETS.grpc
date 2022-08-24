@@ -153,6 +153,7 @@
   }
 , "grpc_base_c":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["grpc_base_c"]
   , "local cflags": ["-Wno-implicit-const-int-float-conversion"]
   , "srcs":
@@ -454,6 +455,15 @@
     , "src/core/lib/transport/transport_impl.h"
     , "src/core/lib/uri/uri_parser.h"
     ]
+  , "link external":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
+    , "case": {"arm": ["-latomic"]}
+    }
   , "deps":
     [ "eventmanager_libuv"
     , "gpr_base"

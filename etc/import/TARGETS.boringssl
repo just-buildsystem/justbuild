@@ -613,27 +613,19 @@
         ]
       ]
     , "body":
-      { "type": "cond"
-      , "cond":
-        [ [ { "type": "=="
-            , "$1": {"type": "var", "name": "PLATFORM"}
-            , "$2": "linux_ppc64le"
-            }
-          , ["crypto_sources_linux_ppc64le"]
-          ]
-        , [ { "type": "=="
-            , "$1": {"type": "var", "name": "PLATFORM"}
-            , "$2": "linux_x86_64"
-            }
-          , ["crypto_sources_linux_x86_64"]
-          ]
-        , [ { "type": "=="
-            , "$1": {"type": "var", "name": "PLATFORM"}
-            , "$2": "mac_x86_64"
-            }
-          , ["crypto_sources_mac_x86_64"]
-          ]
-        ]
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["crypto_sources_linux_x86"]
+        , "linux_x86_64": ["crypto_sources_linux_x86_64"]
+        , "linux_arm": ["crypto_sources_linux_arm"]
+        , "linux_arm64": ["crypto_sources_linux_aarch64"]
+        , "linux_ppc64le": ["crypto_sources_linux_ppc64le"]
+        , "mac_x86": ["crypto_sources_mac_x86"]
+        , "mac_x86_64": ["crypto_sources_mac_x86_64"]
+        , "windows_x86": ["crypto_sources_win_x86"]
+        , "windows_x86_64": ["crypto_sources_win_x86_64"]
+        }
       }
     }
   }
