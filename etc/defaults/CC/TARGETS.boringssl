@@ -1,12 +1,11 @@
 { "defaults":
   { "type": ["CC", "defaults"]
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
-  , "CC": ["clang"]
-  , "CXX": ["clang++"]
-  , "CFLAGS":
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS":
     { "type": "++"
     , "$1":
-      [ ["-std=gnu17", "-O2"]
+      [ ["-std=gnu17"]
       , { "type": "let*"
         , "bindings":
           [ [ "OS"
@@ -82,8 +81,5 @@
         }
       ]
     }
-  , "CXXFLAGS": []
-  , "AR": ["ar"]
-  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
   }
 }

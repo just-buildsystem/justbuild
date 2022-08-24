@@ -2,7 +2,7 @@
   { "just":
     { "repository": {"type": "file", "path": "."}
     , "bindings":
-      { "rules": "rules"
+      { "rules": "rules-just"
       , "just-distfiles": "just-distfiles"
       , "gsl-lite": "gsl-lite"
       , "cli11": "cli11"
@@ -57,44 +57,50 @@
       {"type": "file", "path": "rules", "pragma": {"to_git": true}}
     , "target_root": "defaults"
     , "rule_root": "rules"
-    , "bindings": {"protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
     }
-  , "rules-nowarn":
+  , "rules-just":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
-    , "target_file_name": "TARGETS.nowerror"
+    , "target_file_name": "TARGETS.just"
+    , "bindings":
+      {"base": "rules", "protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
     }
   , "rules-boringssl":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.boringssl"
+    , "bindings": {"base": "rules"}
     }
   , "rules-protobuf":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.protobuf"
-    , "bindings": {"protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
+    , "bindings":
+      {"base": "rules", "protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
     }
   , "rules-absl":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.absl"
+    , "bindings": {"base": "rules"}
     }
   , "rules-re2":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.re2"
+    , "bindings": {"base": "rules"}
     }
   , "rules-git2":
     { "repository": "rules"
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.git2"
+    , "bindings": {"base": "rules"}
     }
   , "import targets":
     { "repository":
@@ -157,7 +163,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.fmt"
-    , "bindings": {"rules": "rules-nowarn"}
+    , "bindings": {"rules": "rules"}
     , "bootstrap":
       { "include_dir": "include/fmt"
       , "build": "cd src && clang++ -I ../include -c *.cc && ar cqs ../libfmt.a *.o"

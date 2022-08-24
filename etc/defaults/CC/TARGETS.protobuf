@@ -1,11 +1,9 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "CC": ["clang"]
-  , "CXX": ["clang++"]
-  , "CFLAGS": ["-std=gnu17", "-O2"]
-  , "CXXFLAGS":
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS": ["-std=gnu17"]
+  , "ADD_CXXFLAGS":
     [ "-std=c++20"
-    , "-O2"
     , "-DHAVE_PTHREAD"
     , "-DHAVE_ZLIB"
     , "-Woverloaded-virtual"
@@ -14,7 +12,5 @@
     , "-Wno-write-strings"
     , "-Wno-deprecated-declarations"
     ]
-  , "AR": ["ar"]
-  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
   }
 }
