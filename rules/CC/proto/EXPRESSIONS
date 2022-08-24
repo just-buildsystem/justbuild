@@ -7,7 +7,8 @@
     }
   }
 , "protoc-compile":
-  { "vars": ["transition", "service support"]
+  { "vars":
+    ["transition", "service support", "CXX", "CXXFLAGS", "ADD_CXXFLAGS"]
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "result": ["./", "..", "lib result"]

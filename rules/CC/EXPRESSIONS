@@ -48,6 +48,29 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
     }
   }
+, "defaults-base-provides":
+  { "doc": ["Query list-provider from 'base' targets (last wins)"]
+  , "vars": ["provider"]
+  , "vars_doc":
+    {"provider": ["The name of the list-provider in the provides map."]}
+  , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings": [["fieldname", "base"]]
+    , "body":
+      { "type": "foldl"
+      , "var": "next"
+      , "accum_var": "curr"
+      , "range": {"type": "CALL_EXPRESSION", "name": "provider_list"}
+      , "body":
+        { "type": "if"
+        , "cond": {"type": "var", "name": "next"}
+        , "then": {"type": "var", "name": "next"}
+        , "else": {"type": "var", "name": "curr"}
+        }
+      }
+    }
+  }
 , "configure transition":
   { "vars": ["COMPILER_FAMILY"]
   , "expression":

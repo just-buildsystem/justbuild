@@ -6,45 +6,131 @@
     , "use of this rule. As targets form a different root, the defaults"
     , "can be provided without changing this directory."
     ]
-  , "string_fields": ["CC", "CXX", "CFLAGS", "CXXFLAGS", "PATH", "AR"]
+  , "target_fields": ["base"]
+  , "string_fields":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "PATH"
+    , "AR"
+    ]
+  , "imports": {"base-provides": "defaults-base-provides"}
   , "expression":
-    { "type": "RESULT"
-    , "provides":
-      { "type": "map_union"
-      , "$1":
-        [ { "type": "singleton_map"
-          , "key": "CC"
-          , "value": {"type": "FIELD", "name": "CC"}
+    { "type": "let*"
+    , "bindings":
+      [ ["CC", {"type": "FIELD", "name": "CC"}]
+      , ["CXX", {"type": "FIELD", "name": "CXX"}]
+      , ["CFLAGS", {"type": "FIELD", "name": "CFLAGS"}]
+      , ["CXXFLAGS", {"type": "FIELD", "name": "CXXFLAGS"}]
+      , ["AR", {"type": "FIELD", "name": "AR"}]
+      , ["PATH", {"type": "FIELD", "name": "PATH"}]
+      , ["provider", "CC"]
+      , [ "CC"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CC"}
+          , "then": {"type": "var", "name": "CC"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
-        , { "type": "singleton_map"
-          , "key": "CXX"
-          , "value": {"type": "FIELD", "name": "CXX"}
+        ]
+      , ["provider", "CXX"]
+      , [ "CXX"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CXX"}
+          , "then": {"type": "var", "name": "CXX"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
-        , { "type": "singleton_map"
-          , "key": "CFLAGS"
-          , "value": {"type": "FIELD", "name": "CFLAGS"}
+        ]
+      , ["provider", "CFLAGS"]
+      , [ "CFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CFLAGS"}
+          , "then": {"type": "var", "name": "CFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
-        , { "type": "singleton_map"
-          , "key": "CXXFLAGS"
-          , "value": {"type": "FIELD", "name": "CXXFLAGS"}
+        ]
+      , ["provider", "CXXFLAGS"]
+      , [ "CXXFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CXXFLAGS"}
+          , "then": {"type": "var", "name": "CXXFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
-        , { "type": "singleton_map"
-          , "key": "AR"
-          , "value": {"type": "FIELD", "name": "AR"}
+        ]
+      , ["provider", "AR"]
+      , [ "AR"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "AR"}
+          , "then": {"type": "var", "name": "AR"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
-        , { "type": "singleton_map"
-          , "key": "ENV"
-          , "value":
+        ]
+      , ["provider", "ENV"]
+      , [ "ENV"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PATH"}
+          , "then":
             { "type": "singleton_map"
             , "key": "PATH"
             , "value":
               { "type": "join"
               , "separator": ":"
-              , "$1": {"type": "FIELD", "name": "PATH"}
+              , "$1": {"type": "var", "name": "PATH"}
               }
             }
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
+      , [ "CFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "CFLAGS"}
+            , {"type": "FIELD", "name": "ADD_CFLAGS"}
+            ]
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "CXXFLAGS"}
+            , {"type": "FIELD", "name": "ADD_CXXFLAGS"}
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "provides":
+        { "type": "map_union"
+        , "$1":
+          [ { "type": "singleton_map"
+            , "key": "CC"
+            , "value": {"type": "var", "name": "CC"}
+            }
+          , { "type": "singleton_map"
+            , "key": "CXX"
+            , "value": {"type": "var", "name": "CXX"}
+            }
+          , { "type": "singleton_map"
+            , "key": "CFLAGS"
+            , "value": {"type": "var", "name": "CFLAGS"}
+            }
+          , { "type": "singleton_map"
+            , "key": "CXXFLAGS"
+            , "value": {"type": "var", "name": "CXXFLAGS"}
+            }
+          , { "type": "singleton_map"
+            , "key": "AR"
+            , "value": {"type": "var", "name": "AR"}
+            }
+          , { "type": "singleton_map"
+            , "key": "ENV"
+            , "value": {"type": "var", "name": "ENV"}
+            }
+          ]
+        }
       }
     }
   }
