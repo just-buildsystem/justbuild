@@ -317,21 +317,11 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     return nullptr;
 }
 
-GitCAS::GitCAS() noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    if (not(initialized_ = (git_libgit2_init() >= 0))) {
-        Logger::Log(LogLevel::Error, "initializing libgit2 failed");
-    }
-#endif
-}
 GitCAS::~GitCAS() noexcept {
 #ifndef BOOTSTRAP_BUILD_TOOL
     if (odb_ != nullptr) {
         git_odb_free(odb_);
         odb_ = nullptr;
-    }
-    if (initialized_) {
-        git_libgit2_shutdown();
     }
 #endif
 }
@@ -341,7 +331,7 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
 #else
-    if (not initialized_) {
+    if (odb_ == nullptr) {
         return std::nullopt;
     }
 
@@ -419,7 +409,7 @@ auto GitCAS::ReadTree(std::string const& id, bool is_hex_id) const noexcept
 auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::pair<std::size_t, ObjectType>> {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    if (not initialized_) {
+    if (odb_ == nullptr) {
         return std::nullopt;
     }
 
@@ -507,29 +497,27 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return false;
 #else
-    if (initialized_) {
-        {  // lock as git_repository API has no thread-safety guarantees
-            std::unique_lock lock{repo_mutex};
-            git_repository* repo = nullptr;
-            if (git_repository_open(&repo, repo_path.c_str()) != 0) {
-                Logger::Log(LogLevel::Error,
-                            "opening git repository {} failed with:\n{}",
-                            repo_path.string(),
-                            GitLastError());
-                return false;
-            }
-            git_repository_odb(&odb_, repo);
-            git_repository_free(repo);
-        }
-        if (odb_ == nullptr) {
+    {  // lock as git_repository API has no thread-safety guarantees
+        std::unique_lock lock{repo_mutex};
+        git_repository* repo = nullptr;
+        if (git_repository_open(&repo, repo_path.c_str()) != 0) {
             Logger::Log(LogLevel::Error,
-                        "obtaining git object database {} failed with:\n{}",
+                        "opening git repository {} failed with:\n{}",
                         repo_path.string(),
                         GitLastError());
             return false;
         }
+        git_repository_odb(&odb_, repo);
+        git_repository_free(repo);
     }
-    return initialized_;
+    if (odb_ == nullptr) {
+        Logger::Log(LogLevel::Error,
+                    "obtaining git object database {} failed with:\n{}",
+                    repo_path.string(),
+                    GitLastError());
+        return false;
+    }
+    return true;
 #endif
 }
 

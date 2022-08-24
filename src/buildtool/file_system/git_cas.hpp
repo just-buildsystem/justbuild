@@ -21,6 +21,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 extern "C" {
@@ -30,7 +31,7 @@ using git_odb = struct git_odb;
 class GitCAS;
 using GitCASPtr = std::shared_ptr<GitCAS const>;
 
-/// \brief Git CAS that maintains its own libgit2 global state.
+/// \brief Git CAS that maintains its Git context.
 class GitCAS {
   public:
     // Stores the data for defining a single Git tree entry, which consists of
@@ -55,7 +56,7 @@ class GitCAS {
     static auto Open(std::filesystem::path const& repo_path) noexcept
         -> GitCASPtr;
 
-    GitCAS() noexcept;
+    GitCAS() noexcept = default;
     ~GitCAS() noexcept;
 
     // prohibit moves and copies
@@ -123,8 +124,9 @@ class GitCAS {
         -> std::optional<std::pair<std::string, std::string>>;
 
   private:
+    // IMPORTANT: the GitContext needs to be initialized before any git object!
+    GitContext git_context_{};  // maintains a Git context while CAS is alive
     git_odb* odb_{nullptr};
-    bool initialized_{false};
 
     [[nodiscard]] auto OpenODB(std::filesystem::path const& repo_path) noexcept
         -> bool;
