@@ -358,7 +358,7 @@
     }
   }
 , "flags":
-  { "vars": ["CFLAGS", "CXXFLAGS"]
+  { "vars": ["CFLAGS", "CXXFLAGS", "ADD_CFLAGS", "ADD_CXXFLAGS"]
   , "imports":
     { "default-CFLAGS": "default-CFLAGS"
     , "default-CXXFLAGS": "default-CXXFLAGS"
@@ -367,14 +367,24 @@
     { "type": "if"
     , "cond": {"type": "FIELD", "name": "pure C"}
     , "then":
-      { "type": "var"
-      , "name": "CFLAGS"
-      , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+      { "type": "++"
+      , "$1":
+        [ { "type": "var"
+          , "name": "CFLAGS"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+          }
+        , {"type": "var", "name": "ADD_CFLAGS", "default": []}
+        ]
       }
     , "else":
-      { "type": "var"
-      , "name": "CXXFLAGS"
-      , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+      { "type": "++"
+      , "$1":
+        [ { "type": "var"
+          , "name": "CXXFLAGS"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+          }
+        , {"type": "var", "name": "ADD_CXXFLAGS", "default": []}
+        ]
       }
     }
   }
@@ -382,8 +392,10 @@
   { "vars":
     [ "CXX"
     , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "CC"
     , "CFLAGS"
+    , "ADD_CFLAGS"
     , "ENV"
     , "AR"
     , "srcs"
@@ -501,8 +513,10 @@
   { "vars":
     [ "CXX"
     , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "CC"
     , "CFLAGS"
+    , "ADD_CFLAGS"
     , "ENV"
     , "AR"
     , "srcs"

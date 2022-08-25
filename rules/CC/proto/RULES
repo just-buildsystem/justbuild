@@ -8,7 +8,18 @@
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
   , "config_vars":
-    ["OS", "ARCH", "HOST_ARCH", "CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "CXX"
+    , "CC"
+    , "CXXFLAGS"
+    , "CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ENV"
+    , "AR"
+    ]
   , "implicit":
     { "protoc": [["@", "protoc", "", "protoc"]]
     , "defaults": [["./", "..", "defaults"]]
@@ -39,7 +50,18 @@
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
   , "config_vars":
-    ["OS", "ARCH", "HOST_ARCH", "CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "CXX"
+    , "CC"
+    , "CXXFLAGS"
+    , "CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ENV"
+    , "AR"
+    ]
   , "implicit":
     { "protoc": [["@", "protoc", "", "protoc"]]
     , "grpc_cpp_plugin": [["@", "grpc", "src/compiler", "grpc_cpp_plugin"]]

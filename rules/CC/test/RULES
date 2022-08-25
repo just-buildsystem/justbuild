@@ -7,7 +7,16 @@
   , "target_fields": ["srcs", "private-hdrs", "deps", "data"]
   , "string_fields": ["name", "stage"]
   , "config_vars":
-    ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "TEST_ENV", "CC_TEST_LAUNCHER"]
+    [ "CXX"
+    , "CC"
+    , "CXXFLAGS"
+    , "CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ENV"
+    , "TEST_ENV"
+    , "CC_TEST_LAUNCHER"
+    ]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
     , "proto-deps": []
@@ -32,9 +41,22 @@
     }
   , "config_doc":
     { "CXX": ["The name of the C++ compiler to be used."]
+    , "CC": ["The name of the C compiler to be used."]
     , "ENV": ["The environment for any action generated."]
     , "CXXFLAGS":
       [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "CFLAGS":
+      [ "The flags for CC to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CFLAGS":
+      [ "The flags to add to the default ones for CC"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     , "TEST_ENV": ["The environment for executing the test runner."]

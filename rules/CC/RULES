@@ -249,7 +249,16 @@
     , "local cflags"
     , "link external"
     ]
-  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV", "AR"]
+  , "config_vars":
+    [ "CXX"
+    , "CC"
+    , "CXXFLAGS"
+    , "CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ENV"
+    , "AR"
+    ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
     { "name":
@@ -314,6 +323,18 @@
       , "For libraries that should be built in a non-standard way; usually"
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
       , "choice"
+      ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX."
+      , "For libraries that should be built in a non-standard way; usually"
+      , "adapting the default target [\"CC\", \"defaults\"] is the better"
+      , "choice."
+      ]
+    , "ADD_CFLAGS":
+      [ "The flags to add to the default ones for CC."
+      , "For libraries that should be built in a non-standard way; usually"
+      , "adapting the default target [\"CC\", \"defaults\"] is the better"
+      , "choice."
       ]
     }
   , "artifacts_doc":
@@ -431,7 +452,8 @@
   , "target_fields": ["srcs", "private-hdrs", "deps", "proto"]
   , "string_fields":
     ["name", "stage", "pure C", "local defines", "link external"]
-  , "config_vars": ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ENV"]
+  , "config_vars":
+    ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ADD_CXXFLAGS", "ADD_CFLAGS", "ENV"]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
     { "name": ["The name of the binary"]
@@ -475,6 +497,14 @@
       ]
     , "CFLAGS":
       [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CFLAGS":
+      [ "The flags to add to the default ones for CC"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     }
@@ -615,6 +645,7 @@
                 , "-o"
                 , {"type": "var", "name": "binary name"}
                 ]
+              , {"type": "var", "name": "CXXFLAGS"}
               , {"type": "var", "name": "link-args"}
               ]
             }
