@@ -189,13 +189,13 @@ class ExecutorImpl {
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] static auto VerifyOrUploadTree(
         gsl::not_null<IExecutionApi*> const& api,
-        gsl::not_null<GitTreePtr> const& tree) noexcept -> bool {
+        GitTree const& tree) noexcept -> bool {
 
         // create list of digests for batch check of CAS availability
         std::vector<ArtifactDigest> digests;
         std::unordered_map<ArtifactDigest, gsl::not_null<GitTreeEntryPtr>>
             entry_map;
-        for (auto const& [path, entry] : *tree) {
+        for (auto const& [path, entry] : tree) {
             auto digest =
                 ArtifactDigest{entry->Hash(), *entry->Size(), entry->IsTree()};
             digests.emplace_back(digest);
@@ -209,7 +209,7 @@ class ExecutorImpl {
         Logger::Log(LogLevel::Trace, [&tree]() {
             std::ostringstream oss{};
             oss << "upload directory content" << std::endl;
-            for (auto const& [path, entry] : *tree) {
+            for (auto const& [path, entry] : tree) {
                 oss << fmt::format(" - {}: {}", path, entry->Hash())
                     << std::endl;
             }
@@ -224,9 +224,7 @@ class ExecutorImpl {
             if (auto it = entry_map.find(digest); it != entry_map.end()) {
                 auto const& entry = it->second;
                 if (entry->IsTree()) {
-                    if (not VerifyOrUploadTree(
-                            api,
-                            std::make_shared<GitTree const>(*entry->Tree()))) {
+                    if (not VerifyOrUploadTree(api, *entry->Tree())) {
                         return false;
                     }
                 }
@@ -276,8 +274,7 @@ class ExecutorImpl {
             if (not tree) {
                 return false;
             }
-            if (not VerifyOrUploadTree(
-                    api, std::make_shared<GitTree const>(*tree))) {
+            if (not VerifyOrUploadTree(api, *tree)) {
                 return false;
             }
             content = tree->RawData();
