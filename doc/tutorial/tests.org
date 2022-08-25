@@ -138,6 +138,78 @@ $
 
 Note that ~--log-limit 1~ was just added to omit justbuild's ~INFO:~ prints.
 
+Our test binary does not have any useful options for directly interacting
+with it. When working with test frameworks, it sometimes can be desirable to
+get hold of the test binary itself for manual interaction. The running of
+the test binary is the last action associated with the test and the test
+binary is, of course, one of its inputs.
+
+#+BEGIN_SRC sh
+$ just analyse -C $CONF --request-action-input -1 greet test
+INFO: Requested target is [["@","tutorial","greet","test"],{}]
+INFO: Request is input of action #-1
+INFO: Result of input of action #-1 of target [["@","tutorial","greet","test"],{}]: {
+        "artifacts": {
+          "runner.sh": {"data":{"path":"CC/test/test_runner.sh","repository":"just-rules"},"type":"LOCAL"},
+          "test": {"data":{"id":"70769663e63241b9a30cb32d03b377374813ebd9","path":"test_greet"},"type":"ACTION"}
+        },
+        "provides": {
+          "cmd": [
+            "sh",
+            "./runner.sh"
+          ],
+          "env": {
+          },
+          "may_fail": "CC test test_greet failed",
+          "output": [
+            "result",
+            "stderr",
+            "stdout",
+            "time-start",
+            "time-stop"
+          ],
+          "output_dirs": [
+          ]
+        },
+        "runfiles": {
+        }
+      }
+INFO: Target tainted ["test"].
+$
+#+END_SRC
+
+The provided data also shows us the precise description of the action
+for which we request the input. This allows us to manually rerun
+the action. Or we can simply interact with the test binary manually
+after installing the inputs to this action. Requesting the inputs
+of an action can also be usefull when debugging a build failure.
+
+#+BEGIN_SRC sh
+$ just install -o work -C $CONF --request-action-input -1 greet test
+INFO: Requested target is [["@","tutorial","greet","test"],{}]
+INFO: Request is input of action #-1
+INFO: Analysed target [["@","tutorial","greet","test"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
+INFO: Target tainted ["test"].
+INFO: Discovered 8 actions, 5 trees, 0 blobs
+INFO: Building input of action #-1 of [["@","tutorial","greet","test"],{}].
+INFO: Processed 7 actions, 7 cache hits.
+INFO: Artifacts can be found in:
+        /tmp/tutorial/work/runner.sh [52568676f1efba1bec099cdd325a54a415a1474f:686:f]
+        /tmp/tutorial/work/test [e9fb451860442c37d6d84c01ce1c698597b88000:139088:x]
+INFO: Target tainted ["test"].
+$ cd work/
+$ ./test
+greet output: Hello World!
+
+greet output: Hello Universe!
+
+$ echo $?
+0
+$ cd ..
+$ rm -rf work
+#+END_SRC
+
 ** Creating a shell test
 
 Similarly, to create a shell test for testing the ~helloworld~ binary, a test
