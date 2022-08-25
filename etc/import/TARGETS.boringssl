@@ -9,6 +9,7 @@
     , "DEBUG"
     , "CC"
     , "CFLAGS"
+    , "ADD_CFLAGS"
     , "AR"
     , "ENV"
     ]
@@ -24,6 +25,7 @@
     , "DEBUG"
     , "CXX"
     , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
     ]

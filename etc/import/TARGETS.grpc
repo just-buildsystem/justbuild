@@ -1587,6 +1587,8 @@
     , "CXX"
     , "CFLAGS"
     , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
     ]

@@ -11,6 +11,8 @@
     , "COMPILER_FAMILY"
     , "CC"
     , "CXX"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
     , "AR"
     , "ENV"
     , "BUILD_STATIC_BINARY"
@@ -43,6 +45,8 @@
     , "DEBUG"
     , "CXX"
     , "CC"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
     , "AR"
     , "ENV"
     ]

@@ -15,6 +15,7 @@
     , "DEBUG"
     , "CXX"
     , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
     ]
