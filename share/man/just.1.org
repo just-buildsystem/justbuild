@@ -466,6 +466,26 @@ well-defined graph file. See *just-graph-file(5)* for more details.
     }
    #+END_SRC
 
+   *--dump-targets-graph* PATH\\
+   Dump the graph of configured targets to a file (even if it
+   is called ~-~). In this graph, only non-source targets are
+   reported. The graph is represented as a JSON object. The keys
+   are the nodes of the graph, and for each node, the value is a
+   JSON object containing the different kind of dependencies (each
+   represented as a list of nodes).
+   - "declared" are the dependencies coming from the target fields
+     in the definition of the target
+   - "implicit" are the dependencies implict from the rule definition
+   - "anonymous" are the dependencies on anonymous targets implicitly
+     referenced during the evaluation of that rule
+   While the node names are strings (so that they can be keys in
+   a JSON object), they can themselves be decoded as JSON and in
+   this way precisely name the configured target. More precisely,
+   the JSON decoding of a node name is a list of length two,
+   with the first entry being the target name (as ~["@", repo,
+   module, target]~ or ~["#", rule_map_id, node_id]~) and the
+   second entry the effective configuration.
+
    *--dump-trees* PATH\\
    Dump trees and all subtrees of the given target to file. ~-~ is
    treated as stdout. Output is a JSON map between tree ids and the

@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
@@ -21,13 +22,15 @@ class AnalysedTarget {
                    std::vector<std::string> blobs,
                    std::vector<Tree::Ptr> trees,
                    std::unordered_set<std::string> vars,
-                   std::set<std::string> tainted)
+                   std::set<std::string> tainted,
+                   TargetGraphInformation graph_information)
         : result_{std::move(result)},
           actions_{std::move(actions)},
           blobs_{std::move(blobs)},
           trees_{std::move(trees)},
           vars_{std::move(vars)},
-          tainted_{std::move(tainted)} {}
+          tainted_{std::move(tainted)},
+          graph_information_{std::move(graph_information)} {}
 
     [[nodiscard]] auto Actions() const& noexcept
         -> std::vector<ActionDescription::Ptr> const& {
@@ -89,6 +92,14 @@ class AnalysedTarget {
     [[nodiscard]] auto Result() && noexcept -> TargetResult {
         return std::move(result_);
     }
+    [[nodiscard]] auto GraphInformation() const& noexcept
+        -> TargetGraphInformation const& {
+        return graph_information_;
+    }
+    [[nodiscard]] auto GraphInformation() && noexcept
+        -> TargetGraphInformation {
+        return std::move(graph_information_);
+    }
     // Obtain a set of all non-known artifacts from artifacts/runfiles/provides.
     [[nodiscard]] auto ContainedNonKnownArtifacts() const
         -> std::vector<ArtifactDescription>;
@@ -100,6 +111,7 @@ class AnalysedTarget {
     std::vector<Tree::Ptr> trees_;
     std::unordered_set<std::string> vars_;
     std::set<std::string> tainted_;
+    TargetGraphInformation graph_information_;
 };
 
 using AnalysedTargetPtr = std::shared_ptr<AnalysedTarget>;

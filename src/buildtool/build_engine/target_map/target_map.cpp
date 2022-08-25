@@ -9,6 +9,7 @@
 #include <fnmatch.h>
 
 #include "fmt/format.h"
+#include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -200,6 +201,8 @@ struct TargetData {
 void withDependencies(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
+    std::size_t declared_count,
+    std::size_t declared_and_implicit_count,
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
@@ -229,6 +232,31 @@ void withDependencies(
         }
     }
     auto effective_conf = key.config.Prune(effective_vars);
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> declared_deps{};
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> implicit_deps{};
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> anonymous_deps{};
+    gsl_ExpectsAudit(declared_count <= declared_and_implicit_count);
+    gsl_ExpectsAudit(declared_and_implicit_count <= dependency_values.size());
+    auto fill_target_graph = [&dependency_values](
+                                 size_t const a, size_t const b, auto* deps) {
+        std::transform(
+            &dependency_values[a],
+            &dependency_values[b],
+            std::back_inserter(*deps),
+            [](auto dep) { return (*(dep))->GraphInformation().Node(); });
+    };
+
+    fill_target_graph(0, declared_count, &declared_deps);
+    fill_target_graph(
+        declared_count, declared_and_implicit_count, &implicit_deps);
+    fill_target_graph(
+        declared_and_implicit_count, dependency_values.size(), &anonymous_deps);
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{key.target, effective_conf}),
+        declared_deps,
+        implicit_deps,
+        anonymous_deps};
 
     // Compute and verify taintedness
     auto tainted = std::set<std::string>{};
@@ -755,7 +783,8 @@ void withDependencies(
                                          std::move(blobs),
                                          std::move(trees),
                                          std::move(effective_vars),
-                                         std::move(tainted));
+                                         std::move(tainted),
+                                         deps_info);
     analysis_result =
         result_map->Add(key.target, effective_conf, std::move(analysis_result));
     (*setter)(std::move(analysis_result));
@@ -988,6 +1017,7 @@ void withRuleDefinition(
         params.emplace(target_field_name,
                        ExpressionPtr{std::move(dep_target_exps)});
     }
+    auto declared_count = dependency_keys.size();
     for (auto const& [implicit_field_name, implicit_target] :
          rule->ImplicitTargets()) {
         auto anon_pos = anon_positions.find(implicit_field_name);
@@ -1010,10 +1040,13 @@ void withRuleDefinition(
     }
     params.insert(rule->ImplicitTargetExps().begin(),
                   rule->ImplicitTargetExps().end());
+    auto declared_and_implicit_count = dependency_keys.size();
 
     (*subcaller)(
         dependency_keys,
         [transition_keys = std::move(transition_keys),
+         declared_count,
+         declared_and_implicit_count,
          rule,
          data,
          key,
@@ -1092,6 +1125,8 @@ void withRuleDefinition(
                 anonymous_keys,
                 [dependency_values = values,
                  transition_keys = std::move(transition_keys),
+                 declared_count,
+                 declared_and_implicit_count,
                  rule,
                  data,
                  key,
@@ -1104,6 +1139,8 @@ void withRuleDefinition(
                         dependency_values.end(), values.begin(), values.end());
                     withDependencies(transition_keys,
                                      dependency_values,
+                                     declared_count,
+                                     declared_and_implicit_count,
                                      rule,
                                      data,
                                      key,
@@ -1243,7 +1280,13 @@ void withTargetNode(
         // fixed value node, create analysed target from result
         auto const& val = target_node.GetValue();
         (*setter)(std::make_shared<AnalysedTarget>(
-            AnalysedTarget{val->Result(), {}, {}, {}, {}, {}}));
+            AnalysedTarget{val->Result(),
+                           {},
+                           {},
+                           {},
+                           {},
+                           {},
+                           TargetGraphInformation::kSource}));
     }
     else {
         // abstract target node, lookup rule and instantiate target
@@ -1338,7 +1381,8 @@ void TreeTarget(
                     std::vector<std::string>{},
                     std::vector<Tree::Ptr>{},
                     std::unordered_set<std::string>{},
-                    std::set<std::string>{});
+                    std::set<std::string>{},
+                    TargetGraphInformation::kSource);
                 analysis_result =
                     result_map->Add(key.target, {}, std::move(analysis_result));
                 (*setter)(std::move(analysis_result));
@@ -1406,7 +1450,8 @@ void TreeTarget(
                         std::vector<std::string>{},
                         std::vector<Tree::Ptr>{tree},
                         std::unordered_set<std::string>{},
-                        std::set<std::string>{});
+                        std::set<std::string>{},
+                        TargetGraphInformation::kSource);
                     analysis_result = result_map->Add(
                         key.target, {}, std::move(analysis_result));
                     (*setter)(std::move(analysis_result));
@@ -1436,7 +1481,8 @@ void GlobResult(const std::vector<AnalysedTargetPtr const*>& values,
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
         std::unordered_set<std::string>{},
-        std::set<std::string>{});
+        std::set<std::string>{},
+        TargetGraphInformation::kSource);
     (*setter)(std::move(target));
 }
 

@@ -99,6 +99,21 @@ class ResultTargetMap {
         return targets;
     }
 
+    [[nodiscard]] auto ConfiguredTargetsGraph() const noexcept
+        -> nlohmann::json {
+        auto result = nlohmann::json::object();
+        for (auto const& i : targets_) {
+            for (auto const& it : i) {
+                auto const& info = it.second->GraphInformation();
+                auto node = info.NodeString();
+                if (node) {
+                    result[*node] = info.DepsToJson();
+                }
+            }
+        }
+        return result;
+    }
+
     [[nodiscard]] auto CacheTargets() const noexcept
         -> std::unordered_map<TargetCache::Key, AnalysedTargetPtr> {
         return std::accumulate(

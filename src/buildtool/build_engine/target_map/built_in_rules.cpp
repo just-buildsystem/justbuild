@@ -69,6 +69,18 @@ void FileGenRuleWithDeps(
         return;
     }
     auto param_config = key.config.Prune(*param_vars);
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> all_deps{};
+    all_deps.reserve(dependency_values.size());
+    for (auto const& dep : dependency_values) {
+        all_deps.emplace_back((*dep)->GraphInformation().Node());
+    }
+
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{key.target, param_config}),
+        all_deps,
+        {},
+        {}};
 
     auto string_fields_fcts =
         FunctionMap::MakePtr(FunctionMap::underlying_map_t{
@@ -160,7 +172,8 @@ void FileGenRuleWithDeps(
         std::vector<std::string>{data_val->String()},
         std::vector<Tree::Ptr>{},
         std::move(vars_set),
-        std::move(tainted));
+        std::move(tainted),
+        std::move(deps_info));
     analysis_result =
         result_map->Add(key.target, param_config, std::move(analysis_result));
     (*setter)(std::move(analysis_result));
@@ -258,6 +271,19 @@ void InstallRuleWithDeps(
         effective_vars.insert(target->Vars().begin(), target->Vars().end());
     }
     auto effective_conf = key.config.Prune(effective_vars);
+
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> all_deps{};
+    all_deps.reserve(dependency_values.size());
+    for (auto const& dep : dependency_values) {
+        all_deps.emplace_back((*dep)->GraphInformation().Node());
+    }
+
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{key.target, effective_conf}),
+        all_deps,
+        {},
+        {}};
 
     // Compute and verify taintedness
     auto tainted = std::set<std::string>{};
@@ -359,7 +385,8 @@ void InstallRuleWithDeps(
                                          std::vector<std::string>{},
                                          std::vector<Tree::Ptr>{},
                                          std::move(effective_vars),
-                                         std::move(tainted));
+                                         std::move(tainted),
+                                         std::move(deps_info));
 
     result = result_map->Add(key.target, effective_conf, std::move(result));
     (*setter)(std::move(result));
@@ -568,6 +595,19 @@ void GenericRuleWithDeps(
         effective_vars.insert(target->Vars().begin(), target->Vars().end());
     }
     auto effective_conf = key.config.Prune(effective_vars);
+
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> all_deps{};
+    all_deps.reserve(dependency_values.size());
+    for (auto const& dep : dependency_values) {
+        all_deps.emplace_back((*dep)->GraphInformation().Node());
+    }
+
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{key.target, effective_conf}),
+        all_deps,
+        {},
+        {}};
 
     // Compute and verify taintedness
     auto tainted = std::set<std::string>{};
@@ -800,7 +840,8 @@ void GenericRuleWithDeps(
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
         std::move(effective_vars),
-        std::move(tainted));
+        std::move(tainted),
+        std::move(deps_info));
 
     result = result_map->Add(key.target, effective_conf, std::move(result));
     (*setter)(std::move(result));

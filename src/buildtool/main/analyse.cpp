@@ -99,7 +99,8 @@ void DetectAndReportPending(std::string const& name,
         target->Blobs(),
         target->Trees(),
         target->Vars(),
-        target->Tainted());
+        target->Tainted(),
+        target->GraphInformation());
 }
 
 }  // namespace

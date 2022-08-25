@@ -8,6 +8,18 @@
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "tree"]
+    , "graph_information"
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
+  }
+, "graph_information":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["graph_information"]
+  , "hdrs": ["target_graph_information.hpp"]
+  , "srcs": ["target_graph_information.cpp"]
+  , "deps":
+    [ ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
   }

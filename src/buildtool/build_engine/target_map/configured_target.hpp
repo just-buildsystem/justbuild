@@ -1,6 +1,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_CONFIGURED_TARGET_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_CONFIGURED_TARGET_HPP
 
+#include <memory>
+
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -22,6 +24,8 @@ struct ConfiguredTarget {
         return fmt::format("[{},{}]", target.ToString(), config.ToString());
     }
 };
+
+using ConfiguredTargetPtr = std::shared_ptr<ConfiguredTarget>;
 
 }  // namespace BuildMaps::Target
 

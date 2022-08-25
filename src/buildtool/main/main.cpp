@@ -897,6 +897,14 @@ void DumpNodes(std::string const& file_path, AnalysisResult const& result) {
     if (clargs.dump_targets) {
         DumpTargets(*clargs.dump_targets, result_map.ConfiguredTargets());
     }
+    if (clargs.dump_targets_graph) {
+        auto graph = result_map.ConfiguredTargetsGraph().dump(2);
+        Logger::Log(LogLevel::Info,
+                    "Dumping graph of configured-targets to file {}.",
+                    *clargs.dump_targets_graph);
+        std::ofstream os(*clargs.dump_targets_graph);
+        os << graph << std::endl;
+    }
     if (clargs.dump_anonymous) {
         DumpAnonymous(*clargs.dump_anonymous, result_map.ConfiguredTargets());
     }

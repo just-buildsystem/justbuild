@@ -38,6 +38,13 @@ void FinalizeExport(
                   true);
         return;
     }
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{target, effective_config}),
+        {(*value)->GraphInformation().Node()},
+        {},
+        {}};
+
     std::unordered_set<std::string> vars_set{};
     vars_set.insert(vars.begin(), vars.end());
     auto analysis_result = std::make_shared<AnalysedTarget>(
@@ -46,7 +53,8 @@ void FinalizeExport(
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
         std::move(vars_set),
-        std::set<std::string>{});
+        std::set<std::string>{},
+        std::move(deps_info));
     analysis_result = result_map->Add(
         target, effective_config, std::move(analysis_result), target_cache_key);
     (*setter)(std::move(analysis_result));
@@ -110,6 +118,14 @@ void ExportRule(
                 TargetCache::Instance().Read(*target_cache_key)) {
             auto const& [entry, info] = *target_cache_value;
             if (auto result = entry.ToResult()) {
+                auto deps_info = TargetGraphInformation{
+                    std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+                        BuildMaps::Target::ConfiguredTarget{key.target,
+                                                            effective_config}),
+                    {},
+                    {},
+                    {}};
+
                 auto analysis_result = std::make_shared<AnalysedTarget>(
                     *result,
                     std::vector<ActionDescription::Ptr>{},
@@ -117,7 +133,8 @@ void ExportRule(
                     std::vector<Tree::Ptr>{},
                     std::unordered_set<std::string>{flexible_vars->begin(),
                                                     flexible_vars->end()},
-                    std::set<std::string>{});
+                    std::set<std::string>{},
+                    deps_info);
 
                 analysis_result = result_map->Add(
                     key.target, effective_config, std::move(analysis_result));
