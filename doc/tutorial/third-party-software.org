@@ -56,8 +56,10 @@ $ mkdir -p fmt-layer/src
 
 The directory ~include/fmt~ contains only header files. As we want all files in
 this directory to be included in the ~"header directory"~ target, we can safely
-use the explicit ~TREE~ reference[fn:1], which collects /all/ directory contents
-from ~"."~. Note that the ~TARGETS~ file is only part of the overlay, and
+use the explicit ~TREE~ reference[fn:1], which collects, in a single
+artifact (describing a directory) /all/ directory contents
+from ~"."~ of the workspace root. Note that the ~TARGETS~ file is only part of
+the overlay, and
 therefore will not be part of this tree. Furthermore, this tree should be staged
 to ~"fmt"~, so that any consumer can include those headers via ~<fmt/...>~. The
 resulting header directory target ~"hdrs"~ in ~include/fmt/TARGETS~ should be
