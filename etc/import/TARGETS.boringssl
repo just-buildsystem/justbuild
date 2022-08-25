@@ -22,8 +22,8 @@
     , "TARGET_ARCH"
     , "COMPILER_FAMILY"
     , "DEBUG"
-    , "CC"
-    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
     , "AR"
     , "ENV"
     ]

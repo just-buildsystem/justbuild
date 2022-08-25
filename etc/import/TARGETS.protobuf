@@ -15,6 +15,7 @@
     , "COMPILER_FAMILY"
     , "DEBUG"
     , "CXX"
+    , "CXXFLAGS"
     , "AR"
     , "ENV"
     ]
@@ -31,6 +32,7 @@
     , "COMPILER_FAMILY"
     , "DEBUG"
     , "CXX"
+    , "CXXFLAGS"
     , "AR"
     , "ENV"
     ]
@@ -52,6 +54,9 @@
     , "COMPILER_FAMILY"
     , "DEBUG"
     , "CXX"
+    , "CXXFLAGS"
+    , "CC"
+    , "CFLAGS"
     , "AR"
     , "ENV"
     ]

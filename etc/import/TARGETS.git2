@@ -8,6 +8,7 @@
     , "COMPILER_FAMILY"
     , "DEBUG"
     , "CC"
+    , "CFLAGS"
     , "AR"
     , "ENV"
     , "USE_SYSTEM_LIBS"

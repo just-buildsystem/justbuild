@@ -1584,6 +1584,9 @@
     , "COMPILER_FAMILY"
     , "DEBUG"
     , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
     , "AR"
     , "ENV"
     ]
