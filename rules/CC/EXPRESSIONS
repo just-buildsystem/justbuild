@@ -49,7 +49,8 @@
     }
   }
 , "configure transition":
-  { "expression":
+  { "vars": ["COMPILER_FAMILY"]
+  , "expression":
     { "type": "let*"
     , "bindings":
       [ [ "OS"
@@ -75,6 +76,16 @@
           , "else": {"type": "var", "name": "ARCH"}
           }
         ]
+      , [ "FAMILY"
+        , {"type": "join", "$1": {"type": "FIELD", "name": "compiler_family"}}
+        ]
+      , [ "COMPILER_FAMILY"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "FAMILY"}
+          , "then": {"type": "var", "name": "FAMILY"}
+          , "else": {"type": "var", "name": "COMPILER_FAMILY"}
+          }
+        ]
       ]
     , "body":
       { "type": "map_union"
@@ -94,6 +105,10 @@
         , { "type": "singleton_map"
           , "key": "TARGET_ARCH"
           , "value": {"type": "var", "name": "TARGET_ARCH"}
+          }
+        , { "type": "singleton_map"
+          , "key": "COMPILER_FAMILY"
+          , "value": {"type": "var", "name": "COMPILER_FAMILY"}
           }
         ]
       }
