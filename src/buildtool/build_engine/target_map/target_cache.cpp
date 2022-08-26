@@ -158,5 +158,6 @@ auto TargetCache::ExecutionBackendId() -> std::string {
                  : nlohmann::json{}},
         {"platform_properties",
          properties}}.dump(2);
-    return CAS().StoreBlobFromBytes(backend_desc).value().hash();
+    return NativeSupport::Unprefix(
+        CAS().StoreBlobFromBytes(backend_desc).value().hash());
 }
