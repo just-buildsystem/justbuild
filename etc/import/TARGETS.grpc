@@ -1506,6 +1506,11 @@
     ]
   }
 , "grpc++_codegen_proto":
+  { "type": "export"
+  , "target": "grpc++_codegen_proto (implementation)"
+  , "flexible_config": ["AR", "CC", "CFLAGS", "CXX", "CXXFLAGS", "ENV"]
+  }
+, "grpc++_codegen_proto (implementation)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc++_codegen_proto"]
   , "hdrs":
