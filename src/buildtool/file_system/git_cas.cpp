@@ -104,21 +104,12 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     return nullptr;
 }
 
-GitCAS::~GitCAS() noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    if (odb_ != nullptr) {
-        git_odb_free(odb_);
-        odb_ = nullptr;
-    }
-#endif
-}
-
 auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
 #else
-    if (odb_ == nullptr) {
+    if (not odb_) {
         return std::nullopt;
     }
 
@@ -128,7 +119,7 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     }
 
     git_odb_object* obj = nullptr;
-    if (git_odb_read(&obj, odb_, &oid.value()) != 0) {
+    if (git_odb_read(&obj, odb_.get(), &oid.value()) != 0) {
         Logger::Log(LogLevel::Error,
                     "reading git object {} from database failed with:\n{}",
                     is_hex_id ? id : ToHexString(id),
@@ -147,7 +138,7 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
 auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::pair<std::size_t, ObjectType>> {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    if (odb_ == nullptr) {
+    if (not odb_) {
         return std::nullopt;
     }
 
@@ -158,7 +149,7 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
 
     std::size_t size{};
     git_object_t type{};
-    if (git_odb_read_header(&size, &type, odb_, &oid.value()) != 0) {
+    if (git_odb_read_header(&size, &type, odb_.get(), &oid.value()) != 0) {
         Logger::Log(LogLevel::Error,
                     "reading git object header {} from database failed "
                     "with:\n{}",
@@ -189,14 +180,16 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
                         GitLastError());
             return false;
         }
-        git_repository_odb(&odb_, repo);
+        git_odb* odb_ptr{nullptr};
+        git_repository_odb(&odb_ptr, repo);
+        odb_.reset(odb_ptr);  // retain odb pointer
         // set root
         git_path_ = std::filesystem::weakly_canonical(std::filesystem::absolute(
             std::filesystem::path(git_repository_path(repo))));
         // release resources
         git_repository_free(repo);
     }
-    if (odb_ == nullptr) {
+    if (not odb_) {
         Logger::Log(LogLevel::Error,
                     "obtaining git object database {} failed with:\n{}",
                     repo_path.string(),

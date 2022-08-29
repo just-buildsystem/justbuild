@@ -22,11 +22,8 @@
 #include <vector>
 
 #include "src/buildtool/file_system/git_context.hpp"
+#include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
-
-extern "C" {
-using git_odb = struct git_odb;
-}
 
 class GitCAS;
 using GitCASPtr = std::shared_ptr<GitCAS const>;
@@ -38,7 +35,7 @@ class GitCAS {
         -> GitCASPtr;
 
     GitCAS() noexcept = default;
-    ~GitCAS() noexcept;
+    ~GitCAS() noexcept = default;
 
     // prohibit moves and copies
     GitCAS(GitCAS const&) = delete;
@@ -67,7 +64,7 @@ class GitCAS {
   private:
     // IMPORTANT: the GitContext needs to be initialized before any git object!
     GitContext git_context_{};  // maintains a Git context while CAS is alive
-    git_odb* odb_{nullptr};
+    std::unique_ptr<git_odb, decltype(&odb_closer)> odb_{nullptr, odb_closer};
     // git folder path of repo; used for logging
     std::filesystem::path git_path_{};
 

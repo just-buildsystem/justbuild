@@ -17,11 +17,6 @@
 
 #include "src/buildtool/file_system/git_cas.hpp"
 
-extern "C" {
-using git_repository = struct git_repository;
-using git_strarray = struct git_strarray;
-}
-
 /// \brief Git repository logic.
 /// Models both a real repository, owning the underlying ODB
 /// (non-thread-safe), as well as a "fake" repository, which only wraps an
@@ -48,6 +43,7 @@ class GitRepo {
         std::unordered_map<std::string, std::vector<tree_entry_t>>;
 
     GitRepo() = delete;  // no default ctor
+    ~GitRepo() noexcept = default;
 
     // allow only move, no copy
     GitRepo(GitRepo const&) = delete;
@@ -246,11 +242,12 @@ class GitRepo {
         anon_logger_ptr const& logger) noexcept
         -> std::optional<std::filesystem::path>;
 
-    ~GitRepo() noexcept;
-
   private:
+    // IMPORTANT! The GitCAS object must be defined before the repo object to
+    // keep the GitContext alive until cleanup ends.
     GitCASPtr git_cas_{nullptr};
-    git_repository* repo_{nullptr};
+    std::unique_ptr<git_repository, decltype(&repo_closer)> repo_{nullptr,
+                                                                  repo_closer};
     // default to real repo, as that is non-thread-safe
     bool is_repo_fake_{false};
 

@@ -29,7 +29,12 @@
   , "name": ["git_cas"]
   , "hdrs": ["git_cas.hpp"]
   , "srcs": ["git_cas.cpp"]
-  , "deps": ["object_type", "git_context", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps":
+    [ "object_type"
+    , "git_context"
+    , "git_utils"
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
@@ -77,6 +82,15 @@
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "hex_string"]
     ]
+  }
+, "git_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_utils"]
+  , "hdrs": ["git_utils.hpp"]
+  , "srcs": ["git_utils.cpp"]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "buildtool", "file_system"]
+  , "private-deps": [["", "libgit2"]]
   }
 , "file_root":
   { "type": ["@", "rules", "CC", "library"]
