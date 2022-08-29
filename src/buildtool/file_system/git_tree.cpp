@@ -68,8 +68,14 @@ auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                    std::string const& tree_id) noexcept
     -> std::optional<GitTree> {
     if (auto raw_id = FromHexString(tree_id)) {
-        if (auto entries = cas->ReadTree(*raw_id)) {
-            return GitTree::FromEntries(cas, std::move(*entries), *raw_id);
+        auto repo = GitRepo::Open(cas);
+        if (repo != std::nullopt) {
+            if (auto entries = repo->ReadTree(*raw_id)) {
+                return GitTree::FromEntries(cas, std::move(*entries), *raw_id);
+            }
+        }
+        else {
+            return ::std::nullopt;
         }
     }
     return std::nullopt;
@@ -113,7 +119,11 @@ auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
 auto GitTreeEntry::Tree() const& noexcept -> std::optional<GitTree> const& {
     return tree_cached_.SetOnceAndGet([this]() -> std::optional<GitTree> {
         if (IsTree()) {
-            if (auto entries = cas_->ReadTree(raw_id_)) {
+            auto repo = GitRepo::Open(cas_);
+            if (repo == std::nullopt) {
+                return std::nullopt;
+            }
+            if (auto entries = repo->ReadTree(raw_id_)) {
                 return GitTree::FromEntries(cas_, std::move(*entries), raw_id_);
             }
         }

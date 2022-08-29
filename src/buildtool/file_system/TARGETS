@@ -43,7 +43,7 @@
   , "hdrs": ["git_tree.hpp"]
   , "srcs": ["git_tree.cpp"]
   , "deps":
-    [ "git_cas"
+    [ "git_repo"
     , "object_type"
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "hex_string"]
@@ -75,6 +75,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["", "libgit2"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

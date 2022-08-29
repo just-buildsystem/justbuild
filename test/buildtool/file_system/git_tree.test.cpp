@@ -147,29 +147,32 @@ TEST_CASE("Read Git Trees", "[git_cas]") {
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
     REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
 
     SECTION("invalid trees") {
-        CHECK_FALSE(cas->ReadTree("", /*is_hex_id=*/true));
-        CHECK_FALSE(cas->ReadTree("", /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree("", /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree("", /*is_hex_id=*/false));
 
-        CHECK_FALSE(cas->ReadTree(kFailId, /*is_hex_id=*/true));
-        CHECK_FALSE(cas->ReadTree(HexToRaw(kFailId), /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(kFailId, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kFailId), /*is_hex_id=*/false));
 
-        CHECK_FALSE(cas->ReadTree(RawToHex("to_short"), /*is_hex_id=*/true));
-        CHECK_FALSE(cas->ReadTree("to_short", /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(RawToHex("to_short"), /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree("to_short", /*is_hex_id=*/false));
 
-        CHECK_FALSE(cas->ReadTree("invalid_chars", /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree("invalid_chars", /*is_hex_id=*/true));
 
-        CHECK_FALSE(cas->ReadTree(kFooId, /*is_hex_id=*/true));
-        CHECK_FALSE(cas->ReadTree(HexToRaw(kFooId), /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(kFooId, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kFooId), /*is_hex_id=*/false));
 
-        CHECK_FALSE(cas->ReadTree(kBarId, /*is_hex_id=*/true));
-        CHECK_FALSE(cas->ReadTree(HexToRaw(kBarId), /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(kBarId, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kBarId), /*is_hex_id=*/false));
     }
 
     SECTION("valid trees") {
-        auto entries0 = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
-        auto entries1 = cas->ReadTree(HexToRaw(kTreeId), /*is_hex_id=*/false);
+        auto entries0 = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries1 = repo->ReadTree(HexToRaw(kTreeId), /*is_hex_id=*/false);
+
         REQUIRE(entries0);
         REQUIRE(entries1);
         CHECK(*entries0 == *entries1);
@@ -181,36 +184,38 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
     REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
 
     SECTION("empty tree") {
-        auto tree_id = cas->CreateTree({});
+        auto tree_id = repo->CreateTree({});
         REQUIRE(tree_id);
         CHECK(ToHexString(*tree_id) ==
               "4b825dc642cb6eb9a060e54bf8d69288fbee4904");
     }
 
     SECTION("existing tree") {
-        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
         REQUIRE(entries);
 
-        auto tree_id = cas->CreateTree(*entries);
+        auto tree_id = repo->CreateTree(*entries);
         REQUIRE(tree_id);
         CHECK(ToHexString(*tree_id) == kTreeId);
     }
 
     SECTION("entry order") {
-        auto foo_bar = GitCAS::tree_entries_t{
+        auto foo_bar = GitRepo::tree_entries_t{
             {HexToRaw(kFooId),
-             {GitCAS::tree_entry_t{"foo", ObjectType::File},
-              GitCAS::tree_entry_t{"bar", ObjectType::Executable}}}};
-        auto foo_bar_id = cas->CreateTree(foo_bar);
+             {GitRepo::tree_entry_t{"foo", ObjectType::File},
+              GitRepo::tree_entry_t{"bar", ObjectType::Executable}}}};
+        auto foo_bar_id = repo->CreateTree(foo_bar);
         REQUIRE(foo_bar_id);
 
-        auto bar_foo = GitCAS::tree_entries_t{
+        auto bar_foo = GitRepo::tree_entries_t{
             {HexToRaw(kFooId),
-             {GitCAS::tree_entry_t{"bar", ObjectType::Executable},
-              GitCAS::tree_entry_t{"foo", ObjectType::File}}}};
-        auto bar_foo_id = cas->CreateTree(bar_foo);
+             {GitRepo::tree_entry_t{"bar", ObjectType::Executable},
+              GitRepo::tree_entry_t{"foo", ObjectType::File}}}};
+        auto bar_foo_id = repo->CreateTree(bar_foo);
         REQUIRE(bar_foo_id);
 
         CHECK(foo_bar_id == bar_foo_id);
@@ -222,23 +227,25 @@ TEST_CASE("Read Git Tree Data", "[git_cas]") {
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
     REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
 
     SECTION("empty tree") {
-        auto entries = GitCAS::ReadTreeData(
+        auto entries = GitRepo::ReadTreeData(
             "", "4b825dc642cb6eb9a060e54bf8d69288fbee4904", /*is_hex_id=*/true);
         REQUIRE(entries);
         CHECK(entries->empty());
     }
 
     SECTION("existing tree") {
-        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
         REQUIRE(entries);
 
         auto data = cas->ReadObject(kTreeId, /*is_hex_id=*/true);
         REQUIRE(data);
 
         auto from_data =
-            GitCAS::ReadTreeData(*data, kTreeId, /*is_hex_id=*/true);
+            GitRepo::ReadTreeData(*data, kTreeId, /*is_hex_id=*/true);
         REQUIRE(from_data);
         CHECK(*from_data == *entries);
     }
@@ -249,9 +256,11 @@ TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
     REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
 
     SECTION("empty tree") {
-        auto tree = GitCAS::CreateShallowTree({});
+        auto tree = GitRepo::CreateShallowTree({});
         REQUIRE(tree);
         CHECK(ToHexString(tree->first) ==
               "4b825dc642cb6eb9a060e54bf8d69288fbee4904");
@@ -259,10 +268,10 @@ TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
     }
 
     SECTION("existing tree from other CAS") {
-        auto entries = cas->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
         REQUIRE(entries);
 
-        auto tree = GitCAS::CreateShallowTree(*entries);
+        auto tree = GitRepo::CreateShallowTree(*entries);
         REQUIRE(tree);
         CHECK(ToHexString(tree->first) == kTreeId);
         CHECK_FALSE(tree->second.empty());
@@ -546,12 +555,14 @@ TEST_CASE("Thread-safety", "[git_tree]") {
     SECTION("Parsing same tree with same CAS") {
         auto cas = GitCAS::Open(*repo_path);
         REQUIRE(cas);
+        auto repo = GitRepo::Open(cas);
+        REQUIRE(repo);
 
         for (int id{}; id < kNumThreads; ++id) {
-            threads.emplace_back([&cas, &starting_signal]() {
+            threads.emplace_back([&repo, &starting_signal]() {
                 starting_signal.wait(false);
 
-                auto entries = cas->ReadTree(kTreeId, true);
+                auto entries = repo->ReadTree(kTreeId, true);
                 REQUIRE(entries);
             });
         }

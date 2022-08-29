@@ -23,7 +23,7 @@
     [ "bazel_msg"
     , "directory_tree"
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/common", "bazel_types"]
     ]
@@ -65,7 +65,7 @@
   , "private-deps":
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "hex_string"]
     ]

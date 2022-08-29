@@ -20,7 +20,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
@@ -28,7 +28,7 @@
 auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                                  std::filesystem::path const& parent) noexcept
     -> std::optional<BlobTreePtr> {
-    GitCAS::tree_entries_t entries;
+    GitRepo::tree_entries_t entries;
     std::vector<BlobTreePtr> nodes;
     try {
         entries.reserve(tree->size());
@@ -63,7 +63,7 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                                                          object_info->type);
             }
         }
-        if (auto git_tree = GitCAS::CreateShallowTree(entries)) {
+        if (auto git_tree = GitRepo::CreateShallowTree(entries)) {
             bazel_re::Digest digest{};
             digest.set_hash(NativeSupport::Prefix(ToHexString(git_tree->first),
                                                   /*is_tree=*/true));

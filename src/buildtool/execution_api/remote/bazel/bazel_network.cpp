@@ -38,11 +38,11 @@ namespace {
 [[nodiscard]] auto ReadGitTree(
     gsl::not_null<BazelNetwork const*> const& network,
     bazel_re::Digest const& digest) noexcept
-    -> std::optional<GitCAS::tree_entries_t> {
+    -> std::optional<GitRepo::tree_entries_t> {
     auto blobs = network->ReadBlobs({digest}).Next();
     if (blobs.size() == 1) {
         auto const& content = blobs.at(0).data;
-        return GitCAS::ReadTreeData(
+        return GitRepo::ReadTreeData(
             content,
             HashFunction::ComputeTreeHash(content).Bytes(),
             /*is_hex_id=*/false);

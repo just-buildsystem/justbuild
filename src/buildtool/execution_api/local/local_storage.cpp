@@ -35,10 +35,10 @@ namespace {
 [[nodiscard]] auto ReadGitTree(
     gsl::not_null<LocalStorage const*> const& storage,
     bazel_re::Digest const& digest) noexcept
-    -> std::optional<GitCAS::tree_entries_t> {
+    -> std::optional<GitRepo::tree_entries_t> {
     if (auto const path = storage->TreePath(digest)) {
         if (auto const content = FileSystemManager::ReadFile(*path)) {
-            return GitCAS::ReadTreeData(
+            return GitRepo::ReadTreeData(
                 *content,
                 HashFunction::ComputeTreeHash(*content).Bytes(),
                 /*is_hex_id=*/false);

@@ -20,7 +20,7 @@
 #include <unordered_map>
 
 #include "gsl-lite/gsl-lite.hpp"
-#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -77,7 +77,7 @@ class GitTree {
           raw_id_{std::move(raw_id)} {}
 
     [[nodiscard]] static auto FromEntries(gsl::not_null<GitCASPtr> cas,
-                                          GitCAS::tree_entries_t&& entries,
+                                          GitRepo::tree_entries_t&& entries,
                                           std::string raw_id) noexcept
         -> std::optional<GitTree> {
         entries_t e{};

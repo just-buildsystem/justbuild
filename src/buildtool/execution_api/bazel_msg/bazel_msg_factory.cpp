@@ -28,7 +28,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
@@ -439,7 +439,7 @@ auto BazelMsgFactory::ReadObjectInfosFromDirectory(
 }
 
 auto BazelMsgFactory::ReadObjectInfosFromGitTree(
-    GitCAS::tree_entries_t const& entries,
+    GitRepo::tree_entries_t const& entries,
     InfoStoreFunc const& store_info) noexcept -> bool {
     try {
         for (auto const& [raw_id, es] : entries) {
@@ -548,7 +548,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
     FileStoreFunc const& store_file,
     TreeStoreFunc const& store_tree) noexcept
     -> std::optional<bazel_re::Digest> {
-    GitCAS::tree_entries_t entries{};
+    GitRepo::tree_entries_t entries{};
     auto dir_reader = [&entries, &root, &store_file, &store_tree](auto name,
                                                                   auto type) {
         if (IsTreeObject(type)) {
@@ -588,7 +588,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
     };
 
     if (FileSystemManager::ReadDirectory(root, dir_reader)) {
-        if (auto tree = GitCAS::CreateShallowTree(entries)) {
+        if (auto tree = GitRepo::CreateShallowTree(entries)) {
             try {
                 if (auto digest = store_tree(tree->second, entries)) {
                     return *digest;
@@ -654,7 +654,7 @@ auto BazelMsgFactory::DirectoryToString(bazel_re::Directory const& dir) noexcept
 }
 
 auto BazelMsgFactory::GitTreeToString(
-    GitCAS::tree_entries_t const& entries) noexcept
+    GitRepo::tree_entries_t const& entries) noexcept
     -> std::optional<std::string> {
     auto json = nlohmann::json::object();
     try {

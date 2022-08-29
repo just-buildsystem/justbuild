@@ -30,7 +30,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
-#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 
 /// \brief Factory for creating Bazel API protobuf messages.
 /// Responsible for creating protobuf messages necessary for Bazel API server
@@ -47,7 +47,7 @@ class BazelMsgFactory {
         bazel_re::Directory const&)>;
     using TreeStoreFunc = std::function<std::optional<bazel_re::Digest>(
         std::string const&,
-        GitCAS::tree_entries_t const&)>;
+        GitRepo::tree_entries_t const&)>;
 
     /// \brief Read object infos from directory.
     /// \returns true on success.
@@ -58,7 +58,7 @@ class BazelMsgFactory {
     /// \brief Read object infos from git tree.
     /// \returns true on success.
     [[nodiscard]] static auto ReadObjectInfosFromGitTree(
-        GitCAS::tree_entries_t const& entries,
+        GitRepo::tree_entries_t const& entries,
         InfoStoreFunc const& store_info) noexcept -> bool;
 
     /// \brief Create Directory digest from artifact tree structure.
@@ -130,7 +130,7 @@ class BazelMsgFactory {
 
     /// \brief Create descriptive string from Git tree entries.
     [[nodiscard]] static auto GitTreeToString(
-        GitCAS::tree_entries_t const& entries) noexcept
+        GitRepo::tree_entries_t const& entries) noexcept
         -> std::optional<std::string>;
 
     /// \brief Create message vector from std::map.
