@@ -148,6 +148,76 @@ auto BazelApi::CreateAction(
     return true;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] auto BazelApi::RetrieveToCas(
+    std::vector<Artifact::ObjectInfo> const& artifacts_info,
+    gsl::not_null<IExecutionApi*> const& api) noexcept -> bool {
+
+    // Determine missing artifacts in other CAS.
+    std::vector<ArtifactDigest> digests;
+    digests.reserve(artifacts_info.size());
+    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
+    for (auto const& info : artifacts_info) {
+        digests.push_back(info.digest);
+        info_map[info.digest] = info;
+    }
+    auto const& missing_digests = api->IsAvailable(digests);
+    std::vector<Artifact::ObjectInfo> missing_artifacts_info;
+    missing_artifacts_info.reserve(missing_digests.size());
+    for (auto const& digest : missing_digests) {
+        missing_artifacts_info.push_back(info_map[digest]);
+    }
+
+    // Recursively process trees.
+    std::vector<bazel_re::Digest> blob_digests{};
+    for (auto const& info : missing_artifacts_info) {
+        if (IsTreeObject(info.type)) {
+            auto const infos =
+                network_->ReadTreeInfos(info.digest, std::filesystem::path{});
+            if (not infos or not RetrieveToCas(infos->second, api)) {
+                return false;
+            }
+        }
+
+        // Object infos created by network_->ReadTreeInfos() will contain 0 as
+        // size, but this is handled by the remote execution engine, so no need
+        // to regenerate the digest.
+        blob_digests.push_back(info.digest);
+    }
+
+    // Fetch blobs from this CAS.
+    auto size = blob_digests.size();
+    auto reader = network_->ReadBlobs(std::move(blob_digests));
+    auto blobs = reader.Next();
+    std::size_t count{};
+    BlobContainer container{};
+    while (not blobs.empty()) {
+        if (count + blobs.size() > size) {
+            Logger::Log(LogLevel::Error, "received more blobs than requested.");
+            return false;
+        }
+        for (auto& blob : blobs) {
+            try {
+                container.Emplace(std::move(blob));
+            } catch (std::exception const& ex) {
+                Logger::Log(
+                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+                return false;
+            }
+        }
+        count += blobs.size();
+        blobs = reader.Next();
+    }
+
+    if (count != size) {
+        Logger::Log(LogLevel::Error, "could not retrieve all requested blobs.");
+        return false;
+    }
+
+    // Upload blobs to other CAS.
+    return api->Upload(container, /*skip_find_missing=*/true);
+}
+
 [[nodiscard]] auto BazelApi::Upload(BlobContainer const& blobs,
                                     bool skip_find_missing) noexcept -> bool {
     return network_->UploadBlobs(blobs, skip_find_missing);

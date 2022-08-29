@@ -110,6 +110,79 @@ class LocalApi final : public IExecutionApi {
         return true;
     }
 
+    // NOLINTNEXTLINE(misc-no-recursion)
+    [[nodiscard]] auto RetrieveToCas(
+        std::vector<Artifact::ObjectInfo> const& artifacts_info,
+        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool final {
+
+        // Determine missing artifacts in other CAS.
+        std::vector<ArtifactDigest> digests;
+        digests.reserve(artifacts_info.size());
+        std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
+        for (auto const& info : artifacts_info) {
+            digests.push_back(info.digest);
+            info_map[info.digest] = info;
+        }
+        auto const& missing_digests = api->IsAvailable(digests);
+        std::vector<Artifact::ObjectInfo> missing_artifacts_info;
+        missing_artifacts_info.reserve(missing_digests.size());
+        for (auto const& digest : missing_digests) {
+            missing_artifacts_info.push_back(info_map[digest]);
+        }
+
+        // Collect blobs of missing artifacts from local CAS. Trees are
+        // processed recursively before any blob is uploaded.
+        BlobContainer container{};
+        for (auto const& info : missing_artifacts_info) {
+            // Recursively process trees.
+            if (IsTreeObject(info.type)) {
+                auto const& infos = storage_->ReadTreeInfos(
+                    info.digest, std::filesystem::path{});
+                if (not infos or not RetrieveToCas(infos->second, api)) {
+                    return false;
+                }
+            }
+
+            // Determine artifact path.
+            auto const& path =
+                IsTreeObject(info.type)
+                    ? storage_->TreePath(info.digest)
+                    : storage_->BlobPath(info.digest,
+                                         IsExecutableObject(info.type));
+            if (not path) {
+                return false;
+            }
+
+            // Read artifact content.
+            auto const& content = FileSystemManager::ReadFile(*path);
+            if (not content) {
+                return false;
+            }
+
+            // Regenerate digest since object infos read by
+            // storage_->ReadTreeInfos() will contain 0 as size.
+            ArtifactDigest digest;
+            if (IsTreeObject(info.type)) {
+                digest = ArtifactDigest::Create<ObjectType::Tree>(*content);
+            }
+            else {
+                digest = ArtifactDigest::Create<ObjectType::File>(*content);
+            }
+
+            // Collect blob.
+            try {
+                container.Emplace(BazelBlob{digest, *content});
+            } catch (std::exception const& ex) {
+                Logger::Log(
+                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+                return false;
+            }
+        }
+
+        // Upload blobs to remote CAS.
+        return api->Upload(container, /*skip_find_missing=*/true);
+    }
+
     [[nodiscard]] auto Upload(BlobContainer const& blobs,
                               bool /*skip_find_missing*/) noexcept
         -> bool final {

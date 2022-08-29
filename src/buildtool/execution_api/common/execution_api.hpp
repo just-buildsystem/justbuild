@@ -61,6 +61,13 @@ class IExecutionApi {
         std::vector<int> const& fds,
         bool raw_tree) noexcept -> bool = 0;
 
+    /// \brief Synchronization of artifacts between two CASes. Retrieves
+    /// artifacts from one CAS and writes to another CAS. Tree artifacts are
+    /// resolved and its containing file artifacts are recursively retrieved.
+    [[nodiscard]] virtual auto RetrieveToCas(
+        std::vector<Artifact::ObjectInfo> const& artifacts_info,
+        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool = 0;
+
     /// \brief Upload blobs to CAS. Uploads only the blobs that are not yet
     /// available in CAS, unless `skip_find_missing` is specified.
     /// \param blobs                Container of blobs to upload.

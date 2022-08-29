@@ -130,6 +130,11 @@ class TestApi : public IExecutionApi {
                        bool /*unused*/) noexcept -> bool final {
         return false;  // not needed by Executor
     }
+    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& artifacts_info,
+                       gsl::not_null<IExecutionApi*> api) noexcept
+        -> bool final {
+        return false;  // not needed by Executor
+    }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
         return std::all_of(
