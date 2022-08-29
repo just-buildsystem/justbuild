@@ -194,17 +194,17 @@ auto BazelApi::CreateAction(
     -> std::vector<ArtifactDigest> {
     std::vector<bazel_re::Digest> bazel_digests;
     bazel_digests.reserve(digests.size());
-    std::transform(digests.begin(),
-                   digests.end(),
-                   std::back_inserter(bazel_digests),
-                   [](ArtifactDigest const& digest) { return digest; });
+    std::unordered_map<bazel_re::Digest, ArtifactDigest> digest_map;
+    for (auto const& digest : digests) {
+        auto const& bazel_digest = static_cast<bazel_re::Digest>(digest);
+        bazel_digests.push_back(bazel_digest);
+        digest_map[bazel_digest] = digest;
+    }
     auto bazel_result = network_->IsAvailable(bazel_digests);
     std::vector<ArtifactDigest> result;
     result.reserve(bazel_result.size());
-    std::transform(
-        bazel_result.begin(),
-        bazel_result.end(),
-        std::back_inserter(result),
-        [](bazel_re::Digest& digest) { return ArtifactDigest{digest}; });
+    for (auto const& bazel_digest : bazel_result) {
+        result.push_back(digest_map[bazel_digest]);
+    }
     return result;
 }
