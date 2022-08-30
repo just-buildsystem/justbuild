@@ -10,4 +10,22 @@
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   }
+, "import_to_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["import_to_git_map"]
+  , "hdrs": ["import_to_git_map.hpp"]
+  , "srcs": ["import_to_git_map.cpp"]
+  , "deps":
+    [ "critical_git_op_map"
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["@", "fmt", "", "fmt"]
+    , ["src/utils/cpp", "path"]
+    ]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  , "private-deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/local", "config"]
+    ]
+  }
 }
