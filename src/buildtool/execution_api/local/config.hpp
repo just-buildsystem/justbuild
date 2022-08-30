@@ -142,12 +142,6 @@ class LocalExecutionConfig {
         return Data().launcher;
     }
 
-  private:
-    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
-        static ConfigData instance{};
-        return instance;
-    }
-
     /// \brief Determine user root directory
     [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
         char const* root{nullptr};
@@ -166,6 +160,12 @@ class LocalExecutionConfig {
         }
 
         return root;
+    }
+
+  private:
+    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
+        static ConfigData instance{};
+        return instance;
     }
 };
 

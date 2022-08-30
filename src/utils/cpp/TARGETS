@@ -54,10 +54,8 @@
   , "name": ["tmp_dir"]
   , "hdrs": ["tmp_dir.hpp"]
   , "srcs": ["tmp_dir.cpp"]
-  , "deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
-    ]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "utils", "cpp"]
+  , "private-deps": [["src/buildtool/file_system", "file_system_manager"]]
   }
 }
