@@ -49,4 +49,15 @@
   , "hdrs": ["vector.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "tmp_dir":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["tmp_dir"]
+  , "hdrs": ["tmp_dir.hpp"]
+  , "srcs": ["tmp_dir.cpp"]
+  , "deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    ]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
