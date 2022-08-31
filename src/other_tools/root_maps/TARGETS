@@ -1,0 +1,20 @@
+{ "distdir_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["distdir_git_map"]
+  , "hdrs": ["distdir_git_map.hpp"]
+  , "srcs": ["distdir_git_map.cpp"]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  , "private-deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  }
+}
