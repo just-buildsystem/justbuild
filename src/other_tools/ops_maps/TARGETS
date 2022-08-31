@@ -28,4 +28,22 @@
     , ["src/buildtool/execution_api/local", "config"]
     ]
   }
+, "git_update_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_update_map"]
+  , "hdrs": ["git_update_map.hpp"]
+  , "srcs": ["git_update_map.cpp"]
+  , "deps":
+    [ ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["@", "fmt", "", "fmt"]
+    ]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  , "private-deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/execution_api/local", "config"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  }
 }
