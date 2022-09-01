@@ -98,13 +98,16 @@ class LocalExecutionConfig {
     }
 
     // CAS directory based on the type of the file.
-    // Specialized just for regular File or Exectuable
-    template <ObjectType kType,
-              typename = std::enable_if<kType == ObjectType::File or
-                                        kType == ObjectType::Executable>>
+    template <ObjectType kType>
     [[nodiscard]] static inline auto CASDir() noexcept
         -> std::filesystem::path {
-        static const std::string kSuffix = std::string{"cas"} + ToChar(kType);
+        char t = ToChar(kType);
+        if constexpr (kType == ObjectType::Tree) {
+            if (Compatibility::IsCompatible()) {
+                t = ToChar(ObjectType::File);
+            }
+        }
+        static const std::string kSuffix = std::string{"cas"} + t;
         return CacheRoot() / kSuffix;
     }
 
