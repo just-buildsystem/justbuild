@@ -17,4 +17,19 @@
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
+, "commit_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["commit_git_map"]
+  , "hdrs": ["commit_git_map.hpp"]
+  , "srcs": ["commit_git_map.cpp"]
+  , "deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  , "private-deps":
+    [["src/buildtool/file_system", "git_repo"], ["src/utils/cpp", "tmp_dir"]]
+  }
 }
