@@ -161,7 +161,10 @@ class LocalApi final : public IExecutionApi {
         const noexcept -> std::vector<ArtifactDigest> final {
         std::vector<ArtifactDigest> result;
         for (auto const& digest : digests) {
-            if (not storage_->BlobPath(digest, false).has_value()) {
+            auto const& path = digest.is_tree()
+                                   ? storage_->TreePath(digest)
+                                   : storage_->BlobPath(digest, false);
+            if (not path) {
                 result.push_back(digest);
             }
         }

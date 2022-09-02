@@ -12,6 +12,7 @@
     , [["./", "built-in-rules", "TESTS"], "built-in-rules"]
     , [["./", "build-fails", "TESTS"], "build-fails"]
     , [["./", "remote-execution", "TESTS"], "remote-execution"]
+    , [["./", "target-cache", "TESTS"], "target-cache"]
     ]
   }
 }

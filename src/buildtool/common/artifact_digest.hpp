@@ -22,10 +22,17 @@ class ArtifactDigest {
     explicit ArtifactDigest(bazel_re::Digest const& digest) noexcept
         : size_{gsl::narrow<std::size_t>(digest.size_bytes())},
           hash_{NativeSupport::Unprefix(digest.hash())},
+          // In compatible mode, no tree information is stored in a digest,
+          // NativeSupport::IsTree will always return false in compatible mode.
           is_tree_{NativeSupport::IsTree(digest.hash())} {}
 
     ArtifactDigest(std::string hash, std::size_t size, bool is_tree) noexcept
-        : size_{size}, hash_{std::move(hash)}, is_tree_{is_tree} {
+        : size_{size},
+          hash_{std::move(hash)},
+          // In compatible mode, no tree information is stored in a digest. This
+          // information is only relevant in native mode, since the hash needs
+          // to be prefixed accordingly.
+          is_tree_{not Compatibility::IsCompatible() and is_tree} {
         gsl_ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
     }
 

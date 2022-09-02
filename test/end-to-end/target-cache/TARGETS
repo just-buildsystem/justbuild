@@ -1,0 +1,9 @@
+{ "target-cache-hit":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["target-cache-hit"]
+  , "test": ["target-cache-hit.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["target-cache-hit"]}
+}
