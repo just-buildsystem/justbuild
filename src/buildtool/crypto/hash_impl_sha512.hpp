@@ -12,21 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_IMPL_SHA512_HPP
+#define INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_IMPL_SHA512_HPP
+
+#include <memory>
+
 #include "src/buildtool/crypto/hasher.hpp"
 
-#include "src/buildtool/crypto/hash_impl_sha1.hpp"
-#include "src/buildtool/crypto/hash_impl_sha256.hpp"
-#include "src/buildtool/crypto/hash_impl_sha512.hpp"
+[[nodiscard]] extern auto CreateHashImplSha512()
+    -> std::unique_ptr<Hasher::IHashImpl>;
 
-auto Hasher::CreateHashImpl(HashType type) noexcept
-    -> std::unique_ptr<IHashImpl> {
-    switch (type) {
-        case HashType::SHA1:
-            return CreateHashImplSha1();
-        case HashType::SHA256:
-            return CreateHashImplSha256();
-        case HashType::SHA512:
-            return CreateHashImplSha512();
-    }
-    return nullptr;  // make gcc happy
-}
+#endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_IMPL_SHA512_HPP

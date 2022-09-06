@@ -27,7 +27,7 @@
 class Hasher {
   public:
     /// \brief Types of hash implementations supported by generator.
-    enum class HashType : std::uint8_t { SHA1, SHA256 };
+    enum class HashType : std::uint8_t { SHA1, SHA256, SHA512 };
 
     /// \brief The universal hash digest.
     /// The type of hash and the digest length depends on the hash

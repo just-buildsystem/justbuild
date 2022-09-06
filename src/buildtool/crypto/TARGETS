@@ -1,8 +1,18 @@
 { "hasher":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hasher"]
-  , "hdrs": ["hasher.hpp", "hash_impl_sha1.hpp", "hash_impl_sha256.hpp"]
-  , "srcs": ["hasher.cpp", "hash_impl_sha1.cpp", "hash_impl_sha256.cpp"]
+  , "hdrs":
+    [ "hasher.hpp"
+    , "hash_impl_sha1.hpp"
+    , "hash_impl_sha256.hpp"
+    , "hash_impl_sha512.hpp"
+    ]
+  , "srcs":
+    [ "hasher.cpp"
+    , "hash_impl_sha1.cpp"
+    , "hash_impl_sha256.cpp"
+    , "hash_impl_sha512.cpp"
+    ]
   , "stage": ["src", "buildtool", "crypto"]
   , "deps":
     [["src/buildtool/logging", "logging"], ["src/utils/cpp", "hex_string"]]
