@@ -14,6 +14,8 @@
 
 #include "src/other_tools/just_mr/utils.hpp"
 
+#include "src/buildtool/execution_api/local/file_storage.hpp"
+#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace JustMR::Utils {
@@ -72,6 +74,30 @@ auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
         return false;
     }
     return FileSystemManager::Rename(tmp_file.string(), tree_id_file);
+}
+
+auto AddToCAS(std::string const& data) noexcept
+    -> std::optional<std::filesystem::path> {
+    // get file CAS instance
+    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+    // write to casf
+    auto digest = casf.StoreBlobFromBytes(data);
+    if (digest) {
+        return casf.BlobPath(*digest);
+    }
+    return std::nullopt;
+}
+
+void AddDistfileToCAS(std::filesystem::path const& distfile,
+                      JustMR::PathsPtr const& just_mr_paths) noexcept {
+    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+    for (auto const& dirpath : just_mr_paths->distdirs) {
+        auto candidate = dirpath / distfile;
+        if (FileSystemManager::Exists(candidate)) {
+            // try to add to CAS
+            [[maybe_unused]] auto digest = casf.StoreBlobFromFile(candidate);
+        }
+    }
 }
 
 }  // namespace JustMR::Utils

@@ -143,6 +143,15 @@ namespace Utils {
 [[nodiscard]] auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
                                    std::string const& tree_id) noexcept -> bool;
 
+/// \brief Add data to file CAS.
+/// Returns the path to the file added to CAS, or nullopt if not added.
+[[nodiscard]] auto AddToCAS(std::string const& data) noexcept
+    -> std::optional<std::filesystem::path>;
+
+/// \brief Try to add distfile to CAS.
+void AddDistfileToCAS(std::filesystem::path const& distfile,
+                      JustMR::PathsPtr const& just_mr_paths) noexcept;
+
 }  // namespace Utils
 
 }  // namespace JustMR

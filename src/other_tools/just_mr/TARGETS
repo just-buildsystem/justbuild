@@ -9,6 +9,7 @@
     , ["src/buildtool/main", "constants"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
-  , "private-deps": [["src/utils/cpp", "path"]]
+  , "private-deps":
+    [["src/utils/cpp", "path"], ["src/buildtool/execution_api/local", "local"]]
   }
 }

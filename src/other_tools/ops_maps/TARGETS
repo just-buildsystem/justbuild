@@ -46,4 +46,22 @@
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
+, "content_cas_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["content_cas_map"]
+  , "hdrs": ["content_cas_map.hpp"]
+  , "srcs": ["content_cas_map.cpp"]
+  , "deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  , "private-deps":
+    [ ["src/utils/cpp", "curl_easy_handle"]
+    , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/execution_api/local", "local"]
+    ]
+  }
 }
