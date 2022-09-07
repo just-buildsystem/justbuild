@@ -48,4 +48,19 @@
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
+, "content_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["content_git_map"]
+  , "hdrs": ["content_git_map.hpp"]
+  , "srcs": ["content_git_map.cpp"]
+  , "deps":
+    [ ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  , "private-deps":
+    [ ["src/utils/cpp", "archive_ops"]
+    , ["src/buildtool/execution_api/local", "local"]
+    ]
+  }
 }
