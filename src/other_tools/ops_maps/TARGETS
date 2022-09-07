@@ -64,4 +64,16 @@
     , ["src/buildtool/execution_api/local", "local"]
     ]
   }
+, "repo_fetch_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["repo_fetch_map"]
+  , "hdrs": ["repo_fetch_map.hpp"]
+  , "srcs": ["repo_fetch_map.cpp"]
+  , "deps": ["content_cas_map"]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  , "private-deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/execution_api/local", "local"]
+    ]
+  }
 }
