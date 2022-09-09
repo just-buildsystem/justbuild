@@ -18,6 +18,7 @@
 #include <unordered_set>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/main/constants.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -151,6 +152,21 @@ namespace Utils {
 /// \brief Try to add distfile to CAS.
 void AddDistfileToCAS(std::filesystem::path const& distfile,
                       JustMR::PathsPtr const& just_mr_paths) noexcept;
+
+/// \brief Recursive part of the ResolveRepo function.
+/// Keeps track of repository names to detect any cyclic dependencies.
+auto ResolveRepo(ExpressionPtr const& repo_desc,
+                 ExpressionPtr const& repos,
+                 gsl::not_null<std::unordered_set<std::string>*> const& seen)
+    -> std::optional<ExpressionPtr>;
+
+/// \brief Resolves any cyclic dependency issues and follows the repository
+/// dependencies until the one containing the WS root is found.
+/// Returns a repository entry as an ExpressionPtr, or nullopt if cyclic
+/// dependency found.
+auto ResolveRepo(ExpressionPtr const& repo_desc,
+                 ExpressionPtr const& repos) noexcept
+    -> std::optional<ExpressionPtr>;
 
 }  // namespace Utils
 

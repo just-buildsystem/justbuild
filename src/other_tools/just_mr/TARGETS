@@ -7,6 +7,7 @@
     [ ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/main", "constants"]
+    , ["src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":

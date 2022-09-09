@@ -1,0 +1,16 @@
+{ "repos_to_setup_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["repos_to_setup_map"]
+  , "hdrs": ["repos_to_setup_map.hpp"]
+  , "srcs": ["repos_to_setup_map.cpp"]
+  , "deps":
+    [ ["src/other_tools/root_maps", "commit_git_map"]
+    , ["src/other_tools/root_maps", "content_git_map"]
+    , ["src/other_tools/root_maps", "distdir_git_map"]
+    , ["src/other_tools/root_maps", "fpath_git_map"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["src", "other_tools", "repo_map"]
+  , "private-deps": [["src/other_tools/just_mr", "utils"]]
+  }
+}

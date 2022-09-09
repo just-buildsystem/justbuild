@@ -100,4 +100,35 @@ void AddDistfileToCAS(std::filesystem::path const& distfile,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
+auto ResolveRepo(ExpressionPtr const& repo_desc,
+                 ExpressionPtr const& repos,
+                 gsl::not_null<std::unordered_set<std::string>*> const& seen)
+    -> std::optional<ExpressionPtr> {
+    if (not repo_desc->IsString()) {
+        return repo_desc;
+    }
+    auto desc_str = repo_desc->String();
+    if (seen->contains(desc_str)) {
+        // cyclic dependency
+        return std::nullopt;
+    }
+    [[maybe_unused]] auto insert_res = seen->insert(desc_str);
+    return ResolveRepo(repos[desc_str]["repository"], repos, seen);
+}
+
+auto ResolveRepo(ExpressionPtr const& repo_desc,
+                 ExpressionPtr const& repos) noexcept
+    -> std::optional<ExpressionPtr> {
+    std::unordered_set<std::string> seen = {};
+    try {
+        return ResolveRepo(repo_desc, repos, &seen);
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Error,
+                    "Config: while resolving dependencies: {}",
+                    e.what());
+        return std::nullopt;
+    }
+}
+
 }  // namespace JustMR::Utils
