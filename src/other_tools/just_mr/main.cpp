@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <unistd.h>
+
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -1028,6 +1030,82 @@ void DefaultReachableRepositories(
     return JustMR::Utils::AddToCAS(mr_config.dump(2));
 }
 
+/// \brief Runs execvp for given command. Only returns if execvp fails.
+[[nodiscard]] auto CallJust(std::shared_ptr<Configuration> const& config,
+                            CommandLineArguments const& arguments) -> int {
+    // check if subcmd_name can be taken from additional args
+    auto additional_args_offset = 0U;
+    auto subcommand = arguments.just_cmd.subcmd_name;
+    if (not subcommand and
+        not arguments.just_cmd.additional_just_args.empty()) {
+        subcommand = arguments.just_cmd.additional_just_args[0];
+        additional_args_offset++;
+    }
+
+    bool use_config{false};
+    bool use_build_root{false};
+    std::optional<std::filesystem::path> mr_config_path{std::nullopt};
+
+    if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
+        if (kKnownJustSubcommands.at(*subcommand).config) {
+            use_config = true;
+            mr_config_path =
+                MultiRepoSetup(config, arguments, /*interactive=*/false);
+            if (not mr_config_path) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to setup config while calling \'just {}\'",
+                            *subcommand);
+                return kExitSetupError;
+            }
+        }
+        use_build_root = kKnownJustSubcommands.at(*subcommand).build_root;
+    }
+    // build just command
+    std::vector<std::string> cmd = {arguments.common.just_path->string()};
+    if (subcommand) {
+        cmd.emplace_back(*subcommand);
+    }
+    if (use_config) {
+        cmd.emplace_back("-C");
+        cmd.emplace_back(mr_config_path->string());
+    }
+    if (use_build_root) {
+        cmd.emplace_back("--local-build-root");
+        cmd.emplace_back(*arguments.common.just_mr_paths->root);
+    }
+    // add args read from just-mrrc
+    if (subcommand and arguments.just_cmd.just_args.contains(*subcommand)) {
+        for (auto const& subcmd_arg :
+             arguments.just_cmd.just_args.at(*subcommand)) {
+            cmd.emplace_back(subcmd_arg);
+        }
+    }
+    // add (remaining) args given by user as clargs
+    for (auto it = arguments.just_cmd.additional_just_args.begin() +
+                   additional_args_offset;
+         it != arguments.just_cmd.additional_just_args.end();
+         ++it) {
+        cmd.emplace_back(*it);
+    }
+
+    Logger::Log(
+        LogLevel::Info, "Setup finished, exec \'{}\'", fmt::join(cmd, " "));
+
+    // create argv
+    std::vector<char*> argv{};
+    std::transform(std::begin(cmd),
+                   std::end(cmd),
+                   std::back_inserter(argv),
+                   [](auto& str) { return str.data(); });
+    argv.push_back(nullptr);
+    // run execvp; will only return if failure
+    [[maybe_unused]] auto res =
+        execvp(argv[0], static_cast<char* const*>(argv.data()));
+    // execvp returns only if command errored out
+    Logger::Log(LogLevel::Error, "execvp failed with error code {}", errno);
+    return kExitExecError;
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
@@ -1116,9 +1194,10 @@ auto main(int argc, char* argv[]) -> int {
             arguments.common.main = arguments.setup.sub_main;
         }
 
+        // Run subcommands known to just and `do`
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
-            return kExitSuccess;
+            return CallJust(config, arguments);
         }
 
         // Run subcommand `setup` or `setup-env`
@@ -1129,11 +1208,11 @@ auto main(int argc, char* argv[]) -> int {
                 arguments,
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv));
             // dump resulting config to stdout
-            if (mr_config_path) {
-                std::cout << mr_config_path->string() << std::endl;
-                return kExitSuccess;
+            if (not mr_config_path) {
+                return kExitSetupError;
             }
-            return kExitSetupError;
+            std::cout << mr_config_path->string() << std::endl;
+            return kExitSuccess;
         }
 
         // Run subcommand `update`
