@@ -4,6 +4,15 @@
   , "test": ["target-cache-hit.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
   }
+, "artifacts-sync":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["artifacts-sync"]
+  , "test": ["artifacts-sync.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["target-cache-hit"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["target-cache-hit", "artifacts-sync"]
+  }
 }
