@@ -2,15 +2,42 @@
 
 ## Building `just` using an older version of `just`
 
-```
+```sh
 CONF=$(./bin/just-mr.py -C etc/repos.json setup just)
 just build -C $CONF
 ```
 
+This will build `just` for Linux on the x86_64 architecture with a dynamic link
+dependency on glibc.
+
+### Building `just` for other architectures
+
+First, make sure that the cross-compiler for the desired architecture is
+installed and working properly. For example, to build `just` for 64 bit ARM,
+specify `arm64` as the target architecture via the `-D` flag:
+
+```sh
+CONF=$(./bin/just-mr.py -C etc/repos.json setup just)
+just build -C $CONF -D '{"TARGET_ARCH":"arm64"}'
+```
+
+A complete list of variables honored by our build rules is provided in the
+following table:
+
+|Variable|Supported Values|Default Value for `just`|
+|-|:-:|:-:|
+| OS | linux | linux |
+| ARCH | x86, x86_64, arm, arm64 | x86_64 |
+| HOST_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
+| TARGET_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
+| COMPILER_FAMILY | gnu, clang | clang |
+| DEBUG | true, false | false |
+| BUILD_STATIC_BINARY | true, false | false |
+
 ## Bootstrapping `just`
 
 It is also possible to build `just` without having an older binary,
-using the `bin/boostrap.py` script.
+using the `bin/bootstrap.py` script.
 
 ### Bootstrapping compiling the dependencies from scratch
 
@@ -20,7 +47,7 @@ standard and a Python3 interpreter. If you also want the bootstrap
 script to download the dependencies itself, `wget` is required as well.
 
 In this case, the command is simply
-```
+```sh
 python3 ./bin/bootstrap.py
 ```
 
@@ -66,6 +93,6 @@ and `LOCALBASE` set accordingly. As package building requires a
 predictable location on where to pick up the resulting binary, you
 almost certainly want to set the scratch directory.
 
-```
+```sh
 env PACKAGE=YES LOCALBASE=/usr python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR}/just-work
 ```
