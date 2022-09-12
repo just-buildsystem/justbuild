@@ -16,22 +16,23 @@
 // be cast to bazel_re::Digest which is the wire format that contains prefixed
 // hashes in native mode.
 class ArtifactDigest {
+    friend struct std::hash<ArtifactDigest>;
+
   public:
     ArtifactDigest() noexcept = default;
 
     explicit ArtifactDigest(bazel_re::Digest const& digest) noexcept
         : size_{gsl::narrow<std::size_t>(digest.size_bytes())},
           hash_{NativeSupport::Unprefix(digest.hash())},
-          // In compatible mode, no tree information is stored in a digest,
-          // NativeSupport::IsTree will always return false in compatible mode.
+          // Tree information is only stored in a digest in native mode and
+          // false in compatible mode.
           is_tree_{NativeSupport::IsTree(digest.hash())} {}
 
     ArtifactDigest(std::string hash, std::size_t size, bool is_tree) noexcept
         : size_{size},
           hash_{std::move(hash)},
-          // In compatible mode, no tree information is stored in a digest. This
-          // information is only relevant in native mode, since the hash needs
-          // to be prefixed accordingly.
+          // Tree information is only stored in a digest in native mode and
+          // false in compatible mode.
           is_tree_{not Compatibility::IsCompatible() and is_tree} {
         gsl_ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
     }
@@ -45,8 +46,6 @@ class ArtifactDigest {
     }
 
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
-
-    [[nodiscard]] auto is_tree() const noexcept -> bool { return is_tree_; }
 
     // NOLINTNEXTLINE allow implicit casts
     [[nodiscard]] operator bazel_re::Digest() const {
@@ -96,9 +95,9 @@ struct hash<ArtifactDigest> {
     [[nodiscard]] auto operator()(ArtifactDigest const& digest) const noexcept
         -> std::size_t {
         std::size_t seed{};
-        hash_combine(&seed, digest.hash());
-        hash_combine(&seed, digest.size());
-        hash_combine(&seed, digest.is_tree());
+        hash_combine(&seed, digest.hash_);
+        hash_combine(&seed, digest.size_);
+        hash_combine(&seed, digest.is_tree_);
         return seed;
     }
 };

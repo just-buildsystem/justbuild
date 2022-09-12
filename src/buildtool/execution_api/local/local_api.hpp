@@ -152,16 +152,18 @@ class LocalApi final : public IExecutionApi {
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final {
-        return static_cast<bool>(digest.is_tree()
-                                     ? storage_->TreePath(digest)
-                                     : storage_->BlobPath(digest, false));
+        return static_cast<bool>(
+            NativeSupport::IsTree(static_cast<bazel_re::Digest>(digest).hash())
+                ? storage_->TreePath(digest)
+                : storage_->BlobPath(digest, false));
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
         const noexcept -> std::vector<ArtifactDigest> final {
         std::vector<ArtifactDigest> result;
         for (auto const& digest : digests) {
-            auto const& path = digest.is_tree()
+            auto const& path = NativeSupport::IsTree(
+                                   static_cast<bazel_re::Digest>(digest).hash())
                                    ? storage_->TreePath(digest)
                                    : storage_->BlobPath(digest, false);
             if (not path) {
