@@ -19,6 +19,7 @@
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/ops_maps/git_update_map.hpp"
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
+#include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
 namespace {
 
@@ -889,6 +890,144 @@ void DefaultReachableRepositories(
     return kExitSuccess;
 }
 
+[[nodiscard]] auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
+                                  CommandLineArguments const& arguments,
+                                  bool interactive)
+    -> std::optional<std::filesystem::path> {
+    // set anchor dir to setup_root; current dir will be reverted when anchor
+    // goes out of scope
+    auto cwd_anchor = FileSystemManager::ChangeDirectory(
+        arguments.common.just_mr_paths->setup_root);
+
+    auto repos = (*config)["repositories"];
+    auto setup_repos =
+        std::make_shared<SetupRepos>();  // repos to setup and include
+    nlohmann::json mr_config{};          // output config to populate
+
+    auto main =
+        arguments.common.main;  // get local copy of updated clarg 'main', as
+                                // it might be updated again from config
+
+    // check if config provides main repo name
+    if (not main) {
+        auto main_from_config = (*config)["main"];
+        if (main_from_config.IsNotNull()) {
+            if (main_from_config->IsString()) {
+                main = main_from_config->String();
+            }
+            else {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Unsupported value for field 'main' in configuration.");
+            }
+        }
+    }
+    // pass on main that was explicitly set via command line or config
+    if (main) {
+        mr_config["main"] = *main;
+    }
+    // get default repos to setup and to include
+    DefaultReachableRepositories(repos, setup_repos);
+    // check if main is to be taken as first repo name lexicographically
+    if (not main and not setup_repos->to_setup.empty()) {
+        main = *std::min_element(setup_repos->to_setup.begin(),
+                                 setup_repos->to_setup.end());
+    }
+    // final check on which repos are to be set up
+    if (main and not arguments.setup.sub_all) {
+        ReachableRepositories(repos, *main, setup_repos);
+    }
+
+    // setup the required async maps
+    auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
+    auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
+    auto content_cas_map = CreateContentCASMap(arguments.common.just_mr_paths,
+                                               arguments.common.jobs);
+    auto import_to_git_map =
+        CreateImportToGitMap(&critical_git_op_map, arguments.common.jobs);
+
+    auto commit_git_map = CreateCommitGitMap(&critical_git_op_map,
+                                             arguments.common.just_mr_paths,
+                                             arguments.common.jobs);
+    auto content_git_map = CreateContentGitMap(&content_cas_map,
+                                               &import_to_git_map,
+                                               &critical_git_op_map,
+                                               arguments.common.jobs);
+    auto fpath_git_map = CreateFilePathGitMap(arguments.just_cmd.subcmd_name,
+                                              &critical_git_op_map,
+                                              &import_to_git_map,
+                                              arguments.common.jobs);
+    auto distdir_git_map = CreateDistdirGitMap(
+        &import_to_git_map, &critical_git_op_map, arguments.common.jobs);
+    auto repos_to_setup_map = CreateReposToSetupMap(config,
+                                                    main,
+                                                    interactive,
+                                                    &commit_git_map,
+                                                    &content_git_map,
+                                                    &fpath_git_map,
+                                                    &content_cas_map,
+                                                    &distdir_git_map,
+                                                    arguments.common.jobs);
+
+    // Populate workspace_root and TAKE_OVER fields
+    bool failed{false};
+    {
+        TaskSystem ts{arguments.common.jobs};
+        repos_to_setup_map.ConsumeAfterKeysReady(
+            &ts,
+            setup_repos->to_setup,
+            [&mr_config, config, setup_repos, main, interactive](
+                auto const& values) {
+                nlohmann::json mr_repos{};
+                for (auto const& repo : setup_repos->to_setup) {
+                    auto i = static_cast<size_t>(
+                        &repo - &setup_repos->to_setup[0]);  // get index
+                    mr_repos[repo] = *values[i];
+                }
+                // populate ALT_DIRS
+                auto repos = (*config)["repositories"];
+                if (repos.IsNotNull()) {
+                    for (auto const& repo : setup_repos->to_include) {
+                        auto desc = repos->Get(repo, Expression::none_t{});
+                        if (desc.IsNotNull()) {
+                            if (not((main and (repo == *main)) and
+                                    interactive)) {
+                                for (auto const& key : kAltDirs) {
+                                    auto val =
+                                        desc->Get(key, Expression::none_t{});
+                                    if (val.IsNotNull() and
+                                        not((main and val->IsString() and
+                                             (val->String() == *main)) and
+                                            interactive)) {
+                                        mr_repos[repo][key] =
+                                            mr_repos[val->String()]
+                                                    ["workspace_root"];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // retain only the repos we need
+                for (auto const& repo : setup_repos->to_include) {
+                    mr_config["repositories"][repo] = mr_repos[repo];
+                }
+            },
+            [&failed, interactive](auto const& msg, bool fatal) {
+                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
+                            "While performing just-mr {}:\n{}",
+                            interactive ? "setup-env" : "setup",
+                            msg);
+                failed = failed or fatal;
+            });
+    }
+    if (failed) {
+        return std::nullopt;
+    }
+    // if successful, return the output config
+    return JustMR::Utils::AddToCAS(mr_config.dump(2));
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
@@ -982,9 +1121,19 @@ auto main(int argc, char* argv[]) -> int {
             return kExitSuccess;
         }
 
+        // Run subcommand `setup` or `setup-env`
         if (arguments.cmd == SubCommand::kSetup or
             arguments.cmd == SubCommand::kSetupEnv) {
-            return kExitSuccess;
+            auto mr_config_path = MultiRepoSetup(
+                config,
+                arguments,
+                /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv));
+            // dump resulting config to stdout
+            if (mr_config_path) {
+                std::cout << mr_config_path->string() << std::endl;
+                return kExitSuccess;
+            }
+            return kExitSetupError;
         }
 
         // Run subcommand `update`
