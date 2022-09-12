@@ -17,6 +17,7 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+#include "src/other_tools/ops_maps/git_update_map.hpp"
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 
 namespace {
@@ -726,6 +727,168 @@ void DefaultReachableRepositories(
     return kExitSuccess;
 }
 
+[[nodiscard]] auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
+                                   CommandLineArguments const& arguments)
+    -> int {
+    // Check trivial case
+    if (arguments.update.repos_to_update.empty()) {
+        std::cout << config->ToJson().dump(2) << std::endl;
+        return kExitSuccess;
+    }
+    auto repos = (*config)["repositories"];
+    if (not repos.IsNotNull()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: mandatory key \"repositories\" "
+                    "missing");
+        return kExitUpdateError;
+    }
+    // gather repos to update
+    std::vector<std::pair<std::string, std::string>> repos_to_update{};
+    repos_to_update.reserve(arguments.update.repos_to_update.size());
+    for (auto const& repo_name : arguments.update.repos_to_update) {
+        auto repo_desc_parent = repos->At(repo_name);
+        if (not repo_desc_parent) {
+            Logger::Log(LogLevel::Error,
+                        "Config: missing config entry for repository {}",
+                        repo_name);
+            return kExitUpdateError;
+        }
+        auto repo_desc = repo_desc_parent->get()->At("repository");
+        if (repo_desc) {
+            auto resolved_repo_desc =
+                JustMR::Utils::ResolveRepo(repo_desc->get(), repos);
+            if (not resolved_repo_desc) {
+                Logger::Log(LogLevel::Error,
+                            fmt::format("Config: found cyclic dependency for "
+                                        "repository {}",
+                                        repo_name));
+                return kExitUpdateError;
+            }
+            // get repo_type
+            auto repo_type = (*resolved_repo_desc)->At("type");
+            if (not repo_type) {
+                Logger::Log(LogLevel::Error,
+                            "Config: mandatory key \"type\" missing "
+                            "for repository {}",
+                            repo_name);
+                return kExitUpdateError;
+            }
+            if (not repo_type->get()->IsString()) {
+                Logger::Log(LogLevel::Error,
+                            "Config: unsupported value for key \'type\' for "
+                            "repository {}",
+                            repo_name);
+                return kExitUpdateError;
+            }
+            auto repo_type_str = repo_type->get()->String();
+            if (not kCheckoutTypeMap.contains(repo_type_str)) {
+                Logger::Log(LogLevel::Error,
+                            "Unknown repository type {} for {}",
+                            repo_type_str,
+                            repo_name);
+                return kExitUpdateError;
+            }
+            // only do work if repo is git type
+            if (kCheckoutTypeMap.at(repo_type_str) == CheckoutType::Git) {
+                auto repo_desc_repository =
+                    (*resolved_repo_desc)->At("repository");
+                if (not repo_desc_repository) {
+                    Logger::Log(LogLevel::Error,
+                                "Mandatory field \"repository\" is missing");
+                    return kExitUpdateError;
+                }
+                if (not repo_desc_repository->get()->IsString()) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Config: unsupported value for key \'repository\' for "
+                        "repository {}",
+                        repo_name);
+                    return kExitUpdateError;
+                }
+                auto repo_desc_branch = (*resolved_repo_desc)->At("branch");
+                if (not repo_desc_branch) {
+                    Logger::Log(LogLevel::Error,
+                                "Mandatory field \"branch\" is missing");
+                    return kExitUpdateError;
+                }
+                if (not repo_desc_branch->get()->IsString()) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Config: unsupported value for key \'branch\' for "
+                        "repository {}",
+                        repo_name);
+                    return kExitUpdateError;
+                }
+                repos_to_update.emplace_back(
+                    std::make_pair(repo_desc_repository->get()->String(),
+                                   repo_desc_branch->get()->String()));
+            }
+            else {
+                Logger::Log(LogLevel::Error,
+                            "Config: argument {} is not the name of a git type "
+                            "repository",
+                            repo_name);
+                return kExitUpdateError;
+            }
+        }
+        else {
+            Logger::Log(LogLevel::Error,
+                        "Config: missing repository description for {}",
+                        repo_name);
+            return kExitUpdateError;
+        }
+    }
+    // Create fake repo for the anonymous remotes
+    auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("update");
+    if (not tmp_dir) {
+        Logger::Log(LogLevel::Error, "Failed to create commit update tmp dir");
+        return kExitUpdateError;
+    }
+    // Init and open git repo
+    auto git_repo = GitRepo::InitAndOpen(tmp_dir->GetPath(), /*is_bare=*/true);
+    if (not git_repo) {
+        Logger::Log(LogLevel::Error,
+                    "Failed to initialize repository in tmp dir {} for git "
+                    "commit update",
+                    tmp_dir->GetPath().string());
+        return kExitUpdateError;
+    }
+    // Initialize resulting config to be updated
+    auto mr_config = config->ToJson();
+    // Create and call git commit update map
+    auto git_update_map =
+        CreateGitUpdateMap(git_repo->GetGitCAS(), arguments.common.jobs);
+    bool failed{false};
+    {
+        TaskSystem ts{arguments.common.jobs};
+        git_update_map.ConsumeAfterKeysReady(
+            &ts,
+            repos_to_update,
+            [&mr_config,
+             repos_to_update_names =
+                 arguments.update.repos_to_update](auto const& values) {
+                for (auto const& repo_name : repos_to_update_names) {
+                    auto i = static_cast<size_t>(
+                        &repo_name - &repos_to_update_names[0]);  // get index
+                    mr_config["repositories"][repo_name]["repository"]
+                             ["commit"] = *values[i];
+                }
+            },
+            [&failed](auto const& msg, bool fatal) {
+                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
+                            "While performing just-mr update:\n{}",
+                            msg);
+                failed = failed or fatal;
+            });
+    }
+    if (failed) {
+        return kExitUpdateError;
+    }
+    // print mr_config to stdout
+    std::cout << mr_config.dump(2) << std::endl;
+    return kExitSuccess;
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
@@ -824,8 +987,9 @@ auto main(int argc, char* argv[]) -> int {
             return kExitSuccess;
         }
 
+        // Run subcommand `update`
         if (arguments.cmd == SubCommand::kUpdate) {
-            return kExitSuccess;
+            return MultiRepoUpdate(config, arguments);
         }
 
         // Run subcommand `fetch`

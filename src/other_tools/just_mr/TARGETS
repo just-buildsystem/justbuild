@@ -9,6 +9,7 @@
     , "cli"
     , "exit_codes"
     , ["src/other_tools/ops_maps", "repo_fetch_map"]
+    , ["src/other_tools/ops_maps", "git_update_map"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
