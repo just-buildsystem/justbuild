@@ -54,7 +54,14 @@ class TargetCache {
                 replacements) noexcept -> std::optional<Entry>;
 
         // Obtain TargetResult from cache entry.
-        [[nodiscard]] auto ToResult() const -> std::optional<TargetResult>;
+        [[nodiscard]] auto ToResult() const noexcept
+            -> std::optional<TargetResult>;
+
+        // Obtain all artifacts from cache entry (all should be known
+        // artifacts).
+        [[nodiscard]] auto ToArtifacts(
+            gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos)
+            const noexcept -> bool;
 
       private:
         nlohmann::json desc_;
@@ -113,8 +120,10 @@ class TargetCache {
 
     [[nodiscard]] auto DownloadKnownArtifacts(Entry const& value) const noexcept
         -> bool;
-    [[nodiscard]] auto DownloadKnownArtifactsFromMap(
-        Expression::map_t const& expr_map) const noexcept -> bool;
+    [[nodiscard]] auto CollectKnownArtifacts(
+        gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos,
+        gsl::not_null<std::unordered_set<std::string>*> const& hashes,
+        ExpressionPtr const& expr) const noexcept -> bool;
     [[nodiscard]] static auto CAS() noexcept -> LocalCAS<ObjectType::File>& {
         return LocalCAS<ObjectType::File>::Instance();
     }

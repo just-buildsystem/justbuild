@@ -48,8 +48,71 @@ auto TargetCache::Entry::FromTarget(
     return std::nullopt;
 }
 
-auto TargetCache::Entry::ToResult() const -> std::optional<TargetResult> {
+auto TargetCache::Entry::ToResult() const noexcept
+    -> std::optional<TargetResult> {
     return TargetResult::FromJson(desc_);
+}
+
+[[nodiscard]] auto ToObjectInfo(nlohmann::json const& json)
+    -> Artifact::ObjectInfo {
+    auto const& desc = ArtifactDescription::FromJson(json);
+    // The assumption is that all artifacts mentioned in a target cache
+    // entry are KNOWN to the remote side.
+    gsl_ExpectsAudit(desc and desc->IsKnown());
+    auto const& info = desc->ToArtifact().Info();
+    gsl_ExpectsAudit(info);
+    return *info;
+}
+
+[[nodiscard]] auto ScanArtifactMap(
+    gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos,
+    nlohmann::json const& json) -> bool {
+    if (not json.is_object()) {
+        return false;
+    }
+    infos->reserve(infos->size() + json.size());
+    std::transform(json.begin(),
+                   json.end(),
+                   std::back_inserter(*infos),
+                   [](auto const& item) { return ToObjectInfo(item); });
+    return true;
+}
+
+[[nodiscard]] auto ScanProvidesMap(
+    gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos,
+    nlohmann::json const& json) -> bool {
+    if (not json.is_object()) {
+        return false;
+    }
+    auto const& nodes = json["nodes"];
+    auto const& provided_artifacts = json["provided_artifacts"];
+    infos->reserve(infos->size() + provided_artifacts.size());
+    std::transform(
+        provided_artifacts.begin(),
+        provided_artifacts.end(),
+        std::back_inserter(*infos),
+        [&nodes](auto const& item) {
+            return ToObjectInfo(nodes[item.template get<std::string>()]);
+        });
+    return true;
+}
+
+auto TargetCache::Entry::ToArtifacts(
+    gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos)
+    const noexcept -> bool {
+    try {
+        if (ScanArtifactMap(infos, desc_["artifacts"]) and
+            ScanArtifactMap(infos, desc_["runfiles"]) and
+            ScanProvidesMap(infos, desc_["provides"])) {
+            return true;
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error,
+            "Scanning target cache entry for artifacts failed with:\n{}",
+            ex.what());
+    }
+    return false;
 }
 
 auto TargetCache::Store(Key const& key, Entry const& value) const noexcept
@@ -105,43 +168,18 @@ auto TargetCache::Read(Key const& key) const noexcept
     return std::nullopt;
 }
 
-auto TargetCache::DownloadKnownArtifactsFromMap(
-    Expression::map_t const& expr_map) const noexcept -> bool {
-
-    // Get object infos of KNOWN artifacts from map.
-    std::vector<Artifact::ObjectInfo> infos;
-    infos.reserve(expr_map.size());
-    for (auto const& item : expr_map) {
-        try {
-            auto const& desc = item.second->Artifact();
-            // The assumption is that all artifacts mentioned in a target cache
-            // entry are KNOWN to the remote side. So they can be fetched to the
-            // local CAS.
-            gsl_ExpectsAudit(desc.IsKnown());
-            infos.push_back(*desc.ToArtifact().Info());
-        } catch (...) {
-            return false;
-        }
+auto TargetCache::DownloadKnownArtifacts(Entry const& value) const noexcept
+    -> bool {
+    std::vector<Artifact::ObjectInfo> artifacts_info;
+    if (not value.ToArtifacts(&artifacts_info)) {
+        return false;
     }
-
 #ifndef BOOTSTRAP_BUILD_TOOL
     // Sync KNOWN artifacts from remote to local CAS.
-    return remote_api_->RetrieveToCas(infos, local_api_);
+    return remote_api_->RetrieveToCas(artifacts_info, local_api_);
 #else
     return true;
 #endif
-}
-
-auto TargetCache::DownloadKnownArtifacts(Entry const& value) const noexcept
-    -> bool {
-    auto const& result = value.ToResult();
-    if (not DownloadKnownArtifactsFromMap(result->artifact_stage->Map())) {
-        return false;
-    }
-    if (not DownloadKnownArtifactsFromMap(result->runfiles->Map())) {
-        return false;
-    }
-    return true;
 }
 
 auto TargetCache::ComputeCacheDir() -> std::filesystem::path {
