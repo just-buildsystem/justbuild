@@ -20,6 +20,7 @@ taken from user-defined rules described by functional expressions.
   - [Third party dependencies](doc/tutorial/third-party-software.org)
   - [Tests](doc/tutorial/tests.org)
   - [Targets versus `FILE`, `GLOB`, and `TREE`](doc/tutorial/target-file-glob-tree.org)
+  - [Ensuring reproducibility](doc/tutorial/rebuild.org)
   - [Using protobuf](doc/tutorial/proto.org)
 
 ## Documentation
