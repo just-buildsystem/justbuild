@@ -41,24 +41,11 @@
   }
 , "toolchain":
   { "type": ["CC", "defaults"]
-  , "arguments_config":
-    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+  , "arguments_config": ["OS", "ARCH", "COMPILER_FAMILY"]
   , "base":
     { "type": "let*"
     , "bindings":
-      [ [ "HOST_ARCH"
-        , { "type": "var"
-          , "name": "HOST_ARCH"
-          , "default": {"type": "var", "name": "ARCH"}
-          }
-        ]
-      , [ "TARGET_ARCH"
-        , { "type": "var"
-          , "name": "TARGET_ARCH"
-          , "default": {"type": "var", "name": "ARCH"}
-          }
-        ]
-      , [ "COMPILER_FAMILY"
+      [ [ "COMPILER_FAMILY"
         , { "type": "if"
           , "cond":
             { "type": "and"
@@ -94,7 +81,7 @@
   }
 , "gcc":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["OS", "HOST_ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH"]
   , "CC":
     { "type": "let*"
     , "bindings":
@@ -103,7 +90,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
@@ -132,7 +122,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
@@ -161,7 +154,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
@@ -186,7 +182,7 @@
   }
 , "clang":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["OS", "HOST_ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
   , "CC": ["clang"]
   , "CXX": ["clang++"]
   , "AR":
@@ -197,7 +193,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
@@ -226,7 +225,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
@@ -257,7 +259,10 @@
           , "separator": "_"
           , "$1":
             [ {"type": "var", "name": "OS"}
-            , {"type": "var", "name": "TARGET_ARCH"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
             ]
           }
         ]
