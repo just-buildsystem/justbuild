@@ -20,6 +20,17 @@
       }
     }
   }
+, "default-AR":
+  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "join"
+    , "$1":
+      { "type": "let*"
+      , "bindings": [["fieldname", "defaults"], ["provider", "AR"]]
+      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+      }
+    }
+  }
 , "default-CFLAGS":
   { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
@@ -408,6 +419,7 @@
     { "compiler": "compiler"
     , "flags": "flags"
     , "objects": "objects"
+    , "default-AR": "default-AR"
     , "default-ENV": "default-ENV"
     }
   , "expression":
@@ -421,6 +433,7 @@
         ]
       , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler"}]
       , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags"}]
+      , ["AR", {"type": "CALL_EXPRESSION", "name": "default-AR"}]
       , [ "CXXFLAGS"
         , { "type": "++"
           , "$1":
