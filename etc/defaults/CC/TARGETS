@@ -146,6 +146,15 @@
         }
       }
     }
+  , "CXXFLAGS":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
+    , "case": {"arm": ["-Wno-psabi"]}
+    }
   , "AR":
     { "type": "let*"
     , "bindings":
