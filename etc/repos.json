@@ -81,6 +81,13 @@
     , "bindings":
       {"base": "rules", "protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
     }
+  , "rules-grpc":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.grpc"
+    , "bindings": {"base": "rules", "protoc": "protobuf"}
+    }
   , "rules-absl":
     { "repository": "rules"
     , "target_root": "defaults"
@@ -319,7 +326,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.grpc"
     , "bindings":
-      { "rules": "rules-protobuf"
+      { "rules": "rules-grpc"
       , "protobuf": "protobuf"
       , "libssl": "ssl"
       , "absl": "com_google_absl"

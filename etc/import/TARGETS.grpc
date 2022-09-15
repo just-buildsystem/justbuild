@@ -1518,7 +1518,7 @@
 , "grpc++_codegen_proto":
   { "type": "export"
   , "target": "grpc++_codegen_proto (implementation)"
-  , "flexible_config": ["AR", "CC", "CFLAGS", "CXX", "CXXFLAGS", "ENV"]
+  , "flexible_config": ["OS", "AR", "CC", "CFLAGS", "CXX", "CXXFLAGS", "ENV"]
   }
 , "grpc++_codegen_proto (implementation)":
   { "type": ["@", "rules", "CC", "library"]

@@ -1,0 +1,102 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["DEBUG", "OS", "COMPILER_FAMILY"]
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "++"
+      , "$1":
+        [ ["-std=c99"]
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case": {"msvc": []}
+          , "default":
+            [ "-Wall"
+            , "-Wextra"
+            , "-DOSATOMIC_USE_INLINED=1"
+            ]
+          }
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then": ["-D_DEBUG", "-DDEBUG"]
+          , "else": ["-Wframe-larger-than=16384"]
+          }
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case":
+            { "windows":
+              [ "-D_WIN32_WINNT=0x0600"
+              , "-DWIN32_LEAN_AND_MEAN"
+              , "-D_HAS_EXCEPTIONS=0"
+              , "-DUNICODE"
+              , "-D_UNICODE"
+              , "-DNOMINMAX"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  , "ADD_CXXFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "++"
+      , "$1":
+        [ ["-std=c++20"]
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case": {"msvc": []}
+          , "default":
+            [ "-Wall"
+            , "-Wextra"
+            , "-DOSATOMIC_USE_INLINED=1"
+            ]
+          }
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then": ["-D_DEBUG", "-DDEBUG"]
+          , "else": ["-Wframe-larger-than=16384"]
+          }
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case":
+            { "windows":
+              [ "-D_WIN32_WINNT=0x0600"
+              , "-DWIN32_LEAN_AND_MEAN"
+              , "-D_HAS_EXCEPTIONS=0"
+              , "-DUNICODE"
+              , "-D_UNICODE"
+              , "-DNOMINMAX"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}
