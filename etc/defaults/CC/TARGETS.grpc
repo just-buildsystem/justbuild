@@ -1,6 +1,7 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["DEBUG", "OS", "COMPILER_FAMILY"]
+  , "arguments_config":
+    ["DEBUG", "OS", "ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CFLAGS":
     { "type": "let*"
@@ -15,6 +16,13 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
+      , [ "ARCH"
+        , { "type": "var"
+          , "name": "ARCH"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+          }
+        ]
       ]
     , "body":
       { "type": "++"
@@ -26,6 +34,7 @@
           , "default":
             [ "-Wall"
             , "-Wextra"
+            , "-Wno-unused-parameter"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
@@ -63,6 +72,13 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
+      , [ "ARCH"
+        , { "type": "var"
+          , "name": "ARCH"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+          }
+        ]
       ]
     , "body":
       { "type": "++"
@@ -74,6 +90,9 @@
           , "default":
             [ "-Wall"
             , "-Wextra"
+            , "-Wno-unused-parameter"
+            , "-Wno-uninitialized"
+            , "-Wno-missing-field-initializers"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
@@ -94,6 +113,14 @@
               , "-DNOMINMAX"
               ]
             }
+          }
+        , { "type": "case"
+          , "expr":
+            { "type": "var"
+            , "name": "TARGET_ARCH"
+            , "default": {"type": "var", "name": "ARCH"}
+            }
+          , "case": {"arm": ["-Wno-atomic-alignment"]}
           }
         ]
       }

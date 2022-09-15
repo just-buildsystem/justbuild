@@ -34,7 +34,12 @@
               , "/wd4996"
               ]
             }
-          , "default": ["-Wall", "-Wno-sign-compare"]
+          , "default":
+            [ "-Wall"
+            , "-Wno-sign-compare"
+            , "-Wno-unused-function"
+            , "-Wno-deprecated-declarations"
+            ]
           }
         ]
       }

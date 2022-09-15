@@ -7,8 +7,14 @@
   }
 , "upb":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY"]
   , "name": ["upb"]
   , "pure C": ["YES"]
+  , "local cflags":
+    { "type": "case"
+    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+    , "case": {"gnu": ["-Wno-int-to-pointer-cast", "-Wno-pointer-to-int-cast"]}
+    }
   , "srcs":
     ["upb/decode.c", "upb/encode.c", "upb/msg.c", "upb/table.c", "upb/upb.c"]
   , "hdrs":

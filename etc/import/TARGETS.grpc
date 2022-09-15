@@ -153,9 +153,16 @@
   }
 , "grpc_base_c":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "name": ["grpc_base_c"]
-  , "local cflags": ["-Wno-implicit-const-int-float-conversion"]
+  , "local cflags":
+    { "type": "case"
+    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+    , "case":
+      { "clang": ["-Wno-implicit-const-int-float-conversion"]
+      , "gnu": ["-Wno-stringop-overflow", "-Wno-stringop-truncation"]
+      }
+    }
   , "srcs":
     [ "src/core/lib/avl/avl.cc"
     , "src/core/lib/backoff/backoff.cc"
@@ -665,7 +672,13 @@
   }
 , "grpc_http_filters":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY"]
   , "name": ["grpc_http_filters"]
+  , "local cflags":
+    { "type": "case"
+    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+    , "case": {"gnu": ["-Wno-array-bounds"]}
+    }
   , "srcs":
     [ "src/core/ext/filters/http/client/http_client_filter.cc"
     , "src/core/ext/filters/http/http_filters_plugin.cc"
@@ -1518,7 +1531,17 @@
 , "grpc++_codegen_proto":
   { "type": "export"
   , "target": "grpc++_codegen_proto (implementation)"
-  , "flexible_config": ["OS", "AR", "CC", "CFLAGS", "CXX", "CXXFLAGS", "ENV"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "AR"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ENV"
+    ]
   }
 , "grpc++_codegen_proto (implementation)":
   { "type": ["@", "rules", "CC", "library"]

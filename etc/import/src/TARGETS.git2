@@ -588,7 +588,7 @@
   }
 , "git2internal":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["OS"]
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
   , "name": ["git2"]
   , "pure C": ["yes"]
   , "local defines":
@@ -600,6 +600,15 @@
       , "bsd": ["HAVE_QSORT_R_BSD"]
       , "windows": ["HAVE_QSORT_S"]
       }
+    }
+  , "local cflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
+    , "case": {"arm": ["-Wno-atomic-alignment"]}
     }
   , "srcs":
     [ "alloc.c"
