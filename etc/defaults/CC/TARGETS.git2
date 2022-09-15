@@ -32,7 +32,8 @@
       , "default":
         { "type": "++"
         , "$1":
-          [ { "type": "case"
+          [ ["-std=gnu90", "-D_GNU_SOURCE", "-Wall", "-Wextra"]
+          , { "type": "case"
             , "expr": {"type": "var", "name": "OS"}
             , "case":
               { "sunos":
@@ -47,10 +48,11 @@
                 ]
               }
             }
-          , [ "-D_GNU_SOURCE"
-            , "-Wall"
-            , "-Wextra"
-            , "-Wno-documentation-deprecated-sync"
+          , { "type": "case"
+            , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+            , "case": {"clang": ["-Wdocumentation"]}
+            }
+          , [ "-Wno-documentation-deprecated-sync"
             , "-Wno-missing-field-initializers"
             , "-Wstrict-aliasing"
             , "-Wstrict-prototypes"
@@ -61,11 +63,8 @@
             , "-Wint-conversion"
             , "-Wformat"
             , "-Wformat-security"
+            , "-Wmissing-declarations"
             ]
-          , { "type": "case"
-            , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
-            , "case": {"clang": ["-Wdocumentation"]}
-            }
           ]
         }
       }
