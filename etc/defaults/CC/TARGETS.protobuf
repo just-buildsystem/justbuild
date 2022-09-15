@@ -1,16 +1,43 @@
 { "defaults":
   { "type": ["CC", "defaults"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CFLAGS": ["-std=gnu17"]
   , "ADD_CXXFLAGS":
-    [ "-std=c++20"
-    , "-DHAVE_PTHREAD"
-    , "-DHAVE_ZLIB"
-    , "-Woverloaded-virtual"
-    , "-Wno-sign-compare"
-    , "-Wno-unused-function"
-    , "-Wno-write-strings"
-    , "-Wno-deprecated-declarations"
-    ]
+    { "type": "let*"
+    , "bindings":
+      [ [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      ]
+    , "body":
+      { "type": "++"
+      , "$1":
+        [ ["-std=c++20", "-DHAVE_PTHREAD=1", "-DHAVE_ZLIB=1"]
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case":
+            { "msvc":
+              [ "/wd4018"
+              , "/wd4065"
+              , "/wd4146"
+              , "/wd4244"
+              , "/wd4251"
+              , "/wd4267"
+              , "/wd4305"
+              , "/wd4307"
+              , "/wd4309"
+              , "/wd4334"
+              , "/wd4355"
+              , "/wd4506"
+              , "/wd4800"
+              , "/wd4996"
+              ]
+            }
+          , "default": ["-Wall", "-Wno-sign-compare"]
+          }
+        ]
+      }
+    }
   }
 }
