@@ -304,6 +304,8 @@ class ResultTargetMap {
 
     template <bool kIncludeOrigins = true>
     auto ToFile(std::string const& graph_file, int indent = 2) const -> void {
+        Logger::Log(
+            LogLevel::Info, "Dumping action graph to file {}.", graph_file);
         std::ofstream os(graph_file);
         os << std::setw(indent) << ToJson<kIncludeOrigins>() << std::endl;
     }
