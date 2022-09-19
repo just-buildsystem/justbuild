@@ -506,18 +506,7 @@
       , "provides":
         { "type": "map_union"
         , "$1":
-          [ { "type": "singleton_map"
-            , "key": "compile-deps"
-            , "value": {"type": "var", "name": "compile-deps"}
-            }
-          , { "type": "singleton_map"
-            , "key": "link-deps"
-            , "value": {"type": "var", "name": "link-deps"}
-            }
-          , { "type": "singleton_map"
-            , "key": "link-args"
-            , "value": {"type": "var", "name": "link-args"}
-            }
+          [ {"type": "env", "vars": ["compile-deps", "link-deps", "link-args"]}
           , { "type": "var"
             , "name": "extra-provides"
             , "default": {"type": "empty_map"}

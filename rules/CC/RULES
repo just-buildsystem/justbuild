@@ -103,33 +103,8 @@
     , "body":
       { "type": "RESULT"
       , "provides":
-        { "type": "map_union"
-        , "$1":
-          [ { "type": "singleton_map"
-            , "key": "CC"
-            , "value": {"type": "var", "name": "CC"}
-            }
-          , { "type": "singleton_map"
-            , "key": "CXX"
-            , "value": {"type": "var", "name": "CXX"}
-            }
-          , { "type": "singleton_map"
-            , "key": "CFLAGS"
-            , "value": {"type": "var", "name": "CFLAGS"}
-            }
-          , { "type": "singleton_map"
-            , "key": "CXXFLAGS"
-            , "value": {"type": "var", "name": "CXXFLAGS"}
-            }
-          , { "type": "singleton_map"
-            , "key": "AR"
-            , "value": {"type": "var", "name": "AR"}
-            }
-          , { "type": "singleton_map"
-            , "key": "ENV"
-            , "value": {"type": "var", "name": "ENV"}
-            }
-          ]
+        { "type": "env"
+        , "vars": ["CC", "CXX", "CFLAGS", "CXXFLAGS", "AR", "ENV"]
         }
       }
     }

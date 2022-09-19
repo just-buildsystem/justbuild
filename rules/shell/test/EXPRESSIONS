@@ -25,11 +25,7 @@
                     , "dep": {"type": "var", "name": "runner"}
                     }
                   }
-                , "body":
-                  { "type": "singleton_map"
-                  , "key": "runner"
-                  , "value": {"type": "var", "name": "runner"}
-                  }
+                , "body": {"type": "env", "vars": ["runner"]}
                 }
               }
             }

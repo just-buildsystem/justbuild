@@ -76,51 +76,24 @@
           , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
           }
         ]
-      , [ "node"
-        , { "type": "ABSTRACT_NODE"
-          , "node_type":
-            { "type": "if"
-            , "cond": {"type": "FIELD", "name": "service"}
-            , "then": "service library"
-            , "else": "library"
+      , ["name", [{"type": "var", "name": "name"}]]
+      , ["stage", [{"type": "var", "name": "stage"}]]
+      , [ "proto"
+        , [ { "type": "ABSTRACT_NODE"
+            , "node_type":
+              { "type": "if"
+              , "cond": {"type": "FIELD", "name": "service"}
+              , "then": "service library"
+              , "else": "library"
+              }
+            , "target_fields": {"type": "env", "vars": ["srcs", "deps"]}
+            , "string_fields": {"type": "env", "vars": ["name", "stage"]}
             }
-          , "target_fields":
-            { "type": "map_union"
-            , "$1":
-              [ { "type": "singleton_map"
-                , "key": "srcs"
-                , "value": {"type": "var", "name": "srcs"}
-                }
-              , { "type": "singleton_map"
-                , "key": "deps"
-                , "value": {"type": "var", "name": "deps"}
-                }
-              ]
-            }
-          , "string_fields":
-            { "type": "map_union"
-            , "$1":
-              [ { "type": "singleton_map"
-                , "key": "name"
-                , "value": [{"type": "var", "name": "name"}]
-                }
-              , { "type": "singleton_map"
-                , "key": "stage"
-                , "value": [{"type": "var", "name": "stage"}]
-                }
-              ]
-            }
-          }
+          ]
         ]
       ]
     , "body":
-      { "type": "RESULT"
-      , "provides":
-        { "type": "singleton_map"
-        , "key": "proto"
-        , "value": [{"type": "var", "name": "node"}]
-        }
-      }
+      {"type": "RESULT", "provides": {"type": "env", "vars": ["proto"]}}
     }
   }
 }
