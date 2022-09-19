@@ -776,6 +776,28 @@ auto LetExpr(SubExprEvaluator&& eval,
     }
 }
 
+auto EnvExpr(SubExprEvaluator&& /*eval*/,
+             ExpressionPtr const& expr,
+             Configuration const& env) -> ExpressionPtr {
+    if (auto const& vars = expr->At("vars")) {
+        if (not vars->get()->IsList()) {
+            throw Evaluator::EvaluationError{fmt::format(
+                "vars in env has to be a list of strings, but found {}",
+                vars->get()->ToString())};
+        }
+        for (const auto& var : vars->get()->List()) {
+            if (not var->IsString()) {
+                throw Evaluator::EvaluationError{
+                    fmt::format("vars in env has to be a list of strings, "
+                                "but found entry {}",
+                                var->ToString())};
+            }
+        }
+        return env.Prune(vars->get()).Expr();
+    }
+    return Expression::kEmptyMap;
+}
+
 auto ConcatTargetNameExpr(SubExprEvaluator&& eval,
                           ExpressionPtr const& expr,
                           Configuration const& env) -> ExpressionPtr {
@@ -906,6 +928,7 @@ auto const kBuiltInFunctions =
                           {"foreach_map", ForeachMapExpr},
                           {"foldl", FoldLeftExpr},
                           {"let*", LetExpr},
+                          {"env", EnvExpr},
                           {"concat_target_name", ConcatTargetNameExpr}});
 
 }  // namespace

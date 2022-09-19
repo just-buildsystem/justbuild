@@ -137,6 +137,10 @@ class Configuration {
         return expr_->Map().Find(x).has_value();
     }
 
+    [[nodiscard]] auto Expr() const& -> ExpressionPtr const& { return expr_; }
+
+    [[nodiscard]] auto Expr() && -> ExpressionPtr { return std::move(expr_); }
+
   private:
     ExpressionPtr expr_{Expression::kEmptyMap};
 };
