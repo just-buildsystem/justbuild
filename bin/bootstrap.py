@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import platform
 
 from pathlib import Path
 
@@ -20,6 +21,16 @@ MAIN_STAGE = "bin/just"
 
 LOCAL_LINK_DIRS_MODULE = "src/buildtool/main"
 LOCAL_LINK_DIRS_TARGET = "just"
+
+# architecture related configuration (global variables)
+ARCHS = {
+  'i686':'x86',
+  'x86_64':'x86_64',
+  'arm':'arm',
+  'aarch64':'arm64'
+}
+MACH = platform.machine()
+CONF = ('{"ARCH":"%s"}' % (ARCHS[MACH],)) if MACH in ARCHS else '{}'
 
 # relevant directories (global variables)
 
@@ -225,7 +236,7 @@ def bootstrap():
     GRAPH = os.path.join(WRKDIR, "graph.json")
     TO_BUILD = os.path.join(WRKDIR, "to_build.json")
     run([
-        bootstrap_just, "analyse", "-C", CONF_FILE, "--dump-graph", GRAPH,
+        bootstrap_just, "analyse", "-C", CONF_FILE, "-D", CONF, "--dump-graph", GRAPH,
         "--dump-artifacts-to-build", TO_BUILD, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
@@ -236,7 +247,7 @@ def bootstrap():
         cwd=src_wrkdir)
     OUT = os.path.join(WRKDIR, "out")
     run([
-        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-o", OUT,
+        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-D", CONF, "-o", OUT,
         "--local-build-root", LOCAL_ROOT, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
