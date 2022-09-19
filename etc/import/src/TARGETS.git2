@@ -173,7 +173,7 @@
     { "type": "++"
     , "$1":
       [ { "type": "if"
-        , "cond": {"type": "var", "name": "THREADSAFE", "default": true}
+        , "cond": {"type": "var", "name": "THREADSAFE"}
         , "then": ["-lpthread"]
         }
       , { "type": "case"
@@ -309,46 +309,20 @@
   }
 , "git2_hash":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["USE_SHA1", "USE_HTTPS"]
+  , "arguments_config": ["USE_SHA1"]
   , "deps":
-    { "type": "let*"
-    , "bindings":
-      [ [ "USE_SHA1"
-        , { "type": "case*"
-          , "expr": {"type": "var", "name": "USE_SHA1"}
-          , "case":
-            [ [true, "CollisionDetection"]
-            , [ "HTTPS"
-              , { "type": "case*"
-                , "expr": {"type": "var", "name": "USE_HTTPS"}
-                , "case":
-                  [ ["SecureTransport", "CommonCrypto"]
-                  , ["WinHTTP", "Win32"]
-                  , [false, "CollisionDetection"]
-                  , [null, "CollisionDetection"]
-                  ]
-                , "default": {"type": "var", "name": "USE_HTTPS"}
-                }
-              ]
-            ]
-          , "default": {"type": "var", "name": "USE_SHA1"}
-          }
-        ]
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "USE_SHA1"}
+    , "case":
+      [ ["CollisionDetection", ["git2_hash_collision_detection"]]
+      , ["OpenSSL", ["git2_hash_openssl"]]
+      , ["CommonCrypto", ["git2_hash_common_crypto"]]
+      , ["mbedTLS", ["git2_hash_mbedtls"]]
+      , ["Win32", ["git2_hash_win32"]]
+      , ["Generic", ["git2_hash_generic"]]
       ]
-    , "body":
-      { "type": "case*"
-      , "expr": {"type": "var", "name": "USE_SHA1"}
-      , "case":
-        [ ["CollisionDetection", ["git2_hash_collision_detection"]]
-        , ["OpenSSL", ["git2_hash_openssl"]]
-        , ["CommonCrypto", ["git2_hash_common_crypto"]]
-        , ["mbedTLS", ["git2_hash_mbedtls"]]
-        , ["Win32", ["git2_hash_win32"]]
-        , ["Generic", ["git2_hash_generic"]]
-        ]
-      , "default":
-        {"type": "fail", "msg": "Asked for unknown SHA1 backend in `USE_SHA1`"}
-      }
+    , "default":
+      {"type": "fail", "msg": "Asked for unknown SHA1 backend in `USE_SHA1`"}
     }
   }
 , "git2_regex":
@@ -505,63 +479,25 @@
   }
 , "git2_https":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["OS", "USE_SYSTEM_LIBS", "WINHTTP", "USE_HTTPS"]
+  , "arguments_config": ["OS", "USE_SYSTEM_LIBS", "USE_HTTPS"]
   , "name": ["git2_http"]
   , "link external":
-    { "type": "let*"
-    , "bindings":
-      [ [ "WINHTTP"
-        , { "type": "var"
-          , "name": "WINHTTP"
-          , "default":
-            { "type": "=="
-            , "$1": {"type": "var", "name": "OS"}
-            , "$2": "windows"
-            }
-          }
-        ]
-      , [ "USE_HTTPS"
-        , { "type": "case*"
-          , "expr": {"type": "var", "name": "USE_HTTPS", "default": true}
-          , "case":
-            [ [ true
-              , { "type": "case*"
-                , "expr": {"type": "var", "name": "OS"}
-                , "case":
-                  [ [ "windows"
-                    , { "type": "if"
-                      , "cond": {"type": "var", "name": "WINHTTP"}
-                      , "then": "WinHTTP"
-                      , "else": true
-                      }
-                    ]
-                  ]
-                , "default": true
-                }
-              ]
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "USE_HTTPS"}
+    , "case": [["WinHTTP", ["-lwinhttp"]]]
+    , "default":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "USE_HTTPS"}
+        , "case":
+          [ ["OpenSSL", ["-lssl"]]
+          , ["mbedTLS", ["-lmbedtls"]]
+          , [ "SecureTransport"
+            , ["-framework", "CoreFoundation", "-framework", "Security"]
             ]
-          , "default": {"type": "var", "name": "USE_HTTPS"}
-          }
-        ]
-      ]
-    , "body":
-      { "type": "case*"
-      , "expr": {"type": "var", "name": "USE_HTTPS"}
-      , "case": [["WinHTTP", ["-lwinhttp"]]]
-      , "default":
-        { "type": "if"
-        , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
-        , "then":
-          { "type": "case*"
-          , "expr": {"type": "var", "name": "USE_HTTPS"}
-          , "case":
-            [ ["OpenSSL", ["-lssl"]]
-            , ["mbedTLS", ["-lmbedtls"]]
-            , [ "SecureTransport"
-              , ["-framework", "CoreFoundation", "-framework", "Security"]
-              ]
-            ]
-          }
+          ]
         }
       }
     }
@@ -571,7 +507,7 @@
     , "then": []
     , "else":
       { "type": "case*"
-      , "expr": {"type": "var", "name": "USE_HTTPS", "default": true}
+      , "expr": {"type": "var", "name": "USE_HTTPS"}
       , "case":
         [ ["OpenSSL", [["@", "ssl", "", "ssl"]]]
         , ["mbedTLS", [["@", "mbedtls", "", "ssl"]]]

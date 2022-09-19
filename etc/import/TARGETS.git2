@@ -1,6 +1,6 @@
 { "git2":
   { "type": "export"
-  , "target": ["./", "src", "git2internal"]
+  , "target": "git2configured"
   , "flexible_config":
     [ "OS"
     , "ARCH"
@@ -16,15 +16,159 @@
     , "DEBUG_POOL"
     , "ENABLE_TRACE"
     , "THREADSAFE"
+    , "REGEX_BACKEND"
+    , "WINHTTP"
     , "USE_ICONV"
     , "USE_NSEC"
-    , "REGEX_BACKEND"
     , "USE_SSH"
     , "USE_NTLMCLIENT"
     , "USE_GSSAPI"
     , "USE_SHA1"
     , "USE_HTTPS"
-    , "WINHTTP"
+    , "USE_HTTP_PARSER"
+    , "USE_BUNDLED_ZLIB"
     ]
+  }
+, "git2configured":
+  { "type": "configure"
+  , "arguments_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "USE_SYSTEM_LIBS"
+    , "DEBUG_POOL"
+    , "ENABLE_TRACE"
+    , "THREADSAFE"
+    , "REGEX_BACKEND"
+    , "WINHTTP"
+    , "USE_ICONV"
+    , "USE_NSEC"
+    , "USE_SSH"
+    , "USE_NTLMCLIENT"
+    , "USE_GSSAPI"
+    , "USE_SHA1"
+    , "USE_HTTPS"
+    , "USE_HTTP_PARSER"
+    , "USE_BUNDLED_ZLIB"
+    ]
+  , "target": ["./", "src", "git2internal"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        ]
+      , [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , ["THREADSAFE", {"type": "var", "name": "THREADSAFE", "default": true}]
+      , ["USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
+      , ["USE_GSSAPI", {"type": "var", "name": "USE_GSSAPI", "default": true}]
+      , ["USE_SHA1", {"type": "var", "name": "USE_SHA1", "default": true}]
+      , ["USE_HTTPS", {"type": "var", "name": "USE_HTTPS", "default": true}]
+      , [ "WINHTTP"
+        , { "type": "var"
+          , "name": "WINHTTP"
+          , "default":
+            { "type": "=="
+            , "$1": {"type": "var", "name": "OS"}
+            , "$2": "windows"
+            }
+          }
+        ]
+      , [ "USE_HTTPS"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_HTTPS"}
+          , "case":
+            [ [ true
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "OS"}
+                , "case":
+                  [ [ "windows"
+                    , { "type": "if"
+                      , "cond": {"type": "var", "name": "WINHTTP"}
+                      , "then": "WinHTTP"
+                      , "else": true
+                      }
+                    ]
+                  ]
+                , "default": true
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_HTTPS"}
+          }
+        ]
+      , [ "USE_GSSAPI"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_GSSAPI"}
+          , "case":
+            [ [ true
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "OS"}
+                , "case": [["darwin", "GSS.framework"]]
+                , "default": "gssapi"
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_GSSAPI"}
+          }
+        ]
+      , [ "USE_SHA1"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_SHA1"}
+          , "case":
+            [ [true, "CollisionDetection"]
+            , [ "HTTPS"
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "USE_HTTPS"}
+                , "case":
+                  [ ["SecureTransport", "CommonCrypto"]
+                  , ["WinHTTP", "Win32"]
+                  , [false, "CollisionDetection"]
+                  , [null, "CollisionDetection"]
+                  ]
+                , "default": {"type": "var", "name": "USE_HTTPS"}
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_SHA1"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        [ "OS"
+        , "TARGET_ARCH"
+        , "USE_SYSTEM_LIBS"
+        , "DEBUG_POOL"
+        , "ENABLE_TRACE"
+        , "THREADSAFE"
+        , "REGEX_BACKEND"
+        , "USE_ICONV"
+        , "USE_NSEC"
+        , "USE_SSH"
+        , "USE_NTLMCLIENT"
+        , "USE_GSSAPI"
+        , "USE_SHA1"
+        , "USE_HTTPS"
+        , "USE_HTTP_PARSER"
+        , "USE_BUNDLED_ZLIB"
+        ]
+      }
+    }
   }
 }
