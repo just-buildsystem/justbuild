@@ -138,8 +138,14 @@ auto LocalAction::StageFile(std::filesystem::path const& target_path,
     auto blob_path =
         storage_->BlobPath(info.digest, IsExecutableObject(info.type));
 
-    return blob_path and
-           FileSystemManager::CreateDirectory(target_path.parent_path()) and
+    if (not blob_path) {
+        logger_.Emit(LogLevel::Error,
+                     "artifact with id {} is missing in CAS",
+                     info.digest.hash());
+        return false;
+    }
+
+    return FileSystemManager::CreateDirectory(target_path.parent_path()) and
            FileSystemManager::CreateFileHardlink(*blob_path, target_path);
 }
 
