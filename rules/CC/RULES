@@ -134,51 +134,6 @@
       }
     }
   }
-, "configure":
-  { "doc":
-    [ "A rule to provide a static platform configuration for a target."
-    , "The artifacts and runfiles of the specified target will be propagated."
-    , "The target defined by this rule does not propagate any provides data."
-    ]
-  , "config_fields": ["os", "arch", "target_arch", "compiler_family"]
-  , "target_fields": ["target"]
-  , "config_vars": ["COMPILER_FAMILY"]
-  , "field_doc":
-    { "os": ["The operation system used for building."]
-    , "arch": ["The architecture used for building."]
-    , "target_arch":
-      [ "Non-mandatory target architecture to build for. If omitted, target"
-      , "architecture is derived from \"arch\"."
-      ]
-    , "compiler_family":
-      [ "Non-mandatory compiler family used for building. If omitted, compiler"
-      , "family is taken from variable \"COMPILER_FAMILY\"."
-      ]
-    , "target":
-      [ "The target to configure. Multiple targets are supported, but their"
-      , "artifacts and runfiles should not conflict."
-      ]
-    }
-  , "imports":
-    { "transition": "configure transition"
-    , "artifacts": ["./", "..", "field_artifacts"]
-    , "runfiles": ["./", "..", "field_runfiles"]
-    }
-  , "config_transitions":
-    {"target": [{"type": "CALL_EXPRESSION", "name": "transition"}]}
-  , "expression":
-    { "type": "let*"
-    , "bindings":
-      [ ["fieldname", "target"]
-      , ["transition", {"type": "CALL_EXPRESSION", "name": "transition"}]
-      ]
-    , "body":
-      { "type": "RESULT"
-      , "artifacts": {"type": "CALL_EXPRESSION", "name": "artifacts"}
-      , "runfiles": {"type": "CALL_EXPRESSION", "name": "runfiles"}
-      }
-    }
-  }
 , "header directory":
   { "doc":
     [ "A directory of header files."
