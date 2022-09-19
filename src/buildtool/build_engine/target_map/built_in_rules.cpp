@@ -48,6 +48,13 @@ auto const kInstallRuleFields =
                                     "tainted",
                                     "type"};
 
+auto const kConfigureRuleFields =
+    std::unordered_set<std::string>{"arguments_config",
+                                    "config",
+                                    "tainted",
+                                    "target",
+                                    "type"};
+
 void FileGenRuleWithDeps(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& dependency_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
@@ -915,6 +922,125 @@ void GenericRule(
         logger);
 }
 
+void ConfigureRule(
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    auto desc = BuildMaps::Base::FieldReader::CreatePtr(
+        desc_json, key.target, "configure target", logger);
+    desc->ExpectFields(kConfigureRuleFields);
+    auto param_vars = desc->ReadStringList("arguments_config");
+    if (not param_vars) {
+        return;
+    }
+    auto param_config = key.config.Prune(*param_vars);
+
+    auto configured_target_name = desc->ReadExpression("target");
+    if (not configured_target_name) {
+        return;
+    }
+    auto configured_target = BuildMaps::Base::ParseEntityNameFromExpression(
+        configured_target_name,
+        key.target,
+        [&logger, &configured_target_name](std::string const& parse_err) {
+            (*logger)(fmt::format("Parsing target name {} failed with:\n{}",
+                                  configured_target_name->ToString(),
+                                  parse_err),
+                      true);
+        });
+    if (not configured_target) {
+        return;
+    }
+
+    // Compute and verify taintedness
+    auto tainted = std::set<std::string>{};
+    auto got_tainted = BuildMaps::Target::Utils::getTainted(
+        &tainted,
+        param_config,
+        desc->ReadOptionalExpression("tainted", Expression::kEmptyList),
+        logger);
+    if (not got_tainted) {
+        return;
+    }
+
+    auto eval_config =
+        desc->ReadOptionalExpression("config", Expression::kEmptyMapExpr);
+    if (not eval_config->IsMap()) {
+        (*logger)(fmt::format("eval_config has to be an expr, but found {}",
+                              eval_config->ToString()),
+                  true);
+        return;
+    }
+    eval_config = eval_config.Evaluate(
+        param_config, {}, [logger](std::string const& msg) {
+            (*logger)(
+                fmt::format("Failed evaluating eval_config with:\n{}", msg),
+                true);
+        });
+    if (not eval_config->IsMap()) {
+        (*logger)(fmt::format("eval_config must evaluate to map, but found {}",
+                              eval_config->ToString()),
+                  true);
+        return;
+    }
+
+    auto target_config = key.config.Update(eval_config);
+    auto target_to_configure = BuildMaps::Target::ConfiguredTarget{
+        std::move(*configured_target), target_config};
+
+    (*subcaller)(
+        {std::move(target_to_configure)},
+        [setter,
+         logger,
+         vars = std::move(*param_vars),
+         result_map,
+         tainted = std::move(tainted),
+         target_config = std::move(target_config),
+         target = key.target](auto const& values) {
+            auto& configured_target = *values[0];
+            if (not std::includes(tainted.begin(),
+                                  tainted.end(),
+                                  configured_target->Tainted().begin(),
+                                  configured_target->Tainted().end())) {
+                (*logger)(
+                    "Not tainted with all strings the dependencies are tainted "
+                    "with",
+                    true);
+                return;
+            }
+
+            std::unordered_set<std::string> vars_set{};
+            vars_set.insert(vars.begin(), vars.end());
+            vars_set.insert(configured_target->Vars().begin(),
+                            configured_target->Vars().end());
+            auto effective_conf = target_config.Prune(vars_set);
+
+            auto deps_info = TargetGraphInformation{
+                std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+                    BuildMaps::Target::ConfiguredTarget{target,
+                                                        effective_conf}),
+                {configured_target->GraphInformation().Node()},
+                {},
+                {}};
+
+            auto analysis_result = std::make_shared<AnalysedTarget const>(
+                configured_target->Result(),
+                std::vector<ActionDescription::Ptr>{},
+                std::vector<std::string>{},
+                std::vector<Tree::Ptr>{},
+                std::move(vars_set),
+                std::set<std::string>{},
+                std::move(deps_info));
+            analysis_result = result_map->Add(
+                target, std::move(effective_conf), std::move(analysis_result));
+            (*setter)(std::move(analysis_result));
+        },
+        logger);
+}
+
 auto const kBuiltIns = std::unordered_map<
     std::string,
     std::function<void(
@@ -927,7 +1053,8 @@ auto const kBuiltIns = std::unordered_map<
     {"export", ExportRule},
     {"file_gen", FileGenRule},
     {"generic", GenericRule},
-    {"install", InstallRule}};
+    {"install", InstallRule},
+    {"configure", ConfigureRule}};
 }  // namespace
 
 namespace BuildMaps::Target {
