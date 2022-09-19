@@ -1,0 +1,874 @@
+{ "config":
+  { "doc":
+    [ "Generate a C/C++ config header"
+    , ""
+    , "Generate a C/C++ configuration header using defines specified via the"
+    , "target configuration. In the usual case, a target using this rule is"
+    , "configured by depending on it from a target that uses the built-in"
+    , "\"configure\" rule."
+    ]
+  , "field_doc":
+    { "name": ["Name of the header file to generate (incl. file name ext)."]
+    , "guard": ["The include guard. Multiple segments are joined with \"_\"."]
+    , "stage":
+      ["The location of the header. Path segments are joined with \"/\"."]
+    , "hdrs":
+      [ "Additional header files to be available in the include path. Useful"
+      , "for providing additional header files to values given in"
+      , "\"have_{cfile,cxxfile,ctype,cxxtype,csymbol,cxxsymbol}\"."
+      ]
+    , "deps":
+      [ "Additional public header files from targets to be available in the"
+      , "include path. Useful for providing additional header files to values"
+      , "given in \"have_{cfile,cxxfile,ctype,cxxtype,csymbol,cxxsymbol}\"."
+      ]
+    }
+  , "config_doc":
+    { "CXX":
+      [ "The name of the C++ compiler to be used by checks. If None, the"
+      , "respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
+    , "CC":
+      [ "The name of the C compiler to be used by checks. If None, the"
+      , "respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
+    , "CFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CFLAGS":
+      [ "The flags to add to the default ones for CC"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ENV": ["The environment for running file/symbol/type checks."]
+    , "defines":
+      [ "Set a define to a specific value unless its value is \"null\". Must"
+      , "contain a list of pairs. The first element of each pair is the define"
+      , "name and the second argument is the value to set. Strings must be"
+      , "properly escaped. Defines generated from this field are added last,"
+      , "so that they can refer to defines from other \"defines*\" and"
+      , "\"have_*\" values."
+      ]
+    , "defines1":
+      [ "Set a define to \"1\" unless its value is untrue. Must contain a list"
+      , "of pairs. The first element of each pair is the define name and the"
+      , "second argument is the value."
+      ]
+    , "defines01":
+      [ "Set a define to \"0\" or \"1\" depending on its value being true."
+      , "Must contain a list of pairs. The first element of each pair is the"
+      , "define name and the second argument is the value."
+      ]
+    , "have_cfile":
+      [ "Set a define to \"1\" if the specified C header is in the include"
+      , "path. Must contain a list of pairs. The first element of each pair is"
+      , "the define name and the second argument is the C header file name."
+      ]
+    , "have_cxxfile":
+      [ "Set a define to \"1\" if the specified C++ header is in the include"
+      , "path. Must contain a list of pairs. The first element of each pair is"
+      , "the define name and the second argument is the C++ header file name."
+      ]
+    , "have_ctype":
+      [ "Set a define to \"1\" if the specified C type is defined. Must"
+      , "contain a list of pairs. The first element of each pair is the define"
+      , "name and the second argument is name of the C type. If the specified"
+      , "C type is not a built-in type, additionally the headers"
+      , "\"sys/types.h\", \"stdint.h\", and \"stddef.h\" are checked as well."
+      ]
+    , "have_cxxtype":
+      [ "Set a define to \"1\" if the specified C++ type is defined. Must"
+      , "contain a list of pairs. The first element of each pair is the define"
+      , "name and the second argument is name of the C++ type. If the specified"
+      , "C++ type is not a built-in type, additionally the headers"
+      , "\"sys/types.h\", \"stdint.h\", and \"stddef.h\" are checked as well."
+      ]
+    , "have_csymbol":
+      [ "Set a define to \"1\" if the specified C symbol is defined by one of"
+      , "the specified headers in the include path. Must contain a list of"
+      , "pairs. The first element of each pair is the define name and the"
+      , "second argument is another pair. This pair's first value is the C"
+      , "symbol to search for and the second value is a list with the header"
+      , "file names to consider for searching."
+      ]
+    , "have_cxxsymbol":
+      [ "Set a define to \"1\" if the specified C++ symbol is defined by one of"
+      , "the specified headers in the include path. Must contain a list of"
+      , "pairs. The first element of each pair is the define name and the"
+      , "second argument is another pair. This pair's first value is the C++"
+      , "symbol to search for and the second value is a list with the header"
+      , "file names to consider for searching."
+      ]
+    }
+  , "string_fields": ["name", "stage", "guard"]
+  , "target_fields": ["hdrs", "deps"]
+  , "config_vars":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "defines"
+    , "defines1"
+    , "defines01"
+    , "have_cfile"
+    , "have_cxxfile"
+    , "have_ctype"
+    , "have_cxxtype"
+    , "have_csymbol"
+    , "have_cxxsymbol"
+    ]
+  , "imports":
+    { "first": "first_list_entry"
+    , "last": "last_list_entry"
+    , "artifacts": ["./", "../..", "field_artifacts"]
+    , "compile-deps": ["./", "..", "compile-deps"]
+    , "default-CC": ["./", "..", "default-CC"]
+    , "default-CXX": ["./", "..", "default-CXX"]
+    , "default-CFLAGS": ["./", "..", "default-CFLAGS"]
+    , "default-CXXFLAGS": ["./", "..", "default-CXXFLAGS"]
+    , "default-ENV": ["./", "..", "default-ENV"]
+    }
+  , "implicit": {"defaults": [["./", "..", "defaults"]]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["name", {"type": "join", "$1": {"type": "FIELD", "name": "name"}}]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "guard"
+        , { "type": "assert_non_empty"
+          , "msg": "Config header include guard may not be empty"
+          , "$1":
+            { "type": "join"
+            , "separator": "_"
+            , "$1": {"type": "FIELD", "name": "guard"}
+            }
+          }
+        ]
+      , [ "includes"
+        , { "type": "to_subdir"
+          , "subdir": "include"
+          , "$1":
+            { "type": "disjoint_map_union"
+            , "msg": "Includes may not overlap"
+            , "$1":
+              [ { "type": "let*"
+                , "bindings": [["fieldname", "hdrs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+                }
+              , { "type": "let*"
+                , "bindings": [["deps-fieldnames", ["deps"]]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "compile-deps"}
+                }
+              ]
+            }
+          }
+        ]
+      , [ "CC"
+        , { "type": "var"
+          , "name": "CC"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+          }
+        ]
+      , [ "CXX"
+        , { "type": "var"
+          , "name": "CXX"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+          }
+        ]
+      , [ "CFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ { "type": "var"
+              , "name": "CFLAGS"
+              , "default":
+                {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+              }
+            , {"type": "var", "name": "ADD_CFLAGS", "default": []}
+            ]
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ { "type": "var"
+              , "name": "CXXFLAGS"
+              , "default":
+                {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+              }
+            , {"type": "var", "name": "ADD_CXXFLAGS", "default": []}
+            ]
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , [ "c.flags"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1": {"type": "var", "name": "CFLAGS"}
+            }
+          }
+        ]
+      , [ "cxx.flags"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1": {"type": "var", "name": "CXXFLAGS"}
+            }
+          }
+        ]
+      , [ "file_check.sh"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ "set -eu"
+              , "[ $# -ge 4 ]"
+              , "CC=$1"
+              , "LANG=$2"
+              , "DEF=$3"
+              , "HDR=$4"
+              , "DEFINE=\"/* #undef $DEF */\""
+              , "echo \"#include \\\"$HDR\\\"\" > test.$LANG"
+              , "if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then DEFINE=\"#define $DEF 1\"; fi"
+              , "if [ -f in/${LANG}files.def ]; then cat in/${LANG}files.def > ${LANG}files.def; fi"
+              , "echo \"$DEFINE\n\" >> ${LANG}files.def"
+              ]
+            }
+          }
+        ]
+      , [ "type_check.sh"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ "set -eu"
+              , "[ $# -ge 4 ]"
+              , "CC=$1"
+              , "LANG=$2"
+              , "DEF=$3"
+              , "TYPE=$4"
+              , "INC=\"\""
+              , "DEFINE=\"/* #undef $DEF */\""
+              , "for HDR in \"\" \"sys/types.h\" \"stdint.h\" \"stddef.h\"; do"
+              , "  if [ -n \"$HDR\" ]; then INC=\"#include \\\"$HDR\\\"\"; fi"
+              , "  cat > test.$LANG << EOF"
+              , "$INC"
+              , "$TYPE* __test;"
+              , "EOF"
+              , "  if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then"
+              , "    DEFINE=\"#define $DEF 1\""
+              , "    break"
+              , "  fi"
+              , "done"
+              , "if [ -f in/${LANG}types.def ]; then cat in/${LANG}types.def > ${LANG}types.def; fi"
+              , "echo \"$DEFINE\n\" >> ${LANG}types.def"
+              ]
+            }
+          }
+        ]
+      , [ "symbol_check.sh"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ "set -eu"
+              , "[ $# -ge 4 ]"
+              , "CC=$1"
+              , "shift"
+              , "LANG=$1"
+              , "shift"
+              , "DEF=$1"
+              , "shift"
+              , "SYMBOL=$1"
+              , "shift"
+              , "DEFINE=\"/* #undef $DEF */\""
+              , "for INC in \"$@\"; do"
+              , "  cat > test.$LANG << EOF"
+              , "#include \"$INC\""
+              , "#ifndef $SYMBOL"
+              , "void* __test = &$SYMBOL;"
+              , "#endif"
+              , "EOF"
+              , "  if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then"
+              , "    DEFINE=\"#define $DEF 1\""
+              , "    break"
+              , "  fi"
+              , "done"
+              , "if [ -f in/${LANG}symbols.def ]; then cat in/${LANG}symbols.def > ${LANG}symbols.def; fi"
+              , "echo \"$DEFINE\n\" >> ${LANG}symbols.def"
+              ]
+            }
+          }
+        ]
+      , [ "guard.def"
+        , { "type": "singleton_map"
+          , "key": "guard.def"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join"
+              , "separator": "\n"
+              , "$1":
+                [ { "type": "join"
+                  , "separator": " "
+                  , "$1": ["#ifndef", {"type": "var", "name": "guard"}]
+                  }
+                , { "type": "join"
+                  , "separator": " "
+                  , "$1": ["#define", {"type": "var", "name": "guard"}]
+                  }
+                , "\n\n"
+                ]
+              }
+            }
+          }
+        ]
+      , [ "plain.def"
+        , { "type": "singleton_map"
+          , "key": "plain.def"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join"
+              , "$1":
+                { "type": "foreach"
+                , "range": {"type": "var", "name": "defines", "default": []}
+                , "var": "pair"
+                , "body":
+                  { "type": "let*"
+                  , "bindings":
+                    [ ["list", {"type": "var", "name": "pair"}]
+                    , [ "def"
+                      , { "type": "assert_non_empty"
+                        , "msg": "Define name in 'defines' may not be empty"
+                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                        }
+                      ]
+                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                    ]
+                  , "body":
+                    { "type": "join"
+                    , "separator": " "
+                    , "$1":
+                      { "type": "case*"
+                      , "expr": {"type": "var", "name": "val"}
+                      , "case":
+                        [ [ null
+                          , [ "/* #undef"
+                            , {"type": "var", "name": "def"}
+                            , "*/\n\n"
+                            ]
+                          ]
+                        ]
+                      , "default":
+                        [ "#define"
+                        , {"type": "var", "name": "def"}
+                        , { "type": "join"
+                          , "$1": [{"type": "var", "name": "val"}, "\n\n"]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "int1.def"
+        , { "type": "singleton_map"
+          , "key": "int1.def"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join"
+              , "$1":
+                { "type": "foreach"
+                , "range": {"type": "var", "name": "defines1", "default": []}
+                , "var": "pair"
+                , "body":
+                  { "type": "let*"
+                  , "bindings":
+                    [ ["list", {"type": "var", "name": "pair"}]
+                    , [ "def"
+                      , { "type": "assert_non_empty"
+                        , "msg": "Define name in 'defines1' may not be empty"
+                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                        }
+                      ]
+                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                    ]
+                  , "body":
+                    { "type": "join"
+                    , "separator": " "
+                    , "$1":
+                      { "type": "if"
+                      , "cond": {"type": "var", "name": "val"}
+                      , "then":
+                        ["#define", {"type": "var", "name": "def"}, "1\n\n"]
+                      , "else":
+                        ["/* #undef", {"type": "var", "name": "def"}, "*/\n\n"]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "int01.def"
+        , { "type": "singleton_map"
+          , "key": "int01.def"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join"
+              , "$1":
+                { "type": "foreach"
+                , "range": {"type": "var", "name": "defines01", "default": []}
+                , "var": "pair"
+                , "body":
+                  { "type": "let*"
+                  , "bindings":
+                    [ ["list", {"type": "var", "name": "pair"}]
+                    , [ "def"
+                      , { "type": "assert_non_empty"
+                        , "msg": "Define name in 'defines01' may not be empty"
+                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                        }
+                      ]
+                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                    ]
+                  , "body":
+                    { "type": "join"
+                    , "separator": " "
+                    , "$1":
+                      [ "#define"
+                      , {"type": "var", "name": "def"}
+                      , { "type": "if"
+                        , "cond": {"type": "var", "name": "val"}
+                        , "then": "1\n\n"
+                        , "else": "0\n\n"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "cfiles.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_cfile", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "cfiles.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "cfiles.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_cfile' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "cfiles.def"}
+                    }
+                  , {"type": "env", "vars": ["file_check.sh", "c.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                [ "sh"
+                , "./file_check.sh"
+                , {"type": "var", "name": "CC"}
+                , "c"
+                , {"type": "var", "name": "def"}
+                , {"type": "var", "name": "val"}
+                ]
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["cfiles.def"]
+              }
+            }
+          }
+        ]
+      , [ "cxxfiles.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_cxxfile", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "cxxfiles.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "cxxfiles.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_cxxfile' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "cxxfiles.def"}
+                    }
+                  , {"type": "env", "vars": ["file_check.sh", "cxx.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                [ "sh"
+                , "./file_check.sh"
+                , {"type": "var", "name": "CXX"}
+                , "cxx"
+                , {"type": "var", "name": "def"}
+                , {"type": "var", "name": "val"}
+                ]
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["cxxfiles.def"]
+              }
+            }
+          }
+        ]
+      , [ "ctypes.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_ctype", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "ctypes.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "ctypes.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_ctype' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "ctypes.def"}
+                    }
+                  , {"type": "env", "vars": ["type_check.sh", "c.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                [ "sh"
+                , "./type_check.sh"
+                , {"type": "var", "name": "CC"}
+                , "c"
+                , {"type": "var", "name": "def"}
+                , {"type": "var", "name": "type"}
+                ]
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["ctypes.def"]
+              }
+            }
+          }
+        ]
+      , [ "cxxtypes.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_cxxtype", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "cxxtypes.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "cxxtypes.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_cxxtype' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "cxxtypes.def"}
+                    }
+                  , {"type": "env", "vars": ["type_check.sh", "cxx.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                [ "sh"
+                , "./type_check.sh"
+                , {"type": "var", "name": "CXX"}
+                , "cxx"
+                , {"type": "var", "name": "def"}
+                , {"type": "var", "name": "type"}
+                ]
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["cxxtypes.def"]
+              }
+            }
+          }
+        ]
+      , [ "csymbols.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_csymbol", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "csymbols.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "csymbols.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_csymbol' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , ["sym", {"type": "CALL_EXPRESSION", "name": "first"}]
+              , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "csymbols.def"}
+                    }
+                  , {"type": "env", "vars": ["symbol_check.sh", "c.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                { "type": "++"
+                , "$1":
+                  [ [ "sh"
+                    , "./symbol_check.sh"
+                    , {"type": "var", "name": "CC"}
+                    , "c"
+                    , {"type": "var", "name": "def"}
+                    , {"type": "var", "name": "sym"}
+                    ]
+                  , {"type": "var", "name": "hdrs"}
+                  ]
+                }
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["csymbols.def"]
+              }
+            }
+          }
+        ]
+      , [ "cxxsymbols.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "have_cxxsymbol", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "cxxsymbols.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "cxxsymbols.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'have_cxxsymbol' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , ["sym", {"type": "CALL_EXPRESSION", "name": "first"}]
+              , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "cxxsymbols.def"}
+                    }
+                  , {"type": "env", "vars": ["symbol_check.sh", "cxx.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                { "type": "++"
+                , "$1":
+                  [ [ "sh"
+                    , "./symbol_check.sh"
+                    , {"type": "var", "name": "CXX"}
+                    , "cxx"
+                    , {"type": "var", "name": "def"}
+                    , {"type": "var", "name": "sym"}
+                    ]
+                  , {"type": "var", "name": "hdrs"}
+                  ]
+                }
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["cxxsymbols.def"]
+              }
+            }
+          }
+        ]
+      , [ "end.def"
+        , { "type": "singleton_map"
+          , "key": "end.def"
+          , "value": {"type": "BLOB", "data": "\n#endif\n"}
+          }
+        ]
+      , [ "outname"
+        , {"type": "join", "$1": ["out/", {"type": "var", "name": "name"}]}
+        ]
+      , [ "outfile"
+        , { "type": "ACTION"
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "guard.def"}
+              , {"type": "var", "name": "plain.def"}
+              , {"type": "var", "name": "int1.def"}
+              , {"type": "var", "name": "int01.def"}
+              , {"type": "var", "name": "cfiles.def"}
+              , {"type": "var", "name": "cxxfiles.def"}
+              , {"type": "var", "name": "ctypes.def"}
+              , {"type": "var", "name": "cxxtypes.def"}
+              , {"type": "var", "name": "csymbols.def"}
+              , {"type": "var", "name": "cxxsymbols.def"}
+              , {"type": "var", "name": "end.def"}
+              ]
+            }
+          , "cmd":
+            [ "sh"
+            , "-c"
+            , { "type": "join"
+              , "separator": " "
+              , "$1":
+                [ "cat"
+                , "guard.def"
+                , "int1.def"
+                , "int01.def"
+                , "cfiles.def"
+                , "cxxfiles.def"
+                , "ctypes.def"
+                , "cxxtypes.def"
+                , "csymbols.def"
+                , "cxxsymbols.def"
+                , "plain.def"
+                , "end.def"
+                , ">"
+                , { "type": "join_cmd"
+                  , "$1": [{"type": "var", "name": "outname"}]
+                  }
+                ]
+              }
+            ]
+          , "outs": [{"type": "var", "name": "outname"}]
+          }
+        ]
+      , [ "outfile"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "flat": true
+          , "$1": {"type": "var", "name": "outfile"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "outfile"}
+      , "runfiles": {"type": "var", "name": "outfile"}
+      }
+    }
+  }
+}
