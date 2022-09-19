@@ -36,28 +36,21 @@
   , "target": ["exported-just"]
   }
 , "libgit2":
-  { "type": "export"
+  { "type": "configure"
   , "target": ["@", "libgit2", "", "git2"]
-  , "fixed_config":
-    { "USE_SHA1": "OpenSSL"
-    , "USE_SSH": false
-    , "USE_HTTPS": false
-    , "USE_GSSAPI": false
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["USE_SHA1", "OpenSSL"]
+      , ["USE_SSH", false]
+      , ["USE_HTTPS", false]
+      , ["USE_GSSAPI", false]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars": ["USE_SHA1", "USE_SSH", "USE_HTTPS", "USE_GSSAPI"]
+      }
     }
-  , "flexible_config":
-    [ "OS"
-    , "ARCH"
-    , "HOST_ARCH"
-    , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
-    , "DEBUG"
-    , "CXX"
-    , "CC"
-    , "ADD_CXXFLAGS"
-    , "ADD_CFLAGS"
-    , "AR"
-    , "ENV"
-    ]
   }
 , "just-ext-hdrs":
   { "type": ["@", "rules", "CC", "configure"]
