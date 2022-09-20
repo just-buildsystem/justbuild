@@ -1,182 +1,120 @@
 { "config.h":
-  { "type": "file_gen"
-  , "arguments_config": ["OS"]
-  , "name": "config.h"
-  , "data":
+  { "type": "configure"
+  , "target": "config_header"
+  , "config":
     { "type": "let*"
     , "bindings":
-      [ [ "OS"
-        , { "type": "var"
-          , "name": "OS"
-          , "default":
-            {"type": "fail", "msg": "Required variable 'OS' is not set."}
-          }
-        ]
-      , ["SUPPORT_PCRE8", 1]
+      [ ["SUPPORT_PCRE8", true]
+      , ["BSR_ANYCRLF", false]
+      , ["NO_RECURSE", true]
       , ["PCRE_LINK_SIZE", "2"]
       , ["PCRE_PARENS_NEST_LIMIT", "250"]
       , ["PCRE_MATCH_LIMIT", "10000000"]
       , ["PCRE_MATCH_LIMIT_RECURSION", "MATCH_LIMIT"]
       , ["PCRE_NEWLINE", "LF"]
-      , ["NO_RECURSE", 1]
       , ["PCRE_POSIX_MALLOC_THRESHOLD", "10"]
-      , ["BSR_ANYCRLF", 0]
+      , ["sys_hdrs", ["stdlib.h", "string.h", "strings.h"]]
+      , [ "defines"
+        , [ ["MAX_NAME_SIZE", "32"]
+          , ["MAX_NAME_COUNT", "10000"]
+          , [ "NEWLINE"
+            , { "type": "case"
+              , "expr": {"type": "var", "name": "PCRE_NEWLINE"}
+              , "case":
+                { "LF": "10"
+                , "CR": "13"
+                , "CRLF": "3338"
+                , "ANY": "-1"
+                , "ANYCRLF": "-2"
+                }
+              , "default":
+                { "type": "fail"
+                , "msg":
+                  [ "The PCRE_NEWLINE variable must be set to one of the following values:"
+                  , ["LF", "CR", "CRLF", "ANY", "ANYCRLF"]
+                  ]
+                }
+              }
+            ]
+          , [ "POSIX_MALLOC_THRESHOLD"
+            , {"type": "var", "name": "PCRE_POSIX_MALLOC_THRESHOLD"}
+            ]
+          , ["LINK_SIZE", {"type": "var", "name": "PCRE_LINK_SIZE"}]
+          , [ "PARENS_NEST_LIMIT"
+            , {"type": "var", "name": "PCRE_PARENS_NEST_LIMIT"}
+            ]
+          , ["MATCH_LIMIT", {"type": "var", "name": "PCRE_MATCH_LIMIT"}]
+          , [ "MATCH_LIMIT_RECURSION"
+            , {"type": "var", "name": "PCRE_MATCH_LIMIT_RECURSION"}
+            ]
+          , [ "PCREGREP_BUFSIZE"
+            , {"type": "var", "name": "PCREGREP_BUFSIZE", "default": ""}
+            ]
+          ]
+        ]
+      , [ "defines1"
+        , [ ["PCRE_STATIC", {"type": "var", "name": "PCRE_STATIC"}]
+          , ["SUPPORT_PCRE8", {"type": "var", "name": "SUPPORT_PCRE8"}]
+          , ["SUPPORT_PCRE16", {"type": "var", "name": "SUPPORT_PCRE16"}]
+          , ["SUPPORT_PCRE32", {"type": "var", "name": "SUPPORT_PCRE32"}]
+          , ["SUPPORT_JIT", {"type": "var", "name": "SUPPORT_JIT"}]
+          , [ "SUPPORT_PCREGREP_JIT"
+            , {"type": "var", "name": "SUPPORT_PCREGREP_JIT"}
+            ]
+          , ["SUPPORT_UTF", {"type": "var", "name": "SUPPORT_UTF"}]
+          , ["SUPPORT_UCP", {"type": "var", "name": "SUPPORT_UCP"}]
+          , ["EBCDIC", {"type": "var", "name": "EBCDIC"}]
+          , ["EBCDIC_NL25", {"type": "var", "name": "EBCDIC_NL25"}]
+          , ["BSR_ANYCRLF", {"type": "var", "name": "BSR_ANYCRLF"}]
+          , ["NO_RECURSE", {"type": "var", "name": "NO_RECURSE"}]
+          , ["SUPPORT_LIBBZ2", {"type": "var", "name": "SUPPORT_LIBBZ2"}]
+          , ["SUPPORT_LIBZ", {"type": "var", "name": "SUPPORT_LIBZ"}]
+          , ["SUPPORT_LIBEDIT", {"type": "var", "name": "SUPPORT_LIBEDIT"}]
+          , [ "SUPPORT_LIBREADLINE"
+            , {"type": "var", "name": "SUPPORT_LIBREADLINE"}
+            ]
+          , ["SUPPORT_VALGRIND", {"type": "var", "name": "SUPPORT_VALGRIND"}]
+          , ["SUPPORT_GCOV", {"type": "var", "name": "SUPPORT_GCOV"}]
+          ]
+        ]
+      , [ "have_cfile"
+        , [ ["HAVE_DIRENT_H", "dirent.h"]
+          , ["HAVE_STDINT_H", "stdint.h"]
+          , ["HAVE_INTTYPES_H", "inttypes.h"]
+          , ["HAVE_SYS_STAT_H", "sys/stat.h"]
+          , ["HAVE_SYS_TYPES_H", "sys/types.h"]
+          , ["HAVE_UNISTD_H", "unistd.h"]
+          , ["HAVE_WINDOWS_H", "windows.h"]
+          ]
+        ]
+      , [ "have_ctype"
+        , [ ["HAVE_LONG_LONG", "long long"]
+          , ["HAVE_UNSIGNED_LONG_LONG", "unsigned long long"]
+          ]
+        ]
+      , [ "have_csymbol"
+        , [ ["HAVE_BCOPY", ["bcopy", {"type": "var", "name": "sys_hdrs"}]]
+          , ["HAVE_MEMMOVE", ["memmove", {"type": "var", "name": "sys_hdrs"}]]
+          , ["HAVE_STRERROR", ["bcopy", {"type": "var", "name": "sys_hdrs"}]]
+          , ["HAVE_STRTOLL", ["strtoll", {"type": "var", "name": "sys_hdrs"}]]
+          , ["HAVE_STRTOQ", ["strtoq", {"type": "var", "name": "sys_hdrs"}]]
+          , [ "HAVE__STRTOI64"
+            , ["_strtoi64", {"type": "var", "name": "sys_hdrs"}]
+            ]
+          ]
+        ]
       ]
     , "body":
-      { "type": "join"
-      , "separator": "\n"
-      , "$1":
-        { "type": "++"
-        , "$1":
-          [ ["#define HAVE_STDINT_H 1", "#define HAVE_INTTYPES_H 1"]
-          , { "type": "case"
-            , "expr": {"type": "var", "name": "OS"}
-            , "case": {"windows": ["#define HAVE_WINDOWS_H 1"]}
-            , "default":
-              [ "#define HAVE_UNISTD_H 1"
-              , "#define HAVE_DIRENT_H 1"
-              , "#define HAVE_SYS_STAT_H 1"
-              , "#define HAVE_SYS_TYPES_H 1"
-              ]
-            }
-          , [ "#define HAVE_MEMMOVE_H 1"
-            , "#define HAVE_STRERROR_H 1"
-            , "#define HAVE_STRTOLL_H 1"
-            ]
-          , { "type": "case"
-            , "expr": {"type": "var", "name": "OS"}
-            , "case": {"windows": ["#define HAVE__STRTOI64_H 1"]}
-            , "default": ["#define HAVE_BCOPY_H 1", "#define HAVE_STRTOQ_H 1"]
-            }
-          , ["#define HAVE_LONG_LONG 1", "#define HAVE_UNSIGNED_LONG_LONG 1"]
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "PCRE_STATIC"}
-            , "then": ["#define PCRE_STATIC 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_PCRE8"}
-            , "then": ["#define SUPPORT_PCRE8 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_PCRE16"}
-            , "then": ["#define SUPPORT_PCRE16 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_PCRE32"}
-            , "then": ["#define SUPPORT_PCRE32 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_JIT"}
-            , "then": ["#define SUPPORT_JIT 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_PCREGREP_JIT"}
-            , "then": ["#define SUPPORT_PCREGREP_JIT 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_UTF"}
-            , "then": ["#define SUPPORT_UTF 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_UCP"}
-            , "then": ["#define SUPPORT_UCP 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "EBCDIC"}
-            , "then": ["#define EBCDIC 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "EBCDIC_NL25"}
-            , "then": ["#define EBCDIC_NL25 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "BSR_ANYCRLF"}
-            , "then": ["#define BSR_ANYCRLF 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "NO_RECURSE"}
-            , "then": ["#define NO_RECURSE 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_LIBBZ2"}
-            , "then": ["#define SUPPORT_LIBBZ2 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_LIBZ"}
-            , "then": ["#define SUPPORT_LIBZ 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_LIBEDIT"}
-            , "then": ["#define SUPPORT_LIBEDIT 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_LIBREADLINE"}
-            , "then": ["#define SUPPORT_LIBREADLINE 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_VALGRIND"}
-            , "then": ["#define SUPPORT_VALGRIND 1"]
-            }
-          , { "type": "if"
-            , "cond": {"type": "var", "name": "SUPPORT_GCOV"}
-            , "then": ["#define SUPPORT_GCOV 1"]
-            }
-          , { "type": "case"
-            , "expr": {"type": "var", "name": "PCRE_NEWLINE"}
-            , "case":
-              { "LF": ["#define NEWLINE 10"]
-              , "CR": ["#define NEWLINE 13"]
-              , "CRLF": ["#define NEWLINE 3338"]
-              , "ANY": ["#define NEWLINE -1"]
-              , "ANYCRLF": ["#define NEWLINE -2"]
-              }
-            , "default":
-              { "type": "fail"
-              , "msg": "Unsupported value of PCRE_NEWLINE variable"
-              }
-            }
-          , [ { "type": "join"
-              , "$1":
-                [ "#define POSIX_MALLOC_THRESHOLD "
-                , {"type": "var", "name": "PCRE_POSIX_MALLOC_THRESHOLD"}
-                ]
-              }
-            , { "type": "join"
-              , "$1":
-                [ "#define LINK_SIZE "
-                , {"type": "var", "name": "PCRE_LINK_SIZE"}
-                ]
-              }
-            , { "type": "join"
-              , "$1":
-                [ "#define PARENS_NEST_LIMIT "
-                , {"type": "var", "name": "PCRE_PARENS_NEST_LIMIT"}
-                ]
-              }
-            , { "type": "join"
-              , "$1":
-                [ "#define MATCH_LIMIT "
-                , {"type": "var", "name": "PCRE_MATCH_LIMIT"}
-                ]
-              }
-            , { "type": "join"
-              , "$1":
-                [ "#define MATCH_LIMIT_RECURSION "
-                , {"type": "var", "name": "PCRE_MATCH_LIMIT_RECURSION"}
-                ]
-              }
-            , { "type": "join"
-              , "$1":
-                [ "#define PCREGREP_BUFSIZE "
-                , {"type": "var", "name": "PCREGREP_BUFSIZE", "default": ""}
-                ]
-              }
-            ]
-          , ["#define MAX_NAME_SIZE 32", "#define MAX_NAME_COUNT 10000"]
-          ]
-        }
+      { "type": "env"
+      , "vars":
+        ["defines", "defines1", "have_cfile", "have_ctype", "have_csymbol"]
       }
     }
+  }
+, "config_header":
+  { "type": ["@", "rules", "CC/auto", "config"]
+  , "name": ["config.h"]
+  , "guard": ["INCLUDE_DEPS_PCRE_CONFIG_H"]
   }
 , "git2_pcre":
   { "type": ["@", "rules", "CC", "library"]

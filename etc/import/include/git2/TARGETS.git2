@@ -1,150 +1,136 @@
 { "sys/features.h":
-  { "type": "file_gen"
+  { "type": "configure"
   , "arguments_config":
     [ "OS"
-    , "ARCH"
     , "TARGET_ARCH"
     , "DEBUG_POOL"
     , "ENABLE_TRACE"
     , "THREADSAFE"
+    , "REGEX_BACKEND"
     , "USE_ICONV"
     , "USE_NSEC"
-    , "REGEX_BACKEND"
     , "USE_SSH"
     , "USE_NTLMCLIENT"
     , "USE_GSSAPI"
     , "USE_SHA1"
     , "USE_HTTPS"
-    , "WINHTTP"
     ]
-  , "name": "sys/features.h"
-  , "data":
-    { "type": "join"
-    , "separator": "\n"
-    , "$1":
-      { "type": "++"
-      , "$1":
-        [ ["#ifndef INCLUDE_features_h__", "#define INCLUDE_features_h__", ""]
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "DEBUG_POOL"}
-          , "then": ["#define GIT_DEBUG_POOL 1"]
-          }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "ENABLE_TRACE"}
-          , "then": ["#define GIT_TRACE 1"]
-          }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "THREADSAFE"}
-          , "then": ["#define GIT_THREADS 1"]
-          }
+  , "target": "feature_header"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "IS_BSD"
         , { "type": "case"
-          , "expr":
-            { "type": "var"
-            , "name": "TARGET_ARCH"
-            , "default": {"type": "var", "name": "ARCH"}
-            }
-          , "case":
-            { "x86_64": ["#define GIT_ARCH_64 1"]
-            , "arm64": ["#define GIT_ARCH_64 1"]
-            }
-          , "default": ["#define GIT_ARCH_32 1"]
+          , "expr": {"type": "var", "name": "OS"}
+          , "case": {"darwin": true, "bsd": true}
           }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "USE_ICONV"}
-          , "then": ["#define GIT_USE_ICONV 1"]
+        ]
+      , [ "IS_32BIT"
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "TARGET_ARCH"}
+          , "case": {"x86": true, "arm": true}
           }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "USE_NSEC"}
-          , "then":
-            { "type": "++"
-            , "$1":
-              [ [ "#define GIT_USE_NSEC 1"
-                , "#define GIT_USE_FUTIMENS 1"
-                , "#define GIT_USE_STAT_MTIME_NSEC 1"
-                ]
-              , { "type": "case*"
-                , "expr": {"type": "var", "name": "OS"}
-                , "case":
-                  { "darwin": ["#define GIT_USE_STAT_MTIMESPEC 1"]
-                  , "bsd": ["#define GIT_USE_STAT_MTIMESPEC 1"]
-                  }
-                , "default": ["#define GIT_USE_STAT_MTIM 1"]
+        ]
+      , [ "defines1"
+        , { "type": "++"
+          , "$1":
+            [ [ ["GIT_DEBUG_POOL", {"type": "var", "name": "DEBUG_POOL"}]
+              , ["GIT_TRACE", {"type": "var", "name": "ENABLE_TRACE"}]
+              , ["GIT_THREADS", {"type": "var", "name": "THREADSAFE"}]
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "IS_32BIT"}
+                , "then": ["GIT_ARCH_32", 1]
+                , "else": ["GIT_ARCH_64", 1]
                 }
+              , ["GIT_USE_ICONV", {"type": "var", "name": "USE_ICONV"}]
+              , ["GIT_SSH", {"type": "var", "name": "USE_SSH"}]
+              , [ "GIT_SSH_MEMORY_CREDENTIALS"
+                , {"type": "var", "name": "USE_SSH"}
+                ]
+              , ["GIT_NTLM", {"type": "var", "name": "USE_NTLMCLIENT"}]
               ]
-            }
-          }
-        , { "type": "case*"
-          , "expr": {"type": "var", "name": "REGEX_BACKEND"}
-          , "case":
-            [ ["regcomp_l", ["#define GIT_REGEX_REGCOMP_L 1"]]
-            , ["regcomp", ["#define GIT_REGEX_REGCOMP 1"]]
-            , ["pcre", ["#define GIT_REGEX_PCRE 1"]]
-            , ["pcre2", ["#define GIT_REGEX_PCRE2 1"]]
-            , ["builtin", ["#define GIT_REGEX_BUILTIN 1"]]
-            , [null, ["#define GIT_REGEX_BUILTIN 1"]]
-            ]
-          , "default":
-            { "type": "fail"
-            , "msg": "The REGEX_BACKEND option provided is not supported"
-            }
-          }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "USE_SSH"}
-          , "then":
-            ["#define GIT_SSH 1", "#define GIT_SSH_MEMORY_CREDENTIALS 1"]
-          }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "USE_NTLMCLIENT"}
-          , "then": ["#define GIT_NTLM 1"]
-          }
-        , { "type": "case*"
-          , "expr": {"type": "var", "name": "USE_GSSAPI"}
-          , "case":
-            [ ["GSS.framework", ["#define GIT_GSSFRAMEWORK 1"]]
-            , ["gssapi", ["#define GIT_GSSAPI 1"]]
-            , [false, []]
-            ]
-          , "default":
-            { "type": "fail"
-            , "msg": "Backend asked for in USE_GSSAPI is not supported"
-            }
-          }
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "USE_HTTPS"}
-          , "then":
-            { "type": "++"
-            , "$1":
-              [ ["#define GIT_HTTPS 1"]
-              , { "type": "case*"
-                , "expr": {"type": "var", "name": "USE_HTTPS"}
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "USE_NSEC"}
+              , "then":
+                [ ["GIT_USE_NSEC", 1]
+                , ["GIT_USE_FUTIMENS", 1]
+                , ["GIT_USE_STAT_MTIME_NSEC", 1]
+                , { "type": "if"
+                  , "cond": {"type": "var", "name": "IS_BSD"}
+                  , "then": ["GIT_USE_STAT_MTIMESPEC", 1]
+                  , "else": ["GIT_USE_STAT_MTIM", 1]
+                  }
+                ]
+              }
+            , [ { "type": "case*"
+                , "expr": {"type": "var", "name": "REGEX_BACKEND"}
                 , "case":
-                  [ ["SecureTransport", ["#define GIT_SECURE_TRANSPORT 1"]]
-                  , ["OpenSSL", ["#define GIT_OPENSSL 1"]]
-                  , ["mbedTLS", ["#define GIT_MBEDTLS 1"]]
-                  , ["WinHTTP", ["#define GIT_WINHTTP 1"]]
+                  [ ["regcomp_l", ["GIT_REGEX_REGCOMP_L", 1]]
+                  , ["regcomp", ["GIT_REGEX_REGCOMP", 1]]
+                  , ["pcre", ["GIT_REGEX_PCRE", 1]]
+                  , ["pcre2", ["GIT_REGEX_PCRE2", 1]]
+                  , ["builtin", ["GIT_REGEX_BUILTIN", 1]]
+                  , [null, ["GIT_REGEX_BUILTIN", 1]]
                   ]
                 , "default":
                   { "type": "fail"
-                  , "msg": "Backend asked for in USE_HTTPS is not supported"
+                  , "msg": "The REGEX_BACKEND option provided is not supported"
                   }
                 }
               ]
-            }
-          }
-        , { "type": "case*"
-          , "expr": {"type": "var", "name": "USE_SHA1"}
-          , "case":
-            [ ["CollisionDetection", ["#define GIT_SHA1_COLLISIONDETECT 1"]]
-            , ["Win32", ["#define GIT_SHA1_WIN32 1"]]
-            , ["CommonCrypto", ["#define GIT_SHA1_COMMON_CRYPTO 1"]]
-            , ["OpenSSL", ["#define GIT_SHA1_OPENSSL 1"]]
-            , ["mbedTLS", ["#define GIT_SHA1_MBEDTLS 1"]]
+            , { "type": "case*"
+              , "expr": {"type": "var", "name": "USE_GSSAPI"}
+              , "case":
+                [ ["GSS.framework", [["GIT_GSSFRAMEWORK", 1]]]
+                , ["gssapi", [["GIT_GSSAPI", 1]]]
+                , [false, []]
+                ]
+              , "default":
+                { "type": "fail"
+                , "msg": "Backend asked for in USE_GSSAPI is not supported"
+                }
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "USE_HTTPS"}
+              , "then":
+                [ ["GIT_HTTPS", 1]
+                , { "type": "case*"
+                  , "expr": {"type": "var", "name": "USE_HTTPS"}
+                  , "case":
+                    [ ["SecureTransport", ["GIT_SECURE_TRANSPORT", 1]]
+                    , ["OpenSSL", ["GIT_OPENSSL", 1]]
+                    , ["mbedTLS", ["GIT_MBEDTLS", 1]]
+                    , ["WinHTTP", ["GIT_WINHTTP", 1]]
+                    ]
+                  , "default":
+                    { "type": "fail"
+                    , "msg": "Backend asked for in USE_HTTPS is not supported"
+                    }
+                  }
+                ]
+              }
+            , { "type": "case*"
+              , "expr": {"type": "var", "name": "USE_SHA1"}
+              , "case":
+                [ ["CollisionDetection", [["GIT_SHA1_COLLISIONDETECT", 1]]]
+                , ["Win32", [["GIT_SHA1_WIN32", 1]]]
+                , ["CommonCrypto", [["GIT_SHA1_COMMON_CRYPTO", 1]]]
+                , ["OpenSSL", [["GIT_SHA1_OPENSSL", 1]]]
+                , ["mbedTLS", [["GIT_SHA1_MBEDTLS", 1]]]
+                ]
+              }
             ]
           }
-        , ["", "#endif", ""]
         ]
-      }
+      ]
+    , "body": {"type": "env", "vars": ["defines1"]}
     }
+  }
+, "feature_header":
+  { "type": ["@", "rules", "CC/auto", "config"]
+  , "name": ["features.h"]
+  , "guard": ["INCLUDE_features_h__"]
+  , "stage": ["sys"]
   }
 , "sys/repository.h":
   { "type": ["@", "rules", "patch", "file"]
