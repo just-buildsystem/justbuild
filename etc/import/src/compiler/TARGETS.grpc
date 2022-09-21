@@ -53,6 +53,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
     ]
   }
 , "grpc_cpp_plugin (implementation)":

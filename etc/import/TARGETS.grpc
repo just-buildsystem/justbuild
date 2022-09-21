@@ -1535,6 +1535,7 @@
     [ "OS"
     , "ARCH"
     , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
     , "AR"
     , "CC"
     , "CFLAGS"
