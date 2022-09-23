@@ -778,13 +778,13 @@ void withDependencies(
         return;
     }
     auto analysis_result =
-        std::make_shared<AnalysedTarget>(std::move(*result).Result(),
-                                         std::move(actions),
-                                         std::move(blobs),
-                                         std::move(trees),
-                                         std::move(effective_vars),
-                                         std::move(tainted),
-                                         deps_info);
+        std::make_shared<AnalysedTarget const>(std::move(*result).Result(),
+                                               std::move(actions),
+                                               std::move(blobs),
+                                               std::move(trees),
+                                               std::move(effective_vars),
+                                               std::move(tainted),
+                                               deps_info);
     analysis_result =
         result_map->Add(key.target, effective_conf, std::move(analysis_result));
     (*setter)(std::move(analysis_result));
@@ -1279,7 +1279,7 @@ void withTargetNode(
     if (target_node.IsValue()) {
         // fixed value node, create analysed target from result
         auto const& val = target_node.GetValue();
-        (*setter)(std::make_shared<AnalysedTarget>(
+        (*setter)(std::make_shared<AnalysedTarget const>(
             AnalysedTarget{val->Result(),
                            {},
                            {},
@@ -1375,7 +1375,7 @@ void TreeTarget(
                 auto tree = ExpressionPtr{
                     Expression::map_t{target.name, ExpressionPtr{*known_tree}}};
 
-                auto analysis_result = std::make_shared<AnalysedTarget>(
+                auto analysis_result = std::make_shared<AnalysedTarget const>(
                     TargetResult{tree, {}, tree},
                     std::vector<ActionDescription::Ptr>{},
                     std::vector<std::string>{},
@@ -1444,14 +1444,15 @@ void TreeTarget(
                     auto tree_id = tree->Id();
                     auto tree_map = ExpressionPtr{Expression::map_t{
                         name, ExpressionPtr{ArtifactDescription{tree_id}}}};
-                    auto analysis_result = std::make_shared<AnalysedTarget>(
-                        TargetResult{tree_map, {}, tree_map},
-                        std::vector<ActionDescription::Ptr>{},
-                        std::vector<std::string>{},
-                        std::vector<Tree::Ptr>{tree},
-                        std::unordered_set<std::string>{},
-                        std::set<std::string>{},
-                        TargetGraphInformation::kSource);
+                    auto analysis_result =
+                        std::make_shared<AnalysedTarget const>(
+                            TargetResult{tree_map, {}, tree_map},
+                            std::vector<ActionDescription::Ptr>{},
+                            std::vector<std::string>{},
+                            std::vector<Tree::Ptr>{tree},
+                            std::unordered_set<std::string>{},
+                            std::set<std::string>{},
+                            TargetGraphInformation::kSource);
                     analysis_result = result_map->Add(
                         key.target, {}, std::move(analysis_result));
                     (*setter)(std::move(analysis_result));
@@ -1475,7 +1476,7 @@ void GlobResult(const std::vector<AnalysedTargetPtr const*>& values,
         }
     }
     auto stage = ExpressionPtr{Expression::map_t{result}};
-    auto target = std::make_shared<AnalysedTarget>(
+    auto target = std::make_shared<AnalysedTarget const>(
         TargetResult{stage, Expression::kEmptyMap, stage},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},

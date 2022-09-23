@@ -166,7 +166,7 @@ void FileGenRuleWithDeps(
 
     auto vars_set = std::unordered_set<std::string>{};
     vars_set.insert(param_vars->begin(), param_vars->end());
-    auto analysis_result = std::make_shared<AnalysedTarget>(
+    auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{stage, ExpressionPtr{Expression::map_t{}}, stage},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{data_val->String()},
@@ -379,14 +379,14 @@ void InstallRuleWithDeps(
     }
 
     auto const& empty_map = Expression::kEmptyMap;
-    auto result =
-        std::make_shared<AnalysedTarget>(TargetResult{stage, empty_map, stage},
-                                         std::vector<ActionDescription::Ptr>{},
-                                         std::vector<std::string>{},
-                                         std::vector<Tree::Ptr>{},
-                                         std::move(effective_vars),
-                                         std::move(tainted),
-                                         std::move(deps_info));
+    auto result = std::make_shared<AnalysedTarget const>(
+        TargetResult{stage, empty_map, stage},
+        std::vector<ActionDescription::Ptr>{},
+        std::vector<std::string>{},
+        std::vector<Tree::Ptr>{},
+        std::move(effective_vars),
+        std::move(tainted),
+        std::move(deps_info));
 
     result = result_map->Add(key.target, effective_conf, std::move(result));
     (*setter)(std::move(result));
@@ -833,7 +833,7 @@ void GenericRuleWithDeps(
     }
 
     auto const& empty_map = Expression::kEmptyMap;
-    auto result = std::make_shared<AnalysedTarget>(
+    auto result = std::make_shared<AnalysedTarget const>(
         TargetResult{
             ExpressionPtr{Expression::map_t{artifacts}}, empty_map, empty_map},
         std::vector<ActionDescription::Ptr>{action},

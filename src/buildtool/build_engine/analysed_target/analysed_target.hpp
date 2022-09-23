@@ -114,6 +114,6 @@ class AnalysedTarget {
     TargetGraphInformation graph_information_;
 };
 
-using AnalysedTargetPtr = std::shared_ptr<AnalysedTarget>;
+using AnalysedTargetPtr = std::shared_ptr<AnalysedTarget const>;
 
 #endif  // INCLUDED_SRC_BUILDTOOL_BUILDENGINE_ANALYSED_TARGET_ANALYSED_TARGET_HPP

@@ -23,13 +23,14 @@ namespace {
     TargetResult const& result,
     std::vector<ActionDescription::Ptr> const& descs,
     std::vector<std::string> const& blobs) -> AnalysedTargetPtr {
-    return std::make_shared<AnalysedTarget>(result,
-                                            descs,
-                                            blobs,
-                                            std::vector<Tree::Ptr>(),
-                                            std::unordered_set<std::string>{},
-                                            std::set<std::string>{},
-                                            TargetGraphInformation::kSource);
+    return std::make_shared<AnalysedTarget const>(
+        result,
+        descs,
+        blobs,
+        std::vector<Tree::Ptr>(),
+        std::unordered_set<std::string>{},
+        std::set<std::string>{},
+        TargetGraphInformation::kSource);
 }
 
 }  // namespace

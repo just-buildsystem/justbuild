@@ -47,7 +47,7 @@ void FinalizeExport(
 
     std::unordered_set<std::string> vars_set{};
     vars_set.insert(vars.begin(), vars.end());
-    auto analysis_result = std::make_shared<AnalysedTarget>(
+    auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{(*value)->Artifacts(), provides, (*value)->RunFiles()},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
@@ -126,7 +126,7 @@ void ExportRule(
                     {},
                     {}};
 
-                auto analysis_result = std::make_shared<AnalysedTarget>(
+                auto analysis_result = std::make_shared<AnalysedTarget const>(
                     *result,
                     std::vector<ActionDescription::Ptr>{},
                     std::vector<std::string>{},

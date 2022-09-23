@@ -15,7 +15,7 @@ auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
     -> AnalysedTargetPtr {
     auto stage = ExpressionPtr{
         Expression::map_t{key.GetNamedTarget().name, std::move(artifact)}};
-    return std::make_shared<AnalysedTarget>(
+    return std::make_shared<AnalysedTarget const>(
         TargetResult{stage, Expression::kEmptyMap, stage},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},

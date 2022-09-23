@@ -75,9 +75,9 @@ void DetectAndReportPending(std::string const& name,
     return std::nullopt;
 }
 
-[[nodiscard]] auto SwitchToActionInput(
-    const std::shared_ptr<AnalysedTarget>& target,
-    const ActionDescription::Ptr& action) -> std::shared_ptr<AnalysedTarget> {
+[[nodiscard]] auto SwitchToActionInput(const AnalysedTargetPtr& target,
+                                       const ActionDescription::Ptr& action)
+    -> AnalysedTargetPtr {
     auto inputs = Expression::map_t::underlying_map_t{};
     for (auto const& [k, v] : action->Inputs()) {
         inputs[k] = ExpressionPtr{Expression{v}};
@@ -93,7 +93,7 @@ void DetectAndReportPending(std::string const& name,
     }
 
     auto provides_exp = Expression::FromJson(provides);
-    return std::make_shared<AnalysedTarget>(
+    return std::make_shared<AnalysedTarget const>(
         TargetResult{inputs_exp, provides_exp, Expression::kEmptyMap},
         std::vector<ActionDescription::Ptr>{action},
         target->Blobs(),
@@ -124,7 +124,7 @@ void DetectAndReportPending(std::string const& name,
                                               result_map,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
-    std::shared_ptr<AnalysedTarget> target{};
+    AnalysedTargetPtr target{};
 
     bool failed{false};
     {
