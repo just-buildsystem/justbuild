@@ -122,3 +122,16 @@ Artifacts and runfiles of a ~"file_gen"~ target are a singleton map
 with key the result of evaluating ~"name"~ and value a (non-executable)
 file with content the result of evaluating ~"data"~. The provides
 map is empty.
+
+** ~"configure"~
+
+The ~"configure"~ rule allows to configure a target with a given configuration.
+Similar to the ~"export"~ rule, the field ~"target"~ must name a single target
+(not a list). The ~"config"~ field is evaluated and must result in a map, which
+is used as configuration for the given target.
+
+This rule uses the given configuration to overlay the current environment for
+evaluating the given target, and thereby performs a configuration transition. It
+forwards all results (artifacts/runfiles/provides map) of the configured target
+to the upper context. The result of a target that uses this rule is the result
+of the target given in the ~"target"~ field (the configured target).
