@@ -83,6 +83,16 @@ Finally, the ~"body"~ is evaluated in the final environemnt (after
 evaluating all binding entries) and the result of evaluating the
 ~"body"~ is the value for the whole ~"let*"~ expression.
 
+***** Environment Map: ~"env"~
+
+Creates a map from selected environment variables.
+
+The key ~"vars"~ (default ~[]~) has to be a list of literal strings referring to
+the variable names that should be included in the produced map. This field is
+not evaluated. This expression is only for convenience and does not give new
+expression power. It is equivalent but lot shorter to multiple ~singleton_map~
+expressions combined with ~map_union~.
+
 ***** Conditionals
 
 ****** Binary conditional: ~"if"~
