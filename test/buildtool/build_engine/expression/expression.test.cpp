@@ -1308,6 +1308,29 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(result == Expression::FromJson(R"("foofoofoofoo")"_json));
     }
 
+    SECTION("env expression") {
+        auto env = Configuration{Expression::FromJson(
+            R"({"foo": "FOO_STRING", "bar": "BAR_STRING"})"_json)};
+
+        auto expr = Expression::FromJson(R"(
+            { "type": "env"
+            , "vars": ["bar", "baz"]
+            })"_json);
+        REQUIRE(expr);
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsMap());
+        CHECK(result == Expression::FromJson(
+                            R"({"bar": "BAR_STRING", "baz": null})"_json));
+
+        auto empty = Expression::FromJson(R"({"type": "env"})"_json);
+        REQUIRE(empty);
+        auto none = empty.Evaluate(env, fcts);
+        REQUIRE(none);
+        REQUIRE(none->IsMap());
+        CHECK(none == Expression::kEmptyMap);
+    }
+
     SECTION("concat_target_name expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "concat_target_name"
