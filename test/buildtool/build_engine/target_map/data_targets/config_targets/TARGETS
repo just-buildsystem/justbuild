@@ -6,4 +6,14 @@
   , "name": ["foo.txt."]
   , "content": [{"type": "var", "name": "foo"}]
   }
+, "bar in foo":
+  { "type": "configure"
+  , "arguments_config": ["bar"]
+  , "target": "use foo"
+  , "config":
+    { "type": "let*"
+    , "bindings": [["foo", {"type": "var", "name": "bar", "default": "bar"}]]
+    , "body": {"type": "env", "vars": ["foo"]}
+    }
+  }
 }

@@ -548,6 +548,40 @@ TEST_CASE("built-in rules") {
         CHECK(result->Blobs().size() == 1);
         CHECK(result->Blobs()[0] == "Hello World!");
     }
+
+    SECTION("configure") {
+        auto target =
+            BuildMaps::Base::EntityName{"", "config_targets", "bar in foo"};
+        auto baz_config =
+            empty_config.Update("bar", ExpressionPtr{std::string{"baz"}});
+        error = false;
+        error_msg = "NONE";
+        AnalysedTargetPtr bar_result{};
+        AnalysedTargetPtr baz_result{};
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{target, empty_config},
+                 BuildMaps::Target::ConfiguredTarget{target, baz_config}},
+                [&bar_result, &baz_result](auto values) {
+                    bar_result = *values[0];
+                    baz_result = *values[1];
+                },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(!error);
+        CHECK(error_msg == "NONE");
+        CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
+        CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
+              HashFunction::ComputeBlobHash("bar").HexString());
+        CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
+        CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
+              HashFunction::ComputeBlobHash("baz").HexString());
+    }
 }
 
 TEST_CASE("target reference") {
