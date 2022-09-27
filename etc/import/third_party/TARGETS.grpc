@@ -5,107 +5,22 @@
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
   , "files":
     { "ares_config.h":
-      { "type": "let*"
-      , "bindings":
-        [ [ "OS"
-          , { "type": "var"
-            , "name": "OS"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'OS' is not set."}
-            }
-          ]
-        , [ "ARCH"
-          , { "type": "var"
-            , "name": "ARCH"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-            }
-          ]
-        , [ "PLATFORM"
-          , { "type": "join"
-            , "separator": "_"
-            , "$1":
-              [ {"type": "var", "name": "OS"}
-              , { "type": "var"
-                , "name": "TARGET_ARCH"
-                , "default": {"type": "var", "name": "ARCH"}
-                }
-              ]
-            }
-          ]
-        ]
-      , "body":
-        { "type": "cond"
-        , "cond":
-          [ [ { "type": "or"
-              , "$1":
-                [ { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "ios_x86_64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "ios_armv7"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "ios_armv7s"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "ios_arm64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "tvos_x86_64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "tvos_arm64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "watchos_i386"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "watchos_x86_64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "watchos_armv7k"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "watchos_arm64_32"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "PLATFORM"}
-                  , "$2": "darwin_x86_64"
-                  }
-                , { "type": "=="
-                  , "$1": {"type": "var", "name": "OS"}
-                  , "$2": "darwin"
-                  }
-                ]
-              }
-            , "cares/config_darwin/ares_config.h"
-            ]
-          , [ { "type": "=="
-              , "$1": {"type": "var", "name": "OS"}
-              , "$2": "windows"
-              }
-            , "cares/config_windows/ares_config.h"
-            ]
-          , [ { "type": "=="
-              , "$1": {"type": "var", "name": "OS"}
-              , "$2": "android"
-              }
-            , "cares/config_android/ares_config.h"
-            ]
-          ]
-        , "default": "cares/config_linux/ares_config.h"
+      { "type": "case"
+      , "expr":
+        { "type": "var"
+        , "name": "OS"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'OS' is not set."}
         }
+      , "case":
+        { "ios": "cares/config_darwin/ares_config.h"
+        , "tvos": "cares/config_darwin/ares_config.h"
+        , "watchos": "cares/config_darwin/ares_config.h"
+        , "darwin": "cares/config_darwin/ares_config.h"
+        , "windows": "cares/config_windows/ares_config.h"
+        , "android": "cares/config_android/ares_config.h"
+        }
+      , "default": "cares/config_linux/ares_config.h"
       }
     }
   }
