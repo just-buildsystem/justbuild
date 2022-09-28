@@ -66,4 +66,17 @@
   , "stage": ["src", "utils", "cpp"]
   , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
   }
+, "curl_easy_handle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["curl_easy_handle"]
+  , "hdrs": ["curl_easy_handle.hpp"]
+  , "srcs": ["curl_easy_handle.cpp"]
+  , "deps": ["curl_context", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "utils", "cpp"]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["", "libcurl"]
+    ]
+  }
 }
