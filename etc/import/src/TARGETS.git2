@@ -462,7 +462,7 @@
             }
           ]
         , ["gssapi", ["-lgssapi"]]
-        , ["GSS.framework", ["-framwork", "GSS"]]
+        , ["GSS.framework", ["-framework", "GSS"]]
         ]
       }
     }
