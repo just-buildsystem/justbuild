@@ -58,4 +58,12 @@
   , "stage": ["src", "utils", "cpp"]
   , "private-deps": [["src/buildtool/file_system", "file_system_manager"]]
   }
+, "curl_context":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["curl_context"]
+  , "hdrs": ["curl_context.hpp"]
+  , "srcs": ["curl_context.cpp"]
+  , "stage": ["src", "utils", "cpp"]
+  , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
+  }
 }
