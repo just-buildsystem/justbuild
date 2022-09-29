@@ -54,6 +54,11 @@
     ]
   , "stage": ["test", "utils"]
   }
+, "test_utils_install":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "files": {"utils/run_test_server.py": ["test/utils", "run_test_server.py"]}
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
