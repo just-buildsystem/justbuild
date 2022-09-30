@@ -1,0 +1,6 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS": ["-Wall", "-D_FILE_OFFSET_BITS=64"]
+  }
+}

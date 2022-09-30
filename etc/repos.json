@@ -17,6 +17,7 @@
       , "catch2": "catch2"
       , "protoc": "protobuf"
       , "libcurl": "com_github_curl_curl"
+      , "bzip2": "bzip2"
       }
     , "bootstrap": {"link": ["-lpthread"]}
     , "bootstrap_local": {"link": ["-lpthread"]}
@@ -42,6 +43,7 @@
         , "com_github_libgit2_libgit2"
         , "catch2"
         , "com_github_curl_curl"
+        , "bzip2"
         ]
       }
     , "target_root": "import targets"
@@ -117,6 +119,13 @@
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.curl"
+    , "bindings": {"base": "rules"}
+    }
+  , "rules-bzip2":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.bzip2"
     , "bindings": {"base": "rules"}
     }
   , "import targets":
@@ -297,6 +306,19 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.zlib"
     , "bindings": {"rules": "rules"}
+    }
+  , "bzip2":
+    { "repository":
+      { "type": "archive"
+      , "content": "f9d91f2012aedeedcfd3bd918124ca11f0160373"
+      , "fetch": "https://github.com/libarchive/bzip2/archive/refs/tags/bzip2-1.0.8.tar.gz"
+      , "sha256": "db106b740252669664fd8f3a1c69fe7f689d5cd4b132f82ba82b9afba27627df"
+      , "sha512": "596d1b304f1f2d64b020d04845db10a2330c7f614a9fd0b5344afff65877d2141b3fcaa43d9e2dbc2f6a7929a1dab07df54d3d4bd69678b53906472958c7b80c"
+      , "subdir": "bzip2-bzip2-1.0.8"
+      }
+    , "target_root": "import targets"
+    , "target_file_name": "TARGETS.bzip2"
+    , "bindings": {"rules": "rules-bzip2"}
     }
   , "re2":
     { "repository":

@@ -1,0 +1,110 @@
+{ "libbz2":
+  { "type": "export"
+  , "target": "libbz2internal"
+  , "doc": ["The BZip2 linkable library"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "bzip2":
+  { "type": "export"
+  , "target": "bzip2internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "bunzip2": {"type": "install", "files": {"bunzip2": "bzip2"}}
+, "bzcat": {"type": "install", "files": {"bzcat": "bzip2"}}
+, "bzip2recover":
+  { "type": "export"
+  , "target": "bzip2recoverinternal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["test"]
+  , "test": ["test_script"]
+  , "deps": ["bzip2", ["GLOB", null, "sample*"]]
+  }
+, "test_script":
+  { "type": "file_gen"
+  , "name": "test.sh"
+  , "data":
+    { "type": "join"
+    , "separator": "\n"
+    , "$1":
+      [ "set -e"
+      , "./bzip2 -1  < sample1.ref > sample1.rb2"
+      , "./bzip2 -2  < sample2.ref > sample2.rb2"
+      , "./bzip2 -3  < sample3.ref > sample3.rb2"
+      , "./bzip2 -d  < sample1.bz2 > sample1.tst"
+      , "./bzip2 -d  < sample2.bz2 > sample2.tst"
+      , "./bzip2 -ds < sample3.bz2 > sample3.tst"
+      , "cmp sample1.bz2 sample1.rb2"
+      , "cmp sample2.bz2 sample2.rb2"
+      , "cmp sample3.bz2 sample3.rb2"
+      , "cmp sample1.tst sample1.ref"
+      , "cmp sample2.tst sample2.ref"
+      , "cmp sample3.tst sample3.ref"
+      ]
+    }
+  }
+, "libbz2internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["libbz2"]
+  , "pure C": ["YES"]
+  , "srcs":
+    [ "blocksort.c"
+    , "huffman.c"
+    , "crctable.c"
+    , "randtable.c"
+    , "compress.c"
+    , "decompress.c"
+    , "bzlib.c"
+    ]
+  , "hdrs": ["bzlib.h"]
+  , "private-hdrs": ["bzlib_private.h"]
+  }
+, "bzip2internal":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["bzip2"]
+  , "pure C": ["YES"]
+  , "srcs": ["bzip2.c"]
+  , "deps": ["libbz2"]
+  }
+, "bzip2recoverinternal":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["bzip2recover"]
+  , "pure C": ["YES"]
+  , "srcs": ["bzip2recover.c"]
+  }
+}
