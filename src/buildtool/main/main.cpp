@@ -163,7 +163,6 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     app.require_subcommand(1);
 
     CommandLineArguments clargs;
-    SetupDescribeCommandArguments(cmd_version, &clargs);
     SetupDescribeCommandArguments(cmd_describe, &clargs);
     SetupAnalyseCommandArguments(cmd_analyse, &clargs);
     SetupBuildCommandArguments(cmd_build, &clargs);

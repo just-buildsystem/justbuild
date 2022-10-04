@@ -7,6 +7,7 @@ just - a generic build tool.
 
 * SYNOPSIS
 
+just version\\
 just {analyse|build} [OPTIONS] [[module] target]\\
 just install -o <OUTPUT_DIR> [OPTIONS] [[module] target]\\
 just install-cas [OPTIONS] <OBJECT_ID>\\
