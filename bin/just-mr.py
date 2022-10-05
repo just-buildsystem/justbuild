@@ -341,7 +341,7 @@ def archive_fetch(desc, content):
             fail("Failed to fetch a file with id %s from %s" % (content, url))
 
 
-def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
+def archive_checkout(desc, repo_type="archive"):
     content_id = desc["content"]
     target = archive_checkout_dir(content_id, repo_type=repo_type)
     if ALWAYS_FILE and os.path.exists(target):
@@ -360,8 +360,6 @@ def archive_checkout(desc, repo_type="archive", *, fetch_only=False):
             git_root(upstream=None),
         ]
     archive_fetch(desc, content=content_id)
-    if fetch_only:
-        return
     target_tmp = archive_tmp_checkout_dir(content_id, repo_type=repo_type)
     if os.path.exists(target_tmp):
         try_rmtree(target_tmp)
@@ -698,7 +696,7 @@ def fetch(*, config, args):
                 repo_desc["fetch"])
             content = repo_desc["content"]
             print("%r --> %r (content: %s)" % (repo, distfile, content))
-            archive_checkout(repo_desc, repo_desc["type"], fetch_only=True)
+            archive_fetch(repo_desc, content)
             shutil.copyfile(cas_path(content),
                             os.path.join(fetch_dir, distfile))
 
