@@ -51,7 +51,7 @@ through the option ~--main~. The command-line option ~--main~
 overrides what is eventually read from the multi-repository
 configuration file. If neither the multi-repository configuration file
 contains the ~main~ key nor the ~--main~ option is provided, the lexicographical
-first respository from the multi-repository configuration file is used as main.
+first repository from the multi-repository configuration file is used as main.
 
 The ~workspace_root~ of the main repository is then defined as
 follows. If the option ~--workspace-root~ is provided, then
@@ -65,7 +65,7 @@ are
    - WORKSPACE (can be empty, content is ignored)
    - .git (can be either a file - empty or not, content is ignored -
      or the famous directory)
-If it fails, ~just~ errors out. 
+If it fails, ~just~ errors out.
 
 For non-main repositories, the ~workspace_root~ entry must be declared
 in the multi-repository configuration file.
@@ -153,14 +153,14 @@ compiled remotely and stored in the remote CAS. ~install~ and
 ~install-cas~ subcommands can be used to locally fetch and stage the
 desired artifacts.
 
-*** install 
+*** install
 
 The ~install~ subcommand determines which (if any) actions need to be
-(re)done and issue the command to (re)run them. Then, it install the
+(re)done and issues the command to (re)run them. Then, it installs the
 artifacts (stored in the local or remote CAS) of the processed target
 under the given output-dir (set by option ~-o~) honoring the logical
 path (aka, staging). If the output path does not exist, it will create
-al the necessary folders and subfolders. If files are already present,
+all the necessary folders and subfolders. If files are already present,
 they will be overwritten.
 
 ** rebuild
@@ -187,7 +187,7 @@ rule definition can also reside in a git-tree root.
 Storage) by means of their object identifier. The canonical format
 of an object identifier is ~[<hash>:<size>:<type>]~; however, when
 parsing an object identifier, ~install-cas~ uses the following
-default rules, to make usage more simple.
+default rules, to make usage simpler.
 - The square brackets are optional.
 - If the size is missing (e.g., because the argument contains no
   colon), or cannot be parsed as a number, this is not an error,
@@ -229,10 +229,10 @@ named according to the hash of the artifact itself.
 
 **** Output path exists and it is a file
 
-If the the artifact is a file, it will replace the existing file. If
+If the artifact is a file, it will replace the existing file. If
 the artifact is a tree, it will cause an error.
 
-** traverse 
+** traverse
 
 It allows for the building and staging of requested artifacts from a
 well-defined graph file. See *just-graph-file(5)* for more details.
@@ -241,7 +241,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 
 ** Generic program information
 
-   *-h*, *--help* 
+   *-h*, *--help*
      Output a usage message and exit.\\
      Supported by: all subcommands.
 
@@ -270,7 +270,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Supported by: analyse|build|describe|install|rebuild|traverse.
 
    *-D*, *--defines* JSON\\
-   Defines, via an in-line JSON object a configuratio to overlay
+   Defines, via an in-line JSON object a configuration to overlay
    (in the sense of ~map_union~) to the configuration
    obtained by the *--config* option. If *-D* is given several times,
    only the latest *-D* option is taken.\\
@@ -341,7 +341,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 
    *--dump-artifacts-to-build* PATH\\
    File path for writing the artifacts to build to. Output format is
-   JSON map with staging path as key, and intensional artifact
+   JSON map with staging path as key, and intentional artifact
    description as value.\\
    Supported by: analyse|build|install|rebuild.
 
@@ -386,7 +386,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
 
    *-o*, *--output-dir* PATH\\
    Path of the directory where outputs will be copied. If the output
-   path does not exist, it will create al the necessary folders and
+   path does not exist, it will create all the necessary folders and
    subfolders. If the artifacts have been already staged, they will be
    overwritten.\\
    Required by: install|traverse.
@@ -437,10 +437,10 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    node description. ~rule_maps~ states the maps between the
    ~mode_type~ and the rule to use in order to make a target out of
    the node.
-   
+
    *--dump-blobs* PATH\\
    Dump blobs to file. ~-~ is treated as stdout. The term ~blob~
-   identifies a collection of strings thath the execution back end
+   identifies a collection of strings that the execution back end
    should be aware of before traversing the action graph. A blob, will
    be referred to as a KNOWN artifact in the action graph.
 
@@ -453,7 +453,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    stdout. The output is a JSON list of those variable names (in
    lexicographic order) at which the configuration influenced the
    analysis of this target. This might contain variables unset
-   in the configuraiton if the fact that they were unset (and
+   in the configuration if the fact that they were unset (and
    hence treated as the default ~null~) was relevant for the
    analysis of that target.
 
@@ -485,7 +485,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    represented as a list of nodes).
    - "declared" are the dependencies coming from the target fields
      in the definition of the target
-   - "implicit" are the dependencies implict from the rule definition
+   - "implicit" are the dependencies implicit from the rule definition
    - "anonymous" are the dependencies on anonymous targets implicitly
      referenced during the evaluation of that rule
    While the node names are strings (so that they can be keys in
