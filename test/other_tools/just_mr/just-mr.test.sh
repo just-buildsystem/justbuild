@@ -1,0 +1,200 @@
+#!/bin/sh
+# Copyright 2022 Huawei Cloud Computing Technology Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -eu
+
+# cleanup of http.server; pass server_pid as arg
+server_cleanup() {
+  echo "Shut down HTTP server"
+  # send SIGTERM
+  kill ${1} & res=$!
+  wait ${res}
+  echo "done"
+}
+
+readonly ROOT=`pwd`
+readonly WRKDIR="${TEST_TMPDIR}/wrkdir"
+
+# set the just-mr versions to be run
+# Python version won't be able to find wget, unzip, and tar
+
+# readonly JUST_MR_PY="${ROOT}/bin/just-mr.py"
+readonly JUST_MR_CPP="${ROOT}/bin/just-mr-under-test"
+
+# set paths
+readonly SERVER_ROOT="${TEST_TMPDIR}/server-root"
+readonly FILE_ROOT="${TEST_TMPDIR}/file-root"
+readonly GIT_ROOT="${TEST_TMPDIR}/git-root"
+readonly TEST_ROOT="${TEST_TMPDIR}/test-root"
+
+# move to where server will be posted
+mkdir -p "${SERVER_ROOT}"
+cd "${SERVER_ROOT}"
+
+echo "Setup archive repos"
+# create the archives in current dir
+${ROOT}/src/create_test_archives
+
+# store zip repo info
+readonly ZIP_REPO_CONTENT=$(git hash-object zip_repo.zip)
+readonly ZIP_REPO_SHA256=$(sha256sum zip_repo.zip | awk '{print $1}')
+readonly ZIP_REPO_SHA512=$(sha512sum zip_repo.zip | awk '{print $1}')
+# store tar.gz repo info
+readonly TGZ_REPO_CONTENT=$(git hash-object tgz_repo.tar.gz)
+readonly TGZ_REPO_SHA256=$(sha256sum tgz_repo.tar.gz | awk '{print $1}')
+readonly TGZ_REPO_SHA512=$(sha512sum tgz_repo.tar.gz | awk '{print $1}')
+
+echo "Set up file repos"
+mkdir -p "${FILE_ROOT}/test_dir1"
+echo test > "${FILE_ROOT}/test_dir1/test_file"
+mkdir -p "${FILE_ROOT}/test_dir2/test_dir3"
+echo test > "${FILE_ROOT}/test_dir2/test_dir3/test_file"
+
+echo "Set up local git repo"
+# NOTE: Libgit2 has no support for Git bundles yet
+mkdir -p "${GIT_ROOT}"
+(
+  cd "${GIT_ROOT}" \
+  && mkdir -p foo/bar \
+  && echo foo > foo.txt \
+  && echo bar > foo/bar.txt \
+  && git init -b test \
+  && git config user.email "nobody@example.org" \
+  && git config user.name "Nobody" \
+  && git add . \
+  && git commit -m "test" --date="1970-01-01T00:00Z"
+)
+# the root commit ID is known -- see git_repo.test.cpp
+readonly GIT_REPO_COMMIT="$(cd "${GIT_ROOT}" && git rev-parse HEAD)"
+
+echo "Publish remote repos to HTTP server"
+# start Python server as remote repos location
+port_file="$(mktemp -t port_XXXXXX -p "${TEST_TMPDIR}")"
+python3 -u "${ROOT}/utils/run_test_server.py" >${port_file} & server_pid=$!
+sleep 1s  # give some time to set up properly
+# set up cleanup of http server
+trap "server_cleanup ${server_pid}" INT TERM EXIT
+# get port number as variable
+port_num="$(cat ${port_file})"
+
+echo "Create local build env"
+# the build root
+readonly BUILDROOT=${WRKDIR}/.cache/just
+mkdir -p ${BUILDROOT}
+# a distdir
+readonly DISTFILES=${WRKDIR}/.distfiles
+mkdir -p ${DISTFILES}
+readonly DISTDIR_ARGS="--distdir ${DISTFILES}"
+
+echo "Create repos.json"
+mkdir -p "${TEST_ROOT}"
+cd "${TEST_ROOT}"
+cat > test-repos.json <<EOF
+{ "repositories":
+  { "zip_repo":
+    { "repository":
+      { "type": "zip"
+      , "content": "${ZIP_REPO_CONTENT}"
+      , "distfile": "zip_repo.zip"
+      , "fetch": "http://127.0.0.1:${port_num}/zip_repo.zip"
+      , "sha256": "${ZIP_REPO_SHA256}"
+      , "sha512": "${ZIP_REPO_SHA512}"
+      , "subdir": "root"
+      }
+    , "bindings": {"tgz_repo": "tgz_repo", "distdir_repo": "distdir_repo"}
+    }
+  , "tgz_repo":
+    { "repository":
+      { "type": "archive"
+      , "content": "${TGZ_REPO_CONTENT}"
+      , "distfile": "tgz_repo.tar.gz"
+      , "fetch": "http://127.0.0.1:${port_num}/tgz_repo.tar.gz"
+      , "sha256": "${TGZ_REPO_SHA256}"
+      , "sha512": "${TGZ_REPO_SHA512}"
+      , "subdir": "root/baz"
+      }
+    , "bindings": {"git_repo": "git_repo"}
+    }
+  , "git_repo":
+    { "repository":
+      { "type": "git"
+      , "repository": "${GIT_ROOT}"
+      , "branch": "test"
+      , "commit": "${GIT_REPO_COMMIT}"
+      , "subdir": "foo"
+      }
+    }
+  , "file_repo1":
+    { "repository":
+      { "type": "file"
+      , "path": "${FILE_ROOT}/test_dir1"
+      }
+    }
+  , "file_repo2":
+    { "repository":
+      { "type": "file"
+      , "path": "${FILE_ROOT}/test_dir2"
+      , "pragma": {"to_git": true}
+      }
+    , "bindings": {"file_repo1": "file_repo1"}
+    }
+  , "distdir_repo":
+    { "repository":
+      { "type": "distdir"
+      , "repositories": ["git_repo", "zip_repo", "file_repo2"]
+      }
+    , "bindings": {"file_repo1": "file_repo1"}
+    }
+  }
+}
+EOF
+
+echo "Set up test cases"
+cat > test_setup.sh <<EOF
+CONFIG_CPP="\$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 setup --all)"
+if [ ! -s "\${CONFIG_CPP}" ]; then
+    exit 1
+fi
+EOF
+
+echo "Run 8 test cases in parallel"
+error=false
+
+sh test_setup.sh & res1=$!
+sh test_setup.sh & res2=$!
+sh test_setup.sh & res3=$!
+sh test_setup.sh & res4=$!
+
+wait ${res1}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res2}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res3}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res4}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+
+# check test status
+if [ $error = true ]; then
+    exit 1
+fi

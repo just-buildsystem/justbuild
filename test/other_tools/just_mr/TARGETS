@@ -1,0 +1,30 @@
+{ "just_mr_install":
+  { "type": "install"
+  , "files": {"bin/just-mr-under-test": ["src/other_tools/just_mr", "just-mr"]}
+  }
+, "create_test_archives":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "tainted": ["test"]
+  , "name": ["create_test_archives"]
+  , "srcs": ["create_test_archives.cpp"]
+  , "private-deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "archive_ops"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  , "private-ldflags": ["-lpthread"]
+  , "stage": ["src"]
+  }
+, "just_mr_mp":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["just_mr_mp"]
+  , "test": ["just-mr.test.sh"]
+  , "deps":
+    [ "create_test_archives"
+    , ["test/utils", "test_utils_install"]
+    , "just_mr_install"
+    ]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["just_mr_mp"]}
+}

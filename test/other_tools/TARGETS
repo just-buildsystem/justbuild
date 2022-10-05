@@ -1,6 +1,9 @@
 { "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "dirs": [[["./", "git_operations", "TESTS"], "git_operations"]]
+  , "dirs":
+    [ [["./", "git_operations", "TESTS"], "git_operations"]
+    , [["./", "just_mr", "TESTS"], "just_mr"]
+    ]
   }
 }
