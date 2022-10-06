@@ -6,7 +6,6 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
-#include "src/buildtool/execution_api/common/local_tree_map.hpp"
 #include "src/buildtool/execution_api/local/local_ac.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 
@@ -85,7 +84,6 @@ class LocalStorage {
     LocalCAS<ObjectType::Executable> cas_exec_{};
     LocalCAS<ObjectType::Tree> cas_tree_{};
     LocalAC ac_{&cas_file_};
-    mutable LocalTreeMap tree_map_;
 
     /// \brief Try to sync blob between file CAS and executable CAS.
     /// \param digest        Blob digest.

@@ -6,7 +6,6 @@
     , "execution_api.hpp"
     , "execution_action.hpp"
     , "execution_response.hpp"
-    , "local_tree_map.hpp"
     ]
   , "deps":
     [ ["@", "gsl-lite", "", "gsl-lite"]

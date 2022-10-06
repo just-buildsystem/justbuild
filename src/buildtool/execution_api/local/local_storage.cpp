@@ -113,78 +113,27 @@ auto LocalStorage::ReadObjectInfosRecursively(
     BazelMsgFactory::InfoStoreFunc const& store_info,
     std::filesystem::path const& parent,
     bazel_re::Digest const& digest) const noexcept -> bool {
-    // read from in-memory tree map
-    auto const* tree = tree_map_.GetTree(digest);
-    if (tree != nullptr) {
-        return std::all_of(
-            tree->begin(),
-            tree->end(),
-            [&store_info, &parent](auto const& entry) {
-                try {
-                    // LocalTree (from tree_map_) is flat, no recursion needed
-                    auto const& [path, info] = entry;
-                    return store_info(parent / path, *info);
-                } catch (...) {  // satisfy clang-tidy, store_info() could
-                    return false;
-                }
-            });
-    }
-    Logger::Log(
-        LogLevel::Debug, "tree {} not found in tree map", digest.hash());
-
-    // fallback read from CAS and cache it in in-memory tree map
+    // read from CAS
     if (Compatibility::IsCompatible()) {
         if (auto dir = ReadDirectory(this, digest)) {
-            auto tree = tree_map_.CreateTree();
             return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                       *dir,
-                       [this, &store_info, &parent, &tree](auto path,
-                                                           auto info) {
-                           if (IsTreeObject(info.type)) {
-                               // LocalTree (from tree_map_) is flat, so
-                               // recursively traverse subtrees and add blobs.
-                               auto tree_store_info =
-                                   [&store_info, &tree, &parent](auto path,
-                                                                 auto info) {
-                                       auto tree_path =
-                                           path.lexically_relative(parent);
-                                       return tree.AddInfo(tree_path, info) and
-                                              store_info(path, info);
-                                   };
-                               return ReadObjectInfosRecursively(
-                                   tree_store_info, parent / path, info.digest);
-                           }
-                           return tree.AddInfo(path, info) and
-                                  store_info(parent / path, info);
-                       }) and
-                   tree_map_.AddTree(digest, std::move(tree));
+                *dir, [this, &store_info, &parent](auto path, auto info) {
+                    return IsTreeObject(info.type)
+                               ? ReadObjectInfosRecursively(
+                                     store_info, parent / path, info.digest)
+                               : store_info(parent / path, info);
+                });
         }
     }
     else {
         if (auto entries = ReadGitTree(this, digest)) {
-            auto tree = tree_map_.CreateTree();
             return BazelMsgFactory::ReadObjectInfosFromGitTree(
-                       *entries,
-                       [this, &store_info, &parent, &tree](auto path,
-                                                           auto info) {
-                           if (IsTreeObject(info.type)) {
-                               // LocalTree (from tree_map_) is flat, so
-                               // recursively traverse subtrees and add blobs.
-                               auto tree_store_info =
-                                   [&store_info, &tree, &parent](auto path,
-                                                                 auto info) {
-                                       auto tree_path =
-                                           path.lexically_relative(parent);
-                                       return tree.AddInfo(tree_path, info) and
-                                              store_info(path, info);
-                                   };
-                               return ReadObjectInfosRecursively(
-                                   tree_store_info, parent / path, info.digest);
-                           }
-                           return tree.AddInfo(path, info) and
-                                  store_info(parent / path, info);
-                       }) and
-                   tree_map_.AddTree(digest, std::move(tree));
+                *entries, [this, &store_info, &parent](auto path, auto info) {
+                    return IsTreeObject(info.type)
+                               ? ReadObjectInfosRecursively(
+                                     store_info, parent / path, info.digest)
+                               : store_info(parent / path, info);
+                });
         }
     }
     return false;

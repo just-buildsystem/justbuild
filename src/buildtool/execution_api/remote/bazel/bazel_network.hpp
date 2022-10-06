@@ -9,7 +9,6 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/common/local_tree_map.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -104,7 +103,6 @@ class BazelNetwork {
     std::unique_ptr<BazelCasClient> cas_{};
     std::unique_ptr<BazelAcClient> ac_{};
     std::unique_ptr<BazelExecutionClient> exec_{};
-    mutable LocalTreeMap tree_map_{};
 
     template <class T_Iter>
     [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,
