@@ -5,6 +5,17 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
+namespace {
+
+auto ProcessDirectoryMessage(bazel_re::Directory const& dir) noexcept
+    -> std::optional<BazelBlob> {
+    auto data = dir.SerializeAsString();
+    auto digest = ArtifactDigest::Create(data);
+    return BazelBlob{std::move(digest), std::move(data)};
+}
+
+}  // namespace
+
 auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     -> std::string {
     auto blobs = network_->ReadBlobs({id}).Next();
@@ -119,25 +130,4 @@ auto BazelResponse::UploadTreeMessageDirectories(
         return std::nullopt;
     }
     return ArtifactDigest{root_digest};
-}
-
-auto BazelResponse::ProcessDirectoryMessage(
-    bazel_re::Directory const& dir) const noexcept -> std::optional<BazelBlob> {
-    auto data = dir.SerializeAsString();
-    auto digest = ArtifactDigest::Create(data);
-
-    if (tree_map_ and not tree_map_->HasTree(digest)) {
-        // cache in local tree map
-        auto tree = tree_map_->CreateTree();
-        if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                dir,
-                [&tree](auto path, auto info) {
-                    return tree.AddInfo(path, info);
-                }) or
-            not tree_map_->AddTree(digest, std::move(tree))) {
-            return std::nullopt;
-        }
-    }
-
-    return BazelBlob{std::move(digest), std::move(data)};
 }

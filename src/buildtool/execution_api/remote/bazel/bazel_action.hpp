@@ -26,7 +26,6 @@ class BazelAction final : public IExecutionAction {
 
   private:
     std::shared_ptr<BazelNetwork> network_;
-    std::shared_ptr<LocalTreeMap> tree_map_;
     bazel_re::Digest const root_digest_;
     std::vector<std::string> const cmdline_;
     std::vector<std::string> output_files_;
@@ -37,7 +36,6 @@ class BazelAction final : public IExecutionAction {
     std::chrono::milliseconds timeout_{kDefaultTimeout};
 
     BazelAction(std::shared_ptr<BazelNetwork> network,
-                std::shared_ptr<LocalTreeMap> tree_map,
                 bazel_re::Digest root_digest,
                 std::vector<std::string> command,
                 std::vector<std::string> output_files,

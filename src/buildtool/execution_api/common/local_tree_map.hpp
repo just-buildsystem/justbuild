@@ -40,19 +40,23 @@ class LocalTreeMap {
     };
 
   public:
-    /// \brief Maps blob locations to object infos.
+    /// \brief Maps blob paths to object infos.
+    /// Stores a flat list of blobs, without any trees. Subtrees are represented
+    /// by joining the tree segments for the blob's path.
     class LocalTree {
         friend class LocalTreeMap;
 
       public:
         /// \brief Add a new path and info pair to the tree.
         /// Path must not be absolute, empty, or contain dot-segments.
+        /// Object MUST NOT be a tree object.
         /// \param path The location to add the object info.
         /// \param info The object info to add.
         /// \returns true if successfully inserted or info existed before.
         [[nodiscard]] auto AddInfo(std::filesystem::path const& path,
                                    Artifact::ObjectInfo const& info) noexcept
             -> bool {
+            gsl_Expects(not IsTreeObject(info.type));
             auto norm_path = path.lexically_normal();
             if (norm_path.is_absolute() or norm_path.empty() or
                 *norm_path.begin() == "..") {

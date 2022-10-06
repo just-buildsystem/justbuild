@@ -47,16 +47,13 @@ class BazelResponse final : public IExecutionResponse {
   private:
     std::string action_id_{};
     std::shared_ptr<BazelNetwork> const network_{};
-    std::shared_ptr<LocalTreeMap> const tree_map_{};
     BazelExecutionClient::ExecutionOutput output_{};
 
     BazelResponse(std::string action_id,
                   std::shared_ptr<BazelNetwork> network,
-                  std::shared_ptr<LocalTreeMap> tree_map,
                   BazelExecutionClient::ExecutionOutput output)
         : action_id_{std::move(action_id)},
           network_{std::move(network)},
-          tree_map_{std::move(tree_map)},
           output_{std::move(output)} {}
 
     [[nodiscard]] auto ReadStringBlob(bazel_re::Digest const& id) noexcept
@@ -69,9 +66,6 @@ class BazelResponse final : public IExecutionResponse {
 
     [[nodiscard]] auto UploadTreeMessageDirectories(
         bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest>;
-
-    [[nodiscard]] auto ProcessDirectoryMessage(bazel_re::Directory const& dir)
-        const noexcept -> std::optional<BazelBlob>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP

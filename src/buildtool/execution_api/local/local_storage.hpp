@@ -12,10 +12,6 @@
 
 class LocalStorage {
   public:
-    explicit LocalStorage(
-        std::shared_ptr<LocalTreeMap> tree_map = nullptr) noexcept
-        : tree_map_{std::move(tree_map)} {}
-
     /// \brief Store blob from file path with x-bit determined from file system.
     template <bool kOwner = false>
     [[nodiscard]] auto StoreBlob(std::filesystem::path const& file_path)
@@ -89,7 +85,7 @@ class LocalStorage {
     LocalCAS<ObjectType::Executable> cas_exec_{};
     LocalCAS<ObjectType::Tree> cas_tree_{};
     LocalAC ac_{&cas_file_};
-    std::shared_ptr<LocalTreeMap> tree_map_;
+    mutable LocalTreeMap tree_map_;
 
     /// \brief Try to sync blob between file CAS and executable CAS.
     /// \param digest        Blob digest.

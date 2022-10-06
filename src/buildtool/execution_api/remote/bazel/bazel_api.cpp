@@ -24,9 +24,8 @@ BazelApi::BazelApi(std::string const& instance_name,
                    std::string const& host,
                    Port port,
                    ExecutionConfiguration const& exec_config) noexcept {
-    tree_map_ = std::make_shared<LocalTreeMap>();
-    network_ = std::make_shared<BazelNetwork>(
-        instance_name, host, port, exec_config, tree_map_);
+    network_ =
+        std::make_shared<BazelNetwork>(instance_name, host, port, exec_config);
 }
 
 // implement move constructor in cpp, where all members are complete types
@@ -44,7 +43,6 @@ auto BazelApi::CreateAction(
     std::map<std::string, std::string> const& properties) noexcept
     -> IExecutionAction::Ptr {
     return std::unique_ptr<BazelAction>{new BazelAction{network_,
-                                                        tree_map_,
                                                         root_digest,
                                                         command,
                                                         output_files,
@@ -227,11 +225,9 @@ auto BazelApi::CreateAction(
     std::vector<DependencyGraph::NamedArtifactNodePtr> const&
         artifacts) noexcept -> std::optional<ArtifactDigest> {
     BlobContainer blobs{};
-    auto tree = tree_map_->CreateTree();
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
         artifacts,
-        [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); },
-        [&tree](auto path, auto info) { return tree.AddInfo(path, info); });
+        [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
     if (not digest) {
         Logger::Log(LogLevel::Debug, "failed to create digest for tree.");
         return std::nullopt;
@@ -248,10 +244,8 @@ auto BazelApi::CreateAction(
         Logger::Log(LogLevel::Debug, "failed to upload blobs for tree.");
         return std::nullopt;
     }
-    if (tree_map_->AddTree(*digest, std::move(tree))) {
-        return ArtifactDigest{*digest};
-    }
-    return std::nullopt;
+
+    return ArtifactDigest{*digest};
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(

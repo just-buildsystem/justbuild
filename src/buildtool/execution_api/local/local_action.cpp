@@ -248,20 +248,9 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
             [this](auto path, auto is_exec) {
                 return storage_->StoreBlob</*kOwner=*/true>(path, is_exec);
             },
-            [this](auto bytes, auto dir) -> std::optional<bazel_re::Digest> {
-                auto digest = storage_->StoreBlob(bytes);
-                if (digest and not tree_map_->HasTree(*digest)) {
-                    auto tree = tree_map_->CreateTree();
-                    if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                            dir,
-                            [&tree](auto path, auto info) {
-                                return tree.AddInfo(path, info);
-                            }) or
-                        not tree_map_->AddTree(*digest, std::move(tree))) {
-                        return std::nullopt;
-                    }
-                }
-                return digest;
+            [this](auto bytes,
+                   auto /*dir*/) -> std::optional<bazel_re::Digest> {
+                return storage_->StoreBlob(bytes);
             });
     }
     else {
@@ -271,27 +260,8 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
                 return storage_->StoreBlob</*kOwner=*/true>(path, is_exec);
             },
             [this](auto bytes,
-                   auto entries) -> std::optional<bazel_re::Digest> {
-                auto digest = storage_->StoreTree(bytes);
-                if (digest and not tree_map_->HasTree(*digest)) {
-                    auto tree = tree_map_->CreateTree();
-                    for (auto const& [raw_id, es] : entries) {
-                        auto id = ToHexString(raw_id);
-                        for (auto const& entry : es) {
-                            auto info = Artifact::ObjectInfo{
-                                ArtifactDigest{
-                                    id, 0, entry.type == ObjectType::Tree},
-                                entry.type};
-                            if (not tree.AddInfo(entry.name, info)) {
-                                return std::nullopt;
-                            }
-                        }
-                    }
-                    if (not tree_map_->AddTree(*digest, std::move(tree))) {
-                        return std::nullopt;
-                    }
-                }
-                return digest;
+                   auto /*entries*/) -> std::optional<bazel_re::Digest> {
+                return storage_->StoreTree(bytes);
             });
     }
     if (digest) {

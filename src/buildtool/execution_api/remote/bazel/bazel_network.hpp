@@ -45,8 +45,7 @@ class BazelNetwork {
     BazelNetwork(std::string instance_name,
                  std::string const& host,
                  Port port,
-                 ExecutionConfiguration const& exec_config,
-                 std::shared_ptr<LocalTreeMap> tree_map = nullptr) noexcept;
+                 ExecutionConfiguration const& exec_config) noexcept;
 
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up
@@ -105,7 +104,7 @@ class BazelNetwork {
     std::unique_ptr<BazelCasClient> cas_{};
     std::unique_ptr<BazelAcClient> ac_{};
     std::unique_ptr<BazelExecutionClient> exec_{};
-    std::shared_ptr<LocalTreeMap> tree_map_{};
+    mutable LocalTreeMap tree_map_{};
 
     template <class T_Iter>
     [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,

@@ -37,7 +37,6 @@ class LocalAction final : public IExecutionAction {
   private:
     Logger logger_{"LocalExecution"};
     std::shared_ptr<LocalStorage> storage_;
-    std::shared_ptr<LocalTreeMap> tree_map_;
     ArtifactDigest root_digest_{};
     std::vector<std::string> cmdline_{};
     std::vector<std::string> output_files_{};
@@ -48,7 +47,6 @@ class LocalAction final : public IExecutionAction {
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
     LocalAction(std::shared_ptr<LocalStorage> storage,
-                std::shared_ptr<LocalTreeMap> tree_map,
                 ArtifactDigest root_digest,
                 std::vector<std::string> command,
                 std::vector<std::string> output_files,
@@ -56,7 +54,6 @@ class LocalAction final : public IExecutionAction {
                 std::map<std::string, std::string> env_vars,
                 std::map<std::string, std::string> const& properties) noexcept
         : storage_{std::move(storage)},
-          tree_map_{std::move(tree_map)},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
           output_files_{std::move(output_files)},

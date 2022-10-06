@@ -10,7 +10,6 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/common/local_tree_map.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_storage.hpp"
 
@@ -26,7 +25,6 @@ class LocalApi final : public IExecutionApi {
         std::map<std::string, std::string> const& properties) noexcept
         -> IExecutionAction::Ptr final {
         return IExecutionAction::Ptr{new LocalAction{storage_,
-                                                     tree_map_,
                                                      root_digest,
                                                      command,
                                                      output_files,
@@ -202,11 +200,9 @@ class LocalApi final : public IExecutionApi {
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
             artifacts) noexcept -> std::optional<ArtifactDigest> final {
         BlobContainer blobs{};
-        auto tree = tree_map_->CreateTree();
         auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
             artifacts,
-            [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); },
-            [&tree](auto path, auto info) { return tree.AddInfo(path, info); });
+            [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
         if (not digest) {
             Logger::Log(LogLevel::Debug, "failed to create digest for tree.");
             return std::nullopt;
@@ -217,10 +213,7 @@ class LocalApi final : public IExecutionApi {
             return std::nullopt;
         }
 
-        if (tree_map_->AddTree(*digest, std::move(tree))) {
-            return ArtifactDigest{*digest};
-        }
-        return std::nullopt;
+        return ArtifactDigest{*digest};
     }
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
@@ -247,9 +240,7 @@ class LocalApi final : public IExecutionApi {
     }
 
   private:
-    std::shared_ptr<LocalTreeMap> tree_map_{std::make_shared<LocalTreeMap>()};
-    std::shared_ptr<LocalStorage> storage_{
-        std::make_shared<LocalStorage>(tree_map_)};
+    std::shared_ptr<LocalStorage> storage_{std::make_shared<LocalStorage>()};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP

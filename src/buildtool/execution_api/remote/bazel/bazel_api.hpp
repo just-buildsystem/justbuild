@@ -10,7 +10,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/common/local_tree_map.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
 // forward declaration for actual implementations
@@ -68,7 +67,6 @@ class BazelApi final : public IExecutionApi {
 
   private:
     std::shared_ptr<BazelNetwork> network_;
-    std::shared_ptr<LocalTreeMap> tree_map_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP

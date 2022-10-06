@@ -6,7 +6,6 @@
 
 BazelAction::BazelAction(
     std::shared_ptr<BazelNetwork> network,
-    std::shared_ptr<LocalTreeMap> tree_map,
     bazel_re::Digest root_digest,
     std::vector<std::string> command,
     std::vector<std::string> output_files,
@@ -14,7 +13,6 @@ BazelAction::BazelAction(
     std::map<std::string, std::string> const& env_vars,
     std::map<std::string, std::string> const& properties) noexcept
     : network_{std::move(network)},
-      tree_map_{std::move(tree_map)},
       root_digest_{std::move(root_digest)},
       cmdline_{std::move(command)},
       output_files_{std::move(output_files)},
@@ -47,7 +45,7 @@ auto BazelAction::Execute(Logger const* logger) noexcept
                 network_->GetCachedActionResult(action, output_files_)) {
             if (result->exit_code() == 0) {
                 return IExecutionResponse::Ptr{new BazelResponse{
-                    action.hash(), network_, tree_map_, {*result, true}}};
+                    action.hash(), network_, {*result, true}}};
             }
         }
     }
@@ -59,14 +57,11 @@ auto BazelAction::Execute(Logger const* logger) noexcept
                 auto action_id =
                     CreateBundlesForAction(nullptr, root_digest_, false).hash();
                 output->cached_result = true;
-                return IExecutionResponse::Ptr{
-                    new BazelResponse{std::move(action_id),
-                                      network_,
-                                      tree_map_,
-                                      std::move(*output)}};
+                return IExecutionResponse::Ptr{new BazelResponse{
+                    std::move(action_id), network_, std::move(*output)}};
             }
-            return IExecutionResponse::Ptr{new BazelResponse{
-                action.hash(), network_, tree_map_, std::move(*output)}};
+            return IExecutionResponse::Ptr{
+                new BazelResponse{action.hash(), network_, std::move(*output)}};
         }
     }
 
