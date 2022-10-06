@@ -245,7 +245,8 @@ auto BazelNetwork::ReadTreeInfos(bazel_re::Digest const& tree_digest,
     -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                std::vector<Artifact::ObjectInfo>>> {
     std::optional<DirectoryMap> dir_map{std::nullopt};
-    if (request_remote_tree or not tree_map_) {
+    if (Compatibility::IsCompatible() and
+        (request_remote_tree or not tree_map_)) {
         // Query full tree from remote CAS. Note that this is currently not
         // supported by Buildbarn revision c3c06bbe2a.
         auto dirs =
@@ -314,35 +315,37 @@ auto BazelNetwork::ReadObjectInfosRecursively(
             LogLevel::Debug, "tree {} not found in tree map", digest.hash());
     }
 
-    // read from in-memory Directory map and cache it in in-memory tree map
-    if (dir_map) {
-        if (dir_map->contains(digest)) {
-            auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
-                                  : std::nullopt;
-            return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                       dir_map->at(digest),
-                       [this, &dir_map, &store_info, &parent, &tree](
-                           auto path, auto info) {
-                           return (not tree or tree->AddInfo(path, info)) and
-                                  (IsTreeObject(info.type)
-                                       ? (not tree or
-                                          tree->AddInfo(path, info)) and
-                                             ReadObjectInfosRecursively(
-                                                 dir_map,
-                                                 store_info,
-                                                 parent / path,
-                                                 info.digest)
-                                       : store_info(parent / path, info));
-                       }) and
-                   (not tree_map_ or
-                    tree_map_->AddTree(digest, std::move(*tree)));
-        }
-        Logger::Log(
-            LogLevel::Debug, "tree {} not found in dir map", digest.hash());
-    }
-
-    // fallback read from CAS and cache it in in-memory tree map
     if (Compatibility::IsCompatible()) {
+        // read from in-memory Directory map and cache it in in-memory tree map
+        if (dir_map) {
+            if (dir_map->contains(digest)) {
+                auto tree = tree_map_
+                                ? std::make_optional(tree_map_->CreateTree())
+                                : std::nullopt;
+                return BazelMsgFactory::ReadObjectInfosFromDirectory(
+                           dir_map->at(digest),
+                           [this, &dir_map, &store_info, &parent, &tree](
+                               auto path, auto info) {
+                               return (not tree or
+                                       tree->AddInfo(path, info)) and
+                                      (IsTreeObject(info.type)
+                                           ? (not tree or
+                                              tree->AddInfo(path, info)) and
+                                                 ReadObjectInfosRecursively(
+                                                     dir_map,
+                                                     store_info,
+                                                     parent / path,
+                                                     info.digest)
+                                           : store_info(parent / path, info));
+                           }) and
+                       (not tree_map_ or
+                        tree_map_->AddTree(digest, std::move(*tree)));
+            }
+            Logger::Log(
+                LogLevel::Debug, "tree {} not found in dir map", digest.hash());
+        }
+
+        // fallback read from CAS and cache it in in-memory tree map
         if (auto dir = ReadDirectory(this, digest)) {
             auto tree = tree_map_ ? std::make_optional(tree_map_->CreateTree())
                                   : std::nullopt;
