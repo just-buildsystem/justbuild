@@ -178,8 +178,9 @@ auto BazelNetwork::ExecuteBazelActionSync(
     if (response.state !=
             BazelExecutionClient::ExecutionResponse::State::Finished or
         not response.output) {
-        Logger::Log(
-            LogLevel::Error, "Failed to execute action {}.", action.hash());
+        Logger::Log(LogLevel::Error,
+                    "Failed to execute action with execution id {}.",
+                    action.hash());
         return std::nullopt;
     }
 
