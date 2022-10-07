@@ -25,7 +25,7 @@ void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
             break;
         default:
             // fallback to default status logging
-            LogStatus(logger, LogLevel::Debug, s);
+            LogStatus(logger, LogLevel::Warning, s);
             break;
     }
 }
