@@ -170,8 +170,8 @@ auto BazelApi::CreateAction(
     std::vector<bazel_re::Digest> blob_digests{};
     for (auto const& info : missing_artifacts_info) {
         if (IsTreeObject(info.type)) {
-            auto const infos =
-                network_->ReadTreeInfos(info.digest, std::filesystem::path{});
+            auto const infos = network_->ReadTreeInfosDirect(
+                info.digest, std::filesystem::path{});
             if (not infos or not RetrieveToCas(infos->second, api)) {
                 return false;
             }

@@ -75,6 +75,12 @@ class LocalStorage {
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
 
+    [[nodiscard]] auto ReadTreeInfosDirect(
+        bazel_re::Digest const& tree_digest,
+        std::filesystem::path const& parent) const noexcept
+        -> std::optional<std::pair<std::vector<std::filesystem::path>,
+                                   std::vector<Artifact::ObjectInfo>>>;
+
     [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
                                     gsl::not_null<FILE*> const& stream,
                                     bool raw_tree) const noexcept -> bool;

@@ -108,6 +108,43 @@ auto LocalStorage::ReadTreeInfos(
     return std::nullopt;
 }
 
+auto LocalStorage::ReadTreeInfosDirect(
+    bazel_re::Digest const& tree_digest,
+    std::filesystem::path const& parent) const noexcept
+    -> std::optional<std::pair<std::vector<std::filesystem::path>,
+                               std::vector<Artifact::ObjectInfo>>> {
+    std::vector<std::filesystem::path> paths{};
+    std::vector<Artifact::ObjectInfo> infos{};
+
+    auto store_info = [&paths, &infos](auto path, auto info) {
+        paths.emplace_back(path);
+        infos.emplace_back(info);
+        return true;
+    };
+
+    if (Compatibility::IsCompatible()) {
+        if (auto dir = ReadDirectory(this, tree_digest)) {
+            if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
+                    *dir, [&store_info, &parent](auto path, auto info) {
+                        return store_info(parent / path, info);
+                    })) {
+                return std::nullopt;
+            }
+        }
+    }
+    else {
+        if (auto entries = ReadGitTree(this, tree_digest)) {
+            if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
+                    *entries, [&store_info, &parent](auto path, auto info) {
+                        return store_info(parent / path, info);
+                    })) {
+                return std::nullopt;
+            }
+        }
+    }
+    return std::make_pair(std::move(paths), std::move(infos));
+}
+
 // NOLINTNEXTLINE(misc-no-recursion)
 auto LocalStorage::ReadObjectInfosRecursively(
     BazelMsgFactory::InfoStoreFunc const& store_info,

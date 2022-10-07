@@ -134,7 +134,7 @@ class LocalApi final : public IExecutionApi {
         for (auto const& info : missing_artifacts_info) {
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
-                auto const& infos = storage_->ReadTreeInfos(
+                auto const& infos = storage_->ReadTreeInfosDirect(
                     info.digest, std::filesystem::path{});
                 if (not infos or not RetrieveToCas(infos->second, api)) {
                     return false;
