@@ -977,11 +977,14 @@ void ConfigureRule(
     eval_config = eval_config.Evaluate(
         param_config, {}, [logger](std::string const& msg) {
             (*logger)(
-                fmt::format("Failed evaluating eval_config with:\n{}", msg),
+                fmt::format("Evaluating 'config' failed with error:\n{}", msg),
                 true);
         });
+    if (not eval_config) {
+        return;
+    }
     if (not eval_config->IsMap()) {
-        (*logger)(fmt::format("eval_config must evaluate to map, but found {}",
+        (*logger)(fmt::format("'config' must evaluate to map, but found {}",
                               eval_config->ToString()),
                   true);
         return;
