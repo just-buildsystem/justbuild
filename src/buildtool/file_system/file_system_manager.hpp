@@ -400,9 +400,15 @@ class FileSystemManager {
         if (IsDirectory(path)) {
             return ObjectType::Tree;
         }
-        Logger::Log(LogLevel::Debug,
-                    "object type for {} not supported yet.",
-                    path.string());
+        if (Exists(path)) {
+            Logger::Log(LogLevel::Debug,
+                        "object type for {} is not supported yet.",
+                        path.string());
+        }
+        else {
+            Logger::Log(
+                LogLevel::Trace, "non-existing object path {}.", path.string());
+        }
         return std::nullopt;
     }
 
