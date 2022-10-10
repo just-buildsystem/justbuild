@@ -15,20 +15,37 @@
     ]
   }
 , "ALL":
-  { "type": ["@", "rules", "CC", "configure"]
+  { "type": "configure"
+  , "arguments_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "tainted": ["test"]
-  , "arguments_config": ["OS", "ARCH"]
-  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
-  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
-  , "target_arch":
-    [ { "type": "var"
-      , "name": "TARGET_ARCH"
-      , "default": {"type": "var", "name": "ARCH", "default": "x86_64"}
+  , "target": "TESTS"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["OS", {"type": "var", "name": "OS", "default": "linux"}]
+      , ["ARCH", {"type": "var", "name": "ARCH", "default": "x86_64"}]
+      , [ "HOST_ARCH"
+        , { "type": "var"
+          , "name": "HOST_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
       }
-    ]
-  , "compiler_family":
-    [{"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}]
-  , "target": ["TESTS"]
+    }
   }
 , "bootstrap-test":
   { "type": "install"

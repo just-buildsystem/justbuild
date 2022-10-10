@@ -21,19 +21,36 @@
     ]
   }
 , "just":
-  { "type": ["@", "rules", "CC", "configure"]
-  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
-  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
-  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
-  , "target_arch":
-    [ { "type": "var"
-      , "name": "TARGET_ARCH"
-      , "default": {"type": "var", "name": "ARCH", "default": "x86_64"}
+  { "type": "configure"
+  , "arguments_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+  , "target": "exported-just"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["OS", {"type": "var", "name": "OS", "default": "linux"}]
+      , ["ARCH", {"type": "var", "name": "ARCH", "default": "x86_64"}]
+      , [ "HOST_ARCH"
+        , { "type": "var"
+          , "name": "HOST_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
       }
-    ]
-  , "compiler_family":
-    [{"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}]
-  , "target": ["exported-just"]
+    }
   }
 , "libgit2":
   { "type": "configure"
@@ -53,11 +70,17 @@
     }
   }
 , "just-ext-hdrs":
-  { "type": ["@", "rules", "CC", "configure"]
+  { "type": "configure"
   , "arguments_config": ["OS", "ARCH"]
-  , "os": [{"type": "var", "name": "OS", "default": "linux"}]
-  , "arch": [{"type": "var", "name": "ARCH", "default": "x86_64"}]
-  , "target": [["etc/dev", "just-ext-hdrs"]]
+  , "target": ["etc/dev", "just-ext-hdrs"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["OS", {"type": "var", "name": "OS", "default": "linux"}]
+      , ["ARCH", {"type": "var", "name": "ARCH", "default": "x86_64"}]
+      ]
+    , "body": {"type": "env", "vars": ["OS", "ARCH"]}
+    }
   }
 , "bootstrap-src":
   { "type": "install"
