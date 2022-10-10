@@ -155,7 +155,7 @@ auto LocalAction::StageInputFiles(
         return false;
     }
 
-    auto infos = storage_->ReadTreeInfos(root_digest_, exec_path);
+    auto infos = storage_->RecursivelyReadTreeLeafs(root_digest_, exec_path);
     if (not infos) {
         return false;
     }

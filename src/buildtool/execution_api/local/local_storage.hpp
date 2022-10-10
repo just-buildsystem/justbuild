@@ -69,13 +69,26 @@ class LocalStorage {
         return ac_.CachedResult(action_id);
     }
 
-    [[nodiscard]] auto ReadTreeInfos(
+    /// \brief Traverses a tree recursively and retrieves object infos of all
+    /// found blobs (leafs). Tree objects are not added to the result list, but
+    /// converted to a path name.
+    /// \param tree_digest      Digest of the tree.
+    /// \param parent           Local parent path.
+    /// \returns Pair of vectors, first containing filesystem paths, second
+    /// containing object infos.
+    [[nodiscard]] auto RecursivelyReadTreeLeafs(
         bazel_re::Digest const& tree_digest,
         std::filesystem::path const& parent) const noexcept
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
 
-    [[nodiscard]] auto ReadTreeInfosDirect(
+    /// \brief Reads the flat content of a tree and returns object infos of all
+    /// its direct entries (trees and blobs).
+    /// \param tree_digest      Digest of the tree.
+    /// \param parent           Local parent path.
+    /// \returns Pair of vectors, first containing filesystem paths, second
+    /// containing object infos.
+    [[nodiscard]] auto ReadDirectTreeEntries(
         bazel_re::Digest const& tree_digest,
         std::filesystem::path const& parent) const noexcept
         -> std::optional<std::pair<std::vector<std::filesystem::path>,

@@ -88,7 +88,7 @@ namespace {
 
 }  // namespace
 
-auto LocalStorage::ReadTreeInfos(
+auto LocalStorage::RecursivelyReadTreeLeafs(
     bazel_re::Digest const& tree_digest,
     std::filesystem::path const& parent) const noexcept
     -> std::optional<std::pair<std::vector<std::filesystem::path>,
@@ -108,7 +108,7 @@ auto LocalStorage::ReadTreeInfos(
     return std::nullopt;
 }
 
-auto LocalStorage::ReadTreeInfosDirect(
+auto LocalStorage::ReadDirectTreeEntries(
     bazel_re::Digest const& tree_digest,
     std::filesystem::path const& parent) const noexcept
     -> std::optional<std::pair<std::vector<std::filesystem::path>,

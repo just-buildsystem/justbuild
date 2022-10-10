@@ -68,8 +68,8 @@ auto BazelApi::CreateAction(
         auto const& info = artifacts_info[i];
         if (IsTreeObject(info.type)) {
             // read object infos from sub tree and call retrieve recursively
-            auto const infos =
-                network_->ReadTreeInfos(info.digest, output_paths[i]);
+            auto const infos = network_->RecursivelyReadTreeLeafs(
+                info.digest, output_paths[i]);
             if (not infos or not RetrieveToPaths(infos->second, infos->first)) {
                 return false;
             }
@@ -170,7 +170,7 @@ auto BazelApi::CreateAction(
     std::vector<bazel_re::Digest> blob_digests{};
     for (auto const& info : missing_artifacts_info) {
         if (IsTreeObject(info.type)) {
-            auto const infos = network_->ReadTreeInfosDirect(
+            auto const infos = network_->ReadDirectTreeEntries(
                 info.digest, std::filesystem::path{});
             if (not infos or not RetrieveToCas(infos->second, api)) {
                 return false;

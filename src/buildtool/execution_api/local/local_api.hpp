@@ -48,8 +48,8 @@ class LocalApi final : public IExecutionApi {
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto const infos =
-                    storage_->ReadTreeInfos(info.digest, output_paths[i]);
+                auto const infos = storage_->RecursivelyReadTreeLeafs(
+                    info.digest, output_paths[i]);
                 if (not infos or
                     not RetrieveToPaths(infos->second, infos->first)) {
                     return false;
@@ -134,7 +134,7 @@ class LocalApi final : public IExecutionApi {
         for (auto const& info : missing_artifacts_info) {
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
-                auto const& infos = storage_->ReadTreeInfosDirect(
+                auto const& infos = storage_->ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
                 if (not infos or not RetrieveToCas(infos->second, api)) {
                     return false;

@@ -237,9 +237,10 @@ auto BazelNetwork::GetCachedActionResult(
         instance_name_, action, false, false, output_files);
 }
 
-auto BazelNetwork::ReadTreeInfos(bazel_re::Digest const& tree_digest,
-                                 std::filesystem::path const& parent,
-                                 bool request_remote_tree) const noexcept
+auto BazelNetwork::RecursivelyReadTreeLeafs(
+    bazel_re::Digest const& tree_digest,
+    std::filesystem::path const& parent,
+    bool request_remote_tree) const noexcept
     -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                std::vector<Artifact::ObjectInfo>>> {
     std::optional<DirectoryMap> dir_map{std::nullopt};
@@ -279,7 +280,7 @@ auto BazelNetwork::ReadTreeInfos(bazel_re::Digest const& tree_digest,
     return std::nullopt;
 }
 
-auto BazelNetwork::ReadTreeInfosDirect(
+auto BazelNetwork::ReadDirectTreeEntries(
     bazel_re::Digest const& tree_digest,
     std::filesystem::path const& parent) const noexcept
     -> std::optional<std::pair<std::vector<std::filesystem::path>,
