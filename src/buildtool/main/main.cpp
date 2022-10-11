@@ -535,8 +535,11 @@ auto DetermineRoots(CommonArguments const& cargs,
 
     std::string main_repo;
 
-    auto main_it = repo_config.find("main");
-    if (main_it != repo_config.end()) {
+    if (cargs.main) {
+        main_repo = *cargs.main;
+    }
+    else if (auto main_it = repo_config.find("main");
+             main_it != repo_config.end()) {
         if (not main_it->is_string()) {
             Logger::Log(LogLevel::Error,
                         "Repository config: main has to be a string");
@@ -544,8 +547,10 @@ auto DetermineRoots(CommonArguments const& cargs,
         }
         main_repo = *main_it;
     }
-    if (cargs.main) {
-        main_repo = *cargs.main;
+    else if (auto repos_it = repo_config.find("repositories");
+             repos_it != repo_config.end() and not repos_it->empty()) {
+        // take lexicographical first key as main (nlohmann::json is sorted)
+        main_repo = repos_it->begin().key();
     }
 
     auto repos = nlohmann::json::object();
