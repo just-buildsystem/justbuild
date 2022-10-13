@@ -180,7 +180,19 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
                                     bazel_re::Digest const& digest) noexcept
     -> std::optional<BazelBlob> {
     if (auto data = stream_->Read(ToResourceName(instance_name, digest))) {
-        return BazelBlob{ArtifactDigest::Create(*data), std::move(*data)};
+        // Recompute the digest from the received content to cross-check a
+        // correct transmission.
+        auto real_digest = static_cast<bazel_re::Digest>(
+            NativeSupport::IsTree(digest.hash())
+                ? ArtifactDigest::Create<ObjectType::Tree>(*data)
+                : ArtifactDigest::Create<ObjectType::File>(*data));
+        if (digest.hash() != real_digest.hash()) {
+            logger_.Emit(LogLevel::Warning,
+                         "Requested {}, but received {}",
+                         digest.hash(),
+                         real_digest.hash());
+        }
+        return BazelBlob{std::move(real_digest), std::move(*data)};
     }
     return std::nullopt;
 }
