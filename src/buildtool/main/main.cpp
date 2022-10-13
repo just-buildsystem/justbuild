@@ -154,7 +154,7 @@ auto SetupTraverseCommandArguments(
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
     -> CommandLineArguments {
-    CLI::App app("just");
+    CLI::App app("just, a generic build tool");
     app.option_defaults()->take_last();
 
     auto* cmd_version = app.add_subcommand(
