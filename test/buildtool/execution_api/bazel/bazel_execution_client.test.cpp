@@ -25,8 +25,8 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
 
     std::string instance_name{"remote-execution"};
     std::string content("test");
-    auto test_digest =
-        static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
+    auto test_digest = static_cast<bazel_re::Digest>(
+        ArtifactDigest::Create<ObjectType::File>(content));
 
     BazelExecutionClient execution_client(info->host, info->port);
 
@@ -93,8 +93,8 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
 
     std::string instance_name{"remote-execution"};
     std::string content("contents of env variable");
-    auto test_digest =
-        static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
+    auto test_digest = static_cast<bazel_re::Digest>(
+        ArtifactDigest::Create<ObjectType::File>(content));
 
     BazelExecutionClient execution_client(info->host, info->port);
 

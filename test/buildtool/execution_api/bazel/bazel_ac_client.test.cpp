@@ -43,7 +43,7 @@ TEST_CASE("Bazel internals: AC Client", "[!hide][execution_api]") {
 
     std::string instance_name{"remote-execution"};
     std::string content("test");
-    auto test_digest = ArtifactDigest::Create(content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(content);
 
     auto action_id = CreateAction(instance_name,
                                   {"echo", "-n", content},

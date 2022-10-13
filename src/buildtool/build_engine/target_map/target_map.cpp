@@ -582,7 +582,8 @@ void withDependencies(
               }
               blobs.emplace_back(data->String());
               return ExpressionPtr{ArtifactDescription{
-                  ArtifactDigest::Create(data->String()), ObjectType::File}};
+                  ArtifactDigest::Create<ObjectType::File>(data->String()),
+                  ObjectType::File}};
           }},
          {"TREE",
           [&trees](auto&& eval, auto const& expr, auto const& env) {

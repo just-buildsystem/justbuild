@@ -70,7 +70,7 @@ class ArtifactDigest {
         return std::equal_to<bazel_re::Digest>{}(*this, other);
     }
 
-    template <ObjectType kType = ObjectType::File>
+    template <ObjectType kType>
     [[nodiscard]] static auto Create(std::string const& content) noexcept
         -> ArtifactDigest {
         if constexpr (kType == ObjectType::Tree) {

@@ -274,7 +274,7 @@ template <class T>
     auto msg = CreateDirectoryNode(dir_name);
     auto content_creator = [&dir] { return SerializeMessage(dir); };
     auto digest_creator = [](std::string const& content) -> bazel_re::Digest {
-        return ArtifactDigest::Create(content);
+        return ArtifactDigest::Create<ObjectType::File>(content);
     };
     return DirectoryNodeBundle::Create(msg, content_creator, digest_creator);
 }
@@ -305,7 +305,7 @@ template <class T>
     auto content_creator = [&msg] { return SerializeMessage(msg); };
 
     auto digest_creator = [](std::string const& content) -> bazel_re::Digest {
-        return ArtifactDigest::Create(content);
+        return ArtifactDigest::Create<ObjectType::File>(content);
     };
 
     return CommandBundle::Create(msg, content_creator, digest_creator);
@@ -341,7 +341,7 @@ template <class T>
     auto content_creator = [&msg] { return SerializeMessage(msg); };
 
     auto digest_creator = [](std::string const& content) -> bazel_re::Digest {
-        return ArtifactDigest::Create(content);
+        return ArtifactDigest::Create<ObjectType::File>(content);
     };
 
     return ActionBundle::Create(msg, content_creator, digest_creator);

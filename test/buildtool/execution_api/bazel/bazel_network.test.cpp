@@ -30,9 +30,12 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create(content_foo), content_foo};
-    BazelBlob bar{ArtifactDigest::Create(content_bar), content_bar};
-    BazelBlob baz{ArtifactDigest::Create(content_baz), content_baz};
+    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+                  content_foo};
+    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+                  content_bar};
+    BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(content_baz),
+                  content_baz};
 
     // Search blobs via digest
     REQUIRE(network.UploadBlobs(BlobContainer{{foo, bar, baz}}));
@@ -71,8 +74,10 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create(content_foo), content_foo};
-    BazelBlob bar{ArtifactDigest::Create(content_bar), content_bar};
+    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+                  content_foo};
+    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+                  content_bar};
 
     // Upload blobs
     REQUIRE(network.UploadBlobs(BlobContainer{{foo, bar}}));

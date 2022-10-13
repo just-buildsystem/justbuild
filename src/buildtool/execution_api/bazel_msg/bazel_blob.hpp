@@ -39,7 +39,8 @@ struct BazelBlob {
     if (not content.has_value()) {
         return std::nullopt;
     }
-    return BazelBlob{ArtifactDigest::Create(*content), *content};
+    return BazelBlob{ArtifactDigest::Create<ObjectType::File>(*content),
+                     *content};
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP

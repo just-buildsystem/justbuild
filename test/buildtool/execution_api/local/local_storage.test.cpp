@@ -24,7 +24,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     std::string test_bytes("test");
 
     LocalStorage storage{};
-    auto test_digest = ArtifactDigest::Create(test_bytes);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_bytes);
 
     // check blob not in storage
     CHECK(not storage.BlobPath(test_digest, true));

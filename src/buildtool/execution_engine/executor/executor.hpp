@@ -382,7 +382,7 @@ class ExecutorImpl {
         if (not content.has_value()) {
             return std::nullopt;
         }
-        auto digest = ArtifactDigest::Create(*content);
+        auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
         if (not api->Upload(
                 BlobContainer{{BazelBlob{digest, std::move(*content)}}})) {
             return std::nullopt;

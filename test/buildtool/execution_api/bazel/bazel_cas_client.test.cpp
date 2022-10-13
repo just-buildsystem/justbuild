@@ -30,7 +30,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
     SECTION("Valid digest and blob") {
         // digest of "test"
-        auto digest = ArtifactDigest::Create(content);
+        auto digest = ArtifactDigest::Create<ObjectType::File>(content);
 
         // Valid blob
         BazelBlob blob{digest, content};

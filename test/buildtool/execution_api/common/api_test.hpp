@@ -103,7 +103,7 @@ using ExecProps = std::map<std::string, std::string>;
     ExecProps const& props,
     bool is_hermetic = false) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     std::string output_path{"output_file"};
 
@@ -180,7 +180,7 @@ using ExecProps = std::map<std::string, std::string>;
     ExecProps const& props,
     bool is_hermetic = false) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     auto input_artifact_opt =
         ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
@@ -264,7 +264,7 @@ using ExecProps = std::map<std::string, std::string>;
     ApiFactory const& api_factory,
     ExecProps const& props) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     std::string output_path{"output_file"};
 

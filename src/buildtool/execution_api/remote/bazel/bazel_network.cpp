@@ -269,9 +269,9 @@ auto BazelNetwork::RecursivelyReadTreeLeafs(
         dir_map->reserve(dirs.size());
         for (auto& dir : dirs) {
             try {
-                dir_map->emplace(
-                    ArtifactDigest::Create(dir.SerializeAsString()),
-                    std::move(dir));
+                dir_map->emplace(ArtifactDigest::Create<ObjectType::File>(
+                                     dir.SerializeAsString()),
+                                 std::move(dir));
             } catch (...) {
                 return std::nullopt;
             }

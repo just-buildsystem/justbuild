@@ -22,7 +22,7 @@
 
 TEST_CASE_METHOD(HermeticLocalTestFixture, "LocalCAS", "[execution_api]") {
     std::string test_content{"test"};
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     SECTION("CAS for files") {
         LocalCAS<ObjectType::File> cas{};

@@ -132,7 +132,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto api = LocalApi{};
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     std::string output_path{"output_file"};
     std::vector<std::string> const cmdline = {
@@ -187,7 +187,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto api = LocalApi{};
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
     REQUIRE(api.Upload(BlobContainer{{BazelBlob{test_digest, test_content}}},
                        false));
 

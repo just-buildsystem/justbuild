@@ -30,7 +30,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     LocalCAS cas{};
     LocalAC ac{&cas};
 
-    auto action_id = ArtifactDigest::Create("action");
+    auto action_id = ArtifactDigest::Create<ObjectType::File>("action");
     CHECK(not ac.CachedResult(action_id));
 
     CHECK(RunDummyExecution(&ac, action_id, "result"));
@@ -44,8 +44,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     LocalCAS cas{};
     LocalAC ac{&cas};
 
-    auto action_id1 = ArtifactDigest::Create("action1");
-    auto action_id2 = ArtifactDigest::Create("action2");
+    auto action_id1 = ArtifactDigest::Create<ObjectType::File>("action1");
+    auto action_id2 = ArtifactDigest::Create<ObjectType::File>("action2");
     CHECK(not ac.CachedResult(action_id1));
     CHECK(not ac.CachedResult(action_id2));
 
@@ -73,8 +73,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     LocalCAS cas{};
     LocalAC ac{&cas};
 
-    auto action_id1 = ArtifactDigest::Create("action1");
-    auto action_id2 = ArtifactDigest::Create("action2");
+    auto action_id1 = ArtifactDigest::Create<ObjectType::File>("action1");
+    auto action_id2 = ArtifactDigest::Create<ObjectType::File>("action2");
     CHECK(not ac.CachedResult(action_id1));
     CHECK(not ac.CachedResult(action_id2));
 
@@ -102,7 +102,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     LocalCAS cas{};
     LocalAC ac{&cas};
 
-    auto action_id = ArtifactDigest::Create("same action");
+    auto action_id = ArtifactDigest::Create<ObjectType::File>("same action");
     CHECK(not ac.CachedResult(action_id));
 
     std::string result_content1{};

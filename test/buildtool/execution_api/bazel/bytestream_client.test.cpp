@@ -32,8 +32,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string content("foobar");
 
         // digest of "foobar"
-        auto digest =
-            static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
+        auto digest = static_cast<bazel_re::Digest>(
+            ArtifactDigest::Create<ObjectType::File>(content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -61,8 +61,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         // digest of "instance_nameinstance_nameinstance_..."
-        auto digest =
-            static_cast<bazel_re::Digest>(ArtifactDigest::Create(content));
+        auto digest = static_cast<bazel_re::Digest>(
+            ArtifactDigest::Create<ObjectType::File>(content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -108,9 +108,9 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};
 
-        BazelBlob foo{ArtifactDigest::Create("foo"), "foo"};
-        BazelBlob bar{ArtifactDigest::Create("bar"), "bar"};
-        BazelBlob baz{ArtifactDigest::Create("baz"), "baz"};
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>("foo"), "foo"};
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>("bar"), "bar"};
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>("baz"), "baz"};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},
@@ -155,9 +155,12 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
             content_baz[i] = instance_name[(i + 2) % instance_name.size()];
         }
 
-        BazelBlob foo{ArtifactDigest::Create(content_foo), content_foo};
-        BazelBlob bar{ArtifactDigest::Create(content_bar), content_bar};
-        BazelBlob baz{ArtifactDigest::Create(content_baz), content_baz};
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+                      content_foo};
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+                      content_bar};
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(content_baz),
+                      content_baz};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},

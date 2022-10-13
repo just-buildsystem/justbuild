@@ -58,12 +58,12 @@
                    });
 
     auto cmd_data = cmd.SerializeAsString();
-    auto cmd_id = ArtifactDigest::Create(cmd_data);
+    auto cmd_id = ArtifactDigest::Create<ObjectType::File>(cmd_data);
     blobs.emplace_back(cmd_id, cmd_data);
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
-    auto dir_id = ArtifactDigest::Create(dir_data);
+    auto dir_id = ArtifactDigest::Create<ObjectType::File>(dir_data);
     blobs.emplace_back(dir_id, dir_data);
 
     bazel_re::Action action;
@@ -74,7 +74,7 @@
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{dir_id}});
 
     auto action_data = action.SerializeAsString();
-    auto action_id = ArtifactDigest::Create(action_data);
+    auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
     blobs.emplace_back(action_id, action_data);
 
     BazelCasClient cas_client(info->host, info->port);
