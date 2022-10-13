@@ -92,12 +92,6 @@ auto TargetCache::Entry::ToResult() const noexcept
     return true;
 }
 
-// Function prototype for recursive call in ScanProvidesMap
-auto ScanTargetResult(
-    gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& /*infos*/,
-    nlohmann::json const& /*json*/) -> bool;
-
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto ScanProvidesMap(
     gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos,
     nlohmann::json const& json) -> bool {
@@ -105,8 +99,6 @@ auto ScanTargetResult(
         return false;
     }
     auto const& nodes = json["nodes"];
-
-    // Process provided artifacts
     auto const& provided_artifacts = json["provided_artifacts"];
     infos->reserve(infos->size() + provided_artifacts.size());
     std::transform(
@@ -116,32 +108,16 @@ auto ScanTargetResult(
         [&nodes](auto const& item) {
             return ToObjectInfo(nodes[item.template get<std::string>()]);
         });
-
-    // Process provided results
-    auto const& provided_results = json["provided_results"];
-    return std::all_of(provided_results.begin(),
-                       provided_results.end(),
-                       // NOLINTNEXTLINE(misc-no-recursion)
-                       [&infos, &nodes](auto const& item) {
-                           return ScanTargetResult(
-                               infos, nodes[item.template get<std::string>()]);
-                       });
-}
-
-// NOLINTNEXTLINE(misc-no-recursion)
-[[nodiscard]] auto ScanTargetResult(
-    gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos,
-    nlohmann::json const& result) -> bool {
-    return ScanArtifactMap(infos, result["artifacts"]) and
-           ScanArtifactMap(infos, result["runfiles"]) and
-           ScanProvidesMap(infos, result["provides"]);
+    return true;
 }
 
 auto TargetCache::Entry::ToArtifacts(
     gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos)
     const noexcept -> bool {
     try {
-        if (ScanTargetResult(infos, desc_)) {
+        if (ScanArtifactMap(infos, desc_["artifacts"]) and
+            ScanArtifactMap(infos, desc_["runfiles"]) and
+            ScanProvidesMap(infos, desc_["provides"])) {
             return true;
         }
     } catch (std::exception const& ex) {

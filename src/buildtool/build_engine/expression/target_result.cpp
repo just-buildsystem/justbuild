@@ -138,8 +138,28 @@ auto SerializeTargetResultWithReplacement(
         }
         else if (expr->IsResult()) {
             provided_results->emplace_back(id);
-            json = SerializeTargetResultWithReplacement(expr->Result(),
-                                                        replacements);
+            auto const& result = expr->Result();
+            auto artifact_stage = SerializeExpression(nodes,
+                                                      provided_artifacts,
+                                                      provided_nodes,
+                                                      provided_results,
+                                                      result.artifact_stage,
+                                                      replacements);
+            auto runfiles = SerializeExpression(nodes,
+                                                provided_artifacts,
+                                                provided_nodes,
+                                                provided_results,
+                                                result.runfiles,
+                                                replacements);
+            auto provides = SerializeExpression(nodes,
+                                                provided_artifacts,
+                                                provided_nodes,
+                                                provided_results,
+                                                result.provides,
+                                                replacements);
+            json = nlohmann::json({{"artifact_stage", artifact_stage},
+                                   {"runfiles", runfiles},
+                                   {"provides", provides}});
         }
         else if (expr->IsArtifact()) {
             provided_artifacts->emplace_back(id);
@@ -217,11 +237,29 @@ auto SerializeTargetResultWithReplacement(
             return ExpressionPtr{nullptr};
         }
         if (provided_results.contains(id)) {
-            auto result = TargetResult::FromJson(json);
-            if (result) {
-                auto result_exp = ExpressionPtr{*result};
-                sofar->emplace(id, result_exp);
-                return result_exp;
+            auto artifact_stage = DeserializeExpression(json["artifact_stage"],
+                                                        nodes,
+                                                        provided_artifacts,
+                                                        provided_nodes,
+                                                        provided_results,
+                                                        sofar);
+            auto runfiles = DeserializeExpression(json["runfiles"],
+                                                  nodes,
+                                                  provided_artifacts,
+                                                  provided_nodes,
+                                                  provided_results,
+                                                  sofar);
+            auto provides = DeserializeExpression(json["provides"],
+                                                  nodes,
+                                                  provided_artifacts,
+                                                  provided_nodes,
+                                                  provided_results,
+                                                  sofar);
+            if (artifact_stage and runfiles and provides) {
+                return ExpressionPtr{TargetResult{std::move(artifact_stage),
+                                                  std::move(provides),
+                                                  std::move(runfiles),
+                                                  /*is_cacheable=*/true}};
             }
             return ExpressionPtr{nullptr};
         }
