@@ -254,8 +254,12 @@ def bootstrap():
         "--dump-artifacts-to-build", TO_BUILD, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
+    if "DEBUG" in os.environ:
+        traverser = "./bin/bootstrap-traverser.py"
+    else:
+        traverser = "./bin/parallel-bootstrap-traverser.py"
     run([
-        "./bin/bootstrap-traverser.py", "-C", CONF_FILE, "--default-workspace",
+        traverser, "-C", CONF_FILE, "--default-workspace",
         src_wrkdir, GRAPH, TO_BUILD
     ],
         cwd=src_wrkdir)

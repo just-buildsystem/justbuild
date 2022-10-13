@@ -69,6 +69,8 @@ before to be present as well).
   this directory and has the expected blob id (computed the same
   way as `git` does). Only if this is not the case, fetching from
   the network is attempted.
+Additionally, if the environment variable `DEBUG` is set, the second
+bootstrap phase is carried out sequentially rather than in parallel.
 
 In any case, the resulting binary is selfcontained and can be moved
 to an appropriate location in `PATH`.

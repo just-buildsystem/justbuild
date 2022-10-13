@@ -1,8 +1,25 @@
 { "bundled-test":
   { "type": ["@", "rules", "shell/test", "script"]
-  , "name": ["bootstrap-test-bundled"]
+  , "arguments_config": ["SUFFIX"]
+  , "name":
+    [ "bootstrap-test-bundled"
+    , {"type": "var", "name": "SUFFIX", "default": ""}
+    ]
   , "test": ["test-bootstrap.sh"]
   , "deps": [["", "bootstrap-src"], ["@", "just-distfiles", "", "distdir"]]
+  }
+, "bundled-test-debug":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "bundled-test"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["SUFFIX", "-debug"]
+      , ["TEST_ENV", {"type": "singleton_map", "key": "DEBUG", "value": "YES"}]
+      ]
+    , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
+    }
   }
 , "well_known_protos":
   { "type": ["@", "rules", "data", "staged"]
@@ -45,6 +62,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["bundled-test", "prebuilt-test"]
+  , "deps": ["bundled-test", "bundled-test-debug", "prebuilt-test"]
   }
 }
