@@ -1,4 +1,5 @@
-{ "repositories":
+{ "main": "just"
+, "repositories":
   { "just":
     { "repository": {"type": "file", "path": "."}
     , "bindings":

@@ -1,10 +1,9 @@
 # Installing the `just` binary
 
-## Building `just` using an older version of `just`
+## Building `just` using an older version of `just-mr` and `just`
 
 ```sh
-CONF=$(./bin/just-mr.py -C etc/repos.json setup just)
-just build -C $CONF
+just-mr build
 ```
 
 This will build `just` for Linux on the x86_64 architecture with a dynamic link
@@ -17,8 +16,7 @@ installed and working properly. For example, to build `just` for 64 bit ARM,
 specify `arm64` as the target architecture via the `-D` flag:
 
 ```sh
-CONF=$(./bin/just-mr.py -C etc/repos.json setup just)
-just build -C $CONF -D '{"TARGET_ARCH":"arm64"}'
+just-mr build -D '{"TARGET_ARCH":"arm64"}'
 ```
 
 A complete list of variables honored by our build rules is provided in the
