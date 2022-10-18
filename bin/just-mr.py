@@ -21,16 +21,23 @@ import subprocess
 import sys
 import tempfile
 import time
+from typing import Optional
 
 from argparse import ArgumentParser
 from pathlib import Path
 
 JUST = "just"
+JUST_ARGS = {}
 ROOT = "/justroot"
+SYSTEM_ROOT = os.path.abspath(os.sep)
+WORKSPACE_ROOT = None
+SETUP_ROOT = None
 DISTDIR = []
+MARKERS = [".git", "ROOT", "WORKSPACE"]
 
 ALWAYS_FILE = False
 
+GIT_CHECKOUT_LOCATIONS_FILE = None
 GIT_CHECKOUT_LOCATIONS = {}
 
 TAKE_OVER = [
@@ -89,6 +96,26 @@ KNOWN_JUST_SUBCOMMANDS = {
     }
 }
 
+LOCATION_TYPES = ["workspace", "home", "system"]
+
+DEFAULT_RC_PATH = os.path.join(Path.home(), ".just-mrrc")
+DEFAULT_BUILD_ROOT = os.path.join(Path.home(), ".cache/just")
+DEFAULT_CHECKOUT_LOCATIONS_FILE = os.path.join(Path.home(), ".just-local.json")
+DEFAULT_DISTDIRS = [os.path.join(Path.home(), ".distfiles")]
+DEFAULT_CONFIG_LOCATIONS = [{
+    "root": "workspace",
+    "path": "repos.json"
+}, {
+    "root": "workspace",
+    "path": "etc/repos.json"
+}, {
+    "root": "home",
+    "path": ".just-repos.json"
+}, {
+    "root": "system",
+    "path": "etc/just-repos.json"
+}]
+
 
 def log(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -140,17 +167,25 @@ def run_cmd(cmd,
         fail("Command %s in %s failed" % (cmd, cwd))
 
 
+def find_workspace_root() -> Optional[str]:
+    def is_workspace_root(path: str) -> bool:
+        for m in MARKERS:
+            if os.path.exists(os.path.join(path, m)):
+                return True
+        return False
+
+    path = os.getcwd()
+    while True:
+        if is_workspace_root(path):
+            return path
+        if path == SYSTEM_ROOT:
+            return None
+        path = os.path.dirname(path)
+
+
 def read_config(configfile):
-    if configfile:
-        with open(configfile) as f:
-            return json.load(f)
-    default_config = os.path.join(Path.home(), ".just-repos.json")
-
-    if os.path.isfile(default_config):
-        with open(default_config) as f:
-            return json.load(f)
-
-    return {}
+    with open(configfile) as f:
+        return json.load(f)
 
 
 def git_root(*, upstream):
@@ -631,6 +666,9 @@ def reachable_repositories(repo, *, repos):
 
 
 def setup(*, config, main, setup_all=False, interactive=False):
+    if SETUP_ROOT:
+        cwd = os.getcwd()
+        os.chdir(SETUP_ROOT)
     repos = config.get("repositories", {})
     repos_to_setup = repos.keys()
     repos_to_include = repos.keys()
@@ -686,6 +724,9 @@ def setup(*, config, main, setup_all=False, interactive=False):
         mr_repos_actual[repo] = mr_repos[repo]
     mr_config["repositories"] = mr_repos_actual
 
+    if SETUP_ROOT:
+        os.chdir(cwd)
+
     return add_to_cas(json.dumps(mr_config, indent=2, sort_keys=True))
 
 
@@ -735,9 +776,7 @@ def fetch(*, config, fetch_dir, main, fetch_all=False):
                 fetch_dir = os.path.abspath(d)
                 break
     if not fetch_dir:
-        print("No directory found to fetch to, considered %r" % (DISTDIR, ))
-        sys.exit(1)
-    print("Fetching to %r" % (fetch_dir, ))
+        fail("No directory found to fetch to, considered %r" % (DISTDIR, ))
 
     repos = config["repositories"]
     repos_to_fetch = repos.keys()
@@ -747,6 +786,26 @@ def fetch(*, config, fetch_dir, main, fetch_all=False):
             main = sorted(list(repos_to_fetch))[0]
         if main != None:
             repos_to_fetch = reachable_repositories(main, repos=repos)[0]
+
+        def is_subpath(path, base):
+            return os.path.commonpath([path, base]) == base
+
+        # warn if fetch_dir is in invocation workspace
+        if WORKSPACE_ROOT and is_subpath(fetch_dir, WORKSPACE_ROOT):
+            repo = repos.get(main, {}).get("repository", {})
+            repo_path = repo.get("path", None)
+            if repo_path != None and repo.get("type", None) == "file":
+                if not os.path.isabs(repo_path):
+                    repo_path = os.path.realpath(
+                        os.path.join(SETUP_ROOT, repo_path))
+                # only warn if repo workspace differs to invocation workspace
+                if not is_subpath(repo_path, WORKSPACE_ROOT):
+                    log(f"""\
+Warning: Writing distribution files to workspace location '{fetch_dir}',
+         which is different to the workspace of the requested main repository
+         '{repo_path}'.""")
+
+    print("Fetching to %r" % (fetch_dir, ))
 
     for repo in repos_to_fetch:
         desc = repos[repo]
@@ -762,6 +821,86 @@ def fetch(*, config, fetch_dir, main, fetch_all=False):
                             os.path.join(fetch_dir, distfile))
 
     sys.exit(0)
+
+
+def read_location(location):
+    root = location.setdefault("root", None)
+    path = location.setdefault("path", None)
+    base = location.setdefault("base", ".")
+
+    if not path or root not in LOCATION_TYPES:
+        fail(f"malformed location object: {location}")
+
+    if root == "workspace":
+        if not WORKSPACE_ROOT:
+            log(f"Warning: Not in workspace root, ignoring location %s." %
+                (location, ))
+            return None
+        root = WORKSPACE_ROOT
+    if root == "home":
+        root = Path.home()
+    if root == "system":
+        root = SYSTEM_ROOT
+
+    return os.path.realpath(os.path.join(root, path)), os.path.realpath(
+        os.path.join(root, base))
+
+
+# read settings from just-mrrc and return config path
+def read_justmrrc(rcpath, no_rc=False):
+    if not rcpath:
+        rcpath = DEFAULT_RC_PATH
+    elif not os.path.isfile(rcpath):
+        fail(f"cannot read rc file {rcpath}.")
+
+    rc = {}
+    if os.path.isfile(rcpath) and not no_rc:
+        with open(rcpath) as f:
+            rc = json.load(f)
+
+    location = rc.get("local build root", None)
+    build_root = read_location(location) if location else None
+    if build_root:
+        global ROOT
+        ROOT = build_root[0]
+
+    location = rc.get("checkout locations", None)
+    checkout = read_location(location) if location else None
+    if checkout:
+        global GIT_CHECKOUT_LOCATIONS_FILE
+        if not os.path.isfile(checkout[0]):
+            fail(f"cannot find checkout locations files {checkout[0]}.")
+        GIT_CHECKOUT_LOCATIONS_FILE = checkout[0]
+
+    location = rc.get("distdirs", None)
+    if location:
+        global DISTDIR
+        DISTDIR = []
+        for l in location:
+            paths = read_location(l)
+            if paths:
+                if os.path.isdir(paths[0]):
+                    DISTDIR.append(paths[0])
+                else:
+                    log(f"Warning: Ignoring non-existing distdir {paths[0]}.")
+
+    location = rc.get("just", None)
+    just = read_location(location) if location else None
+    if just:
+        global JUST
+        JUST = just[0]
+
+    global JUST_ARGS
+    JUST_ARGS = rc.get("just args", {})
+
+    for location in rc.get("config lookup order", DEFAULT_CONFIG_LOCATIONS):
+        paths = read_location(location)
+        if paths and os.path.isfile(paths[0]):
+            global SETUP_ROOT
+            SETUP_ROOT = paths[1]
+            return paths[0]
+
+    return None
 
 
 def main():
@@ -797,6 +936,14 @@ def main():
         dest="main",
         default=None,
         help="Main repository to consider from the configuration.")
+    parser.add_argument("--rc",
+                        dest="rcfile",
+                        help="Use just-mrrc file from custom path.")
+    parser.add_argument("--norc",
+                        dest="norc",
+                        action="store_true",
+                        default=False,
+                        help="Do not use any just-mrrc file.")
     subcommands = parser.add_subparsers(dest="subcommand",
                                         title="subcommands",
                                         required=True)
@@ -852,29 +999,44 @@ def main():
                                add_help=False)
 
     (options, args) = parser.parse_known_args()
-    config = read_config(options.repository_config)
-    global ROOT
-    ROOT = options.local_build_root or os.path.join(Path.home(), ".cache/just")
-    ROOT = ROOT if os.path.isabs(ROOT) else os.path.abspath(ROOT)
-    global GIT_CHECKOUT_LOCATIONS
-    if options.checkout_location:
-        with open(options.checkout_location) as f:
-            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
-                                                      {}).get("git", {})
-    elif os.path.isfile(os.path.join(Path().home(), ".just-local.json")):
-        with open(os.path.join(Path().home(), ".just-local.json")) as f:
-            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
-                                                      {}).get("git", {})
-    global DISTDIR
-    if options.distdir:
-        DISTDIR = options.distdir
 
-    DISTDIR.append(os.path.join(Path.home(), ".distfiles"))
+    global ROOT, GIT_CHECKOUT_LOCATIONS_FILE, DISTDIR, SETUP_ROOT, WORKSPACE_ROOT
+    ROOT = DEFAULT_BUILD_ROOT
+    if os.path.isfile(DEFAULT_CHECKOUT_LOCATIONS_FILE):
+        GIT_CHECKOUT_LOCATIONS_FILE = DEFAULT_CHECKOUT_LOCATIONS_FILE
+    DISTDIR = DEFAULT_DISTDIRS
+    SETUP_ROOT = os.path.curdir
+    WORKSPACE_ROOT = find_workspace_root()
+
+    config_file = read_justmrrc(options.rcfile, options.norc)
+    if options.repository_config:
+        config_file = options.repository_config
+
+    if not config_file:
+        fail("cannot find repository configuration.")
+    config = read_config(config_file)
+
+    if options.local_build_root:
+        ROOT = os.path.abspath(options.local_build_root)
+
+    if options.checkout_location:
+        if not os.path.isfile(options.checkout_location):
+            fail("cannot find checkout locations file %s" %
+                 (options.checkout_location, ))
+        GIT_CHECKOUT_LOCATIONS_FILE = os.path.abspath(options.checkout_location)
+
+    if GIT_CHECKOUT_LOCATIONS_FILE:
+        with open(options.checkout_location) as f:
+            global GIT_CHECKOUT_LOCATIONS
+            GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
+                                                      {}).get("git", {})
+
+    if options.distdir:
+        DISTDIR += options.distdir
 
     global JUST
     if options.just:
         JUST = os.path.abspath(options.just)
-
     global ALWAYS_FILE
     ALWAYS_FILE = options.always_file
 
