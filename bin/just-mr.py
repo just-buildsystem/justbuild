@@ -95,6 +95,7 @@ KNOWN_JUST_SUBCOMMANDS = {
         "build root": True
     }
 }
+CURRENT_SUBCOMMAND = None
 
 LOCATION_TYPES = ["workspace", "home", "system"]
 
@@ -502,6 +503,11 @@ def file_as_git(fpath):
         # TODO: consider also doing this for pending changes
         # copy non-git paths to tmp-workspace and import to git
         fpath = os.path.realpath(fpath)
+        if CURRENT_SUBCOMMAND:
+            log(f"""\
+Warning: Inefficient Git import of file path '{fpath}'.
+         Please consider using 'just-mr setup' and 'just {CURRENT_SUBCOMMAND}'
+         separately to cache the output.""")
         target = archive_tmp_checkout_dir(os.path.relpath(fpath, "/"),
                                           repo_type="file")
         os.makedirs(os.path.dirname(target), exist_ok=True)
@@ -738,7 +744,10 @@ def call_just(*, config, main, args):
     if subcommand in KNOWN_JUST_SUBCOMMANDS:
         if KNOWN_JUST_SUBCOMMANDS[subcommand]["config"]:
             use_config = True
+            global CURRENT_SUBCOMMAND
+            CURRENT_SUBCOMMAND = subcommand
             config = setup(config=config, main=main)
+            CURRENT_SUBCOMMAND = None
         use_build_root = KNOWN_JUST_SUBCOMMANDS[subcommand]["build root"]
     cmd = [JUST]
     cmd += [subcommand] if subcommand else []
