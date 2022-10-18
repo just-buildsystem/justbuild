@@ -50,8 +50,8 @@ multi-repository configuration file if it contains the key ~main~ or
 through the option ~--main~. The command-line option ~--main~
 overrides what is eventually read from the multi-repository
 configuration file. If neither the multi-repository configuration file
-contains the ~main~ key nor the ~--main~ option is provided, the main
-repository is set to an empty string.
+contains the ~main~ key nor the ~--main~ option is provided, the lexicographical
+first respository from the multi-repository configuration file is used as main.
 
 The ~workspace_root~ of the main repository is then defined as
 follows. If the option ~--workspace-root~ is provided, then
