@@ -16,12 +16,13 @@ popular in German news.
 The sources are an archive available on the web. As upstream uses a
 different build system, we have to provide our own build description;
 we take the top-level directory as layer for this. As we also want
-to patch the definition file, we add the subdirctory ~files~ as
+to patch the definition file, we add the subdirectory ~files~ as
 logical repository for the patches. Hence we create a file ~repos.json~
 with the following content.
 
 #+BEGIN_SRC js
-{ "repositories":
+{ "main": "units"
+, "repositories":
   { "just-rules":{ /* ... unchanged ... */ }
   , "import targets": {"repository": {"type": "file", "path": "."}}
   , "patches": {"repository": {"type": "file", "path": "files"}}
@@ -40,11 +41,11 @@ with the following content.
 }
 #+END_SRC
 
-The repository to set up is ~units~ and, as usual, we set the
-shell variable ~CONF~ to the resulting multi-repository configuration.
+The repository to set up is ~units~ and, as usual, we can use ~just-mr~ to
+fetch the archive and obtain the resulting multi-repository configuration.
 
 #+BEGIN_SRC sh
-$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup units)
+$ just-mr setup units
 #+END_SRC
 
 ** Patching a file: targets versus ~FILE~
@@ -64,7 +65,7 @@ empty object and refine it later.
 
 #+BEGIN_SRC sh
 $ echo {} > TARGETS.units
-$ just install -C $CONF -o . definitions.units
+$ just-mr install -o . definitions.units
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -123,7 +124,7 @@ must not modify their inputs) and, in fact, have a
 fixed command line.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF definitions.units --dump-actions -
+$ just-mr analyse definitions.units --dump-actions -
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Result of target [["@","units","","definitions.units"],{}]: {
         "artifacts": {
@@ -165,7 +166,7 @@ $
 Building ~"definitions.units"~ we find out patch applied correctly.
 
 #+BEGIN_SRC sh
-$ just build -C $CONF definitions.units -P definitions.units | grep -A 5 'German units'
+$ just-mr build definitions.units -P definitions.units | grep -A 5 'German units'
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -196,7 +197,7 @@ In this way, we get the desired collection of one unmodified source file and
 the output of the patch action.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF data
+$ just-mr analyse data
 INFO: Requested target is [["@","units","","data"],{}]
 INFO: Result of target [["@","units","","data"],{}]: {
         "artifacts": {
@@ -292,7 +293,7 @@ The result basically work and shows that we have 5 source files in total,
 giving 5 compile and one link action.
 
 #+BEGIN_SRC sh
-$ just build -C $CONF units
+$ just-mr build units
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -314,7 +315,7 @@ simply set an appropriate compiler flag, but let's do things properly and patch
 away the underlying reason. To do so, we first create a patch.
 
 #+BEGIN_SRC sh
-$ just install -C $CONF -o . strfunc.c
+$ just-mr install -o . strfunc.c
 INFO: Requested target is [["@","units","","strfunc.c"],{}]
 INFO: Analysed target [["@","units","","strfunc.c"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -366,7 +367,7 @@ the same object file as the unpatched file (after all, we only wanted to get
 rid of a warning), the linking step can be taken from cache.
 
 #+BEGIN_SRC sh
-$ just build -C $CONF units
+$ just-mr build units
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -388,7 +389,7 @@ artifacts according to the usual conventions.
 Then things work as expected
 
 #+BEGIN_SRC sh
-$ just install -C $CONF -o /tmp/testinstall
+$ just-mr install -o /tmp/testinstall
 INFO: Requested target is [["@","units","",""],{}]
 INFO: Analysed target [["@","units","",""],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching

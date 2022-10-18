@@ -85,7 +85,7 @@ $ cat TARGETS
   , "deps": ["out.txt"]
   }
 }
-$ just build -C $CONF
+$ just-mr build
 INFO: Requested target is [["@","tutorial","",""],{}]
 INFO: Analysed target [["@","tutorial","",""],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -96,7 +96,7 @@ INFO: Artifacts built, logical paths are:
         bin/hello [59f7af154b3b7beac4a6cab40499cb3b388220c4:16608:x]
         share/hello/OUT.txt [428b97b82b6c59cad7488b24e6b618ebbcd819bc:13:f]
         share/hello/version.txt [088ae5a8a57f62016392bdf124a9b8dfc0288763:39:f]
-$ just build -C $CONF
+$ just-mr build
 INFO: Requested target is [["@","tutorial","",""],{}]
 INFO: Analysed target [["@","tutorial","",""],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -107,7 +107,7 @@ INFO: Artifacts built, logical paths are:
         bin/hello [59f7af154b3b7beac4a6cab40499cb3b388220c4:16608:x]
         share/hello/OUT.txt [428b97b82b6c59cad7488b24e6b618ebbcd819bc:13:f]
         share/hello/version.txt [088ae5a8a57f62016392bdf124a9b8dfc0288763:39:f]
-$ just rebuild -C $CONF
+$ just-mr rebuild
 INFO: Requested target is [["@","tutorial","",""],{}]
 INFO: Analysed target [["@","tutorial","",""],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -138,7 +138,7 @@ of a larger, quality-assurance process. To support the automation of such
 processes, the findings can also be reported in machine-readable form.
 
 #+BEGIN_SRC sh
-$ just rebuild -C $CONF --dump-flaky flakes.json --dump-graph actions.json
+$ just-mr rebuild --dump-flaky flakes.json --dump-graph actions.json
 [...]
 $ cat flakes.json
 {

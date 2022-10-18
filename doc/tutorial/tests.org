@@ -92,8 +92,7 @@ $ echo '{}' > tutorial-defaults/CC/test/TARGETS
 Now we can run the test (i.e., build the test result):
 
 #+BEGIN_SRC sh
-$ CONF=$(/usr/src/justbuild/bin/just-mr.py -C repos.json setup tutorial)
-$ just build -C $CONF greet test
+$ just-mr build greet test
 INFO: Requested target is [["@","tutorial","greet","test"],{}]
 INFO: Analysed target [["@","tutorial","greet","test"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -128,7 +127,7 @@ of the artifact that should be printed on the command line, in our case
 ~stdout~:
 
 #+BEGIN_SRC sh
-$ just build -C $CONF greet test --log-limit 1 -P stdout
+$ just-mr build greet test --log-limit 1 -P stdout
 greet output: Hello World!
 
 greet output: Hello Universe!
@@ -145,7 +144,7 @@ the test binary is the last action associated with the test and the test
 binary is, of course, one of its inputs.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF --request-action-input -1 greet test
+$ just-mr analyse --request-action-input -1 greet test
 INFO: Requested target is [["@","tutorial","greet","test"],{}]
 INFO: Request is input of action #-1
 INFO: Result of input of action #-1 of target [["@","tutorial","greet","test"],{}]: {
@@ -182,10 +181,10 @@ The provided data also shows us the precise description of the action
 for which we request the input. This allows us to manually rerun
 the action. Or we can simply interact with the test binary manually
 after installing the inputs to this action. Requesting the inputs
-of an action can also be usefull when debugging a build failure.
+of an action can also be useful when debugging a build failure.
 
 #+BEGIN_SRC sh
-$ just install -o work -C $CONF --request-action-input -1 greet test
+$ just-mr install -o work --request-action-input -1 greet test
 INFO: Requested target is [["@","tutorial","greet","test"],{}]
 INFO: Request is input of action #-1
 INFO: Analysed target [["@","tutorial","greet","test"],{}]
@@ -250,7 +249,7 @@ $ echo '{}' > tutorial-defaults/shell/test/TARGETS
 Now we can run the shell test (i.e., build the test result):
 
 #+BEGIN_SRC sh
-$ just build -C $CONF test
+$ just-mr build test
 INFO: Requested target is [["@","tutorial","","test"],{}]
 INFO: Analysed target [["@","tutorial","","test"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -305,7 +304,7 @@ Now we can run all tests at once by just building the compound test target
 ~"all_tests"~:
 
 #+BEGIN_SRC sh
-$ just build -C $CONF all_tests
+$ just-mr build all_tests
 INFO: Requested target is [["@","tutorial","","all_tests"],{}]
 INFO: Analysed target [["@","tutorial","","all_tests"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching

@@ -55,8 +55,7 @@ those would be added to the ~"deps"~ field.
 When building the library, there's very little to do.
 
 #+BEGIN_SRC sh
-$ CONF=$(just-mr -C repos.json setup)
-$ just build -C $CONF examples address
+$ just-mr build examples address
 INFO: Requested target is [["@","","examples","address"],{}]
 INFO: Analysed target [["@","","examples","address"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
@@ -79,7 +78,7 @@ and did not even construct the dependency graph for that target. A proto
 library simply provides the dependency structure of the ~.proto~ files.
 
 #+BEGIN_SRC sh
-$ just analyse --dump-nodes - -C $CONF examples address
+$ just-mr analyse --dump-nodes - examples address
 INFO: Requested target is [["@","","examples","address"],{}]
 INFO: Result of target [["@","","examples","address"],{}]: {
         "artifacts": {
@@ -178,9 +177,9 @@ a bit of time, as the proto compiler has to be built. But in follow-up
 builds, also in different projects, the target-level cache is filled already.
 
 #+BEGIN_SRC sh
-$ just build -C $CONF examples add_person
+$ just-mr build examples add_person
 ...
-$ just build -C $CONF examples add_person
+$ just-mr build examples add_person
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Analysed target [["@","","examples","add_person"],{}]
 INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
@@ -196,7 +195,7 @@ If we look at the actions associated with the binary, we find that those
 are still the two actions we expect: a compile action and a link action.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF examples add_person --dump-actions -
+$ just-mr analyse examples add_person --dump-actions -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
@@ -243,7 +242,7 @@ still analysed. In the one anonymous target, we find again the
 abstract node we discussed earlier.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF examples add_person  --dump-targets -
+$ just-mr analyse examples add_person  --dump-targets -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
@@ -333,7 +332,7 @@ the expected additional targets and the one anonymous target is
 reused by both binaries.
 
 #+BEGIN_SRC sh
-$ just analyse -C $CONF examples test  --dump-targets -
+$ just-mr analyse examples test  --dump-targets -
 INFO: Requested target is [["@","","examples","test"],{}]
 INFO: Result of target [["@","","examples","test"],{}]: {
         "artifacts": {
@@ -389,7 +388,7 @@ $
 Finally, the test passes and the output is as expected.
 
 #+BEGIN_SRC sh
-$ just build -C $CONF examples test -Pwork/out.txt
+$ just-mr build examples test -Pwork/out.txt
 INFO: Requested target is [["@","","examples","test"],{}]
 INFO: Analysed target [["@","","examples","test"],{}]
 INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
