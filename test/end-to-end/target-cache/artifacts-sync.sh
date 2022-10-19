@@ -53,10 +53,10 @@ else
 
   if [ "${COMPATIBLE:-}" = "YES" ]; then
     ARGS="--compatible"
-    TCDIR="$LBRDIR/protocol-dependent/compatible-sha256/tc"
+    TCDIR="$LBRDIR/protocol-dependent/generation-0/compatible-sha256/tc"
   else
     ARGS=""
-    TCDIR="$LBRDIR/protocol-dependent/git-sha1/tc"
+    TCDIR="$LBRDIR/protocol-dependent/generation-0/git-sha1/tc"
   fi
 
   # create common test files

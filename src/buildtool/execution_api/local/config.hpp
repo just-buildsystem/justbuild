@@ -105,8 +105,8 @@ class LocalExecutionConfig {
     [[nodiscard]] static auto CacheRoot() noexcept -> std::filesystem::path {
         auto& cache_root = Data().cache_root;
         if (cache_root.empty()) {
-            cache_root =
-                UpdatePathForCompatibility(BuildRoot() / "protocol-dependent");
+            cache_root = UpdatePathForCompatibility(
+                BuildRoot() / "protocol-dependent" / "generation-0");
         }
         return cache_root;
     }
