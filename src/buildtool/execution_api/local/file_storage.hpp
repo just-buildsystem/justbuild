@@ -54,9 +54,9 @@ class FileStorage {
         return AtomicAddFromBytes(id, bytes);
     }
 
-    [[nodiscard]] auto GetPath(std::string const& name) const noexcept
+    [[nodiscard]] auto GetPath(std::string const& id) const noexcept
         -> std::filesystem::path {
-        return storage_root_ / name;
+        return GetShardedPath(id);
     }
 
   private:
@@ -72,7 +72,7 @@ class FileStorage {
     [[nodiscard]] auto AtomicAddFromFile(std::string const& id,
                                          std::filesystem::path const& path,
                                          bool is_owner) const noexcept -> bool {
-        auto file_path = storage_root_ / id;
+        auto file_path = GetShardedPath(id);
         if ((kMode == StoreMode::LastWins or
              not FileSystemManager::Exists(file_path)) and
             FileSystemManager::CreateDirectory(file_path.parent_path())) {
@@ -115,7 +115,7 @@ class FileStorage {
     [[nodiscard]] auto AtomicAddFromBytes(
         std::string const& id,
         std::string const& bytes) const noexcept -> bool {
-        auto file_path = storage_root_ / id;
+        auto file_path = GetShardedPath(id);
         if (kMode == StoreMode::LastWins or
             not FileSystemManager::Exists(file_path)) {
             auto unique_path = CreateUniquePath(file_path);
@@ -129,6 +129,18 @@ class FileStorage {
             }
         }
         return FileSystemManager::IsFile(file_path);
+    }
+
+    /// \brief Determines the storage path of a blob identified by a hash value.
+    /// The same sharding technique as git is used, meaning, the hash value is
+    /// separated into a directory part and file part. Two characters are used
+    /// for the directory part, the rest for the file, which results in 256
+    /// possible directories.
+    /// \param id   The hash value.
+    /// \returns The sharded file path.
+    [[nodiscard]] auto GetShardedPath(std::string const& id) const noexcept
+        -> std::filesystem::path {
+        return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
     }
 
     /// \brief Create file from file path.
