@@ -93,6 +93,7 @@
             , "-Wno-unused-parameter"
             , "-Wno-uninitialized"
             , "-Wno-missing-field-initializers"
+            , "-Wno-implicit-const-int-float-conversion"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
