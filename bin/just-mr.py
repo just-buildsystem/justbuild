@@ -1035,7 +1035,7 @@ def main():
         GIT_CHECKOUT_LOCATIONS_FILE = os.path.abspath(options.checkout_location)
 
     if GIT_CHECKOUT_LOCATIONS_FILE:
-        with open(options.checkout_location) as f:
+        with open(GIT_CHECKOUT_LOCATIONS_FILE) as f:
             global GIT_CHECKOUT_LOCATIONS
             GIT_CHECKOUT_LOCATIONS = json.load(f).get("checkouts",
                                                       {}).get("git", {})
