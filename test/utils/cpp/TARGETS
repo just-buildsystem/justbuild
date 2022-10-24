@@ -29,6 +29,21 @@
   , "test": ["curl_usage_test.sh"]
   , "deps": [["test/utils", "test_utils_install"], "curl_usage_install"]
   }
+, "archive_usage":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "tainted": ["test"]
+  , "name": ["archive_usage"]
+  , "srcs": ["archive_usage.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["", "libarchive"]
+    ]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["path", "curl_usage_test"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["path", "curl_usage_test", "archive_usage"]
+  }
 }
