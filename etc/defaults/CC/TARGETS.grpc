@@ -94,6 +94,8 @@
             , "-Wno-uninitialized"
             , "-Wno-missing-field-initializers"
             , "-Wno-implicit-const-int-float-conversion"
+            , "-Wno-stringop-overflow"
+            , "-Wno-stringop-truncation"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
