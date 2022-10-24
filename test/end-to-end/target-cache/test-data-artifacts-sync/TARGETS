@@ -1,0 +1,4 @@
+{ "greetlib":
+  {"type": "install", "dirs": [[["TREE", null, "./greetlib"], "."]]}
+, "pydicts": {"type": "install", "dirs": [[["TREE", null, "./pydicts"], "."]]}
+}

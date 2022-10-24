@@ -1,0 +1,5 @@
+{ "json_from_py": {"type": [".", "json_dicts"], "py_dicts": ["exported_py"]}
+, "exported_py": {"type": "export", "target": "py_dict_files"}
+, "py_dict_files":
+  {"type": [".", "py_dicts"], "py_files": ["foo.py", "bar.py"]}
+}

@@ -1,0 +1,316 @@
+{ "py_dicts":
+  { "target_fields": ["py_files"]
+  , "implicit": {"converter": [["FILE", null, "dict_converter.py"]]}
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts": {"type": "empty_map"}
+    , "runfiles": {"type": "empty_map"}
+    , "provides":
+      { "type": "let*"
+      , "bindings":
+        [ [ "converter"
+          , { "type": "VALUE_NODE"
+            , "$1":
+              { "type": "RESULT"
+              , "artifacts":
+                { "type": "map_union"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "d"
+                  , "range": {"type": "FIELD", "name": "converter"}
+                  , "body":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "d"}
+                    }
+                  }
+                }
+              , "runfiles": {"type": "empty_map"}
+              , "provides": {"type": "empty_map"}
+              }
+            }
+          ]
+        , [ "py_files"
+          , { "type": "VALUE_NODE"
+            , "$1":
+              { "type": "RESULT"
+              , "artifacts":
+                { "type": "map_union"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "d"
+                  , "range": {"type": "FIELD", "name": "py_files"}
+                  , "body":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "d"}
+                    }
+                  }
+                }
+              , "runfiles": {"type": "empty_map"}
+              , "provides": {"type": "empty_map"}
+              }
+            }
+          ]
+        ]
+      , "body":
+        { "type": "map_union"
+        , "$1":
+          [ { "type": "singleton_map"
+            , "key": "py2json"
+            , "value":
+              [ { "type": "ABSTRACT_NODE"
+                , "string_fields":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "singleton_map", "key": "from", "value": ["py"]}
+                    , {"type": "singleton_map", "key": "to", "value": ["json"]}
+                    ]
+                  }
+                , "target_fields":
+                  { "type": "map_union"
+                  , "$1":
+                    [ { "type": "singleton_map"
+                      , "key": "converter"
+                      , "value": [{"type": "var", "name": "converter"}]
+                      }
+                    , { "type": "singleton_map"
+                      , "key": "dicts"
+                      , "value": [{"type": "var", "name": "py_files"}]
+                      }
+                    ]
+                  }
+                , "node_type": "convert"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+, "dicts_convert":
+  { "string_fields": ["from", "to"]
+  , "target_fields": ["converter", "dicts"]
+  , "config_vars": ["ext"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["from", {"type": "join", "$1": {"type": "FIELD", "name": "from"}}]
+      , ["to", {"type": "join", "$1": {"type": "FIELD", "name": "to"}}]
+      , [ "ext"
+        , { "type": "var"
+          , "name": "ext"
+          , "default":
+            { "type": "if"
+            , "cond":
+              {"type": "==", "$1": {"type": "var", "name": "to"}, "$2": "py"}
+            , "then": ".py"
+            , "else":
+              { "type": "if"
+              , "cond":
+                { "type": "=="
+                , "$1": {"type": "var", "name": "to"}
+                , "$2": "json"
+                }
+              , "then": ".json"
+              , "else": ".yaml"
+              }
+            }
+          }
+        ]
+      , [ "dicts"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "d"
+            , "range": {"type": "FIELD", "name": "dicts"}
+            , "body":
+              {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "d"}}
+            }
+          }
+        ]
+      , [ "converter"
+        , { "type": "to_subdir"
+          , "subdir": "bin"
+          , "flat": false
+          , "$1":
+            { "type": "disjoint_map_union"
+            , "$1":
+              { "type": "foreach"
+              , "var": "x"
+              , "range": {"type": "FIELD", "name": "converter"}
+              , "body":
+                {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "x"}}
+              }
+            }
+          }
+        ]
+      , [ "converter_bin"
+        , { "type": "join"
+          , "$1": {"type": "keys", "$1": {"type": "var", "name": "converter"}}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "disjoint_map_union"
+        , "$1":
+          { "type": "foreach_map"
+          , "var_key": "path"
+          , "var_val": "file"
+          , "range": {"type": "var", "name": "dicts"}
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ [ "out"
+                , { "type": "change_ending"
+                  , "ending": {"type": "var", "name": "ext"}
+                  , "$1": {"type": "var", "name": "path"}
+                  }
+                ]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "cmd":
+                [ "/bin/sh"
+                , "-c"
+                , { "type": "join"
+                  , "$1":
+                    { "type": "++"
+                    , "$1":
+                      [ [{"type": "var", "name": "converter_bin"}]
+                      , [ {"type": "var", "name": "from"}
+                        , {"type": "var", "name": "to"}
+                        ]
+                      , [ {"type": "var", "name": "path"}
+                        , ">"
+                        , {"type": "var", "name": "out"}
+                        ]
+                      ]
+                    }
+                  , "separator": " "
+                  }
+                ]
+              , "inputs":
+                { "type": "disjoint_map_union"
+                , "$1":
+                  [ {"type": "var", "name": "converter"}
+                  , { "type": "singleton_map"
+                    , "key": {"type": "var", "name": "path"}
+                    , "value": {"type": "var", "name": "file"}
+                    }
+                  ]
+                }
+              , "outs": [{"type": "var", "name": "out"}]
+              }
+            }
+          }
+        }
+      , "runfiles": {"type": "empty_map"}
+      , "provides": {"type": "empty_map"}
+      }
+    }
+  }
+, "json_dicts":
+  { "target_fields": ["py_dicts"]
+  , "implicit": {"converter": [["FILE", null, "dict_converter.py"]]}
+  , "anonymous":
+    { "from_py":
+      { "provider": "py2json"
+      , "rule_map": {"convert": "dicts_convert"}
+      , "target": "py_dicts"
+      }
+    }
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts":
+      { "type": "disjoint_map_union"
+      , "$1":
+        { "type": "foreach"
+        , "var": "a"
+        , "range": {"type": "FIELD", "name": "from_py"}
+        , "body":
+          {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "a"}}
+        }
+      }
+    , "runfiles": {"type": "empty_map"}
+    , "provides":
+      { "type": "let*"
+      , "bindings":
+        [ [ "converter"
+          , { "type": "VALUE_NODE"
+            , "$1":
+              { "type": "RESULT"
+              , "artifacts":
+                { "type": "map_union"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "d"
+                  , "range": {"type": "FIELD", "name": "converter"}
+                  , "body":
+                    { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "d"}
+                    }
+                  }
+                }
+              , "runfiles": {"type": "empty_map"}
+              , "provides": {"type": "empty_map"}
+              }
+            }
+          ]
+        , [ "py_nodes"
+          , { "type": "++"
+            , "$1":
+              { "type": "foreach"
+              , "var": "d"
+              , "range": {"type": "FIELD", "name": "py_dicts"}
+              , "body":
+                { "type": "DEP_PROVIDES"
+                , "dep": {"type": "var", "name": "d"}
+                , "provider": "py2json"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            }
+          ]
+        ]
+      , "body":
+        { "type": "map_union"
+        , "$1":
+          [ { "type": "singleton_map"
+            , "key": "json2yaml"
+            , "value":
+              [ { "type": "ABSTRACT_NODE"
+                , "string_fields":
+                  { "type": "map_union"
+                  , "$1":
+                    [ { "type": "singleton_map"
+                      , "key": "from"
+                      , "value": ["json"]
+                      }
+                    , {"type": "singleton_map", "key": "to", "value": ["yaml"]}
+                    ]
+                  }
+                , "target_fields":
+                  { "type": "map_union"
+                  , "$1":
+                    [ { "type": "singleton_map"
+                      , "key": "converter"
+                      , "value": [{"type": "var", "name": "converter"}]
+                      }
+                    , { "type": "singleton_map"
+                      , "key": "dicts"
+                      , "value": {"type": "var", "name": "py_nodes"}
+                      }
+                    ]
+                  }
+                , "node_type": "convert"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{ "repositories":
+  { "main":
+    {"repository": {"type": "file", "path": ".", "pragma": {"to_git": true}}}
+  }
+}

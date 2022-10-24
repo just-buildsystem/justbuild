@@ -1,0 +1,6 @@
+{ "greet":
+  { "type": "export"
+  , "target": ["src", "greetlib"]
+  , "flexible_config": ["CXX", "CXXFLAGS", "AR", "ENV"]
+  }
+}

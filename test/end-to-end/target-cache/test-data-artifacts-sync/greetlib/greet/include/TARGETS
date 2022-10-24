@@ -1,0 +1,6 @@
+{ "hdrs":
+  { "type": ["@", "rules", "CC", "header directory"]
+  , "hdrs": [["TREE", null, "."]]
+  , "stage": ["greet"]
+  }
+}

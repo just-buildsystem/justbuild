@@ -1,0 +1,7 @@
+{ "main":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "name": ["main"]
+  , "srcs": ["main.cpp"]
+  , "deps": [["@", "greet", "", "greet"]]
+  }
+}

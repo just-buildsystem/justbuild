@@ -1,0 +1,7 @@
+{ "greetlib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["greet"]
+  , "hdrs": [["include", "hdrs"]]
+  , "srcs": ["greet.cpp"]
+  }
+}

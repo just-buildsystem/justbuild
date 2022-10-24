@@ -13,30 +13,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 set -eu
 
-# This test requires remote execution and is skipped in case of local execution.
-# The test is separated into two phases. In phase I, the execution IDs for the
-# local and the remote execution backends are determined. In phase II, the
-# actual test is executed, which is explained in the next section.
+# This test tests the synchronization mechanism of target-level-cached remote
+# artifacts to the local CAS and back. It requires remote execution and is
+# skipped in case of local execution. The test is separated into three phases.
+# In phase I, the execution IDs for the local and the remote execution backends
+# are determined. In phase II, artifacts mentioned in the 'artifacts' and the
+# 'runfiles' map of a target-cache entry are tested. In phase III, artifacts
+# mentioned in the 'provides' map of a target-cache entry are tested.
 
-# In order to test the synchronization of target-level cached remote artifacts
-# to the local CAS and back, the following test has been designed. The test
-# needs to verify that if any artifact that is mentioned in a target cache entry
-# is garbage collected on the remote side is actually uploaded by the
-# synchronization mechanism and will be available for remote action execution.
-# In order to "emulate" the behavior of a garbage collected file or tree on the
+# In order to test the synchronization of target-level-cached remote artifacts
+# to the local CAS and back, the following testing technique has been designed.
+# The test needs to verify that any artifact that is mentioned in a target-cache
+# entry and is garbage collected on the remote side is uploaded again by the
+# synchronization mechanism and thus making it available for remote action
+# execution. A complete verification needs to test the download (backup)
+# direction of the synchronization mechanism and the upload mechanism. Thus
+# phase II and III are separated in part A and B to test the download and upload
+# accordingly. To test the download direction, a remote execution is triggered
+# and artifacts mentioned in the target-cache entry should be available in the
+# local CAS. To test the upload direction, we need a garbage collection of some
+# backed-up files, which have been downloaded during a remote execution. In
+# order to "emulate" the behavior of a garbage-collected file or tree on the
 # remote side, a simple project with parts eligible for target-level caching is
-# built locally and the target cache entry is pretended to be created for the
+# built locally and the target-cache entry is pretended to be created for the
 # remote execution backend. If then remote execution is triggered, the files or
 # trees are not available on the remote side, so they need to be uploaded from
-# the local CAS. After the artifacts have been uploaded to the remote CAS, they
-# would be available for the next test run, thus, random strings are used in the
-# affected text files to vary the according hash value.
+# the local CAS. Since there are three locations within a target-cache entry
+# where artifacts can be mentioned, all three locations need to be tested,
+# 'artifacts' and 'runfiles' map in test phase II and 'provides' map in test
+# phase III.
 
-readonly JUST="$PWD/bin/tool-under-test"
-readonly JUST_MR="$PWD/bin/just-mr.py"
+# Since this test works with KNOWN artifacts, once an artifact is uploaded to
+# the remote side as part of a test execution, it is known with that hash and
+# would not cause an error in the next test execution. Thus, we inject random
+# strings in the affected source files to create artifacts not yet known to the
+# remote side.
+
+readonly ROOT="$PWD"
+readonly JUST="$ROOT/bin/tool-under-test"
+readonly JUST_MR="$ROOT/foo/bin/just-mr.py"
+readonly JUST_RULES="$ROOT/foo/rules"
 readonly LBRDIR="$TEST_TMPDIR/local-build-root"
 readonly TESTDIR="$TEST_TMPDIR/test-root"
 
@@ -44,26 +62,44 @@ if [ "${REMOTE_EXECUTION_ADDRESS:-}" = "" ]; then
   echo
   echo "Test skipped, since no remote execution is specified."
   echo
+  return
+fi
+
+REMOTE_EXECUTION_ARGS="-r $REMOTE_EXECUTION_ADDRESS"
+if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
+  REMOTE_EXECUTION_ARGS="$REMOTE_EXECUTION_ARGS --remote-execution-property $REMOTE_EXECUTION_PROPERTIES"
+fi
+
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  ARGS="--compatible"
+  HASH_TYPE="compatible-sha256"
 else
-  REMOTE_EXECUTION_ARGS="-r $REMOTE_EXECUTION_ADDRESS"
+  ARGS=""
+  HASH_TYPE="git-sha1"
+fi
+TCDIR="$LBRDIR/protocol-dependent/generation-0/$HASH_TYPE/tc"
 
-  if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
-    REMOTE_EXECUTION_ARGS="$REMOTE_EXECUTION_ARGS --remote-execution-property $REMOTE_EXECUTION_PROPERTIES"
-  fi
+# Print the CASF hash of the first target cache entry found for a given backend
+# (parameter $1)
+get_tc_hash() {
+  TC_HASH0=$(ls -1 "$TCDIR/$1" | head -n1)
+  TC_HASH1=$(ls -1 "$TCDIR/$1/$TC_HASH0" | head -n1)
+  cat "$TCDIR/$1/$TC_HASH0/$TC_HASH1" | tr -d '[]' | cut -d: -f1
+}
 
-  if [ "${COMPATIBLE:-}" = "YES" ]; then
-    ARGS="--compatible"
-    TCDIR="$LBRDIR/protocol-dependent/generation-0/compatible-sha256/tc"
-  else
-    ARGS=""
-    TCDIR="$LBRDIR/protocol-dependent/generation-0/git-sha1/tc"
-  fi
+# ------------------------------------------------------------------------------
+# Test Phase I: Determine local and remote execution ID
+# ------------------------------------------------------------------------------
 
-  # create common test files
-  mkdir -p "$TESTDIR"
-  cd "$TESTDIR"
-  touch ROOT
-  cat > repos.json <<EOF
+echo
+echo "Test phase I"
+echo
+
+# Create test files
+mkdir -p "$TESTDIR"
+cd "$TESTDIR"
+touch ROOT
+cat > repos.json <<EOF
 { "repositories":
   { "main":
     {"repository": {"type": "file", "path": ".", "pragma": {"to_git": true}}}
@@ -71,63 +107,145 @@ else
 }
 EOF
 
-  # ----------------------------------------------------------------------------
-  # Test Phase I
-  # ----------------------------------------------------------------------------
-
-  cat > TARGETS.p1 <<EOF
+cat > TARGETS <<EOF
 { "main": {"type": "export", "target": ["./", "main-target"]}
 , "main-target":
   {"type": "generic", "cmds": ["echo foo > foo.txt"], "outs": ["foo.txt"]}
 }
 EOF
 
-  export CONF="$("$JUST_MR" -C repos.json --local-build-root="$LBRDIR" setup main)"
+# Determine local execution ID
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build main $ARGS
+readonly LOCAL_EXECUTION_ID=$(ls -1 "$TCDIR" | head -n1)
+echo "Local execution ID: $LOCAL_EXECUTION_ID"
+rm -rf "$TCDIR"
 
-  # determine local execution ID
-  "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" --target-file-name TARGETS.p1 $ARGS > /dev/null 2>&1
-  readonly LOCAL_EXECUTION_ID=$(ls "$TCDIR")
-  rm -rf "$TCDIR"
+# Determine remote execution ID
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build main $ARGS $REMOTE_EXECUTION_ARGS
+readonly REMOTE_EXECUTION_ID=$(ls -1 "$TCDIR" | head -n1)
+echo "Remote execution ID: $REMOTE_EXECUTION_ID"
+rm -rf "$TCDIR"
 
-  # determine remote execution ID
-  "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" --target-file-name TARGETS.p1 $ARGS $REMOTE_EXECUTION_ARGS > /dev/null 2>&1
-  readonly REMOTE_EXECUTION_ID=$(ls "$TCDIR")
-  rm -rf "$TCDIR"
+# Clean up test files
+rm -rf "$TESTDIR" "$LBRDIR"
+cd "$ROOT"
 
-  # ----------------------------------------------------------------------------
-  # Test Phase II
-  # ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Test Phase II: Test artifacts sync of 'artifacts' and 'runfiles' map
+# ------------------------------------------------------------------------------
 
-  # create random string: p<hostname>p<time[ns]>p<pid>p<random number[9 digits]>
-  readonly LOW=100000000
-  readonly HIGH=999999999
-  readonly RND="p$(hostname)p$(date +%s%N)p$$p$(shuf -i $LOW-$HIGH -n 1)"
+echo
+echo "Test phase II"
+echo
 
-  cat > TARGETS.p2 <<EOF
-{ "main": {"type": "export", "target": ["./", "main-target"]}
-, "main-target":
-  { "type": "generic"
-  , "cmds": ["echo $RND | tee foo.txt out/bar.txt"]
-  , "outs": ["foo.txt"]
-  , "out_dirs": ["out"]
-  }
-}
-EOF
+# Copy greetlib test files
+cp -r "$ROOT/greetlib" "$TESTDIR"
+cd "$TESTDIR"
 
-  export CONF="$("$JUST_MR" -C repos.json --local-build-root="$LBRDIR" setup main)"
+# Inject rules path into repos.json
+sed -i "s|<RULES_PATH>|$JUST_RULES|" repos.json
 
-  # build project locally
-  echo
-  echo "Build project locally"
-  echo
-  "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" --target-file-name TARGETS.p2 $ARGS 2>&1
+# A) TEST DOWNLOAD
+# ----------------
+echo "Check artifacts download"
 
-  # pretend target cache entry being created for remote execution backend
-  mv "$TCDIR/$LOCAL_EXECUTION_ID" "$TCDIR/$REMOTE_EXECUTION_ID"
+# Inject random string into source files
+RANDOM_STRING=$(hostname).$(date +%s%N).$$
+sed -i "s|RANDOM_STRING_1 \".*\"|RANDOM_STRING_1 \"$RANDOM_STRING\"|" greet/include/greet.hpp
+sed -i "s|RANDOM_STRING_2 \".*\"|RANDOM_STRING_2 \"$RANDOM_STRING\"|" greet/src/greet.cpp
 
-  # build project remotely
-  echo
-  echo "Build project remotely"
-  echo
-  "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" --target-file-name TARGETS.p2 $ARGS $REMOTE_EXECUTION_ARGS 2>&1
+# Build greetlib remotely
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS
+
+# Check if file and tree artifacts have been downloaded correctly
+readonly TC_HASH=$(get_tc_hash $REMOTE_EXECUTION_ID)
+readonly TC_ENTRY=$("$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${TC_HASH})
+readonly FILE_HASH=$(echo $TC_ENTRY | jq -r '.artifacts."libgreet.a".data.id')
+readonly TREE_HASH=$(echo $TC_ENTRY | jq -r '.runfiles.greet.data.id')
+"$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${FILE_HASH} > /dev/null
+"$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${TREE_HASH} > /dev/null
+
+# B) TEST UPLOAD
+# --------------
+echo "Check artifacts upload"
+
+# Inject random string into source files
+RANDOM_STRING=$(hostname).$(date +%s%N).$$
+sed -i "s|RANDOM_STRING_1 \".*\"|RANDOM_STRING_1 \"$RANDOM_STRING\"|" greet/include/greet.hpp
+sed -i "s|RANDOM_STRING_2 \".*\"|RANDOM_STRING_2 \"$RANDOM_STRING\"|" greet/src/greet.cpp
+
+# Build greetlib locally
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS
+
+# Modify target cache origin
+mv "$TCDIR/$LOCAL_EXECUTION_ID" "$TCDIR/$REMOTE_EXECUTION_ID"
+
+# Check if greetlib successfully builds remotely
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS
+
+# Clean up test files
+rm -rf "$TESTDIR" "$LBRDIR"
+cd "$ROOT"
+
+# ------------------------------------------------------------------------------
+# Test Phase III: Test artifacts sync of 'provides' map
+# ------------------------------------------------------------------------------
+
+echo
+echo "Test phase III"
+echo
+
+# Copy pydicts test files
+cp -r "$ROOT/pydicts" "$TESTDIR"
+cd "$TESTDIR"
+
+# A) TEST DOWNLOAD
+# ----------------
+echo "Check artifacts download"
+
+# Inject random string into source files
+RANDOM_STRING=$(hostname).$(date +%s%N).$$
+sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" foo.py
+sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" bar.py
+
+# Build pydicts remotely
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS
+
+# 'exported_py' target contains a provides map,
+#   which contains an abstract node (type 'convert'),
+#     which contains value nodes,
+#       which contain target results,
+#         which contain KNOWN artifacts {foo,bar}.py
+
+# Check if {foo,bar}.py have been downloaded correctly
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  readonly FOO_HASH=$(cat foo.py | sha256sum | cut -d' ' -f1)
+  readonly BAR_HASH=$(cat bar.py | sha256sum | cut -d' ' -f1)
+else
+  readonly FOO_HASH=$(cat foo.py | git hash-object --stdin)
+  readonly BAR_HASH=$(cat bar.py | git hash-object --stdin)
 fi
+"$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${FOO_HASH} > /dev/null
+"$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${BAR_HASH} > /dev/null
+
+# B) TEST UPLOAD
+# --------------
+echo "Check artifacts upload"
+
+# Inject random string into source files
+RANDOM_STRING=$(hostname).$(date +%s%N).$$
+sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" foo.py
+sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" bar.py
+
+# Build pydicts locally
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS
+
+# Modify target cache origin
+mv "$TCDIR/$LOCAL_EXECUTION_ID" "$TCDIR/$REMOTE_EXECUTION_ID"
+
+# Check if pydicts successfully builds remotely
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS
+
+# Clean up test files
+rm -rf "$TESTDIR" "$LBRDIR"
+cd "$ROOT"

@@ -8,8 +8,15 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["artifacts-sync"]
   , "test": ["artifacts-sync.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
+  , "deps":
+    [ ["test/end-to-end", "tool-under-test"]
+    , ["./", "test-data-artifacts-sync", "greetlib"]
+    , ["./", "test-data-artifacts-sync", "pydicts"]
+    , "bootstrap-src-staged"
+    ]
   }
+, "bootstrap-src-staged":
+  {"type": "install", "dirs": [[["", "bootstrap-src"], "foo"]]}
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]

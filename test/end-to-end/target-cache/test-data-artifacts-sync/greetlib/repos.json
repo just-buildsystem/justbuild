@@ -1,0 +1,16 @@
+{ "repositories":
+  { "main":
+    { "repository": {"type": "file", "path": "./main"}
+    , "bindings": {"rules": "rules", "greet": "greet"}
+    }
+  , "greet":
+    { "repository":
+      {"type": "file", "path": "./greet", "pragma": {"to_git": true}}
+    , "bindings": {"rules": "rules"}
+    }
+  , "rules":
+    { "repository":
+      {"type": "file", "path": "<RULES_PATH>", "pragma": {"to_git": true}}
+    }
+  }
+}
