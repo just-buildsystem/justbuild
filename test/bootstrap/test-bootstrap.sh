@@ -35,7 +35,7 @@ export JUST=$(realpath "${OUTDIR}"/boot/out/bin/just)
 echo
 echo Testing if we reached the fixed point
 echo
-readonly CONF=$(./bin/just-mr.py setup -C etc/repos.json --distdir=distdir --local-build-root="${LBRDIR}" just)
+readonly CONF=$(./bin/just-mr.py -C etc/repos.json setup --distdir=distdir --local-build-root="${LBRDIR}" just)
 ${JUST} install -C ${CONF} -o "${OUTDIR}"/final-out --local-build-root="${LBRDIR}"
 
 sha256sum "${OUTDIR}"/boot/out/bin/just "${OUTDIR}"/final-out/bin/just
