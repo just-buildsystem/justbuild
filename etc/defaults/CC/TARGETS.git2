@@ -64,6 +64,7 @@
             , "-Wformat"
             , "-Wformat-security"
             , "-Wmissing-declarations"
+            , "-Wno-implicit-fallthrough"
             ]
           ]
         }
