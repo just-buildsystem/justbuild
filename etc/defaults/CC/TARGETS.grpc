@@ -93,11 +93,15 @@
             , "-Wno-unused-parameter"
             , "-Wno-uninitialized"
             , "-Wno-missing-field-initializers"
-            , "-Wno-implicit-const-int-float-conversion"
-            , "-Wno-stringop-overflow"
-            , "-Wno-stringop-truncation"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
+          }
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case":
+            { "clang": ["-Wno-implicit-const-int-float-conversion"]
+            , "gnu": ["-Wno-stringop-overflow", "-Wno-stringop-truncation"]
+            }
           }
         , { "type": "if"
           , "cond": {"type": "var", "name": "DEBUG"}

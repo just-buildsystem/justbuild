@@ -155,14 +155,6 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
   , "name": ["grpc_base_c"]
-  , "local cflags":
-    { "type": "case"
-    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
-    , "case":
-      { "clang": ["-Wno-implicit-const-int-float-conversion"]
-      , "gnu": ["-Wno-stringop-overflow", "-Wno-stringop-truncation"]
-      }
-    }
   , "srcs":
     [ "src/core/lib/avl/avl.cc"
     , "src/core/lib/backoff/backoff.cc"
