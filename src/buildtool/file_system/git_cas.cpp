@@ -21,6 +21,8 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 extern "C" {
 #include <git2.h>
 #include <git2/sys/odb_backend.h>
@@ -42,7 +44,6 @@ constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
 [[nodiscard]] auto GitObjectID(std::string const& id,
                                bool is_hex_id = false) noexcept
     -> std::optional<git_oid> {
-#ifndef BOOTSTRAP_BUILD_TOOL
     if (id.size() < (is_hex_id ? kOIDHexSize : kOIDRawSize)) {
         Logger::Log(LogLevel::Error,
                     "invalid git object id {}",
@@ -64,18 +65,15 @@ constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
                 "parsing git object id {} failed with:\n{}",
                 is_hex_id ? id : ToHexString(id),
                 GitLastError());
-#endif
     return std::nullopt;
 }
 
 [[nodiscard]] auto ToHexString(git_oid const& oid) noexcept
     -> std::optional<std::string> {
     std::string hex_id(GIT_OID_HEXSZ, '\0');
-#ifndef BOOTSTRAP_BUILD_TOOL
     if (git_oid_fmt(hex_id.data(), &oid) != 0) {
         return std::nullopt;
     }
-#endif
     return hex_id;
 }
 
@@ -295,14 +293,12 @@ void backend_free(git_odb_backend* /*_backend*/) {}
     return b;
 }
 
-#ifndef BOOTSTRAP_BUILD_TOOL
-
 // A backend that can be used to read and create tree objects in-memory.
 auto const kInMemoryODBParent = CreateInMemoryODBParent();
 
-#endif  // BOOTSTRAP_BUILD_TOOL
-
 }  // namespace
+
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     -> GitCASPtr {
