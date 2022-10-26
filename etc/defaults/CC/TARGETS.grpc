@@ -99,7 +99,10 @@
         , { "type": "case"
           , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
           , "case":
-            { "clang": ["-Wno-implicit-const-int-float-conversion"]
+            { "clang":
+              [ "-Wno-unknown-warning-option"
+              , "-Wno-implicit-const-int-float-conversion"
+              ]
             , "gnu": ["-Wno-stringop-overflow", "-Wno-stringop-truncation"]
             }
           }
