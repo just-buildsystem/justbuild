@@ -59,6 +59,14 @@ if 'SOURCE_DATE_EPOCH' in os.environ:
 
 CONF_STRING = json.dumps(CONF)
 
+CC="clang"
+CXX="clang++"
+
+if "CC" in CONF:
+    CC=CONF["CC"]
+if "CXX" in CONF:
+    CXX=CONF["CXX"]
+
 # relevant directories (global variables)
 
 SRCDIR = os.getcwd()
@@ -149,7 +157,8 @@ def setup_deps(src_wrkdir):
                 os.symlink(os.path.normpath(include_dir),
                            os.path.join(include_location, include_name))
             if "build" in hints:
-                run(["sh", "-c", hints["build"]], cwd=subdir)
+                run(["sh", "-c", hints["build"].format(cc=CC, cxx=CXX)],
+                    cwd=subdir)
             if "link" in hints:
                 link_flags.extend(["-L", subdir])
         if "link" in hints:
