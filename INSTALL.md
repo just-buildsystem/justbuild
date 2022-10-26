@@ -70,6 +70,17 @@ before to be present as well).
 Additionally, if the environment variable `DEBUG` is set, the second
 bootstrap phase is carried out sequentially rather than in parallel.
 
+Moreover, when constructing the build configuration, the scripts
+starts with the value of the environment variable `JUST_BUILD_CONF` instead
+of the empty object, if this variable is set. One configuration parameter
+is the build enviroment `ENV` that can be used to set an unusual
+value of `PATH`, e.g.,
+``` sh
+env JUST_BUILD_CONF='{"ENV": {"PATH": "/opt/toolchain/bin"}}' python3 ./bin/boostrap.py
+```
+Additionally, if `SOURCE_DATE_EPOCH` is set in the build environment, it
+is forwarded to the build configuration as well.
+
 In any case, the resulting binary is selfcontained and can be moved
 to an appropriate location in `PATH`.
 

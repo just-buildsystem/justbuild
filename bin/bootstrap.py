@@ -37,14 +37,24 @@ LOCAL_LINK_DIRS_MODULE = "src/buildtool/main"
 LOCAL_LINK_DIRS_TARGET = "just"
 
 # architecture related configuration (global variables)
+CONF = {}
+if 'JUST_BUILD_CONF' in os.environ:
+    CONF = json.loads(os.environ['JUST_BUILD_CONF'])
+
 ARCHS = {
   'i686':'x86',
   'x86_64':'x86_64',
   'arm':'arm',
   'aarch64':'arm64'
 }
-MACH = platform.machine()
-CONF = ('{"ARCH":"%s"}' % (ARCHS[MACH],)) if MACH in ARCHS else '{}'
+if "ARCH" not in CONF:
+    MACH = platform.machine()
+    if MACH in ARCHS:
+        CONF["ARCH"] = ARCHS[MACH]
+if 'SOURCE_DATE_EPOCH' in os.environ:
+    CONF['SOURCE_DATE_EPOCH'] = int(os.environ['SOURCE_DATE_EPOCH'])
+
+CONF_STRING = json.dumps(CONF)
 
 # relevant directories (global variables)
 
@@ -250,7 +260,7 @@ def bootstrap():
     GRAPH = os.path.join(WRKDIR, "graph.json")
     TO_BUILD = os.path.join(WRKDIR, "to_build.json")
     run([
-        bootstrap_just, "analyse", "-C", CONF_FILE, "-D", CONF, "--dump-graph", GRAPH,
+        bootstrap_just, "analyse", "-C", CONF_FILE, "-D", CONF_STRING, "--dump-graph", GRAPH,
         "--dump-artifacts-to-build", TO_BUILD, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
@@ -265,7 +275,7 @@ def bootstrap():
         cwd=src_wrkdir)
     OUT = os.path.join(WRKDIR, "out")
     run([
-        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-D", CONF, "-o", OUT,
+        "./out-boot/%s" % (MAIN_STAGE, ), "install", "-C", CONF_FILE, "-D", CONF_STRING, "-o", OUT,
         "--local-build-root", LOCAL_ROOT, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
