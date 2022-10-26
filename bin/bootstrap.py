@@ -24,8 +24,11 @@ import tempfile
 import platform
 
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 
 # path within the repository (constants)
+
+DEBUG = os.environ.get("DEBUG")
 
 REPOS = "etc/repos.json"
 BOOTSTRAP_CC = ["clang++", "-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
@@ -238,11 +241,12 @@ def bootstrap():
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))
     object_files = []
-    for f in cpp_files:
-        obj_file_name = f[:-len(".cpp")] + ".o"
-        object_files.append(obj_file_name)
-        cmd = BOOTSTRAP_CC + flags + ["-c", f, "-o", obj_file_name]
-        run(cmd, cwd=src_wrkdir)
+    with ThreadPoolExecutor(max_workers=1 if DEBUG else None) as ts:
+        for f in cpp_files:
+            obj_file_name = f[:-len(".cpp")] + ".o"
+            object_files.append(obj_file_name)
+            cmd = BOOTSTRAP_CC + flags + ["-c", f, "-o", obj_file_name]
+            ts.submit(run, cmd, cwd=src_wrkdir)
     bootstrap_just = os.path.join(WRKDIR, "bootstrap-just")
     cmd = BOOTSTRAP_CC + ["-o", bootstrap_just
                           ] + object_files + dep_flags["link"]
@@ -264,7 +268,7 @@ def bootstrap():
         "--dump-artifacts-to-build", TO_BUILD, MAIN_MODULE, MAIN_TARGET
     ],
         cwd=src_wrkdir)
-    if "DEBUG" in os.environ:
+    if DEBUG:
         traverser = "./bin/bootstrap-traverser.py"
     else:
         traverser = "./bin/parallel-bootstrap-traverser.py"
