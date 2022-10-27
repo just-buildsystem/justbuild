@@ -107,6 +107,20 @@
       , "symbol to search for and the second value is a list with the header"
       , "file names to consider for searching."
       ]
+    , "size_ctype":
+      [ "Set a define to size of the specified C type. Must contain a list of"
+      , "pairs. The first element of each pair is the define name and the"
+      , "second argument is another pair. This pair's first value is the C"
+      , "type to check for and the second value is a list with possible sizes"
+      , "as numbers. If non of the specified sizes matches, the action fails."
+      ]
+    , "size_cxxtype":
+      [ "Set a define to size of the specified C++ type. Must contain a list of"
+      , "pairs. The first element of each pair is the define name and the"
+      , "second argument is another pair. This pair's first value is the C++"
+      , "type to check for and the second value is a list with possible sizes"
+      , "as numbers. If non of the specified sizes matches, the action fails."
+      ]
     }
   , "string_fields": ["name", "stage", "guard"]
   , "target_fields": ["hdrs", "deps"]
@@ -127,6 +141,8 @@
     , "have_cxxtype"
     , "have_csymbol"
     , "have_cxxsymbol"
+    , "size_ctype"
+    , "size_cxxtype"
     ]
   , "imports":
     { "first": "first_list_entry"
@@ -331,6 +347,46 @@
               , "done"
               , "if [ -f in/${LANG}symbols.def ]; then cat in/${LANG}symbols.def > ${LANG}symbols.def; fi"
               , "echo \"$DEFINE\n\" >> ${LANG}symbols.def"
+              ]
+            }
+          }
+        ]
+      , [ "size_check.sh"
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ "set -eu"
+              , "[ $# -ge 4 ]"
+              , "CC=$1"
+              , "shift"
+              , "LANG=$1"
+              , "shift"
+              , "DEF=$1"
+              , "shift"
+              , "TYPE=$1"
+              , "shift"
+              , "INC=\"\""
+              , "for HDR in \"\" \"sys/types.h\" \"stdint.h\" \"stddef.h\"; do"
+              , "  if [ -n \"$HDR\" ]; then INC=\"#include \\\"$HDR\\\"\"; fi"
+              , "  for SIZE in \"$@\"; do"
+              , "    SIZE=$(printf %.0f $SIZE)"
+              , "    cat > test.$LANG << EOF"
+              , "$INC"
+              , "char __test[(sizeof($TYPE) == $SIZE) ? 1 : -1];"
+              , "EOF"
+              , "    if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then"
+              , "      DEFINE=\"#define $DEF $SIZE\""
+              , "      if [ -f in/${LANG}sizes.def ]; then"
+              , "        cat in/${LANG}sizes.def > ${LANG}sizes.def"
+              , "      fi"
+              , "      echo \"$DEFINE\n\" >> ${LANG}sizes.def"
+              , "      exit 0"
+              , "    fi"
+              , "  done"
+              , "done"
+              , "exit 1"
               ]
             }
           }
@@ -801,6 +857,132 @@
             }
           }
         ]
+      , [ "csizes.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "size_ctype", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "csizes.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "csizes.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'size_ctype' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , ["type", {"type": "CALL_EXPRESSION", "name": "first"}]
+              , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "csizes.def"}
+                    }
+                  , {"type": "env", "vars": ["size_check.sh", "c.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                { "type": "++"
+                , "$1":
+                  [ [ "sh"
+                    , "./size_check.sh"
+                    , {"type": "var", "name": "CC"}
+                    , "c"
+                    , {"type": "var", "name": "def"}
+                    , {"type": "var", "name": "type"}
+                    ]
+                  , { "type": "foreach"
+                    , "var": "size"
+                    , "range": {"type": "var", "name": "sizes"}
+                    , "body":
+                      { "type": "json_encode"
+                      , "$1": {"type": "var", "name": "size"}
+                      }
+                    }
+                  ]
+                }
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["csizes.def"]
+              }
+            }
+          }
+        ]
+      , [ "cxxsizes.def"
+        , { "type": "foldl"
+          , "range": {"type": "var", "name": "size_cxxtype", "default": []}
+          , "start":
+            { "type": "singleton_map"
+            , "key": "cxxsizes.def"
+            , "value": {"type": "BLOB", "data": ""}
+            }
+          , "accum_var": "cxxsizes.def"
+          , "var": "pair"
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ ["list", {"type": "var", "name": "pair"}]
+              , [ "def"
+                , { "type": "assert_non_empty"
+                  , "msg": "Define name in 'size_cxxtype' may not be empty"
+                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  }
+                ]
+              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , ["type", {"type": "CALL_EXPRESSION", "name": "first"}]
+              , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
+              ]
+            , "body":
+              { "type": "ACTION"
+              , "inputs":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "in"
+                    , "$1": {"type": "var", "name": "cxxsizes.def"}
+                    }
+                  , {"type": "env", "vars": ["size_check.sh", "cxx.flags"]}
+                  , {"type": "var", "name": "includes"}
+                  ]
+                }
+              , "cmd":
+                { "type": "++"
+                , "$1":
+                  [ [ "sh"
+                    , "./size_check.sh"
+                    , {"type": "var", "name": "CXX"}
+                    , "cxx"
+                    , {"type": "var", "name": "def"}
+                    , {"type": "var", "name": "type"}
+                    ]
+                  , { "type": "foreach"
+                    , "var": "size"
+                    , "range": {"type": "var", "name": "sizes"}
+                    , "body":
+                      { "type": "json_encode"
+                      , "$1": {"type": "var", "name": "size"}
+                      }
+                    }
+                  ]
+                }
+              , "env": {"type": "var", "name": "ENV"}
+              , "outs": ["cxxsizes.def"]
+              }
+            }
+          }
+        ]
       , [ "end.def"
         , { "type": "singleton_map"
           , "key": "end.def"
@@ -825,6 +1007,8 @@
               , {"type": "var", "name": "cxxtypes.def"}
               , {"type": "var", "name": "csymbols.def"}
               , {"type": "var", "name": "cxxsymbols.def"}
+              , {"type": "var", "name": "csizes.def"}
+              , {"type": "var", "name": "cxxsizes.def"}
               , {"type": "var", "name": "end.def"}
               ]
             }
@@ -844,6 +1028,8 @@
                 , "cxxtypes.def"
                 , "csymbols.def"
                 , "cxxsymbols.def"
+                , "csizes.def"
+                , "cxxsizes.def"
                 , "plain.def"
                 , "end.def"
                 , ">"
