@@ -854,6 +854,7 @@
               }
             ]
           , "outs": [{"type": "var", "name": "outname"}]
+          , "env": {"type": "var", "name": "ENV"}
           }
         ]
       , [ "outfile"
