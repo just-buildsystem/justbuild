@@ -2,7 +2,7 @@
   { "doc": ["Replace a file, logically in place, by a patched version"]
   , "target_fields": ["src", "patch"]
   , "string_fields": ["patch-part"]
-  , "config_vars": ["PATCH"]
+  , "config_vars": ["PATCH", "ENV"]
   , "field_doc":
     { "src":
       ["The single source file to patch, typically an explict file reference."]
@@ -91,6 +91,8 @@
               }
             , "outs": ["patch"]
             , "cmd": ["sh", "./splitpatch", "in/patch"]
+            , "env":
+              {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
             }
           , "else": {"type": "var", "name": "patch"}
           }
