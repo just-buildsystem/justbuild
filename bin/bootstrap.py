@@ -31,7 +31,6 @@ from concurrent.futures import ThreadPoolExecutor
 DEBUG = os.environ.get("DEBUG")
 
 REPOS = "etc/repos.json"
-BOOTSTRAP_CC = ["clang++", "-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
 MAIN_MODULE = ""
 MAIN_TARGET = ""
 MAIN_STAGE = "bin/just"
@@ -66,6 +65,8 @@ if "CC" in CONF:
     CC=CONF["CC"]
 if "CXX" in CONF:
     CXX=CONF["CXX"]
+
+BOOTSTRAP_CC = [CXX, "-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
 
 # relevant directories (global variables)
 
