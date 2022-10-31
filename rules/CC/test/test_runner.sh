@@ -42,7 +42,7 @@ else
     RESULT=FAIL
 fi
 date +%s > ../time-stop
-echo "${RESULT}" > result
+echo "${RESULT}" > ../result
 
 if [ "${RESULT}" '!=' PASS ]
 then
