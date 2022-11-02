@@ -39,6 +39,7 @@
     , ["test", "catch-main"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["", "libarchive"]
+    , ["src/utils/cpp", "archive_ops"]
     ]
   }
 , "TESTS":
