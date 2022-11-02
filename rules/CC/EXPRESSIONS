@@ -367,7 +367,12 @@
         ]
       , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler"}]
       , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags"}]
-      , ["AR", {"type": "CALL_EXPRESSION", "name": "default-AR"}]
+      , [ "AR"
+        , { "type": "var"
+          , "name": "AR"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-AR"}
+          }
+        ]
       , [ "CXXFLAGS"
         , { "type": "++"
           , "$1":
