@@ -113,3 +113,11 @@ almost certainly want to set the scratch directory.
 ```sh
 env PACKAGE=YES LOCALBASE=/usr python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR}/just-work
 ```
+
+# Installing `just-mr`
+
+In order to set up multi-repository configurations, usually the tools `just-mr`
+is used. It also a useful launcher for `just`.
+
+This tool is Python3 script located at `bin/just-mr.py` and can simply be put
+into an appropirate location in `PATH`.
