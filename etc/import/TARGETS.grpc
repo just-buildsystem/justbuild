@@ -1531,8 +1531,10 @@
     , "AR"
     , "CC"
     , "CFLAGS"
+    , "ADD_CFLAGS"
     , "CXX"
     , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "ENV"
     ]
   }

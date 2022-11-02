@@ -54,6 +54,8 @@
     , "OS"
     , "TARGET_ARCH"
     , "COMPILER_FAMILY"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
     ]
   }
 , "grpc_cpp_plugin (implementation)":

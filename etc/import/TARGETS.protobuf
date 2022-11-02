@@ -19,6 +19,9 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
     ]
   }
 , "protoc_lib":
@@ -37,6 +40,9 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
     ]
   }
 , "protobuf_headers":
