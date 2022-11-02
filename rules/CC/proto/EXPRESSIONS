@@ -8,7 +8,14 @@
   }
 , "protoc-compile":
   { "vars":
-    ["transition", "service support", "CXX", "CXXFLAGS", "ADD_CXXFLAGS", "ENV"]
+    [ "transition"
+    , "service support"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "AR"
+    ]
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "result": ["./", "..", "lib result"]
