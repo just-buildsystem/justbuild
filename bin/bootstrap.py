@@ -61,6 +61,8 @@ CONF_STRING = json.dumps(CONF)
 AR="ar"
 CC="clang"
 CXX="clang++"
+CFLAGS = []
+CXXFLAGS = []
 
 if "AR" in CONF:
     AR=CONF["AR"]
@@ -68,8 +70,12 @@ if "CC" in CONF:
     CC=CONF["CC"]
 if "CXX" in CONF:
     CXX=CONF["CXX"]
+if "ADD_CFLAGS" in CONF:
+    CFLAGS=CONF["ADD_CFLAGS"]
+if "ADD_CXXFLAGS" in CONF:
+    CXXFLAGS=CONF["ADD_CXXFLAGS"]
 
-BOOTSTRAP_CC = [CXX, "-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
+BOOTSTRAP_CC = [CXX] + CXXFLAGS + ["-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
 
 # relevant directories (global variables)
 
@@ -109,6 +115,9 @@ def get_archive(*, distfile, fetch):
     subprocess.run(["wget", "-O", target, fetch])
     return target
 
+def quote(args):
+    return ' '.join(["'" + arg.replace("'", "'\\''") + "'"
+                     for arg in args])
 
 def run(cmd, *, cwd, **kwargs):
     print("Running %r in %r" % (cmd, cwd), flush=True)
@@ -161,8 +170,10 @@ def setup_deps(src_wrkdir):
                 os.symlink(os.path.normpath(include_dir),
                            os.path.join(include_location, include_name))
             if "build" in hints:
-                run(["sh", "-c", hints["build"].format(cc=CC, cxx=CXX, ar=AR)],
-                    cwd=subdir)
+                run(["sh", "-c", hints["build"].format(
+                    cc=CC, cxx=CXX, ar=AR,
+                    cflags=quote(CFLAGS), cxxflags=quote(CXXFLAGS),
+                )], cwd=subdir)
             if "link" in hints:
                 link_flags.extend(["-L", subdir])
         if "link" in hints:

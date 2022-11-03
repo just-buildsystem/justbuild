@@ -174,7 +174,7 @@
     , "bindings": {"rules": "rules"}
     , "bootstrap":
       { "include_dir": "include/fmt"
-	, "build": "cd src && {cxx} -I ../include -c *.cc && {ar} cqs ../libfmt.a *.o"
+      , "build": "cd src && {cxx} {cxxflags} -I ../include -c *.cc && {ar} cqs ../libfmt.a *.o"
       , "link": ["-lfmt"]
       }
     , "local_bootstrap":
@@ -193,7 +193,7 @@
     , "target_file_name": "TARGETS.boringssl"
     , "bindings": {"rules": "rules-boringssl"}
     , "bootstrap":
-      { "build": "SYS=`uname -s | tr 'A-Z' 'a-z'` && ARCH=`uname -m` && {cc} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c $SYS-$ARCH/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
+      { "build": "SYS=`uname -s | tr 'A-Z' 'a-z'` && ARCH=`uname -m` && {cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c $SYS-$ARCH/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
       , "link": ["-lcrypto", "-lpthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
