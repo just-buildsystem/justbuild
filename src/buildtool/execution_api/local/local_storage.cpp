@@ -26,8 +26,9 @@ namespace {
                 *content);
         }
     }
-    Logger::Log(
-        LogLevel::Error, "Directory {} not found in CAS", digest.hash());
+    Logger::Log(LogLevel::Error,
+                "Directory {} not found in CAS",
+                NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
 }
 
@@ -43,7 +44,9 @@ namespace {
                 /*is_hex_id=*/false);
         }
     }
-    Logger::Log(LogLevel::Error, "Tree {} not found in CAS", digest.hash());
+    Logger::Log(LogLevel::Error,
+                "Tree {} not found in CAS",
+                NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
 }
 

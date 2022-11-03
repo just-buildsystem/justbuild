@@ -60,8 +60,8 @@ class LocalAC {
         }
         if (not digest.ParseFromString(*entry)) {
             logger_.Emit(LogLevel::Warning,
-                         "Parsing cache entry failed failed for action {}",
-                         action_id.hash());
+                         "Parsing cache entry failed for action {}",
+                         NativeSupport::Unprefix(action_id.hash()));
             return std::nullopt;
         }
         auto src_path = cas_->BlobPath(digest);
@@ -74,7 +74,7 @@ class LocalAC {
         }
         logger_.Emit(LogLevel::Warning,
                      "Parsing action result failed for action {}",
-                     action_id.hash());
+                     NativeSupport::Unprefix(action_id.hash()));
         return std::nullopt;
     }
 

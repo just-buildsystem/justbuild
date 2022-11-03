@@ -29,8 +29,9 @@ namespace {
         return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
             blobs.at(0).data);
     }
-    Logger::Log(
-        LogLevel::Error, "Directory {} not found in CAS", digest.hash());
+    Logger::Log(LogLevel::Error,
+                "Directory {} not found in CAS",
+                NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
 }
 
@@ -46,7 +47,9 @@ namespace {
             HashFunction::ComputeTreeHash(content).Bytes(),
             /*is_hex_id=*/false);
     }
-    Logger::Log(LogLevel::Error, "Tree {} not found in CAS", digest.hash());
+    Logger::Log(LogLevel::Error,
+                "Tree {} not found in CAS",
+                NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
 }
 

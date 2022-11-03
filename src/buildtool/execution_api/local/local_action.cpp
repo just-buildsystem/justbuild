@@ -59,7 +59,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      "start execution\n"
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
-                     static_cast<bazel_re::Digest>(root_digest_).hash(),
+                     root_digest_.hash(),
                      action.hash());
     }
 
@@ -93,8 +93,9 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 
 auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     -> std::optional<Output> {
-    auto exec_path = CreateUniquePath(LocalExecutionConfig::CacheRoot() /
-                                      "exec_root" / action_id.hash());
+    auto exec_path =
+        CreateUniquePath(LocalExecutionConfig::CacheRoot() / "exec_root" /
+                         NativeSupport::Unprefix(action_id.hash()));
 
     if (not exec_path) {
         return std::nullopt;
