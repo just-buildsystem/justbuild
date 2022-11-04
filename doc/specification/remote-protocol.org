@@ -103,7 +103,7 @@ object format.
 Using this git tree representation makes tree handling much more efficient,
 since the effort of traversing and uploading the content of a git tree occurs
 only once and for each subsequent request, we directly pass around the git tree
-id. We require the invariant that if a tree is part of any CAS that all its
+id. We require the invariant that if a tree is part of any CAS then all its
 content is also available in this CAS. To adhere to this invariant, the client
 side has to prove that the content of a tree is available in the CAS, before
 uploading this tree. One way to ensure that the tree content is known to the
