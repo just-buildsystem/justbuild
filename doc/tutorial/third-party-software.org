@@ -402,3 +402,54 @@ defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
   }
 }
 #+END_SRC
+
+** Using pre-built dependencies
+
+While building external dependencies from source brings advantages,
+most prominently the flexibility to quickly and seamlessly switch
+to a different build configuration (production, debug, instrumented
+for performance analysis; cross-compiling for a different target
+architecture), there are also legitimate reasons to use pre-built
+dependencies. The most prominent one is if your project is packaged
+as part of a larger distribution. For that reason, just also has (in
+~etc/import.prebuilt~) target files for all its dependencies assuming
+they are pre-installed. The reason why target files are used at
+all for this situation is twofold.
+- On the one hand, having a target allows the remaining targets
+  to not care about where their dependencies come from, or if it
+  is a build against pre-installed dependencies or not. Also, the
+  top-level binary does not have to know the linking requirements
+  of its transitive dependencies. In other words, information stays
+  where it belongs to and if one target acquires a new dependency,
+  the information is automatically propagated to all targets using it.
+- Still some information is needed to use a pre-installed library
+  and, as explained, a target describing the pre-installed library
+  is the right place to collect this information.
+  - The public header files of the library. By having this explicit,
+    we do not accumulate directories in the include search path
+    and hence also properly detect include conflicts.
+  - The information on how to link the library itself (i.e.,
+    basically its base name).
+  - Any dependencies on other libraries that the library might have.
+    This information is used to obtain the correct linking order
+    and complete transitive linking arguments while keeping the
+    description maintainable, as each target still only declares
+    its direct dependencies.
+
+The target description for a pre-built version of the format
+library that was used as an example in this section is shown next;
+with our staging mechanism the logical repository it belongs to is
+rooted in the ~fmt~ subdirectory of the ~include~ directory of the
+ambient system.
+
+#+SRCNAME: etc/import.prebuilt/TARGETS.fmt
+#+BEGIN_SRC js
+{ "fmt":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fmt"]
+  , "stage": ["fmt"]
+  , "hdrs": [["TREE", null, "."]]
+  , "link external": ["-lfmt"]
+  }
+}
+#+END_SRC
