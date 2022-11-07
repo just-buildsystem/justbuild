@@ -448,6 +448,15 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    Dump nodes of only the given target to file. ~-~ is treated as
    stdout. Output is a JSON map between node id and its description.
 
+   *--dump-vars* PATH\\
+   Dump configuration variables to file. ~-~ is treated as
+   stdout. The output is a JSON list of those variable names (in
+   lexicographic order) at which the configuration influenced the
+   analysis of this target. This might contain variables unset
+   in the configuraiton if the fact that they were unset (and
+   hence treated as the default ~null~) was relevant for the
+   analysis of that target.
+
    *--dump-targets* PATH\\
    Dump all transitive targets to file for the given target. ~-~ is
    treated as stdout. Output is a JSON map of all targets encoded as

@@ -746,6 +746,29 @@ void DumpBlobs(std::string const& file_path, AnalysisResult const& result) {
     }
 }
 
+void DumpVars(std::string const& file_path, AnalysisResult const& result) {
+    auto vars = std::vector<std::string>{};
+    vars.reserve(result.target->Vars().size());
+    for (auto const& x : result.target->Vars()) {
+        vars.push_back(x);
+    }
+    std::sort(vars.begin(), vars.end());
+    auto const dump_string = nlohmann::json(vars).dump();
+    if (file_path == "-") {
+        Logger::Log(
+            LogLevel::Info, "Variables for target {}:", result.id.ToString());
+        std::cout << dump_string << std::endl;
+    }
+    else {
+        Logger::Log(LogLevel::Info,
+                    "Dumping varables for target {} to file '{}'.",
+                    result.id.ToString(),
+                    file_path);
+        std::ofstream os(file_path);
+        os << dump_string << std::endl;
+    }
+}
+
 void DumpTrees(std::string const& file_path, AnalysisResult const& result) {
     auto const dump_string = TreesToJson(result.target).dump(2);
     if (file_path == "-") {
@@ -911,6 +934,9 @@ void DumpNodes(std::string const& file_path, AnalysisResult const& result) {
     }
     if (clargs.dump_trees) {
         DumpTrees(*clargs.dump_trees, result);
+    }
+    if (clargs.dump_vars) {
+        DumpVars(*clargs.dump_vars, result);
     }
     if (clargs.dump_targets) {
         DumpTargets(*clargs.dump_targets, result_map.ConfiguredTargets());
