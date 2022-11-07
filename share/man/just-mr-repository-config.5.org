@@ -127,9 +127,9 @@ Specifically, the following fields are supported:
   If provided, they are passed on expanded to the workspace root
   of the repository named by their value.
 
-- ~"target_root_file"~,
-- ~"rule_root_file"~,
-- ~"expression_root_file"~ refer to the name of the files containing
+- ~"target_file_name"~,
+- ~"rule_file_name"~,
+- ~"expression_file_name"~ refer to the name of the files containing
   the targets, rules, and expressions, respectively, 
   located relative to the corresponding root directories.
   These entries are optional. If provided, they are passed on as-is.
