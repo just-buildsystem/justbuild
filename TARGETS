@@ -1,4 +1,69 @@
-{ "": {"type": "install", "files": {"bin/just": "just"}}
+{ "":
+  { "type": "export"
+  , "target": "installed just"
+  , "doc": ["The just binary."]
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "BUILD_STATIC_BINARY"
+    , "CC"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "SOURCE_DATE_EPOCH"
+    , "TARGET_ARCH"
+    , "VERSION_EXTRA_SUFFIX"
+    ]
+  , "config_doc":
+    { "ARCH":
+      [ "The underlying architecture. Is taken as a default for \"HOST_ARCH\" and \"TARGET_ARCH\"."
+      , ""
+      , "One of \"x86\", \"x86_64\", \"arm\", \"arm64\". Defaults to \"x86_64\"."
+      ]
+    , "HOST_ARCH":
+      ["The architecture on which the build actions are carried out."]
+    , "TARGET_ARCH": ["The architecture for which to build the binary."]
+    , "COMPILER_FAMILY":
+      [ "The compiler family to use as (cross) toolchain."
+      , ""
+      , "Supported values are \"clang\" (the default), \"gcc\", and \"unkown\"."
+      , "The unknown compiler family tries to not make any assumptions on the"
+      , "used C and C++ compilers and uses the generic \"cc\" and \"c++\" as"
+      , "names for the respective compilers; typically used in conjunction with"
+      , "setting \"CC\" and \"CXX\" explicitly and building for host."
+      ]
+    , "ENV":
+      [ "Map from strings to strings. The build environment ot be used for"
+      , "build actions. Typically used to include an unusual value of PATH."
+      ]
+    , "BUILD_STATIC_BINARY":
+      [ "Boolean, default false. If set, try to build a (mainly) static binary."
+      ]
+    , "DEBUG": ["Boolean, default false. Wheter a to build a debug version."]
+    , "OS":
+      [ "Operating system to build for."
+      , ""
+      , "Currently, the only supported value is \"linux\", which is also the"
+      , "default."
+      ]
+    , "SOURCE_DATE_EPOCH":
+      [ "If set, embed the given time stamp (in seconds since the epoch) into"
+      , "the binary"
+      ]
+    , "VERSION_EXTRA_SUFFIX":
+      [ "String to extend the version suffix with."
+      , ""
+      , "Should be used to indicate additional (non-upstream) changes, e.g.,"
+      , "due to packaging."
+      ]
+    }
+  }
+, "installed just": {"type": "install", "files": {"bin/just": "just"}}
 , "exported-just":
   { "type": "export"
   , "target": ["src/buildtool/main", "just"]

@@ -19,8 +19,8 @@ specify `arm64` as the target architecture via the `-D` flag:
 just-mr build -D '{"TARGET_ARCH":"arm64"}'
 ```
 
-A complete list of variables honored by our build rules is provided in the
-following table:
+The following table descries the most important supported configuration
+variables. The full list can be obtained via `just-mr describe`.
 
 |Variable|Supported Values|Default Value for `just`|
 |-|:-:|:-:|
