@@ -16,6 +16,8 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_TYPE_HPP
 #include <cstdint>
 
+#include <gsl-lite/gsl-lite.hpp>
+
 enum class ObjectType : std::int8_t {
     File,
     Executable,
@@ -31,6 +33,7 @@ enum class ObjectType : std::int8_t {
         default:
             return ObjectType::File;
     }
+    gsl_Ensures(false);  // unreachable
 }
 
 [[nodiscard]] constexpr auto ToChar(ObjectType type) -> char {
@@ -42,6 +45,7 @@ enum class ObjectType : std::int8_t {
         case ObjectType::Tree:
             return 't';
     }
+    gsl_Ensures(false);  // unreachable
 }
 
 [[nodiscard]] constexpr auto IsFileObject(ObjectType type) -> bool {

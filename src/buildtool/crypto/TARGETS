@@ -14,7 +14,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hash_function"]
   , "hdrs": ["hash_function.hpp"]
-  , "deps": ["hasher"]
+  , "deps": ["hasher", ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "crypto"]
   }
 }

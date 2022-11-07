@@ -19,6 +19,8 @@
 #include <string>
 #include <type_traits>
 
+#include <gsl-lite/gsl-lite.hpp>
+
 enum class LogLevel {
     Error,    ///< Error messages, fatal errors
     Warning,  ///< Warning messages, recoverable situations that shouldn't occur
@@ -56,6 +58,7 @@ constexpr auto kLastLogLevel = LogLevel::Trace;
         case LogLevel::Trace:
             return "TRACE";
     }
+    gsl_Ensures(false);  // unreachable
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_LEVEL_HPP

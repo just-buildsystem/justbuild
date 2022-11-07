@@ -20,6 +20,8 @@
 #include <optional>
 #include <string>
 
+#include <gsl-lite/gsl-lite.hpp>
+
 #include "src/buildtool/crypto/hasher.hpp"
 
 /// \brief Hash function used for the entire buildtool.
@@ -69,6 +71,7 @@ class HashFunction {
             case JustHash::Compatible:
                 return ::Hasher{Hasher::HashType::SHA256};
         }
+        gsl_Ensures(false);  // unreachable
     }
 
   private:

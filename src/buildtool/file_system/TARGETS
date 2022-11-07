@@ -2,6 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["object_type"]
   , "hdrs": ["object_type.hpp"]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "file_system"]
   }
 , "file_system_manager":

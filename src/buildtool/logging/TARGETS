@@ -2,6 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_level"]
   , "hdrs": ["log_level.hpp"]
+  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "logging"]
   }
 , "logging":
