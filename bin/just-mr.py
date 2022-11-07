@@ -43,7 +43,6 @@ GIT_CHECKOUT_LOCATIONS = {}
 TAKE_OVER = [
     "bindings",
     "target_file_name",
-    "index_file_name",
     "rule_file_name",
     "expression_file_name",
 ]
@@ -51,7 +50,6 @@ ALT_DIRS = [
     "target_root",
     "rule_root",
     "expression_root",
-    "index_root",
 ]
 
 GIT_NOBODY_ENV = {
