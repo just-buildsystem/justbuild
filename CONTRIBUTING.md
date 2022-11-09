@@ -27,7 +27,7 @@ no "loose ends" like library functions added, but never used.
 
 ## Submitting patches
 
-Patches can be send for review by creating a feature branch in a
+Patches can be sent for review by creating a feature branch in a
 clone of the repository and creating a merge request on one of the
 `git`-hosting sites hosting this repository.
 
