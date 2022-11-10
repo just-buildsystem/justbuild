@@ -1,6 +1,7 @@
 { "git2":
   { "type": "export"
   , "target": "git2configured"
+  , "doc": ["The Git linkable library"]
   , "flexible_config":
     [ "OS"
     , "ARCH"
@@ -28,6 +29,44 @@
     , "USE_HTTP_PARSER"
     , "USE_BUNDLED_ZLIB"
     ]
+  , "config_doc":
+    { "REGEX_BACKEND":
+      [ "\"regcomp_l\": compile against regcomp_l (always from system)"
+      , "\"regcomp\": compile against regcomp (always from system)"
+      , "\"pcre\": link against libpcre (from system or open name)"
+      , "\"pcre2\": link against libpcre2 (from system or open name)"
+      , "\"builtin\"|null: compile and link bundled pcre (./deps/pcre)"
+      ]
+    , "USE_GSSAPI":
+      [ "true: use \"GSS.framework\" for ~OS==\"darwin\"~ or else \"gssapi\""
+      , "false: Disable GSS"
+      , "\"GSS.framework\": Link against GSS framework (system or open name)"
+      , "\"gssapi\": Link against libgssapi (system or open name)"
+      ]
+    , "USE_HTTPS":
+      [ "true: use \"WinHTTP\" if ~WINHTTP~ and ~OS==\"windows\"~"
+      , "\"SecureTransport\": link against Security framework (from system or open name)"
+      , "\"WinHTTP\": link against Windows' libwinhttp (always from system)"
+      , "\"OpenSSL\": link against OpenSSL (from system or open name)"
+      , "\"mbedTLS\": link against mbedTLS (from system or open name)"
+      , "false|null: Disable HTTPS"
+      ]
+    , "USE_HTTP_PARSER":
+      [ "\"system\": link against libhttp_parser (from system or open name)"
+      , "<other>: compile and link bundled http_parser (./deps/http-parser)"
+      ]
+    , "USE_SHA1":
+      [ "true: use \"CollisionDetection\""
+      , "\"CollisionDetection\": build with shipped SHA1DC implementation"
+      , "\"OpenSSL\": link against OpenSSL compat library (from system or open name)"
+      , "\"mbedTLS\": link against mbedTLS (from system or open name)"
+      , "\"Win32\": link against Windows' SHA1 implementation (always from system)"
+      , "\"CommonCrypto\": build with shipped common_crypto implementation"
+      , "\"Generic\": build with shipped SHA1 implementation"
+      , "\"HTTPS\": inherit from ~USE_HTTPS~, or fall back to \"CollisionDetection\""
+      ]
+    , "WINHTTP": ["boolean. use \"WinHTTP\" if \"USE_HTTPS\" is true"]
+    }
   }
 , "git2configured":
   { "type": "configure"
