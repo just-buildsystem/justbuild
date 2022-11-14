@@ -117,6 +117,13 @@ following content:
 }
 #+END_SRC
 
+After adding the library to the multi-repository configuration (next
+step), the list of configuration variables a target, like ~["src",
+"fmt"]~, actually depends on can be obtained using the ~--dump-vars~
+option of the ~analyse~ subcommand. In this way, an informed
+decission can be taken when deciding which variables of the export
+target to make tunable for the consumer.
+
 ** Adding fmtlib to the Multi-Repository Configuration
 
 Based on the /hello world/ tutorial, we can extend the existing ~repos.json~ by
