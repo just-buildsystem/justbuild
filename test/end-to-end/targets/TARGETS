@@ -22,6 +22,12 @@
   , "test": ["glob.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "configure target name":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["configure-target"]
+  , "test": ["configure-target.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -30,6 +36,7 @@
     , "repository naming"
     , "resolution of built-in rules"
     , "glob expansion"
+    , "configure target name"
     ]
   }
 }

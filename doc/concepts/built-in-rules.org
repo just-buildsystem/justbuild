@@ -125,10 +125,11 @@ map is empty.
 
 ** ~"configure"~
 
-The ~"configure"~ rule allows to configure a target with a given configuration.
-Similar to the ~"export"~ rule, the field ~"target"~ must name a single target
-(not a list). The ~"config"~ field is evaluated and must result in a map, which
-is used as configuration for the given target.
+The ~"configure"~ rule allows to configure a target with a given
+configuration. The field ~"target"~ is evaluated and the result
+of the evaluation must name a single target (not a list). The
+~"config"~ field is evaluated and must result in a map, which is
+used as configuration for the given target.
 
 This rule uses the given configuration to overlay the current environment for
 evaluating the given target, and thereby performs a configuration transition. It

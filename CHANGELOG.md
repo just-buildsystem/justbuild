@@ -4,6 +4,7 @@ Initial stable release.
 
 ### Important changes since `1.0.0~beta5`
 
+- The "configure" built-in rule now evaluates "target"
 - Option `--dump-vars` added to `just analyse`
 - Rule fixes in propagating `ENV`
 - Launcher functionality added to `just-mr`

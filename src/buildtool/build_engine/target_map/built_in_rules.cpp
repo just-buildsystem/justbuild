@@ -953,7 +953,16 @@ void ConfigureRule(
     }
     auto param_config = key.config.Prune(*param_vars);
 
-    auto configured_target_name = desc->ReadExpression("target");
+    auto configured_target_name_exp = desc->ReadExpression("target");
+    if (not configured_target_name_exp) {
+        return;
+    }
+    auto configured_target_name = configured_target_name_exp.Evaluate(
+        param_config, {}, [logger](std::string const& msg) {
+            (*logger)(
+                fmt::format("Evaluating 'target' failed with error:\n{}", msg),
+                true);
+        });
     if (not configured_target_name) {
         return;
     }
