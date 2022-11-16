@@ -170,7 +170,8 @@
   }
 , "library":
   { "doc": ["A C++ libaray"]
-  , "target_fields": ["srcs", "hdrs", "private-hdrs", "deps", "proto"]
+  , "target_fields":
+    ["srcs", "hdrs", "private-hdrs", "deps", "private-deps", "proto"]
   , "string_fields":
     [ "name"
     , "stage"
@@ -220,6 +221,10 @@
       , "by this tool, typically system libraries)."
       ]
     , "deps": ["Any other libraries this library depends upon."]
+    , "private-deps":
+      [ "Any other libraries this library depends upon but does not include"
+      , "in its public headers."
+      ]
     , "proto":
       [ "Any [\"proto\", \"library\"] this target depends upon directly."
       , "The creation of C++ bindings for this proto library as well as of"

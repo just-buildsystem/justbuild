@@ -486,7 +486,7 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ ["deps-fieldnames", ["deps", "proto-deps"]]
+      [ ["deps-fieldnames", ["deps", "private-deps", "proto-deps"]]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["lib", {"type": "CALL_EXPRESSION", "name": "lib artifact"}]
@@ -502,6 +502,8 @@
             }
           }
         ]
+      , ["deps-fieldnames", ["deps", "proto-deps"]]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       ]
     , "body":
       { "type": "RESULT"

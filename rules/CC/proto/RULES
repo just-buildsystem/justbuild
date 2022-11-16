@@ -26,6 +26,7 @@
     , "proto-deps": [["@", "protoc", "", "C++ runtime"]]
     , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
     , "pure C": []
+    , "private-deps": []
     }
   , "imports":
     { "protoc-compile": "protoc-compile"
@@ -72,6 +73,7 @@
       ]
     , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
     , "pure C": []
+    , "private-deps": []
     }
   , "imports":
     { "protoc-compile": "protoc-compile"
