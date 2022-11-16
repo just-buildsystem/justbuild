@@ -2,6 +2,8 @@
 
 Initial stable release.
 
+## Release `1.0.0~beta6` (2022-10-16)
+
 ### Important changes since `1.0.0~beta5`
 
 - The "confgiure" built-in rule now evaluates "target". Also,
