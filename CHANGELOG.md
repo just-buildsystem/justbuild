@@ -4,7 +4,9 @@ Initial stable release.
 
 ### Important changes since `1.0.0~beta5`
 
-- The "configure" built-in rule now evaluates "target"
+- The "confgiure" built-in rule now evaluates "target". Also,
+  a bug in the computation of the effective configuration
+  was fixed.
 - Option `--dump-vars` added to `just analyse`
 - Rule fixes in propagating `ENV`
 - Launcher functionality added to `just-mr`

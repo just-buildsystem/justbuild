@@ -28,6 +28,12 @@
   , "test": ["configure-target.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "configure variables":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["configure-vars"]
+  , "test": ["configure-vars.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -37,6 +43,7 @@
     , "resolution of built-in rules"
     , "glob expansion"
     , "configure target name"
+    , "configure variables"
     ]
   }
 }

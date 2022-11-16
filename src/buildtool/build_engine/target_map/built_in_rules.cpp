@@ -1016,7 +1016,7 @@ void ConfigureRule(
 
     auto target_config = key.config.Update(eval_config);
     auto target_to_configure = BuildMaps::Target::ConfiguredTarget{
-        std::move(*configured_target), target_config};
+        std::move(*configured_target), std::move(target_config)};
 
     (*subcaller)(
         {std::move(target_to_configure)},
@@ -1024,9 +1024,9 @@ void ConfigureRule(
          logger,
          vars = std::move(*param_vars),
          result_map,
+         transition = Configuration{std::move(eval_config)},
          tainted = std::move(tainted),
-         target_config = std::move(target_config),
-         target = key.target](auto const& values) {
+         key](auto const& values) {
             auto& configured_target = *values[0];
             if (not std::includes(tainted.begin(),
                                   tainted.end(),
@@ -1040,14 +1040,17 @@ void ConfigureRule(
             }
 
             std::unordered_set<std::string> vars_set{};
+            for (auto const& x : configured_target->Vars()) {
+                if (not transition.VariableFixed(x)) {
+                    vars_set.insert(x);
+                }
+            }
             vars_set.insert(vars.begin(), vars.end());
-            vars_set.insert(configured_target->Vars().begin(),
-                            configured_target->Vars().end());
-            auto effective_conf = target_config.Prune(vars_set);
+            auto effective_conf = key.config.Prune(vars_set);
 
             auto deps_info = TargetGraphInformation{
                 std::make_shared<BuildMaps::Target::ConfiguredTarget>(
-                    BuildMaps::Target::ConfiguredTarget{target,
+                    BuildMaps::Target::ConfiguredTarget{key.target,
                                                         effective_conf}),
                 {configured_target->GraphInformation().Node()},
                 {},
@@ -1061,8 +1064,9 @@ void ConfigureRule(
                 std::move(vars_set),
                 std::set<std::string>{},
                 std::move(deps_info));
-            analysis_result = result_map->Add(
-                target, std::move(effective_conf), std::move(analysis_result));
+            analysis_result = result_map->Add(key.target,
+                                              std::move(effective_conf),
+                                              std::move(analysis_result));
             (*setter)(std::move(analysis_result));
         },
         logger);
