@@ -261,6 +261,8 @@ def bootstrap():
             dirs.remove('test')
         if 'execution_api' in dirs:
             dirs.remove('execution_api')
+        if 'other_tools' in dirs:
+            dirs.remove('other_tools')
         for f in files:
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))
