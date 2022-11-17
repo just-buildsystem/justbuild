@@ -267,6 +267,42 @@ class FileSystemManager {
         return false;
     }
 
+    [[nodiscard]] static auto CopyDirectoryImpl(
+        std::filesystem::path const& src,
+        std::filesystem::path const& dst,
+        bool recursively = false) noexcept -> bool {
+        try {
+            // also checks existence
+            if (not IsDirectory(src)) {
+                Logger::Log(LogLevel::Error,
+                            "source {} does not exist or is not a directory",
+                            src.string());
+                return false;
+            }
+            // if dst does not exist, it is created, so only check if path
+            // exists but is something else
+            if (Exists(dst) and not IsDirectory(dst)) {
+                Logger::Log(LogLevel::Error,
+                            "destination {} exists but it is not a directory",
+                            dst.string());
+                return false;
+            }
+            std::filesystem::copy(src,
+                                  dst,
+                                  recursively
+                                      ? std::filesystem::copy_options::recursive
+                                      : std::filesystem::copy_options::none);
+            return true;
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "copying directory from {} to {}:\n{}",
+                        src.string(),
+                        dst.string(),
+                        e.what());
+            return false;
+        }
+    }
+
     [[nodiscard]] static auto RemoveFile(
         std::filesystem::path const& file) noexcept -> bool {
         try {

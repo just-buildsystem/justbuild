@@ -590,6 +590,33 @@ TEST_CASE("CreateFileHardlink", "[file_system]") {
     }
 }
 
+TEST_CASE("CopyDirectoryImpl", "[file_system]") {
+    std::filesystem::path to{"./tmp-CreateDirCopy/tmp-dir"};
+    REQUIRE(FileSystemManager::CreateDirectory(to.parent_path()));
+
+    CHECK(FileSystemManager::CreateDirectory("a/b/c/d"));
+    CHECK(std::filesystem::exists("a/b/c/d"));
+    CHECK(std::filesystem::is_directory("a/b/c/d"));
+
+    CHECK(FileSystemManager::WriteFile("boo", "a/bb.txt"));
+
+    // Test copy
+    CHECK(FileSystemManager::CopyDirectoryImpl("a", to, true));
+
+    // Result should be in tmp-dir now
+    CHECK(std::filesystem::exists(to));
+    CHECK(std::filesystem::is_directory(to));
+
+    CHECK(std::filesystem::exists(to / "b"));
+    CHECK(std::filesystem::is_directory(to / "b"));
+
+    CHECK(std::filesystem::exists(to / "b/c"));
+    CHECK(std::filesystem::is_directory(to / "b/c"));
+
+    CHECK(std::filesystem::exists(to / "bb.txt"));
+    CHECK(std::filesystem::is_regular_file(to / "bb.txt"));
+}
+
 TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
     auto set_perm = [&](bool is_executable) {
         auto const content = FileSystemManager::ReadFile(from_);
