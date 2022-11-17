@@ -32,4 +32,20 @@
   , "private-deps":
     [["src/buildtool/file_system", "git_repo"], ["src/utils/cpp", "tmp_dir"]]
   }
+, "fpath_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fpath_git_map"]
+  , "hdrs": ["fpath_git_map.hpp"]
+  , "srcs": ["fpath_git_map.cpp"]
+  , "deps":
+    [ ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  , "private-deps":
+    [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/execution_api/local", "config"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  }
 }
