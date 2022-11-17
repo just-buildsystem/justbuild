@@ -1,0 +1,458 @@
+{ "curl_ares":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_ARES"]
+  , "name": ["curl_ares"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "ENABLE_ARES"}
+      , "then": ["-lcares"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+    , "then": []
+    , "else":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "ENABLE_ARES"}
+      , "then": [["@", "cares", "", "ares"]]
+      }
+    }
+  }
+, "curl_ipv6":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS", "ENABLE_IPV6", "ENABLE_ARES"]
+  , "name": ["curl_ipv6"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond":
+      { "type": "and"
+      , "$1":
+        [ {"type": "var", "name": "ENABLE_IPV6"}
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "ENABLE_ARES"}
+          , "then": false
+          , "else": true
+          }
+        ]
+      }
+    , "then":
+      { "type": "case*"
+      , "expr": {"type": "var", "name": "OS"}
+      , "case":
+        [["darwin", ["-framework", "SystemConfiguration", "CoreFoundations"]]]
+      }
+    }
+  }
+, "curl_async_dns":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS", "ENABLE_THREADED_RESOLVER"]
+  , "name": ["curl_async_dns"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_THREADED_RESOLVER"}
+    , "then":
+      { "type": "case*"
+      , "expr": {"type": "var", "name": "OS"}
+      , "case": [["linux", ["-lpthread"]]]
+      }
+    }
+  }
+, "curl_ssl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_ENABLE_SSL"]
+  , "name": ["curl_ssl"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
+      , "then": ["-lssl"]
+      , "else":
+        { "type": "fail"
+        , "msg": "libcurl only supported currently with openSSL/boringSSL."
+        }
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+    , "then": []
+    , "else":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
+      , "then": [["@", "ssl", "", "ssl"], ["@", "ssl", "", "crypto"]]
+      , "else":
+        { "type": "fail"
+        , "msg": "libcurl only supported currently with openSSL/boringSSL."
+        }
+      }
+    }
+  }
+, "curl_nghttp2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_NGHTTP2"]
+  , "name": ["curl_nghttp2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_NGHTTP2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lnghttp2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_NGHTTP2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "nghttp2", "", "nghttp2"]]
+      }
+    }
+  }
+, "curl_ngtcp2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_NGTCP2"]
+  , "name": ["curl_ngtcp2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_NGTCP2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lngtcp2", "-lngthhp3"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_NGTCP2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else":
+        [["@", "ngtcp2", "", "ngtcp2"], ["@", "nghttp3", "", "nghttp3"]]
+      }
+    }
+  }
+, "curl_quiche":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_QUICHE"]
+  , "name": ["curl_quiche"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_QUICHE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lquiche"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_QUICHE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "quiche", "", "quiche"]]
+      }
+    }
+  }
+, "curl_msh3":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_MSH3"]
+  , "name": ["curl_msh3"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_MSH3"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lmsh3"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_MSH3"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "msh3", "", "msh3"]]
+      }
+    }
+  }
+, "curl_idn2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_LIBIDN2", "OS"]
+  , "name": ["curl_quiche"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_LIBIDN2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "OS"}
+        , "case": [["linux", ["-lidn2"]], ["windows", ["-lnormaliz"]]]
+        }
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_LIBIDN2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else":
+        { "type": "if"
+        , "cond": {"type": "var", "name": "USE_NGTCP2"}
+        , "then":
+          { "type": "case*"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case":
+            [ ["linux", [["@", "idn2", "", "idn2"]]]
+            , ["windows", [["@", "normaliz", "", "idn2"]]]
+            ]
+          }
+        }
+      }
+    }
+  }
+, "curl_zlib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_ZLIB"]
+  , "name": ["curl_zlib"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_ZLIB"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lz"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_ZLIB"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "zlib", "", "zlib"]]
+      }
+    }
+  }
+, "curl_brotli":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_BROTLI"]
+  , "name": ["curl_brotli"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_BROTLI"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lbrotlidec"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_BROTLI"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "brotli", "", "brotli"]]
+      }
+    }
+  }
+, "curl_zstd":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_ZSTD"]
+  , "name": ["curl_zstd"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_ZSTD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-zstd"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_ZSTD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "zstd", "", "zstd"]]
+      }
+    }
+  }
+, "curl_psl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_USE_LIBPSL"]
+  , "name": ["curl_psl"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBPSL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lpsl"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBPSL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "psl", "", "psl"]]
+      }
+    }
+  }
+, "curl_ssh2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_USE_LIBSSH2"]
+  , "name": ["curl_ssh2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBSSH2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lssh"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBSSH2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "ssh2", "", "ssh"]]
+      }
+    }
+  }
+, "curl_ssh":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_USE_LIBSSH"]
+  , "name": ["curl_ssh"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBSSH"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lssh"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_LIBSSH"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "ssh", "", "ssh"]]
+      }
+    }
+  }
+, "curl_gssapi":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_USE_GSSAPI"]
+  , "name": ["curl_gssapi"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_GSSAPI"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lgssapi"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "CURL_USE_GSSAPI"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "heimdal", "", "gssapi"]]
+      }
+    }
+  }
+, "curl_crypt_win32":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS", "USE_SYSTEM_LIBS"]
+  , "name": ["curl_crypt_win32"]
+  , "private-ldflags":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      [ [ "windows"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+          , "then": ["-lbcrypt"]
+          }
+        ]
+      ]
+    }
+  , "deps":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      [ [ "windows"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+          , "then": []
+          , "else": [["@", "bcrypt", "", "bcrypt"]]
+          }
+        ]
+      ]
+    }
+  }
+, "curl_hidden_symbols":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY", "CURL_HIDDEN_SYMBOLS"]
+  , "name": ["curl_hidden_symbols"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond":
+      { "type": "=="
+      , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+      , "$2": "msvc"
+      }
+    , "then": []
+    , "else":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "CURL_HIDDEN_SYMBOLS"}
+      , "then":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "case":
+          [ ["clang", ["-fvisibility=hidden"]]
+          , ["gnu", ["-fvisibility=hidden"]]
+          , ["sunpro", ["-xldscope=hidden"]]
+          , ["intel", ["-fvisibility=hidden"]]
+          ]
+        }
+      }
+    }
+  }
+}

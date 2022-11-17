@@ -9,6 +9,7 @@
     , ["@", "json", "", "json"]
     , ["@", "catch2", "", "catch2"]
     , ["", "libgit2"]
+    , ["", "libcurl"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]

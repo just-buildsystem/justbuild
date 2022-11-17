@@ -134,6 +134,24 @@
       }
     }
   }
+, "libcurl":
+  { "type": "configure"
+  , "target": ["@", "libcurl", "", "curl"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["ENABLE_ARES", true]
+      , ["HTTP_ONLY", true]
+      , ["CURL_USE_LIBPSL", false]
+      , ["CURL_USE_LIBSSH2", false]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        ["ENABLE_ARES", "HTTP_ONLY", "CURL_USE_LIBPSL", "CURL_USE_LIBSSH2"]
+      }
+    }
+  }
 , "just-ext-hdrs":
   { "type": "configure"
   , "arguments_config": ["OS", "ARCH"]

@@ -1,0 +1,61 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["COMPILER_FAMILY", "CURL_ENABLE_SSL"]
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , [ "CURL_ENABLE_SSL"
+        , {"type": "var", "name": "CURL_ENABLE_SSL", "default": true}
+        ]
+      ]
+    , "body":
+      { "type": "++"
+      , "$1":
+        [ { "type": "case*"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case":
+            [ [ "msvc"
+              , [ "-D_CRT_SECURE_NO_DEPRECATE"
+                , "-D_CRT_NONSTDC_NO_DEPRECATE"
+                , "/W4"
+                , "/MP"
+                ]
+              ]
+            ]
+          }
+        , ["-DHAVE_CONFIG_H", "-DBUILDING_LIBCURL"]
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
+          , "then": ["-DOPENSSL_SUPPRESS_DEPRECATED"]
+          }
+        , { "type": "if"
+          , "cond":
+            { "type": "=="
+            , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+            , "$2": "msvc"
+            }
+          , "then": []
+          , "else":
+            { "type": "if"
+            , "cond": {"type": "var", "name": "CURL_HIDDEN_SYMBOLS"}
+            , "then":
+              { "type": "case*"
+              , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+              , "case":
+                [ ["clang", ["-DCURL_HIDDEN_SYMBOLS"]]
+                , ["gnu", ["-DCURL_HIDDEN_SYMBOLS"]]
+                , ["sunpro", ["-DCURL_HIDDEN_SYMBOLS"]]
+                , ["intel", ["-DCURL_HIDDEN_SYMBOLS"]]
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

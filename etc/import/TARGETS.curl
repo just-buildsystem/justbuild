@@ -1,0 +1,412 @@
+{ "curl":
+  { "type": "export"
+  , "target": "curl_config"
+  , "doc": ["The Curl linkable library"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "USE_SYSTEM_LIBS"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    , "CURL_HIDDEN_SYMBOLS"
+    , "USE_ZLIB"
+    , "ENABLE_ARES"
+    , "ENABLE_THREADED_RESOLVER"
+    , "HTTP_ONLY"
+    , "CURL_DISABLE_ALTSVC"
+    , "CURL_DISABLE_COOKIES"
+    , "CURL_DISABLE_CRYPTO_AUTH"
+    , "CURL_DISABLE_NTLM"
+    , "CURL_DISABLE_DOH"
+    , "CURL_DISABLE_GETOPTIONS"
+    , "CURL_DISABLE_HSTS"
+    , "CURL_DISABLE_MIME"
+    , "CURL_DISABLE_NETRC"
+    , "CURL_DISABLE_PARSEDATE"
+    , "CURL_DISABLE_PROGRESS_METER"
+    , "CURL_DISABLE_SHUFFLE_DNS"
+    , "CURL_DISABLE_SOCKETPAIR"
+    , "ENABLE_IPV6"
+    , "CURL_ENABLE_SSL"
+    , "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG"
+    , "USE_NGHTTP2"
+    , "USE_NGTCP2"
+    , "USE_QUICHE"
+    , "USE_MSH3"
+    , "USE_LIBIDN2"
+    , "USE_BROTLI"
+    , "USE_ZSTD"
+    , "CURL_USE_LIBPSL"
+    , "CURL_USE_LIBSSH2"
+    , "CURL_USE_LIBSSH"
+    , "CURL_USE_GSSAPI"
+    , "ENABLE_UNIX_SOCKETS"
+    , "CURL_CA_BUNDLE"
+    , "CURL_CA_PATH"
+    , "CURL_CA_FALLBACK"
+    , "USE_GNU_STRERROR_R"
+    ]
+  , "config_doc":
+    { "CURL_HIDDEN_SYMBOLS":
+      [ "Boolean. Default value: true."
+      , "Hide all symbols not officially external."
+      ]
+    , "USE_ZLIB":
+      [ "Boolean. Default value: true."
+      , "Link against zlib library (system or open name)."
+      ]
+    , "ENABLE_ARES":
+      [ "Boolean. Default value: false."
+      , "Link against ares library (system or open name)."
+      ]
+    , "ENABLE_THREADED_RESOLVER":
+      [ "Boolean. Enables AsynchDNS by threading if ~ENABLE_ARES==false~."
+      , "If ~OS==\"windows\"~, uses win32 threads, otherwise pthreads."
+      ]
+    , "HTTP_ONLY":
+      [ "true|null: Disables the following advanced options:"
+      , "DICT, FILE, FTP, GOPHER, IMAP, LDAP, LDAPS,"
+      , "MQTT, POP3, RTSP, SMB, SMTP, TELNET, TFTP."
+      , "false: Allows advanced options to be used, if selected."
+      , "Currently these are unsupported."
+      ]
+    , "CURL_DISABLE_ALTSVC": ["Boolean. Disable alt-svc."]
+    , "CURL_DISABLE_COOKIES": ["Boolean. Disable cookies."]
+    , "CURL_DISABLE_CRYPTO_AUTH":
+      ["Boolean. Disable cryptographic authentication."]
+    , "CURL_DISABLE_NTLM": ["Boolean. Disable NTLM support."]
+    , "CURL_DISABLE_DOH": ["Boolean. Disable DNS-over-HTTPS."]
+    , "CURL_DISABLE_GETOPTIONS": ["Boolean. Disable curl-easy-options API."]
+    , "CURL_DISABLE_HSTS": ["Boolean. Disable HSTS support."]
+    , "CURL_DISABLE_MIME": ["Boolean. Disable MIME support."]
+    , "CURL_DISABLE_NETRC": ["Boolean. Disable netrc parser."]
+    , "CURL_DISABLE_PARSEDATE": ["Boolean. Disable date parsing."]
+    , "CURL_DISABLE_PROGRESS_METER":
+      ["Boolean. Disable built-in progress meter."]
+    , "CURL_DISABLE_SHUFFLE_DNS": ["Boolean. Disable shuffle DNS feature."]
+    , "CURL_DISABLE_SOCKETPAIR":
+      ["Boolean. Disable use of socketpair for curl_multi_poll."]
+    , "ENABLE_IPV6": ["Boolean. Default value: true. Enable IPv6 support."]
+    , "CURL_ENABLE_SSL":
+      [ "Boolean. Default value: true."
+      , "Link against OpenSSL/BoringSSL as default backend (system or open name)."
+      ]
+    , "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG":
+      ["Boolean. Disable automatic loading of OpenSSL/BoringSSL config."]
+    , "USE_NGHTTP2":
+      [ "Boolean. Link against nghttp2 (system or open name)."
+      , "Provides http/2 support."
+      ]
+    , "USE_NGTCP2":
+      [ "Boolean. Link against ngtcp2 if OpenSSL/BoringSSL is used."
+      , "Provides http/3 support."
+      ]
+    , "USE_QUICHE":
+      [ "Boolean. Link against quiche (system or open name) if ~USE_NGTCP2==false~."
+      , "Provides http/3 support."
+      ]
+    , "USE_MSH3":
+      [ "Boolean. Link against msh3 (system or open name) if ~USE_NGTCP2==false~ and ~USE_QUICHE==false~."
+      , "Provides http/3 support."
+      ]
+    , "USE_LIBIDN2":
+      [ "Boolean. Link against libidn2 (system or open name) if ~OS==\"linux\"~"
+      , "or against normaliz (system or open name) if ~OS==\"windows\"~."
+      ]
+    , "USE_BROTLI": ["Boolean. Link against brotli (system or open name)."]
+    , "USE_ZSTD": ["Boolean. Link against zstd (system or open name)."]
+    , "CURL_USE_LIBPSL":
+      [ "Boolean. Default value: true. Link against libpsl (system or open name)."
+      ]
+    , "CURL_USE_LIBSSH2":
+      [ "Boolean. Default value: true. Link against libssh2 (system or open name)."
+      , "Provides SSH support."
+      ]
+    , "CURL_USE_LIBSSH":
+      [ "Boolean. Link against libssh (system or open name) if ~CURL_USE_LIBSSH2==false~."
+      , "Provides SSH support."
+      ]
+    , "CURL_USE_GSSAPI":
+      [ "Boolean. Link against gssapi (system or open name)."
+      , "Currently only heimdal library is supported as provider of gssapi symbol"
+      ]
+    , "ENABLE_UNIX_SOCKETS":
+      ["Boolean. Default value: true. Define unix domain sockets support"]
+    , "CURL_CA_FALLBACK":
+      ["Boolean. Use the CA store of the system or of the used TLS backend"]
+    , "CURL_CA_BUNDLE":
+      [ "\"auto\"|null: Enforces the use of the system or TLS backend CA certs,"
+      , "as if by ~CURL_CA_FALLBACK==true~."
+      , "\"none\": Allow ~CURL_CA_FALLBACK~ value to decide CA certification."
+      , "<path>: Explicit path to the CA bundle to use. User must ensure validity. "
+      ]
+    , "CURL_CA_PATH":
+      [ "\"auto\"|null: Enforces the use of the system or TLS backend CA certs,"
+      , "as if by ~CURL_CA_FALLBACK==true~."
+      , "\"none\": Allow ~CURL_CA_FALLBACK~ value to decide CA certification."
+      , "<path>: Explicit path to the CA certificate to use. User must ensure validity."
+      ]
+    , "USE_GNU_STRERROR_R":
+      [ "Boolean. Manually set whether to use GNU or POSIX version of ~strerror_r~ function."
+      , "Only safe to set if _GNU_SOURCE is set no _POSIX_SOURCE overwrite exists."
+      ]
+    }
+  }
+, "curl_config":
+  { "type": "configure"
+  , "arguments_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "USE_SYSTEM_LIBS"
+    , "CURL_HIDDEN_SYMBOLS"
+    , "USE_ZLIB"
+    , "ENABLE_ARES"
+    , "ENABLE_THREADED_RESOLVER"
+    , "HTTP_ONLY"
+    , "CURL_DISABLE_ALTSVC"
+    , "CURL_DISABLE_COOKIES"
+    , "CURL_DISABLE_CRYPTO_AUTH"
+    , "CURL_DISABLE_NTLM"
+    , "CURL_DISABLE_DOH"
+    , "CURL_DISABLE_GETOPTIONS"
+    , "CURL_DISABLE_HSTS"
+    , "CURL_DISABLE_MIME"
+    , "CURL_DISABLE_NETRC"
+    , "CURL_DISABLE_PARSEDATE"
+    , "CURL_DISABLE_PROGRESS_METER"
+    , "CURL_DISABLE_SHUFFLE_DNS"
+    , "CURL_DISABLE_SOCKETPAIR"
+    , "ENABLE_IPV6"
+    , "CURL_ENABLE_SSL"
+    , "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG"
+    , "USE_NGHTTP2"
+    , "USE_NGTCP2"
+    , "USE_QUICHE"
+    , "USE_MSH3"
+    , "USE_LIBIDN2"
+    , "USE_BROTLI"
+    , "USE_ZSTD"
+    , "CURL_USE_LIBPSL"
+    , "CURL_USE_LIBSSH2"
+    , "CURL_USE_LIBSSH"
+    , "CURL_USE_GSSAPI"
+    , "ENABLE_UNIX_SOCKETS"
+    , "CURL_CA_BUNDLE"
+    , "CURL_CA_PATH"
+    , "CURL_CA_FALLBACK"
+    , "USE_GNU_STRERROR_R"
+    ]
+  , "target": ["./", "lib", "libcurl"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        ]
+      , [ "CURL_HIDDEN_SYMBOLS"
+        , {"type": "var", "name": "CURL_HIDDEN_SYMBOLS", "default": true}
+        ]
+      , ["USE_ZLIB", {"type": "var", "name": "USE_ZLIB", "default": true}]
+      , [ "ENABLE_ARES"
+        , {"type": "var", "name": "ENABLE_ARES", "default": false}
+        ]
+      , [ "ENABLE_THREADED_RESOLVER"
+        , { "type": "var"
+          , "name": "ENABLE_THREADED_RESOLVER"
+          , "default":
+            { "type": "if"
+            , "cond": {"type": "var", "name": "ENABLE_ARES"}
+            , "then": false
+            , "else": true
+            }
+          }
+        ]
+      , ["HTTP_ONLY", {"type": "var", "name": "HTTP_ONLY", "default": false}]
+      , [ "CURL_DISABLE_ALTSVC"
+        , {"type": "var", "name": "CURL_DISABLE_ALTSVC", "default": false}
+        ]
+      , [ "CURL_DISABLE_COOKIES"
+        , {"type": "var", "name": "CURL_DISABLE_COOKIES", "default": false}
+        ]
+      , [ "CURL_DISABLE_CRYPTO_AUTH"
+        , {"type": "var", "name": "CURL_DISABLE_CRYPTO_AUTH", "default": false}
+        ]
+      , [ "CURL_DISABLE_NTLM"
+        , {"type": "var", "name": "CURL_DISABLE_NTLM", "default": false}
+        ]
+      , [ "CURL_DISABLE_DOH"
+        , {"type": "var", "name": "CURL_DISABLE_DOH", "default": false}
+        ]
+      , [ "CURL_DISABLE_GETOPTIONS"
+        , {"type": "var", "name": "CURL_DISABLE_GETOPTIONS", "default": false}
+        ]
+      , [ "CURL_DISABLE_HSTS"
+        , {"type": "var", "name": "CURL_DISABLE_HSTS", "default": false}
+        ]
+      , [ "CURL_DISABLE_MIME"
+        , {"type": "var", "name": "CURL_DISABLE_MIME", "default": false}
+        ]
+      , [ "CURL_DISABLE_NETRC"
+        , {"type": "var", "name": "CURL_DISABLE_NETRC", "default": false}
+        ]
+      , [ "CURL_DISABLE_PARSEDATE"
+        , {"type": "var", "name": "CURL_DISABLE_PARSEDATE", "default": false}
+        ]
+      , [ "CURL_DISABLE_PROGRESS_METER"
+        , { "type": "var"
+          , "name": "CURL_DISABLE_PROGRESS_METER"
+          , "default": false
+          }
+        ]
+      , [ "CURL_DISABLE_SHUFFLE_DNS"
+        , {"type": "var", "name": "CURL_DISABLE_SHUFFLE_DNS", "default": false}
+        ]
+      , [ "CURL_DISABLE_SOCKETPAIR"
+        , {"type": "var", "name": "CURL_DISABLE_SOCKETPAIR", "default": false}
+        ]
+      , [ "ENABLE_IPV6"
+        , {"type": "var", "name": "ENABLE_IPV6", "default": true}
+        ]
+      , [ "CURL_ENABLE_SSL"
+        , {"type": "var", "name": "CURL_ENABLE_SSL", "default": true}
+        ]
+      , [ "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG"
+        , { "type": "var"
+          , "name": "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG"
+          , "default": false
+          }
+        ]
+      , [ "USE_NGHTTP2"
+        , {"type": "var", "name": "USE_NGHTTP2", "default": false}
+        ]
+      , ["USE_NGTCP2", {"type": "var", "name": "USE_NGTCP2", "default": false}]
+      , ["USE_QUICHE", {"type": "var", "name": "USE_QUICHE", "default": false}]
+      , ["USE_MSH3", {"type": "var", "name": "USE_MSH3", "default": false}]
+      , [ "USE_LIBIDN2"
+        , {"type": "var", "name": "USE_LIBIDN2", "default": false}
+        ]
+      , ["USE_BROTLI", {"type": "var", "name": "USE_BROTLI", "default": false}]
+      , ["USE_ZSTD", {"type": "var", "name": "USE_ZSTD", "default": false}]
+      , [ "CURL_USE_LIBPSL"
+        , {"type": "var", "name": "CURL_USE_LIBPSL", "default": true}
+        ]
+      , [ "CURL_USE_LIBSSH2"
+        , {"type": "var", "name": "CURL_USE_LIBSSH2", "default": true}
+        ]
+      , [ "CURL_USE_LIBSSH"
+        , {"type": "var", "name": "CURL_USE_LIBSSH", "default": false}
+        ]
+      , [ "CURL_USE_GSSAPI"
+        , {"type": "var", "name": "CURL_USE_GSSAPI", "default": false}
+        ]
+      , [ "ENABLE_UNIX_SOCKETS"
+        , {"type": "var", "name": "ENABLE_UNIX_SOCKETS", "default": true}
+        ]
+      , [ "CURL_CA_BUNDLE"
+        , {"type": "var", "name": "CURL_CA_BUNDLE", "default": "auto"}
+        ]
+      , [ "CURL_CA_PATH"
+        , {"type": "var", "name": "CURL_CA_PATH", "default": "auto"}
+        ]
+      , [ "CURL_CA_FALLBACK"
+        , { "type": "case*"
+          , "expr":
+            {"type": "var", "name": "CURL_CA_FALLBACK", "default": false}
+          , "case":
+            [ [ false
+              , { "type": "if"
+                , "cond":
+                  { "type": "or"
+                  , "$1":
+                    [ { "type": "=="
+                      , "$1": {"type": "var", "name": "CURL_CA_BUNDLE"}
+                      , "$2": "auto"
+                      }
+                    , { "type": "=="
+                      , "$1": {"type": "var", "name": "CURL_CA_PATH"}
+                      , "$2": "auto"
+                      }
+                    ]
+                  }
+                , "then": true
+                , "else": false
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "CURL_CA_FALLBACK"}
+          }
+        ]
+      , [ "USE_GNU_STRERROR_R"
+        , {"type": "var", "name": "USE_GNU_STRERROR_R", "default": false}
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        [ "USE_SYSTEM_LIBS"
+        , "CURL_HIDDEN_SYMBOLS"
+        , "ENABLE_ARES"
+        , "ENABLE_THREADED_RESOLVER"
+        , "HTTP_ONLY"
+        , "CURL_DISABLE_ALTSVC"
+        , "CURL_DISABLE_COOKIES"
+        , "CURL_DISABLE_CRYPTO_AUTH"
+        , "CURL_DISABLE_NTLM"
+        , "CURL_DISABLE_DOH"
+        , "CURL_DISABLE_HSTS"
+        , "CURL_DISABLE_MIME"
+        , "CURL_DISABLE_NETRC"
+        , "CURL_DISABLE_PARSEDATE"
+        , "CURL_DISABLE_PROGRESS_METER"
+        , "CURL_DISABLE_SHUFFLE_DNS"
+        , "CURL_DISABLE_SOCKETPAIR"
+        , "ENABLE_IPV6"
+        , "CURL_ENABLE_SSL"
+        , "CURL_DISABLE_OPENSSL_AUTO_LOAD_CONFIG"
+        , "USE_NGHTTP2"
+        , "USE_NGTCP2"
+        , "USE_QUICHE"
+        , "USE_MSH3"
+        , "USE_LIBIDN2"
+        , "USE_BROTLI"
+        , "USE_ZSTD"
+        , "CURL_USE_LIBPSL"
+        , "CURL_USE_LIBSSH2"
+        , "CURL_USE_LIBSSH"
+        , "CURL_USE_GSSAPI"
+        , "ENABLE_UNIX_SOCKETS"
+        , "CURL_CA_BUNDLE"
+        , "CURL_CA_PATH"
+        , "CURL_CA_FALLBACK"
+        , "USE_GNU_STRERROR_R"
+        ]
+      }
+    }
+  }
+}

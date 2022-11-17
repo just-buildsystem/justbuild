@@ -16,6 +16,7 @@
       , "libgit2": "com_github_libgit2_libgit2"
       , "catch2": "catch2"
       , "protoc": "protobuf"
+      , "libcurl": "com_github_curl_curl"
       }
     , "bootstrap": {"link": ["-lpthread"]}
     , "bootstrap_local": {"link": ["-lpthread"]}
@@ -40,6 +41,7 @@
         , "com_github_grpc_grpc"
         , "com_github_libgit2_libgit2"
         , "catch2"
+        , "com_github_curl_curl"
         ]
       }
     , "target_root": "import targets"
@@ -108,6 +110,13 @@
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.git2"
+    , "bindings": {"base": "rules"}
+    }
+  , "rules-curl":
+    { "repository": "rules"
+    , "target_root": "defaults"
+    , "rule_root": "rules"
+    , "target_file_name": "TARGETS.curl"
     , "bindings": {"base": "rules"}
     }
   , "import targets":
@@ -369,6 +378,24 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.catch2"
     , "bindings": {"rules": "rules"}
+    }
+  , "com_github_curl_curl":
+    { "repository":
+      { "type": "archive"
+      , "content": "ad8994cddb93ba26e041d23130b08d2d9438ea0b"
+      , "fetch": "https://github.com/curl/curl/releases/download/curl-7_85_0/curl-7.85.0.tar.gz"
+      , "sha256": "78a06f918bd5fde3c4573ef4f9806f56372b32ec1829c9ec474799eeee641c27"
+      , "sha512": "bbad693bcde9c55e5942499950d76011f53ad43d3270eee2c8db486bcf46f5fc92b32dd8752caf4c5976fe493d083e2d34fa299cb96fb8e76d8f5fcc2cc56a36"
+      , "subdir": "curl-7.85.0"
+      }
+    , "target_root": "import targets"
+    , "target_file_name": "TARGETS.curl"
+    , "bindings":
+      { "rules": "rules-curl"
+      , "zlib": "zlib"
+      , "ssl": "ssl"
+      , "cares": "com_github_cares_cares"
+      }
     }
   }
 }
