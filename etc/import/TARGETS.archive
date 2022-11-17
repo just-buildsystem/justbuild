@@ -1,0 +1,347 @@
+{ "archive":
+  { "type": "export"
+  , "target": "archive_config"
+  , "doc": ["The Archive linkable library"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "USE_SYSTEM_LIBS"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    , "ENABLE_MBEDTLS"
+    , "ENABLE_NETTLE"
+    , "ENABLE_OPENSSL"
+    , "ENABLE_LIBB2"
+    , "ENABLE_LZ4"
+    , "ENABLE_LZO"
+    , "ENABLE_LZMA"
+    , "ENABLE_ZSTD"
+    , "ENABLE_ZLIB"
+    , "ENABLE_BZip2"
+    , "ENABLE_LIBXML2"
+    , "ENABLE_EXPAT"
+    , "ENABLE_PCREPOSIX"
+    , "ENABLE_LibGCC"
+    , "ENABLE_CNG"
+    , "ENABLE_XATTR"
+    , "ENABLE_ACL"
+    , "ENABLE_ICONV"
+    , "ENABLE_LIBMD"
+    , "ENABLE_PCRE"
+    , "ENABLE_REGEX"
+    , "XATTR_PROVIDER"
+    , "ENABLE_RICHACL"
+    , "USE_NFS4"
+    ]
+  , "config_doc":
+    { "ENABLE_MBEDTLS":
+      ["Boolean. Link against mbedtls (system or open name)."]
+    , "ENABLE_NETTLE": ["Boolean. Link against nettle (system or open name)."]
+    , "ENABLE_OPENSSL":
+      [ "Boolean. Default value: true."
+      , "Link against OpenSSL (system or open name)."
+      ]
+    , "ENABLE_LIBB2":
+      [ "Boolean. Default value: true. Link against libb2 (system or open name)."
+      ]
+    , "ENABLE_LZ4":
+      ["Boolean. Default value: true. Link against lz4 (system or open name)."]
+    , "ENABLE_LZO": ["Boolean. Link against lzo (system or open name)."]
+    , "ENABLE_LZMA":
+      [ "Boolean. Default value: true. Link against lzma (system or open name)."
+      ]
+    , "ENABLE_ZSTD":
+      [ "Boolean. Default value: true. Link against zstd (system or open name)."
+      ]
+    , "ENABLE_ZLIB":
+      [ "Boolean. Default value: true. Link against zlib (system or open name)."
+      ]
+    , "ENABLE_BZip2":
+      [ "Boolean. Default value: true. Link against libbz2 (system or open name)."
+      ]
+    , "ENABLE_LIBXML2":
+      [ "Boolean. Default value: true. Link against libxml2 (system or open name)."
+      ]
+    , "ENABLE_EXPAT":
+      [ "Boolean. Default value: true. Link against EXPAT (system or open name)."
+      ]
+    , "ENABLE_PCREPOSIX":
+      [ "Boolean. Default value: true. Link against PCREPOSIX (system or open name)."
+      ]
+    , "ENABLE_LibGCC":
+      [ "Boolean. Default value: true. Link against LibGCC (system or open name)."
+      ]
+    , "ENABLE_CNG":
+      [ "Boolean. Use CNG (Crypto Next Generation)."
+      , "Default value: true, if ~OS==\"windows\"~."
+      , "Disabled if not ~OS==\"windows\"~."
+      ]
+    , "ENABLE_XATTR":
+      ["Boolean. Default value: true. Enable extended attribute support."]
+    , "ENABLE_ACL": ["Boolean. Default value: true. Enable ACL support."]
+    , "ENABLE_ICONV": ["Boolean. Default value: true. Enable iconv support."]
+    , "ENABLE_LIBMD":
+      [ "Boolean. Link against libmd (system or open name)."
+      , "Disabled if ~ENABLE_OPENSSL==true~."
+      ]
+    , "ENABLE_PCRE": ["Boolean. Link against pcre (system or open name)."]
+    , "ENABLE_REGEX": ["Boolean. Link against regex (system or open name)."]
+    , "XATTR_PROVIDER":
+      [ "\"attr\": Link against attr (system or open name) for xattr support."
+      , "\"gnu\": Xattr support provided natively."
+      , "\"none\"|null: No xattr support. Build fails if ~ENABLE_XATTR==true~."
+      ]
+    , "ENABLE_RICHACL":
+      ["Boolean. Link against RichACL (system or open name)."]
+    , "USE_NSF4":
+      ["Boolean. Explicitly give the NSF4 support state for the target OS."]
+    }
+  }
+, "archive_config":
+  { "type": "configure"
+  , "arguments_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "USE_SYSTEM_LIBS"
+    , "DEBUG"
+    , "ENABLE_MBEDTLS"
+    , "ENABLE_NETTLE"
+    , "ENABLE_OPENSSL"
+    , "ENABLE_LIBB2"
+    , "ENABLE_LZ4"
+    , "ENABLE_LZO"
+    , "ENABLE_LZMA"
+    , "ENABLE_ZSTD"
+    , "ENABLE_ZLIB"
+    , "ENABLE_BZip2"
+    , "ENABLE_LIBXML2"
+    , "ENABLE_EXPAT"
+    , "ENABLE_PCREPOSIX"
+    , "ENABLE_LibGCC"
+    , "ENABLE_CNG"
+    , "ENABLE_XATTR"
+    , "ENABLE_ACL"
+    , "ENABLE_ICONV"
+    , "ENABLE_LIBMD"
+    , "ENABLE_PCRE"
+    , "ENABLE_REGEX"
+    , "XATTR_PROVIDER"
+    , "ENABLE_RICHACL"
+    , "USE_NFS4"
+    ]
+  , "target": ["./", "libarchive", "libarchive"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        ]
+      , [ "ENABLE_MBEDTLS"
+        , {"type": "var", "name": "ENABLE_MBEDTLS", "default": false}
+        ]
+      , [ "ENABLE_NETTLE"
+        , {"type": "var", "name": "ENABLE_NETTLE", "default": false}
+        ]
+      , [ "ENABLE_OPENSSL"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "ENABLE_OPENSSL"}
+          , "case":
+            [ [ true
+              , { "type": "if"
+                , "cond":
+                  { "type": "=="
+                  , "$1": {"type": "var", "name": "OS"}
+                  , "$2": "darwin"
+                  }
+                , "then": false
+                , "else": true
+                }
+              ]
+            ]
+          , "default":
+            { "type": "if"
+            , "cond":
+              { "type": "=="
+              , "$1": {"type": "var", "name": "OS"}
+              , "$2": "darwin"
+              }
+            , "then": false
+            , "else": true
+            }
+          }
+        ]
+      , [ "ENABLE_LIBB2"
+        , {"type": "var", "name": "ENABLE_LIBB2", "default": true}
+        ]
+      , ["ENABLE_LZ4", {"type": "var", "name": "ENABLE_LZ4", "default": true}]
+      , ["ENABLE_LZO", {"type": "var", "name": "ENABLE_LZO", "default": false}]
+      , [ "ENABLE_LZMA"
+        , {"type": "var", "name": "ENABLE_LZMA", "default": true}
+        ]
+      , [ "ENABLE_ZSTD"
+        , {"type": "var", "name": "ENABLE_ZSTD", "default": true}
+        ]
+      , [ "ENABLE_ZLIB"
+        , {"type": "var", "name": "ENABLE_ZLIB", "default": true}
+        ]
+      , [ "ENABLE_BZip2"
+        , {"type": "var", "name": "ENABLE_BZip2", "default": true}
+        ]
+      , [ "ENABLE_LIBXML2"
+        , {"type": "var", "name": "ENABLE_LIBXML2", "default": true}
+        ]
+      , [ "ENABLE_EXPAT"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "ENABLE_EXPAT"}
+          , "case":
+            [ [ true
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "ENABLE_LIBXML2"}
+                , "then": false
+                , "else": true
+                }
+              ]
+            ]
+          , "default":
+            { "type": "if"
+            , "cond": {"type": "var", "name": "ENABLE_LIBXML2"}
+            , "then": false
+            , "else": true
+            }
+          }
+        ]
+      , [ "ENABLE_PCREPOSIX"
+        , {"type": "var", "name": "ENABLE_PCREPOSIX", "default": true}
+        ]
+      , [ "ENABLE_LibGCC"
+        , {"type": "var", "name": "ENABLE_LibGCC", "default": true}
+        ]
+      , [ "ENABLE_CNG"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "ENABLE_CNG"}
+          , "case":
+            [ [ true
+              , { "type": "=="
+                , "$1": {"type": "var", "name": "OS"}
+                , "$2": "windows"
+                }
+              ]
+            ]
+          , "default":
+            { "type": "=="
+            , "$1": {"type": "var", "name": "OS"}
+            , "$2": "windows"
+            }
+          }
+        ]
+      , [ "ENABLE_XATTR"
+        , {"type": "var", "name": "ENABLE_XATTR", "default": true}
+        ]
+      , ["ENABLE_ACL", {"type": "var", "name": "ENABLE_ACL", "default": true}]
+      , [ "ENABLE_ICONV"
+        , {"type": "var", "name": "ENABLE_ICONV", "default": true}
+        ]
+      , [ "ENABLE_LIBMD"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "ENABLE_LIBMD"}
+          , "case":
+            [ [ true
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "ENABLE_OPENSSL"}
+                , "then": false
+                , "else": true
+                }
+              ]
+            ]
+          , "default": false
+          }
+        ]
+      , [ "ENABLE_PCRE"
+        , {"type": "var", "name": "ENABLE_PCRE", "default": false}
+        ]
+      , [ "ENABLE_REGEX"
+        , {"type": "var", "name": "ENABLE_REGEX", "default": false}
+        ]
+      , [ "XATTR_PROVIDER"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "XATTR_PROVIDER"}
+          , "case":
+            [ [ "none"
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "ENABLE_XATTR"}
+                , "then":
+                  { "type": "fail"
+                  , "msg": "Extended attributes support was enabled, but providing library not specified."
+                  }
+                , "else": "none"
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "XATTR_PROVIDER"}
+          }
+        ]
+      , [ "ENABLE_RICHACL"
+        , {"type": "var", "name": "ENABLE_RICHACL", "default": false}
+        ]
+      , ["USE_NFS4", {"type": "var", "name": "USE_NFS4", "default": true}]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        [ "USE_SYSTEM_LIBS"
+        , "DEBUG"
+        , "ENABLE_MBEDTLS"
+        , "ENABLE_NETTLE"
+        , "ENABLE_OPENSSL"
+        , "ENABLE_LIBB2"
+        , "ENABLE_LZ4"
+        , "ENABLE_LZO"
+        , "ENABLE_LZMA"
+        , "ENABLE_ZSTD"
+        , "ENABLE_ZLIB"
+        , "ENABLE_BZip2"
+        , "ENABLE_LIBXML2"
+        , "ENABLE_EXPAT"
+        , "ENABLE_PCREPOSIX"
+        , "ENABLE_LibGCC"
+        , "ENABLE_CNG"
+        , "ENABLE_XATTR"
+        , "ENABLE_ACL"
+        , "ENABLE_ICONV"
+        , "ENABLE_LIBMD"
+        , "ENABLE_PCRE"
+        , "ENABLE_REGEX"
+        , "XATTR_PROVIDER"
+        , "ENABLE_RICHACL"
+        , "USE_NFS4"
+        ]
+      }
+    }
+  }
+}

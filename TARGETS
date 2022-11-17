@@ -152,6 +152,42 @@
       }
     }
   }
+, "libarchive":
+  { "type": "configure"
+  , "target": ["@", "libarchive", "", "archive"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["ENABLE_LIBB2", false]
+      , ["ENABLE_LZ4", false]
+      , ["ENABLE_LZMA", false]
+      , ["ENABLE_ZSTD", false]
+      , ["ENABLE_LIBXML2", false]
+      , ["ENABLE_EXPAT", false]
+      , ["ENABLE_PCREPOSIX", false]
+      , ["ENABLE_LibGCC", false]
+      , ["ENABLE_CNG", false]
+      , ["XATTR_PROVIDER", "gnu"]
+      , ["ENABLE_ACL", false]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        [ "ENABLE_LIBB2"
+        , "ENABLE_LZ4"
+        , "ENABLE_LZMA"
+        , "ENABLE_ZSTD"
+        , "ENABLE_LIBXML2"
+        , "ENABLE_EXPAT"
+        , "ENABLE_PCREPOSIX"
+        , "ENABLE_LibGCC"
+        , "ENABLE_CNG"
+        , "XATTR_PROVIDER"
+        , "ENABLE_ACL"
+        ]
+      }
+    }
+  }
 , "just-ext-hdrs":
   { "type": "configure"
   , "arguments_config": ["OS", "ARCH"]

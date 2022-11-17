@@ -1,0 +1,101 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["OS", "COMPILER_FAMILY", "DEBUG", "ENABLE_BZip2"]
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        ]
+      , ["DEBUG", {"type": "var", "name": "DEBUG", "default": false}]
+      ]
+    , "body":
+      { "type": "++"
+      , "$1":
+        [ ["-DHAVE_CONFIG_H"]
+        , { "type": "if"
+          , "cond":
+            { "type": "case*"
+            , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+            , "case": [["gnu", true], ["clang", true]]
+            , "default": false
+            }
+          , "then":
+            { "type": "++"
+            , "$1":
+              [ ["-Wall", "-Wformat", "-Wformat-security"]
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "DEBUG"}
+                , "then":
+                  [ "-Werror"
+                  , "-g"
+                  , "-Wextra"
+                  , "-Wunused"
+                  , "-Wshadow"
+                  , "-Wmissing-prototypes"
+                  , "-Wcast-qual"
+                  ]
+                }
+              ]
+            }
+          }
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case":
+            [ [ "xlc_r"
+              , { "type": "++"
+                , "$1":
+                  [ ["-qflag=e:e", "-qformat=sec"]
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "DEBUG"}
+                    , "then":
+                      ["-qhalt=w", "-g", "-qflag=w:w", "-qinfo=pro:use"]
+                    }
+                  ]
+                }
+              ]
+            , [ "msvc"
+              , { "type": "++"
+                , "$1":
+                  [ ["/Oi"]
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "DEBUG"}
+                    , "then":
+                      [ "/w14062"
+                      , "/w14254"
+                      , "/w14295"
+                      , "/w14296"
+                      , "/w14389"
+                      , "/w14505"
+                      , "/w14514"
+                      , "/w14702"
+                      , "/w14706"
+                      ]
+                    }
+                  , ["-D_CRT_SECURE_NO_DEPRECATE"]
+                  ]
+                }
+              ]
+            , ["mingw", ["-D__USE_MINGW_ANSI_STDIO"]]
+            ]
+          }
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case":
+            [ ["hp-ux", ["-D_XOPEN_SOURCE=500"]]
+            , ["mac", ["-Wno-deprecated-declarations"]]
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

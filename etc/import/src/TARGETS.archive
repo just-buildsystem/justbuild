@@ -1,0 +1,521 @@
+{ "archive_pthread":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS"]
+  , "name": ["archive_pthread"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond":
+      {"type": "==", "$1": {"type": "var", "name": "OS"}, "$2": "linux"}
+    , "then": ["-lpthread"]
+    }
+  }
+, "archive_crypt":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS", "ENABLE_CNG", "USE_SYSTEM_LIBS"]
+  , "name": ["curl_crypt"]
+  , "private-ldflags":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      [ [ "windows"
+        , { "type": "if"
+          , "cond":
+            { "type": "and"
+            , "$1":
+              [ {"type": "var", "name": "ENABLE_CNG"}
+              , {"type": "var", "name": "USE_SYSTEM_LIBS"}
+              ]
+            }
+          , "then": ["-lbcrypt"]
+          }
+        ]
+      ]
+    }
+  , "deps":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "OS"}
+    , "case":
+      [ [ "windows"
+        , { "type": "if"
+          , "cond":
+            { "type": "and"
+            , "$1":
+              [ {"type": "var", "name": "ENABLE_CNG"}
+              , { "type": "if"
+                , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+                , "then": false
+                , "else": true
+                }
+              ]
+            }
+          , "then": [["@", "bcrypt", "", "bcrypt"]]
+          }
+        ]
+      ]
+    }
+  }
+, "archive_zlib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_ZLIB"]
+  , "name": ["archive_zlib"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ZLIB"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lz"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ZLIB"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "zlib", "", "zlib"]]
+      }
+    }
+  }
+, "archive_bzip2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_BZip2"]
+  , "name": ["archive_bzip2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_BZip2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lbz2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_BZip2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "bzip2", "", "libbz2"]]
+      }
+    }
+  }
+, "archive_lzma":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LZMA"]
+  , "name": ["archive_lzma"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZMA"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-llzma"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZMA"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "lzma", "", "lzma"]]
+      }
+    }
+  }
+, "archive_lzo":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LZO"]
+  , "name": ["archive_lzo"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZO"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-llzo2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZO"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "lzo2", "", "lzo2"]]
+      }
+    }
+  }
+, "archive_libb2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LIBB2"]
+  , "name": ["archive_libb2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBB2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lb2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBB2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "b2", "", "b2"]]
+      }
+    }
+  }
+, "archive_lz4":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LZ4"]
+  , "name": ["archive_lz4"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZ4"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-llz4"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LZ4"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "lz4", "", "lz4"]]
+      }
+    }
+  }
+, "archive_lzstd":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_ZSTD"]
+  , "name": ["archive_lzstd"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ZSTD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lzstd"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ZSTD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "zstd", "", "zstd"]]
+      }
+    }
+  }
+, "archive_mbedtls":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_MBEDTLS"]
+  , "name": ["archive_mbedtls"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_MBEDTLS"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lmbedcrypto"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_MBEDTLS"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "mbedtls", "", "mbedcrypto"]]
+      }
+    }
+  }
+, "archive_nettle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_NETTLE"]
+  , "name": ["archive_nettle"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_NETTLE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lnettle"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_NETTLE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "nettle", "", "nettle"]]
+      }
+    }
+  }
+, "archive_libmd":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LIBMD"]
+  , "name": ["archive_libmd"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBMD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lmd"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBMD"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "libmd", "", "libmd"]]
+      }
+    }
+  }
+, "archive_crypto":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_OPENSSL"]
+  , "name": ["archive_crypto"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_OPENSSL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lcrypto"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_OPENSSL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "ssl", "", "crypto"]]
+      }
+    }
+  }
+, "archive_libxml2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LIBXML2"]
+  , "name": ["archive_libxml2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBXML2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lxml2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LIBXML2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "xml2", "", "xml2"]]
+      }
+    }
+  }
+, "archive_pcreposix":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_PCREPOSIX"]
+  , "name": ["archive_pcreposix"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCREPOSIX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lpcreposix"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCREPOSIX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "pcreposix", "", "pcreposix"]]
+      }
+    }
+  }
+, "archive_pcre":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_PCRE"]
+  , "name": ["archive_pcre"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lpcre"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "pcre", "", "pcre"]]
+      }
+    }
+  }
+, "archive_regex":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_REGEX"]
+  , "name": ["archive_regex"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_REGEX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lregex"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_REGEX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "regex", "", "regex"]]
+      }
+    }
+  }
+, "archive_libgcc":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LibGCC"]
+  , "name": ["archive_libgcc"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LibGCC"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lgcc"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_LibGCC"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "gcc", "", "gcc"]]
+      }
+    }
+  }
+, "archive_acl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_ACL"]
+  , "name": ["archive_acl"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ACL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lacl"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_ACL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "acl", "", "acl"]]
+      }
+    }
+  }
+, "archive_xattr":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_XATTR", "XATTR_PROVIDER"]
+  , "name": ["archive_xattr"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_XATTR"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "XATTR_PROVIDER"}
+        , "case": [["attr", ["-lattr"]]]
+        }
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_XATTR"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "XATTR_PROVIDER"}
+        , "case": [["attr", [["@", "attr", "", "attr"]]]]
+        }
+      }
+    }
+  }
+, "archive_richacl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_RICHACL"]
+  , "name": ["archive_richacl"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_RICHACL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lrichacl"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_RICHACL"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "richacl", "", "richacl"]]
+      }
+    }
+  }
+}

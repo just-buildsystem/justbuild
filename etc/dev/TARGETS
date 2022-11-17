@@ -11,6 +11,7 @@
     , ["", "libgit2"]
     , ["", "libcurl"]
     , ["@", "bzip2", "", "libbz2"]
+    , ["", "libarchive"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
