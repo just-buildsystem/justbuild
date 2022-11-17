@@ -6,4 +6,18 @@
     [["src/buildtool/file_system", "git_cas"], ["src/utils/cpp", "path"]]
   , "stage": ["src", "other_tools", "git_operations"]
   }
+, "git_operations":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_operations"]
+  , "hdrs": ["git_operations.hpp"]
+  , "srcs": ["git_operations.cpp"]
+  , "deps":
+    [["src/buildtool/multithreading", "async_map_consumer"], "git_ops_types"]
+  , "stage": ["src", "other_tools", "git_operations"]
+  , "private-deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  }
 }
