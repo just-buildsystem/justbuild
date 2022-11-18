@@ -21,21 +21,25 @@
     ]
   , "deps":
     [ "config"
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
     , ["@", "googleapis", "", "google_bytestream_proto"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
+  , "private-deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    ]
   }
 , "bazel":
   { "type": ["@", "rules", "CC", "library"]
@@ -44,12 +48,13 @@
   , "srcs": ["bazel/bazel_api.cpp"]
   , "deps":
     [ "config"
-    , "bazel_network"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
+  , "private-deps": ["bazel_network"]
   }
 , "config":
   { "type": ["@", "rules", "CC", "library"]

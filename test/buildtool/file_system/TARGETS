@@ -20,6 +20,7 @@
     , ["test", "catch-main"]
     , ["test/utils", "container_matchers"]
     , ["src/buildtool/file_system", "git_tree"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }

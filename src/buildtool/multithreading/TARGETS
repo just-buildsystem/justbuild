@@ -17,8 +17,9 @@
   , "name": ["task_system"]
   , "hdrs": ["task_system.hpp"]
   , "srcs": ["task_system.cpp"]
-  , "deps": ["notification_queue", "task", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["notification_queue", ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "multithreading"]
+  , "private-deps": ["task"]
   }
 , "async_map_node":
   { "type": ["@", "rules", "CC", "library"]

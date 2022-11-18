@@ -29,15 +29,14 @@
   , "name": ["git_cas"]
   , "hdrs": ["git_cas.hpp"]
   , "srcs": ["git_cas.cpp"]
-  , "deps":
-    [ "object_type"
-    , "file_system_manager"
+  , "deps": ["object_type", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "buildtool", "file_system"]
+  , "private-deps":
+    [ "file_system_manager"
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
     , ["", "libgit2"]
     ]
-  , "stage": ["src", "buildtool", "file_system"]
   }
 , "git_tree":
   { "type": ["@", "rules", "CC", "library"]
@@ -47,13 +46,16 @@
   , "deps":
     [ "git_cas"
     , "object_type"
-    , "file_system_manager"
-    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
+  , "private-deps":
+    [ ["", "libgit2"]
+    , "file_system_manager"
+    , ["src/buildtool/logging", "logging"]
+    ]
   }
 , "file_root":
   { "type": ["@", "rules", "CC", "library"]
@@ -66,6 +68,7 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["@", "json", "", "json"]
+    , ["src/utils/cpp", "concepts"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

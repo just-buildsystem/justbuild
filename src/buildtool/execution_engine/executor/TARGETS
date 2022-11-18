@@ -13,6 +13,7 @@
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
   }

@@ -11,12 +11,13 @@
   , "hdrs": ["directory_map.hpp"]
   , "srcs": ["directory_map.cpp"]
   , "deps":
-    [ ["src/buildtool/common", "config"]
-    , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/utils/cpp", "path"]
+    [ ["src/buildtool/multithreading", "async_map_consumer"]
     , "module_name"
+    , ["src/buildtool/file_system", "file_root"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
+  , "private-deps":
+    [["src/buildtool/common", "config"], ["src/utils/cpp", "path"]]
   }
 , "json_file_map":
   { "type": ["@", "rules", "CC", "library"]
@@ -40,6 +41,7 @@
     [ "json_file_map"
     , ["@", "json", "", "json"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , "module_name"
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   }
@@ -66,6 +68,7 @@
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   }
@@ -82,9 +85,10 @@
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/utils/cpp", "json"]
+    , ["src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
+  , "private-deps": [["src/utils/cpp", "json"]]
   }
 , "field_reader":
   { "type": ["@", "rules", "CC", "library"]
@@ -105,12 +109,12 @@
   , "name": ["expression_function"]
   , "hdrs": ["expression_function.hpp"]
   , "deps":
-    [ ["src/utils/cpp", "hash_combine"]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    [ ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
+  , "private-deps": [["src/utils/cpp", "hash_combine"]]
   }
 , "expression_map":
   { "type": ["@", "rules", "CC", "library"]
@@ -121,14 +125,15 @@
     [ "json_file_map"
     , "entity_name"
     , "expression_function"
-    , "field_reader"
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , "module_name"
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
+  , "private-deps":
+    ["field_reader", ["src/buildtool/build_engine/expression", "expression"]]
   }
 , "user_rule":
   { "type": ["@", "rules", "CC", "library"]
@@ -153,14 +158,15 @@
     [ "json_file_map"
     , "entity_name"
     , "user_rule"
-    , "field_reader"
     , "expression_map"
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , "module_name"
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
+  , "private-deps":
+    ["field_reader", ["src/buildtool/build_engine/expression", "expression"]]
   }
 }

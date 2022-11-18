@@ -5,10 +5,8 @@
   , "srcs": ["hasher.cpp", "hash_impl_sha1.cpp", "hash_impl_sha256.cpp"]
   , "stage": ["src", "buildtool", "crypto"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "hex_string"]
-    , ["@", "ssl", "", "crypto"]
-    ]
+    [["src/buildtool/logging", "logging"], ["src/utils/cpp", "hex_string"]]
+  , "private-deps": [["@", "ssl", "", "crypto"]]
   }
 , "hash_function":
   { "type": ["@", "rules", "CC", "library"]

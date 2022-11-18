@@ -16,6 +16,9 @@
     , ["src/buildtool/file_system", "jsonfs"]
     , ["src/utils/cpp", "json"]
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "graph_traverser"]
   }

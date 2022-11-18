@@ -35,13 +35,15 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/execution_api/remote", "config"]
-    , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "common"]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
+    ]
   }
 , "artifact_factory":
   { "type": ["@", "rules", "CC", "library"]
@@ -52,9 +54,11 @@
     , "artifact_description"
     , "action_description"
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "common"]
+  , "private-deps": [["src/utils/cpp", "type_safe_arithmetic"]]
   }
 , "artifact_description":
   { "type": ["@", "rules", "CC", "library"]
@@ -72,26 +76,18 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["action_description"]
   , "hdrs": ["action_description.hpp"]
-  , "deps":
-    [ "common"
-    , "artifact_description"
-    , ["src/buildtool/logging", "logging"]
-    , ["@", "json", "", "json"]
-    ]
+  , "deps": ["common", "artifact_description", ["@", "json", "", "json"]]
   , "stage": ["src", "buildtool", "common"]
+  , "private-deps": [["src/buildtool/logging", "logging"]]
   }
 , "tree":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["tree"]
   , "hdrs": ["tree.hpp"]
   , "deps":
-    [ "common"
-    , "action_description"
-    , "artifact_description"
-    , ["src/buildtool/logging", "logging"]
-    , ["@", "json", "", "json"]
-    ]
+    ["action_description", "artifact_description", ["@", "json", "", "json"]]
   , "stage": ["src", "buildtool", "common"]
+  , "private-deps": ["common", ["src/buildtool/logging", "logging"]]
   }
 , "config":
   { "type": ["@", "rules", "CC", "library"]
@@ -103,9 +99,11 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/multithreading", "atomic_value"]
-    , ["src/utils/automata", "dfa_minimizer"]
-    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "buildtool", "common"]
+  , "private-deps":
+    [ ["src/utils/automata", "dfa_minimizer"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
   }
 }

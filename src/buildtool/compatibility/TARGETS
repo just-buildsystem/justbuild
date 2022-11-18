@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/crypto", "hash_function"]
     , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "compatibility"]
   }

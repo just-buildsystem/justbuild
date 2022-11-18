@@ -12,6 +12,7 @@
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/target_map", "target_cache"]
+    , ["src/buildtool/build_engine/target_map", "target_map"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
@@ -35,15 +36,17 @@
   , "srcs": ["describe.cpp"]
   , "deps":
     [ ["src/buildtool/build_engine/base_maps", "entity_name"]
-    , ["src/buildtool/build_engine/base_maps", "rule_map"]
-    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
-    , ["src/buildtool/build_engine/target_map", "target_map"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["src/buildtool/logging", "logging"]
     , ["@", "json", "", "json"]
-    , "common"
     ]
   , "stage": ["src", "buildtool", "main"]
+  , "private-deps":
+    [ ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/logging", "logging"]
+    , "common"
+    ]
   }
 , "common":
   { "type": ["@", "rules", "CC", "library"]
@@ -59,14 +62,16 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/remote", "config"]
-    , ["src/buildtool/logging", "logging"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     ]
   , "stage": ["src", "buildtool", "main"]
+  , "private-deps":
+    [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   }
 , "analyse":
   { "type": ["@", "rules", "CC", "library"]
@@ -75,18 +80,20 @@
   , "srcs": ["analyse.cpp"]
   , "deps":
     [ ["src/buildtool/common", "cli"]
-    , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  , "private-deps":
+    [ ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/build_engine/base_maps", "directory_map"]
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
-    , ["src/buildtool/build_engine/target_map", "result_map"]
-    , ["src/buildtool/build_engine/analysed_target", "target"]
     ]
-  , "stage": ["src", "buildtool", "main"]
   }
 , "version":
   { "type": ["@", "rules", "CC", "library"]
@@ -125,7 +132,7 @@
         }
       ]
     }
-  , "deps": [["@", "json", "", "json"], ["src/utils/cpp", "json"]]
+  , "private-deps": [["@", "json", "", "json"], ["src/utils/cpp", "json"]]
   , "stage": ["src", "buildtool", "main"]
   }
 }
