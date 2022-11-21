@@ -2,6 +2,7 @@
   { "type": "configure"
   , "arguments_config":
     [ "OS"
+    , "ARCH"
     , "TARGET_ARCH"
     , "DEBUG_POOL"
     , "ENABLE_TRACE"
@@ -19,7 +20,13 @@
   , "config":
     { "type": "let*"
     , "bindings":
-      [ [ "IS_BSD"
+      [ [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "IS_BSD"
         , { "type": "case"
           , "expr": {"type": "var", "name": "OS"}
           , "case": {"darwin": true, "bsd": true}
