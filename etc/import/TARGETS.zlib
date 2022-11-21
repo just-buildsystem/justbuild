@@ -1,4 +1,21 @@
 { "zlib":
+  { "type": "configure"
+  , "target": "exported zlib"
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      ]
+    , "body": {"type": "env", "vars": ["TARGET_ARCH"]}
+    }
+  }
+, "exported zlib":
   { "type": "export"
   , "target": "zlibinternal"
   , "flexible_config":
