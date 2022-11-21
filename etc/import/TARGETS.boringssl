@@ -1,4 +1,21 @@
 { "crypto":
+  { "type": "configure"
+  , "target": "exported crypto"
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      ]
+    , "body": {"type": "env", "vars": ["TARGET_ARCH"]}
+    }
+  }
+, "exported crypto":
   { "type": "export"
   , "target": "crypto-lib"
   , "flexible_config":
