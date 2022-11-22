@@ -136,3 +136,19 @@ evaluating the given target, and thereby performs a configuration transition. It
 forwards all results (artifacts/runfiles/provides map) of the configured target
 to the upper context. The result of a target that uses this rule is the result
 of the target given in the ~"target"~ field (the configured target).
+
+As a full configuration transition is performed, the same care has
+to be taken when using this rule as when writing a configuration
+transition in a rule. Typically, this rule is used only at a
+top-level target of a project and configures only variables internally
+to the project. In any case, when using non-internal targets as
+dependencies (i.e., targets that a caller of the ~"configure"~
+potentially might use as well), care should be taken that those
+are only used in the initial configuration. Such preservation of
+the configuraiton is necessary to avoid conflicts, if the targets
+depended upon are visible in the ~"configure"~ target itself, e.g.,
+as link dependency (which almost always happens when depending on a
+library). Even if a non-internal target depended upon is not visible
+in the ~"configure"~ target itself, requesting it in a modified
+configuration causes additional overhead by increasing the target
+graph and potentially the action graph.
