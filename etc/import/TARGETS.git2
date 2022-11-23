@@ -94,7 +94,7 @@
   , "config":
     { "type": "let*"
     , "bindings":
-      [ [ "TARGET_ARCH"
+      [ [ "check that architecture is set"
         , { "type": "var"
           , "name": "TARGET_ARCH"
           , "default":
@@ -191,7 +191,6 @@
       { "type": "env"
       , "vars":
         [ "OS"
-        , "TARGET_ARCH"
         , "USE_SYSTEM_LIBS"
         , "DEBUG_POOL"
         , "ENABLE_TRACE"

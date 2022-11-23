@@ -34,7 +34,11 @@
         ]
       , [ "IS_32BIT"
         , { "type": "case"
-          , "expr": {"type": "var", "name": "TARGET_ARCH"}
+          , "expr":
+            { "type": "var"
+            , "name": "TARGET_ARCH"
+            , "default": {"type": "var", "name": "ARCH"}
+            }
           , "case": {"x86": true, "arm": true}
           }
         ]
