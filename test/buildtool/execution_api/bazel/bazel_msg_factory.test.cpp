@@ -57,11 +57,15 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     CHECK(artifact2_opt.has_value());
     auto artifact2 = DependencyGraph::ArtifactNode{std::move(*artifact2_opt)};
 
+    // create directory tree
+    auto tree = DirectoryTree::FromNamedArtifacts(
+        {{file1.string(), &artifact1}, {file2.string(), &artifact2}});
+    CHECK(tree.has_value());
+
     // create blobs via tree
     BlobContainer blobs{};
     REQUIRE(BazelMsgFactory::CreateDirectoryDigestFromTree(
-        {{file1.string(), &artifact1}, {file2.string(), &artifact2}},
-        [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); }));
+        *tree, [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); }));
 
     // TODO(aehlig): also check total number of DirectoryNode blobs in container
 }

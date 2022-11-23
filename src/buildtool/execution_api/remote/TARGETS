@@ -50,11 +50,16 @@
     [ "config"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["src/buildtool/execution_api/bazel_msg", "blob_tree"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
-  , "private-deps": ["bazel_network"]
+  , "private-deps":
+    [ "bazel_network"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
   }
 , "config":
   { "type": ["@", "rules", "CC", "library"]

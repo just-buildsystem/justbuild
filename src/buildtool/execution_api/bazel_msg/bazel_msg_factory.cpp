@@ -19,9 +19,9 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
-#include <variant>
 #include <vector>
 
 #include "gsl-lite/gsl-lite.hpp"
@@ -360,39 +360,23 @@ template <class T>
         node.is_executable() ? ObjectType::Executable : ObjectType::File};
 }
 
-class DirectoryTree;
-using DirectoryTreePtr = std::unique_ptr<DirectoryTree>;
-
-/// \brief Tree of `Artifact*` that can be converted to `DirectoryNodeBundle`.
-class DirectoryTree {
-  public:
-    /// \brief Add `Artifact*` to tree.
-    [[nodiscard]] auto AddArtifact(std::filesystem::path const& path,
-                                   Artifact const* artifact) -> bool {
-        auto const norm_path = path.lexically_normal();
-        if (norm_path.empty() or
-            not FileSystemManager::IsRelativePath(norm_path)) {
-            return false;
-        }
-        auto it = norm_path.begin();
-        return AddArtifact(&it, norm_path.end(), artifact);
-    }
-
-    /// \brief Convert tree to `DirectoryNodeBundle`.
-    /// NOLINTNEXTLINE(misc-no-recursion)
-    [[nodiscard]] auto ToBundle(
-        std::string const& root_name,
-        std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
-        std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
-        std::filesystem::path const& parent = "") const
-        -> DirectoryNodeBundle::Ptr {
-        std::vector<bazel_re::FileNode> file_nodes;
-        std::vector<bazel_re::DirectoryNode> dir_nodes;
-        for (auto const& [name, node] : nodes_) {
+/// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
+/// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] auto DirectoryTreeToBundle(
+    std::string const& root_name,
+    DirectoryTreePtr const& tree,
+    std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
+    std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
+    std::filesystem::path const& parent = "") noexcept
+    -> DirectoryNodeBundle::Ptr {
+    std::vector<bazel_re::FileNode> file_nodes;
+    std::vector<bazel_re::DirectoryNode> dir_nodes;
+    try {
+        for (auto const& [name, node] : *tree) {
             if (std::holds_alternative<DirectoryTreePtr>(node)) {
                 auto const& dir = std::get<DirectoryTreePtr>(node);
-                auto const dir_bundle =
-                    dir->ToBundle(name, store_blob, store_info, parent / name);
+                auto const dir_bundle = DirectoryTreeToBundle(
+                    name, dir, store_blob, store_info, parent / name);
                 if (not dir_bundle) {
                     return nullptr;
                 }
@@ -423,89 +407,11 @@ class DirectoryTree {
         }
         return CreateDirectoryNodeBundle(
             root_name, CreateDirectory(file_nodes, dir_nodes, {}, {}));
+    } catch (...) {
+        return nullptr;
     }
-
-    /// \brief Convert tree to `BazelBlob`.
-    /// NOLINTNEXTLINE(misc-no-recursion)
-    [[nodiscard]] auto ToBlob(
-        std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
-        std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
-        std::filesystem::path const& parent = "") const
-        -> std::optional<BazelBlob> {
-        GitCAS::tree_entries_t entries;
-        entries.reserve(nodes_.size());
-        for (auto const& [name, node] : nodes_) {
-            if (std::holds_alternative<DirectoryTreePtr>(node)) {
-                auto const& dir = std::get<DirectoryTreePtr>(node);
-                auto blob = dir->ToBlob(store_blob, store_info, parent / name);
-                if (not blob) {
-                    return std::nullopt;
-                }
-                auto raw_id =
-                    FromHexString(NativeSupport::Unprefix(blob->digest.hash()));
-                if (not raw_id) {
-                    return std::nullopt;
-                }
-                entries[std::move(*raw_id)].emplace_back(name,
-                                                         ObjectType::Tree);
-                if (store_blob) {
-                    (*store_blob)(std::move(*blob));
-                }
-            }
-            else {
-                auto const& artifact = std::get<Artifact const*>(node);
-                auto const& object_info = artifact->Info();
-                if (not object_info) {
-                    return std::nullopt;
-                }
-                auto raw_id = FromHexString(object_info->digest.hash());
-                if (not raw_id) {
-                    return std::nullopt;
-                }
-                entries[std::move(*raw_id)].emplace_back(name,
-                                                         object_info->type);
-                if (store_info and
-                    not(*store_info)(parent / name, *object_info)) {
-                    return std::nullopt;
-                }
-            }
-        }
-
-        if (auto git_tree = GitCAS::CreateShallowTree(entries)) {
-            bazel_re::Digest digest{};
-            digest.set_hash(NativeSupport::Prefix(ToHexString(git_tree->first),
-                                                  /*is_tree=*/true));
-            digest.set_size_bytes(
-                gsl::narrow<google::protobuf::int64>(git_tree->second.size()));
-            return BazelBlob{digest, std::move(git_tree->second)};
-        }
-
-        return std::nullopt;
-    }
-
-  private:
-    using Node = std::variant<DirectoryTreePtr, Artifact const*>;
-    std::unordered_map<std::string, Node> nodes_;
-
-    // NOLINTNEXTLINE(misc-no-recursion)
-    [[nodiscard]] auto AddArtifact(std::filesystem::path::iterator* begin,
-                                   std::filesystem::path::iterator const& end,
-                                   Artifact const* artifact) -> bool {
-        auto segment = *((*begin)++);
-        if (segment == "." or segment == "..") {  // fail on "." and ".."
-            return false;
-        }
-        if (*begin == end) {
-            return nodes_.emplace(segment, artifact).second;
-        }
-        auto const [it, success] =
-            nodes_.emplace(segment, std::make_unique<DirectoryTree>());
-        return (success or
-                std::holds_alternative<DirectoryTreePtr>(it->second)) and
-               std::get<DirectoryTreePtr>(it->second)
-                   ->AddArtifact(begin, end, artifact);
-    }
-};
+    return nullptr;
+}
 
 }  // namespace
 
@@ -559,38 +465,19 @@ auto BazelMsgFactory::ReadObjectInfosFromGitTree(
 }
 
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
-    std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts,
+    DirectoryTreePtr const& tree,
     std::optional<BlobStoreFunc> const& store_blob,
-    std::optional<InfoStoreFunc> const& store_info)
+    std::optional<InfoStoreFunc> const& store_info) noexcept
     -> std::optional<bazel_re::Digest> {
-    DirectoryTree build_root{};
-    for (auto const& [local_path, node] : artifacts) {
-        auto const* artifact = &node->Content();
-        if (not build_root.AddArtifact(local_path, artifact)) {
-            Logger::Log(LogLevel::Error,
-                        "failed to add artifact {} ({}) to build root",
-                        local_path,
-                        artifact->Digest().value_or(ArtifactDigest{}).hash());
-            return std::nullopt;
-        }
-    }
-
-    if (Compatibility::IsCompatible()) {
-        if (auto bundle = build_root.ToBundle("", store_blob, store_info)) {
-            if (store_blob) {
+    if (auto bundle = DirectoryTreeToBundle("", tree, store_blob, store_info)) {
+        if (store_blob) {
+            try {
                 (*store_blob)(bundle->MakeBlob());
+            } catch (...) {
+                return std::nullopt;
             }
-            return bundle->Digest();
         }
-    }
-    else {
-        if (auto blob = build_root.ToBlob(store_blob, store_info)) {
-            auto digest = blob->digest;
-            if (store_blob) {
-                (*store_blob)(std::move(*blob));
-            }
-            return digest;
-        }
+        return bundle->Digest();
     }
     return std::nullopt;
 }

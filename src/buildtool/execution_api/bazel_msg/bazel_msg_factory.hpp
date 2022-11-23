@@ -28,6 +28,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 
@@ -62,14 +63,14 @@ class BazelMsgFactory {
 
     /// \brief Create Directory digest from artifact tree structure.
     /// Recursively traverse entire tree and create blobs for sub-directories.
-    /// \param artifacts    Artifact tree structure.
+    /// \param tree         Directory tree of artifacts.
     /// \param store_blob   Function for storing Directory blobs.
     /// \param store_info   Function for storing object infos.
     /// \returns Digest representing the entire tree.
     [[nodiscard]] static auto CreateDirectoryDigestFromTree(
-        std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts,
+        DirectoryTreePtr const& tree,
         std::optional<BlobStoreFunc> const& store_blob = std::nullopt,
-        std::optional<InfoStoreFunc> const& store_info = std::nullopt)
+        std::optional<InfoStoreFunc> const& store_info = std::nullopt) noexcept
         -> std::optional<bazel_re::Digest>;
 
     /// \brief Create Directory digest from local file root.

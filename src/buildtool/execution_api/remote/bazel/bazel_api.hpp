@@ -23,6 +23,7 @@
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
@@ -81,6 +82,9 @@ class BazelApi final : public IExecutionApi {
 
   private:
     std::shared_ptr<BazelNetwork> network_;
+
+    [[nodiscard]] auto UploadBlobTree(BlobTreePtr const& blob_tree) noexcept
+        -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP

@@ -17,15 +17,21 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "fmt/core.h"
 #include "gsl-lite/gsl-lite.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_storage.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
@@ -210,24 +216,108 @@ class LocalApi final : public IExecutionApi {
         return true;
     }
 
+    /// NOLINTNEXTLINE(misc-no-recursion)
+    [[nodiscard]] auto UploadBlobTree(BlobTreePtr const& blob_tree) noexcept
+        -> bool {
+
+        // Create digest list from blobs for batch availability check.
+        std::vector<ArtifactDigest> digests;
+        digests.reserve(blob_tree->size());
+        std::unordered_map<ArtifactDigest, BlobTreePtr> tree_map;
+        for (auto const& node : *blob_tree) {
+            auto digest = ArtifactDigest{node->Blob().digest};
+            digests.emplace_back(digest);
+            try {
+                tree_map.emplace(std::move(digest), node);
+            } catch (...) {
+                return false;
+            }
+        }
+
+        // Find missing digests.
+        auto missing_digests = IsAvailable(digests);
+
+        // Process missing blobs.
+        BlobContainer container;
+        for (auto const& digest : missing_digests) {
+            if (auto it = tree_map.find(digest); it != tree_map.end()) {
+                auto const& node = it->second;
+                // Process trees.
+                if (node->IsTree()) {
+                    if (not UploadBlobTree(node)) {
+                        return false;
+                    }
+                }
+                // Store blob.
+                try {
+                    container.Emplace(node->Blob());
+                } catch (...) {
+                    return false;
+                }
+            }
+        }
+
+        return Upload(container, /*skip_find_missing=*/true);
+    }
+
     [[nodiscard]] auto UploadTree(
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
             artifacts) noexcept -> std::optional<ArtifactDigest> final {
-        BlobContainer blobs{};
-        auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
-            artifacts,
-            [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
-        if (not digest) {
-            Logger::Log(LogLevel::Debug, "failed to create digest for tree.");
+        auto build_root = DirectoryTree::FromNamedArtifacts(artifacts);
+        if (not build_root) {
+            Logger::Log(LogLevel::Debug,
+                        "failed to create build root from artifacts.");
             return std::nullopt;
         }
 
-        if (not Upload(blobs, /*skip_find_missing=*/false)) {
-            Logger::Log(LogLevel::Debug, "failed to upload blobs for tree.");
-            return std::nullopt;
+        if (Compatibility::IsCompatible()) {
+            BlobContainer blobs{};
+            auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
+                *build_root,
+                [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
+            if (not digest) {
+                Logger::Log(LogLevel::Debug,
+                            "failed to create digest for build root.");
+                return std::nullopt;
+            }
+            Logger::Log(LogLevel::Trace, [&digest]() {
+                std::ostringstream oss{};
+                oss << "upload root directory" << std::endl;
+                oss << fmt::format(" - root digest: {}", digest->hash())
+                    << std::endl;
+                return oss.str();
+            });
+            if (not Upload(blobs, /*skip_find_missing=*/false)) {
+                Logger::Log(LogLevel::Debug,
+                            "failed to upload blobs for build root.");
+                return std::nullopt;
+            }
+            return ArtifactDigest{*digest};
         }
 
-        return ArtifactDigest{*digest};
+        auto blob_tree = BlobTree::FromDirectoryTree(*build_root);
+        if (not blob_tree) {
+            Logger::Log(LogLevel::Debug,
+                        "failed to create blob tree for build root.");
+            return std::nullopt;
+        }
+        auto tree_blob = (*blob_tree)->Blob();
+        // Upload blob tree if tree is not available at the remote side (content
+        // first).
+        if (not IsAvailable(ArtifactDigest{tree_blob.digest})) {
+            if (not UploadBlobTree(*blob_tree)) {
+                Logger::Log(LogLevel::Debug,
+                            "failed to upload blob tree for build root.");
+                return std::nullopt;
+            }
+            if (not Upload(BlobContainer{{tree_blob}},
+                           /*skip_find_missing=*/true)) {
+                Logger::Log(LogLevel::Debug,
+                            "failed to upload tree blob for build root.");
+                return std::nullopt;
+            }
+        }
+        return ArtifactDigest{tree_blob.digest};
     }
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept

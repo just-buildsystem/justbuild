@@ -21,6 +21,7 @@
   , "srcs": ["bazel_msg_factory.cpp"]
   , "deps":
     [ "bazel_msg"
+    , "directory_tree"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/execution_engine/dag", "dag"]
@@ -31,6 +32,42 @@
     , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
+  }
+, "directory_tree":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["directory_tree"]
+  , "hdrs": ["directory_tree.hpp"]
+  , "srcs": ["directory_tree.cpp"]
+  , "deps":
+    [ ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
+  }
+, "blob_tree":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["blob_tree"]
+  , "hdrs": ["blob_tree.hpp"]
+  , "srcs": ["blob_tree.cpp"]
+  , "deps":
+    [ "bazel_msg"
+    , "directory_tree"
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }
