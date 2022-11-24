@@ -222,7 +222,7 @@ class ExecutorImpl {
 
         Logger::Log(LogLevel::Trace, [&tree]() {
             std::ostringstream oss{};
-            oss << "upload directory content" << std::endl;
+            oss << "upload directory content of " << tree.Hash() << std::endl;
             for (auto const& [path, entry] : tree) {
                 oss << fmt::format(" - {}: {}", path, entry->Hash())
                     << std::endl;
