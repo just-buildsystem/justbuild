@@ -109,17 +109,85 @@ void PrettyPrintRule(nlohmann::json const& rdesc) {
     std::cout << std::endl;
 }
 
-// fields relevant for describing a rule
-auto const kRuleDescriptionFields = std::vector<std::string>{"config_fields",
-                                                             "string_fields",
-                                                             "target_fields",
-                                                             "config_vars",
-                                                             "doc",
-                                                             "field_doc",
-                                                             "config_doc",
-                                                             "artifacts_doc",
-                                                             "runfiles_doc",
-                                                             "provides_doc"};
+void PrintRuleAsOrderedJson(nlohmann::json const& rdesc,
+                            nlohmann::json const& rule_name) {
+    auto string_fields = nlohmann::json::array();
+    if (auto doc = rdesc.find("string_fields"); doc != rdesc.end()) {
+        string_fields = *doc;
+    }
+    auto target_fields = nlohmann::json::array();
+    if (auto doc = rdesc.find("target_fields"); doc != rdesc.end()) {
+        target_fields = *doc;
+    }
+    auto config_fields = nlohmann::json::array();
+    if (auto doc = rdesc.find("config_fields"); doc != rdesc.end()) {
+        config_fields = *doc;
+    }
+    auto config_vars = nlohmann::json::array();
+    if (auto doc = rdesc.find("config_vars"); doc != rdesc.end()) {
+        config_vars = *doc;
+    }
+
+    auto field_doc = nlohmann::ordered_json::object();
+    if (auto doc = rdesc.find("field_doc");
+        doc != rdesc.end() and doc->is_object()) {
+        auto fields = nlohmann::json::array();
+        fields.insert(fields.end(), string_fields.begin(), string_fields.end());
+        fields.insert(fields.end(), target_fields.begin(), target_fields.end());
+        fields.insert(fields.end(), config_fields.begin(), config_fields.end());
+        for (auto const& field : fields) {
+            if (doc->contains(field)) {
+                auto name = field.get<std::string>();
+                field_doc[name] = (*doc)[name];
+            }
+        }
+    }
+
+    auto config_doc = nlohmann::ordered_json::object();
+    if (auto doc = rdesc.find("config_doc");
+        doc != rdesc.end() and doc->is_object()) {
+        for (auto const& var : config_vars) {
+            if (doc->contains(var)) {
+                auto name = var.get<std::string>();
+                config_doc[name] = (*doc)[name];
+            }
+        }
+    }
+
+    auto json_doc = nlohmann::ordered_json::object();
+    json_doc["type"] = rule_name;
+    if (auto doc = rdesc.find("doc"); doc != rdesc.end()) {
+        json_doc["doc"] = *doc;
+    }
+    if (not string_fields.empty()) {
+        json_doc["string_fields"] = string_fields;
+    }
+    if (not target_fields.empty()) {
+        json_doc["target_fields"] = target_fields;
+    }
+    if (not config_fields.empty()) {
+        json_doc["config_fields"] = config_fields;
+    }
+    if (not field_doc.empty()) {
+        json_doc["field_doc"] = field_doc;
+    }
+    if (not config_vars.empty()) {
+        json_doc["config_vars"] = config_vars;
+    }
+    if (not config_doc.empty()) {
+        json_doc["config_doc"] = config_doc;
+    }
+    if (auto doc = rdesc.find("artifacts_doc"); doc != rdesc.end()) {
+        json_doc["artifacts_doc"] = *doc;
+    }
+    if (auto doc = rdesc.find("runfiles_doc"); doc != rdesc.end()) {
+        json_doc["runfiles_doc"] = *doc;
+    }
+    if (auto doc = rdesc.find("provides_doc"); doc != rdesc.end()) {
+        json_doc["provides_doc"] = *doc;
+    }
+    std::cout << json_doc.dump(2) << std::endl;
+}
 
 }  // namespace
 
@@ -153,13 +221,7 @@ auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
         return kExitFailure;
     }
     if (print_json) {
-        auto json = nlohmann::ordered_json({{"type", rule_name.ToJson()}});
-        for (auto const& f : kRuleDescriptionFields) {
-            if (ruledesc_it->contains(f)) {
-                json[f] = ruledesc_it->at(f);
-            }
-        }
-        std::cout << json.dump(2) << std::endl;
+        PrintRuleAsOrderedJson(*ruledesc_it, rule_name.ToJson());
         return kExitSuccess;
     }
     PrettyPrintRule(*ruledesc_it);
