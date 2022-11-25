@@ -35,32 +35,7 @@ if path.exists("$CONF"):
 EOF
 }
 
-_just-mr_targets(){
-    command -v python3 &>/dev/null || return
-    python3 - <<EOF
-from json import load
-from os import path
-
-def print_targets(target_file):
-    if not path.exists(target_file):
-        return
-    with open(target_file) as f:
-        targets = load(f)
-        for t in targets.keys():
-            print(t)
-    exit()
-
-def main(prev, name):
-    # if prev is a directory, then look for targets there
-    if path.isdir(prev):
-        print_targets(path.join(prev, name))
-
-    # fall back to current directory
-    print_targets(name)
-
-main('$1', "TARGETS")
-EOF
-}
+source "${BASH_SOURCE%/*}"/just_complete.bash
 
 _just-mr_completion(){
     local readonly SUBCOMMANDS=(setup setup-env fetch update "do" version build analyse describe install-cas install rebuild)
@@ -89,7 +64,7 @@ _just-mr_completion(){
     then
         # just subcommand options and modules/targets
         local _opts=($(_just-mr_options "just $cmd"))
-        local _targets=($(_just-mr_targets $prev))
+        local _targets=($(_just_targets $prev 2>/dev/null))
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_targets[*]}" -- $word ))
         compopt -o plusdirs -o bashdefault -o default
     else

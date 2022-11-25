@@ -46,7 +46,7 @@ _just_completion(){
     elif [[ $cmd =~ ^(build|analyse|describe|install-cas|install|rebuild) ]]
     then
         local _opts=($(_just_subcommand_options $cmd))
-        local _targets=($(_just_targets $prev))
+        local _targets=($(_just_targets $prev 2>/dev/null))
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_targets[*]}" -- $word ))
         compopt -o plusdirs -o bashdefault -o default
     else
