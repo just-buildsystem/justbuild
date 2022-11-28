@@ -55,7 +55,7 @@ $ mkdir -p fmt-layer/src
 #+END_SRC
 
 The directory ~include/fmt~ contains only header files. As we want all files in
-this directory to be included in the ~"header directory"~ target, we can safely
+this directory to be included in the ~"hdrs"~ target, we can safely
 use the explicit ~TREE~ reference[fn:1], which collects, in a single
 artifact (describing a directory) /all/ directory contents
 from ~"."~ of the workspace root. Note that the ~TARGETS~ file is only part of
@@ -74,15 +74,15 @@ references from the current module.
 #+SRCNAME: fmt-layer/include/fmt/TARGETS
 #+BEGIN_SRC js
 { "hdrs":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "hdrs": [["TREE", null, "."]]
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": [["TREE", null, "."]]
   , "stage": ["fmt"]
   }
 }
 #+END_SRC
 
 The actual library target is defined in the directory ~src~. For the public
-headers, it refers to the previously created header directory via its
+headers, it refers to the previously created ~"hdrs"~ target via its
 fully-qualified target name (~["include/fmt", "hdrs"]~). Source files are the
 two local files ~format.cc~, and ~os.cc~. The final target description in
 ~src/TARGETS~ will look like this:

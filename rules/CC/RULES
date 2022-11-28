@@ -109,65 +109,6 @@
       }
     }
   }
-, "header directory":
-  { "doc":
-    [ "A directory of header files."
-    , ""
-    , "Define a directory of  header files that belong together and are staged"
-    , "in such a way that no other target (used together with this target) will"
-    , "have to put files in this directory. The typical use case is a library"
-    , "libfoo that expects all headers to be included as #include \"foo/bar.h\"."
-    , "In this case, one would define a header direcotry for \"foo\"."
-    , ""
-    , "Technically, a tree is created from the given files and staged to the"
-    , "specified location. Since trees are opaque, the directory name becomes"
-    , "essentially owned by target. In this way, staging conflicts can be"
-    , "avoided by detecting them early and not only once a file with the same"
-    , "name is  added to the staging location. Also, as only a tree identifier"
-    , "has to be passed around, such a directory can be handled more"
-    , "efficiently by the tool."
-    ]
-  , "target_fields": ["hdrs"]
-  , "string_fields": ["stage"]
-  , "field_doc":
-    { "hdrs": ["The header files to be put into the header directory."]
-    , "stage":
-      [ "The location of the header directory."
-      , "Path segments are joined with \"/\"."
-      ]
-    }
-  , "artifacts_doc": ["The single tree artifact staged to the given location"]
-  , "runfiles_doc": ["Same as artifacts"]
-  , "imports": {"runfiles": ["./", "..", "field_runfiles"]}
-  , "expression":
-    { "type": "let*"
-    , "bindings":
-      [ [ "hdrs"
-        , { "type": "let*"
-          , "bindings": [["fieldname", "hdrs"]]
-          , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
-          }
-        ]
-      , [ "stage"
-        , { "type": "join"
-          , "separator": "/"
-          , "$1": {"type": "FIELD", "name": "stage"}
-          }
-        ]
-      , [ "dir"
-        , { "type": "singleton_map"
-          , "key": {"type": "var", "name": "stage"}
-          , "value": {"type": "TREE", "$1": {"type": "var", "name": "hdrs"}}
-          }
-        ]
-      ]
-    , "body":
-      { "type": "RESULT"
-      , "artifacts": {"type": "var", "name": "dir"}
-      , "runfiles": {"type": "var", "name": "dir"}
-      }
-    }
-  }
 , "library":
   { "doc": ["A C++ libaray"]
   , "target_fields":

@@ -1,8 +1,8 @@
 { "gsl-lite":
   {"type": ["@", "rules", "CC", "library"], "hdrs": ["gsl-lite hdrs"]}
 , "gsl-lite hdrs":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "hdrs": ["gsl", "gsl-lite.h", "gsl-lite.hpp", "gsl-lite-vc6.hpp"]
-  , "stage": ["gsl-lite"]
+  { "type": "tree"
+  , "name": "gsl-lite"
+  , "deps": ["gsl", "gsl-lite.h", "gsl-lite.hpp", "gsl-lite-vc6.hpp"]
   }
 }

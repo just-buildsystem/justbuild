@@ -1,6 +1,6 @@
 { "hdrs":
-  { "type": ["@", "rules", "CC", "header directory"]
+  { "type": ["@", "rules", "data", "staged"]
   , "stage": ["fmt"]
-  , "hdrs": [["TREE", null, "."]]
+  , "srcs": [["TREE", null, "."]]
   }
 }

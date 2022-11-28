@@ -150,9 +150,9 @@
   , "patch-part": ["a", "include", "git2", "sys", "repository.h"]
   }
 , "TREE":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["git2"]
-  , "hdrs":
+  { "type": "tree"
+  , "name": "git2"
+  , "deps":
     [ "annotated_commit.h"
     , "apply.h"
     , "attr.h"

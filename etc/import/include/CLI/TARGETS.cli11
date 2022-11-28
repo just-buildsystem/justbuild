@@ -1,7 +1,7 @@
 { "cli11_headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["CLI"]
-  , "hdrs":
+  { "type": "tree"
+  , "name": "CLI"
+  , "deps":
     [ "Option.hpp"
     , "Split.hpp"
     , "Formatter.hpp"

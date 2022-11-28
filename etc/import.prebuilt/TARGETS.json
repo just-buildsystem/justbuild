@@ -1,7 +1,4 @@
 { "json": {"type": ["@", "rules", "CC", "library"], "hdrs": ["json headers"]}
 , "json headers":
-  { "type": ["@", "rules", "CC", "header directory"]
-  , "stage": ["nlohmann"]
-  , "hdrs": [["TREE", null, "."]]
-  }
+  {"type": "tree", "name": "nlohmann", "deps": [["TREE", null, "."]]}
 }
