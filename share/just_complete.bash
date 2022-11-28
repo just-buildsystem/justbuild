@@ -1,3 +1,5 @@
+########################### just completion
+
 _just_subcommand_options(){
     local cmd=$1
     for w in $(just $cmd --help)
@@ -10,7 +12,8 @@ _just_targets(){
     command -v python3 &>/dev/null || return
     python3 - <<EOF
 from json import load
-from os import path
+from os import environ, path
+
 
 def print_targets(target_file):
     if not path.exists(target_file):
@@ -21,15 +24,42 @@ def print_targets(target_file):
             print(t)
     exit()
 
-def main(prev, name):
-    # if prev is a directory, then look for targets there
-    if path.isdir(prev):
-        print_targets(path.join(prev, name))
 
-    # fall back to current directory
-    print_targets(name)
+def main(conf, repo, prev):
+    if conf != "":
+        if conf[0] == "$":
+            # try to expand if it is an env var, otherwise treat as it is
+            conf = environ.get(conf[1:]) or conf
+        with open(conf, "r") as f:
+            d = load(f)
+        repos = d["repositories"]
+        repo = repo if repo != "" else d["main"]
+        workspace = repos[repo]["workspace_root"]
+        # only file-type repositories are supported
+        root = workspace[1]
+        target_file = repos[repo].get("target_file_name", "TARGETS")
+        # if prev is a directory, then look for targets there
+        module = path.join(root, prev)
 
-main('$1', "TARGETS")
+        # non-file type repos don't satisfy the following conditions
+        # so, we fall back to
+        if path.isdir(module):
+            print_targets(path.join(module, target_file))
+        else:
+            print_targets(path.join(root, target_file))
+
+    # fall back to current working directory
+    target_file = "TARGETS"
+
+    # if prev is not valid subdir of current working directory, the function
+    # will return with no output
+    print_targets(path.join(prev, target_file))
+
+    # last option: try to read targets in current working directory
+    print_targets(target_file)
+
+
+main('$1', '$2', '$3')
 EOF
 }
 
@@ -38,15 +68,38 @@ _just_completion(){
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=${COMP_WORDS[1]}
+    local main
+    local conf
     # first check if the current word matches a subcommand
     # if we check directly with cmd, we fail to autocomplete install to install-cas
     if [[ $word =~ ^(build|analyse|describe|install-cas|install|rebuild) ]]
     then
         COMPREPLY=($(compgen -W "${SUBCOMMANDS[*]}" -- $word))
-    elif [[ $cmd =~ ^(build|analyse|describe|install-cas|install|rebuild) ]]
+    elif [[ $cmd =~ ^(install-cas) ]]
     then
         local _opts=($(_just_subcommand_options $cmd))
-        local _targets=($(_just_targets $prev 2>/dev/null))
+        COMPREPLY=($(compgen -f -W "${_opts[*]}" -- $word ))
+        compopt -o plusdirs -o bashdefault -o default
+    elif [[ $cmd =~ ^(build|analyse|describe|install|rebuild) ]]
+    then
+        local _opts=($(_just_subcommand_options $cmd))
+        # look for -C and --main
+        for i in "${!COMP_WORDS[@]}"
+        do
+            if [[ "${COMP_WORDS[i]}" == "--main" ]]
+            then
+                main="${COMP_WORDS[$((++i))]}"
+            fi
+            if [[ "${COMP_WORDS[i]}" == "-C" ]] || [[ "${COMP_WORDS[i]}" == "--repository-config" ]]
+            then
+                conf="${COMP_WORDS[$((++i))]}"
+            fi
+        done
+        # if $conf is empty and this function is invoked by just-mr
+        # we use the auto-generated conf file
+        if [ -z "$conf" ]; then conf="${justmrconf}"; 
+        fi
+        local _targets=($(_just_targets "$conf" "$main" "$prev" 2>/dev/null))
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_targets[*]}" -- $word ))
         compopt -o plusdirs -o bashdefault -o default
     else
@@ -55,6 +108,8 @@ _just_completion(){
 }
 
 complete -F _just_completion just
+
+########################### just-mr completion
 _just-mr_options(){
     local cmd=$1
     for w in $($cmd --help 2>/dev/null)
@@ -117,8 +172,10 @@ _just-mr_completion(){
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_repos[*]}" -- $word ))
     elif [[ "$cmd" =~ ^(version|build|analyse|describe|install-cas|install|rebuild) ]]
     then
-        # just subcommand options and modules/targets
-	_just_completion
+        # just subcommand options and modules/targets eventually using the
+        # auto-generated configuration
+        local justmrconf=$(just-mr setup --all 2>/dev/null)
+        _just_completion
     else
         # just-mr top-level options
         local _opts=($(_just-mr_options "just-mr"))
