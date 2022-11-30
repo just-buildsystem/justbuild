@@ -1043,7 +1043,7 @@ def main():
 
     global JUST
     if options.just:
-        JUST = os.path.abspath(options.just)
+        JUST = options.just
     global ALWAYS_FILE
     ALWAYS_FILE = options.always_file
 

@@ -69,7 +69,8 @@ See *just-mr-repository-config(5)* for more details on the input format.
    The repository to take the target from.\\
 
    *--just* PATH\\
-   Path to the just binary. Default: ~"just"~.\\
+   Name of the just binary in ~PATH~ or path to the just binary.\\
+   Default: ~"just"~.\\
 
    *--rc* PATH\\
    Path to the just-mrrc file to use. See *just-mrrc(5)* for more details.\\
