@@ -566,7 +566,7 @@ def distdir_checkout(desc, repos):
     for repo in distdir_repos:
         # If repo does not exist, fail
         if repo not in repos:
-            print("No configuration for repository %s found" % ())
+            print("No configuration for repository %s found" % (repo,))
             sys.exit(1)
         repo_desc = repos[repo].get("repository", {})
         repo_desc_type = repo_desc.get("type")
