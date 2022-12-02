@@ -417,8 +417,8 @@
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["protoc"]
   , "srcs": ["compiler/main.cc"]
-  , "deps": ["protoc_lib"]
-  , "link external": ["-pthread"]
+  , "private-deps": ["protoc_lib"]
+  , "private-ldflags": ["-pthread"]
   }
 , "well_known_proto_files":
   { "type": "install"

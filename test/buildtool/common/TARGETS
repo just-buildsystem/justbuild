@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["artifact_factory"]
   , "srcs": ["artifact_factory.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "artifact_factory"]
@@ -13,7 +13,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["artifact_description"]
   , "srcs": ["artifact_description.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "artifact_factory"]
@@ -25,7 +25,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["action_description"]
   , "srcs": ["action_description.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "artifact_factory"]
@@ -37,7 +37,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["repository_config"]
   , "srcs": ["repository_config.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "config"]

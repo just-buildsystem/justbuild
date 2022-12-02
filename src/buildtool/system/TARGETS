@@ -4,7 +4,7 @@
   , "name": ["system"]
   , "hdrs": ["system.hpp"]
   , "srcs": ["system.cpp"]
-  , "local defines":
+  , "private-defines":
     { "type": "if"
     , "cond": {"type": "var", "name": "VALGRIND_BUILD"}
     , "then": ["VALGRIND_BUILD"]

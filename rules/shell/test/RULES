@@ -75,6 +75,9 @@
           , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
           }
         ]
+      , ["keep", {"type": "FIELD", "name": "keep"}]
+      , ["runner", {"type": "FIELD", "name": "runner"}]
+      , ["deps-fieldname", "deps"]
       ]
     , "body":
       { "type": "if"

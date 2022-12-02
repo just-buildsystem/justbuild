@@ -1,7 +1,7 @@
 { "defaults":
   { "doc":
     [ "A rule to provide defaults."
-    , "All CC targets take their defaults for CXX, CC, flags, etc from"
+    , "All CC targets take their defaults for CC, CXX, flags, etc from"
     , "the target [\"CC\", \"defaults\"]. This is probably the only sensibe"
     , "use of this rule. As targets form a different root, the defaults"
     , "can be provided without changing this directory."
@@ -14,8 +14,8 @@
     , "CXXFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
-    , "PATH"
     , "AR"
+    , "PATH"
     ]
   , "imports": {"base-provides": "defaults-base-provides"}
   , "expression":
@@ -110,26 +110,28 @@
     }
   }
 , "library":
-  { "doc": ["A C++ libaray"]
+  { "doc": ["A C++ library"]
   , "target_fields":
     ["srcs", "hdrs", "private-hdrs", "deps", "private-deps", "proto"]
   , "string_fields":
     [ "name"
     , "stage"
     , "pure C"
-    , "local defines"
-    , "local cflags"
-    , "link external"
+    , "defines"
+    , "private-defines"
+    , "cflags"
+    , "private-cflags"
+    , "private-ldflags"
     ]
   , "config_vars":
-    [ "CXX"
-    , "CC"
-    , "CXXFLAGS"
+    [ "CC"
+    , "CXX"
     , "CFLAGS"
-    , "ADD_CXXFLAGS"
+    , "CXXFLAGS"
     , "ADD_CFLAGS"
-    , "ENV"
+    , "ADD_CXXFLAGS"
     , "AR"
+    , "ENV"
     ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
@@ -151,13 +153,19 @@
       , "In particular, CC is used to compile rather than CXX (or their"
       , "respective defaults)."
       ]
-    , "local defines":
+    , "defines":
+      [ "List of defines set for this target and its consumers."
+      , "Each list entry will be prepended by \"-D\"."
+      ]
+    , "private-defines":
       [ "List of defines set for source files local to this target."
       , "Each list entry will be prepended by \"-D\"."
       ]
-    , "local cflags":
+    , "cflags":
+      ["List of compile flags set for this target and its consumers."]
+    , "private-cflags":
       ["List of compile flags set for source files local to this target."]
-    , "link external":
+    , "private-ldflags":
       [ "Additional linker flags for linking external libraries (not built"
       , "by this tool, typically system libraries)."
       ]
@@ -175,33 +183,22 @@
       ]
     }
   , "config_doc":
-    { "CXX":
-      [ "The name of the C++ compiler to be used."
-      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
-      ]
-    , "CC":
+    { "CC":
       [ "The name of the C compiler to be used (when compiling pure C code)."
       , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
       ]
-    , "AR":
-      [ "The archive tool to used for creating the library"
+    , "CXX":
+      [ "The name of the C++ compiler to be used."
       , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
-      ]
-    , "ENV": ["The environment for any action generated."]
-    , "CXXFLAGS":
-      [ "The flags for CXX to be used instead of the default ones."
-      , "For libraries that should be built in a non-standard way; usually"
-      , "adapting the default target [\"CC\", \"defaults\"] is the better"
-      , "choice."
       ]
     , "CFLAGS":
       [ "The flags for CC to be used instead of the default ones."
       , "For libraries that should be built in a non-standard way; usually"
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
-      , "choice"
+      , "choice."
       ]
-    , "ADD_CXXFLAGS":
-      [ "The flags to add to the default ones for CXX."
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones."
       , "For libraries that should be built in a non-standard way; usually"
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
       , "choice."
@@ -212,6 +209,17 @@
       , "adapting the default target [\"CC\", \"defaults\"] is the better"
       , "choice."
       ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX."
+      , "For libraries that should be built in a non-standard way; usually"
+      , "adapting the default target [\"CC\", \"defaults\"] is the better"
+      , "choice."
+      ]
+    , "AR":
+      [ "The archive tool to used for creating the library"
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
+    , "ENV": ["The environment for any action generated."]
     }
   , "artifacts_doc":
     ["The actual library (libname.a) staged in the specified directory"]
@@ -241,44 +249,35 @@
       }
     }
   , "imports":
-    { "artifacts": ["./", "..", "field_artifacts"]
-    , "default-CXXFLAGS": "default-CXXFLAGS"
-    , "default-CFLAGS": "default-CFLAGS"
-    , "result": "lib result"
-    }
+    {"artifacts": ["./", "..", "field_artifacts"], "result": "lib result"}
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "local defines"
-        , { "type": "foreach"
-          , "var": "def"
-          , "range": {"type": "FIELD", "name": "local defines"}
-          , "body":
-            {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
-          }
-        ]
-      , ["local cflags", {"type": "FIELD", "name": "local cflags"}]
-      , [ "CFLAGS"
+      [ ["name", {"type": "join", "$1": {"type": "FIELD", "name": "name"}}]
+      , ["pure C", {"type": "FIELD", "name": "pure C"}]
+      , [ "cflags"
         , { "type": "++"
           , "$1":
-            [ { "type": "var"
-              , "name": "CFLAGS"
-              , "default":
-                {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+            [ {"type": "FIELD", "name": "cflags"}
+            , { "type": "foreach"
+              , "var": "def"
+              , "range": {"type": "FIELD", "name": "defines"}
+              , "body":
+                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
               }
-            , {"type": "var", "name": "local defines"}
             ]
           }
         ]
-      , [ "CXXFLAGS"
+      , [ "private-cflags"
         , { "type": "++"
           , "$1":
-            [ { "type": "var"
-              , "name": "CXXFLAGS"
-              , "default":
-                {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+            [ { "type": "foreach"
+              , "var": "def"
+              , "range": {"type": "FIELD", "name": "private-defines"}
+              , "body":
+                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
               }
-            , {"type": "var", "name": "local defines"}
+            , {"type": "FIELD", "name": "private-cflags"}
             ]
           }
         ]
@@ -318,18 +317,26 @@
             }
           }
         ]
-      , ["link external", {"type": "FIELD", "name": "link external"}]
+      , ["private-ldflags", {"type": "FIELD", "name": "private-ldflags"}]
+      , ["public-fieldnames", ["deps", "proto-deps"]]
+      , ["private-fieldnames", ["deps", "private-deps", "proto-deps"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}
     }
   }
 , "binary":
   { "doc": ["A binary written in C++"]
-  , "target_fields": ["srcs", "private-hdrs", "deps", "proto"]
+  , "target_fields": ["srcs", "private-hdrs", "private-deps", "private-proto"]
   , "string_fields":
-    ["name", "stage", "pure C", "local defines", "link external"]
+    [ "name"
+    , "stage"
+    , "pure C"
+    , "private-defines"
+    , "private-cflags"
+    , "private-ldflags"
+    ]
   , "config_vars":
-    ["CXX", "CC", "CXXFLAGS", "CFLAGS", "ADD_CXXFLAGS", "ADD_CFLAGS", "ENV"]
+    ["CC", "CXX", "CFLAGS", "CXXFLAGS", "ADD_CFLAGS", "ADD_CXXFLAGS", "ENV"]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
     { "name": ["The name of the binary"]
@@ -347,14 +354,16 @@
       [ "If non-empty, compile as C sources rathter than C++ sources."
       , "In particular, CC is used to compile rather than CXX"
       ]
-    , "local defines":
+    , "private-defines":
       [ "List of defines set for source files local to this target."
       , "Each list entry will be prepended by \"-D\"."
       ]
-    , "link external":
+    , "private-cflags":
+      ["List of compile flags set for source files local to this target."]
+    , "private-ldflags":
       ["Additional linker flags for linking external libraries."]
-    , "deps": ["Any other libraries this binary depends upon."]
-    , "proto":
+    , "private-deps": ["Any other libraries this binary depends upon."]
+    , "private-proto":
       [ "Any [\"proto\", \"library\"] this target depends upon directly."
       , "The creation of C++ bindings for this proto library as well as of"
       , "is dependencies will be taken care of (as anonymous targets, so no"
@@ -363,32 +372,32 @@
       ]
     }
   , "config_doc":
-    { "CXX": ["The name of the C++ compiler to be used."]
-    , "CC":
+    { "CC":
       ["The name of the C compiler to be used (when compiling pure C code)"]
-    , "ENV": ["The environment for any action generated."]
-    , "CXXFLAGS":
-      [ "The flags for CXX to be used instead of the default ones"
-      , "taken from the [\"CC\", \"defaults\"] target"
-      ]
+    , "CXX": ["The name of the C++ compiler to be used."]
     , "CFLAGS":
       [ "The flags for CXX to be used instead of the default ones"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
-    , "ADD_CXXFLAGS":
-      [ "The flags to add to the default ones for CXX"
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     , "ADD_CFLAGS":
       [ "The flags to add to the default ones for CC"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ENV": ["The environment for any action generated."]
     }
   , "artifacts_doc": ["The final binary, staged to the given directory"]
   , "runfiles_doc": ["None"]
   , "anonymous":
-    { "proto-deps":
-      { "target": "proto"
+    { "private-proto-deps":
+      { "target": "private-proto"
       , "provider": "proto"
       , "rule_map":
         { "library": ["./", "proto", "library"]
@@ -397,26 +406,17 @@
       }
     }
   , "imports":
-    { "artifacts": ["./", "..", "field_artifacts"]
-    , "compile-deps": "compile-deps"
-    , "link-deps": "link-deps"
-    , "link-args-deps": "link-args-deps"
-    , "objects": "objects"
-    , "compiler": "compiler"
-    , "flags": "flags"
-    , "default-ENV": "default-ENV"
-    }
+    {"artifacts": ["./", "..", "field_artifacts"], "bin result": "bin result"}
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "local defines"
-        , { "type": "foreach"
-          , "var": "def"
-          , "range": {"type": "FIELD", "name": "local defines"}
-          , "body":
-            {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
+      [ [ "name"
+        , { "type": "assert_non_empty"
+          , "msg": "A non-empty name has to be provided for binaries"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
           }
         ]
+      , ["pure C", {"type": "FIELD", "name": "pure C"}]
       , [ "stage"
         , { "type": "join"
           , "separator": "/"
@@ -433,7 +433,7 @@
             }
           }
         ]
-      , [ "local hdrs"
+      , [ "private-hdrs"
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "stage"}
           , "$1":
@@ -443,94 +443,23 @@
             }
           }
         ]
-      , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler"}]
-      , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags"}]
-      , [ "CXXFLAGS"
+      , [ "private-cflags"
         , { "type": "++"
           , "$1":
-            [ {"type": "var", "name": "CXXFLAGS"}
-            , {"type": "var", "name": "local defines"}
+            [ { "type": "foreach"
+              , "var": "def"
+              , "range": {"type": "FIELD", "name": "private-defines"}
+              , "body":
+                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
+              }
+            , {"type": "FIELD", "name": "private-cflags"}
             ]
           }
         ]
-      , [ "ENV"
-        , { "type": "map_union"
-          , "$1":
-            { "type": "++"
-            , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
-              , [ { "type": "var"
-                  , "name": "ENV"
-                  , "default": {"type": "empty_map"}
-                  }
-                ]
-              ]
-            }
-          }
-        ]
-      , ["deps-fieldnames", ["deps", "proto-deps"]]
-      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
-      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
-      , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
-      , [ "base name"
-        , { "type": "assert_non_empty"
-          , "msg": "A non-empty name has to be provided for binaries"
-          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
-          }
-        ]
-      , [ "binary name"
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "stage"}
-          , "else": {"type": "var", "name": "base name"}
-          , "then":
-            { "type": "join"
-            , "separator": "/"
-            , "$1":
-              [ {"type": "var", "name": "stage"}
-              , {"type": "var", "name": "base name"}
-              ]
-            }
-          }
-        ]
-      , [ "link-args"
-        , { "type": "nub_right"
-          , "$1":
-            { "type": "++"
-            , "$1":
-              [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
-              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
-              , {"type": "FIELD", "name": "link external"}
-              ]
-            }
-          }
-        ]
-      , [ "binary"
-        , { "type": "ACTION"
-          , "outs": [{"type": "var", "name": "binary name"}]
-          , "inputs":
-            { "type": "disjoint_map_union"
-            , "$1":
-              [ {"type": "var", "name": "objects"}
-              , {"type": "var", "name": "link-deps"}
-              ]
-            }
-          , "cmd":
-            { "type": "++"
-            , "$1":
-              [ [ {"type": "var", "name": "CXX"}
-                , "-o"
-                , {"type": "var", "name": "binary name"}
-                ]
-              , {"type": "var", "name": "CXXFLAGS"}
-              , {"type": "var", "name": "link-args"}
-              ]
-            }
-          , "env": {"type": "var", "name": "ENV"}
-          }
-        ]
+      , ["private-ldflags", {"type": "FIELD", "name": "private-ldflags"}]
+      , ["private-fieldnames", ["private-deps", "private-proto-deps"]]
       ]
-    , "body":
-      {"type": "RESULT", "artifacts": {"type": "var", "name": "binary"}}
+    , "body": {"type": "CALL_EXPRESSION", "name": "bin result"}
     }
   }
 }

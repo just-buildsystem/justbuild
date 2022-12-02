@@ -3,7 +3,7 @@
   , "name": ["file_system_manager"]
   , "srcs": ["file_system_manager.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/file_system", "file_system_manager"]
@@ -15,7 +15,7 @@
   , "name": ["git_tree"]
   , "srcs": ["git_tree.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["test/utils", "container_matchers"]
@@ -29,7 +29,7 @@
   , "name": ["file_root"]
   , "srcs": ["file_root.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["test/utils", "container_matchers"]
@@ -43,7 +43,7 @@
   , "name": ["directory_entries"]
   , "srcs": ["directory_entries.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["test/utils", "container_matchers"]

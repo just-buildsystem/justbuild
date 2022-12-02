@@ -306,7 +306,7 @@ of the module ~"greet"~ in the top-level ~TARGETS~ file:
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["helloworld"]
   , "srcs": ["main.cpp"]
-  , "deps": [["greet", "greet"]]
+  , "private-deps": [["greet", "greet"]]
   }
 }
 #+END_SRC

@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_cas"]
   , "srcs": ["local_cas.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/crypto", "hash_function"]
@@ -16,7 +16,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_ac"]
   , "srcs": ["local_ac.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/execution_api/local", "local"]
@@ -29,7 +29,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_execution"]
   , "srcs": ["local_execution.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "artifact_factory"]
@@ -42,7 +42,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_api"]
   , "srcs": ["local_api.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/execution_api/local", "local"]
@@ -56,7 +56,7 @@
   , "name": ["local_storage"]
   , "srcs": ["local_storage.test.cpp"]
   , "data": [["test/buildtool/execution_api", "test_data"]]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/execution_api/local", "local"]

@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["system_command"]
   , "srcs": ["system_command.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/system", "system_command"]

@@ -1,7 +1,7 @@
 { "git2":
   { "type": ["@", "rules", "CC", "library"]
   , "hdrs": ["git2.h", ["TREE", null, "git2"]]
-  , "link external":
+  , "private-ldflags":
     [ "-lgit2"
     , "-lgit2_os_unix"
     , "-lgit2_hash_openssl"

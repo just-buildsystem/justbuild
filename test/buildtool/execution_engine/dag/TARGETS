@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["dag"]
   , "srcs": ["dag.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["test/utils", "container_matchers"]

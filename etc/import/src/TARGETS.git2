@@ -169,7 +169,7 @@
   , "pure C": ["yes"]
   , "srcs": ["unix/map.c", "unix/realpath.c"]
   , "private-hdrs": ["git2_private_headers"]
-  , "link external":
+  , "private-ldflags":
     { "type": "++"
     , "$1":
       [ { "type": "if"
@@ -207,7 +207,7 @@
     , "win32/w32_util.c"
     ]
   , "private-hdrs": ["git2_private_headers"]
-  , "link external": ["-lws2_32"]
+  , "private-ldflags": ["-lws2_32"]
   }
 , "git2_os":
   { "type": ["@", "rules", "CC", "library"]
@@ -224,7 +224,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["git2_hash_collision_detection"]
   , "pure C": ["yes"]
-  , "local defines":
+  , "private-defines":
     [ "SHA1DC_NO_STANDARD_INCLUDES=1"
     , "SHA1DC_CUSTOM_INCLUDE_SHA1_C=\"common.h\""
     , "SHA1DC_CUSTOM_INCLUDE_UBC_CHECK_C=\"common.h\""
@@ -243,7 +243,7 @@
   , "pure C": ["yes"]
   , "srcs": ["hash/sha1/openssl.c"]
   , "private-hdrs": ["git2_private_headers"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
     , "then": ["-lssl"]
@@ -262,7 +262,7 @@
   , "pure C": ["yes"]
   , "srcs": ["hash/sha1/common_crypto.c"]
   , "private-hdrs": ["git2_private_headers"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
     , "then": ["-lcommon_crypto"]
@@ -281,7 +281,7 @@
   , "pure C": ["yes"]
   , "srcs": ["hash/sha1/mbedtls.c"]
   , "private-hdrs": ["git2_private_headers"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
     , "then": ["-lmbedtls"]
@@ -329,7 +329,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "REGEX_BACKEND"]
   , "name": ["git2_regex"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
     , "then":
@@ -365,7 +365,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "USE_BUNDLED_ZLIB"]
   , "name": ["git2_compress"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_BUNDLED_ZLIB"}
     , "then": []
@@ -392,7 +392,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "USE_SSH"]
   , "name": ["git2_ssh"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SSH"}
     , "then":
@@ -416,7 +416,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "USE_HTTP_PARSER"]
   , "name": ["git2_http_parser"]
-  , "link external":
+  , "private-ldflags":
     { "type": "case*"
     , "expr": {"type": "var", "name": "USE_HTTP_PARSER"}
     , "case":
@@ -447,7 +447,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "USE_SYSTEM_LIBS", "USE_GSSAPI"]
   , "name": ["git2_gssapi"]
-  , "link external":
+  , "private-ldflags":
     { "type": "if"
     , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
     , "then":
@@ -481,7 +481,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "USE_SYSTEM_LIBS", "USE_HTTPS"]
   , "name": ["git2_http"]
-  , "link external":
+  , "private-ldflags":
     { "type": "case*"
     , "expr": {"type": "var", "name": "USE_HTTPS"}
     , "case": [["WinHTTP", ["-lwinhttp"]]]
@@ -527,7 +527,7 @@
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
   , "name": ["git2"]
   , "pure C": ["yes"]
-  , "local defines":
+  , "private-defines":
     { "type": "case"
     , "expr": {"type": "var", "name": "OS"}
     , "case":
@@ -537,7 +537,7 @@
       , "windows": ["HAVE_QSORT_S"]
       }
     }
-  , "local cflags":
+  , "private-cflags":
     { "type": "case"
     , "expr":
       { "type": "var"

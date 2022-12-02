@@ -2,6 +2,6 @@
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["main"]
   , "srcs": ["main.cpp"]
-  , "deps": [["@", "greet", "", "greet"]]
+  , "private-deps": [["@", "greet", "", "greet"]]
   }
 }

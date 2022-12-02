@@ -62,7 +62,7 @@
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["grpc_cpp_plugin"]
   , "srcs": ["cpp_plugin.cc"]
-  , "deps": ["grpc_plugin_support"]
-  , "link external": ["-pthread"]
+  , "private-deps": ["grpc_plugin_support"]
+  , "private-ldflags": ["-pthread"]
   }
 }

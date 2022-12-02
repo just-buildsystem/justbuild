@@ -30,7 +30,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["dynamic_annotations"]
   , "stage": ["absl", "base"]
-  , "local defines": ["__CLANG_SUPPORT_DYN_ANNOTATION__"]
+  , "private-defines": ["__CLANG_SUPPORT_DYN_ANNOTATION__"]
   , "srcs": ["dynamic_annotations.cc"]
   , "hdrs": ["dynamic_annotations.h"]
   }

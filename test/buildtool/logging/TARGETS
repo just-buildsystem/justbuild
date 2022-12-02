@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["logger"]
   , "srcs": ["logger.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/logging", "logging"]
@@ -13,7 +13,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["log_sink_file"]
   , "srcs": ["log_sink_file.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/logging", "logging"]

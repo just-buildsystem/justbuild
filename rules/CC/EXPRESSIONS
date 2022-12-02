@@ -1,59 +1,98 @@
 { "default-CC":
-  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
     { "type": "join"
     , "$1":
       { "type": "let*"
-      , "bindings": [["fieldname", "defaults"], ["provider", "CC"]]
+      , "bindings":
+        [ ["fieldname", "defaults"]
+        , ["provider", "CC"]
+        , [ "transition"
+          , {"type": "var", "name": "defaults-transition", "default": null}
+          ]
+        ]
       , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
       }
     }
   }
 , "default-CXX":
-  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
     { "type": "join"
     , "$1":
       { "type": "let*"
-      , "bindings": [["fieldname", "defaults"], ["provider", "CXX"]]
+      , "bindings":
+        [ ["fieldname", "defaults"]
+        , ["provider", "CXX"]
+        , [ "transition"
+          , {"type": "var", "name": "defaults-transition", "default": null}
+          ]
+        ]
       , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
       }
     }
   }
 , "default-AR":
-  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
     { "type": "join"
     , "$1":
       { "type": "let*"
-      , "bindings": [["fieldname", "defaults"], ["provider", "AR"]]
+      , "bindings":
+        [ ["fieldname", "defaults"]
+        , ["provider", "AR"]
+        , [ "transition"
+          , {"type": "var", "name": "defaults-transition", "default": null}
+          ]
+        ]
       , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
       }
     }
   }
 , "default-CFLAGS":
-  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
     { "type": "let*"
-    , "bindings": [["fieldname", "defaults"], ["provider", "CFLAGS"]]
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "CFLAGS"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-CXXFLAGS":
-  { "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
     { "type": "let*"
-    , "bindings": [["fieldname", "defaults"], ["provider", "CXXFLAGS"]]
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "CXXFLAGS"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-ENV":
-  { "imports": {"provider_list": ["./", "..", "field_provider_list"]}
+  { "vars": ["defaults-transition"]
+  , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
   , "expression":
     { "type": "let*"
     , "bindings":
       [ ["fieldname", "defaults"]
       , ["provider", "ENV"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
       , ["default", {"type": "empty_map"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
@@ -84,11 +123,12 @@
   }
 , "compile-deps":
   { "doc": ["Collect compile dependencies (headers) from given target_fields"]
-  , "vars": ["deps-fieldnames", "transition"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
   , "vars_doc":
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
-    , "transition": ["The optional configuration transition for the targets."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
     }
   , "imports":
     { "runfiles_list": ["./", "..", "field_runfiles_list"]
@@ -108,6 +148,7 @@
             { "type": "let*"
             , "bindings":
               [ ["provider", "compile-deps"]
+              , ["transition", {"type": "var", "name": "deps-transition"}]
               , ["default", {"type": "empty_map"}]
               ]
             , "body":
@@ -120,13 +161,41 @@
       }
     }
   }
+, "compile-args-deps":
+  { "doc": ["Collect compile arguments from given target_fields"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
+  , "vars_doc":
+    { "deps-fieldnames":
+      ["List of target_field names to collect arguments from."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "++"
+    , "$1":
+      { "type": "foreach"
+      , "var": "fieldname"
+      , "range": {"type": "var", "name": "deps-fieldnames"}
+      , "body":
+        { "type": "let*"
+        , "bindings":
+          [ ["provider", "compile-args"]
+          , ["transition", {"type": "var", "name": "deps-transition"}]
+          ]
+        , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+        }
+      }
+    }
+  }
 , "link-deps":
   { "doc": ["Collect link dependencies (libraries) from given target_fields"]
-  , "vars": ["deps-fieldnames", "transition"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
   , "vars_doc":
     { "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
-    , "transition": ["The optional configuration transition for the targets."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
     }
   , "imports":
     { "artifacts_list": ["./", "..", "field_artifacts_list"]
@@ -145,7 +214,10 @@
           , "$1":
             { "type": "let*"
             , "bindings":
-              [["provider", "link-deps"], ["default", {"type": "empty_map"}]]
+              [ ["provider", "link-deps"]
+              , ["default", {"type": "empty_map"}]
+              , ["transition", {"type": "var", "name": "deps-transition"}]
+              ]
             , "body":
               [ {"type": "CALL_EXPRESSION", "name": "provider_list"}
               , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
@@ -158,11 +230,12 @@
   }
 , "link-args-deps":
   { "doc": ["Collect linker arguments from given target_fields"]
-  , "vars": ["deps-fieldnames", "transition"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
   , "vars_doc":
     { "deps-fieldnames":
       ["List of target_field names to collect arguments from."]
-    , "transition": ["The optional configuration transition for the targets."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
     }
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
@@ -173,14 +246,25 @@
       , "range": {"type": "var", "name": "deps-fieldnames"}
       , "body":
         { "type": "let*"
-        , "bindings": [["provider", "link-args"]]
+        , "bindings":
+          [ ["provider", "link-args"]
+          , ["transition", {"type": "var", "name": "deps-transition"}]
+          ]
         , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
         }
       }
     }
   }
 , "objects":
-  { "vars": ["CXX", "CXXFLAGS", "ENV", "srcs", "compile-deps", "local hdrs"]
+  { "vars":
+    [ "COMPILER"
+    , "COMPILE_FLAGS"
+    , "ENV"
+    , "srcs"
+    , "hdrs"
+    , "private-hdrs"
+    , "compile-deps"
+    ]
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -197,7 +281,13 @@
             [ {"type": "var", "name": "include tree"}
             , { "type": "to_subdir"
               , "subdir": "work"
-              , "$1": {"type": "var", "name": "local hdrs"}
+              , "$1":
+                { "type": "disjoint_map_union"
+                , "$1":
+                  [ {"type": "var", "name": "hdrs"}
+                  , {"type": "var", "name": "private-hdrs"}
+                  ]
+                }
               }
             ]
           }
@@ -254,8 +344,8 @@
                 , "cmd":
                   { "type": "++"
                   , "$1":
-                    [ [{"type": "var", "name": "CXX"}]
-                    , {"type": "var", "name": "CXXFLAGS"}
+                    [ [{"type": "var", "name": "COMPILER"}]
+                    , {"type": "var", "name": "COMPILE_FLAGS"}
                     , ["-I", "work", "-isystem", "include"]
                     , ["-c", {"type": "var", "name": "work src_name"}]
                     , ["-o", {"type": "var", "name": "work out"}]
@@ -284,70 +374,98 @@
       }
     }
   }
+, "compiler-cc":
+  { "vars": ["CC", "defaults-transition"]
+  , "imports": {"default-CC": "default-CC"}
+  , "expression":
+    { "type": "var"
+    , "name": "CC"
+    , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+    }
+  }
+, "compiler-cxx":
+  { "vars": ["CXX", "defaults-transition"]
+  , "imports": {"default-CXX": "default-CXX"}
+  , "expression":
+    { "type": "var"
+    , "name": "CXX"
+    , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+    }
+  }
 , "compiler":
-  { "vars": ["CC", "CXX"]
-  , "imports": {"default-CC": "default-CC", "default-CXX": "default-CXX"}
+  { "vars": ["CC", "CXX", "pure C", "defaults-transition"]
+  , "imports": {"compiler-cc": "compiler-cc", "compiler-cxx": "compiler-cxx"}
   , "expression":
     { "type": "if"
-    , "cond": {"type": "FIELD", "name": "pure C"}
-    , "then":
-      { "type": "var"
-      , "name": "CC"
-      , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
-      }
-    , "else":
-      { "type": "var"
-      , "name": "CXX"
-      , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
-      }
+    , "cond": {"type": "var", "name": "pure C"}
+    , "then": {"type": "CALL_EXPRESSION", "name": "compiler-cc"}
+    , "else": {"type": "CALL_EXPRESSION", "name": "compiler-cxx"}
+    }
+  }
+, "flags-cc":
+  { "vars": ["CFLAGS", "ADD_CFLAGS", "defaults-transition"]
+  , "imports": {"default-CFLAGS": "default-CFLAGS"}
+  , "expression":
+    { "type": "++"
+    , "$1":
+      [ { "type": "var"
+        , "name": "CFLAGS"
+        , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
+        }
+      , {"type": "var", "name": "ADD_CFLAGS", "default": []}
+      ]
+    }
+  }
+, "flags-cxx":
+  { "vars": ["CXXFLAGS", "ADD_CXXFLAGS", "defaults-transition"]
+  , "imports": {"default-CXXFLAGS": "default-CXXFLAGS"}
+  , "expression":
+    { "type": "++"
+    , "$1":
+      [ { "type": "var"
+        , "name": "CXXFLAGS"
+        , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
+        }
+      , {"type": "var", "name": "ADD_CXXFLAGS", "default": []}
+      ]
     }
   }
 , "flags":
-  { "vars": ["CFLAGS", "CXXFLAGS", "ADD_CFLAGS", "ADD_CXXFLAGS"]
-  , "imports":
-    { "default-CFLAGS": "default-CFLAGS"
-    , "default-CXXFLAGS": "default-CXXFLAGS"
-    }
+  { "vars":
+    [ "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "pure C"
+    , "defaults-transition"
+    ]
+  , "imports": {"flags-cc": "flags-cc", "flags-cxx": "flags-cxx"}
   , "expression":
     { "type": "if"
-    , "cond": {"type": "FIELD", "name": "pure C"}
-    , "then":
-      { "type": "++"
-      , "$1":
-        [ { "type": "var"
-          , "name": "CFLAGS"
-          , "default": {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
-          }
-        , {"type": "var", "name": "ADD_CFLAGS", "default": []}
-        ]
-      }
-    , "else":
-      { "type": "++"
-      , "$1":
-        [ { "type": "var"
-          , "name": "CXXFLAGS"
-          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
-          }
-        , {"type": "var", "name": "ADD_CXXFLAGS", "default": []}
-        ]
-      }
+    , "cond": {"type": "var", "name": "pure C"}
+    , "then": {"type": "CALL_EXPRESSION", "name": "flags-cc"}
+    , "else": {"type": "CALL_EXPRESSION", "name": "flags-cxx"}
     }
   }
 , "lib artifact":
   { "vars":
-    [ "CXX"
-    , "CXXFLAGS"
-    , "ADD_CXXFLAGS"
-    , "CC"
+    [ "CC"
+    , "CXX"
     , "CFLAGS"
+    , "CXXFLAGS"
     , "ADD_CFLAGS"
-    , "ENV"
+    , "ADD_CXXFLAGS"
     , "AR"
+    , "ENV"
+    , "name"
+    , "pure C"
     , "srcs"
     , "hdrs"
     , "private-hdrs"
-    , "local cflags"
+    , "stage"
     , "compile-deps"
+    , "compile-args"
+    , "defaults-transition"
     ]
   , "imports":
     { "compiler": "compiler"
@@ -359,26 +477,19 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "stage"
-        , { "type": "join"
-          , "separator": "/"
-          , "$1": {"type": "FIELD", "name": "stage"}
+      [ ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      , [ "COMPILE_FLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "flags"}
+            , {"type": "var", "name": "compile-args"}
+            ]
           }
         ]
-      , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler"}]
-      , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags"}]
       , [ "AR"
         , { "type": "var"
           , "name": "AR"
           , "default": {"type": "CALL_EXPRESSION", "name": "default-AR"}
-          }
-        ]
-      , [ "CXXFLAGS"
-        , { "type": "++"
-          , "$1":
-            [ {"type": "var", "name": "CXXFLAGS"}
-            , {"type": "var", "name": "local cflags", "default": []}
-            ]
           }
         ]
       , [ "ENV"
@@ -396,32 +507,16 @@
             }
           }
         ]
-      , [ "local hdrs"
-        , { "type": "disjoint_map_union"
-          , "$1":
-            [ {"type": "var", "name": "hdrs"}
-            , {"type": "var", "name": "private-hdrs"}
-            ]
-          }
-        ]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
       , [ "base name"
-        , { "type": "let*"
-          , "bindings":
-            [ [ "name"
-              , {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
-              ]
-            ]
-          , "body":
-            { "type": "if"
-            , "cond": {"type": "var", "name": "objects"}
-            , "then":
-              { "type": "assert_non_empty"
-              , "msg": "A name has to be provided for non-header-only libraries"
-              , "$1": {"type": "var", "name": "name"}
-              }
-            , "else": {"type": "var", "name": "name"}
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "objects"}
+          , "then":
+            { "type": "assert_non_empty"
+            , "msg": "A name has to be provided for non-header-only libraries"
+            , "$1": {"type": "var", "name": "name"}
             }
+          , "else": {"type": "var", "name": "name"}
           }
         ]
       , [ "libname"
@@ -462,23 +557,30 @@
   }
 , "lib result":
   { "vars":
-    [ "CXX"
-    , "CXXFLAGS"
-    , "ADD_CXXFLAGS"
-    , "CC"
+    [ "CC"
+    , "CXX"
     , "CFLAGS"
+    , "CXXFLAGS"
     , "ADD_CFLAGS"
-    , "ENV"
+    , "ADD_CXXFLAGS"
     , "AR"
+    , "ENV"
+    , "name"
+    , "pure C"
     , "srcs"
     , "hdrs"
     , "private-hdrs"
-    , "local cflags"
-    , "link external"
+    , "cflags"
+    , "private-cflags"
+    , "private-ldflags"
+    , "stage"
     , "extra-provides"
+    , "public-fieldnames"
+    , "private-fieldnames"
     ]
   , "imports":
     { "compile-deps": "compile-deps"
+    , "compile-args-deps": "compile-args-deps"
     , "link-deps": "link-deps"
     , "link-args-deps": "link-args-deps"
     , "lib artifact": "lib artifact"
@@ -486,8 +588,20 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ ["deps-fieldnames", ["deps", "private-deps", "proto-deps"]]
+      [ ["deps-fieldnames", {"type": "var", "name": "private-fieldnames"}]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "var", "name": "cflags"}
+              , {"type": "var", "name": "private-cflags"}
+              , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+              ]
+            }
+          }
+        ]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["lib", {"type": "CALL_EXPRESSION", "name": "lib artifact"}]
       , [ "link-args"
@@ -496,14 +610,25 @@
             { "type": "++"
             , "$1":
               [ {"type": "keys", "$1": {"type": "var", "name": "lib"}}
-              , {"type": "var", "name": "link external", "default": []}
+              , {"type": "var", "name": "private-ldflags", "default": []}
               , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               ]
             }
           }
         ]
-      , ["deps-fieldnames", ["deps", "proto-deps"]]
+      , ["deps-fieldnames", {"type": "var", "name": "public-fieldnames"}]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "var", "name": "cflags"}
+              , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+              ]
+            }
+          }
+        ]
       ]
     , "body":
       { "type": "RESULT"
@@ -512,13 +637,183 @@
       , "provides":
         { "type": "map_union"
         , "$1":
-          [ {"type": "env", "vars": ["compile-deps", "link-deps", "link-args"]}
+          [ { "type": "env"
+            , "vars":
+              ["compile-deps", "compile-args", "link-deps", "link-args"]
+            }
           , { "type": "var"
             , "name": "extra-provides"
             , "default": {"type": "empty_map"}
             }
           ]
         }
+      }
+    }
+  }
+, "bin artifact":
+  { "doc": ["Produces the binary artifact."]
+  , "vars":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "name"
+    , "pure C"
+    , "srcs"
+    , "private-hdrs"
+    , "stage"
+    , "compile-deps"
+    , "compile-args"
+    , "link-deps"
+    , "link-args"
+    , "defaults-transition"
+    ]
+  , "imports":
+    { "compiler": "compiler"
+    , "flags": "flags"
+    , "objects": "objects"
+    , "default-ENV": "default-ENV"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      , [ "COMPILE_FLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "flags"}
+            , {"type": "var", "name": "compile-args"}
+            ]
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , ["hdrs", {"type": "empty_map"}]
+      , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
+      , [ "link-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "keys", "$1": {"type": "var", "name": "objects"}}
+              , {"type": "var", "name": "link-args"}
+              ]
+            }
+          }
+        ]
+      , [ "binpath"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "name"}
+              ]
+            }
+          , "else": {"type": "var", "name": "name"}
+          }
+        ]
+      , [ "binary"
+        , { "type": "ACTION"
+          , "outs": [{"type": "var", "name": "binpath"}]
+          , "inputs":
+            { "type": "disjoint_map_union"
+            , "$1":
+              [ {"type": "var", "name": "objects"}
+              , {"type": "var", "name": "link-deps"}
+              ]
+            }
+          , "cmd":
+            { "type": "++"
+            , "$1":
+              [ [ {"type": "var", "name": "COMPILER"}
+                , "-o"
+                , {"type": "var", "name": "binpath"}
+                ]
+              , {"type": "var", "name": "COMPILE_FLAGS"}
+              , {"type": "var", "name": "link-args"}
+              ]
+            }
+          , "env": {"type": "var", "name": "ENV"}
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "binary"}
+    }
+  }
+, "bin result":
+  { "doc": ["Produces the binary target result."]
+  , "vars":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "name"
+    , "pure C"
+    , "srcs"
+    , "private-hdrs"
+    , "private-cflags"
+    , "private-ldflags"
+    , "stage"
+    , "private-fieldnames"
+    ]
+  , "imports":
+    { "compile-deps": "compile-deps"
+    , "compile-args-deps": "compile-args-deps"
+    , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
+    , "binary": "bin artifact"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["deps-fieldnames", {"type": "var", "name": "private-fieldnames"}]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+            , {"type": "var", "name": "private-cflags"}
+            ]
+          }
+        ]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , [ "link-args"
+        , { "type": "nub_right"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
+              , {"type": "var", "name": "private-ldflags"}
+              ]
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "CALL_EXPRESSION", "name": "binary"}
       }
     }
   }

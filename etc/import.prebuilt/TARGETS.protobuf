@@ -4,7 +4,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protobuf"]
   , "hdrs": [["include", "protobuf"]]
-  , "link external": ["-lprotobuf", "-lprotobuf_lite"]
+  , "private-ldflags": ["-lprotobuf", "-lprotobuf_lite"]
   }
 , "well_known_protos":
   { "type": ["@", "rules", "data", "staged"]

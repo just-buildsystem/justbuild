@@ -2,11 +2,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "hdrs": [["TREE", null, "."]]
   , "stage": ["openssl"]
-  , "link external": ["-lcrypto"]
+  , "private-ldflags": ["-lcrypto"]
   }
 , "ssl":
   { "type": ["@", "rules", "CC", "library"]
-  , "link external": ["-lssl"]
+  , "private-ldflags": ["-lssl"]
   , "deps": ["crypto"]
   }
 }

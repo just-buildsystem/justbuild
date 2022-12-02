@@ -3,6 +3,6 @@
   , "name": ["fmt"]
   , "stage": ["fmt"]
   , "hdrs": [["TREE", null, "."]]
-  , "link external": ["-lfmt"]
+  , "private-ldflags": ["-lfmt"]
   }
 }

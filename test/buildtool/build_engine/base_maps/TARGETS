@@ -12,7 +12,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["entity_name"]
   , "srcs": ["entity_name.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
@@ -24,7 +24,7 @@
   , "name": ["directory_map"]
   , "srcs": ["directory_map.test.cpp"]
   , "data": ["test_data_src", "test_data"]
-  , "deps":
+  , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
@@ -38,7 +38,7 @@
   , "name": ["json_file_map"]
   , "srcs": ["json_file_map.test.cpp"]
   , "data": ["test_data_json", "test_data"]
-  , "deps":
+  , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
@@ -51,7 +51,7 @@
   , "name": ["source_map"]
   , "srcs": ["source_map.test.cpp"]
   , "data": ["test_data", "test_data_src"]
-  , "deps":
+  , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
@@ -65,7 +65,7 @@
   , "name": ["expression_map"]
   , "srcs": ["expression_map.test.cpp"]
   , "data": ["test_data_expr", "test_data"]
-  , "deps":
+  , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
@@ -78,7 +78,7 @@
   , "name": ["rule_map"]
   , "srcs": ["rule_map.test.cpp"]
   , "data": ["test_data_rule", "test_data"]
-  , "deps":
+  , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]

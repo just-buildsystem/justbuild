@@ -1,7 +1,7 @@
 { "absl":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["absl"]
-  , "link external":
+  , "private-ldflags":
     [ "-lbad_optional_access"
     , "-lstr_format_internal"
     , "-ltime"

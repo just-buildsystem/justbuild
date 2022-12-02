@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["hasher"]
   , "srcs": ["hasher.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/crypto", "hasher"]
@@ -13,7 +13,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["hash_function"]
   , "srcs": ["hash_function.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/crypto", "hash_function"]

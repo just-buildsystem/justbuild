@@ -10,7 +10,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["time_zone"]
   , "stage": ["absl", "time", "internal", "cctz"]
-  , "local cflags":
+  , "private-cflags":
     [ "-Wno-shadow"
     , "-Wno-unused-template"
     , "-Wno-tautological-type-limit-compare"

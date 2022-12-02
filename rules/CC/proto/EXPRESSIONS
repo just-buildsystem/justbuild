@@ -8,13 +8,17 @@
   }
 , "protoc-compile":
   { "vars":
-    [ "transition"
-    , "service support"
-    , "CXX"
+    [ "CXX"
     , "CXXFLAGS"
     , "ADD_CXXFLAGS"
-    , "ENV"
     , "AR"
+    , "ENV"
+    , "name"
+    , "stage"
+    , "service support"
+    , "deps-transition"
+    , "public-fieldnames"
+    , "private-fieldnames"
     ]
   , "imports":
     { "stage": ["", "stage_singleton_field"]
@@ -26,9 +30,14 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "protoc"
+      [ ["pure C", false]
+      , [ "protoc"
         , { "type": "let*"
-          , "bindings": [["fieldname", "protoc"], ["location", "protoc"]]
+          , "bindings":
+            [ ["fieldname", "protoc"]
+            , ["transition", {"type": "var", "name": "deps-transition"}]
+            , ["location", "protoc"]
+            ]
           , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
           }
         ]
@@ -39,6 +48,7 @@
             { "type": "let*"
             , "bindings":
               [ ["fieldname", "grpc_cpp_plugin"]
+              , ["transition", {"type": "var", "name": "deps-transition"}]
               , ["location", "grpc_cpp_plugin"]
               ]
             , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
@@ -52,8 +62,7 @@
           , "subdir": "work"
           , "$1":
             { "type": "let*"
-            , "bindings":
-              [["fieldname", "well_known_protos"], ["transition", null]]
+            , "bindings": [["fieldname", "well_known_protos"]]
             , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
             }
           }
@@ -63,7 +72,7 @@
           , "msg": "Sources may not conflict"
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "srcs"], ["transition", null]]
+            , "bindings": [["fieldname", "srcs"]]
             , "body": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
             }
           }
@@ -289,7 +298,9 @@
           , "value": {"type": "var", "name": "all proto srcs"}
           }
         ]
-      , ["local cflags", ["-Wno-sign-conversion", "-Wno-unused-function"]]
+      , ["cflags", []]
+      , ["private-cflags", ["-Wno-sign-conversion", "-Wno-unused-function"]]
+      , ["private-ldflags", []]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}
     }

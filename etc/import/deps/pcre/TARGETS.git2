@@ -121,7 +121,7 @@
   , "arguments_config": ["OS"]
   , "name": ["git2_pcre"]
   , "pure C": ["yes"]
-  , "local defines":
+  , "private-defines":
     { "type": "++"
     , "$1":
       [ ["HAVE_CONFIG_H"]
@@ -132,7 +132,7 @@
         }
       ]
     }
-  , "local cflags": ["-Wno-unused-function", "-Wno-implicit-fallthrough"]
+  , "private-cflags": ["-Wno-unused-function", "-Wno-implicit-fallthrough"]
   , "srcs":
     [ "pcre_byte_order.c"
     , "pcre_chartables.c"

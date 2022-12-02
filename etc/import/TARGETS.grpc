@@ -454,7 +454,7 @@
     , "src/core/lib/transport/transport_impl.h"
     , "src/core/lib/uri/uri_parser.h"
     ]
-  , "link external":
+  , "private-ldflags":
     { "type": "case"
     , "expr":
       { "type": "var"
@@ -666,7 +666,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["COMPILER_FAMILY"]
   , "name": ["grpc_http_filters"]
-  , "local cflags":
+  , "private-cflags":
     { "type": "case"
     , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
     , "case": {"gnu": ["-Wno-array-bounds"]}

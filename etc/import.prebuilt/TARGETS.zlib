@@ -1,6 +1,6 @@
 { "zlib":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["zlib"]
-  , "link external": ["-lzlib"]
+  , "private-ldflags": ["-lzlib"]
   }
 }

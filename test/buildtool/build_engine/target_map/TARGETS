@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["result_map"]
   , "srcs": ["result_map.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/file_system", "file_system_manager"]
@@ -15,7 +15,7 @@
   , "name": ["target_map"]
   , "srcs": ["target_map.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/build_engine/base_maps", "directory_map"]
@@ -30,7 +30,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["target_map_internals"]
   , "srcs": ["target_map_internals.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , [ "src/buildtool/build_engine/target_map"

@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["ares"]
   , "pure C": ["YES"]
-  , "local defines":
+  , "private-defines":
     ["_GNU_SOURCE", "_HAS_EXCEPTIONS=0", "HAVE_CONFIG_H", "CARES_STATICLIB"]
   , "srcs":
     [ "ares__close_sockets.c"

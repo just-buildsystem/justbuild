@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["ac_client"]
   , "srcs": ["bazel_ac_client.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["test/utils", "execution_bazel"]
@@ -14,7 +14,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["cas_client"]
   , "srcs": ["bazel_cas_client.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["src/buildtool/execution_api/remote", "bazel_network"]
@@ -26,7 +26,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["execution_client"]
   , "srcs": ["bazel_execution_client.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["test/utils", "execution_bazel"]
@@ -38,7 +38,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["bytestream_client"]
   , "srcs": ["bytestream_client.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["test/utils", "execution_bazel"]
@@ -50,7 +50,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["network"]
   , "srcs": ["bazel_network.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["test/utils", "execution_bazel"]
@@ -63,7 +63,7 @@
   , "name": ["msg_factory"]
   , "srcs": ["bazel_msg_factory.test.cpp"]
   , "data": [["test/buildtool/execution_api", "test_data"]]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test", "catch-main"]
     , ["src/buildtool/common", "artifact_factory"]
@@ -76,7 +76,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["bazel_api"]
   , "srcs": ["bazel_api.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["test/utils", "catch-main-remote-execution"]
     , ["src/buildtool/execution_api/remote", "bazel"]

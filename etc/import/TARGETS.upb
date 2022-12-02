@@ -10,7 +10,7 @@
   , "arguments_config": ["COMPILER_FAMILY"]
   , "name": ["upb"]
   , "pure C": ["YES"]
-  , "local cflags":
+  , "private-cflags":
     { "type": "case"
     , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
     , "case": {"gnu": ["-Wno-int-to-pointer-cast", "-Wno-pointer-to-int-cast"]}

@@ -231,7 +231,7 @@ def config_to_local(*, repos_file, link_targets_file):
     link_external = ["-L%s" % (os.path.join(LOCALBASE, d),)
                      for d in global_link_dirs]
     print("External link arguments %r" % (link_external,))
-    main["link external"] = link_external
+    main["private-ldflags"] = link_external
     target[LOCAL_LINK_DIRS_TARGET] = main
     os.unlink(link_targets_file)
     with open(link_targets_file, "w") as f:

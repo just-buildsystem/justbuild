@@ -24,12 +24,12 @@
       ]
     }
   , "config_doc":
-    { "CXX":
-      [ "The name of the C++ compiler to be used by checks. If None, the"
+    { "CC":
+      [ "The name of the C compiler to be used by checks. If None, the"
       , "respective value from [\"CC\", \"defaults\"] will be taken."
       ]
-    , "CC":
-      [ "The name of the C compiler to be used by checks. If None, the"
+    , "CXX":
+      [ "The name of the C++ compiler to be used by checks. If None, the"
       , "respective value from [\"CC\", \"defaults\"] will be taken."
       ]
     , "CFLAGS":

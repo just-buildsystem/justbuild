@@ -1,7 +1,7 @@
 { "grpc++":
   { "type": ["@", "rules", "CC", "library"]
   , "hdrs": [["include", "grpcpp"]]
-  , "link external":
+  , "private-ldflags":
     [ "-lgrpc++"
     , "-lgrpc++_base"
     , "-lgrpc"
@@ -80,7 +80,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc++_codegen_proto"]
   , "hdrs": [["include", "grpcpp"], ["include", "grpc++"], ["include", "grpc"]]
-  , "link external": ["-lgrpc++_codegen_base_src"]
+  , "private-ldflags": ["-lgrpc++_codegen_base_src"]
   , "deps": ["grpc++"]
   }
 }

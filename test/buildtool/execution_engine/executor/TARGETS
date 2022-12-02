@@ -8,7 +8,7 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["executor"]
   , "srcs": ["executor.test.cpp"]
-  , "deps":
+  , "private-deps":
     [ ["src/buildtool/common", "artifact_factory"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
@@ -23,7 +23,7 @@
   , "name": ["local"]
   , "srcs": ["executor_api_local.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ "executor_api_tests"
     , ["src/buildtool/common", "artifact_factory"]
     , ["src/buildtool/execution_api/local", "local"]
@@ -41,7 +41,7 @@
   , "name": ["remote_bazel"]
   , "srcs": ["executor_api_remote_bazel.test.cpp"]
   , "data": ["test_data"]
-  , "deps":
+  , "private-deps":
     [ "executor_api_tests"
     , ["src/buildtool/common", "artifact_factory"]
     , ["src/buildtool/execution_api/remote", "bazel"]
