@@ -566,7 +566,7 @@ def distdir_checkout(desc, repos):
     for repo in distdir_repos:
         # If repo does not exist, fail
         if repo not in repos:
-            print("No configuration for repository %s found" % (repo,))
+            print("No configuration for repository %s found" % (repo, ))
             sys.exit(1)
         repo_desc = repos[repo].get("repository", {})
         repo_desc_type = repo_desc.get("type")
@@ -855,15 +855,15 @@ def read_location(location):
 
 # read settings from just-mrrc and return config path
 def read_justmrrc(rcpath, no_rc=False):
-    if not rcpath:
-        rcpath = DEFAULT_RC_PATH
-    elif not os.path.isfile(rcpath):
-        fail(f"cannot read rc file {rcpath}.")
-
     rc = {}
-    if os.path.isfile(rcpath) and not no_rc:
-        with open(rcpath) as f:
-            rc = json.load(f)
+    if not no_rc:
+        if not rcpath:
+            rcpath = DEFAULT_RC_PATH
+        elif not os.path.isfile(rcpath):
+            fail(f"cannot read rc file {rcpath}.")
+        if os.path.isfile(rcpath):
+            with open(rcpath) as f:
+                rc = json.load(f)
 
     location = rc.get("local build root", None)
     build_root = read_location(location) if location else None
