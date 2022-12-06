@@ -1,8 +1,5 @@
 { "test":
-  { "doc":
-    [ "A test written in C++"
-    , "FIXME: the test binary and data must be built for host"
-    ]
+  { "doc": ["A test written in C++"]
   , "tainted": ["test"]
   , "target_fields": ["srcs", "private-hdrs", "private-deps", "data"]
   , "string_fields":
@@ -15,7 +12,9 @@
     , "private-ldflags"
     ]
   , "config_vars":
-    [ "CC"
+    [ "ARCH"
+    , "HOST_ARCH"
+    , "CC"
     , "CXX"
     , "CFLAGS"
     , "CXXFLAGS"
@@ -103,6 +102,12 @@
     , "link-deps": ["./", "..", "link-deps"]
     , "link-args-deps": ["./", "..", "link-args-deps"]
     , "binary": ["./", "..", "bin artifact"]
+    , "host transition": ["transitions", "for host"]
+    }
+  , "config_transitions":
+    { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "private-deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "data": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     }
   , "expression":
     { "type": "let*"
@@ -140,6 +145,9 @@
             }
           }
         ]
+      , ["host-trans", {"type": "CALL_EXPRESSION", "name": "host transition"}]
+      , ["defaults-transition", {"type": "var", "name": "host-trans"}]
+      , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps"]]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , [ "compile-args"
@@ -238,7 +246,10 @@
           , "msg": "Data runfiles may not conflict"
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "data"]]
+            , "bindings":
+              [ ["fieldname", "data"]
+              , ["transition", {"type": "var", "name": "deps-transition"}]
+              ]
             , "body": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
             }
           }

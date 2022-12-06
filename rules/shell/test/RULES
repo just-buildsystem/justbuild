@@ -55,7 +55,10 @@
     { "test-result": "test-result"
     , "action": "test-action"
     , "stage": ["./", "../..", "stage_singleton_field"]
+    , "host transition": ["transitions", "for host"]
     }
+  , "config_transitions":
+    {"deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -78,6 +81,9 @@
       , ["keep", {"type": "FIELD", "name": "keep"}]
       , ["runner", {"type": "FIELD", "name": "runner"}]
       , ["deps-fieldname", "deps"]
+      , [ "deps-transition"
+        , {"type": "CALL_EXPRESSION", "name": "host transition"}
+        ]
       ]
     , "body":
       { "type": "if"

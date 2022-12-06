@@ -7,6 +7,7 @@
     , "keep"
     , "runner"
     , "deps-fieldname"
+    , "deps-transition"
     ]
   , "imports":
     { "artifacts_list": ["./", "../..", "field_artifacts_list"]
@@ -53,7 +54,9 @@
               , "$1":
                 { "type": "let*"
                 , "bindings":
-                  [["fieldname", {"type": "var", "name": "deps-fieldname"}]]
+                  [ ["fieldname", {"type": "var", "name": "deps-fieldname"}]
+                  , ["transition", {"type": "var", "name": "deps-transition"}]
+                  ]
                 , "body":
                   [ {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
                   , {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
@@ -153,7 +156,15 @@
     }
   }
 , "test-result":
-  { "vars": ["TEST_ENV", "name", "test.sh", "keep", "runner", "deps-fieldname"]
+  { "vars":
+    [ "TEST_ENV"
+    , "name"
+    , "test.sh"
+    , "keep"
+    , "runner"
+    , "deps-fieldname"
+    , "deps-transition"
+    ]
   , "imports": {"action": "test-action"}
   , "expression":
     { "type": "let*"
