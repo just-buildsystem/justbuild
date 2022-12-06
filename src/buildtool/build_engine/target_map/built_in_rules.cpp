@@ -70,7 +70,7 @@ auto const kConfigureRuleFields =
                                     "type"};
 
 void FileGenRuleWithDeps(
-    const std::vector<BuildMaps::Target::ConfiguredTarget>& dependency_keys,
+    const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
@@ -80,9 +80,9 @@ void FileGenRuleWithDeps(
     // Associate keys and values
     std::unordered_map<BuildMaps::Target::ConfiguredTarget, AnalysedTargetPtr>
         deps_by_transition;
-    deps_by_transition.reserve(dependency_keys.size());
-    for (size_t i = 0; i < dependency_keys.size(); ++i) {
-        deps_by_transition.emplace(dependency_keys[i], *dependency_values[i]);
+    deps_by_transition.reserve(transition_keys.size());
+    for (size_t i = 0; i < transition_keys.size(); ++i) {
+        deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
 
     auto param_vars = desc->ReadStringList("arguments_config");
@@ -90,15 +90,21 @@ void FileGenRuleWithDeps(
         return;
     }
     auto param_config = key.config.Prune(*param_vars);
+    auto vars_set = std::unordered_set<std::string>{};
+    vars_set.insert(param_vars->begin(), param_vars->end());
+    for (auto const& dep : dependency_values) {
+        vars_set.insert((*dep)->Vars().begin(), (*dep)->Vars().end());
+    }
+    auto effective_conf = key.config.Prune(vars_set);
+
     std::vector<BuildMaps::Target::ConfiguredTargetPtr> all_deps{};
     all_deps.reserve(dependency_values.size());
     for (auto const& dep : dependency_values) {
         all_deps.emplace_back((*dep)->GraphInformation().Node());
     }
-
     auto deps_info = TargetGraphInformation{
         std::make_shared<BuildMaps::Target::ConfiguredTarget>(
-            BuildMaps::Target::ConfiguredTarget{key.target, param_config}),
+            BuildMaps::Target::ConfiguredTarget{key.target, effective_conf}),
         all_deps,
         {},
         {}};
@@ -186,8 +192,6 @@ void FileGenRuleWithDeps(
             ArtifactDigest::Create<ObjectType::File>(data_val->String()),
             ObjectType::File}}}};
 
-    auto vars_set = std::unordered_set<std::string>{};
-    vars_set.insert(param_vars->begin(), param_vars->end());
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{stage, ExpressionPtr{Expression::map_t{}}, stage},
         std::vector<ActionDescription::Ptr>{},
@@ -197,7 +201,7 @@ void FileGenRuleWithDeps(
         std::move(tainted),
         std::move(deps_info));
     analysis_result =
-        result_map->Add(key.target, param_config, std::move(analysis_result));
+        result_map->Add(key.target, effective_conf, std::move(analysis_result));
     (*setter)(std::move(analysis_result));
 }
 
@@ -238,6 +242,10 @@ void FileGenRule(
         return;
     }
     std::vector<BuildMaps::Target::ConfiguredTarget> dependency_keys;
+    std::vector<BuildMaps::Target::ConfiguredTarget> transition_keys;
+    dependency_keys.reserve(deps_value->List().size());
+    transition_keys.reserve(deps_value->List().size());
+    auto empty_transition = Configuration{Expression::kEmptyMap};
     for (auto const& dep_name : deps_value->List()) {
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
@@ -253,13 +261,19 @@ void FileGenRule(
         }
         dependency_keys.emplace_back(
             BuildMaps::Target::ConfiguredTarget{*dep_target, key.config});
+        transition_keys.emplace_back(
+            BuildMaps::Target::ConfiguredTarget{*dep_target, empty_transition});
     }
     (*subcaller)(
         dependency_keys,
-        [dependency_keys, desc, setter, logger, key, result_map](
-            auto const& values) {
+        [transition_keys = std::move(transition_keys),
+         desc,
+         setter,
+         logger,
+         key,
+         result_map](auto const& values) {
             FileGenRuleWithDeps(
-                dependency_keys, values, desc, key, setter, logger, result_map);
+                transition_keys, values, desc, key, setter, logger, result_map);
         },
         logger);
 }
