@@ -270,7 +270,7 @@ static inline auto SetupDiagnosticArguments(
         ->type_name("PATH");
     app->add_option("--dump-vars",
                     clargs->dump_vars,
-                    "Dump domain of the effective configuraiton to file (use - "
+                    "Dump domain of the effective configuration to file (use - "
                     "for stdout).")
         ->type_name("PATH");
     app->add_option("--dump-targets",
@@ -410,7 +410,7 @@ static inline auto SetupFetchArguments(
 
     app->add_flag("--raw-tree",
                   clargs->raw_tree,
-                  "Dump raw tree object (omit pretty printting)");
+                  "Dump raw tree object (omit pretty printing)");
 }
 
 static inline auto SetupGraphArguments(
