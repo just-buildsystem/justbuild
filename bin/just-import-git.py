@@ -204,6 +204,9 @@ def rewrite_repo(repo_spec, *, remote, assign):
         if subdir not in ["", "."]:
             changes["subdir"] = subdir
         repo = dict(remote, **changes)
+    elif repo.get("type") == "distdir":
+        new_repos = [assign[k] for k in repo.get("repositories", [])]
+        repo = dict(repo, **{"repositories": new_repos})
     new_spec["repository"] = repo
     for key in ["target_root", "rule_root", "expression_root"]:
         if key in repo_spec:
