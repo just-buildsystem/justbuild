@@ -53,6 +53,12 @@ auto const kFileGenRuleFields =
                                     "name",
                                     "tainted",
                                     "type"};
+auto const kTreeRuleFields = std::unordered_set<std::string>{"arguments_config",
+                                                             "data",
+                                                             "deps",
+                                                             "name",
+                                                             "tainted",
+                                                             "type"};
 
 auto const kInstallRuleFields =
     std::unordered_set<std::string>{"arguments_config",
@@ -274,6 +280,188 @@ void FileGenRule(
          result_map](auto const& values) {
             FileGenRuleWithDeps(
                 transition_keys, values, desc, key, setter, logger, result_map);
+        },
+        logger);
+}
+
+void TreeRuleWithDeps(
+    const std::vector<AnalysedTargetPtr const*>& dependency_values,
+    const std::string& name,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Base::FieldReader::Ptr& desc,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    auto param_vars = desc->ReadStringList("arguments_config");
+    if (not param_vars) {
+        return;
+    }
+    auto param_config = key.config.Prune(*param_vars);
+    auto tainted = std::set<std::string>{};
+    auto got_tainted = BuildMaps::Target::Utils::getTainted(
+        &tainted,
+        param_config,
+        desc->ReadOptionalExpression("tainted", Expression::kEmptyList),
+        logger);
+    if (not got_tainted) {
+        return;
+    }
+    for (auto const& dep : dependency_values) {
+        if (not std::includes(tainted.begin(),
+                              tainted.end(),
+                              (*dep)->Tainted().begin(),
+                              (*dep)->Tainted().end())) {
+            (*logger)(
+                "Not tainted with all strings the dependencies are tainted "
+                "with",
+                true);
+            return;
+        }
+    }
+
+    auto vars_set = std::unordered_set<std::string>{};
+    vars_set.insert(param_vars->begin(), param_vars->end());
+    for (auto const& dep : dependency_values) {
+        vars_set.insert((*dep)->Vars().begin(), (*dep)->Vars().end());
+    }
+    auto effective_conf = key.config.Prune(vars_set);
+    std::vector<BuildMaps::Target::ConfiguredTargetPtr> all_deps{};
+    all_deps.reserve(dependency_values.size());
+    for (auto const& dep : dependency_values) {
+        all_deps.emplace_back((*dep)->GraphInformation().Node());
+    }
+    auto deps_info = TargetGraphInformation{
+        std::make_shared<BuildMaps::Target::ConfiguredTarget>(
+            BuildMaps::Target::ConfiguredTarget{key.target, effective_conf}),
+        all_deps,
+        {},
+        {}};
+
+    // Compute the stage
+    auto stage = ExpressionPtr{Expression::map_t{}};
+    for (auto const& dep : dependency_values) {
+        auto to_stage = ExpressionPtr{
+            Expression::map_t{(*dep)->RunFiles(), (*dep)->Artifacts()}};
+        auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
+        if (dup) {
+            (*logger)(fmt::format("Staging conflict for path {}", dup->get()),
+                      true);
+            return;
+        }
+        stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
+    }
+
+    // Result is the associated tree, located at name
+    auto conflict = BuildMaps::Target::Utils::tree_conflict(stage);
+    if (conflict) {
+        (*logger)(fmt::format("TREE conflict on subtree {}", *conflict), true);
+        return;
+    }
+    std::unordered_map<std::string, ArtifactDescription> tree_content;
+    tree_content.reserve(stage->Map().size());
+    for (auto const& [input_path, artifact] : stage->Map()) {
+        auto norm_path = ToNormalPath(std::filesystem::path{input_path});
+        tree_content.emplace(std::move(norm_path), artifact->Artifact());
+    }
+    auto tree = std::make_shared<Tree>(std::move(tree_content));
+    auto tree_id = tree->Id();
+    std::vector<Tree::Ptr> trees{};
+    trees.emplace_back(std::move(tree));
+    auto result_stage = Expression::map_t::underlying_map_t{};
+    result_stage.emplace(name, ArtifactDescription{tree_id});
+    auto result = ExpressionPtr{Expression::map_t{result_stage}};
+
+    auto analysis_result = std::make_shared<AnalysedTarget const>(
+        TargetResult{result, ExpressionPtr{Expression::map_t{}}, result},
+        std::vector<ActionDescription::Ptr>{},
+        std::vector<std::string>{},
+        std::move(trees),
+        std::move(vars_set),
+        std::move(tainted),
+        std::move(deps_info));
+    analysis_result =
+        result_map->Add(key.target, effective_conf, std::move(analysis_result));
+    (*setter)(std::move(analysis_result));
+}
+
+void TreeRule(
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    auto desc = BuildMaps::Base::FieldReader::CreatePtr(
+        desc_json, key.target, "tree target", logger);
+    desc->ExpectFields(kTreeRuleFields);
+    auto param_vars = desc->ReadStringList("arguments_config");
+    if (not param_vars) {
+        return;
+    }
+    auto param_config = key.config.Prune(*param_vars);
+
+    // Collect dependencies: deps
+    auto const& empty_list = Expression::kEmptyList;
+    auto deps_exp = desc->ReadOptionalExpression("deps", empty_list);
+    if (not deps_exp) {
+        return;
+    }
+    auto deps_value =
+        deps_exp.Evaluate(param_config, {}, [&logger](auto const& msg) {
+            (*logger)(fmt::format("While evaluating deps:\n{}", msg), true);
+        });
+    if (not deps_value) {
+        return;
+    }
+    if (not deps_value->IsList()) {
+        (*logger)(fmt::format("Expected deps to evaluate to a list of targets, "
+                              "but found {}",
+                              deps_value->ToString()),
+                  true);
+        return;
+    }
+    std::vector<BuildMaps::Target::ConfiguredTarget> dependency_keys;
+    for (auto const& dep_name : deps_value->List()) {
+        auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
+            dep_name,
+            key.target,
+            [&logger, &dep_name](std::string const& parse_err) {
+                (*logger)(fmt::format("Parsing dep entry {} failed with:\n{}",
+                                      dep_name->ToString(),
+                                      parse_err),
+                          true);
+            });
+        if (not dep_target) {
+            return;
+        }
+        dependency_keys.emplace_back(
+            BuildMaps::Target::ConfiguredTarget{*dep_target, key.config});
+    }
+    auto name_exp =
+        desc->ReadOptionalExpression("name", ExpressionPtr{std::string{""}});
+    if (not name_exp) {
+        return;
+    }
+    auto name_value =
+        name_exp.Evaluate(param_config, {}, [&logger](auto const& msg) {
+            (*logger)(fmt::format("While evaluating name:\n{}", msg), true);
+        });
+    if (not name_value) {
+        return;
+    }
+    if (not name_value->IsString()) {
+        (*logger)(
+            fmt::format("Expected name to evaluate to a string, but got {}",
+                        name_value->ToString()),
+            true);
+        return;
+    }
+    (*subcaller)(
+        dependency_keys,
+        [name = name_value->String(), desc, setter, logger, key, result_map](
+            auto const& values) {
+            TreeRuleWithDeps(
+                values, name, key, desc, setter, logger, result_map);
         },
         logger);
 }
@@ -1097,6 +1285,7 @@ auto const kBuiltIns = std::unordered_map<
         const gsl::not_null<BuildMaps::Target::ResultTargetMap*>)>>{
     {"export", ExportRule},
     {"file_gen", FileGenRule},
+    {"tree", TreeRule},
     {"generic", GenericRule},
     {"install", InstallRule},
     {"configure", ConfigureRule}};

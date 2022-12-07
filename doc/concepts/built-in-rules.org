@@ -123,6 +123,19 @@ with key the result of evaluating ~"name"~ and value a (non-executable)
 file with content the result of evaluating ~"data"~. The provides
 map is empty.
 
+** ~"tree"~
+
+The ~"tree"~ rule allows to specify a tree out of the artifact
+stage of given targets. More precisely, the deps field ~"deps"~
+has to evaluate to a list of targets. For each target, runfiles
+and artifacts are overlayed in an artifacts-win fashion and
+the union of the resulting stages is taken; it is an error if conflicts
+arise in this way. The resulting stage is transformed into a tree.
+Both, artifacts and runfiles of the ~"tree"~ target are a singleton map
+with the key the result of evaluting ~"name"~ (which has to evalutate to
+a single string) and value that tree.
+
+
 ** ~"configure"~
 
 The ~"configure"~ rule allows to configure a target with a given

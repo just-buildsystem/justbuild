@@ -10,9 +10,15 @@
   , "test": ["filegen_config.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "tree":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tree"]
+  , "test": ["tree.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["generic_out_dirs", "filegen_config"]
+  , "deps": ["generic_out_dirs", "filegen_config", "tree"]
   }
 }
