@@ -524,13 +524,27 @@
           , "$1": ["lib", {"type": "var", "name": "base name"}, ".a"]
           }
         ]
+      , [ "libpath"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "libname"}
+              ]
+            }
+          , "else": {"type": "var", "name": "libname"}
+          }
+        ]
       , [ "lib"
         , { "type": "if"
           , "cond": {"type": "var", "name": "objects"}
           , "else": {"type": "empty_map"}
           , "then":
             { "type": "ACTION"
-            , "outs": [{"type": "var", "name": "libname"}]
+            , "outs": [{"type": "var", "name": "libpath"}]
             , "inputs": {"type": "var", "name": "objects"}
             , "env":
               {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
@@ -539,7 +553,7 @@
               , "$1":
                 [ [ {"type": "var", "name": "AR", "default": "ar"}
                   , "cqs"
-                  , {"type": "var", "name": "libname"}
+                  , {"type": "var", "name": "libpath"}
                   ]
                 , {"type": "keys", "$1": {"type": "var", "name": "objects"}}
                 ]
@@ -548,11 +562,7 @@
           }
         ]
       ]
-    , "body":
-      { "type": "to_subdir"
-      , "subdir": {"type": "var", "name": "stage"}
-      , "$1": {"type": "var", "name": "lib"}
-      }
+    , "body": {"type": "var", "name": "lib"}
     }
   }
 , "lib result":
