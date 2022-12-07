@@ -7,6 +7,7 @@
   , "target_fields": ["srcs", "private-hdrs", "private-deps", "data"]
   , "string_fields":
     [ "name"
+    , "args"
     , "stage"
     , "pure C"
     , "private-defines"
@@ -25,13 +26,14 @@
     , "CC_TEST_LAUNCHER"
     ]
   , "implicit":
-    {"defaults": [["./", "..", "defaults"]], "runner": ["test_runner.sh"]}
+    {"defaults": [["./", "..", "defaults"]], "runner": ["test_runner.py"]}
   , "field_doc":
     { "name":
       [ "The name of the test"
       , ""
       , "Used to name the test binary as well as for staging the test result"
       ]
+    , "args": ["Command line arguments for the test binary"]
     , "srcs": ["The sources of the test binary"]
     , "private-hdrs":
       [ "Any additional header files that need to be present when compiling"
@@ -198,10 +200,35 @@
                   }
                 , "body":
                   { "type": "singleton_map"
-                  , "key": "runner.sh"
+                  , "key": "runner"
                   , "value": {"type": "var", "name": "runner"}
                   }
                 }
+              }
+            }
+          }
+        ]
+      , [ "test-args"
+        , { "type": "singleton_map"
+          , "key": "test-args.json"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "json_encode"
+              , "$1": {"type": "FIELD", "name": "args", "default": []}
+              }
+            }
+          }
+        ]
+      , [ "test-launcher"
+        , { "type": "singleton_map"
+          , "key": "test-launcher.json"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "json_encode"
+              , "$1":
+                {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
               }
             }
           }
@@ -234,16 +261,12 @@
                 , "$1": {"type": "var", "name": "data"}
                 }
               , {"type": "var", "name": "runner"}
+              , {"type": "var", "name": "test-args"}
+              , {"type": "var", "name": "test-launcher"}
               , {"type": "var", "name": "staged test binary"}
               ]
             }
-          , "cmd":
-            { "type": "++"
-            , "$1":
-              [ ["sh", "./runner.sh"]
-              , {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
-              ]
-            }
+          , "cmd": ["./runner"]
           , "env":
             { "type": "var"
             , "name": "TEST_ENV"
