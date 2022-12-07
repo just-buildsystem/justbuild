@@ -814,8 +814,8 @@
           , "$1":
             { "type": "++"
             , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
-              , {"type": "var", "name": "private-ldflags"}
+              [ {"type": "var", "name": "private-ldflags"}
+              , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
               ]
             }
           }
