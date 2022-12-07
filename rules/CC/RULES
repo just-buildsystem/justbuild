@@ -271,13 +271,13 @@
       , [ "private-cflags"
         , { "type": "++"
           , "$1":
-            [ { "type": "foreach"
+            [ {"type": "FIELD", "name": "private-cflags"}
+            , { "type": "foreach"
               , "var": "def"
               , "range": {"type": "FIELD", "name": "private-defines"}
               , "body":
                 {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
               }
-            , {"type": "FIELD", "name": "private-cflags"}
             ]
           }
         ]
