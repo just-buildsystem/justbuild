@@ -197,6 +197,7 @@
                 , "-o"
                 , {"type": "var", "name": "binary name"}
                 ]
+              , {"type": "var", "name": "CXXFLAGS"}
               , {"type": "var", "name": "link-args"}
               ]
             }
