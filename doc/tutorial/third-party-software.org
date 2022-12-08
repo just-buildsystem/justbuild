@@ -163,7 +163,7 @@ therefore need to introduce an additional binding ~"format"~ for it:
 }
 #+END_SRC
 
-This ~"format"~ binding can you be used to add a new dependency in
+This ~"format"~ binding can you be used to add a new private dependency in
 ~greet/TARGETS~:
 
 #+SRCNAME: greet/TARGETS
@@ -174,7 +174,7 @@ This ~"format"~ binding can you be used to add a new dependency in
   , "hdrs": ["greet.hpp"]
   , "srcs": ["greet.cpp"]
   , "stage": ["greet"]
-  , "deps": [["@", "format", "", "fmt"]]
+  , "private-deps": [["@", "format", "", "fmt"]]
   }
 }
 #+END_SRC
