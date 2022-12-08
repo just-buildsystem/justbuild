@@ -379,7 +379,8 @@ INFO: Artifacts built, logical paths are:
 $
 #+END_SRC
 
-To finish the example, we also add a default target, staging
+To finish the example, we also add a default target (using that, if no target
+is specified, ~just~ builds the lexicographically first target), staging
 artifacts according to the usual conventions.
 
 #+BEGIN_SRC js

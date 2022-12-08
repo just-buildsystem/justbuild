@@ -50,7 +50,13 @@ In that configuration, two repositories are defined:
     needed to build the target. These rules are bound via the open name
     ~"rules"~ to the just created repository ~"just-rules"~. In this way, the
     entities provided by ~"just-rules"~ can be accessed from within the
-    ~"tutorial"~ repository via ~["@", "rules", "<module>", "<rule>"]~.
+    ~"tutorial"~ repository via the fully-qualified name
+    ~["@", "rules", "<module>", "<name>"]~; fully-qualified
+    names (for rules, targets to build (like libraries, binaries),
+    etc) are given by a repository name, a path specifying a
+    directory within that repository (the "module") where the
+    specification file is located, and a symbolic name (i.e., an
+    arbitrary string that is used as key in the specification).
 
 The final repository configuration contains a single ~JSON~ object with the key
 ~"repositories"~ referring to an object of repository names as keys and
@@ -75,7 +81,10 @@ binary from the C++ source ~main.cpp~. To define such a target, create a
 
 The ~"type"~ field refers to the rule ~"binary"~ from the module ~"CC"~ of the
 ~"rules"~ repository. This rule additionally requires the string field ~"name"~,
-which specifies the name of the binary to produce. Furthermore, at least one
+which specifies the name of the binary to produce; as the generic interface of
+rules is to have fields either take a list of strings or a list of targets,
+we have to sepcify the name as a list (this rule will simply concatenate all
+strings given in this field). Furthermore, at least one
 input to the binary is required, which can be specified via the target fields
 ~"srcs"~ or ~"deps"~. In our case, the former is used, which contains our single
 source file (files are considered targets).
@@ -158,8 +167,8 @@ $
 To define a custom set of defaults (toolchain and compile flags) for your
 project, you need to create a separate file root for providing required
 ~TARGETS~ file, which contains the ~"defaults"~ target that should be used by
-the rules. This file root is then used as the /target root/ for the rules (i.e.,
-the search path for ~TARGETS~ files). In this way, the description of the
+the rules. This file root is then used as the /target root/ for the rules, i.e.,
+the search path for ~TARGETS~ files. In this way, the description of the
 ~"defaults"~ target is provided in a separate file root, to keep the rules
 repository independent of these definitions.
 
@@ -172,7 +181,9 @@ $ mkdir -p ./tutorial-defaults/CC
 
 In that module, we need to create the file ~tutorial-defaults/CC/TARGETS~ that
 contains the target ~"defaults"~ and specifies which toolchain and compile flags
-to use:
+to use; it has to specify the complete toolchain, but can specify a ~"base"~
+toolchain to inherit from. In our case, we don't use any base, but specify all
+the required fields directly.
 
 #+SRCNAME: tutorial-defaults/CC/TARGETS
 #+BEGIN_SRC js
@@ -283,8 +294,10 @@ the consumer of this library can expect to find the library's artifacts. Note
 that this does not need to reflect the location on the file system (i.e., a
 full-qualified path like ~["com", "example", "utils", "greet"]~ could be used to
 distinguish it from greeting libraries of other projects). The staging directory
-does not only affect the main artifact ~libgreet.a~ but also it's runfiles;
-hence, the public header will be staged to ~"greet/greet.hpp"~. With that
+does not only affect the main artifact ~libgreet.a~ but also it's /runfiles/,
+a second set of artifacts, usually those a consumer needs to make proper use the
+actual artifact; in the case of a libary, the runfiles are its public headers.
+Hence, the public header will be staged to ~"greet/greet.hpp"~. With that
 knowledge, we can now perform the necessary modifications to ~main.cpp~:
 
 #+SRCNAME: main.cpp

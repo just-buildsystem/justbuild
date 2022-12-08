@@ -285,7 +285,7 @@ $
 #+END_SRC
 
 It should be noted, however, that this tight integration of proto
-into our ~C++~ rules is just convenience of our code base. If had
+into our ~C++~ rules is just convenience of our code base. If we had
 to cooperate with rules not aware of proto, we could have created
 a separate rule delegating the library creation to the anonymous
 target and then simply reflecting the values of that target.

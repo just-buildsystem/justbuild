@@ -1,12 +1,21 @@
 * Creating Tests
 
-To run tests with justbuild, we do /not/ have dedicated ~test~ subcommand.
-Instead, we consider tests being a specific action that generates a test report.
-Consequently, we use the ~build~ subcommand to build the test report, and
-thereby run the test action. Those actions have to be tainted, in our case with
-the string ~"test"~, causing that they can only be depended on by other targets
-that are also tainted with ~"test"~. In this way, it is ensured that no test
-target will end up in a production build.
+To run tests with justbuild, we do /not/ have dedicated ~test~
+subcommand. Instead, we consider tests being a specific action that
+generates a test report. Consequently, we use the ~build~ subcommand
+to build the test report, and thereby run the test action. Test
+actions, however, are slightly different from normal actions in
+that we don't want the build of the test report to be aborted if
+a test action fails (but still, we want only successfully actions
+taken from cache). Rules defining targets containing such special
+actions have to identify themselves as /tainted/ by specifying
+a string explaining why such special actions are justified; in
+our case, the string is ~"test"~. Besides the implicit marking by
+using a tainted rule, those tainting strings can also be explicitly
+assigned by the user in the definition of a target, e.g., to mark
+test data. Any target has to be tainted with (at least) all the
+strings any of its dependencies is tainted with. In this way, it
+is ensured that no test target will end up in a production build.
 
 For the remainder of this section, we expect to have the project files available
 resulting from successfully completing the tutorial section on /Building Hello
@@ -118,7 +127,7 @@ The result of the test target are 5 artifacts: ~result~ (containing ~UNKNOWN~,
 ~PASS~, or ~FAIL~), ~stderr~, ~stdout~, ~time-start~, and ~time-stop~, and a
 single runfile (omitted in the output above), which is a tree artifact with the
 name ~test_greet~ that contains all of the above artifacts. The test was run
-successfully as otherwise all reported artifacts would have been tagged with
+successfully as otherwise all reported artifacts would have been reported as
 ~FAILED~ in the output, and justbuild would have returned the exit code ~2~.
 
 To immediately print the standard output produced by the test binary on the
@@ -276,12 +285,16 @@ The result is also similar, containing also the 5 artifacts and a single runfile
 
 As most people probably do not want to call every test target by hand, it is
 desirable to compound test target that triggers the build of multiple test
-reports. To do so, an ~"install"~ target can be used. It depends on the tests
-that should be triggered and collects the runfiles of those (which happen to be
-tree artifacts named the same way as the test and containing all test results).
+reports. To do so, an ~"install"~ target can be used. The field ~"deps"~ of
+an install target is a list of targets for which the runfiles are collected.
+As for the tests the runfiless happen to be
+tree artifacts named the same way as the test and containing all test results,
+this is precisely what we need.
 Furthermore, as the dependent test targets are tainted by ~"test"~, also the
 compound test target must be tainted by the same string. To create the compound
-test target combining the two tests above, add the following to the top-level
+test target combining the two tests above (the test ~"test"~ from the current
+module and ~["greet", "test"]~, i.e., the target ~"test"~ from the module
+~"greet"~) add the following to the top-level
 ~TARGETS~ file:
 
 #+BEGIN_SRC js
