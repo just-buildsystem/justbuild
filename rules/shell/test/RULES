@@ -2,7 +2,7 @@
   { "doc": ["Shell test, given by a test script"]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
-  , "config_vars": ["RUNS_PER_TEST", "TEST_ENV"]
+  , "config_vars": ["ARCH", "HOST_ARCH", "RUNS_PER_TEST", "TEST_ENV"]
   , "field_doc":
     { "test":
       [ "The shell script for the test, launched with sh."
