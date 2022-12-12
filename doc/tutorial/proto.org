@@ -18,7 +18,7 @@ file ~repos.json~ as follows.
   { "":
     { "repository": "protobuf"
     , "target_root": "tutorial"
-    , "bindings": {"rules": "rules"}
+    , "bindings": {"rules": "just/rules-just"}
     }
   , "tutorial": {"repository": {"type": "file", "path": "."}}
   , ...
@@ -27,9 +27,12 @@ file ~repos.json~ as follows.
 #+END_SRC
 
 The remaining entries are just the ones from ~etc/repos.json~ from
-the /justbuild/ repository; here we keep in mind that we're now working
+the /justbuild/ repository, for ease of reading prefixed with ~just/~;
+here we keep in mind that we're now working
 in a different location, and hence have to replace the relative paths
-by appropriate absolute ones.
+by appropriate absolute ones. In fact, that configuration can also be
+created from the above template by using the ~bin/just-import-git.py~
+script, with option ~--as just~.
 
 To build the example with ~just~, the only task is to write a targets
 file at ~examples/TARGETS~. As that contains a couple of new concepts,
@@ -160,13 +163,13 @@ continues as follows.
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["add_person"]
   , "srcs": ["add_person.cc"]
-  , "proto": ["address"]
+  , "private-proto": ["address"]
   }
 , "list_people":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["list_people"]
   , "srcs": ["list_people.cc"]
-  , "proto": ["address"]
+  , "private-proto": ["address"]
   }
 ...
 #+END_SRC
@@ -187,7 +190,7 @@ INFO: Discovered 5 actions, 2 trees, 0 blobs
 INFO: Building [["@","","examples","add_person"],{}].
 INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
-        add_person [7210834b05139defe783811d77087aa7c256405c:1980320:x]
+        add_person [a76fb26b48dc9a5523ecfffd0c139b3a7466c84d:1862512:x]
 $
 #+END_SRC
 
@@ -199,7 +202,7 @@ $ just-mr analyse examples add_person --dump-actions -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"51f7e29f0669608f9e0a0d8c8f4946c239a3ed09","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"3cfc3fca335a722ab55b017ecdd4d465a0eb700c","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
         },
@@ -209,7 +212,7 @@ INFO: Result of target [["@","","examples","add_person"],{}]: {
 INFO: Actions for target [["@","","examples","add_person"],{}]:
 [
   {
-    "command": ["clang++","-std=c++20","-O2","-Wall","-Wextra","-Wpedantic","-Wsign-conversion","-I","work","-isystem","include","-c","work/add_person.cc","-o","work/add_person.o"],
+    "command": ["c++","-O2","-DNDEBUG","-std=c++20","-Wall","-Wextra","-Wpedantic","-Wsign-conversion","-Werror","-pedantic-errors","-I","work","-isystem","include","-c","work/add_person.cc","-o","work/add_person.o"],
     "env": {
       "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
     },
@@ -220,12 +223,13 @@ INFO: Actions for target [["@","","examples","add_person"],{}]:
     "output": ["work/add_person.o"]
   },
   {
-    "command": ["clang++","-o","add_person","add_person.o","libaddressbook.a","libprotobuf.a","libprotobuf_lite.a","libzlib.a"],
+    "command": ["c++","-o","add_person","-O2","-DNDEBUG","-std=c++20","-Wall","-Wextra","-Wpedantic","-Wsign-conversion","-Werror","-pedantic-errors","add_person.o","libaddressbook.a","libprotobuf.a","libprotobuf_lite.a","libzlib.a"],
     "env": {
       "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
     },
     "input": {
       ...
+      }
     },
     "output": ["add_person"]
   }
@@ -246,7 +250,7 @@ $ just-mr analyse examples add_person  --dump-targets -
 INFO: Requested target is [["@","","examples","add_person"],{}]
 INFO: Result of target [["@","","examples","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"51f7e29f0669608f9e0a0d8c8f4946c239a3ed09","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"3cfc3fca335a722ab55b017ecdd4d465a0eb700c","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
         },
@@ -256,27 +260,34 @@ INFO: Result of target [["@","","examples","add_person"],{}]: {
 INFO: List of analysed targets:
 {
   "#": {
-    "acde278315be59c6bdf436efa9dc9782a6c59f36": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    "68da80fb6609eb6a402649daddadffc02c6eff04": {
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
     }
   },
   "@": {
     "": {
       "examples": {
-        "add_person": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
         "address": [{}]
       }
     },
-    "protobuf": {
+    "just/protobuf": {
       "": {
-        "C++ runtime": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "protoc": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
         "well_known_protos": [{}]
       }
     },
-    "rules": {
+    "just/rules": {
       "CC": {
-        "defaults": [{}]
+        "defaults": [{"ARCH":null,"COMPILER_FAMILY":null,"DEBUG":null,"OS":null}],
+        "toolchain": [{"ARCH":null,"COMPILER_FAMILY":null,"OS":null}],
+        "unknown": [{}]
+      }
+    },
+    "just/rules-just": {
+      "CC": {
+        "defaults": [{"ARCH":null,"COMPILER_FAMILY":null,"DEBUG":null,"OS":null}]
       }
     }
   }
@@ -336,47 +347,54 @@ $ just-mr analyse examples test  --dump-targets -
 INFO: Requested target is [["@","","examples","test"],{}]
 INFO: Result of target [["@","","examples","test"],{}]: {
         "artifacts": {
-          "result": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"result"},"type":"ACTION"},
-          "stderr": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"stderr"},"type":"ACTION"},
-          "stdout": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"stdout"},"type":"ACTION"},
-          "time-start": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"time-start"},"type":"ACTION"},
-          "time-stop": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"time-stop"},"type":"ACTION"},
-          "work/addressbook.data": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"work/addressbook.data"},"type":"ACTION"},
-          "work/out.txt": {"data":{"id":"dd5983ceb5ffbe6bee6da1664485d1948a5e952b","path":"work/out.txt"},"type":"ACTION"}
+          "result": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"result"},"type":"ACTION"},
+          "stderr": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"stderr"},"type":"ACTION"},
+          "stdout": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"stdout"},"type":"ACTION"},
+          "time-start": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"time-start"},"type":"ACTION"},
+          "time-stop": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"time-stop"},"type":"ACTION"},
+          "work/addressbook.data": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"work/addressbook.data"},"type":"ACTION"},
+          "work/out.txt": {"data":{"id":"3196bca2b927fb1973546df8d69d64a9d47ff04b","path":"work/out.txt"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
-          "read-write-test": {"data":{"id":"92a7e0fb13fbfea251760e81e66258782800b165"},"type":"TREE"}
+          "read-write-test": {"data":{"id":"21c55e163e50cd6d7b52d936940ab493f51c4728"},"type":"TREE"}
         }
       }
 INFO: List of analysed targets:
 {
   "#": {
-    "acde278315be59c6bdf436efa9dc9782a6c59f36": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+    "68da80fb6609eb6a402649daddadffc02c6eff04": {
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
     }
   },
   "@": {
     "": {
       "examples": {
-        "add_person": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
         "address": [{}],
-        "list_people": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "test": [{"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TARGET_ARCH":null,"TEST_ENV":null}],
+        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TEST_ENV":null}],
         "test.sh": [{}]
       }
     },
-    "protobuf": {
+    "just/protobuf": {
       "": {
-        "C++ runtime": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "protoc": [{"AR":null,"ARCH":null,"CXX":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
         "well_known_protos": [{}]
       }
     },
-    "rules": {
+    "just/rules": {
       "CC": {
-        "defaults": [{}]
+        "defaults": [{"ARCH":null,"COMPILER_FAMILY":null,"DEBUG":null,"OS":null}],
+        "toolchain": [{"ARCH":null,"COMPILER_FAMILY":null,"OS":null}],
+        "unknown": [{}]
+      }
+    },
+    "just/rules-just": {
+      "CC": {
+        "defaults": [{"ARCH":null,"COMPILER_FAMILY":null,"DEBUG":null,"OS":null}]
       }
     }
   }
@@ -400,15 +418,15 @@ INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [7fab9dd1ee66a1e76a3697a27524f905600afbd0:196:f]
-        time-start [9488d8109ff186e7b9ffd7bdfe9f0cc11e99f781:11:f]
-        time-stop [9488d8109ff186e7b9ffd7bdfe9f0cc11e99f781:11:f]
-        work/addressbook.data [040e76802da97fab00070bb4dbca50d91f43ac7f:41:f]
-        work/out.txt [a47b62aba8783b8f923218a6838972c77ac082f2:101:f]
+        time-start [3e440f9ce86274043e2c18cbc769bd8e026f8512:11:f]
+        time-stop [3e440f9ce86274043e2c18cbc769bd8e026f8512:11:f]
+        work/addressbook.data [ae5c96711188769917a3af906d7cfbfc25645a28:41:f]
+        work/out.txt [0017cd9e728764f62870cb7db84ef42de913cdc3:101:f]
       (1 runfiles omitted.)
 Person ID: 12345
   Name: John Doe
   E-mail address: jdoe@example.org
-  Updated: 2022-06-22T13:03:29Z
+  Updated: 2022-12-12T09:58:07Z
 INFO: Target tainted ["test"].
 $
 #+END_SRC
