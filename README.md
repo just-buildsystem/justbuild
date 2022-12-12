@@ -3,8 +3,8 @@
 Justbuild is a generic build system supporting multi-repository
 builds. A pecularity of the tool is the separation between global
 names and physical location on the one hand, and logical paths
-used for actions and installation (sometimes referred to as
-"staging"). Language-specific information to translate high-level
+used for actions and installation on the other hand (sometimes referred to as
+"staging"). The language-specific information to translate high-level
 concepts (libraries, binaries) into individual compile action is
 taken from user-defined rules described by functional expressions.
 
