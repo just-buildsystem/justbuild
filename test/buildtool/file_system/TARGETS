@@ -62,6 +62,12 @@
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
+, "data/test_repo.bundle":
+  { "type": "generic"
+  , "deps": ["create_fs_test_git_bundle.sh"]
+  , "outs": ["data/test_repo.bundle"]
+  , "cmds": ["sh create_fs_test_git_bundle.sh"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
