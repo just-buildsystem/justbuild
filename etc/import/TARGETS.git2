@@ -190,8 +190,7 @@
     , "body":
       { "type": "env"
       , "vars":
-        [ "OS"
-        , "USE_SYSTEM_LIBS"
+        [ "USE_SYSTEM_LIBS"
         , "DEBUG_POOL"
         , "ENABLE_TRACE"
         , "THREADSAFE"
