@@ -1,3 +1,7 @@
+## Release `1.1.0` (UNRELEASED)
+
+A feature release on top of `1.0.0`, backwards compatible.
+
 ## Release `1.0.0` (2022-12-12)
 
 Initial stable release.
