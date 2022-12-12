@@ -7,7 +7,9 @@ relying on the integration of out-of-band binary distributions. justbuild offers
 a flexible approach to provide the required build description via an overlay
 layer without the need to touch the original code base.
 
-In the remainder of this section, we will use the open-source project
+For the remainder of this section, we expect to have the project files available
+resulting from successfully completing the tutorial section on /Building C++
+Hello World/. We will demonstrate how to use the open-source project
 [[https://github.com/fmtlib/fmt][fmtlib]] as an example for integrating
 third-party software to a justbuild project.
 
@@ -136,12 +138,20 @@ therefore need to introduce an additional binding ~"format"~ for it:
 #+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
-  { "just-rules":
-    { "repository": {"type": "file", "path": "/tmp/justbuild/rules"}
+  { "rules-cc":
+    { "repository":
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
+      }
+    , "target_root": "tutorial-defaults"
+    , "rule_root": "rules-cc"
     }
   , "tutorial":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
+    , "bindings": {"rules": "rules-cc", "format": "fmtlib"}
     }
   , "tutorial-defaults":
     { "repository": {"type": "file", "path": "./tutorial-defaults"}
@@ -157,7 +167,7 @@ therefore need to introduce an additional binding ~"format"~ for it:
       , "repository": "https://github.com/fmtlib/fmt.git"
       }
     , "target_root": "fmt-targets-layer"
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   }
 }
@@ -199,11 +209,11 @@ $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
-INFO: Discovered 7 actions, 4 trees, 0 blobs
+INFO: Discovered 7 actions, 3 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
-INFO: Processed 7 actions, 0 cache hits.
+INFO: Processed 7 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [ccca0c1aa443e5b2adce16949de24b50d6826636:324432:x]
+        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
 $
 #+END_SRC
 
@@ -214,11 +224,11 @@ $ just-mr --main fmtlib build fmt
 INFO: Requested target is [["@","fmtlib","","fmt"],{}]
 INFO: Analysed target [["@","fmtlib","","fmt"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
-INFO: Discovered 3 actions, 2 trees, 0 blobs
+INFO: Discovered 3 actions, 1 trees, 0 blobs
 INFO: Building [["@","fmtlib","","fmt"],{}].
 INFO: Processed 3 actions, 3 cache hits.
 INFO: Artifacts built, logical paths are:
-        libfmt.a [14c5156a6a988f417928970e750c8c8f928460ab:863452:f]
+        libfmt.a [513b2ac17c557675fc841f3ebf279003ff5a73ae:240914:f]
       (1 runfiles omitted.)
 $
 #+END_SRC
@@ -228,9 +238,9 @@ $
 The make use of high-level target caching for exported targets, we need to
 ensure that all inputs to an export target are transitively content-fixed. This
 is automatically the case for ~"type":"git"~ repositories. However, the ~libfmt~
-repository also depends on ~"fmt-target-layer"~, ~"just-rules"~, and
-~"tutorial-defaults"~.  As those are ~"type":"file"~ repositories, they must be
-put under Git versioning first:
+repository also depends on ~"rules-cc"~, ~"tutorial-defaults"~, and
+~"fmt-target-layer"~. As the latter two are ~"type":"file"~ repositories, they
+must be put under Git versioning first:
 
 #+BEGIN_SRC sh
 $ git init .
@@ -238,8 +248,7 @@ $ git add tutorial-defaults fmt-layer
 $ git commit -m"fix compile flags and fmt targets layer"
 #+END_SRC
 
-Note that ~just-rules~ already is under Git versioning as it is a subtree of the
-checked out justbuild repository.
+Note that ~rules-cc~ already is under Git versioning.
 
 Now, to instruct ~just-mr~ to use the content-fixed, committed source trees of
 those ~"type":"file"~ repositories the pragma ~"to_git"~ must be set for them in
@@ -249,18 +258,20 @@ those ~"type":"file"~ repositories the pragma ~"to_git"~ must be set for them in
 #+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
-  { "just-rules":
+  { "rules-cc":
     { "repository":
-      { "type": "file"
-      , "path": "/tmp/justbuild/rules"
-      , "pragma": {"to_git": true}
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
       }
     , "target_root": "tutorial-defaults"
-    , "rule_root": "just-rules"
+    , "rule_root": "rules-cc"
     }
   , "tutorial":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
+    , "bindings": {"rules": "rules-cc", "format": "fmtlib"}
     }
   , "tutorial-defaults":
     { "repository":
@@ -284,7 +295,7 @@ those ~"type":"file"~ repositories the pragma ~"to_git"~ must be set for them in
       , "repository": "https://github.com/fmtlib/fmt.git"
       }
     , "target_root": "fmt-targets-layer"
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   }
 }
@@ -298,9 +309,9 @@ $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
-INFO: Discovered 7 actions, 4 trees, 0 blobs
+INFO: Discovered 7 actions, 3 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
-INFO: Processed 7 actions, 0 cache hits.
+INFO: Processed 7 actions, 7 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
 $
@@ -357,18 +368,20 @@ defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
 #+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
-  { "just-rules":
+  { "rules-cc":
     { "repository":
-      { "type": "file"
-      , "path": "/tmp/justbuild/rules"
-      , "pragma": {"to_git": true}
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
       }
     , "target_root": "tutorial-defaults"
-    , "rule_root": "just-rules"
+    , "rule_root": "rules-cc"
     }
   , "tutorial":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules", "format": "fmtlib"}
+    , "bindings": {"rules": "rules-cc", "format": "fmtlib"}
     }
   , "tutorial-defaults":
     { "repository":
@@ -393,7 +406,7 @@ defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
       }
     , "target_root": "common-targets-layer"
     , "target_file_name": "TARGETS.fmt"
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   , "gsl-lite":
     { "repository":
@@ -404,7 +417,7 @@ defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
       }
     , "target_root": "common-targets-layer"
     , "target_file_name": "TARGETS.gsl"
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   }
 }

@@ -145,19 +145,14 @@ any problem, add a second target also generating a file ~out.txt~.
 
 #+SRCNAME: TARGETS
 #+BEGIN_SRC js
-{ "greeter":
-  { "type": "generic"
-  , "cmds": ["echo -n 'Hello ' > out.txt", "cat name.txt >> out.txt"]
-  , "outs": ["out.txt"]
-  , "deps": ["name.txt"]
-  }
+...
 , "upper":
   { "type": "generic"
   , "cmds": ["cat name.txt | tr a-z A-Z > out.txt"]
   , "outs": ["out.txt"]
   , "deps": ["name.txt"]
   }
-}
+...
 #+END_SRC
 
 As we only request targets, no conflicts arise.
@@ -196,21 +191,10 @@ argument ~"files"~ can be used to map that file to a new location.
 
 #+SRCNAME: TARGETS
 #+BEGIN_SRC js
-{ "greeter":
-  { "type": "generic"
-  , "cmds": ["echo -n 'Hello ' > out.txt", "cat name.txt >> out.txt"]
-  , "outs": ["out.txt"]
-  , "deps": ["name.txt"]
-  }
-, "upper":
-  { "type": "generic"
-  , "cmds": ["cat name.txt | tr a-z A-Z > out.txt"]
-  , "outs": ["out.txt"]
-  , "deps": ["name.txt"]
-  }
+...
 , "both":
   {"type": "install", "files": {"hello.txt": "greeter", "upper.txt": "upper"}}
-}
+...
 #+END_SRC
 
 #+BEGIN_SRC sh

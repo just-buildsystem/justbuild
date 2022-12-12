@@ -23,7 +23,7 @@ with the following content.
 #+BEGIN_SRC js
 { "main": "units"
 , "repositories":
-  { "just-rules":{ /* ... unchanged ... */ }
+  { "rules-cc":{ /* ... unchanged ... */ }
   , "import targets": {"repository": {"type": "file", "path": "."}}
   , "patches": {"repository": {"type": "file", "path": "files"}}
   , "units":
@@ -35,7 +35,7 @@ with the following content.
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.units"
-    , "bindings": {"rules": "just-rules", "patches": "patches"}
+    , "bindings": {"rules": "rules-cc", "patches": "patches"}
     }
   }
 }

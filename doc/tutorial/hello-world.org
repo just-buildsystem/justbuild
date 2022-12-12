@@ -7,10 +7,6 @@ rather provided via a set of rules. These rules can be specified as a true
 dependency to your project like any other external repository your project might
 depend on.
 
-For the remainder of this tutorial, we will use the rules provided in the
-open-source repository of justbuild, which we assume is checked out to the path
-~/tmp/justbuild~.
-
 ** Setting up the Multi-Repository Configuration
 
 To build a project with multi-repository dependencies, we first need to provide
@@ -29,12 +25,18 @@ in the workspace root:
 #+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
-  { "just-rules":
-    { "repository": {"type": "file", "path": "/tmp/justbuild/rules"}
+  { "rules-cc":
+    { "repository":
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
+      }
     }
   , "tutorial":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   }
 }
@@ -42,14 +44,16 @@ in the workspace root:
 
 In that configuration, two repositories are defined:
 
- 1. The ~"just-rules"~ repository located at ~/tmp/justbuild/rules~, which
-    contains the high-level concepts for building C/C++ binaries and libraries.
+ 1. The ~"rules-cc"~ repository located in the subdirectory ~rules~ of
+    [[https://github.com/just-buildsystem/rules-cc/tree/886c7b680928276d7f925d30fc206ca27d9a97d1][just-buildsystem/rules-cc:886c7b680928276d7f925d30fc206ca27d9a97d1]],
+    which contains the high-level concepts for building C/C++ binaries and
+    libraries.
 
  2. The ~"tutorial"~ repository located at ~.~, which contains the targets that
     we want to build. It has a single dependency, which is the /rules/ that are
     needed to build the target. These rules are bound via the open name
-    ~"rules"~ to the just created repository ~"just-rules"~. In this way, the
-    entities provided by ~"just-rules"~ can be accessed from within the
+    ~"rules"~ to the just created repository ~"rules-cc"~. In this way, the
+    entities provided by ~"rules-cc"~ can be accessed from within the
     ~"tutorial"~ repository via the fully-qualified name
     ~["@", "rules", "<module>", "<name>"]~; fully-qualified
     names (for rules, targets to build (like libraries, binaries),
@@ -206,14 +210,20 @@ following content:
 #+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
-  { "just-rules":
-    { "repository": {"type": "file", "path": "/tmp/justbuild/rules"}
+  { "rules-cc":
+    { "repository":
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
+      }
     , "target_root": "tutorial-defaults"
-    , "rule_root": "just-rules"
+    , "rule_root": "rules-cc"
     }
   , "tutorial":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"rules": "just-rules"}
+    , "bindings": {"rules": "rules-cc"}
     }
   , "tutorial-defaults":
     { "repository": {"type": "file", "path": "./tutorial-defaults"}
@@ -225,8 +235,8 @@ following content:
 Note that the ~"defaults"~ target uses the rule ~["CC", "defaults"]~ without
 specifying any external repository (e.g., ~["@", "rules", ...]~). This is
 because ~"tutorial-defaults"~ is not a full-fledged repository but merely a file
-root that is considered local to the ~"just-rules"~ repository. In fact, the
-~"just-rules"~ repository cannot refer to any external repository as it does not
+root that is considered local to the ~"rules-cc"~ repository. In fact, the
+~"rules-cc"~ repository cannot refer to any external repository as it does not
 have any defined bindings.
 
 To rebuild the project, we need to rerun ~just-mr~ (note that due to
