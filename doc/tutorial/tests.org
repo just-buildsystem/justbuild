@@ -18,9 +18,9 @@ strings any of its dependencies is tainted with. In this way, it
 is ensured that no test target will end up in a production build.
 
 For the remainder of this section, we expect to have the project files available
-resulting from successfully completing the tutorial section on /Building Hello
-World/. We will demonstrate how to write a test binary for the ~greet~ library
-and a shell test for the ~helloworld~ binary.
+resulting from successfully completing the tutorial section on /Building C++
+Hello World/. We will demonstrate how to write a test binary for the ~greet~
+library and a shell test for the ~helloworld~ binary.
 
 ** Creating a C++ test binary
 
@@ -29,8 +29,9 @@ the ~greet~ library. Therefore, we need to provide a C++ source file that perfor
 the actual testing and returns non-~0~ on failure. For simplicity reasons, we do
 not use a testing framework for this tutorial. A simple test that captures
 standard output and verifies it with the expected output should be provided in
-the file ~greet/greet.test.cpp~:
+the file ~tests/greet.test.cpp~:
 
+#+SRCNAME: tests/greet.test.cpp
 #+BEGIN_SRC cpp
 #include <functional>
 #include <iostream>
@@ -71,17 +72,16 @@ int main() {
 
 Next, a new test target needs to be created in module ~greet~. This target uses
 the rule ~["@", "rules", "CC/test", "test"]~ and needs to depend on the
-~"greet"~ target. To create the test target, add the following to
-~greet/TARGETS~:
+~["greet", "greet"]~ target. To create the test target, add the following to
+~tests/TARGETS~:
 
+#+SRCNAME: tests/TARGETS
 #+BEGIN_SRC js
 { "greet":
-  { /* ... unchanged ... */ }
-, "test":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["test_greet"]
   , "srcs": ["greet.test.cpp"]
-  , "private-deps": ["greet"]
+  , "private-deps": [["greet", "greet"]]
   }
 }
 #+END_SRC
@@ -90,31 +90,31 @@ Before we can run the test, a proper default module for ~CC/test~ must be
 provided. By specifying the appropriate target in this module the default test
 runner can be overwritten by a different test runner fom the rule's workspace
 root. However, in our case, we want to use the default runner and therefore it
-is sufficient to create an empty module:
+is sufficient to create an empty module. To do so, create the file
+~tutorial-defaults/CC/test/TARGETS~ with content:
 
-Create ~tutorial-defaults/CC/test/TARGETS~:
-#+BEGIN_SRC sh
-$ mkdir -p tutorial-defaults/CC/test
-$ echo '{}' > tutorial-defaults/CC/test/TARGETS
+#+SRCNAME: tutorial-defaults/CC/test/TARGETS
+#+BEGIN_SRC js
+{}
 #+END_SRC
 
 Now we can run the test (i.e., build the test result):
 
 #+BEGIN_SRC sh
-$ just-mr build greet test
-INFO: Requested target is [["@","tutorial","greet","test"],{}]
-INFO: Analysed target [["@","tutorial","greet","test"],{}]
+$ just-mr build tests greet
+INFO: Requested target is [["@","tutorial","tests","greet"],{}]
+INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 3 trees, 0 blobs
-INFO: Building [["@","tutorial","greet","test"],{}].
+INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Building [["@","tutorial","tests","greet"],{}].
 INFO: Processed 5 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
-        result [359456b7b6a1f91dc435e483cc2b1fc4e8981bf0:8:f]
-        stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        stdout [21ac68aa0bceffd6d5ad49ba17df80f44f7f3735:59:f]
-        time-start [c119fd0e22e79555f2446410fd90de4c091039d9:11:f]
-        time-stop [c119fd0e22e79555f2446410fd90de4c091039d9:11:f]
+        result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
+        stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
+        stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
+        time-start [8e7a68af8d5d7a6d0036c1126ff5c16a5045ae95:11:f]
+        time-stop [8e7a68af8d5d7a6d0036c1126ff5c16a5045ae95:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -136,7 +136,7 @@ of the artifact that should be printed on the command line, in our case
 ~stdout~:
 
 #+BEGIN_SRC sh
-$ just-mr build greet test --log-limit 1 -P stdout
+$ just-mr build tests greet --log-limit 1 -P stdout
 greet output: Hello World!
 
 greet output: Hello Universe!
@@ -153,22 +153,23 @@ the test binary is the last action associated with the test and the test
 binary is, of course, one of its inputs.
 
 #+BEGIN_SRC sh
-$ just-mr analyse --request-action-input -1 greet test
-INFO: Requested target is [["@","tutorial","greet","test"],{}]
+$ just-mr analyse --request-action-input -1 tests greet
+INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
-INFO: Result of input of action #-1 of target [["@","tutorial","greet","test"],{}]: {
+INFO: Result of input of action #-1 of target [["@","tutorial","tests","greet"],{}]: {
         "artifacts": {
-          "runner.sh": {"data":{"path":"CC/test/test_runner.sh","repository":"just-rules"},"type":"LOCAL"},
-          "test": {"data":{"id":"70769663e63241b9a30cb32d03b377374813ebd9","path":"test_greet"},"type":"ACTION"}
+          "runner": {"data":{"file_type":"x","id":"0647621fba9b22f0727fbef98104f3e398496e2f","size":1876},"type":"KNOWN"},
+          "test": {"data":{"id":"465b690f0b006553c15fb059e2293011c20f74d4","path":"test_greet"},"type":"ACTION"},
+          "test-args.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"},
+          "test-launcher.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"}
         },
         "provides": {
           "cmd": [
-            "sh",
-            "./runner.sh"
+            "./runner"
           ],
           "env": {
           },
-          "may_fail": "CC test test_greet failed",
+          "may_fail": "CC test /test_greet failed",
           "output": [
             "result",
             "stderr",
@@ -193,18 +194,20 @@ after installing the inputs to this action. Requesting the inputs
 of an action can also be useful when debugging a build failure.
 
 #+BEGIN_SRC sh
-$ just-mr install -o work --request-action-input -1 greet test
-INFO: Requested target is [["@","tutorial","greet","test"],{}]
+$ just-mr install -o work --request-action-input -1 tests greet
+INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
-INFO: Analysed target [["@","tutorial","greet","test"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
+INFO: Analysed target [["@","tutorial","tests","greet"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 5 trees, 0 blobs
-INFO: Building input of action #-1 of [["@","tutorial","greet","test"],{}].
-INFO: Processed 7 actions, 7 cache hits.
+INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Building input of action #-1 of [["@","tutorial","tests","greet"],{}].
+INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/tutorial/work/runner.sh [52568676f1efba1bec099cdd325a54a415a1474f:686:f]
-        /tmp/tutorial/work/test [e9fb451860442c37d6d84c01ce1c698597b88000:139088:x]
+        /tmp/tutorial/work/runner [0647621fba9b22f0727fbef98104f3e398496e2f:1876:x]
+        /tmp/tutorial/work/test [00458536b165abdee1802e5fb7b0922e04c81491:20352:x]
+        /tmp/tutorial/work/test-args.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
+        /tmp/tutorial/work/test-launcher.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
 INFO: Target tainted ["test"].
 $ cd work/
 $ ./test
@@ -221,9 +224,9 @@ $ rm -rf work
 ** Creating a shell test
 
 Similarly, to create a shell test for testing the ~helloworld~ binary, a test
-script must be provided:
+script ~tests/test_helloworld.sh~ must be provided:
 
-~test.sh~:
+#+SRCNAME: tests/test_helloworld.sh
 #+BEGIN_SRC sh
 set -e
 [ "$(./helloworld)" = "Hello Universe!" ]
@@ -231,47 +234,47 @@ set -e
 
 The test target for this shell tests uses the rule
 ~["@", "rules", "shell/test", "script"]~ and must depend on the ~"helloworld"~
-target. To create the test target, add the following to the top-level ~TARGETS~
+target. To create the test target, add the following to the ~tests/TARGETS~
 file:
 
+#+SRCNAME: tests/TARGETS
 #+BEGIN_SRC js
-{ "helloworld":
-  { /* ... unchanged ... */ }
-, "test":
+...
+, "helloworld":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["test_helloworld"]
-  , "test": ["test.sh"]
-  , "deps": ["helloworld"]
+  , "test": ["test_helloworld.sh"]
+  , "deps": [["", "helloworld"]]
   }
-}
+...
 #+END_SRC
 
 Similar to the binary tests, also for shell tests we need to provide at least an
-empty module for the test rule defaults:
+empty module for the test rule defaults. To do so, create the file
+~tutorial-defaults/shell/test/TARGETS~ with content:
 
-Create ~tutorial-defaults/shell/test/TARGETS~:
-#+BEGIN_SRC sh
-$ mkdir -p tutorial-defaults/shell/test
-$ echo '{}' > tutorial-defaults/shell/test/TARGETS
+#+SRCNAME: tutorial-defaults/shell/test/TARGETS
+#+BEGIN_SRC js
+{}
 #+END_SRC
 
 Now we can run the shell test (i.e., build the test result):
 
 #+BEGIN_SRC sh
-$ just-mr build test
-INFO: Requested target is [["@","tutorial","","test"],{}]
-INFO: Analysed target [["@","tutorial","","test"],{}]
+$ just-mr build tests helloworld
+INFO: Requested target is [["@","tutorial","tests","helloworld"],{}]
+INFO: Analysed target [["@","tutorial","tests","helloworld"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 5 actions, 4 trees, 0 blobs
-INFO: Building [["@","tutorial","","test"],{}].
+INFO: Building [["@","tutorial","tests","helloworld"],{}].
 INFO: Processed 5 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        time-start [9b4a96cc3b929d2909f74395d0317e93a59e621f:11:f]
-        time-stop [9b4a96cc3b929d2909f74395d0317e93a59e621f:11:f]
+        time-start [c31e92e6b16dacec4ee95beefcc6a688dbffee2d:11:f]
+        time-stop [c31e92e6b16dacec4ee95beefcc6a688dbffee2d:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -292,42 +295,36 @@ tree artifacts named the same way as the test and containing all test results,
 this is precisely what we need.
 Furthermore, as the dependent test targets are tainted by ~"test"~, also the
 compound test target must be tainted by the same string. To create the compound
-test target combining the two tests above (the test ~"test"~ from the current
-module and ~["greet", "test"]~, i.e., the target ~"test"~ from the module
-~"greet"~) add the following to the top-level
-~TARGETS~ file:
+test target combining the two tests above (the tests ~"greet"~ and
+~"helloworld"~ from module ~"tests"~), add the following to the ~tests/TARGETS~
+file:
 
+#+SRCNAME: tests/TARGETS
 #+BEGIN_SRC js
-{ "helloworld":
-  { /* ... unchanged ... */ }
-, "test":
-  { /* ... unchanged ... */ }
-, "all_tests":
+...
+, "ALL":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps":
-    [ "test"
-    , ["greet", "test"]
-    ]
+  , "deps": ["greet", "helloworld"]
   }
-}
+...
 #+END_SRC
 
 Now we can run all tests at once by just building the compound test target
-~"all_tests"~:
+~"ALL"~:
 
 #+BEGIN_SRC sh
-$ just-mr build all_tests
-INFO: Requested target is [["@","tutorial","","all_tests"],{}]
-INFO: Analysed target [["@","tutorial","","all_tests"],{}]
+$ just-mr build tests ALL
+INFO: Requested target is [["@","tutorial","tests","ALL"],{}]
+INFO: Analysed target [["@","tutorial","tests","ALL"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 5 trees, 0 blobs
-INFO: Building [["@","tutorial","","all_tests"],{}].
+INFO: Discovered 8 actions, 5 trees, 1 blobs
+INFO: Building [["@","tutorial","tests","ALL"],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts built, logical paths are:
-        test_greet [7116c231e3a6da3d23b0549340d75d36a0a0c4ef:285:t]
-        test_helloworld [c5a0d9fb4ba586d88dc5cddadedb6ddb670e95c4:283:t]
+        test_greet [251ba2038ccdb8ba1ae2f4e963751b9230b36646:177:t]
+        test_helloworld [63fa5954161b52b275b05c270e1626feaa8e178b:177:t]
 INFO: Target tainted ["test"].
 $
 #+END_SRC
