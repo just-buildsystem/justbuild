@@ -1,6 +1,12 @@
-## Release `1.0.0` (UNRELEASED)
+## Release `1.0.0` (2022-12-12)
 
 Initial stable release.
+
+### Important changes sice `1.0.0~beta6`
+
+- built-in rule "tree" added
+- clean up of user-defined rules for C++
+- various documentation improvements
 
 ## Release `1.0.0~beta6` (2022-10-16)
 
