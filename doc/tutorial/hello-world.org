@@ -83,7 +83,7 @@ The ~"type"~ field refers to the rule ~"binary"~ from the module ~"CC"~ of the
 ~"rules"~ repository. This rule additionally requires the string field ~"name"~,
 which specifies the name of the binary to produce; as the generic interface of
 rules is to have fields either take a list of strings or a list of targets,
-we have to sepcify the name as a list (this rule will simply concatenate all
+we have to specify the name as a list (this rule will simply concatenate all
 strings given in this field). Furthermore, at least one
 input to the binary is required, which can be specified via the target fields
 ~"srcs"~ or ~"deps"~. In our case, the former is used, which contains our single
@@ -296,7 +296,7 @@ full-qualified path like ~["com", "example", "utils", "greet"]~ could be used to
 distinguish it from greeting libraries of other projects). The staging directory
 does not only affect the main artifact ~libgreet.a~ but also it's /runfiles/,
 a second set of artifacts, usually those a consumer needs to make proper use the
-actual artifact; in the case of a libary, the runfiles are its public headers.
+actual artifact; in the case of a library, the runfiles are its public headers.
 Hence, the public header will be staged to ~"greet/greet.hpp"~. With that
 knowledge, we can now perform the necessary modifications to ~main.cpp~:
 

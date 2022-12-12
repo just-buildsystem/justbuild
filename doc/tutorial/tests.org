@@ -1,6 +1,6 @@
 * Creating Tests
 
-To run tests with justbuild, we do /not/ have dedicated ~test~
+To run tests with justbuild, we do /not/ have a dedicated ~test~
 subcommand. Instead, we consider tests being a specific action that
 generates a test report. Consequently, we use the ~build~ subcommand
 to build the test report, and thereby run the test action. Test
@@ -287,7 +287,7 @@ As most people probably do not want to call every test target by hand, it is
 desirable to compound test target that triggers the build of multiple test
 reports. To do so, an ~"install"~ target can be used. The field ~"deps"~ of
 an install target is a list of targets for which the runfiles are collected.
-As for the tests the runfiless happen to be
+As for the tests the runfiles happen to be
 tree artifacts named the same way as the test and containing all test results,
 this is precisely what we need.
 Furthermore, as the dependent test targets are tainted by ~"test"~, also the

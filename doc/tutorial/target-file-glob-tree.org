@@ -8,7 +8,7 @@ as the difference between defined and source targets. The latter
 is used, e.g., when third-party software has to be patched.
 
 As example for this section we use gnu ~units~ where we want to
-patch into the standard units defintion add two units of area
+patch into the standard units definition add two units of area
 popular in German news.
 
 ** Repository Config for ~units~ with patches
@@ -97,10 +97,10 @@ a single file, and we already created the patch. The only other
 input missing is the source file. So far, we could refer to it as
 ~"definitions.units"~ because there was no target of that name, but
 now we're about to define a target with that very name. Fortunately,
-in target files, we can use a special syntax to explictly refer to
+in target files, we can use a special syntax to explicitly refer to
 a source file of the current module, even if there is a target with
 the same name: ~["FILE", null, "definition.units"]~. The syntax
-requires the explict ~null~ value for the current module, despite
+requires the explicit ~null~ value for the current module, despite
 the fact that explicit file references are only allowed for the
 current module; in this way, the name is a list of length more than
 two and cannot be confused with a top-level module called ~FILE~.
@@ -226,13 +226,13 @@ to understand this in detail and the rational behind it.
   define individual actions for each file, like ~["CC", "binary"]~
   does for the source files. This is different from ~"TREE"~ where
   the artifact map contains a single artifact that happens to be a
-  directory. The tree behaviour is preferrable when the internals
+  directory. The tree behaviour is preferable when the internals
   of the directory only matter for the execution of actions and not
   for analysis; then there are less entries to carry around during
   analysis and action-key computation, and the whole directory
   is "reserved" for that tree avoid staging conflicts when latter
   adding entries there.
-- As a source reference, a glob expands to explict source files;
+- As a source reference, a glob expands to explicit source files;
   targets having the same name as a source file are not taken into
   account. In our example, ~["GLOB", null, "*.units"]~ therefore
   contains the unpatched source file ~definitions.units~. In this
@@ -240,7 +240,7 @@ to understand this in detail and the rational behind it.
   source file is added with a name equal to an already existing target.
 - Only files are are considered for matching the glob. Directories
   are ignored.
-- Matches are only cosidered at the top-level directory. In this
+- Matches are only considered at the top-level directory. In this
   way, only one directory has to be read during analysis; allowing
   deeper globs would require traversal of subdirectories requiring
   larger cost. While the explicit ~"TREE"~ reference allows recursive
@@ -361,7 +361,7 @@ Then we amend our ~"units"~ target.
   }
 #+END_SRC
 
-Building the new target, 2 actions have to be exectung: the patching, and
+Building the new target, 2 actions have to be executed: the patching, and
 the compiling of the patched source file. As the patched file still generates
 the same object file as the unpatched file (after all, we only wanted to get
 rid of a warning), the linking step can be taken from cache.
