@@ -1,0 +1,27 @@
+{ "critical_git_ops_test_install":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "tainted": ["test"]
+  , "name": ["critical_git_ops_test"]
+  , "srcs": ["critical_git_ops.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
+  , "stage": ["test", "other_tools", "git_operations"]
+  }
+, "critical_git_ops_mp":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["critical_git_ops_mp"]
+  , "test": ["critical_git_ops_mp.sh"]
+  , "deps":
+    [ ["test/buildtool/file_system", "test_data"]
+    , "critical_git_ops_test_install"
+    ]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["critical_git_ops_mp"]}
+}

@@ -1,0 +1,6 @@
+{ "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["./", "git_operations", "TESTS"], "git_operations"]]
+  }
+}

@@ -12,6 +12,7 @@
     [ [["./", "buildtool", "TESTS"], "buildtool"]
     , [["./", "utils", "TESTS"], "utils"]
     , [["./", "end-to-end", "TESTS"], "end-to-end"]
+    , [["./", "other_tools", "TESTS"], "other_tools"]
     ]
   }
 , "ALL":
