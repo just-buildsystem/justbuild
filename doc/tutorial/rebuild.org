@@ -36,16 +36,26 @@ order) actions that yield a different output.
 
 ** Rebuilding
 
-To search for the root cause of non-reproducibility, ~just~ has
-a subcommand ~rebuild~. It builds the specified target again, requesting
-that every action be executed again (but target-level cache is still
-active); then the result of every action is compared to the one in the
-action cache, if present with the same inputs. So, you typically would
-first ~build~ and then ~rebuild~. Note that a repeated ~build~ simply
-takes the action result from cache.
+For the remainder of this section, we will consider the following example
+project with the C++ source file ~hello.cpp~:
 
-#+BEGIN_SRC sh
-$ cat TARGETS
+#+SRCNAME: hello.cpp
+#+BEGIN_SRC cpp
+#include <iostream>
+#include "version.h"
+
+int main(int argc, const char* argv[]) {
+    if (argc > 1 && std::string{argv[1]} == "-v") {
+        std::cout << VERSION << std::endl;
+    }
+    return 0;
+}
+#+END_SRC
+
+and the following ~TARGETS~ file:
+
+#+SRCNAME: TARGETS
+#+BEGIN_SRC js
 { "":
   { "type": "install"
   , "files":
@@ -85,6 +95,17 @@ $ cat TARGETS
   , "deps": ["out.txt"]
   }
 }
+#+END_SRC
+
+To search for the root cause of non-reproducibility, ~just~ has
+a subcommand ~rebuild~. It builds the specified target again, requesting
+that every action be executed again (but target-level cache is still
+active); then the result of every action is compared to the one in the
+action cache, if present with the same inputs. So, you typically would
+first ~build~ and then ~rebuild~. Note that a repeated ~build~ simply
+takes the action result from cache.
+
+#+BEGIN_SRC sh
 $ just-mr build
 INFO: Requested target is [["@","tutorial","",""],{}]
 INFO: Analysed target [["@","tutorial","",""],{}]
