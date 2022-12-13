@@ -111,6 +111,12 @@
   , "srcs": ["data/test_repo.bundle"]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
+, "data/test_repo.bundle":
+  { "type": "generic"
+  , "deps": ["create_maps_test_git_bundle.sh"]
+  , "outs": ["data/test_repo.bundle"]
+  , "cmds": ["sh create_maps_test_git_bundle.sh"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
