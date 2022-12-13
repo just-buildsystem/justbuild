@@ -13,6 +13,13 @@ popular in German news.
 
 ** Repository Config for ~units~ with patches
 
+Before we begin, we first need to declare where the root of our workspace is
+located by creating the empty file ~ROOT~:
+
+#+BEGIN_SRC sh
+$ touch ROOT
+#+END_SRC
+
 The sources are an archive available on the web. As upstream uses a
 different build system, we have to provide our own build description;
 we take the top-level directory as layer for this. As we also want
@@ -20,10 +27,19 @@ to patch the definition file, we add the subdirectory ~files~ as
 logical repository for the patches. Hence we create a file ~repos.json~
 with the following content.
 
+#+SRCNAME: repos.json
 #+BEGIN_SRC js
 { "main": "units"
 , "repositories":
-  { "rules-cc":{ /* ... unchanged ... */ }
+  { "rules-cc":
+    { "repository":
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "repository": "https://github.com/just-buildsystem/rules-cc.git"
+      , "subdir": "rules"
+      }
+    }
   , "import targets": {"repository": {"type": "file", "path": "."}}
   , "patches": {"repository": {"type": "file", "path": "files"}}
   , "units":
@@ -75,17 +91,11 @@ INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
         /tmp/work-2022-08-22/definitions.units [0f24a321694aab5c1d3676e22d01fc73492bee42:342718:f]
 $ cp definitions.units definitions.units.orig
-$ ed definitions.units
+$ # interactively edit definitions.units
+$ echo -e "/German units\n+2a\narea_soccerfield 105 m * 68 m\narea_saarland 2570 km^2\n.\nw\nq" | ed definitions.units
 342718
-/German units
 # A few German units as currently in use.
-+2a
-area_soccerfield        105 m * 68 m
-area_saarland           2570 km^2
-.
-w
-342789
-q
+342772
 $ mkdir files
 $ echo {} > files/TARGETS
 $ diff -u definitions.units.orig definitions.units > files/definitions.units.diff
@@ -106,6 +116,7 @@ current module; in this way, the name is a list of length more than
 two and cannot be confused with a top-level module called ~FILE~.
 So we add this target and obtain as ~TARGETS.units~ the following.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
 { "definitions.units":
   { "type": ["@", "rules", "patch", "file"]
@@ -174,12 +185,12 @@ INFO: Discovered 1 actions, 0 trees, 1 blobs
 INFO: Building [["@","units","","definitions.units"],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        definitions.units [bfc9cebfce398205e94a441aaffc0f8a750b111e:342789:f]
+        definitions.units [763f3289422c296057e142f61be190ee6bef049a:342772:f]
 # A few German units as currently in use.
 #
 
-area_soccerfield        105 m * 68 m
-area_saarland           2570 km^2
+area_soccerfield 105 m * 68 m
+area_saarland 2570 km^2
 zentner                 50 kg
 $
 #+END_SRC
@@ -189,17 +200,20 @@ $
 Next, we collect all ~.units~ files. We could simply do this by enumerating
 them in a target.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
-, "data": { "type": "install", "deps": ["definitions.units", "currency.units"]}
+...
+, "data-draft": { "type": "install", "deps": ["definitions.units", "currency.units"]}
+...
 #+END_SRC
 
 In this way, we get the desired collection of one unmodified source file and
 the output of the patch action.
 
 #+BEGIN_SRC sh
-$ just-mr analyse data
-INFO: Requested target is [["@","units","","data"],{}]
-INFO: Result of target [["@","units","","data"],{}]: {
+$ just-mr analyse data-draft
+INFO: Requested target is [["@","units","","data-draft"],{}]
+INFO: Result of target [["@","units","","data-draft"],{}]: {
         "artifacts": {
           "currency.units": {"data":{"file_type":"f","id":"ac6da8afaac0f34e114e123e4ab3a41e59121b10","size":14707},"type":"KNOWN"},
           "definitions.units": {"data":{"id":"98e3c7758f5dd433c6aa7b327040be676faf6f34","path":"patched"},"type":"ACTION"}
@@ -260,11 +274,14 @@ latest-wins fashion. Keep in mind, that our target fields are list,
 not sets. Looking at the definition of the rule, one finds that
 it is simply a ~"map_union"~. Hence we refine our ~"data"~ target.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
+...
 , "data":
   { "type": ["@", "rules", "data", "overlay"]
   , "deps": [["GLOB", null, "*.units"], "definitions.units"]
   }
+...
 #+END_SRC
 
 The result of the analysis, of course, still is the same.
@@ -278,8 +295,10 @@ a glob, which is fine for the private headers of a binary. For the
 source files, we have to have them individually anyway. So our first
 attempt of defining the binary is as follows.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
-, "units":
+...
+, "units-draft":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["units"]
   , "private-ldflags": ["-lm"]
@@ -287,18 +306,19 @@ attempt of defining the binary is as follows.
   , "srcs": [["GLOB", null, "*.c"]]
   , "private-hdrs": [["GLOB", null, "*.h"]]
   }
+...
 #+END_SRC
 
 The result basically work and shows that we have 5 source files in total,
 giving 5 compile and one link action.
 
 #+BEGIN_SRC sh
-$ just-mr build units
-INFO: Requested target is [["@","units","","units"],{}]
-INFO: Analysed target [["@","units","","units"],{}]
+$ just-mr build units-draft
+INFO: Requested target is [["@","units","","units-draft"],{}]
+INFO: Analysed target [["@","units","","units-draft"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 6 actions, 1 trees, 0 blobs
-INFO: Building [["@","units","","units"],{}].
+INFO: Building [["@","units","","units-draft"],{}].
 INFO (action:12af248ce5737be492f7f5909284d4e3b6488807):
      Stderr of command: ["cc","-I","work","-isystem","include","-c","work/strfunc.c","-o","work/strfunc.o"]
      work/strfunc.c:109:8: warning: extra tokens at end of #endif directive [-Wendif-labels]
@@ -325,15 +345,11 @@ INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
         /tmp/work-2022-08-22/strfunc.c [e2aab4b825fa2822ccf33746d467a4944212abb9:2201:f]
 $ cp strfunc.c strfunc.c.orig
-$ ed strfunc.c
+$ echo -e "109\ns|N|// N\nw\nq" | ed strfunc.c
 2201
-109
 #endif NO_STRSPN
-s|N|// N
 #endif // NO_STRSPN
-w
 2204
-q
 $ diff strfunc.c.orig strfunc.c > files/strfunc.c.diff
 $ rm strfunc.c*
 $
@@ -341,7 +357,9 @@ $
 
 Then we amend our ~"units"~ target.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
+...
 , "units":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["units"]
@@ -359,6 +377,7 @@ Then we amend our ~"units"~ target.
   , "src": [["FILE", ".", "strfunc.c"]]
   , "patch": [["@", "patches", "", "strfunc.c.diff"]]
   }
+...
 #+END_SRC
 
 Building the new target, 2 actions have to be executed: the patching, and
@@ -383,8 +402,11 @@ To finish the example, we also add a default target (using that, if no target
 is specified, ~just~ builds the lexicographically first target), staging
 artifacts according to the usual conventions.
 
+#+SRCNAME: TARGETS.units
 #+BEGIN_SRC js
+...
 , "": {"type": "install", "dirs": [["units", "bin"], ["data", "share/units"]]}
+...
 #+END_SRC
 
 Then things work as expected
@@ -400,9 +422,9 @@ INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts can be found in:
         /tmp/testinstall/bin/units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
         /tmp/testinstall/share/units/currency.units [ac6da8afaac0f34e114e123e4ab3a41e59121b10:14707:f]
-        /tmp/testinstall/share/units/definitions.units [bfc9cebfce398205e94a441aaffc0f8a750b111e:342789:f]
+        /tmp/testinstall/share/units/definitions.units [763f3289422c296057e142f61be190ee6bef049a:342772:f]
 $ /tmp/testinstall/bin/units 'area_saarland' 'area_soccerfield'
-	* 359943.98
-	/ 2.7782101e-06
+        * 359943.98
+        / 2.7782101e-06
 $
 #+END_SRC
