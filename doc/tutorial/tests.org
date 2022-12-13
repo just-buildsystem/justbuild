@@ -81,7 +81,7 @@ the rule ~["@", "rules", "CC/test", "test"]~ and needs to depend on the
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["test_greet"]
   , "srcs": ["greet.test.cpp"]
-  , "deps": ["greet"]
+  , "private-deps": ["greet"]
   }
 }
 #+END_SRC

@@ -282,7 +282,7 @@ attempt of defining the binary is as follows.
 , "units":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["units"]
-  , "link external": ["-lm"]
+  , "private-ldflags": ["-lm"]
   , "pure C": ["YES"]
   , "srcs": [["GLOB", null, "*.c"]]
   , "private-hdrs": [["GLOB", null, "*.h"]]
@@ -345,7 +345,7 @@ Then we amend our ~"units"~ target.
 , "units":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["units"]
-  , "link external": ["-lm"]
+  , "private-ldflags": ["-lm"]
   , "pure C": ["YES"]
   , "srcs": ["patched srcs"]
   , "private-hdrs": [["GLOB", null, "*.h"]]
