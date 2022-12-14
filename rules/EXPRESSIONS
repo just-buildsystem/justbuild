@@ -27,7 +27,8 @@
   , "imports": {"artifacts_list": "field_artifacts_list"}
   , "expression":
     { "type": "disjoint_map_union"
-    , "msg": "artifacts must not overlap"
+    , "msg":
+      ["artifacts", {"type": "var", "name": "fieldname"}, "must not overlap"]
     , "$1": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
     }
   }
@@ -60,7 +61,8 @@
   , "imports": {"runfiles_list": "field_runfiles_list"}
   , "expression":
     { "type": "disjoint_map_union"
-    , "msg": "runfiles must not overlap"
+    , "msg":
+      ["runfiles", {"type": "var", "name": "fieldname"}, "must not overlap"]
     , "$1": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
     }
   }
