@@ -19,7 +19,10 @@
     , "specied in the field \"deps\" (in their original location)."
     ]
   , "runfiles_doc": ["Same as artifacts"]
-  , "imports": {"runfiles": ["./", "..", "field_runfiles"]}
+  , "imports":
+    { "runfiles": ["./", "..", "field_runfiles"]
+    , "artifacts": ["./", "..", "field_artifacts"]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -32,7 +35,13 @@
       , [ "srcs"
         , { "type": "let*"
           , "bindings": [["fieldname", "srcs"]]
-          , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
+          , "body":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "runfiles"}
+              , {"type": "CALL_EXPRESSION", "name": "artifacts"}
+              ]
+            }
           }
         ]
       , [ "staged"
