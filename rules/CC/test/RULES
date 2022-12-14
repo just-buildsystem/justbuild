@@ -96,7 +96,7 @@
     ]
   , "imports":
     { "artifacts": ["./", "../..", "field_artifacts"]
-    , "runfiles_list": ["./", "../..", "field_runfiles_list"]
+    , "runfiles": ["./", "../..", "field_runfiles"]
     , "compile-deps": ["./", "..", "compile-deps"]
     , "compile-args-deps": ["./", "..", "compile-args-deps"]
     , "link-deps": ["./", "..", "link-deps"]
@@ -242,15 +242,17 @@
           }
         ]
       , [ "data"
-        , { "type": "disjoint_map_union"
-          , "msg": "Data runfiles may not conflict"
-          , "$1":
-            { "type": "let*"
-            , "bindings":
-              [ ["fieldname", "data"]
-              , ["transition", {"type": "var", "name": "deps-transition"}]
+        , { "type": "let*"
+          , "bindings":
+            [ ["fieldname", "data"]
+            , ["transition", {"type": "var", "name": "deps-transition"}]
+            ]
+          , "body":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "runfiles"}
+              , {"type": "CALL_EXPRESSION", "name": "artifacts"}
               ]
-            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
             }
           }
         ]
