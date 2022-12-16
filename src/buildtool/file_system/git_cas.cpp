@@ -17,7 +17,6 @@
 #include <mutex>
 #include <sstream>
 
-#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 

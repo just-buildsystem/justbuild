@@ -32,8 +32,7 @@
   , "deps": ["object_type", "git_context", ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
-    [ "file_system_manager"
-    , ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
     , ["", "libgit2"]
     ]
