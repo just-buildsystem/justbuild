@@ -48,14 +48,14 @@
       [ "The flags to add to the default ones for CXX"
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
-    , "ENV": ["The environment for running file/symbol/type checks."]
+    , "ENV": ["The environment for running file/symbol/type/size checks."]
     , "defines":
       [ "Set a define to a specific value unless its value is \"null\". Must"
       , "contain a list of pairs. The first element of each pair is the define"
       , "name and the second argument is the value to set. Strings must be"
       , "properly escaped. Defines generated from this field are added last,"
-      , "so that they can refer to defines from other \"defines*\" and"
-      , "\"have_*\" values."
+      , "so that they can refer to defines from other \"defines*\", "
+      , "\"have_*\", and \"size_*\" values."
       ]
     , "defines1":
       [ "Set a define to \"1\" unless its value is untrue. Must contain a list"
@@ -112,14 +112,14 @@
       , "pairs. The first element of each pair is the define name and the"
       , "second argument is another pair. This pair's first value is the C"
       , "type to check for and the second value is a list with possible sizes"
-      , "as numbers. If non of the specified sizes matches, the action fails."
+      , "as numbers. If none of the specified sizes matches, the action fails."
       ]
     , "size_cxxtype":
       [ "Set a define to size of the specified C++ type. Must contain a list of"
       , "pairs. The first element of each pair is the define name and the"
       , "second argument is another pair. This pair's first value is the C++"
       , "type to check for and the second value is a list with possible sizes"
-      , "as numbers. If non of the specified sizes matches, the action fails."
+      , "as numbers. If none of the specified sizes matches, the action fails."
       ]
     }
   , "string_fields": ["name", "stage", "guard"]
@@ -149,10 +149,10 @@
     , "last": "last_list_entry"
     , "artifacts": ["./", "../..", "field_artifacts"]
     , "compile-deps": ["./", "..", "compile-deps"]
-    , "default-CC": ["./", "..", "default-CC"]
-    , "default-CXX": ["./", "..", "default-CXX"]
-    , "default-CFLAGS": ["./", "..", "default-CFLAGS"]
-    , "default-CXXFLAGS": ["./", "..", "default-CXXFLAGS"]
+    , "compiler-cc": ["./", "..", "compiler-cc"]
+    , "compiler-cxx": ["./", "..", "compiler-cxx"]
+    , "flags-cc": ["./", "..", "flags-cc"]
+    , "flags-cxx": ["./", "..", "flags-cxx"]
     , "default-ENV": ["./", "..", "default-ENV"]
     }
   , "implicit": {"defaults": [["./", "..", "defaults"]]}
@@ -195,42 +195,10 @@
             }
           }
         ]
-      , [ "CC"
-        , { "type": "var"
-          , "name": "CC"
-          , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
-          }
-        ]
-      , [ "CXX"
-        , { "type": "var"
-          , "name": "CXX"
-          , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
-          }
-        ]
-      , [ "CFLAGS"
-        , { "type": "++"
-          , "$1":
-            [ { "type": "var"
-              , "name": "CFLAGS"
-              , "default":
-                {"type": "CALL_EXPRESSION", "name": "default-CFLAGS"}
-              }
-            , {"type": "var", "name": "ADD_CFLAGS", "default": []}
-            ]
-          }
-        ]
-      , [ "CXXFLAGS"
-        , { "type": "++"
-          , "$1":
-            [ { "type": "var"
-              , "name": "CXXFLAGS"
-              , "default":
-                {"type": "CALL_EXPRESSION", "name": "default-CXXFLAGS"}
-              }
-            , {"type": "var", "name": "ADD_CXXFLAGS", "default": []}
-            ]
-          }
-        ]
+      , ["CC", {"type": "CALL_EXPRESSION", "name": "compiler-cc"}]
+      , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler-cxx"}]
+      , ["CFLAGS", {"type": "CALL_EXPRESSION", "name": "flags-cc"}]
+      , ["CXXFLAGS", {"type": "CALL_EXPRESSION", "name": "flags-cxx"}]
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
