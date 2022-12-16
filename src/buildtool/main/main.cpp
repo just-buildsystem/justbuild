@@ -31,6 +31,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/main/analyse.hpp"
+#include "src/buildtool/main/constants.hpp"
 #include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
 #include "src/buildtool/main/install_cas.hpp"
@@ -440,8 +441,7 @@ void SetupHashFunction() {
     auto cwd = std::filesystem::current_path();
     auto root = cwd.root_path();
     cwd = std::filesystem::relative(cwd, root);
-    auto root_dir =
-        FindRoot(cwd, FileRoot{root}, {"ROOT", "WORKSPACE", ".git"});
+    auto root_dir = FindRoot(cwd, FileRoot{root}, kRootMarkers);
     if (not root_dir) {
         Logger::Log(LogLevel::Error, "Could not determine workspace root.");
         std::exit(kExitFailure);

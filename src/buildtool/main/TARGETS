@@ -21,6 +21,7 @@
     , "analyse"
     , "install_cas"
     , "describe"
+    , "constants"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-ldflags":
@@ -133,6 +134,12 @@
       ]
     }
   , "private-deps": [["@", "json", "", "json"], ["src/utils/cpp", "json"]]
+  , "stage": ["src", "buildtool", "main"]
+  }
+, "constants":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["constants"]
+  , "hdrs": ["constants.hpp"]
   , "stage": ["src", "buildtool", "main"]
   }
 }
