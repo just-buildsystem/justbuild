@@ -247,8 +247,7 @@
               , "DEFINE=\"/* #undef $DEF */\""
               , "echo \"#include \\\"$HDR\\\"\" > test.$LANG"
               , "if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then DEFINE=\"#define $DEF 1\"; fi"
-              , "if [ -f in/${LANG}files.def ]; then cat in/${LANG}files.def > ${LANG}files.def; fi"
-              , "echo \"$DEFINE\n\" >> ${LANG}files.def"
+              , "echo \"$DEFINE\n\" > out.def"
               ]
             }
           }
@@ -278,8 +277,7 @@
               , "    break"
               , "  fi"
               , "done"
-              , "if [ -f in/${LANG}types.def ]; then cat in/${LANG}types.def > ${LANG}types.def; fi"
-              , "echo \"$DEFINE\n\" >> ${LANG}types.def"
+              , "echo \"$DEFINE\n\" > out.def"
               ]
             }
           }
@@ -313,8 +311,7 @@
               , "    break"
               , "  fi"
               , "done"
-              , "if [ -f in/${LANG}symbols.def ]; then cat in/${LANG}symbols.def > ${LANG}symbols.def; fi"
-              , "echo \"$DEFINE\n\" >> ${LANG}symbols.def"
+              , "echo \"$DEFINE\n\" > out.def"
               ]
             }
           }
@@ -346,10 +343,7 @@
               , "EOF"
               , "    if $CC @$LANG.flags -c test.$LANG -I ./include 2>/dev/null; then"
               , "      DEFINE=\"#define $DEF $SIZE\""
-              , "      if [ -f in/${LANG}sizes.def ]; then"
-              , "        cat in/${LANG}sizes.def > ${LANG}sizes.def"
-              , "      fi"
-              , "      echo \"$DEFINE\n\" >> ${LANG}sizes.def"
+              , "      echo \"$DEFINE\n\" > out.def"
               , "      exit 0"
               , "    fi"
               , "  done"
@@ -360,73 +354,65 @@
           }
         ]
       , [ "guard.def"
-        , { "type": "singleton_map"
-          , "key": "guard.def"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "join"
-              , "separator": "\n"
-              , "$1":
-                [ { "type": "join"
-                  , "separator": " "
-                  , "$1": ["#ifndef", {"type": "var", "name": "guard"}]
-                  }
-                , { "type": "join"
-                  , "separator": " "
-                  , "$1": ["#define", {"type": "var", "name": "guard"}]
-                  }
-                , "\n\n"
-                ]
-              }
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "separator": "\n"
+            , "$1":
+              [ { "type": "join"
+                , "separator": " "
+                , "$1": ["#ifndef", {"type": "var", "name": "guard"}]
+                }
+              , { "type": "join"
+                , "separator": " "
+                , "$1": ["#define", {"type": "var", "name": "guard"}]
+                }
+              , "\n\n"
+              ]
             }
           }
         ]
       , [ "plain.def"
-        , { "type": "singleton_map"
-          , "key": "plain.def"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "join"
-              , "$1":
-                { "type": "foreach"
-                , "range": {"type": "var", "name": "defines", "default": []}
-                , "var": "pair"
-                , "body":
-                  { "type": "let*"
-                  , "bindings":
-                    [ ["list", {"type": "var", "name": "pair"}]
-                    , [ "def"
-                      , { "type": "assert_non_empty"
-                        , "msg": "Define name in 'defines' may not be empty"
-                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
-                        }
-                      ]
-                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "$1":
+              { "type": "foreach"
+              , "range": {"type": "var", "name": "defines", "default": []}
+              , "var": "pair"
+              , "body":
+                { "type": "let*"
+                , "bindings":
+                  [ ["list", {"type": "var", "name": "pair"}]
+                  , [ "def"
+                    , { "type": "assert_non_empty"
+                      , "msg": "Define name in 'defines' may not be empty"
+                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                      }
                     ]
-                  , "body":
-                    { "type": "join"
-                    , "separator": " "
-                    , "$1":
-                      { "type": "case*"
-                      , "expr": {"type": "var", "name": "val"}
-                      , "case":
-                        [ [ null
-                          , [ "/* #undef"
-                            , {"type": "var", "name": "def"}
-                            , "*/\n\n"
-                            ]
+                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  ]
+                , "body":
+                  { "type": "join"
+                  , "separator": " "
+                  , "$1":
+                    { "type": "case*"
+                    , "expr": {"type": "var", "name": "val"}
+                    , "case":
+                      [ [ null
+                        , [ "/* #undef"
+                          , {"type": "var", "name": "def"}
+                          , "*/\n\n"
                           ]
                         ]
-                      , "default":
-                        [ "#define"
-                        , {"type": "var", "name": "def"}
-                        , { "type": "join"
-                          , "$1": [{"type": "var", "name": "val"}, "\n\n"]
-                          }
-                        ]
-                      }
+                      ]
+                    , "default":
+                      [ "#define"
+                      , {"type": "var", "name": "def"}
+                      , { "type": "join"
+                        , "$1": [{"type": "var", "name": "val"}, "\n\n"]
+                        }
+                      ]
                     }
                   }
                 }
@@ -435,39 +421,35 @@
           }
         ]
       , [ "int1.def"
-        , { "type": "singleton_map"
-          , "key": "int1.def"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "join"
-              , "$1":
-                { "type": "foreach"
-                , "range": {"type": "var", "name": "defines1", "default": []}
-                , "var": "pair"
-                , "body":
-                  { "type": "let*"
-                  , "bindings":
-                    [ ["list", {"type": "var", "name": "pair"}]
-                    , [ "def"
-                      , { "type": "assert_non_empty"
-                        , "msg": "Define name in 'defines1' may not be empty"
-                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
-                        }
-                      ]
-                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
-                    ]
-                  , "body":
-                    { "type": "join"
-                    , "separator": " "
-                    , "$1":
-                      { "type": "if"
-                      , "cond": {"type": "var", "name": "val"}
-                      , "then":
-                        ["#define", {"type": "var", "name": "def"}, "1\n\n"]
-                      , "else":
-                        ["/* #undef", {"type": "var", "name": "def"}, "*/\n\n"]
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "$1":
+              { "type": "foreach"
+              , "range": {"type": "var", "name": "defines1", "default": []}
+              , "var": "pair"
+              , "body":
+                { "type": "let*"
+                , "bindings":
+                  [ ["list", {"type": "var", "name": "pair"}]
+                  , [ "def"
+                    , { "type": "assert_non_empty"
+                      , "msg": "Define name in 'defines1' may not be empty"
+                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
                       }
+                    ]
+                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  ]
+                , "body":
+                  { "type": "join"
+                  , "separator": " "
+                  , "$1":
+                    { "type": "if"
+                    , "cond": {"type": "var", "name": "val"}
+                    , "then":
+                      ["#define", {"type": "var", "name": "def"}, "1\n\n"]
+                    , "else":
+                      ["/* #undef", {"type": "var", "name": "def"}, "*/\n\n"]
                     }
                   }
                 }
@@ -476,56 +458,46 @@
           }
         ]
       , [ "int01.def"
-        , { "type": "singleton_map"
-          , "key": "int01.def"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "join"
-              , "$1":
-                { "type": "foreach"
-                , "range": {"type": "var", "name": "defines01", "default": []}
-                , "var": "pair"
-                , "body":
-                  { "type": "let*"
-                  , "bindings":
-                    [ ["list", {"type": "var", "name": "pair"}]
-                    , [ "def"
-                      , { "type": "assert_non_empty"
-                        , "msg": "Define name in 'defines01' may not be empty"
-                        , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
-                        }
-                      ]
-                    , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+        , { "type": "BLOB"
+          , "data":
+            { "type": "join"
+            , "$1":
+              { "type": "foreach"
+              , "range": {"type": "var", "name": "defines01", "default": []}
+              , "var": "pair"
+              , "body":
+                { "type": "let*"
+                , "bindings":
+                  [ ["list", {"type": "var", "name": "pair"}]
+                  , [ "def"
+                    , { "type": "assert_non_empty"
+                      , "msg": "Define name in 'defines01' may not be empty"
+                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                      }
                     ]
-                  , "body":
-                    { "type": "join"
-                    , "separator": " "
-                    , "$1":
-                      [ "#define"
-                      , {"type": "var", "name": "def"}
-                      , { "type": "if"
-                        , "cond": {"type": "var", "name": "val"}
-                        , "then": "1\n\n"
-                        , "else": "0\n\n"
-                        }
-                      ]
-                    }
+                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  ]
+                , "body":
+                  { "type": "join"
+                  , "separator": " "
+                  , "$1":
+                    [ "#define"
+                    , {"type": "var", "name": "def"}
+                    , { "type": "if"
+                      , "cond": {"type": "var", "name": "val"}
+                      , "then": "1\n\n"
+                      , "else": "0\n\n"
+                      }
+                    ]
                   }
                 }
               }
             }
           }
         ]
-      , [ "cfiles.def"
-        , { "type": "foldl"
+      , [ "cfile-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_cfile", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "cfiles.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "cfiles.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -540,41 +512,35 @@
               , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "cfiles.def"}
-                    }
-                  , {"type": "env", "vars": ["file_check.sh", "c.flags"]}
-                  , {"type": "var", "name": "includes"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["file_check.sh", "c.flags"]}
+                    , {"type": "var", "name": "includes"}
+                    ]
+                  }
+                , "cmd":
+                  [ "sh"
+                  , "./file_check.sh"
+                  , {"type": "var", "name": "CC"}
+                  , "c"
+                  , {"type": "var", "name": "def"}
+                  , {"type": "var", "name": "val"}
                   ]
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "cmd":
-                [ "sh"
-                , "./file_check.sh"
-                , {"type": "var", "name": "CC"}
-                , "c"
-                , {"type": "var", "name": "def"}
-                , {"type": "var", "name": "val"}
-                ]
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["cfiles.def"]
               }
             }
           }
         ]
-      , [ "cxxfiles.def"
-        , { "type": "foldl"
+      , [ "cxxfile-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_cxxfile", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "cxxfiles.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "cxxfiles.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -589,41 +555,35 @@
               , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "cxxfiles.def"}
-                    }
-                  , {"type": "env", "vars": ["file_check.sh", "cxx.flags"]}
-                  , {"type": "var", "name": "includes"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["file_check.sh", "cxx.flags"]}
+                    , {"type": "var", "name": "includes"}
+                    ]
+                  }
+                , "cmd":
+                  [ "sh"
+                  , "./file_check.sh"
+                  , {"type": "var", "name": "CXX"}
+                  , "cxx"
+                  , {"type": "var", "name": "def"}
+                  , {"type": "var", "name": "val"}
                   ]
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "cmd":
-                [ "sh"
-                , "./file_check.sh"
-                , {"type": "var", "name": "CXX"}
-                , "cxx"
-                , {"type": "var", "name": "def"}
-                , {"type": "var", "name": "val"}
-                ]
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["cxxfiles.def"]
               }
             }
           }
         ]
-      , [ "ctypes.def"
-        , { "type": "foldl"
+      , [ "ctype-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_ctype", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "ctypes.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "ctypes.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -638,41 +598,35 @@
               , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "ctypes.def"}
-                    }
-                  , {"type": "env", "vars": ["type_check.sh", "c.flags"]}
-                  , {"type": "var", "name": "includes"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["type_check.sh", "c.flags"]}
+                    , {"type": "var", "name": "includes"}
+                    ]
+                  }
+                , "cmd":
+                  [ "sh"
+                  , "./type_check.sh"
+                  , {"type": "var", "name": "CC"}
+                  , "c"
+                  , {"type": "var", "name": "def"}
+                  , {"type": "var", "name": "type"}
                   ]
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "cmd":
-                [ "sh"
-                , "./type_check.sh"
-                , {"type": "var", "name": "CC"}
-                , "c"
-                , {"type": "var", "name": "def"}
-                , {"type": "var", "name": "type"}
-                ]
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["ctypes.def"]
               }
             }
           }
         ]
-      , [ "cxxtypes.def"
-        , { "type": "foldl"
+      , [ "cxxtype-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_cxxtype", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "cxxtypes.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "cxxtypes.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -687,41 +641,35 @@
               , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "cxxtypes.def"}
-                    }
-                  , {"type": "env", "vars": ["type_check.sh", "cxx.flags"]}
-                  , {"type": "var", "name": "includes"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["type_check.sh", "cxx.flags"]}
+                    , {"type": "var", "name": "includes"}
+                    ]
+                  }
+                , "cmd":
+                  [ "sh"
+                  , "./type_check.sh"
+                  , {"type": "var", "name": "CXX"}
+                  , "cxx"
+                  , {"type": "var", "name": "def"}
+                  , {"type": "var", "name": "type"}
                   ]
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "cmd":
-                [ "sh"
-                , "./type_check.sh"
-                , {"type": "var", "name": "CXX"}
-                , "cxx"
-                , {"type": "var", "name": "def"}
-                , {"type": "var", "name": "type"}
-                ]
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["cxxtypes.def"]
               }
             }
           }
         ]
-      , [ "csymbols.def"
-        , { "type": "foldl"
+      , [ "csymbol-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_csymbol", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "csymbols.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "csymbols.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -738,46 +686,40 @@
               , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "csymbols.def"}
-                    }
-                  , {"type": "env", "vars": ["symbol_check.sh", "c.flags"]}
-                  , {"type": "var", "name": "includes"}
-                  ]
-                }
-              , "cmd":
-                { "type": "++"
-                , "$1":
-                  [ [ "sh"
-                    , "./symbol_check.sh"
-                    , {"type": "var", "name": "CC"}
-                    , "c"
-                    , {"type": "var", "name": "def"}
-                    , {"type": "var", "name": "sym"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["symbol_check.sh", "c.flags"]}
+                    , {"type": "var", "name": "includes"}
                     ]
-                  , {"type": "var", "name": "hdrs"}
-                  ]
+                  }
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ [ "sh"
+                      , "./symbol_check.sh"
+                      , {"type": "var", "name": "CC"}
+                      , "c"
+                      , {"type": "var", "name": "def"}
+                      , {"type": "var", "name": "sym"}
+                      ]
+                    , {"type": "var", "name": "hdrs"}
+                    ]
+                  }
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["csymbols.def"]
               }
             }
           }
         ]
-      , [ "cxxsymbols.def"
-        , { "type": "foldl"
+      , [ "cxxsymbol-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "have_cxxsymbol", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "cxxsymbols.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "cxxsymbols.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -794,46 +736,40 @@
               , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "cxxsymbols.def"}
-                    }
-                  , {"type": "env", "vars": ["symbol_check.sh", "cxx.flags"]}
-                  , {"type": "var", "name": "includes"}
-                  ]
-                }
-              , "cmd":
-                { "type": "++"
-                , "$1":
-                  [ [ "sh"
-                    , "./symbol_check.sh"
-                    , {"type": "var", "name": "CXX"}
-                    , "cxx"
-                    , {"type": "var", "name": "def"}
-                    , {"type": "var", "name": "sym"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["symbol_check.sh", "cxx.flags"]}
+                    , {"type": "var", "name": "includes"}
                     ]
-                  , {"type": "var", "name": "hdrs"}
-                  ]
+                  }
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ [ "sh"
+                      , "./symbol_check.sh"
+                      , {"type": "var", "name": "CXX"}
+                      , "cxx"
+                      , {"type": "var", "name": "def"}
+                      , {"type": "var", "name": "sym"}
+                      ]
+                    , {"type": "var", "name": "hdrs"}
+                    ]
+                  }
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["cxxsymbols.def"]
               }
             }
           }
         ]
-      , [ "csizes.def"
-        , { "type": "foldl"
+      , [ "csize-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "size_ctype", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "csizes.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "csizes.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -850,53 +786,47 @@
               , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "csizes.def"}
-                    }
-                  , {"type": "env", "vars": ["size_check.sh", "c.flags"]}
-                  , {"type": "var", "name": "includes"}
-                  ]
-                }
-              , "cmd":
-                { "type": "++"
-                , "$1":
-                  [ [ "sh"
-                    , "./size_check.sh"
-                    , {"type": "var", "name": "CC"}
-                    , "c"
-                    , {"type": "var", "name": "def"}
-                    , {"type": "var", "name": "type"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["size_check.sh", "c.flags"]}
+                    , {"type": "var", "name": "includes"}
                     ]
-                  , { "type": "foreach"
-                    , "var": "size"
-                    , "range": {"type": "var", "name": "sizes"}
-                    , "body":
-                      { "type": "json_encode"
-                      , "$1": {"type": "var", "name": "size"}
+                  }
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ [ "sh"
+                      , "./size_check.sh"
+                      , {"type": "var", "name": "CC"}
+                      , "c"
+                      , {"type": "var", "name": "def"}
+                      , {"type": "var", "name": "type"}
+                      ]
+                    , { "type": "foreach"
+                      , "var": "size"
+                      , "range": {"type": "var", "name": "sizes"}
+                      , "body":
+                        { "type": "json_encode"
+                        , "$1": {"type": "var", "name": "size"}
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  }
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["csizes.def"]
               }
             }
           }
         ]
-      , [ "cxxsizes.def"
-        , { "type": "foldl"
+      , [ "cxxsize-defs"
+        , { "type": "foreach"
           , "range": {"type": "var", "name": "size_cxxtype", "default": []}
-          , "start":
-            { "type": "singleton_map"
-            , "key": "cxxsizes.def"
-            , "value": {"type": "BLOB", "data": ""}
-            }
-          , "accum_var": "cxxsizes.def"
           , "var": "pair"
           , "body":
             { "type": "let*"
@@ -913,73 +843,72 @@
               , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
               ]
             , "body":
-              { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "in"
-                    , "$1": {"type": "var", "name": "cxxsizes.def"}
-                    }
-                  , {"type": "env", "vars": ["size_check.sh", "cxx.flags"]}
-                  , {"type": "var", "name": "includes"}
-                  ]
-                }
-              , "cmd":
-                { "type": "++"
-                , "$1":
-                  [ [ "sh"
-                    , "./size_check.sh"
-                    , {"type": "var", "name": "CXX"}
-                    , "cxx"
-                    , {"type": "var", "name": "def"}
-                    , {"type": "var", "name": "type"}
+              { "type": "lookup"
+              , "key": "out.def"
+              , "map":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "env", "vars": ["size_check.sh", "cxx.flags"]}
+                    , {"type": "var", "name": "includes"}
                     ]
-                  , { "type": "foreach"
-                    , "var": "size"
-                    , "range": {"type": "var", "name": "sizes"}
-                    , "body":
-                      { "type": "json_encode"
-                      , "$1": {"type": "var", "name": "size"}
+                  }
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ [ "sh"
+                      , "./size_check.sh"
+                      , {"type": "var", "name": "CXX"}
+                      , "cxx"
+                      , {"type": "var", "name": "def"}
+                      , {"type": "var", "name": "type"}
+                      ]
+                    , { "type": "foreach"
+                      , "var": "size"
+                      , "range": {"type": "var", "name": "sizes"}
+                      , "body":
+                        { "type": "json_encode"
+                        , "$1": {"type": "var", "name": "size"}
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  }
+                , "env": {"type": "var", "name": "ENV"}
+                , "outs": ["out.def"]
                 }
-              , "env": {"type": "var", "name": "ENV"}
-              , "outs": ["cxxsizes.def"]
               }
             }
           }
         ]
-      , [ "end.def"
-        , { "type": "singleton_map"
-          , "key": "end.def"
-          , "value": {"type": "BLOB", "data": "\n#endif\n"}
+      , ["end.def", {"type": "BLOB", "data": "\n#endif\n"}]
+      , [ "definitions"
+        , { "type": "enumerate"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ [ {"type": "var", "name": "guard.def"}
+                , {"type": "var", "name": "int1.def"}
+                , {"type": "var", "name": "int01.def"}
+                ]
+              , {"type": "var", "name": "cfile-defs"}
+              , {"type": "var", "name": "cxxfile-defs"}
+              , {"type": "var", "name": "ctype-defs"}
+              , {"type": "var", "name": "cxxtype-defs"}
+              , {"type": "var", "name": "csymbol-defs"}
+              , {"type": "var", "name": "cxxsymbol-defs"}
+              , {"type": "var", "name": "csize-defs"}
+              , {"type": "var", "name": "cxxsize-defs"}
+              , [ {"type": "var", "name": "plain.def"}
+                , {"type": "var", "name": "end.def"}
+                ]
+              ]
+            }
           }
-        ]
-      , [ "outname"
-        , {"type": "join", "$1": ["out/", {"type": "var", "name": "name"}]}
         ]
       , [ "outfile"
         , { "type": "ACTION"
-          , "inputs":
-            { "type": "map_union"
-            , "$1":
-              [ {"type": "var", "name": "guard.def"}
-              , {"type": "var", "name": "plain.def"}
-              , {"type": "var", "name": "int1.def"}
-              , {"type": "var", "name": "int01.def"}
-              , {"type": "var", "name": "cfiles.def"}
-              , {"type": "var", "name": "cxxfiles.def"}
-              , {"type": "var", "name": "ctypes.def"}
-              , {"type": "var", "name": "cxxtypes.def"}
-              , {"type": "var", "name": "csymbols.def"}
-              , {"type": "var", "name": "cxxsymbols.def"}
-              , {"type": "var", "name": "csizes.def"}
-              , {"type": "var", "name": "cxxsizes.def"}
-              , {"type": "var", "name": "end.def"}
-              ]
-            }
+          , "inputs": {"type": "var", "name": "definitions"}
           , "cmd":
             [ "sh"
             , "-c"
@@ -987,35 +916,32 @@
               , "separator": " "
               , "$1":
                 [ "cat"
-                , "guard.def"
-                , "int1.def"
-                , "int01.def"
-                , "cfiles.def"
-                , "cxxfiles.def"
-                , "ctypes.def"
-                , "cxxtypes.def"
-                , "csymbols.def"
-                , "cxxsymbols.def"
-                , "csizes.def"
-                , "cxxsizes.def"
-                , "plain.def"
-                , "end.def"
-                , ">"
                 , { "type": "join_cmd"
-                  , "$1": [{"type": "var", "name": "outname"}]
+                  , "$1":
+                    { "type": "keys"
+                    , "$1": {"type": "var", "name": "definitions"}
+                    }
                   }
+                , "> out"
                 ]
               }
             ]
-          , "outs": [{"type": "var", "name": "outname"}]
+          , "outs": ["out"]
           , "env": {"type": "var", "name": "ENV"}
           }
         ]
       , [ "outfile"
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "stage"}
-          , "flat": true
-          , "$1": {"type": "var", "name": "outfile"}
+          , "$1":
+            { "type": "singleton_map"
+            , "key": {"type": "var", "name": "name"}
+            , "value":
+              { "type": "lookup"
+              , "key": "out"
+              , "map": {"type": "var", "name": "outfile"}
+              }
+            }
           }
         ]
       ]
