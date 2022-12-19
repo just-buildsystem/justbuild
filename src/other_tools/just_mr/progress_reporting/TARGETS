@@ -1,0 +1,7 @@
+{ "statistics":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["statistics"]
+  , "hdrs": ["statistics.hpp"]
+  , "stage": ["src", "other_tools", "just_mr", "progress_reporting"]
+  }
+}
