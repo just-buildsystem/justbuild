@@ -21,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl-lite/gsl-lite.hpp"
@@ -63,11 +64,12 @@ class ResultTargetMap {
     // configuration, if no entry is present for the given
     // target-configuration pair. \returns the analysed target that is
     // element of the map after insertion.
-    [[nodiscard]] auto Add(BuildMaps::Base::EntityName name,
-                           Configuration conf,
-                           gsl::not_null<AnalysedTargetPtr> result,
-                           std::optional<TargetCache::Key> target_cache_key =
-                               std::nullopt) -> AnalysedTargetPtr {
+    [[nodiscard]] auto Add(
+        BuildMaps::Base::EntityName name,
+        Configuration conf,
+        gsl::not_null<AnalysedTargetPtr> result,
+        std::optional<TargetCache::Key> target_cache_key = std::nullopt,
+        bool is_export_target = false) -> AnalysedTargetPtr {
         auto part = std::hash<BuildMaps::Base::EntityName>{}(name) % width_;
         std::unique_lock lock{m_[part]};
         auto [entry, inserted] = targets_[part].emplace(
@@ -75,6 +77,9 @@ class ResultTargetMap {
             std::move(result));
         if (target_cache_key) {
             cache_targets_[part].emplace(*target_cache_key, entry->second);
+        }
+        if (is_export_target) {
+            export_targets_[part].emplace(entry->first);
         }
         if (inserted) {
             num_actions_[part] += entry->second->Actions().size();
@@ -104,6 +109,21 @@ class ResultTargetMap {
                       return lhs.ToString() < rhs.ToString();
                   });
         return targets;
+    }
+
+    [[nodiscard]] auto ExportTargets() const noexcept
+        -> std::vector<ConfiguredTarget> {
+        std::vector<ConfiguredTarget> all_exports{};
+        for (auto const& exports : export_targets_) {
+            all_exports.insert(
+                all_exports.end(), exports.begin(), exports.end());
+        }
+        std::sort(all_exports.begin(),
+                  all_exports.end(),
+                  [](auto const& lhs, auto const& rhs) {
+                      return lhs.ToString() < rhs.ToString();
+                  });
+        return all_exports;
     }
 
     [[nodiscard]] auto ConfiguredTargetsGraph() const noexcept
@@ -343,6 +363,7 @@ class ResultTargetMap {
     std::vector<
         std::unordered_map<TargetCache::Key, gsl::not_null<AnalysedTargetPtr>>>
         cache_targets_{width_};
+    std::vector<std::unordered_set<ConfiguredTarget>> export_targets_{width_};
     std::vector<std::size_t> num_actions_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_blobs_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_trees_{std::vector<std::size_t>(width_)};
