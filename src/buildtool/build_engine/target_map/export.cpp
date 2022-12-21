@@ -69,8 +69,11 @@ void FinalizeExport(
         std::move(vars_set),
         std::set<std::string>{},
         std::move(deps_info));
-    analysis_result = result_map->Add(
-        target, effective_config, std::move(analysis_result), target_cache_key);
+    analysis_result = result_map->Add(target,
+                                      effective_config,
+                                      std::move(analysis_result),
+                                      target_cache_key,
+                                      true);
     (*setter)(std::move(analysis_result));
 }
 }  // namespace
@@ -150,8 +153,11 @@ void ExportRule(
                     std::set<std::string>{},
                     deps_info);
 
-                analysis_result = result_map->Add(
-                    key.target, effective_config, std::move(analysis_result));
+                analysis_result = result_map->Add(key.target,
+                                                  effective_config,
+                                                  std::move(analysis_result),
+                                                  std::nullopt,
+                                                  true);
 
                 Logger::Log(LogLevel::Performance,
                             "Export target {} served from cache: {} -> {}",
