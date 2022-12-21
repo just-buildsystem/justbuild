@@ -1,0 +1,9 @@
+{ "git_ops_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_ops_types"]
+  , "hdrs": ["git_ops_types.hpp"]
+  , "deps":
+    [["src/buildtool/file_system", "git_cas"], ["src/utils/cpp", "path"]]
+  , "stage": ["src", "other_tools", "git_operations"]
+  }
+}
