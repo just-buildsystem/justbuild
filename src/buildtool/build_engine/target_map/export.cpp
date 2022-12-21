@@ -19,6 +19,7 @@
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 
@@ -35,7 +36,7 @@ void FinalizeExport(
     const BuildMaps::Base::EntityName& target,
     const std::vector<std::string>& vars,
     const Configuration& effective_config,
-    const std::optional<TargetCache::Key>& target_cache_key,
+    const std::optional<TargetCacheKey>& target_cache_key,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
@@ -129,7 +130,7 @@ void ExportRule(
     auto target_config = effective_config.Update(fixed_config);
 
     auto target_cache_key =
-        TargetCache::Key::Create(*exported_target, target_config);
+        TargetCacheKey::Create(*exported_target, target_config);
     if (target_cache_key) {
         if (auto target_cache_value =
                 TargetCache::Instance().Read(*target_cache_key)) {

@@ -31,6 +31,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -68,7 +69,7 @@ class ResultTargetMap {
         BuildMaps::Base::EntityName name,
         Configuration conf,
         gsl::not_null<AnalysedTargetPtr> result,
-        std::optional<TargetCache::Key> target_cache_key = std::nullopt,
+        std::optional<TargetCacheKey> target_cache_key = std::nullopt,
         bool is_export_target = false) -> AnalysedTargetPtr {
         auto part = std::hash<BuildMaps::Base::EntityName>{}(name) % width_;
         std::unique_lock lock{m_[part]};
@@ -142,11 +143,11 @@ class ResultTargetMap {
     }
 
     [[nodiscard]] auto CacheTargets() const noexcept
-        -> std::unordered_map<TargetCache::Key, AnalysedTargetPtr> {
+        -> std::unordered_map<TargetCacheKey, AnalysedTargetPtr> {
         return std::accumulate(
             cache_targets_.begin(),
             cache_targets_.end(),
-            std::unordered_map<TargetCache::Key, AnalysedTargetPtr>{},
+            std::unordered_map<TargetCacheKey, AnalysedTargetPtr>{},
             [](auto&& l, auto const& r) {
                 l.insert(r.begin(), r.end());
                 return std::forward<decltype(l)>(l);
@@ -361,7 +362,7 @@ class ResultTargetMap {
         std::unordered_map<ConfiguredTarget, gsl::not_null<AnalysedTargetPtr>>>
         targets_{width_};
     std::vector<
-        std::unordered_map<TargetCache::Key, gsl::not_null<AnalysedTargetPtr>>>
+        std::unordered_map<TargetCacheKey, gsl::not_null<AnalysedTargetPtr>>>
         cache_targets_{width_};
     std::vector<std::unordered_set<ConfiguredTarget>> export_targets_{width_};
     std::vector<std::size_t> num_actions_{std::vector<std::size_t>(width_)};

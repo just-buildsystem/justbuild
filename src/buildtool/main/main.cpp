@@ -25,6 +25,8 @@
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache_entry.hpp"
+#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/cli.hpp"
@@ -1073,8 +1075,8 @@ void DumpArtifactsToBuild(
 }
 
 auto CollectNonKnownArtifacts(
-    std::unordered_map<TargetCache::Key, AnalysedTargetPtr> const&
-        cache_targets) -> std::vector<ArtifactDescription> {
+    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets)
+    -> std::vector<ArtifactDescription> {
     auto cache_artifacts = std::unordered_set<ArtifactDescription>{};
     for (auto const& [_, target] : cache_targets) {
         auto artifacts = target->ContainedNonKnownArtifacts();
@@ -1087,8 +1089,7 @@ auto CollectNonKnownArtifacts(
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 void WriteTargetCacheEntries(
-    std::unordered_map<TargetCache::Key, AnalysedTargetPtr> const&
-        cache_targets,
+    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
     std::size_t jobs,
@@ -1100,7 +1101,7 @@ void WriteTargetCacheEntries(
     for (auto const& [key, target] : cache_targets) {
         ts.QueueTask([&key = key, &target = target, &extra_infos]() {
             if (auto entry =
-                    TargetCache::Entry::FromTarget(target, extra_infos)) {
+                    TargetCacheEntry::FromTarget(target, extra_infos)) {
                 if (not TargetCache::Instance().Store(key, *entry)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed writing target cache entry for {}",
