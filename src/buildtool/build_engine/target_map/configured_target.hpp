@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "fmt/core.h"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
