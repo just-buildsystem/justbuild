@@ -133,6 +133,11 @@ class LocalApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api) noexcept -> bool final {
 
+        // Return immediately if target CAS is this CAS
+        if (this == api) {
+            return true;
+        }
+
         // Determine missing artifacts in other CAS.
         std::vector<ArtifactDigest> digests;
         digests.reserve(artifacts_info.size());
