@@ -64,7 +64,7 @@
   , "hdrs": [["./", "src/include/openssl", "ssl_headers"]]
   , "private-hdrs": ["ssl_internal_headers", "crypto_internal_headers"]
   , "srcs": ["ssl_sources"]
-  , "deps": ["crypto-lib"]
+  , "deps": ["crypto"]
   }
 , "crypto_internal_headers":
   { "type": "install"
