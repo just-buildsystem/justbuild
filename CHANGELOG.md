@@ -6,6 +6,10 @@ A feature release on top of `1.0.0`, backwards compatible.
 
 - `just-mr` is now available as C++ binary and supports fetching in parallel
 
+### Other changes
+
+- `just analyse` now supports a new option `--dump-export-targets`
+
 ## Release `1.0.0` (2022-12-12)
 
 Initial stable release.

@@ -476,6 +476,11 @@ well-defined graph file. See *just-graph-file(5)* for more details.
     }
    #+END_SRC
 
+   *--dump-export-targets* PATH\\
+   Dump all transitive targets to file for the given target that are
+   export targets. ~-~ is treated as stdout. The output format is
+   the same as for *--dump-targets*.
+
    *--dump-targets-graph* PATH\\
    Dump the graph of configured targets to a file (even if it
    is called ~-~). In this graph, only non-source targets are

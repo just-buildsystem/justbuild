@@ -77,6 +77,7 @@ struct DiagnosticArguments {
     std::optional<std::string> dump_trees{std::nullopt};
     std::optional<std::string> dump_vars{std::nullopt};
     std::optional<std::string> dump_targets{std::nullopt};
+    std::optional<std::string> dump_export_targets{std::nullopt};
     std::optional<std::string> dump_targets_graph{std::nullopt};
     std::optional<std::string> dump_anonymous{std::nullopt};
     std::optional<std::string> dump_nodes{std::nullopt};
@@ -282,6 +283,10 @@ static inline auto SetupDiagnosticArguments(
     app->add_option("--dump-targets",
                     clargs->dump_targets,
                     "Dump targets to file (use - for stdout).")
+        ->type_name("PATH");
+    app->add_option("--dump-export-targets",
+                    clargs->dump_export_targets,
+                    "Dump \"export\" targets to file (use - for stdout).")
         ->type_name("PATH");
     app->add_option("--dump-targets-graph",
                     clargs->dump_targets_graph,
