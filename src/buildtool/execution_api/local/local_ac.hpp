@@ -19,6 +19,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -47,21 +48,23 @@ class LocalAC {
 
     [[nodiscard]] auto CachedResult(bazel_re::Digest const& action_id)
         const noexcept -> std::optional<bazel_re::ActionResult> {
-        auto entry_path =
-            file_store_.GetPath(NativeSupport::Unprefix(action_id.hash()));
-        bazel_re::Digest digest{};
-        auto const entry =
-            FileSystemManager::ReadFile(entry_path, ObjectType::File);
-        if (not entry.has_value()) {
+        auto id = NativeSupport::Unprefix(action_id.hash());
+        auto entry_path = file_store_.GetPath(id);
+        // Try to find action-cache entry in CAS generations and uplink if
+        // required.
+        if (not GarbageCollector::FindAndUplinkActionCacheEntry(id)) {
             logger_.Emit(LogLevel::Debug,
                          "Cache miss, entry not found {}",
                          entry_path.string());
             return std::nullopt;
         }
+        auto const entry =
+            FileSystemManager::ReadFile(entry_path, ObjectType::File);
+        bazel_re::Digest digest{};
         if (not digest.ParseFromString(*entry)) {
             logger_.Emit(LogLevel::Warning,
                          "Parsing cache entry failed for action {}",
-                         NativeSupport::Unprefix(action_id.hash()));
+                         id);
             return std::nullopt;
         }
         auto src_path = cas_->BlobPath(digest);
@@ -74,7 +77,7 @@ class LocalAC {
         }
         logger_.Emit(LogLevel::Warning,
                      "Parsing action result failed for action {}",
-                     NativeSupport::Unprefix(action_id.hash()));
+                     id);
         return std::nullopt;
     }
 

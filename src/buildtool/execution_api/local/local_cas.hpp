@@ -25,6 +25,9 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#endif
 
 template <ObjectType kType = ObjectType::File>
 class LocalCAS {
@@ -42,6 +45,13 @@ class LocalCAS {
         return instance;
     }
 
+    auto Reset() noexcept -> void {
+        file_store_ = FileStorage<kStorageType,
+                                  StoreMode::FirstWins,
+                                  /*kSetEpochTime=*/true>{
+            LocalExecutionConfig::CASDir<kType>(0)};
+    }
+
     [[nodiscard]] auto StoreBlobFromBytes(std::string const& bytes)
         const noexcept -> std::optional<bazel_re::Digest> {
         return StoreBlob(bytes, /*is_owner=*/true);
@@ -57,11 +67,17 @@ class LocalCAS {
         -> std::optional<std::filesystem::path> {
         auto id = NativeSupport::Unprefix(digest.hash());
         auto blob_path = file_store_.GetPath(id);
-        if (FileSystemManager::IsFile(blob_path)) {
-            return blob_path;
+#ifndef BOOTSTRAP_BUILD_TOOL
+        // Try to find blob in CAS generations and uplink if required.
+        auto found = FindAndUplinkBlob(id);
+#else
+        auto found = FileSystemManager::IsFile(blob_path);
+#endif
+        if (not found) {
+            logger_.Emit(LogLevel::Debug, "Blob not found {}", id);
+            return std::nullopt;
         }
-        logger_.Emit(LogLevel::Debug, "Blob not found {}", id);
-        return std::nullopt;
+        return blob_path;
     }
 
   private:
@@ -109,16 +125,35 @@ class LocalCAS {
         -> std::optional<bazel_re::Digest> {
         auto digest = CreateDigest(data);
         if (digest) {
-            if (StoreBlobData(
-                    NativeSupport::Unprefix(digest->hash()), data, is_owner)) {
+            auto id = NativeSupport::Unprefix(digest->hash());
+#ifndef BOOTSTRAP_BUILD_TOOL
+            if (FindAndUplinkBlob(id)) {
                 return digest;
             }
-            logger_.Emit(
-                LogLevel::Debug, "Failed to store blob {}.", digest->hash());
+#endif
+            if (StoreBlobData(id, data, is_owner)) {
+                return digest;
+            }
+            logger_.Emit(LogLevel::Debug, "Failed to store blob {}.", id);
         }
         logger_.Emit(LogLevel::Debug, "Failed to create digest.");
         return std::nullopt;
     }
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+    [[nodiscard]] auto FindAndUplinkBlob(std::string const& id) const noexcept
+        -> bool {
+        if (Compatibility::IsCompatible()) {
+            return GarbageCollector::FindAndUplinkBlob(
+                id, kType == ObjectType::Executable);
+        }
+        if (kType == ObjectType::Tree) {
+            return GarbageCollector::FindAndUplinkTree(id);
+        }
+        return GarbageCollector::FindAndUplinkBlob(
+            id, kType == ObjectType::Executable);
+    }
+#endif
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_HPP

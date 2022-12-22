@@ -101,6 +101,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/execution_api/local", "garbage_collector"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     ]

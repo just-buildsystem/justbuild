@@ -33,6 +33,11 @@ auto TargetCacheEntry::FromTarget(
     return std::nullopt;
 }
 
+auto TargetCacheEntry::FromJson(nlohmann::json desc) noexcept
+    -> TargetCacheEntry {
+    return TargetCacheEntry(std::move(desc));
+}
+
 auto TargetCacheEntry::ToResult() const noexcept
     -> std::optional<TargetResult> {
     return TargetResult::FromJson(desc_);

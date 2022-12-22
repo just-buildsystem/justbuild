@@ -67,7 +67,7 @@ grep 'Processed.* 4 actions' build.log
 grep '1 cache hit' build.log
 
 echo
-bin/tool-under-test analyse --dump-graph graph.json 2>&1
+bin/tool-under-test analyse --local-build-root .tool-root --dump-graph graph.json 2>&1
 echo
 matching_targets=$(cat graph.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .target]] | sort')
 echo "${matching_targets}"

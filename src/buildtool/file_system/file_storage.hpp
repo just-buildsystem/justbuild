@@ -21,6 +21,20 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
+/// \brief Determines the storage path of a blob identified by a hash value. The
+/// same sharding technique as used in git is applied, meaning, the hash value
+/// is separated into a directory part and file part. Two characters are used
+/// for the directory part, the rest for the file, which results in 256 possible
+/// directories.
+/// \param root     The root path of the storage.
+/// \param id       The hash value of the blob.
+/// \returns The sharded file path.
+[[nodiscard]] static inline auto GetStoragePath(
+    std::filesystem::path const& root,
+    std::string const& id) noexcept -> std::filesystem::path {
+    return root / id.substr(0, 2) / id.substr(2, id.size() - 2);
+}
+
 enum class StoreMode {
     // First thread to write conflicting file wins.
     FirstWins,
@@ -56,12 +70,12 @@ class FileStorage {
 
     [[nodiscard]] auto GetPath(std::string const& id) const noexcept
         -> std::filesystem::path {
-        return GetShardedPath(id);
+        return GetStoragePath(storage_root_, id);
     }
 
   private:
     static constexpr bool kFdLess{kType == ObjectType::Executable};
-    std::filesystem::path const storage_root_{};
+    std::filesystem::path storage_root_{};
 
     /// \brief Add file to storage from file path via link or copy and rename.
     /// If a race-condition occurs, the winning thread will be the one
@@ -72,7 +86,7 @@ class FileStorage {
     [[nodiscard]] auto AtomicAddFromFile(std::string const& id,
                                          std::filesystem::path const& path,
                                          bool is_owner) const noexcept -> bool {
-        auto file_path = GetShardedPath(id);
+        auto file_path = GetPath(id);
         if ((kMode == StoreMode::LastWins or
              not FileSystemManager::Exists(file_path)) and
             FileSystemManager::CreateDirectory(file_path.parent_path())) {
@@ -115,7 +129,7 @@ class FileStorage {
     [[nodiscard]] auto AtomicAddFromBytes(
         std::string const& id,
         std::string const& bytes) const noexcept -> bool {
-        auto file_path = GetShardedPath(id);
+        auto file_path = GetPath(id);
         if (kMode == StoreMode::LastWins or
             not FileSystemManager::Exists(file_path)) {
             auto unique_path = CreateUniquePath(file_path);
@@ -129,18 +143,6 @@ class FileStorage {
             }
         }
         return FileSystemManager::IsFile(file_path);
-    }
-
-    /// \brief Determines the storage path of a blob identified by a hash value.
-    /// The same sharding technique as git is used, meaning, the hash value is
-    /// separated into a directory part and file part. Two characters are used
-    /// for the directory part, the rest for the file, which results in 256
-    /// possible directories.
-    /// \param id   The hash value.
-    /// \returns The sharded file path.
-    [[nodiscard]] auto GetShardedPath(std::string const& id) const noexcept
-        -> std::filesystem::path {
-        return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
     }
 
     /// \brief Create file from file path.

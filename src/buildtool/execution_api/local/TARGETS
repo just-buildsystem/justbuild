@@ -30,6 +30,7 @@
   , "srcs": ["local_action.cpp", "local_storage.cpp"]
   , "deps":
     [ "config"
+    , "garbage_collector"
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -38,7 +39,6 @@
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
@@ -48,6 +48,30 @@
   , "private-deps":
     [ ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/system", "system_command"]
+    ]
+  }
+, "garbage_collector":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["garbage_collector"]
+  , "hdrs": ["garbage_collector.hpp"]
+  , "srcs": ["garbage_collector.cpp"]
+  , "deps": [["src/utils/cpp", "file_locking"]]
+  , "stage": ["src", "buildtool", "execution_api", "local"]
+  , "private-deps":
+    [ "config"
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/build_engine/target_map", "target_cache_entry"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   }
 }

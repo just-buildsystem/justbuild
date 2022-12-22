@@ -15,6 +15,8 @@
 
 set -e
 
+readonly LBRDIR="$TMPDIR/local-build-root"
+
 touch ROOT
 cat > RULES <<'EOI'
 { "no-conflict":
@@ -240,38 +242,38 @@ cat > TARGETS <<'EOI'
 EOI
 
 echo
-./bin/tool-under-test analyse no-conflict --dump-actions - 2>&1
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" no-conflict --dump-actions - 2>&1
 
 echo
-./bin/tool-under-test analyse -f log input-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log input-conflict 2>&1 && exit 1 || :
 grep -i 'error.*input.*conflict.*foo\.txt' log
 
 echo
-./bin/tool-under-test analyse -f log artifacts-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log artifacts-conflict 2>&1 && exit 1 || :
 grep -i 'error.*artifacts.*conflict.*foo\.txt' log
 
 echo
-./bin/tool-under-test analyse -f log runfiles-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log runfiles-conflict 2>&1 && exit 1 || :
 grep -i 'error.*runfiles.*conflict.*foo\.txt' log
 
 echo
-./bin/tool-under-test analyse -f log input-tree-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log input-tree-conflict 2>&1 && exit 1 || :
 grep -i 'error.*input.*conflict.*tree.*foo' log
 
 echo
-./bin/tool-under-test analyse -f log artifacts-tree-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log artifacts-tree-conflict 2>&1 && exit 1 || :
 grep -i 'error.*artifacts.*conflict.*tree.*foo' log
 
 echo
-./bin/tool-under-test analyse -f log runfiles-tree-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log runfiles-tree-conflict 2>&1 && exit 1 || :
 grep -i 'error.*runfiles.*conflict.*tree.*foo' log
 
 echo
-./bin/tool-under-test analyse -f log file-file-conflict 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log file-file-conflict 2>&1 && exit 1 || :
 grep -i 'error.*.*conflict.*foo/bar/baz.txt' log
 
 echo
-./bin/tool-under-test analyse -f log upwards-inputs 2>&1 && exit 1 || :
+./bin/tool-under-test analyse --local-build-root "$LBRDIR" -f log upwards-inputs 2>&1 && exit 1 || :
 grep -i 'error.*\.\./foo.txt' log
 
 echo

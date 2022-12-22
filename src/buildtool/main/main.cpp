@@ -39,6 +39,7 @@
 #include "src/buildtool/main/install_cas.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #endif
@@ -1176,6 +1177,11 @@ auto main(int argc, char* argv[]) -> int {
             DetermineRoots(arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+        auto lock = GarbageCollector::SharedLock();
+        if (not lock) {
+            return kExitFailure;
+        }
+
         if (arguments.cmd == SubCommand::kTraverse) {
             if (arguments.graph.git_cas) {
                 if (Compatibility::IsCompatible()) {

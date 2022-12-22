@@ -40,6 +40,10 @@ class TargetCacheEntry {
         std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
             replacements) noexcept -> std::optional<TargetCacheEntry>;
 
+    // Create a target-cache entry from a json description.
+    [[nodiscard]] static auto FromJson(nlohmann::json desc) noexcept
+        -> TargetCacheEntry;
+
     // Obtain TargetResult from cache entry.
     [[nodiscard]] auto ToResult() const noexcept -> std::optional<TargetResult>;
 

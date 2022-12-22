@@ -20,9 +20,11 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
-[[nodiscard]] static auto RunDummyExecution(gsl::not_null<LocalAC*> const& ac,
-                                            bazel_re::Digest const& action_id,
-                                            std::string const& seed) -> bool;
+[[nodiscard]] static auto RunDummyExecution(
+    gsl::not_null<LocalAC*> const& ac,
+    gsl::not_null<LocalCAS<ObjectType::File>*> cas_,
+    bazel_re::Digest const& action_id,
+    std::string const& seed) -> bool;
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAC: Single action, single result",
@@ -32,8 +34,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     auto action_id = ArtifactDigest::Create<ObjectType::File>("action");
     CHECK(not ac.CachedResult(action_id));
-
-    CHECK(RunDummyExecution(&ac, action_id, "result"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id, "result"));
     auto ac_result = ac.CachedResult(action_id);
     CHECK(ac_result);
 }
@@ -52,12 +53,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     std::string result_content1{};
     std::string result_content2{};
 
-    CHECK(RunDummyExecution(&ac, action_id1, "result1"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id1, "result1"));
     auto ac_result1 = ac.CachedResult(action_id1);
     REQUIRE(ac_result1);
     CHECK(ac_result1->SerializeToString(&result_content1));
 
-    CHECK(RunDummyExecution(&ac, action_id2, "result2"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id2, "result2"));
     auto ac_result2 = ac.CachedResult(action_id2);
     REQUIRE(ac_result2);
     CHECK(ac_result2->SerializeToString(&result_content2));
@@ -81,12 +82,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     std::string result_content1{};
     std::string result_content2{};
 
-    CHECK(RunDummyExecution(&ac, action_id1, "same result"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id1, "same result"));
     auto ac_result1 = ac.CachedResult(action_id1);
     REQUIRE(ac_result1);
     CHECK(ac_result1->SerializeToString(&result_content1));
 
-    CHECK(RunDummyExecution(&ac, action_id2, "same result"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id2, "same result"));
     auto ac_result2 = ac.CachedResult(action_id2);
     REQUIRE(ac_result2);
     CHECK(ac_result2->SerializeToString(&result_content2));
@@ -108,12 +109,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     std::string result_content1{};
     std::string result_content2{};
 
-    CHECK(RunDummyExecution(&ac, action_id, "result1"));
+    CHECK(RunDummyExecution(&ac, &cas, action_id, "result1"));
     auto ac_result1 = ac.CachedResult(action_id);
     REQUIRE(ac_result1);
     CHECK(ac_result1->SerializeToString(&result_content1));
 
-    CHECK(RunDummyExecution(&ac, action_id, "result2"));  // updated
+    CHECK(RunDummyExecution(&ac, &cas, action_id, "result2"));  // updated
     auto ac_result2 = ac.CachedResult(action_id);
     REQUIRE(ac_result2);
     CHECK(ac_result2->SerializeToString(&result_content2));
@@ -123,12 +124,17 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 }
 
 auto RunDummyExecution(gsl::not_null<LocalAC*> const& ac,
+                       gsl::not_null<LocalCAS<ObjectType::File>*> cas_,
                        bazel_re::Digest const& action_id,
                        std::string const& seed) -> bool {
     bazel_re::ActionResult result{};
     *result.add_output_files() = [&]() {
         bazel_re::OutputFile out{};
         out.set_path(seed);
+        auto digest = cas_->StoreBlobFromBytes("");
+        out.set_allocated_digest(
+            gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+        out.set_is_executable(false);
         return out;
     }();
     return ac->StoreResult(action_id, result);

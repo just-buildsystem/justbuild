@@ -16,6 +16,8 @@
 
 set -e
 
+readonly LBRDIR="$TMPDIR/local-build-root"
+
 touch ROOT
 
 cat <<'EOF' > TARGETS
@@ -39,7 +41,7 @@ cat <<'EOF' > TARGETS
 EOF
 
 bin/tool-under-test analyse -D '{"NAME": "here-be-dragons"}' \
-    --dump-targets targets.json --dump-blobs blobs.json 2>&1
+    --local-build-root "$LBRDIR" --dump-targets targets.json --dump-blobs blobs.json 2>&1
 echo
 echo "Blobs"
 cat blobs.json

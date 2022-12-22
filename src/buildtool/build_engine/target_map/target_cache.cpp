@@ -23,6 +23,9 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#endif
 
 auto TargetCache::Store(TargetCacheKey const& key,
                         TargetCacheEntry const& value) const noexcept -> bool {
@@ -46,16 +49,23 @@ auto TargetCache::Store(TargetCacheKey const& key,
 }
 
 auto TargetCache::Read(TargetCacheKey const& key) const noexcept
-    -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
-    auto entry_path = file_store_.GetPath(key.Id().digest.hash());
-    auto const entry =
-        FileSystemManager::ReadFile(entry_path, ObjectType::File);
-    if (not entry.has_value()) {
+    -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo> > {
+    auto id = key.Id().digest.hash();
+    auto entry_path = file_store_.GetPath(id);
+#ifndef BOOTSTRAP_BUILD_TOOL
+    // Try to find target-cache entry in CAS generations and uplink if required.
+    auto found = GarbageCollector::FindAndUplinkTargetCacheEntry(id);
+#else
+    auto found = FileSystemManager::IsFile(entry_path);
+#endif
+    if (not found) {
         logger_.Emit(LogLevel::Debug,
                      "Cache miss, entry not found {}",
                      entry_path.string());
         return std::nullopt;
     }
+    auto const entry =
+        FileSystemManager::ReadFile(entry_path, ObjectType::File);
     if (auto info = Artifact::ObjectInfo::FromString(*entry)) {
         if (auto path = CAS().BlobPath(info->digest)) {
             if (auto value = FileSystemManager::ReadFile(*path)) {

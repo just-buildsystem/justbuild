@@ -16,6 +16,8 @@
 
 set -e
 
+readonly LBRDIR="$TMPDIR/local-build-root"
+
 touch ROOT
 touch a.txt
 
@@ -27,7 +29,7 @@ cat <<'EOF' > TARGETS
 EOF
 
 bin/tool-under-test analyse \
-    --dump-trees trees.json --dump-artifacts-to-build artifacts.json 2>&1
+    --local-build-root "$LBRDIR" --dump-trees trees.json --dump-artifacts-to-build artifacts.json 2>&1
 echo
 echo Artifacts
 cat artifacts.json
