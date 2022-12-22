@@ -14,8 +14,8 @@
 
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 
-#include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 
 auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,

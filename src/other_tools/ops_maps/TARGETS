@@ -62,6 +62,7 @@
     [ ["src/utils/cpp", "curl_easy_handle"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_storage"]
     ]
   }
 , "repo_fetch_map":
@@ -74,6 +75,7 @@
   , "private-deps":
     [ ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_storage"]
     ]
   }
 }

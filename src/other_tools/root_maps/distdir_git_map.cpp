@@ -18,8 +18,8 @@
 
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"

@@ -22,7 +22,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/file_storage.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

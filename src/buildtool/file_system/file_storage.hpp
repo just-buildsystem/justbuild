@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_FILE_STORAGE_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_FILE_STORAGE_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
+#define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
 
 #include <filesystem>
 #include <string>
@@ -186,4 +186,4 @@ class FileStorage {
     }
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_FILE_STORAGE_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP

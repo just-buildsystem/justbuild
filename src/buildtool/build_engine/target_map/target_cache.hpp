@@ -27,8 +27,8 @@
 #include "src/buildtool/build_engine/target_map/target_cache_entry.hpp"
 #include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL

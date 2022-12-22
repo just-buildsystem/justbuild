@@ -5,6 +5,16 @@
   , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "file_system"]
   }
+, "file_storage":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["file_storage"]
+  , "hdrs": ["file_storage.hpp"]
+  , "deps":
+    [ ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 , "file_system_manager":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["file_system_manager"]

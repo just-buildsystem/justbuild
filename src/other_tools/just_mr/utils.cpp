@@ -14,8 +14,8 @@
 
 #include "src/other_tools/just_mr/utils.hpp"
 
-#include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace JustMR::Utils {

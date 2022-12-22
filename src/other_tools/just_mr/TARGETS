@@ -33,7 +33,10 @@
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
-    [["src/utils/cpp", "path"], ["src/buildtool/execution_api/local", "local"]]
+    [ ["src/utils/cpp", "path"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_storage"]
+    ]
   }
 , "exit_codes":
   { "type": ["@", "rules", "CC", "library"]

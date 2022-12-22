@@ -16,6 +16,7 @@
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/utils/cpp", "tmp_dir"]
+    , ["src/buildtool/file_system", "file_storage"]
     ]
   }
 , "commit_git_map":
@@ -62,6 +63,7 @@
   , "private-deps":
     [ ["src/utils/cpp", "archive_ops"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_storage"]
     ]
   }
 }
