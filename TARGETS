@@ -117,6 +117,60 @@
       }
     }
   }
+, "installed just-mr": {"type": "install", "files": {"bin/just-mr": "just-mr"}}
+, "exported-just-mr":
+  { "type": "export"
+  , "target": ["src/other_tools/just_mr", "just-mr"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "DEBUG"
+    , "COMPILER_FAMILY"
+    , "CC"
+    , "CXX"
+    , "ADD_CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    , "BUILD_STATIC_BINARY"
+    , "SOURCE_DATE_EPOCH"
+    , "VERSION_EXTRA_SUFFIX"
+    ]
+  }
+, "just-mr":
+  { "type": "configure"
+  , "arguments_config":
+    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+  , "target": "exported-just-mr"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["OS", {"type": "var", "name": "OS", "default": "linux"}]
+      , ["ARCH", {"type": "var", "name": "ARCH", "default": "x86_64"}]
+      , [ "HOST_ARCH"
+        , { "type": "var"
+          , "name": "HOST_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "COMPILER_FAMILY"
+        , {"type": "var", "name": "COMPILER_FAMILY", "default": "clang"}
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+      }
+    }
+  }
 , "libgit2":
   { "type": "configure"
   , "target": ["@", "libgit2", "", "git2"]
