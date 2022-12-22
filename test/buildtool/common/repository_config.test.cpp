@@ -14,6 +14,7 @@
 
 #include "catch2/catch.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 namespace {

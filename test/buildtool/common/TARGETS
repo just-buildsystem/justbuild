@@ -42,6 +42,7 @@
     , ["test", "catch-main"]
     , ["src/buildtool/common", "config"]
     , ["test/utils", "local_hermeticity"]
+    , ["src/buildtool/execution_api/local", "local"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }

@@ -20,7 +20,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"

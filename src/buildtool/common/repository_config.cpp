@@ -14,6 +14,7 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 
+#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
