@@ -2,6 +2,10 @@
 
 A feature release on top of `1.0.0`, backwards compatible.
 
+### Major new features
+
+- `just-mr` is now available as C++ binary and supports fetching in parallel
+
 ## Release `1.0.0` (2022-12-12)
 
 Initial stable release.
