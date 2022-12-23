@@ -420,22 +420,15 @@ void SetupDefaultLogging() {
 void ReachableRepositories(ExpressionPtr const& repos,
                            std::string const& main,
                            std::shared_ptr<SetupRepos> const& setup_repos) {
-    // make sure the vectors to be populated are empty
-    setup_repos->to_setup.clear();
-    setup_repos->to_include.clear();
-
+    // use temporary sets to avoid duplicates
+    std::unordered_set<std::string> include_repos_set{};
     if (repos->IsMap()) {
-        // reserve max size
-        setup_repos->to_include.reserve(repos->Map().size());
-
         // traversal of bindings
         std::function<void(std::string const&)> traverse =
             [&](std::string const& repo_name) {
-                if (std::find(setup_repos->to_include.begin(),
-                              setup_repos->to_include.end(),
-                              repo_name) == setup_repos->to_include.end()) {
+                if (not include_repos_set.contains(repo_name)) {
                     // if not found, add it and repeat for its bindings
-                    setup_repos->to_include.emplace_back(repo_name);
+                    include_repos_set.insert(repo_name);
                     auto repos_repo_name =
                         repos->Get(repo_name, Expression::none_t{});
                     if (not repos_repo_name.IsNotNull()) {
@@ -455,7 +448,7 @@ void ReachableRepositories(ExpressionPtr const& repos,
         traverse(main);  // traverse all bindings of main repository
 
         // Add overlay repositories
-        setup_repos->to_setup = setup_repos->to_include;
+        std::unordered_set<std::string> setup_repos_set{include_repos_set};
         for (auto const& repo : setup_repos->to_include) {
             auto repos_repo = repos->Get(repo, Expression::none_t{});
             if (repos_repo.IsNotNull()) {
@@ -464,11 +457,25 @@ void ReachableRepositories(ExpressionPtr const& repos,
                     auto layer_val =
                         repos_repo->Get(layer, Expression::none_t{});
                     if (layer_val.IsNotNull() and layer_val->IsString()) {
-                        setup_repos->to_setup.emplace_back(layer_val->String());
+                        setup_repos_set.insert(layer_val->String());
                     }
                 }
             }
         }
+
+        // copy to vectors
+        setup_repos->to_setup.clear();
+        setup_repos->to_setup.reserve(setup_repos_set.size());
+        std::copy(
+            setup_repos_set.begin(),
+            setup_repos_set.end(),
+            std::inserter(setup_repos->to_setup, setup_repos->to_setup.end()));
+        setup_repos->to_include.clear();
+        setup_repos->to_include.reserve(include_repos_set.size());
+        std::copy(include_repos_set.begin(),
+                  include_repos_set.end(),
+                  std::inserter(setup_repos->to_include,
+                                setup_repos->to_include.end()));
     }
 }
 
