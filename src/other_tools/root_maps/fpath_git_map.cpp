@@ -31,7 +31,7 @@ auto CreateFilePathGitMap(
                           auto const& key) {
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While getting repo root from path:\n{}", msg),
                     fatal);
@@ -91,7 +91,7 @@ auto CreateFilePathGitMap(
                     // setup wrapped logger
                     auto wrapped_logger =
                         std::make_shared<AsyncMapConsumerLogger>(
-                            [&logger](auto const& msg, bool fatal) {
+                            [logger](auto const& msg, bool fatal) {
                                 (*logger)(
                                     fmt::format("While getting subtree from "
                                                 "path:\n{}",

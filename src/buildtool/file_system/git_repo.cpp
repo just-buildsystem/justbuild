@@ -1082,7 +1082,7 @@ auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
         }
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<anon_logger_t>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While getting repo root from path:\n{}", msg),
                     fatal);
@@ -1095,7 +1095,7 @@ auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
 
         // setup wrapped logger
         wrapped_logger = std::make_shared<anon_logger_t>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While going subtree hash retrieval from "
                                       "path:\n{}",
                                       msg),
@@ -1182,7 +1182,7 @@ auto GitRepo::UpdateCommitViaTmpRepo(std::filesystem::path const& tmp_repo_path,
         }
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<anon_logger_t>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While doing commit update via tmp repo:\n{}",
                                 msg),
@@ -1228,7 +1228,7 @@ auto GitRepo::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                 std::numeric_limits<int>::max()) == 0) {
             // setup wrapped logger
             auto wrapped_logger = std::make_shared<anon_logger_t>(
-                [&logger](auto const& msg, bool fatal) {
+                [logger](auto const& msg, bool fatal) {
                     (*logger)(
                         fmt::format(
                             "While doing branch fetch via tmp repo:\n{}", msg),

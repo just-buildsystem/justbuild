@@ -34,7 +34,7 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger](auto const& msg, bool fatal) {
+        [logger](auto const& msg, bool fatal) {
             (*logger)(
                 fmt::format("While doing initial commit Git op:\n{}", msg),
                 fatal);
@@ -95,7 +95,7 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger](auto const& msg, bool fatal) {
+        [logger](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While doing keep tag Git op:\n{}", msg),
                       fatal);
         });
@@ -129,7 +129,7 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger](auto const& msg, bool fatal) {
+        [logger](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While doing get HEAD id Git op:\n{}", msg),
                       fatal);
         });
@@ -162,7 +162,7 @@ auto CriticalGitOps::GitGetBranchRefname(
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger](auto const& msg, bool fatal) {
+        [logger](auto const& msg, bool fatal) {
             (*logger)(
                 fmt::format("While doing get branch refname Git op:\n{}", msg),
                 fatal);

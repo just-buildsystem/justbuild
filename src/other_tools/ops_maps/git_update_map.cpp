@@ -45,7 +45,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
         }
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While updating commit via tmp repo:\n{}", msg),
                     fatal);

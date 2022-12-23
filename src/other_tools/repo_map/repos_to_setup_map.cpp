@@ -545,7 +545,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
             }
             // setup a wrapped_logger
             auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                [&logger, repo_name = key](auto const& msg, bool fatal) {
+                [logger, repo_name = key](auto const& msg, bool fatal) {
                     (*logger)(
                         fmt::format("While checking out repository {}:\n{}",
                                     repo_name,

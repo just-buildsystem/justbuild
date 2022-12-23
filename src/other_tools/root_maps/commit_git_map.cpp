@@ -81,8 +81,8 @@ auto CreateCommitGitMap(
                 }
                 // setup a wrapped_logger
                 auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [&logger, target_path = repo_root](auto const& msg,
-                                                       bool fatal) {
+                    [logger, target_path = repo_root](auto const& msg,
+                                                      bool fatal) {
                         (*logger)(fmt::format("While ensuring commit for "
                                               "repository {}:\n{}",
                                               target_path.string(),
@@ -127,7 +127,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger](auto const& msg, bool fatal) {
+        [logger](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While checking commit exists:\n{}", msg),
                       fatal);
         });
@@ -181,7 +181,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 // setup wrapped logger
                 auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [&logger](auto const& msg, bool fatal) {
+                    [logger](auto const& msg, bool fatal) {
                         (*logger)(fmt::format(
                                       "While fetching via tmp repo:\n{}", msg),
                                   fatal);
@@ -194,7 +194,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 // setup wrapped logger
                 wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [&logger](auto const& msg, bool fatal) {
+                    [logger](auto const& msg, bool fatal) {
                         (*logger)(fmt::format(
                                       "While checking commit exists:\n{}", msg),
                                   fatal);
@@ -247,7 +247,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                         // setup wrapped logger
                         auto wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
-                                [&logger](auto const& msg, bool fatal) {
+                                [logger](auto const& msg, bool fatal) {
                                     (*logger)(
                                         fmt::format("While getting subtree "
                                                     "from commit:\n{}",
@@ -284,7 +284,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     else {
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [&logger](auto const& msg, bool fatal) {
+            [logger](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While getting subtree from commit:\n{}", msg),
                     fatal);

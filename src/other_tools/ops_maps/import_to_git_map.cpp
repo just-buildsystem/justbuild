@@ -101,8 +101,8 @@ auto CreateImportToGitMap(
                         }
                         auto wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
-                                [&logger, target_path](auto const& msg,
-                                                       bool fatal) {
+                                [logger, target_path](auto const& msg,
+                                                      bool fatal) {
                                     (*logger)(
                                         fmt::format("While fetch via tmp repo "
                                                     "for target {}:\n{}",
@@ -121,8 +121,8 @@ auto CreateImportToGitMap(
                         // setup a wrapped_logger
                         wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
-                                [&logger, target_path](auto const& msg,
-                                                       bool fatal) {
+                                [logger, target_path](auto const& msg,
+                                                      bool fatal) {
                                     (*logger)(
                                         fmt::format("While doing keep commit "
                                                     "and setting Git tree:\n{}",
@@ -197,7 +197,7 @@ void KeepCommitAndSetTree(
             }
             // get tree id and return it
             auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                [&logger, commit](auto const& msg, bool fatal) {
+                [logger, commit](auto const& msg, bool fatal) {
                     (*logger)(
                         fmt::format("While getting subtree from commit {}:\n{}",
                                     commit,
