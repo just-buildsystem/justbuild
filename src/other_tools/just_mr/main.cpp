@@ -217,7 +217,7 @@ void SetupDefaultLogging() {
         auto path = location->Get("path", Expression::none_t{});
         auto base = location->Get("base", std::string("."));
 
-        if (not path.IsNotNull() or not root.IsNotNull() or
+        if (not path->IsString() or not root->IsString() or
             not kLocationTypes.contains(root->String())) {
             Logger::Log(LogLevel::Error,
                         "Malformed location object: {}",
@@ -260,13 +260,9 @@ void SetupDefaultLogging() {
     // set default if rcpath not given
     if (not clargs->common.norc) {
         if (not rc_path) {
-            if (not FileSystemManager::IsFile(kDefaultRCPath)) {
-                return std::nullopt;
-            }
             rc_path = kDefaultRCPath;
         }
         else {
-
             if (not FileSystemManager::IsFile(*rc_path)) {
                 Logger::Log(LogLevel::Error,
                             "Cannot read RC file {}.",
@@ -274,22 +270,27 @@ void SetupDefaultLogging() {
                 std::exit(kExitConfigError);
             }
         }
-        try {
-            std::ifstream fs(*rc_path);
-            auto map = Expression::FromJson(nlohmann::json::parse(fs));
-            if (not map->IsMap()) {
+        if (FileSystemManager::IsFile(*rc_path)) {
+            // json::parse may throw
+            try {
+                std::ifstream fs(*rc_path);
+                auto map = Expression::FromJson(nlohmann::json::parse(fs));
+                if (not map->IsMap()) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "In RC file {}: expected an object but found:\n{}",
+                        rc_path->string(),
+                        map->ToString());
+                    std::exit(kExitConfigError);
+                }
+                rc_config = Configuration{map};
+            } catch (std::exception const& e) {
                 Logger::Log(LogLevel::Error,
-                            "RC file {} does not contain a JSON object.",
-                            rc_path->string());
+                            "Parsing RC file {} as JSON failed with error:\n{}",
+                            rc_path->string(),
+                            e.what());
                 std::exit(kExitConfigError);
             }
-            rc_config = Configuration{map};
-        } catch (std::exception const& e) {
-            Logger::Log(LogLevel::Error,
-                        "Parsing RC file {} failed with error:\n{}",
-                        rc_path->string(),
-                        e.what());
-            std::exit(kExitConfigError);
         }
     }
     // read local build root; overwritten if user provided it already
