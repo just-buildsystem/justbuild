@@ -20,7 +20,7 @@ readonly DIRNAME="dir"
 readonly OUT_DIRNAME="${DIRNAME}out"
 readonly GITDIR="${TEST_TMPDIR}/git-root"
 readonly LBRDIR="${TEST_TMPDIR}/local-build-root"
-readonly JUST_MR="${PWD}/bin/just-mr.py"
+readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly RESULT="out.txt"
 

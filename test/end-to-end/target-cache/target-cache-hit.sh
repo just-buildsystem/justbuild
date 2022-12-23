@@ -17,7 +17,7 @@
 set -eu
 
 readonly JUST="$PWD/bin/tool-under-test"
-readonly JUST_MR="$PWD/bin/just-mr.py"
+readonly JUST_MR="$PWD/bin/mr-tool-under-test"
 readonly LBRDIR="$TEST_TMPDIR/local-build-root"
 readonly TESTDIR="$TEST_TMPDIR/test-root"
 

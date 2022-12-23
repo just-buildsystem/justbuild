@@ -2,7 +2,10 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["target-cache-hit"]
   , "test": ["target-cache-hit.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"], ["", "bin/just-mr.py"]]
+  , "deps":
+    [ ["test/end-to-end", "tool-under-test"]
+    , ["test/end-to-end", "mr-tool-under-test"]
+    ]
   }
 , "artifacts-sync":
   { "type": ["@", "rules", "shell/test", "script"]
