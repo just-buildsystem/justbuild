@@ -574,7 +574,6 @@ def distdir_checkout(desc, repos):
         if repo_desc_type in ["archive", "zip"]:
             # fetch repo
             content_id = repo_desc["content"]
-            archive_fetch(repo_desc, content=content_id)
             # Store the relevant info in the map
             content[get_distfile(repo_desc)] = content_id
 
@@ -596,6 +595,15 @@ def distdir_checkout(desc, repos):
             git_subtree(tree=distdir_tree_id, subdir=".", upstream=None),
             git_root(upstream=None)
         ]
+
+    # As the content is not there already, so we have to ensure the archives
+    # are present.
+    for repo in distdir_repos:
+        repo_desc = repos[repo].get("repository", {})
+        repo_desc_type = repo_desc.get("type")
+        if repo_desc_type in ["archive", "zip"]:
+            content_id = repo_desc["content"]
+            archive_fetch(repo_desc, content=content_id)
 
     # Create the dirstdir repo folder content
     target_tmp_dir = distdir_tmp_dir(distdir_content_id)
