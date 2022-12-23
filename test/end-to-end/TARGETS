@@ -17,6 +17,7 @@
     , [["./", "build-fails", "TESTS"], "build-fails"]
     , [["./", "remote-execution", "TESTS"], "remote-execution"]
     , [["./", "target-cache", "TESTS"], "target-cache"]
+    , [["./", "just-mr", "TESTS"], "just-mr"]
     ]
   }
 }
