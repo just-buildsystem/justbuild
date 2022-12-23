@@ -27,10 +27,10 @@ struct GitRepoInfo {
     std::string hash{}; /* key */
     std::string repo_url{};
     std::string branch{};
-    std::string subdir{};
+    std::string subdir{}; /* key */
 
     [[nodiscard]] auto operator==(const GitRepoInfo& other) const -> bool {
-        return hash == other.hash;
+        return hash == other.hash and subdir == other.subdir;
     }
 };
 
@@ -39,7 +39,10 @@ template <>
 struct hash<GitRepoInfo> {
     [[nodiscard]] auto operator()(const GitRepoInfo& ct) const noexcept
         -> std::size_t {
-        return std::hash<std::string>{}(ct.hash);
+        size_t seed{};
+        hash_combine<std::string>(&seed, ct.hash);
+        hash_combine<std::string>(&seed, ct.subdir);
+        return seed;
     }
 };
 }  // namespace std

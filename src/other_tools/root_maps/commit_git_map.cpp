@@ -136,7 +136,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     if (is_commit_present == std::nullopt) {
         return;
     }
-    if (not *is_commit_present) {
+    if (not is_commit_present.value()) {
         // if commit not there, fetch it
         // get refspec for branch
         GitOpKey op_key = {{
