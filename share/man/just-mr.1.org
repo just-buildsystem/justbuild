@@ -148,7 +148,7 @@ be provided in the configuration or on the command line. If no main repository
 is provided, the lexicographical first repository from the configuration is
 used.
 
-** version|describe|analyse|build|install|install-cas|rebuild
+** version|describe|analyse|build|install|install-cas|rebuild|gc
 
 This subcommand is the explicit way of specifying /known/ just subcommands and
 calling ~just~ via *execvp(2)*. The same description as for the ~do~ subcommand

@@ -4,6 +4,8 @@ A feature release on top of `1.0.0`, backwards compatible.
 
 ### Major new features
 
+- New subcommand `just gc` to clean up no longer needed cache and
+  CAS entries
 - `just` now supports authentication to remote execution via mutual TLS
 - `just-mr` is now available as C++ binary and supports fetching in parallel
 

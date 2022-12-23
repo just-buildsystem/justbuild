@@ -310,7 +310,7 @@ static inline auto SetupDiagnosticArguments(
         ->type_name("PATH");
 }
 
-static inline auto SetupEndpointArguments(
+static inline auto SetupCacheArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option_function<std::string>(
@@ -321,7 +321,11 @@ static inline auto SetupEndpointArguments(
            },
            "Root for local CAS, cache, and build directories.")
         ->type_name("PATH");
+}
 
+static inline auto SetupEndpointArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option("-r,--remote-execution-address",
                     clargs->remote_execution_address,
                     "Address of the remote execution service.")

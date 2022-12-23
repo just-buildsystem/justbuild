@@ -10,6 +10,7 @@
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
+    , ["src/buildtool/execution_api/local", "garbage_collector"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/target_map", "target_cache"]
     , ["src/buildtool/build_engine/target_map", "target_cache_key"]

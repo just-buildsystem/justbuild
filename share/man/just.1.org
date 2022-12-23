@@ -13,7 +13,8 @@ just install -o <OUTPUT_DIR> [OPTIONS] [[module] target]\\
 just install-cas [OPTIONS] <OBJECT_ID>\\
 just describe [OPTIONS] [[module] target]\\
 just rebuild [OPTIONS] [[module] target]\\
-just traverse -g <GRAPH_FILE> -o <OUT_DIR> [OPTIONS]
+just traverse -g <GRAPH_FILE> -o <OUT_DIR> [OPTIONS]\\
+just gc [OPTIONS]
 
 * DESCRIPTION
 
@@ -237,6 +238,15 @@ the artifact is a tree, it will cause an error.
 It allows for the building and staging of requested artifacts from a
 well-defined graph file. See *just-graph-file(5)* for more details.
 
+** gc
+
+The *gc* subcommand triggers garbage collection of the local cache.
+More precisely, it rotates the cache and CAS generations. During
+a build, upon cache hit, everything related to that cache hit is
+uplinked to the youngest generation; therefore, upon a call to ~gc~
+everything not referenced since the last call to ~gc~ is purged
+and the corresponding disk space reclaimed.
+
 * OPTIONS
 
 ** Generic program information
@@ -311,7 +321,7 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    *--local-build-root* PATH\\
    Root for local CAS, cache, and build directories. The path will be
    created if it does not exist already.\\
-   Supported by: build|install-cas|install|rebuild|traverse.
+   Supported by: build|install-cas|install|rebuild|traverse|gc.
 
    *--main* NAME\\
    The repository to take the target from.\\
@@ -524,8 +534,6 @@ well-defined graph file. See *just-graph-file(5)* for more details.
    treated as stdout. Output is a JSON map between tree ids and the
    corresponding artifact map, which maps the path to the artifact
    description.
-
-** *install-cas* specific options
 
 ** *rebuild* specific options
 

@@ -91,6 +91,10 @@ KNOWN_JUST_SUBCOMMANDS = {
     "install-cas": {
         "config": False,
         "build root": True
+    },
+    "gc": {
+        "config": False,
+        "build root": True
     }
 }
 CURRENT_SUBCOMMAND = None

@@ -57,7 +57,8 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
     {"build", {true, true}},
     {"install", {true, true}},
     {"rebuild", {true, true}},
-    {"install-cas", {false, true}}};
+    {"install-cas", {false, true}},
+    {"gc", {false, true}}};
 
 nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
     {{{"root", "workspace"}, {"path", "repos.json"}},
