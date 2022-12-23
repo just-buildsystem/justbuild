@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <nlohmann/json.hpp>
 #include <unistd.h>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -1088,8 +1089,9 @@ void DefaultReachableRepositories(
         cmd.emplace_back(*it);
     }
 
-    Logger::Log(
-        LogLevel::Info, "Setup finished, exec \'{}\'", fmt::join(cmd, " "));
+    Logger::Log(LogLevel::Info,
+                "Setup finished, exec \'{}\'",
+                nlohmann::json(cmd).dump());
 
     // create argv
     std::vector<char*> argv{};
