@@ -71,12 +71,9 @@ class ByteStreamClient {
         }
     };
 
-    ByteStreamClient(std::string const& server,
-                     Port port,
-                     std::string const& user = "",
-                     std::string const& pwd = "") noexcept {
+    ByteStreamClient(std::string const& server, Port port) noexcept {
         stub_ = google::bytestream::ByteStream::NewStub(
-            CreateChannelWithCredentials(server, port, user, pwd));
+            CreateChannelWithCredentials(server, port));
     }
 
     [[nodiscard]] auto IncrementalRead(

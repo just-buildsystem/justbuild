@@ -47,11 +47,9 @@ void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
 }  // namespace
 
 BazelExecutionClient::BazelExecutionClient(std::string const& server,
-                                           Port port,
-                                           std::string const& user,
-                                           std::string const& pwd) noexcept {
+                                           Port port) noexcept {
     stub_ = bazel_re::Execution::NewStub(
-        CreateChannelWithCredentials(server, port, user, pwd));
+        CreateChannelWithCredentials(server, port));
 }
 
 auto BazelExecutionClient::Execute(std::string const& instance_name,

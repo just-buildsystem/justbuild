@@ -16,6 +16,7 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
+    , ["src/buildtool/auth", "auth"]
     , "common"
     , "version"
     , "analyse"

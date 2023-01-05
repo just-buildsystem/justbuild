@@ -125,6 +125,14 @@ struct GraphArguments {
     std::optional<std::filesystem::path> git_cas{};
 };
 
+/// \brief Arguments for authentication methods.
+struct AuthArguments {
+    // CA certificate used to verify server's identity
+    std::optional<std::filesystem::path> tls_ca_cert{std::nullopt};
+    std::optional<std::filesystem::path> tls_client_cert{std::nullopt};
+    std::optional<std::filesystem::path> tls_client_key{std::nullopt};
+};
+
 static inline auto SetupCommonArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommonArguments*> const& clargs) {
@@ -456,5 +464,20 @@ static inline auto SetupCompatibilityArguments(
         "At increased computational effort, be compatible with the original "
         "remote build execution protocol. As the change affects identifiers, "
         "the flag must be used consistently for all related invocations.");
+}
+
+static inline auto SetupAuthArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<AuthArguments*> const& authargs) {
+    app->add_option("--tls-ca-cert",
+                    authargs->tls_ca_cert,
+                    "Path to a TLS CA certificate that is trusted to sign the "
+                    "server certificate.");
+    app->add_option("--tls-client-cert",
+                    authargs->tls_client_cert,
+                    "Path to the TLS client certificate.");
+    app->add_option("--tls-client-key",
+                    authargs->tls_client_key,
+                    "Path to the TLS client key.");
 }
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP

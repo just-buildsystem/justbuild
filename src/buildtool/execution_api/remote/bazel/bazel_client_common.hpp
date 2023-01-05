@@ -22,6 +22,7 @@
 #include <string>
 
 #include "grpcpp/grpcpp.h"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -29,18 +30,20 @@
 
 [[maybe_unused]] [[nodiscard]] static inline auto CreateChannelWithCredentials(
     std::string const& server,
-    Port port,
-    std::string const& user = "",
-    [[maybe_unused]] std::string const& pwd = "") noexcept {
-    std::shared_ptr<grpc::ChannelCredentials> cred;
+    Port port) noexcept {
+
+    std::shared_ptr<grpc::ChannelCredentials> creds;
     std::string address = server + ':' + std::to_string(port);
-    if (user.empty()) {
-        cred = grpc::InsecureChannelCredentials();
+    if (Auth::GetAuthMethod() == AuthMethod::kTLS) {
+        auto tls_opts = grpc::SslCredentialsOptions{Auth::TLS::CACert(),
+                                                    Auth::TLS::ClientKey(),
+                                                    Auth::TLS::ClientCert()};
+        creds = grpc::SslCredentials(tls_opts);
     }
     else {
-        // TODO(oreiche): set up authentication credentials
+        creds = grpc::InsecureChannelCredentials();
     }
-    return grpc::CreateChannel(address, cred);
+    return grpc::CreateChannel(address, creds);
 }
 
 [[maybe_unused]] static inline void LogStatus(Logger const* logger,

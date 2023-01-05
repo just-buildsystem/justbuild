@@ -1,0 +1,9 @@
+{ "auth":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["auth"]
+  , "hdrs": ["authentication.hpp"]
+  , "deps":
+    [["@", "gsl-lite", "", "gsl-lite"], ["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "buildtool", "auth"]
+  }
+}
