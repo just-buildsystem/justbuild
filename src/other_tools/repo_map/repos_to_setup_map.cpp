@@ -98,8 +98,7 @@ void GitCheckout(ExpressionPtr const& repo_desc,
     commit_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(git_repo_info)},
-        [repos = std::move(repos), repo_name, setter, logger](
-            auto const& values) {
+        [repos = std::move(repos), repo_name, setter](auto const& values) {
             auto ws_root = *values[0];
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
@@ -182,8 +181,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
     content_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(archive_repo_info)},
-        [repos = std::move(repos), repo_name, setter, logger](
-            auto const& values) {
+        [repos = std::move(repos), repo_name, setter](auto const& values) {
             auto ws_root = *values[0];
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
@@ -235,8 +233,7 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
             {std::move(fpath)},
-            [repos = std::move(repos), repo_name, setter, logger](
-                auto const& values) {
+            [repos = std::move(repos), repo_name, setter](auto const& values) {
                 auto ws_root = *values[0];
                 nlohmann::json cfg({});
                 cfg["workspace_root"] = ws_root;
@@ -422,8 +419,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
-        [repos = std::move(repos), repo_name, setter, logger](
-            auto const& values) {
+        [repos = std::move(repos), repo_name, setter](auto const& values) {
             auto ws_root = *values[0];
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
