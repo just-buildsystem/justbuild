@@ -6,6 +6,7 @@
   , "deps":
     [ ["@", "json", "", "json"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/other_tools/ops_maps", "content_cas_map"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":

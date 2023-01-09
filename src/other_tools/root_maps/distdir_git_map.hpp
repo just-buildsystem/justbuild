@@ -16,11 +16,13 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_DISTDIR_GIT_MAP_HPP
 
 #include "nlohmann/json.hpp"
+#include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
 struct DistdirInfo {
     std::string content_id; /* key */
     std::shared_ptr<std::unordered_map<std::string, std::string>> content_list;
+    std::shared_ptr<std::vector<ArchiveContent>> repos_to_fetch;
 
     [[nodiscard]] auto operator==(const DistdirInfo& other) const noexcept
         -> bool {
@@ -33,6 +35,7 @@ struct DistdirInfo {
 using DistdirGitMap = AsyncMapConsumer<DistdirInfo, nlohmann::json>;
 
 [[nodiscard]] auto CreateDistdirGitMap(
+    gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> DistdirGitMap;

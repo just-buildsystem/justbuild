@@ -21,6 +21,7 @@
 #include "src/buildtool/execution_api/local/file_storage.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
+#include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -49,15 +50,17 @@ namespace {
 }  // namespace
 
 auto CreateDistdirGitMap(
+    gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> DistdirGitMap {
-    auto distdir_to_git = [import_to_git_map, critical_git_op_map](
-                              auto ts,
-                              auto setter,
-                              auto logger,
-                              auto /* unused */,
-                              auto const& key) {
+    auto distdir_to_git = [content_cas_map,
+                           import_to_git_map,
+                           critical_git_op_map](auto ts,
+                                                auto setter,
+                                                auto logger,
+                                                auto /* unused */,
+                                                auto const& key) {
         auto distdir_tree_id_file =
             JustMR::Utils::GetDistdirTreeIDFile(key.content_id);
         if (FileSystemManager::Exists(distdir_tree_id_file)) {
@@ -111,61 +114,85 @@ auto CreateDistdirGitMap(
                 });
         }
         else {
-            // create the links to CAS
-            auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("distdir");
-            if (not tmp_dir) {
-                (*logger)(fmt::format(
-                              "Failed to create tmp path for distdir target {}",
-                              key.content_id),
-                          /*fatal=*/true);
-                return;
-            }
-            // link content from CAS into tmp dir
-            if (not LinkToCAS(key.content_list, tmp_dir->GetPath())) {
-                (*logger)(fmt::format("Failed to create links to CAS content!",
-                                      key.content_id),
-                          /*fatal=*/true);
-                return;
-            }
-            // do import to git
-            CommitInfo c_info{tmp_dir->GetPath(), "distdir", key.content_id};
-            import_to_git_map->ConsumeAfterKeysReady(
+            // fetch the gathered distdir repos into CAS
+            content_cas_map->ConsumeAfterKeysReady(
                 ts,
-                {std::move(c_info)},
-                [tmp_dir,  // keep tmp_dir alive
-                 distdir_tree_id_file,
+                *key.repos_to_fetch,
+                [distdir_tree_id_file,
+                 content_id = key.content_id,
+                 content_list = key.content_list,
+                 import_to_git_map,
+                 ts,
                  setter,
-                 logger](auto const& values) {
-                    // check for errors
-                    if (not values[0]->second) {
-                        (*logger)("Importing to git failed",
+                 logger]([[maybe_unused]] auto const& values) mutable {
+                    // repos are in CAS
+                    // create the links to CAS
+                    auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("distdir");
+                    if (not tmp_dir) {
+                        (*logger)(fmt::format("Failed to create tmp path for "
+                                              "distdir target {}",
+                                              content_id),
                                   /*fatal=*/true);
                         return;
                     }
-                    // only the tree is of interest
-                    std::string distdir_tree_id = values[0]->first;
-                    // write to tree id file
-                    if (not JustMR::Utils::WriteTreeIDFile(distdir_tree_id_file,
-                                                           distdir_tree_id)) {
-                        (*logger)(
-                            fmt::format("Failed to write tree id to file {}",
-                                        distdir_tree_id_file.string()),
-                            /*fatal=*/true);
+                    // link content from CAS into tmp dir
+                    if (not LinkToCAS(content_list, tmp_dir->GetPath())) {
+                        (*logger)(fmt::format(
+                                      "Failed to create links to CAS content!",
+                                      content_id),
+                                  /*fatal=*/true);
                         return;
                     }
-                    // set the workspace root
-                    (*setter)(nlohmann::json::array(
-                        {"git tree",
-                         distdir_tree_id,
-                         JustMR::Utils::GetGitCacheRoot().string()}));
+                    // do import to git
+                    CommitInfo c_info{
+                        tmp_dir->GetPath(), "distdir", content_id};
+                    import_to_git_map->ConsumeAfterKeysReady(
+                        ts,
+                        {std::move(c_info)},
+                        [tmp_dir,  // keep tmp_dir alive
+                         distdir_tree_id_file,
+                         setter,
+                         logger](auto const& values) {
+                            // check for errors
+                            if (not values[0]->second) {
+                                (*logger)("Importing to git failed",
+                                          /*fatal=*/true);
+                                return;
+                            }
+                            // only the tree is of interest
+                            std::string distdir_tree_id = values[0]->first;
+                            // write to tree id file
+                            if (not JustMR::Utils::WriteTreeIDFile(
+                                    distdir_tree_id_file, distdir_tree_id)) {
+                                (*logger)(
+                                    fmt::format(
+                                        "Failed to write tree id to file {}",
+                                        distdir_tree_id_file.string()),
+                                    /*fatal=*/true);
+                                return;
+                            }
+                            // set the workspace root
+                            (*setter)(nlohmann::json::array(
+                                {"git tree",
+                                 distdir_tree_id,
+                                 JustMR::Utils::GetGitCacheRoot().string()}));
+                        },
+                        [logger, target_path = tmp_dir->GetPath()](
+                            auto const& msg, bool fatal) {
+                            (*logger)(fmt::format("While importing target {} "
+                                                  "to git:\n{}",
+                                                  target_path.string(),
+                                                  msg),
+                                      fatal);
+                        });
                 },
-                [logger, target_path = tmp_dir->GetPath()](auto const& msg,
-                                                           bool fatal) {
-                    (*logger)(
-                        fmt::format("While importing target {} to git:\n{}",
-                                    target_path.string(),
-                                    msg),
-                        fatal);
+                [logger, content_id = key.content_id](auto const& msg,
+                                                      bool fatal) {
+                    (*logger)(fmt::format("While fetching archives for distdir "
+                                          "content {}:\n{}",
+                                          content_id,
+                                          msg),
+                              fatal);
                 });
         }
     };

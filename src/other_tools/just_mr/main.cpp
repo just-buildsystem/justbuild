@@ -968,8 +968,10 @@ void DefaultReachableRepositories(
                                               &critical_git_op_map,
                                               &import_to_git_map,
                                               arguments.common.jobs);
-    auto distdir_git_map = CreateDistdirGitMap(
-        &import_to_git_map, &critical_git_op_map, arguments.common.jobs);
+    auto distdir_git_map = CreateDistdirGitMap(&content_cas_map,
+                                               &import_to_git_map,
+                                               &critical_git_op_map,
+                                               arguments.common.jobs);
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,
                                                     interactive,

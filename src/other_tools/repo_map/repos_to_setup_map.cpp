@@ -266,7 +266,6 @@ void FileCheckout(ExpressionPtr const& repo_desc,
 void DistdirCheckout(ExpressionPtr const& repo_desc,
                      ExpressionPtr&& repos,
                      std::string const& repo_name,
-                     gsl::not_null<ContentCASMap*> const& content_cas_map,
                      gsl::not_null<DistdirGitMap*> const& distdir_git_map,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
@@ -292,7 +291,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     // get distdir list
     auto distdir_repos = repo_desc_repositories->get()->List();
     // create list of archives to fetch
-    std::vector<ArchiveContent> dist_repos_to_fetch{};
+    auto dist_repos_to_fetch = std::make_shared<std::vector<ArchiveContent>>();
     for (auto const& dist_repo : distdir_repos) {
         // get name of dist_repo
         auto dist_repo_name = dist_repo->String();
@@ -410,51 +409,30 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                                         .string());
             distdir_content->insert_or_assign(repo_distfile, archive.content);
             // add to fetch list
-            dist_repos_to_fetch.emplace_back(std::move(archive));
+            dist_repos_to_fetch->emplace_back(std::move(archive));
         }
     }
-    // fetch the gathered distdir repos into CAS
-    content_cas_map->ConsumeAfterKeysReady(
+    // get hash of distdir content
+    auto distdir_content_id =
+        HashFunction::ComputeBlobHash(nlohmann::json(*distdir_content).dump())
+            .HexString();
+    // get the WS root as git tree
+    DistdirInfo distdir_info = {
+        distdir_content_id, distdir_content, dist_repos_to_fetch};
+    distdir_git_map->ConsumeAfterKeysReady(
         ts,
-        dist_repos_to_fetch,
-        [distdir_content = std::move(distdir_content),
-         repos = std::move(repos),
-         repo_name,
-         distdir_git_map,
-         ts,
-         setter,
-         logger]([[maybe_unused]] auto const& values) mutable {
-            // repos are in CAS
-            // get hash of distdir content
-            auto distdir_content_id =
-                HashFunction::ComputeBlobHash(
-                    nlohmann::json(*distdir_content).dump())
-                    .HexString();
-            // get the WS root as git tree
-            DistdirInfo distdir_info = {distdir_content_id, distdir_content};
-            distdir_git_map->ConsumeAfterKeysReady(
-                ts,
-                {std::move(distdir_info)},
-                [repos = std::move(repos), repo_name, setter, logger](
-                    auto const& values) {
-                    auto ws_root = *values[0];
-                    nlohmann::json cfg({});
-                    cfg["workspace_root"] = ws_root;
-                    SetReposTakeOver(&cfg, repos, repo_name);
-                    (*setter)(std::move(cfg));
-                },
-                [logger, repo_name](auto const& msg, bool fatal) {
-                    (*logger)(
-                        fmt::format("While setting the workspace root for "
-                                    "repository {} of type distdir:\n{}",
-                                    repo_name,
-                                    msg),
-                        fatal);
-                });
+        {std::move(distdir_info)},
+        [repos = std::move(repos), repo_name, setter, logger](
+            auto const& values) {
+            auto ws_root = *values[0];
+            nlohmann::json cfg({});
+            cfg["workspace_root"] = ws_root;
+            SetReposTakeOver(&cfg, repos, repo_name);
+            (*setter)(std::move(cfg));
         },
         [logger, repo_name](auto const& msg, bool fatal) {
-            (*logger)(fmt::format("While fetching archives for distdir "
-                                  "repository {}:\n{}",
+            (*logger)(fmt::format("While setting the workspace root for "
+                                  "repository {} of type distdir:\n{}",
                                   repo_name,
                                   msg),
                       fatal);
@@ -589,7 +567,6 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                     DistdirCheckout(*resolved_repo_desc,
                                     std::move(repos),
                                     key,
-                                    content_cas_map,
                                     distdir_git_map,
                                     ts,
                                     setter,
