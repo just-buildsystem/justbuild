@@ -17,6 +17,8 @@
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"
 
 namespace {
@@ -50,6 +52,11 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                                          auto logger,
                                          auto /*unused*/,
                                          auto const& key) {
+        // start work reporting, but only if part of a distdir
+        if (key.origin_from_distdir) {
+            JustMRProgress::Instance().TaskTracker().Start(key.origin);
+            JustMRStatistics::Instance().IncrementQueuedCounter();
+        }
         // check if content already in CAS
         auto const& casf = LocalCAS<ObjectType::File>::Instance();
         auto digest = ArtifactDigest(key.content, 0, false);
@@ -122,6 +129,11 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             return;
         }
         (*setter)(true);
+        // report work done, but only if part of a distdir
+        if (key.origin_from_distdir) {
+            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+            JustMRStatistics::Instance().IncrementExecutedCounter();
+        }
     };
     return AsyncMapConsumer<ArchiveContent, bool>(ensure_in_cas, jobs);
 }

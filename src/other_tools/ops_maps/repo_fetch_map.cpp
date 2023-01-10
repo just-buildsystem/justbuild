@@ -16,6 +16,8 @@
 
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 
 auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
@@ -26,16 +28,20 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                                                    auto logger,
                                                    auto /* unused */,
                                                    auto const& key) {
-        // if archive available as a git tree ID stored to file,
-        // that's good enough, as it means it needs no fetching
-        auto tree_id_file = JustMR::Utils::GetArchiveTreeIDFile(
-            key.repo_type, key.archive.content);
+        // get corresponding distfile
         auto distfile =
             (key.archive.distfile ? key.archive.distfile.value()
                                   : std::filesystem::path(key.archive.fetch_url)
                                         .filename()
                                         .string());
+        // if archive available as a git tree ID stored to file,
+        // that's good enough, as it means it needs no fetching
+        auto tree_id_file = JustMR::Utils::GetArchiveTreeIDFile(
+            key.repo_type, key.archive.content);
         if (not FileSystemManager::Exists(tree_id_file)) {
+            // start work reporting
+            JustMRProgress::Instance().TaskTracker().Start(key.archive.origin);
+            JustMRStatistics::Instance().IncrementQueuedCounter();
             // make sure content is in CAS
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -43,6 +49,7 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                 [fetch_dir,
                  content = key.archive.content,
                  distfile,
+                 origin = key.archive.origin,
                  setter,
                  logger]([[maybe_unused]] auto const& values) {
                     // content is now in CAS
@@ -70,6 +77,9 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                         }
                         // success
                         (*setter)(true);
+                        // report work done
+                        JustMRProgress::Instance().TaskTracker().Stop(origin);
+                        JustMRStatistics::Instance().IncrementExecutedCounter();
                     }
                     else {
                         (*logger)(
@@ -112,6 +122,8 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                 }
                 // success
                 (*setter)(true);
+                // report cache hit
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
             }
             else {
                 (*logger)(fmt::format("Content {} could not be found in CAS",

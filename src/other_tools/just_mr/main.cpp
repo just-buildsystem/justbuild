@@ -514,6 +514,9 @@ void DefaultReachableRepositories(
 [[nodiscard]] auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                   CommandLineArguments const& arguments)
     -> int {
+    // provide report
+    Logger::Log(LogLevel::Info, "Performing repositories fetch");
+
     // find fetch dir
     auto fetch_dir = arguments.fetch.fetch_dir;
     if (not fetch_dir) {
@@ -715,11 +718,39 @@ void DefaultReachableRepositories(
             return kExitFetchError;
         }
     }
+
+    // report progress
+    auto nr = repos_to_fetch.size();
+    Logger::Log(LogLevel::Info,
+                "Found {} {} to fetch",
+                nr,
+                nr == 1 ? "archive" : "archives");
+
     // create async maps
     auto content_cas_map = CreateContentCASMap(arguments.common.just_mr_paths,
                                                arguments.common.jobs);
     auto repo_fetch_map =
         CreateRepoFetchMap(&content_cas_map, *fetch_dir, arguments.common.jobs);
+
+    // set up map for progress tracing
+    auto& repo_set = JustMRProgress::Instance().RepositorySet();
+    repo_set.clear();
+    repo_set.reserve(nr);
+    for (auto const& repo : repos_to_fetch) {
+        auto distfile = (repo.archive.distfile
+                             ? repo.archive.distfile.value()
+                             : std::filesystem::path(repo.archive.fetch_url)
+                                   .filename()
+                                   .string());
+        repo_set.emplace(std::move(distfile));
+    }
+    // set up progress observer
+    std::atomic<bool> done{false};
+    std::condition_variable cv{};
+    auto reporter = JustMRProgressReporter::Reporter();
+    auto observer =
+        std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
+
     // do the fetch
     bool failed{false};
     {
@@ -743,9 +774,17 @@ void DefaultReachableRepositories(
                 failed = failed or fatal;
             });
     }
+
+    // close progress observer
+    done = true;
+    cv.notify_all();
+    observer.join();
+
     if (failed) {
         return kExitFetchError;
     }
+    // report success
+    Logger::Log(LogLevel::Info, "Fetch completed");
     return kExitSuccess;
 }
 
