@@ -16,6 +16,8 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -26,6 +28,10 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
                                     auto logger,
                                     auto /* unused */,
                                     auto const& key) {
+        // start progress trace for Git repo
+        auto id = fmt::format("{}:{}", key.first, key.second);
+        JustMRProgress::Instance().TaskTracker().Start(id);
+        JustMRStatistics::Instance().IncrementQueuedCounter();
         // perform git update commit
         auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
         if (not git_repo) {
@@ -57,6 +63,9 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
             return;
         }
         (*setter)(new_commit->c_str());
+        // stop progress trace for Git repo
+        JustMRProgress::Instance().TaskTracker().Stop(id);
+        JustMRStatistics::Instance().IncrementExecutedCounter();
     };
     return AsyncMapConsumer<StringPair, std::string>(update_commits, jobs);
 }

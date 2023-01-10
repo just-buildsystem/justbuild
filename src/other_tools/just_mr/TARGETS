@@ -13,6 +13,9 @@
     , ["src/other_tools/ops_maps", "git_update_map"]
     , ["src/other_tools/repo_map", "repos_to_setup_map"]
     , ["@", "json", "", "json"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":

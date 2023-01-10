@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <utility>
+
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 
@@ -22,6 +24,9 @@
 #include "src/buildtool/main/version.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/git_update_map.hpp"
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
@@ -747,8 +752,14 @@ void DefaultReachableRepositories(
 [[nodiscard]] auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                                    CommandLineArguments const& arguments)
     -> int {
+    // provide report
+    Logger::Log(LogLevel::Info, "Performing repositories update");
+
     // Check trivial case
     if (arguments.update.repos_to_update.empty()) {
+        // report success
+        Logger::Log(LogLevel::Info, "No update needed");
+        // print config file
         std::cout << config->ToJson().dump(2) << std::endl;
         return kExitSuccess;
     }
@@ -871,11 +882,36 @@ void DefaultReachableRepositories(
                     tmp_dir->GetPath().string());
         return kExitUpdateError;
     }
+
+    // report progress
+    auto nr = repos_to_update.size();
+    Logger::Log(LogLevel::Info,
+                "Discovered {} Git {} to update",
+                nr,
+                nr == 1 ? "repository" : "repositories");
+
     // Initialize resulting config to be updated
     auto mr_config = config->ToJson();
-    // Create and call git commit update map
+    // Create async map
     auto git_update_map =
         CreateGitUpdateMap(git_repo->GetGitCAS(), arguments.common.jobs);
+
+    // set up map for progress tracing
+    auto& repo_set = JustMRProgress::Instance().RepositorySet();
+    repo_set.clear();
+    repo_set.reserve(nr);
+    for (auto const& repo : repos_to_update) {
+        auto id = fmt::format("{}:{}", repo.first, repo.second);
+        repo_set.emplace(std::move(id));
+    }
+    // set up progress observer
+    std::atomic<bool> done{false};
+    std::condition_variable cv{};
+    auto reporter = JustMRProgressReporter::Reporter();
+    auto observer =
+        std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
+
+    // do the update
     bool failed{false};
     {
         TaskSystem ts{arguments.common.jobs};
@@ -899,9 +935,17 @@ void DefaultReachableRepositories(
                 failed = failed or fatal;
             });
     }
+
+    // close progress observer
+    done = true;
+    cv.notify_all();
+    observer.join();
+
     if (failed) {
         return kExitUpdateError;
     }
+    // report success
+    Logger::Log(LogLevel::Info, "Update completed");
     // print mr_config to stdout
     std::cout << mr_config.dump(2) << std::endl;
     return kExitSuccess;
