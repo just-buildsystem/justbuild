@@ -18,7 +18,13 @@
 , "ALL":
   { "type": "configure"
   , "arguments_config":
-    ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "TEST_BOOTSTRAP_JUST_MR"
+    ]
   , "tainted": ["test"]
   , "target": "TESTS"
   , "config":
@@ -44,7 +50,14 @@
       ]
     , "body":
       { "type": "env"
-      , "vars": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH", "COMPILER_FAMILY"]
+      , "vars":
+        [ "OS"
+        , "ARCH"
+        , "HOST_ARCH"
+        , "TARGET_ARCH"
+        , "COMPILER_FAMILY"
+        , "TEST_BOOTSTRAP_JUST_MR"
+        ]
       }
     }
   }

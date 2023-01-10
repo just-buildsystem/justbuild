@@ -2,7 +2,15 @@
   {"type": "install", "files": {"bin/tool-under-test": [".", "just"]}}
 , "mr-tool-under-test":
   { "type": "install"
-  , "files": {"bin/mr-tool-under-test": ["", "bin/just-mr.py"]}
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "files":
+    { "bin/mr-tool-under-test":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+      , "then": ["", "bin/just-mr.py"]
+      , "else": [".", "just-mr"]
+      }
+    }
   }
 , "TESTS":
   { "type": "install"
