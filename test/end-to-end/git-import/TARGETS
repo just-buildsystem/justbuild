@@ -1,0 +1,12 @@
+{ "chained-import":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["chained-import"]
+  , "test": ["chained-import.sh"]
+  , "deps":
+    [ ["test/end-to-end", "git-import-under-test"]
+    , ["test/end-to-end", "mr-tool-under-test"]
+    , ["test/end-to-end", "tool-under-test"]
+    ]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["chained-import"]}
+}

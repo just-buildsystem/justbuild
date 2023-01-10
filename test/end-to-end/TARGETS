@@ -12,6 +12,10 @@
       }
     }
   }
+, "git-import-under-test":
+  { "type": "install"
+  , "files": {"bin/git-import-under-test": ["", "bin/just-import-git.py"]}
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -26,6 +30,7 @@
     , [["./", "remote-execution", "TESTS"], "remote-execution"]
     , [["./", "target-cache", "TESTS"], "target-cache"]
     , [["./", "just-mr", "TESTS"], "just-mr"]
+    , [["./", "git-import", "TESTS"], "just-mr"]
     ]
   }
 }
