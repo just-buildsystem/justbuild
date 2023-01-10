@@ -50,6 +50,8 @@ The resulting configuration is printed on standard output.
 
    *-C* CONFIGFILE\\
    Use the specified file as the configuration to import into.
+   The string ~-~ is treated as a request to take the config from
+   stdin; so a file called ~-~ has to be described as ~./-~, or similar.
    If not specified, for a config file is searched in the same
    way, as ~just-mr~ does, when invoved with ~--norc~.
 

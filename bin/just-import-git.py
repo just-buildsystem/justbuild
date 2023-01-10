@@ -107,6 +107,8 @@ def get_repository_config_file(root=None):
 
 
 def get_base_config(repository_config):
+    if repository_config == "-":
+        return json.load(sys.stdin)
     if not repository_config:
         repository_config = get_repository_config_file()
     with open(repository_config) as f:
