@@ -116,11 +116,9 @@ def clone(url, branch):
     # clone the given git repository, checkout the specified
     # branch, and return the checkout location
     workdir = tempfile.mkdtemp()
-    run_cmd(["git", "clone", url, "src"],
+    run_cmd(["git", "clone", "-b", branch, "--depth", "1", url, "src"],
             cwd=workdir)
     srcdir = os.path.join(workdir, "src")
-    run_cmd(["git", "checkout", branch],
-            cwd = srcdir)
     commit = run_cmd(["git", "log", "-n", "1", "--pretty=%H"],
                      cwd = srcdir, stdout=subprocess.PIPE).decode('utf-8').strip()
     log("Importing commit %s" % (commit,))
