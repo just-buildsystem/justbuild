@@ -440,9 +440,51 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     return config;
 }
 
-void ReachableRepositories(ExpressionPtr const& repos,
-                           std::string const& main,
-                           std::shared_ptr<SetupRepos> const& setup_repos) {
+/// \brief Add repos from a given repo list to the reported repos set if its
+/// type is distdir. Ignore any missing or wrong info.
+void AddDistdirReportedRepos(
+    ExpressionPtr const& repos,
+    std::string const& repo_name,
+    std::shared_ptr<std::unordered_set<std::string>> const&
+        reported_repos_set) {
+    auto repo_desc_key = repos->Get(repo_name, Expression::none_t{});
+    auto repo_desc = repo_desc_key->Get("repository", Expression::none_t{});
+    auto resolved_repo_desc = JustMR::Utils::ResolveRepo(repo_desc, repos);
+    if (not resolved_repo_desc) {
+        return;
+    }
+    auto repo_type = (*resolved_repo_desc)->Get("type", Expression::none_t{});
+    if (not repo_type->IsString()) {
+        return;
+    }
+    // check if the repo is distdir
+    auto repo_type_str = repo_type->String();
+    if (repo_type_str != "distdir") {
+        return;
+    }
+    // get distdir list
+    auto repo_desc_repositories =
+        repo_desc->Get("repositories", Expression::none_t{});
+    if (not repo_desc_repositories->IsList()) {
+        return;
+    }
+    auto distdir_repos = repo_desc_repositories->List();
+    // add to reported set
+    for (auto const& entry : distdir_repos) {
+        if (entry->IsString()) {
+            reported_repos_set->insert(entry->String());
+        }
+    }
+}
+
+/// \brief Get the repo dependency closure for a given main repository.
+/// For progress reporting we include
+void ReachableRepositories(
+    ExpressionPtr const& repos,
+    std::string const& main,
+    std::shared_ptr<SetupRepos> const& setup_repos,
+    std::shared_ptr<std::unordered_set<std::string>> const& reported_repos_set =
+        nullptr) {
     // use temporary sets to avoid duplicates
     std::unordered_set<std::string> include_repos_set{};
     if (repos->IsMap()) {
@@ -452,6 +494,13 @@ void ReachableRepositories(ExpressionPtr const& repos,
                 if (not include_repos_set.contains(repo_name)) {
                     // if not found, add it and repeat for its bindings
                     include_repos_set.insert(repo_name);
+                    // add to reported repos, if needed
+                    if (reported_repos_set) {
+                        reported_repos_set->insert(repo_name);
+                        AddDistdirReportedRepos(
+                            repos, repo_name, reported_repos_set);
+                    }
+                    // check bindings
                     auto repos_repo_name =
                         repos->Get(repo_name, Expression::none_t{});
                     if (not repos_repo_name.IsNotNull()) {
@@ -480,7 +529,14 @@ void ReachableRepositories(ExpressionPtr const& repos,
                     auto layer_val =
                         repos_repo->Get(layer, Expression::none_t{});
                     if (layer_val.IsNotNull() and layer_val->IsString()) {
-                        setup_repos_set.insert(layer_val->String());
+                        auto repo_name = layer_val->String();
+                        setup_repos_set.insert(repo_name);
+                        // add to reported repos, if needed
+                        if (reported_repos_set) {
+                            reported_repos_set->insert(repo_name);
+                            AddDistdirReportedRepos(
+                                repos, repo_name, reported_repos_set);
+                        }
                     }
                 }
             }
@@ -504,10 +560,20 @@ void ReachableRepositories(ExpressionPtr const& repos,
 
 void DefaultReachableRepositories(
     ExpressionPtr const& repos,
-    std::shared_ptr<SetupRepos> const& setup_repos) {
+    std::shared_ptr<SetupRepos> const& setup_repos,
+    std::shared_ptr<std::unordered_set<std::string>> const& reported_repos_set =
+        nullptr) {
     if (repos.IsNotNull() and repos->IsMap()) {
         setup_repos->to_setup = repos->Map().Keys();
         setup_repos->to_include = setup_repos->to_setup;
+        // get reported repos
+        if (reported_repos_set) {
+            *reported_repos_set = std::unordered_set<std::string>(
+                setup_repos->to_setup.begin(), setup_repos->to_setup.end());
+            for (auto const& repo : setup_repos->to_setup) {
+                AddDistdirReportedRepos(repos, repo, reported_repos_set);
+            }
+        }
     }
 }
 
@@ -994,6 +1060,8 @@ void DefaultReachableRepositories(
                                   CommandLineArguments const& arguments,
                                   bool interactive)
     -> std::optional<std::filesystem::path> {
+    // provide report
+    Logger::Log(LogLevel::Info, "Performing repositories setup");
     // set anchor dir to setup_root; current dir will be reverted when anchor
     // goes out of scope
     auto cwd_anchor = FileSystemManager::ChangeDirectory(
@@ -1027,7 +1095,8 @@ void DefaultReachableRepositories(
         mr_config["main"] = *main;
     }
     // get default repos to setup and to include
-    DefaultReachableRepositories(repos, setup_repos);
+    auto repos_to_report = std::make_shared<std::unordered_set<std::string>>();
+    DefaultReachableRepositories(repos, setup_repos, repos_to_report);
     // check if main is to be taken as first repo name lexicographically
     if (not main and not setup_repos->to_setup.empty()) {
         main = *std::min_element(setup_repos->to_setup.begin(),
@@ -1035,8 +1104,15 @@ void DefaultReachableRepositories(
     }
     // final check on which repos are to be set up
     if (main and not arguments.setup.sub_all) {
-        ReachableRepositories(repos, *main, setup_repos);
+        ReachableRepositories(repos, *main, setup_repos, repos_to_report);
     }
+
+    // report progress
+    auto nr = repos_to_report->size();
+    Logger::Log(LogLevel::Info,
+                "Found {} {} to check out",
+                nr,
+                nr == 1 ? "repository" : "repositories");
 
     // setup the required async maps
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
@@ -1070,6 +1146,20 @@ void DefaultReachableRepositories(
                                                     &content_cas_map,
                                                     &distdir_git_map,
                                                     arguments.common.jobs);
+
+    // set up map for progress tracing
+    auto& repo_set = JustMRProgress::Instance().RepositorySet();
+    repo_set.clear();
+    repo_set.reserve(nr);
+    for (auto const& repo : *repos_to_report) {
+        repo_set.emplace(repo);
+    }
+    // set up progress observer
+    std::atomic<bool> done{false};
+    std::condition_variable cv{};
+    auto reporter = JustMRProgressReporter::Reporter();
+    auto observer =
+        std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 
     // Populate workspace_root and TAKE_OVER fields
     bool failed{false};
@@ -1123,6 +1213,12 @@ void DefaultReachableRepositories(
                 failed = failed or fatal;
             });
     }
+
+    // close progress observer
+    done = true;
+    cv.notify_all();
+    observer.join();
+
     if (failed) {
         return std::nullopt;
     }
@@ -1336,6 +1432,9 @@ auto main(int argc, char* argv[]) -> int {
             if (not mr_config_path) {
                 return kExitSetupError;
             }
+            // report success
+            Logger::Log(LogLevel::Info, "Setup completed");
+            // print config file to stdout
             std::cout << mr_config_path->string() << std::endl;
             return kExitSuccess;
         }

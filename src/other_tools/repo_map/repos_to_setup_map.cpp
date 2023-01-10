@@ -14,7 +14,8 @@
 
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
 namespace {
 
@@ -232,6 +233,9 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         repo_desc_pragma ? repo_desc_pragma->get()->At("to_git") : std::nullopt;
     if (pragma_to_git and pragma_to_git->get()->IsBool() and
         pragma_to_git->get()->Bool()) {
+        // start work reporting
+        JustMRProgress::Instance().TaskTracker().Start(repo_name);
+        JustMRStatistics::Instance().IncrementQueuedCounter();
         // get the WS root as git tree
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
@@ -242,6 +246,9 @@ void FileCheckout(ExpressionPtr const& repo_desc,
                 cfg["workspace_root"] = ws_root;
                 SetReposTakeOver(&cfg, repos, repo_name);
                 (*setter)(std::move(cfg));
+                // report work done
+                JustMRProgress::Instance().TaskTracker().Stop(repo_name);
+                JustMRStatistics::Instance().IncrementExecutedCounter();
             },
             [logger, repo_name](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While setting the workspace root for "
@@ -258,6 +265,8 @@ void FileCheckout(ExpressionPtr const& repo_desc,
             nlohmann::json::array({"file", fpath.string()});  // explicit array
         SetReposTakeOver(&cfg, repos, repo_name);
         (*setter)(std::move(cfg));
+        // report local path
+        JustMRStatistics::Instance().IncrementLocalPathsCounter();
     }
 }
 

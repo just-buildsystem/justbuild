@@ -12,6 +12,8 @@
     , ["src/other_tools/ops_maps", "repo_fetch_map"]
     , ["src/other_tools/ops_maps", "git_update_map"]
     , ["src/other_tools/repo_map", "repos_to_setup_map"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["@", "json", "", "json"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]

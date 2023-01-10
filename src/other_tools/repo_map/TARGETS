@@ -11,6 +11,9 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["src", "other_tools", "repo_map"]
-  , "private-deps": [["src/other_tools/just_mr", "utils"]]
+  , "private-deps":
+    [ ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    ]
   }
 }

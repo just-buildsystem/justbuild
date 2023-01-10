@@ -20,7 +20,8 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -114,6 +115,9 @@ auto CreateDistdirGitMap(
                 });
         }
         else {
+            // start work reporting
+            JustMRProgress::Instance().TaskTracker().Start(key.origin);
+            JustMRStatistics::Instance().IncrementQueuedCounter();
             // fetch the gathered distdir repos into CAS
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -121,6 +125,7 @@ auto CreateDistdirGitMap(
                 [distdir_tree_id_file,
                  content_id = key.content_id,
                  content_list = key.content_list,
+                 origin = key.origin,
                  import_to_git_map,
                  ts,
                  setter,
@@ -151,6 +156,7 @@ auto CreateDistdirGitMap(
                         {std::move(c_info)},
                         [tmp_dir,  // keep tmp_dir alive
                          distdir_tree_id_file,
+                         origin,
                          setter,
                          logger](auto const& values) {
                             // check for errors
@@ -176,6 +182,11 @@ auto CreateDistdirGitMap(
                                 {"git tree",
                                  distdir_tree_id,
                                  JustMR::Utils::GetGitCacheRoot().string()}));
+                            // report work done
+                            JustMRProgress::Instance().TaskTracker().Stop(
+                                origin);
+                            JustMRStatistics::Instance()
+                                .IncrementExecutedCounter();
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {

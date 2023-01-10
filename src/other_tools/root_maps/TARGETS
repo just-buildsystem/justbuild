@@ -10,13 +10,14 @@
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
-    [ ["src/other_tools/just_mr", "utils"]
-    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
   }
 , "commit_git_map":
@@ -34,6 +35,8 @@
   , "private-deps":
     [ ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/utils/cpp", "tmp_dir"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
   }
 , "fpath_git_map":
@@ -66,6 +69,8 @@
     [ ["src/other_tools/utils", "archive_ops"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
   }
 }

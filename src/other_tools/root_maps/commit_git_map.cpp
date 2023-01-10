@@ -17,6 +17,8 @@
 #include <algorithm>
 
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -179,6 +181,10 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                "Keep referenced tree alive"  // message
                            },
                            GitOpType::KEEP_TAG};
+        // start work reporting
+        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
+        JustMRStatistics::Instance().IncrementQueuedCounter();
+        // do the fetch
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -217,6 +223,9 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 // set the workspace root
                 (*ws_setter)(
                     nlohmann::json::array({"git tree", *subtree, repo_root}));
+                // report work done
+                JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
+                JustMRStatistics::Instance().IncrementExecutedCounter();
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
@@ -242,5 +251,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         }
         // set the workspace root
         (*ws_setter)(nlohmann::json::array({"git tree", *subtree, repo_root}));
+        // report cache hit
+        JustMRStatistics::Instance().IncrementCacheHitsCounter();
     }
 }

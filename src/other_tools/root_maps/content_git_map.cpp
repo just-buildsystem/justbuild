@@ -16,6 +16,8 @@
 
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/archive_ops.hpp"
 
 namespace {
@@ -116,6 +118,8 @@ auto CreateContentGitMap(
                         {"git tree",
                          *subtree_hash,
                          JustMR::Utils::GetGitCacheRoot().string()}));
+                    // report cache hit
+                    JustMRStatistics::Instance().IncrementCacheHitsCounter();
                 },
                 [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
                     auto const& msg, bool fatal) {
@@ -128,6 +132,9 @@ auto CreateContentGitMap(
                 });
         }
         else {
+            // start work reporting;
+            JustMRProgress::Instance().TaskTracker().Start(key.archive.origin);
+            JustMRStatistics::Instance().IncrementQueuedCounter();
             // do the fetch and import_to_git
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -136,6 +143,7 @@ auto CreateContentGitMap(
                  repo_type = key.repo_type,
                  content_id = key.archive.content,
                  subdir = key.subdir,
+                 origin = key.archive.origin,
                  import_to_git_map,
                  ts,
                  setter,
@@ -175,6 +183,7 @@ auto CreateContentGitMap(
                         [tmp_dir,  // keep tmp_dir alive
                          archive_tree_id_file,
                          subdir,
+                         origin,
                          setter,
                          logger](auto const& values) {
                             // check for errors
@@ -236,6 +245,11 @@ auto CreateContentGitMap(
                                 {"git tree",
                                  *subtree_hash,
                                  JustMR::Utils::GetGitCacheRoot().string()}));
+                            // report work done
+                            JustMRProgress::Instance().TaskTracker().Stop(
+                                origin);
+                            JustMRStatistics::Instance()
+                                .IncrementExecutedCounter();
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {
