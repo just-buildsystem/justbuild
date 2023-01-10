@@ -186,7 +186,7 @@ def name_imports(to_import, existing, base_name, main=None):
             if (candidate not in existing) and (candidate not in assign):
                 return candidate
 
-    if main and (base_name not in existing):
+    if main is not None and (base_name not in existing):
         assign[main] = base_name
         to_import = [x for x in to_import if x != main]
     for repo in to_import:
