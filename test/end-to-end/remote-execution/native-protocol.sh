@@ -67,7 +67,7 @@ cat > TARGETS <<EOF
 }
 EOF
 
-readonly CONF="$("${JUST_MR}" -C repos.json --local-build-root="${LBRDIR}" setup 2>&1)"
+readonly CONF="$("${JUST_MR}" -C repos.json --local-build-root="${LBRDIR}" setup)"
 
 NAME="native"
 ARGS=""
