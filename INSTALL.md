@@ -2,9 +2,12 @@
 
 ## Building `just` using an older version of `just-mr` and `just`
 
+If an older installation of `just` is already available, `just`
+can simply be built by
 ```sh
 just-mr build
 ```
+This is always guaranteed to work with the latest stable release of `just`.
 
 This will build `just` for Linux on the x86_64 architecture with a dynamic link
 dependency on glibc.
