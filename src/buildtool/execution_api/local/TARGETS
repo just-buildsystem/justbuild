@@ -7,6 +7,7 @@
     , ["@", "json", "", "json"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]

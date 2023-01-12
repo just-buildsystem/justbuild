@@ -20,9 +20,7 @@
 #include <fmt/core.h>
 
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
@@ -95,19 +93,7 @@ auto TargetCache::DownloadKnownArtifacts(
 }
 
 auto TargetCache::ComputeCacheDir(int index) -> std::filesystem::path {
-    return LocalExecutionConfig::TargetCacheDir(index) / ExecutionBackendId();
-}
-
-auto TargetCache::ExecutionBackendId() -> std::string {
-    auto address = RemoteExecutionConfig::RemoteAddress();
-    auto properties = RemoteExecutionConfig::PlatformProperties();
-    auto backend_desc = nlohmann::json{
-        {"remote_address",
-         address ? nlohmann::json{fmt::format(
-                       "{}:{}", address->host, address->port)}
-                 : nlohmann::json{}},
-        {"platform_properties",
-         properties}}.dump(2);
-    return NativeSupport::Unprefix(
-        CAS().StoreBlobFromBytes(backend_desc).value().hash());
+    [[maybe_unused]] auto id = CAS().StoreBlobFromBytes(
+        LocalExecutionConfig::ExecutionBackendDescription());
+    return LocalExecutionConfig::TargetCacheDir(index);
 }

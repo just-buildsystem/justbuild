@@ -100,9 +100,7 @@
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/local", "config"]
-    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     ]

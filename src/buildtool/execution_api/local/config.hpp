@@ -28,10 +28,13 @@
 #include <string>
 #include <vector>
 
+#include <fmt/core.h>
 #include <gsl-lite/gsl-lite.hpp>
+#include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -177,10 +180,42 @@ class LocalExecutionConfig {
         return CacheRootDir(index) / "ac";
     }
 
-    /// \brief Target cache directory
-    [[nodiscard]] static auto TargetCacheDir(int index) noexcept
+    /// \brief Target cache root directory
+    [[nodiscard]] static auto TargetCacheRoot(int index) noexcept
         -> std::filesystem::path {
         return CacheRootDir(index) / "tc";
+    }
+
+    /// \brief Target cache directory for the used execution backend.
+    [[nodiscard]] static auto TargetCacheDir(int index) noexcept
+        -> std::filesystem::path {
+        return TargetCacheRoot(index) /
+               ArtifactDigest::Create<ObjectType::File>(
+                   ExecutionBackendDescription())
+                   .hash();
+    }
+
+    /// \brief String representation of the used execution backend.
+    [[nodiscard]] static auto ExecutionBackendDescription() noexcept
+        -> std::string {
+        auto address = RemoteExecutionConfig::RemoteAddress();
+        auto properties = RemoteExecutionConfig::PlatformProperties();
+        try {
+            // json::dump with json::error_handler_t::replace will not throw an
+            // exception if invalid UTF-8 sequences are detected in the input.
+            // Instead, it will replace them with the UTF-8 replacement
+            // character, but still it needs to be inside a try-catch clause to
+            // ensure the noexcept modifier of the enclosing function.
+            return nlohmann::json{
+                {"remote_address",
+                 address ? nlohmann::json{fmt::format(
+                               "{}:{}", address->host, address->port)}
+                         : nlohmann::json{}},
+                {"platform_properties", properties}}
+                .dump(2, ' ', false, nlohmann::json::error_handler_t::replace);
+        } catch (...) {
+            return "";
+        }
     }
 
     [[nodiscard]] static auto GetLauncher() noexcept

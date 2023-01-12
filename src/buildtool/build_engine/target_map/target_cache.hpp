@@ -18,7 +18,6 @@
 #include <filesystem>
 #include <functional>
 #include <optional>
-#include <string>
 #include <utility>
 
 #include <gsl-lite/gsl-lite.hpp>
@@ -88,7 +87,6 @@ class TargetCache {
     }
     [[nodiscard]] static auto ComputeCacheDir(int index)
         -> std::filesystem::path;
-    [[nodiscard]] static auto ExecutionBackendId() -> std::string;
 };
 
 namespace std {
