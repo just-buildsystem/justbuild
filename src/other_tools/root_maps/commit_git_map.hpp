@@ -28,6 +28,8 @@ struct GitRepoInfo {
     std::string repo_url{};
     std::string branch{};
     std::string subdir{}; /* key */
+    // name of repository for which work is done; used in progress reporting
+    std::string origin{};
 
     [[nodiscard]] auto operator==(const GitRepoInfo& other) const -> bool {
         return hash == other.hash and subdir == other.subdir;

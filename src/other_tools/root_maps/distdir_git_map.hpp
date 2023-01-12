@@ -23,6 +23,8 @@ struct DistdirInfo {
     std::string content_id; /* key */
     std::shared_ptr<std::unordered_map<std::string, std::string>> content_list;
     std::shared_ptr<std::vector<ArchiveContent>> repos_to_fetch;
+    // name of repository for which work is done; used in progress reporting
+    std::string origin;
 
     [[nodiscard]] auto operator==(const DistdirInfo& other) const noexcept
         -> bool {

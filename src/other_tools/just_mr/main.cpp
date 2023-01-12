@@ -693,8 +693,10 @@ void DefaultReachableRepositories(
                             : std::nullopt, /* sha256 */
                         repo_desc_sha512->IsString()
                             ? std::make_optional(repo_desc_sha512->String())
-                            : std::nullopt /* sha512 */
-                    },                     /* archive */
+                            : std::nullopt, /* sha512 */
+                        repo_name,          /* origin */
+                        false               /* origin_from_distdir */
+                    },                      /* archive */
                     repo_type_str,
                     subdir.empty() ? "." : subdir.string()};
                 // add to list

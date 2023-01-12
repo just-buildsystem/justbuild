@@ -89,10 +89,11 @@ void GitCheckout(ExpressionPtr const& repo_desc,
                       .lexically_normal();
     // populate struct
     GitRepoInfo git_repo_info = {
-        repo_desc_commit->get()->String(),     /* hash */
-        repo_desc_repository->get()->String(), /* repo_url */
-        repo_desc_branch->get()->String(),     /* branch */
-        subdir.empty() ? "." : subdir.string() /* subdir */
+        repo_desc_commit->get()->String(),      /* hash */
+        repo_desc_repository->get()->String(),  /* repo_url */
+        repo_desc_branch->get()->String(),      /* branch */
+        subdir.empty() ? "." : subdir.string(), /* subdir */
+        repo_name                               /* origin */
     };
     // get the WS root as git tree
     commit_git_map->ConsumeAfterKeysReady(
@@ -172,7 +173,9 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                 : std::nullopt, /* sha256 */
             repo_desc_sha512->IsString()
                 ? std::make_optional(repo_desc_sha512->String())
-                : std::nullopt                 /* sha512 */
+                : std::nullopt,                /* sha512 */
+            repo_name,                         /* origin */
+            false                              /* origin_from_distdir */
         },                                     /* archive */
         repo_type,                             /* repo_type */
         subdir.empty() ? "." : subdir.string() /* subdir */
@@ -395,8 +398,10 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                     : std::nullopt, /* sha256 */
                 repo_desc_sha512->IsString()
                     ? std::make_optional(repo_desc_sha512->String())
-                    : std::nullopt /* sha512 */
-            };                     /* archive */
+                    : std::nullopt, /* sha512 */
+                dist_repo_name,     /* origin */
+                true                /* origin_from_distdir */
+            };                      /* archive */
 
             // add to distdir content map
             auto repo_distfile =
@@ -415,7 +420,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             .HexString();
     // get the WS root as git tree
     DistdirInfo distdir_info = {
-        distdir_content_id, distdir_content, dist_repos_to_fetch};
+        distdir_content_id, distdir_content, dist_repos_to_fetch, repo_name};
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
