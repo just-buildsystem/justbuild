@@ -3,9 +3,15 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/logging", "logging"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]
   }

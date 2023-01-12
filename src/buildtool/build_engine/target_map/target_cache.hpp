@@ -75,7 +75,7 @@ class TargetCache {
     FileStorage<ObjectType::File,
                 StoreMode::LastWins,
                 /*kSetEpochTime=*/false>
-        file_store_{ComputeCacheDir()};
+        file_store_{ComputeCacheDir(0)};
 #ifndef BOOTSTRAP_BUILD_TOOL
     IExecutionApi* local_api_{};
     IExecutionApi* remote_api_{};
@@ -86,7 +86,8 @@ class TargetCache {
     [[nodiscard]] static auto CAS() noexcept -> LocalCAS<ObjectType::File>& {
         return LocalCAS<ObjectType::File>::Instance();
     }
-    [[nodiscard]] static auto ComputeCacheDir() -> std::filesystem::path;
+    [[nodiscard]] static auto ComputeCacheDir(int index)
+        -> std::filesystem::path;
     [[nodiscard]] static auto ExecutionBackendId() -> std::string;
 };
 

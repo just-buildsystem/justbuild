@@ -72,7 +72,7 @@ class LocalCAS {
     Logger logger_{std::string{"LocalCAS"} + ToChar(kType)};
 
     FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
-        file_store_{LocalExecutionConfig::CASDir<kType>()};
+        file_store_{LocalExecutionConfig::CASDir<kType>(0)};
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {

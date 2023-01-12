@@ -87,7 +87,7 @@ class LocalAC {
     Logger logger_{"LocalAC"};
     gsl::not_null<LocalCAS<ObjectType::File>*> cas_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
-        file_store_{LocalExecutionConfig::ActionCacheDir()};
+        file_store_{LocalExecutionConfig::ActionCacheDir(0)};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_AC_HPP

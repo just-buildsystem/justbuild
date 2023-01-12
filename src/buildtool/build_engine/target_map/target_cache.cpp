@@ -94,8 +94,8 @@ auto TargetCache::DownloadKnownArtifacts(
 #endif
 }
 
-auto TargetCache::ComputeCacheDir() -> std::filesystem::path {
-    return LocalExecutionConfig::TargetCacheDir() / ExecutionBackendId();
+auto TargetCache::ComputeCacheDir(int index) -> std::filesystem::path {
+    return LocalExecutionConfig::TargetCacheDir(index) / ExecutionBackendId();
 }
 
 auto TargetCache::ExecutionBackendId() -> std::string {

@@ -28,8 +28,13 @@
 #include <string>
 #include <vector>
 
+#include <gsl-lite/gsl-lite.hpp>
+
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// \brief Store global build system configuration.
@@ -42,11 +47,16 @@ class LocalExecutionConfig {
         // then build_root will be set to PATH.
         std::filesystem::path build_root{};
 
-        // cache_root points to one of the following
-        // build_root/protocol-dependent/{git-sha1,compatible-sha256}
+        // cache_root points to the root of the cache dirs.
+        std::filesystem::path cache_root{};
+
+        // cache_root_generations holds root directories for all cache
+        // generations (default: two generations). The latest generation points
+        // to one the following directories:
+        // build_root/protocol-dependent/generation-0/{git-sha1,compatible-sha256}
         // git-sha1 is the current default. If the user passes the flag
         // --compatible, then the subfolder compatible_sha256 is used
-        std::filesystem::path cache_root{};
+        std::vector<std::filesystem::path> cache_root_generations{"", ""};
 
         // Launcher to be prepended to action's command before executed.
         // Default: ["env", "--"]
@@ -70,8 +80,16 @@ class LocalExecutionConfig {
             return false;
         }
         Data().build_root = dir;
-        Data().cache_root = "";  // in case we re-set build_root, we are sure
-                                 // that the cache path is recomputed as well
+        // In case we re-set build_root, we are sure that the cache roots are
+        // recomputed as well.
+        Data().cache_root = std::filesystem::path{};
+        Data().cache_root_generations =
+            std::vector(NumGenerations(), std::filesystem::path{});
+        // Pre-initialize cache roots to avoid race condition during lazy
+        // initialization by multiple threads.
+        for (int i = 0; i < NumGenerations(); ++i) {
+            [[maybe_unused]] auto root = CacheRoot(i);
+        }
         return true;
     }
 
@@ -86,6 +104,17 @@ class LocalExecutionConfig {
             return false;
         }
         return true;
+    }
+
+    /// \brief Specifies the number of cache generations.
+    static auto SetNumGenerations(int num_generations) noexcept -> void {
+        gsl_ExpectsAudit(num_generations > 0);
+        Data().cache_root_generations =
+            std::vector(num_generations, std::filesystem::path{});
+    }
+
+    [[nodiscard]] static auto NumGenerations() noexcept -> int {
+        return Data().cache_root_generations.size();
     }
 
     /// \brief User directory.
@@ -105,15 +134,32 @@ class LocalExecutionConfig {
     [[nodiscard]] static auto CacheRoot() noexcept -> std::filesystem::path {
         auto& cache_root = Data().cache_root;
         if (cache_root.empty()) {
-            cache_root = UpdatePathForCompatibility(
-                BuildRoot() / "protocol-dependent" / "generation-0");
+            cache_root = BuildRoot() / "protocol-dependent";
         }
         return cache_root;
     }
 
+    [[nodiscard]] static auto CacheRoot(int index) noexcept
+        -> std::filesystem::path {
+        gsl_ExpectsAudit(index >= 0 and
+                         index < Data().cache_root_generations.size());
+        auto& cache_root = Data().cache_root_generations[index];
+        if (cache_root.empty()) {
+            auto generation =
+                std::string{"generation-"} + std::to_string(index);
+            cache_root = CacheRoot() / generation;
+        }
+        return cache_root;
+    }
+
+    [[nodiscard]] static auto CacheRootDir(int index) noexcept
+        -> std::filesystem::path {
+        return UpdatePathForCompatibility(CacheRoot(index));
+    }
+
     // CAS directory based on the type of the file.
     template <ObjectType kType>
-    [[nodiscard]] static inline auto CASDir() noexcept
+    [[nodiscard]] static inline auto CASDir(int index) noexcept
         -> std::filesystem::path {
         char t = ToChar(kType);
         if constexpr (kType == ObjectType::Tree) {
@@ -121,20 +167,20 @@ class LocalExecutionConfig {
                 t = ToChar(ObjectType::File);
             }
         }
-        static const std::string kSuffix = std::string{"cas"} + t;
-        return CacheRoot() / kSuffix;
+        static auto const kSuffix = std::string{"cas"} + t;
+        return CacheRootDir(index) / kSuffix;
     }
 
     /// \brief Action cache directory
-    [[nodiscard]] static auto ActionCacheDir() noexcept
+    [[nodiscard]] static auto ActionCacheDir(int index) noexcept
         -> std::filesystem::path {
-        return CacheRoot() / "ac";
+        return CacheRootDir(index) / "ac";
     }
 
     /// \brief Target cache directory
-    [[nodiscard]] static auto TargetCacheDir() noexcept
+    [[nodiscard]] static auto TargetCacheDir(int index) noexcept
         -> std::filesystem::path {
-        return CacheRoot() / "tc";
+        return CacheRootDir(index) / "tc";
     }
 
     [[nodiscard]] static auto GetLauncher() noexcept
