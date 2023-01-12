@@ -110,12 +110,11 @@ auto CreateFilePathGitMap(
                 },
                 [logger, target_path = *repo_root](auto const& msg,
                                                    bool fatal) {
-                    (*logger)(
-                        fmt::format("While running critical Git op "
-                                    "GET_BRANCH_REFNAME for target {}:\n{}",
-                                    target_path.string(),
-                                    msg),
-                        fatal);
+                    (*logger)(fmt::format("While running critical Git op "
+                                          "GET_HEAD_ID for target {}:\n{}",
+                                          target_path.string(),
+                                          msg),
+                              fatal);
                 });
         }
         else {
