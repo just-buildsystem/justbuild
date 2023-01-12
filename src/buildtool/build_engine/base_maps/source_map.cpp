@@ -16,6 +16,7 @@
 
 #include <filesystem>
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
@@ -72,10 +73,16 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
                     return;
                 }
             }
-            (*logger)(fmt::format(
-                          "Cannot determine source file {}",
-                          path(key.GetNamedTarget().name).filename().string()),
-                      true);
+            (*logger)(
+                fmt::format(
+                    "Cannot determine source file {} in directory {} of "
+                    "repository {}",
+                    nlohmann::json(
+                        path(key.GetNamedTarget().name).filename().string())
+                        .dump(),
+                    nlohmann::json(dir.string()).dump(),
+                    nlohmann::json(key.GetNamedTarget().repository).dump()),
+                true);
         };
 
         if (ws_root != nullptr and ws_root->HasFastDirectoryLookup()) {
