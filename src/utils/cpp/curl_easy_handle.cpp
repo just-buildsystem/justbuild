@@ -75,8 +75,9 @@ auto CurlEasyHandle::EasyWriteToString(gsl::owner<char*> data,
 #ifdef BOOTSTRAP_BUILD_TOOL
     return 0;
 #else
-    (static_cast<std::string*>(userptr))->append(data, size * nmemb);
-    return static_cast<std::streamsize>(size * nmemb);
+    size_t actual_size = size * nmemb;
+    (static_cast<std::string*>(userptr))->append(data, actual_size);
+    return static_cast<std::streamsize>(actual_size);
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
@@ -90,6 +91,10 @@ auto CurlEasyHandle::DownloadToFile(
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_URL, url.c_str());
+
+        // ensure redirects are allowed, otherwise it might simply read empty
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_FOLLOWLOCATION, 1);
 
         // set callback for writing to file
         std::ofstream file(file_path.c_str(), std::ios::binary);
@@ -134,6 +139,10 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_URL, url.c_str());
+
+        // ensure redirects are allowed, otherwise it might simply read empty
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_FOLLOWLOCATION, 1);
 
         // set callback for writing to string
         std::string content{};
