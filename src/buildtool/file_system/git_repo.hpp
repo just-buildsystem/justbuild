@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_REPO_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_REPO_HPP
 
+#include <functional>
+
 #include "src/buildtool/file_system/git_cas.hpp"
 
 /// \brief Git repository logic.
