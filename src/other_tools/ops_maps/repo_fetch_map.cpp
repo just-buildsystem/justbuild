@@ -51,13 +51,20 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                     auto content_path =
                         casf.BlobPath(ArtifactDigest(content, 0, false));
                     if (content_path) {
-                        if (not FileSystemManager::CopyFile(
-                                *content_path, fetch_dir / distfile)) {
+                        auto target_name = fetch_dir / distfile;
+                        if (FileSystemManager::Exists(target_name)) {
+                            std::filesystem::permissions(
+                                target_name,
+                                std::filesystem::perms::owner_write,
+                                std::filesystem::perm_options::add);
+                        }
+                        if (not FileSystemManager::CopyFile(*content_path,
+                                                            target_name)) {
                             (*logger)(fmt::format(
                                           "Failed to copy content {} from CAS "
-                                          "into fetch directory {}",
+                                          "to {}",
                                           content,
-                                          fetch_dir.string()),
+                                          target_name.string()),
                                       /*fatal=*/true);
                             return;
                         }
@@ -87,12 +94,19 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
             auto content_path =
                 casf.BlobPath(ArtifactDigest(key.archive.content, 0, false));
             if (content_path) {
+                auto target_name = fetch_dir / distfile;
+                if (FileSystemManager::Exists(target_name)) {
+                    std::filesystem::permissions(
+                        target_name,
+                        std::filesystem::perms::owner_write,
+                        std::filesystem::perm_options::add);
+                }
                 if (not FileSystemManager::CopyFile(*content_path,
-                                                    fetch_dir / distfile)) {
+                                                    target_name)) {
                     (*logger)(fmt::format("Failed to copy content {} from CAS "
-                                          "into fetch directory {}",
+                                          "to {}",
                                           key.archive.content,
-                                          fetch_dir.string()),
+                                          target_name.string()),
                               /*fatal=*/true);
                     return;
                 }

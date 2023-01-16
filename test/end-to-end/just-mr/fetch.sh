@@ -67,4 +67,10 @@ newfoocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
 echo "Foo archive has now content ${newfoocontent}"
 test "${newfoocontent}" = "${foocontent}"
 
+# Verify that fetching accepts distfiles already present
+"${JUST_MR}" --local-build-root "${LBR}" --distdir "${DISTDIR}" fetch 2>&1
+newfoocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
+echo "Foo archive has now content ${newfoocontent}"
+test "${newfoocontent}" = "${foocontent}"
+
 echo OK
