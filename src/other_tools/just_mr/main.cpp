@@ -503,19 +503,11 @@ void DefaultReachableRepositories(
         }
     }
     if (not fetch_dir) {
-        std::string s{};
-        for (auto const& d : arguments.common.just_mr_paths->distdirs) {
-            s += "\'";
-            s += d.string();
-            s += "\', ";
-        }
-        if (not s.empty()) {
-            s.erase(s.end() - 1);  // remove trailing ' '
-            s.erase(s.end() - 1);  // remove trailing ','
-        }
+        auto considered =
+            nlohmann::json(arguments.common.just_mr_paths->distdirs);
         Logger::Log(LogLevel::Error,
-                    "No directory found to fetch to, considered [{}]",
-                    s);
+                    "No directory found to fetch to, considered {}",
+                    considered.dump());
         return kExitFetchError;
     }
 
