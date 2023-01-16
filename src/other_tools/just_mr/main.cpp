@@ -574,13 +574,6 @@ void DefaultReachableRepositories(
     }
 
     Logger::Log(LogLevel::Info, "Fetching to {}", fetch_dir->string());
-    // make sure fetch_dir exists
-    if (not FileSystemManager::CreateDirectory(*fetch_dir)) {
-        Logger::Log(LogLevel::Error,
-                    "Failed to create fetch directory {}",
-                    fetch_dir->string());
-        return kExitFetchError;
-    }
 
     // gather all repos to be fetched
     std::vector<ArchiveRepoInfo> repos_to_fetch{};
