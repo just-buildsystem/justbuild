@@ -30,7 +30,7 @@
     , [["./", "remote-execution", "TESTS"], "remote-execution"]
     , [["./", "target-cache", "TESTS"], "target-cache"]
     , [["./", "just-mr", "TESTS"], "just-mr"]
-    , [["./", "git-import", "TESTS"], "just-mr"]
+    , [["./", "git-import", "TESTS"], "git-import"]
     ]
   }
 }
