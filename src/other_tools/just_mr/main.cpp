@@ -667,16 +667,16 @@ void DefaultReachableRepositories(
                     {
                         repo_desc_content->get()->String(), /* content */
                         repo_desc_distfile->IsString()
-                            ? repo_desc_distfile->String()
-                            : "",                         /* distfile */
+                            ? std::make_optional(repo_desc_distfile->String())
+                            : std::nullopt,               /* distfile */
                         repo_desc_fetch->get()->String(), /* fetch_url */
                         repo_desc_sha256->IsString()
-                            ? repo_desc_sha256->String()
-                            : "", /* sha256 */
+                            ? std::make_optional(repo_desc_sha256->String())
+                            : std::nullopt, /* sha256 */
                         repo_desc_sha512->IsString()
-                            ? repo_desc_sha512->String()
-                            : "" /* sha512 */
-                    },           /* archive */
+                            ? std::make_optional(repo_desc_sha512->String())
+                            : std::nullopt /* sha512 */
+                    },                     /* archive */
                     repo_type_str,
                     subdir.empty() ? "." : subdir.string()};
                 // add to list
