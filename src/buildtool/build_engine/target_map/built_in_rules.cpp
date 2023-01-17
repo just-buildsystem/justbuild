@@ -1013,7 +1013,7 @@ void GenericRuleWithDeps(
     }
     if (not env_val->IsMap()) {
         (*logger)(
-            fmt::format("cmds has to evaluate to map of strings, but found {}",
+            fmt::format("env has to evaluate to map of strings, but found {}",
                         env_val->ToString()),
             true);
     }
