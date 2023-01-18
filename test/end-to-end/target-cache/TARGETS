@@ -5,6 +5,7 @@
   , "deps":
     [ ["test/end-to-end", "tool-under-test"]
     , ["test/end-to-end", "mr-tool-under-test"]
+    , ["@", "credentials", "", ""]
     ]
   }
 , "artifacts-sync":
@@ -16,6 +17,7 @@
     , ["./", "test-data-artifacts-sync", "greetlib"]
     , ["./", "test-data-artifacts-sync", "pydicts"]
     , "bootstrap-src-staged"
+    , ["@", "credentials", "", ""]
     ]
   }
 , "bootstrap-src-staged":

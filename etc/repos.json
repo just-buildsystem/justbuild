@@ -19,6 +19,7 @@
       , "libcurl": "com_github_curl_curl"
       , "bzip2": "bzip2"
       , "libarchive": "com_github_libarchive_libarchive"
+      , "credentials": "test-credentials"
       }
     , "bootstrap": {"link": ["-lpthread"]}
     , "bootstrap_local": {"link": ["-lpthread"]}
@@ -446,5 +447,7 @@
       , "bzip2": "bzip2"
       }
     }
+  , "test-credentials":
+    {"repository": {"type": "file", "path": "test/etc/credentials"}}
   }
 }

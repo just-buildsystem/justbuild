@@ -17,6 +17,7 @@
 set -eu
 
 readonly JUST="${PWD}/bin/tool-under-test"
+readonly CREDENTIALS_DIR="${PWD}/credentials"
 
 # create a sufficiently large (>4MB) file for testing upload/download (16MB)
 dd if=/dev/zero of=large.file bs=1024 count=$((16*1024))
@@ -43,12 +44,22 @@ run_tests() {
     local TYPE="local"
     local REMOTE_ARGS=""
     local REMOTE_BUILD_ARGS=""
+    local AUTH_ARGS=""
     if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
         TYPE="remote"
         REMOTE_ARGS="-r $1"
         REMOTE_BUILD_ARGS="--remote-execution-property $2"
+        if [ -f "${CREDENTIALS_DIR}/ca.crt" ]; then
+          AUTH_ARGS=" --tls-ca-cert ${CREDENTIALS_DIR}/ca.crt "
+          if [ -f "${CREDENTIALS_DIR}/client.crt" ]; then
+            AUTH_ARGS=" --tls-client-cert ${CREDENTIALS_DIR}/client.crt "${AUTH_ARGS}
+          fi
+          if [ -f "${CREDENTIALS_DIR}/client.key" ]; then
+            AUTH_ARGS=" --tls-client-key ${CREDENTIALS_DIR}/client.key "${AUTH_ARGS}
+          fi
+        fi
     fi
-    ARGS="$COMMON_ARGS $REMOTE_ARGS"
+    ARGS="$COMMON_ARGS $REMOTE_ARGS ${AUTH_ARGS}"
     BUILD_ARGS="$ARGS $REMOTE_BUILD_ARGS"
 
     echo

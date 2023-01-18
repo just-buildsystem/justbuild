@@ -21,6 +21,7 @@
 #include <sstream>
 #include <string>
 
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "test/utils/logging/log_config.hpp"
 
@@ -51,6 +52,33 @@ static inline void ReadCompatibilityFromEnv() {
     return execution_address == nullptr
                ? std::nullopt
                : std::make_optional(std::string{execution_address});
+}
+
+[[nodiscard]] static inline auto ReadTLSAuthArgsFromEnv() -> bool {
+    auto* ca_cert = std::getenv("TLS_CA_CERT");
+    auto* client_cert = std::getenv("TLS_CLIENT_CERT");
+    auto* client_key = std::getenv("TLS_CLIENT_KEY");
+    if (ca_cert != nullptr) {
+        if (not Auth::TLS::SetCACertificate(ca_cert)) {
+            return false;
+        }
+    }
+    if (client_cert != nullptr) {
+        if (not Auth::TLS::SetClientCertificate(client_cert)) {
+            return false;
+        }
+    }
+    if (client_key != nullptr) {
+        if (not Auth::TLS::SetClientKey(client_key)) {
+            return false;
+        }
+    }
+    if (Auth::GetAuthMethod() == AuthMethod::kTLS) {
+        if (not Auth::TLS::Validate()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 #endif  // INCLUDED_SRC_TEST_UTILS_TEST_ENV_HPP

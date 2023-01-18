@@ -26,7 +26,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["test_env"]
   , "hdrs": ["test_env.hpp"]
-  , "deps": ["log_config", ["src/buildtool/compatibility", "compatibility"]]
+  , "deps":
+    [ "log_config"
+    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/auth", "auth"]
+    ]
   , "stage": ["test", "utils"]
   }
 , "local_hermeticity":

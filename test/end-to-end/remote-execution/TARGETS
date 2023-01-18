@@ -5,23 +5,31 @@
   , "deps":
     [ ["test/end-to-end", "tool-under-test"]
     , ["test/end-to-end", "mr-tool-under-test"]
+    , ["@", "credentials", "", ""]
     ]
   }
 , "large-blobs":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["large-blobs"]
   , "test": ["large-blobs.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps":
+    [["test/end-to-end", "tool-under-test"], ["@", "credentials", "", ""]]
   }
 , "upload-test":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["upload-test"]
   , "test": ["upload-test.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps":
+    [["test/end-to-end", "tool-under-test"], ["@", "credentials", "", ""]]
   }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["native-protocol", "large-blobs", "upload-test"]
+  , "deps":
+    [ "native-protocol"
+    , "large-blobs"
+    , "upload-test"
+    , ["@", "credentials", "", ""]
+    ]
   }
 }

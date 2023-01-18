@@ -37,6 +37,9 @@ void wait_for_grpc_to_shutdown() {
 /// \returns true   If remote execution was successfully configured.
 [[nodiscard]] auto ConfigureRemoteExecution() -> bool {
     ReadCompatibilityFromEnv();
+    if (not ReadTLSAuthArgsFromEnv()) {
+        return false;
+    }
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
                                   : HashFunction::JustHash::Native);

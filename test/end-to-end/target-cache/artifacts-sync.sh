@@ -57,6 +57,7 @@ readonly JUST_MR="$ROOT/foo/bin/just-mr.py"
 readonly JUST_RULES="$ROOT/foo/rules"
 readonly LBRDIR="$TEST_TMPDIR/local-build-root"
 readonly TESTDIR="$TEST_TMPDIR/test-root"
+readonly CREDENTIALS_DIR="${PWD}/credentials"
 
 if [ "${REMOTE_EXECUTION_ADDRESS:-}" = "" ]; then
   echo
@@ -68,6 +69,17 @@ fi
 REMOTE_EXECUTION_ARGS="-r $REMOTE_EXECUTION_ADDRESS"
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
   REMOTE_EXECUTION_ARGS="$REMOTE_EXECUTION_ARGS --remote-execution-property $REMOTE_EXECUTION_PROPERTIES"
+fi
+
+AUTH_ARGS=""
+if [ -f "${CREDENTIALS_DIR}/ca.crt" ]; then
+  AUTH_ARGS=" --tls-ca-cert ${CREDENTIALS_DIR}/ca.crt "
+  if [ -f "${CREDENTIALS_DIR}/client.crt" ]; then
+    AUTH_ARGS=" --tls-client-cert ${CREDENTIALS_DIR}/client.crt "${AUTH_ARGS}
+  fi
+  if [ -f "${CREDENTIALS_DIR}/client.key" ]; then
+    AUTH_ARGS=" --tls-client-key ${CREDENTIALS_DIR}/client.key "${AUTH_ARGS}
+  fi
 fi
 
 if [ "${COMPATIBLE:-}" = "YES" ]; then
@@ -121,7 +133,7 @@ echo "Local execution ID: $LOCAL_EXECUTION_ID"
 rm -rf "$TCDIR"
 
 # Determine remote execution ID
-"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build main $ARGS $REMOTE_EXECUTION_ARGS
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build main $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS}
 readonly REMOTE_EXECUTION_ID=$(ls -1 "$TCDIR" | head -n1)
 echo "Remote execution ID: $REMOTE_EXECUTION_ID"
 rm -rf "$TCDIR"
@@ -155,7 +167,7 @@ sed -i "s|RANDOM_STRING_1 \".*\"|RANDOM_STRING_1 \"$RANDOM_STRING\"|" greet/incl
 sed -i "s|RANDOM_STRING_2 \".*\"|RANDOM_STRING_2 \"$RANDOM_STRING\"|" greet/src/greet.cpp
 
 # Build greetlib remotely
-"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS}
 
 # Check if file and tree artifacts have been downloaded correctly
 readonly TC_HASH=$(get_tc_hash $REMOTE_EXECUTION_ID)
@@ -181,7 +193,7 @@ sed -i "s|RANDOM_STRING_2 \".*\"|RANDOM_STRING_2 \"$RANDOM_STRING\"|" greet/src/
 mv "$TCDIR/$LOCAL_EXECUTION_ID" "$TCDIR/$REMOTE_EXECUTION_ID"
 
 # Check if greetlib successfully builds remotely
-"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" --main main build main $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS}
 
 # Clean up test files
 rm -rf "$TESTDIR" "$LBRDIR"
@@ -209,7 +221,7 @@ sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" foo.py
 sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" bar.py
 
 # Build pydicts remotely
-"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS}
 
 # 'exported_py' target contains a provides map,
 #   which contains an abstract node (type 'convert'),
@@ -244,7 +256,7 @@ sed -i "s|\"foo\": \"[^\"]*\"|\"foo\": \"$RANDOM_STRING\"|" bar.py
 mv "$TCDIR/$LOCAL_EXECUTION_ID" "$TCDIR/$REMOTE_EXECUTION_ID"
 
 # Check if pydicts successfully builds remotely
-"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS
+"$JUST_MR" --norc --just "$JUST" --local-build-root "$LBRDIR" build json_from_py $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS}
 
 # Clean up test files
 rm -rf "$TESTDIR" "$LBRDIR"
