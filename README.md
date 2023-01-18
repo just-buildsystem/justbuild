@@ -35,3 +35,4 @@ taken from user-defined rules described by functional expressions.
 - [Cache Pragma and Testing](doc/concepts/cache-pragma.org)
 - [Anonymous Targets](doc/concepts/anonymous-targets.org)
 - [Target-Level Caching](doc/concepts/target-cache.org)
+- [Garbage Collection](doc/concepts/garbage.org)
