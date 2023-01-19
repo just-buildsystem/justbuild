@@ -4,6 +4,7 @@ A feature release on top of `1.0.0`, backwards compatible.
 
 ### Major new features
 
+- `just` now supports authentication to remote execution via mutual TLS
 - `just-mr` is now available as C++ binary and supports fetching in parallel
 
 ### Other changes
