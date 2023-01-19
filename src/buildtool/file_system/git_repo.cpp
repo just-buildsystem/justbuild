@@ -790,10 +790,17 @@ auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
         // connect to remote
         git_remote_callbacks callbacks{};
         git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+
+        git_proxy_options proxy_opts{};
+        git_proxy_options_init(&proxy_opts, GIT_PROXY_OPTIONS_VERSION);
+
+        // set the option to auto-detect proxy settings
+        proxy_opts.type = GIT_PROXY_AUTO;
+
         if (git_remote_connect(remote.get(),
                                GIT_DIRECTION_FETCH,
                                &callbacks,
-                               nullptr,
+                               &proxy_opts,
                                nullptr) != 0) {
             (*logger)(
                 fmt::format("connecting to remote {} for git repository {} "
