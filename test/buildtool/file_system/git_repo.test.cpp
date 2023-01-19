@@ -224,14 +224,9 @@ TEST_CASE("Single-threaded real repository remote operations", "[git_repo]") {
         auto repo_remote_ls_bare = GitRepo::Open(*path_remote_ls_bare);
         REQUIRE(repo_remote_ls_bare);
 
-        // get refname of branch
-        auto branch_refname =
-            repo_remote_ls_bare->GetBranchLocalRefname("master", logger);
-        REQUIRE(branch_refname);
-        REQUIRE(*branch_refname == "refs/heads/master");
         // remote ls
         auto remote_commit = repo_remote_ls_bare->GetCommitFromRemote(
-            *repo_path, *branch_refname, logger);
+            *repo_path, "master", logger);
         REQUIRE(remote_commit);
         CHECK(*remote_commit == kRootCommit);
     }
@@ -467,7 +462,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
         auto tmp_path_commit_upd = TestUtils::GetRepoPath();
         // do remote ls
         auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            tmp_path_commit_upd, *repo_path, "refs/heads/master", logger);
+            tmp_path_commit_upd, *repo_path, "master", logger);
 
         REQUIRE(fetched_commit);
         CHECK(*fetched_commit == kRootCommit);
@@ -615,7 +610,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                                 target_repo->UpdateCommitViaTmpRepo(
                                     tmp_path_commit_upd,
                                     *remote_repo_path,
-                                    "refs/heads/master",
+                                    "master",
                                     logger);
 
                             REQUIRE(fetched_commit);

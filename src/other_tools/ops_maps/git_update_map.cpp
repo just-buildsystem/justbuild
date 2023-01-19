@@ -51,10 +51,8 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
                     fatal);
             });
         // update commit
-        auto refname = std::string("refs/heads/") +
-                       key.second;  // assume branch ref format
         auto new_commit = git_repo->UpdateCommitViaTmpRepo(
-            tmp_dir->GetPath(), key.first, refname, wrapped_logger);
+            tmp_dir->GetPath(), key.first, key.second, wrapped_logger);
         if (not new_commit) {
             return;
         }

@@ -758,7 +758,7 @@ auto GitRepo::GetBranchLocalRefname(std::string const& branch,
 }
 
 auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
-                                  std::string const& branch_refname_local,
+                                  std::string const& branch,
                                   anon_logger_ptr const& logger) noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
@@ -825,21 +825,22 @@ auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
         }
         // figure out what remote branch the local one is tracking
         for (size_t i = 0; i < refs_len; ++i) {
+            // by treating each read reference string as a path we can easily
+            // check for the branch name
             // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            std::string ref_name{refs[i]->name};
-            if (ref_name == branch_refname_local) {
+            std::filesystem::path ref_name_as_path{refs[i]->name};
+            if (ref_name_as_path.filename() == branch) {
                 // branch found!
                 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 std::string new_commit_hash{git_oid_tostr_s(&refs[i]->oid)};
                 return new_commit_hash;
             }
         }
-        (*logger)(
-            fmt::format("could not find branch with refname {} for remote {}",
-                        branch_refname_local,
-                        repo_url,
-                        GitLastError()),
-            true /*fatal*/);
+        (*logger)(fmt::format("could not find branch {} for remote {}",
+                              branch,
+                              repo_url,
+                              GitLastError()),
+                  true /*fatal*/);
         return std::nullopt;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
@@ -1180,7 +1181,7 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
 
 auto GitRepo::UpdateCommitViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                                      std::string const& repo_url,
-                                     std::string const& branch_refname,
+                                     std::string const& branch,
                                      anon_logger_ptr const& logger)
     const noexcept -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
@@ -1205,8 +1206,7 @@ auto GitRepo::UpdateCommitViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                                 msg),
                     fatal);
             });
-        return tmp_repo->GetCommitFromRemote(
-            repo_url, branch_refname, wrapped_logger);
+        return tmp_repo->GetCommitFromRemote(repo_url, branch, wrapped_logger);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "update commit via tmp repo failed with:\n{}",
