@@ -179,7 +179,7 @@
     , "bindings":
       [ ["USE_SHA1", "OpenSSL"]
       , ["USE_SSH", false]
-      , ["USE_HTTPS", false]
+      , ["USE_HTTPS", "OpenSSL"]
       , ["USE_GSSAPI", false]
       ]
     , "body":
