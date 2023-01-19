@@ -113,7 +113,7 @@ auto CreateImportToGitMap(
                         auto success =
                             just_git_repo->FetchViaTmpRepo(*tmp_repo_path,
                                                            target_path.string(),
-                                                           "",
+                                                           std::nullopt,
                                                            wrapped_logger);
                         if (not success) {
                             return;

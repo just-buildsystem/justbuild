@@ -131,27 +131,63 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     }
     if (not is_commit_present.value()) {
         // if commit not there, fetch it
-        // get refspec for branch
+        auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
+        if (not tmp_dir) {
+            (*logger)("Failed to create fetch tmp directory!",
+                      /*fatal=*/true);
+            return;
+        }
+        // setup wrapped logger
+        auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+            [logger](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While fetching via tmp repo:\n{}", msg),
+                          fatal);
+            });
+        if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                          repo_info.repo_url,
+                                          repo_info.branch,
+                                          wrapped_logger)) {
+            return;
+        }
+        // setup wrapped logger
+        wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+            [logger](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While checking commit exists:\n{}", msg),
+                          fatal);
+            });
+        // check if commit exists now, after fetch
+        auto is_commit_present =
+            git_repo->CheckCommitExists(repo_info.hash, wrapped_logger);
+        if (not is_commit_present) {
+            return;
+        }
+        if (not *is_commit_present) {
+            // commit could not be fetched, so fail
+            (*logger)(fmt::format("Could not fetch commit {} from branch "
+                                  "{} for remote {}",
+                                  repo_info.hash,
+                                  repo_info.branch,
+                                  repo_info.repo_url),
+                      /*fatal=*/true);
+            return;
+        }
+        // keep tag
         GitOpKey op_key = {{
-                               repo_root,         // target_path
-                               "",                // git_hash
-                               repo_info.branch,  // branch
+                               repo_root,                    // target_path
+                               repo_info.hash,               // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
                            },
-                           GitOpType::GET_BRANCH_REFNAME};
+                           GitOpType::KEEP_TAG};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [critical_git_op_map,
-             git_cas,
-             repo_info,
-             repo_root,
-             ts,
-             ws_setter,
-             logger](auto const& values) {
+            [git_cas, repo_info, repo_root, ws_setter, logger](
+                auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
                 if (not op_result.result) {
-                    (*logger)("Get branch refname failed",
+                    (*logger)("Keep tag failed",
                               /*fatal=*/true);
                     return;
                 }
@@ -164,112 +200,27 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                               /*fatal=*/true);
                     return;
                 }
-                // do fetch
-                auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
-                if (not tmp_dir) {
-                    (*logger)("Failed to create fetch tmp directory!",
-                              /*fatal=*/true);
-                    return;
-                }
                 // setup wrapped logger
                 auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
                     [logger](auto const& msg, bool fatal) {
-                        (*logger)(fmt::format(
-                                      "While fetching via tmp repo:\n{}", msg),
-                                  fatal);
-                    });
-                if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                                  repo_info.repo_url,
-                                                  *op_result.result,
-                                                  wrapped_logger)) {
-                    return;
-                }
-                // setup wrapped logger
-                wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [logger](auto const& msg, bool fatal) {
-                        (*logger)(fmt::format(
-                                      "While checking commit exists:\n{}", msg),
-                                  fatal);
-                    });
-                // check if commit exists now, after fetch
-                auto is_commit_present =
-                    git_repo->CheckCommitExists(repo_info.hash, wrapped_logger);
-                if (not is_commit_present) {
-                    return;
-                }
-                if (not *is_commit_present) {
-                    // commit could not be fetched, so fail
-                    (*logger)(
-                        fmt::format("Could not fetch commit {} from branch "
-                                    "{} for remote {}",
-                                    repo_info.hash,
-                                    repo_info.branch,
-                                    repo_info.repo_url),
-                        /*fatal=*/true);
-                    return;
-                }
-                // keep tag
-                GitOpKey op_key = {{
-                                       repo_root,       // target_path
-                                       repo_info.hash,  // git_hash
-                                       "",              // branch
-                                       "Keep referenced tree alive"  // message
-                                   },
-                                   GitOpType::KEEP_TAG};
-                critical_git_op_map->ConsumeAfterKeysReady(
-                    ts,
-                    {std::move(op_key)},
-                    [git_cas, repo_info, repo_root, ws_setter, logger](
-                        auto const& values) {
-                        GitOpValue op_result = *values[0];
-                        // check flag
-                        if (not op_result.result) {
-                            (*logger)("Keep tag failed",
-                                      /*fatal=*/true);
-                            return;
-                        }
-                        // ensure commit exists, and fetch if needed
-                        auto git_repo =
-                            GitRepo::Open(git_cas);  // link fake repo to odb
-                        if (not git_repo) {
-                            (*logger)(
-                                fmt::format("Could not open repository {}",
-                                            repo_root.string()),
-                                /*fatal=*/true);
-                            return;
-                        }
-                        // setup wrapped logger
-                        auto wrapped_logger =
-                            std::make_shared<AsyncMapConsumerLogger>(
-                                [logger](auto const& msg, bool fatal) {
-                                    (*logger)(
-                                        fmt::format("While getting subtree "
-                                                    "from commit:\n{}",
-                                                    msg),
-                                        fatal);
-                                });
-                        // get tree id and return workspace root
-                        auto subtree = git_repo->GetSubtreeFromCommit(
-                            repo_info.hash, repo_info.subdir, wrapped_logger);
-                        if (not subtree) {
-                            return;
-                        }
-                        // set the workspace root
-                        (*ws_setter)(nlohmann::json::array(
-                            {"git tree", *subtree, repo_root}));
-                    },
-                    [logger, target_path = repo_root](auto const& msg,
-                                                      bool fatal) {
-                        (*logger)(fmt::format("While running critical Git op "
-                                              "KEEP_TAG for target {}:\n{}",
-                                              target_path.string(),
+                        (*logger)(fmt::format("While getting subtree "
+                                              "from commit:\n{}",
                                               msg),
                                   fatal);
                     });
+                // get tree id and return workspace root
+                auto subtree = git_repo->GetSubtreeFromCommit(
+                    repo_info.hash, repo_info.subdir, wrapped_logger);
+                if (not subtree) {
+                    return;
+                }
+                // set the workspace root
+                (*ws_setter)(
+                    nlohmann::json::array({"git tree", *subtree, repo_root}));
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
-                                      "GET_BRANCH_REFNAME for target {}:\n{}",
+                                      "KEEP_TAG for target {}:\n{}",
                                       target_path.string(),
                                       msg),
                           fatal);

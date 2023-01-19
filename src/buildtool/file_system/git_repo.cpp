@@ -844,7 +844,7 @@ auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
 }
 
 auto GitRepo::FetchFromRemote(std::string const& repo_url,
-                              std::string const& refspec,
+                              std::optional<std::string> const& branch,
                               anon_logger_ptr const& logger) noexcept -> bool {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return false;
@@ -870,29 +870,36 @@ auto GitRepo::FetchFromRemote(std::string const& repo_url,
             git_remote_free(remote_ptr);
             return false;
         }
+        // wrap remote object
         auto remote = std::unique_ptr<git_remote, decltype(&remote_closer)>(
             remote_ptr, remote_closer);
 
+        // define default fetch options
+        git_fetch_options fetch_opts{};
+        git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+
+        // disable update of the FETCH_HEAD pointer
+        fetch_opts.update_fetchhead = 0;
+
         // setup fetch refspecs array
         git_strarray refspecs_array_obj{};
-        if (not refspec.empty()) {
-            PopulateStrarray(&refspecs_array_obj, {refspec});
+        if (branch) {
+            // make sure we check for tags as well
+            std::string tag = fmt::format("+refs/tags/{}", *branch);
+            std::string head = fmt::format("+refs/heads/{}", *branch);
+            PopulateStrarray(&refspecs_array_obj, {tag, head});
         }
         auto refspecs_array =
             std::unique_ptr<git_strarray, decltype(&strarray_deleter)>(
                 &refspecs_array_obj, strarray_deleter);
 
-        // do the fetch
-        git_fetch_options fetch_opts{};
-        git_fetch_init_options(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        if (git_remote_fetch(remote.get(),
-                             refspec.empty() ? nullptr : refspecs_array.get(),
-                             &fetch_opts,
-                             nullptr) != 0) {
+        if (git_remote_fetch(
+                remote.get(), refspecs_array.get(), &fetch_opts, nullptr) !=
+            0) {
             (*logger)(
-                fmt::format("fetch of refspec {} in git repository {} failed "
+                fmt::format("fetching{} in git repository {} failed "
                             "with:\n{}",
-                            refspec,
+                            branch ? fmt::format(" branch {}", *branch) : "",
                             GetGitCAS()->git_path_.string(),
                             GitLastError()),
                 true /*fatal*/);
@@ -1201,7 +1208,7 @@ auto GitRepo::UpdateCommitViaTmpRepo(std::filesystem::path const& tmp_repo_path,
 
 auto GitRepo::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                               std::string const& repo_url,
-                              std::string const& refspec,
+                              std::optional<std::string> const& branch,
                               anon_logger_ptr const& logger) noexcept -> bool {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return false;
@@ -1234,7 +1241,7 @@ auto GitRepo::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                             "While doing branch fetch via tmp repo:\n{}", msg),
                         fatal);
                 });
-            return tmp_repo->FetchFromRemote(repo_url, refspec, wrapped_logger);
+            return tmp_repo->FetchFromRemote(repo_url, branch, wrapped_logger);
         }
         return false;
     } catch (std::exception const& ex) {
