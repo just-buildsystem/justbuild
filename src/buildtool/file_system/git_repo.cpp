@@ -878,6 +878,9 @@ auto GitRepo::FetchFromRemote(std::string const& repo_url,
         git_fetch_options fetch_opts{};
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
 
+        // set the option to auto-detect proxy settings
+        fetch_opts.proxy_opts.type = GIT_PROXY_AUTO;
+
         // disable update of the FETCH_HEAD pointer
         fetch_opts.update_fetchhead = 0;
 
