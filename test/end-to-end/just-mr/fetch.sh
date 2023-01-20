@@ -59,7 +59,7 @@ rm -rf "${DISTDIR}"
 mkdir -p "${DISTDIR}"
 
 # Ask just-mr to fetch to the empty distdir
-"${JUST_MR}" --local-build-root "${LBR}" --distdir "${DISTDIR}" fetch 2>&1
+"${JUST_MR}" --local-build-root "${LBR}" fetch -o "${DISTDIR}" 2>&1
 
 # Verify that the correct file is stored in the distdir
 test -f "${DISTDIR}/foo-1.2.3.tar"
@@ -68,7 +68,7 @@ echo "Foo archive has now content ${newfoocontent}"
 test "${newfoocontent}" = "${foocontent}"
 
 # Verify that fetching accepts distfiles already present
-"${JUST_MR}" --local-build-root "${LBR}" --distdir "${DISTDIR}" fetch 2>&1
+"${JUST_MR}" --local-build-root "${LBR}" fetch -o "${DISTDIR}" 2>&1
 newfoocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
 echo "Foo archive has now content ${newfoocontent}"
 test "${newfoocontent}" = "${foocontent}"
