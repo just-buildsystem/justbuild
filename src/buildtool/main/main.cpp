@@ -40,6 +40,7 @@
 #include "src/buildtool/main/install_cas.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
@@ -68,7 +69,8 @@ enum class SubCommand {
     kRebuild,
     kInstallCas,
     kTraverse,
-    kGc
+    kGc,
+    kExecute
 };
 
 struct CommandLineArguments {
@@ -84,7 +86,10 @@ struct CommandLineArguments {
     RebuildArguments rebuild;
     FetchArguments fetch;
     GraphArguments graph;
-    AuthArguments auth;
+    CommonAuthArguments auth;
+    ClientAuthArguments cauth;
+    ServerAuthArguments sauth;
+    ExecutionServiceArguments es;
 };
 
 /// \brief Setup arguments for sub command "just describe".
@@ -119,7 +124,9 @@ auto SetupBuildCommandArguments(
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
-    SetupAuthArguments(app, &clargs->auth);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
+    SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
     SetupCompatibilityArguments(app);
 }
@@ -147,7 +154,8 @@ auto SetupInstallCasCommandArguments(
     SetupCompatibilityArguments(app);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
-    SetupAuthArguments(app, &clargs->auth);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
     SetupFetchArguments(app, &clargs->fetch);
     SetupLogArguments(app, &clargs->log);
 }
@@ -160,8 +168,10 @@ auto SetupTraverseCommandArguments(
     SetupLogArguments(app, &clargs->log);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
-    SetupAuthArguments(app, &clargs->auth);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis
+    SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
     SetupStageArguments(app, &clargs->stage);
     SetupCompatibilityArguments(app);
@@ -172,6 +182,19 @@ auto SetupGcCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCacheArguments(app, &clargs->endpoint);
+}
+
+/// \brief Setup arguments for sub command "just execute".
+auto SetupExecutionServiceCommandArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<CommandLineArguments*> const& clargs) {
+    SetupCompatibilityArguments(app);
+    SetupCommonBuildArguments(app, &clargs->build);
+    SetupCacheArguments(app, &clargs->endpoint);
+    SetupExecutionServiceArguments(app, &clargs->es);
+    SetupLogArguments(app, &clargs->log);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupServerAuthArguments(app, &clargs->sauth);
 }
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
@@ -194,6 +217,8 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
         app.add_subcommand("install-cas", "Fetch and stage artifact from CAS.");
     auto* cmd_gc =
         app.add_subcommand("gc", "Trigger garbage collection of local cache.");
+    auto* cmd_execution = app.add_subcommand(
+        "execute", "Start single node execution service on this machine.");
     auto* cmd_traverse =
         app.group("")  // group for creating hidden options
             ->add_subcommand("traverse",
@@ -209,7 +234,7 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     SetupInstallCasCommandArguments(cmd_install_cas, &clargs);
     SetupTraverseCommandArguments(cmd_traverse, &clargs);
     SetupGcCommandArguments(cmd_gc, &clargs);
-
+    SetupExecutionServiceCommandArguments(cmd_execution, &clargs);
     try {
         app.parse(argc, argv);
     } catch (CLI::Error& e) {
@@ -246,6 +271,9 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     else if (*cmd_gc) {
         clargs.cmd = SubCommand::kGc;
     }
+    else if (*cmd_execution) {
+        clargs.cmd = SubCommand::kExecute;
+    }
 
     return clargs;
 }
@@ -266,7 +294,6 @@ void SetupLogging(LogArguments const& clargs) {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 void SetupExecutionConfig(EndpointArguments const& eargs,
-                          AuthArguments const& authargs,
                           BuildArguments const& bargs,
                           RebuildArguments const& rargs) {
     using LocalConfig = LocalExecutionConfig;
@@ -304,6 +331,11 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
             std::exit(kExitFailure);
         }
     }
+}
+
+void SetupAuthConfig(CommonAuthArguments const& authargs,
+                     ClientAuthArguments const& client_authargs,
+                     ServerAuthArguments const& server_authargs) {
     auto use_tls = false;
     if (authargs.tls_ca_cert) {
         use_tls = true;
@@ -314,26 +346,81 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
             std::exit(kExitFailure);
         }
     }
-    if (authargs.tls_client_cert) {
+    if (client_authargs.tls_client_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetClientCertificate(*authargs.tls_client_cert)) {
+        if (not Auth::TLS::SetClientCertificate(
+                *client_authargs.tls_client_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
-                        authargs.tls_client_cert->string());
+                        client_authargs.tls_client_cert->string());
             std::exit(kExitFailure);
         }
     }
-    if (authargs.tls_client_key) {
+    if (client_authargs.tls_client_key) {
         use_tls = true;
-        if (not Auth::TLS::SetClientKey(*authargs.tls_client_key)) {
+        if (not Auth::TLS::SetClientKey(*client_authargs.tls_client_key)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' key.",
-                        authargs.tls_client_key->string());
+                        client_authargs.tls_client_key->string());
             std::exit(kExitFailure);
         }
     }
+
+    if (server_authargs.tls_server_cert) {
+        use_tls = true;
+        if (not Auth::TLS::SetServerCertificate(
+                *server_authargs.tls_server_cert)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' certificate.",
+                        server_authargs.tls_server_cert->string());
+            std::exit(kExitFailure);
+        }
+    }
+    if (server_authargs.tls_server_key) {
+        use_tls = true;
+        if (not Auth::TLS::SetServerKey(*server_authargs.tls_server_key)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' key.",
+                        server_authargs.tls_server_key->string());
+            std::exit(kExitFailure);
+        }
+    }
+
     if (use_tls) {
         if (not Auth::TLS::Validate()) {
+            std::exit(kExitFailure);
+        }
+    }
+}
+
+void SetupExecutionServiceConfig(ExecutionServiceArguments const& args) {
+    if (args.port) {
+        if (!ServerImpl::SetPort(*args.port)) {
+            Logger::Log(LogLevel::Error, "Invalid port '{}'", *args.port);
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.info_file) {
+        if (!ServerImpl::SetInfoFile(*args.info_file)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid info-file '{}'",
+                        args.info_file->string());
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.interface) {
+        if (!ServerImpl::SetInterface(*args.interface)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid interface '{}'",
+                        args.info_file->string());
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.pid_file) {
+        if (!ServerImpl::SetPidFile(*args.pid_file)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid pid-file '{}'",
+                        args.info_file->string());
             std::exit(kExitFailure);
         }
     }
@@ -1157,10 +1244,9 @@ auto main(int argc, char* argv[]) -> int {
         }
 #ifndef BOOTSTRAP_BUILD_TOOL
         SetupHashFunction();
-        SetupExecutionConfig(arguments.endpoint,
-                             arguments.auth,
-                             arguments.build,
-                             arguments.rebuild);
+        SetupExecutionConfig(
+            arguments.endpoint, arguments.build, arguments.rebuild);
+        SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {
             if (GarbageCollector::TriggerGarbageCollection()) {
@@ -1169,6 +1255,13 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
+        if (arguments.cmd == SubCommand::kExecute) {
+            SetupExecutionServiceConfig(arguments.es);
+            if (!ServerImpl::Instance().Run()) {
+                return kExitFailure;
+            }
+            return kExitSuccess;
+        }
 #endif
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs

@@ -39,7 +39,6 @@ using Port = type_safe_arithmetic<PortTag>;
         if (port_num >= 0 and port_num <= kMaxPortNumber) {
             return gsl::narrow_cast<Port::value_t>(port_num);
         }
-
     } catch (std::out_of_range const& e) {
         Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");
     }
@@ -56,6 +55,7 @@ using Port = type_safe_arithmetic<PortTag>;
     }
     return std::nullopt;
 }
+
 class RemoteExecutionConfig {
   public:
     struct ServerAddress {

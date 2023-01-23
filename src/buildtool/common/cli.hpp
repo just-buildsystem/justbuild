@@ -125,12 +125,30 @@ struct GraphArguments {
     std::optional<std::filesystem::path> git_cas{};
 };
 
-/// \brief Arguments for authentication methods.
-struct AuthArguments {
-    // CA certificate used to verify server's identity
+// Arguments for authentication methods.
+
+/// \brief Arguments shared by both server and client
+struct CommonAuthArguments {
     std::optional<std::filesystem::path> tls_ca_cert{std::nullopt};
+};
+
+/// \brief Arguments used by the client
+struct ClientAuthArguments {
     std::optional<std::filesystem::path> tls_client_cert{std::nullopt};
     std::optional<std::filesystem::path> tls_client_key{std::nullopt};
+};
+
+/// \brief Authentication arguments used by subcommand just execute
+struct ServerAuthArguments {
+    std::optional<std::filesystem::path> tls_server_cert{std::nullopt};
+    std::optional<std::filesystem::path> tls_server_key{std::nullopt};
+};
+
+struct ExecutionServiceArguments {
+    std::optional<int> port{std::nullopt};
+    std::optional<std::filesystem::path> info_file{std::nullopt};
+    std::optional<std::string> interface{std::nullopt};
+    std::optional<std::string> pid_file{std::nullopt};
 };
 
 static inline auto SetupCommonArguments(
@@ -340,7 +358,7 @@ static inline auto SetupEndpointArguments(
         ->expected(1, 1);
 }
 
-static inline auto SetupBuildArguments(
+static inline auto SetupCommonBuildArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<BuildArguments*> const& clargs) {
     app->add_option_function<std::string>(
@@ -354,6 +372,11 @@ static inline auto SetupBuildArguments(
            "prepend actions' commands before being executed locally.")
         ->type_name("JSON")
         ->default_val(nlohmann::json{"env", "--"}.dump());
+}
+
+static inline auto SetupBuildArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<BuildArguments*> const& clargs) {
 
     app->add_option_function<unsigned int>(
            "--action-timeout",
@@ -470,18 +493,56 @@ static inline auto SetupCompatibilityArguments(
         "the flag must be used consistently for all related invocations.");
 }
 
-static inline auto SetupAuthArguments(
+static inline auto SetupCommonAuthArguments(
     gsl::not_null<CLI::App*> const& app,
-    gsl::not_null<AuthArguments*> const& authargs) {
+    gsl::not_null<CommonAuthArguments*> const& authargs) {
     app->add_option("--tls-ca-cert",
                     authargs->tls_ca_cert,
                     "Path to a TLS CA certificate that is trusted to sign the "
                     "server certificate.");
+}
+
+static inline auto SetupClientAuthArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ClientAuthArguments*> const& authargs) {
     app->add_option("--tls-client-cert",
                     authargs->tls_client_cert,
                     "Path to the TLS client certificate.");
     app->add_option("--tls-client-key",
                     authargs->tls_client_key,
                     "Path to the TLS client key.");
+}
+
+static inline auto SetupServerAuthArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ServerAuthArguments*> const& authargs) {
+    app->add_option("--tls-server-cert",
+                    authargs->tls_server_cert,
+                    "Path to the TLS server certificate.");
+    app->add_option("--tls-server-key",
+                    authargs->tls_server_key,
+                    "Path to the TLS server key.");
+}
+
+static inline auto SetupExecutionServiceArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ExecutionServiceArguments*> const& es_args) {
+    app->add_option("-p,--port",
+                    es_args->port,
+                    "Execution service will listen to this port. If unset, the "
+                    "service will listen to the first available one.");
+    app->add_option("--info-file",
+                    es_args->info_file,
+                    "Write the used port, interface, and pid to this file in "
+                    "JSON format. If the file exists, it "
+                    "will be overwritten.");
+    app->add_option("-i,--interface",
+                    es_args->interface,
+                    "Interface to use. If unset, the loopback device is used.");
+    app->add_option(
+        "--pid-file",
+        es_args->pid_file,
+        "Write pid to this file in plain txt. If the file exists, it "
+        "will be overwritten.");
 }
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP

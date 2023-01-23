@@ -58,6 +58,14 @@ class Auth {
             return Instance().client_key_;
         }
 
+        [[nodiscard]] static auto ServerCert() noexcept -> const std::string& {
+            return Instance().server_cert_;
+        }
+
+        [[nodiscard]] static auto ServerKey() noexcept -> const std::string& {
+            return Instance().server_key_;
+        }
+
         [[nodiscard]] static auto SetCACertificate(
             std::filesystem::path const& cert_file) noexcept -> bool {
             return set(cert_file, &Instance().ca_cert_);
@@ -73,6 +81,15 @@ class Auth {
             return set(key_file, &Instance().client_key_);
         }
 
+        [[nodiscard]] static auto SetServerCertificate(
+            std::filesystem::path const& cert_file) noexcept -> bool {
+            return set(cert_file, &Instance().server_cert_);
+        }
+
+        [[nodiscard]] static auto SetServerKey(
+            std::filesystem::path const& key_file) noexcept -> bool {
+            return set(key_file, &Instance().server_key_);
+        }
         // must be called after the parsing of cmd line arguments
         // we ensure that either both tls_client_cert or tls_client_key are set
         // or none of the two.
@@ -94,6 +111,19 @@ class Auth {
                             "Please also provide tls-client-key");
                 return false;
             }
+
+            // to enable mTLS, both tls_server_{ceritifcate,key} must be
+            // supplied
+            if (ServerCert().empty() && not(ServerKey().empty())) {
+                Logger::Log(LogLevel::Error,
+                            "Please also provide tls-server-cert");
+                return false;
+            }
+            if (not(ServerCert().empty()) && ServerKey().empty()) {
+                Logger::Log(LogLevel::Error,
+                            "Please also provide tls-server-key");
+                return false;
+            }
             return true;
         }
 
@@ -101,7 +131,8 @@ class Auth {
         std::string ca_cert_;
         std::string client_cert_;
         std::string client_key_;
-
+        std::string server_cert_;
+        std::string server_key_;
         // auxiliary function to set the content of the members of this class
         [[nodiscard]] static auto set(
             std::filesystem::path const& x,
