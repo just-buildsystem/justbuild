@@ -56,7 +56,6 @@ using CommitGitMap = AsyncMapConsumer<GitRepoInfo, nlohmann::json>;
     std::size_t jobs) -> CommitGitMap;
 
 void EnsureCommit(GitRepoInfo const& repo_info,
-                  std::string const& fetch_repo,
                   std::filesystem::path const& repo_root,
                   GitCASPtr const& git_cas,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,

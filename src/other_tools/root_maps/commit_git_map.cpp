@@ -65,13 +65,8 @@ auto CreateCommitGitMap(
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [key,
-             fetch_repo,
-             repo_root,
-             critical_git_op_map,
-             ts,
-             setter,
-             logger](auto const& values) {
+            [key, repo_root, critical_git_op_map, ts, setter, logger](
+                auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
                 if (not op_result.result) {
@@ -90,7 +85,6 @@ auto CreateCommitGitMap(
                                   fatal);
                     });
                 EnsureCommit(key,
-                             fetch_repo,
                              repo_root,
                              op_result.git_cas,
                              critical_git_op_map,
@@ -110,7 +104,6 @@ auto CreateCommitGitMap(
 }
 
 void EnsureCommit(GitRepoInfo const& repo_info,
-                  std::string const& fetch_repo,
                   std::filesystem::path const& repo_root,
                   GitCASPtr const& git_cas,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
@@ -151,7 +144,6 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             [critical_git_op_map,
              git_cas,
              repo_info,
-             fetch_repo,
              repo_root,
              ts,
              ws_setter,
@@ -187,7 +179,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                   fatal);
                     });
                 if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                                  fetch_repo,
+                                                  repo_info.repo_url,
                                                   *op_result.result,
                                                   wrapped_logger)) {
                     return;
@@ -207,11 +199,13 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 if (not *is_commit_present) {
                     // commit could not be fetched, so fail
-                    (*logger)(fmt::format("Could not update commit from branch "
-                                          "{} for remote {}",
-                                          repo_info.branch,
-                                          fetch_repo),
-                              /*fatal=*/true);
+                    (*logger)(
+                        fmt::format("Could not fetch commit {} from branch "
+                                    "{} for remote {}",
+                                    repo_info.hash,
+                                    repo_info.branch,
+                                    repo_info.repo_url),
+                        /*fatal=*/true);
                     return;
                 }
                 // keep tag
