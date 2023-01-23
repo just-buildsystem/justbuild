@@ -326,6 +326,48 @@ auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
 
 #endif  // BOOTSTRAP_BUILD_TOOL
 
+// callback to enable SSL certificate check for remote fetch
+const auto certificate_check_cb = [](git_cert* /*cert*/,
+                                     int /*valid*/,
+                                     const char* /*host*/,
+                                     void* /*payload*/) -> int { return 1; };
+
+// callback to remote fetch without an SSL certificate check
+const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
+                                           int /*valid*/,
+                                           const char* /*host*/,
+                                           void* /*payload*/) -> int {
+    return 0;
+};
+
+/// \brief Set a custom SSL certificate check callback to honor the existing Git
+/// configuration of a repository trying to connect to a remote.
+[[nodiscard]] auto SetCustomSSLCertificateCheckCallback(git_repository* repo)
+    -> git_transport_certificate_check_cb {
+    // check SSL verification settings, from most to least specific
+    std::optional<int> check_cert{std::nullopt};
+    // check gitconfig; ignore errors
+    git_config* cfg{nullptr};
+    int tmp{};
+    if (git_repository_config(&cfg, repo) == 0 and
+        git_config_get_bool(&tmp, cfg, "http.sslVerify") == 0) {
+        check_cert = tmp;
+    }
+    if (not check_cert) {
+        // check for GIT_SSL_NO_VERIFY environment variable
+        const char* ssl_no_verify_var{std::getenv("GIT_SSL_NO_VERIFY")};
+        if (ssl_no_verify_var != nullptr and
+            git_config_parse_bool(&tmp, ssl_no_verify_var) == 0) {
+            check_cert = tmp;
+        }
+    }
+    // cleanup memory
+    git_config_free(cfg);
+    // set callback
+    return (check_cert and check_cert.value() == 0) ? certificate_passthrough_cb
+                                                    : certificate_check_cb;
+}
+
 }  // namespace
 
 auto GitRepo::Open(GitCASPtr git_cas) noexcept -> std::optional<GitRepo> {
@@ -888,6 +930,10 @@ auto GitRepo::FetchFromRemote(std::string const& repo_url,
 
         // set the option to auto-detect proxy settings
         fetch_opts.proxy_opts.type = GIT_PROXY_AUTO;
+
+        // set custom SSL verification callback
+        fetch_opts.callbacks.certificate_check =
+            SetCustomSSLCertificateCheckCallback(repo_.get());
 
         // disable update of the FETCH_HEAD pointer
         fetch_opts.update_fetchhead = 0;
