@@ -1,4 +1,4 @@
-From bf27a288adce36e2a57e26146d18c224ebc745be Mon Sep 17 00:00:00 2001
+From 1a4497d0aa05b48c40d939713a48bdf78dfa29e9 Mon Sep 17 00:00:00 2001
 From: Oliver Reiche <oliver.reiche@huawei.com>
 Date: Wed, 3 Aug 2022 16:27:58 +0200
 Subject: [PATCH] Do not register fake repository as owner of ODB
@@ -36,7 +36,7 @@ index 892be6692..33bc5051f 100644
  /**
   * Set the Reference Database Backend for this repository
 diff --git a/src/repository.c b/src/repository.c
-index 513dbd61f..9e5aa6a16 100644
+index aae0c910b..13e1ca29e 100644
 --- a/src/repository.c
 +++ b/src/repository.c
 @@ -86,10 +86,12 @@ git_buf git_repository__reserved_names_posix[] = {
@@ -63,7 +63,7 @@ index 513dbd61f..9e5aa6a16 100644
  	set_refdb(repo, NULL);
  
  	return 0;
-@@ -722,7 +724,7 @@ static int _git_repository_open_ext_from_env(
+@@ -762,7 +764,7 @@ static int _git_repository_open_ext_from_env(
  		goto error;
  
  	if (odb)
@@ -72,7 +72,7 @@ index 513dbd61f..9e5aa6a16 100644
  
  	error = git__getenv(&alts_buf, "GIT_ALTERNATE_OBJECT_DIRECTORIES");
  	if (error == GIT_ENOTFOUND) {
-@@ -932,7 +934,7 @@ int git_repository_wrap_odb(git_repository **repo_out, git_odb *odb)
+@@ -973,7 +975,7 @@ int git_repository_wrap_odb(git_repository **repo_out, git_odb *odb)
  	repo = repository_alloc();
  	GIT_ERROR_CHECK_ALLOC(repo);
  
@@ -81,14 +81,16 @@ index 513dbd61f..9e5aa6a16 100644
  	*repo_out = repo;
  
  	return 0;
-@@ -1139,10 +1141,10 @@ int git_repository_odb(git_odb **out, git_repository *repo)
+@@ -1184,12 +1186,12 @@ int git_repository_odb(git_odb **out, git_repository *repo)
  	return 0;
  }
  
 -int git_repository_set_odb(git_repository *repo, git_odb *odb)
 +int git_repository_set_odb(git_repository *repo, git_odb *odb, bool set_owner)
  {
- 	assert(repo && odb);
+ 	GIT_ASSERT_ARG(repo);
+ 	GIT_ASSERT_ARG(odb);
+ 
 -	set_odb(repo, odb);
 +	set_odb(repo, odb, set_owner);
  	return 0;
@@ -108,7 +110,7 @@ index 7484d423b..d46a7fed9 100644
  
  	/* The set increases the refcount and we don't want them anymore */
 diff --git a/tests/repo/setters.c b/tests/repo/setters.c
-index 1fac627f6..bf1b31783 100644
+index 1fac627f6..e0e0d3696 100644
 --- a/tests/repo/setters.c
 +++ b/tests/repo/setters.c
 @@ -94,7 +94,28 @@ void test_repo_setters__setting_a_new_odb_on_a_repo_which_already_loaded_one_pro
@@ -134,7 +136,7 @@ index 1fac627f6..bf1b31783 100644
 +{
 +	git_odb *new_odb;
 +
-+	cl_git_pass(git_odb_open(&new_odb, "./testrepo.git/objects"));
++	cl_git_pass(git_odb__open(&new_odb, "./testrepo.git/objects", NULL));
 +	cl_assert(((git_refcount *)new_odb)->refcount.val == 1);
 +
 +	git_repository_set_odb(repo, new_odb, /*set_owner=*/false);
@@ -142,5 +144,5 @@ index 1fac627f6..bf1b31783 100644
  
  	git_repository_free(repo);
 -- 
-2.25.1
+2.30.2
 

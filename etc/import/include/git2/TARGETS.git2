@@ -146,7 +146,7 @@
 , "sys/repository.h":
   { "type": ["@", "rules", "patch", "file"]
   , "src": [["FILE", null, "sys/repository.h"]]
-  , "patch": [["@", "patches", "", "libgit2_v1.1.0_fix-fake-repo.patch"]]
+  , "patch": [["@", "patches", "", "libgit2_v1.2.0_fix-fake-repo.patch"]]
   , "patch-part": ["a", "include", "git2", "sys", "repository.h"]
   }
 , "TREE":
@@ -221,6 +221,7 @@
     , "worktree.h"
     , "sys/alloc.h"
     , "sys/commit.h"
+    , "sys/commit_graph.h"
     , "sys/config.h"
     , "sys/credential.h"
     , "sys/cred.h"
@@ -230,6 +231,7 @@
     , "sys/index.h"
     , "sys/mempack.h"
     , "sys/merge.h"
+    , "sys/midx.h"
     , "sys/odb_backend.h"
     , "sys/openssl.h"
     , "sys/path.h"
