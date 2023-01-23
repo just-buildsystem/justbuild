@@ -833,6 +833,10 @@ auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
         git_remote_callbacks callbacks{};
         git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
 
+        // set custom SSL verification callback
+        callbacks.certificate_check =
+            SetCustomSSLCertificateCheckCallback(repo_.get());
+
         git_proxy_options proxy_opts{};
         git_proxy_options_init(&proxy_opts, GIT_PROXY_OPTIONS_VERSION);
 
