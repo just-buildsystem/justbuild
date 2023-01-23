@@ -141,38 +141,3 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
     // success
     return GitOpValue({git_repo->GetGitCAS(), *head_commit});
 }
-
-auto CriticalGitOps::GitGetBranchRefname(
-    GitOpParams const& crit_op_params,
-    AsyncMapConsumerLoggerPtr const& logger) -> GitOpValue {
-    // Make sure folder we want to access exists
-    if (not FileSystemManager::Exists(crit_op_params.target_path)) {
-        (*logger)(fmt::format("target directory {} does not exist!",
-                              crit_op_params.target_path.string()),
-                  true /*fatal*/);
-        return GitOpValue{nullptr, std::nullopt};
-    }
-    // Open a GitRepo at given location
-    auto git_repo = GitRepo::Open(crit_op_params.target_path);
-    if (git_repo == std::nullopt) {
-        (*logger)(fmt::format("could not open git repository {}",
-                              crit_op_params.target_path.string()),
-                  true /*fatal*/);
-        return GitOpValue{nullptr, std::nullopt};
-    }
-    // setup wrapped logger
-    auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [logger](auto const& msg, bool fatal) {
-            (*logger)(
-                fmt::format("While doing get branch refname Git op:\n{}", msg),
-                fatal);
-        });
-    // Get branch refname
-    auto branch_refname =
-        git_repo->GetBranchLocalRefname(crit_op_params.branch, wrapped_logger);
-    if (branch_refname == std::nullopt) {
-        return GitOpValue{nullptr, std::nullopt};
-    }
-    // success
-    return GitOpValue{git_repo->GetGitCAS(), *branch_refname};
-}

@@ -19,8 +19,7 @@ GitOpKeyMap const GitOpKey::map_ = {
     {GitOpType::INITIAL_COMMIT, CriticalGitOps::GitInitialCommit},
     {GitOpType::ENSURE_INIT, CriticalGitOps::GitEnsureInit},
     {GitOpType::KEEP_TAG, CriticalGitOps::GitKeepTag},
-    {GitOpType::GET_HEAD_ID, CriticalGitOps::GitGetHeadId},
-    {GitOpType::GET_BRANCH_REFNAME, CriticalGitOps::GitGetBranchRefname}};
+    {GitOpType::GET_HEAD_ID, CriticalGitOps::GitGetHeadId}};
 
 /// \brief Create a CriticalOpMap object
 auto CreateCriticalGitOpMap(CriticalGitOpGuardPtr const& crit_git_op_ptr)

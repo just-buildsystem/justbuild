@@ -758,47 +758,6 @@ auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-auto GitRepo::GetBranchLocalRefname(std::string const& branch,
-                                    anon_logger_ptr const& logger) noexcept
-    -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
-    try {
-        // only possible for real repository!
-        if (IsRepoFake()) {
-            (*logger)("cannot retrieve branch refname using a fake repository!",
-                      true /*fatal*/);
-            return std::nullopt;
-        }
-        // get local reference of branch
-        git_reference* local_ref = nullptr;
-        if (git_branch_lookup(
-                &local_ref, repo_.get(), branch.c_str(), GIT_BRANCH_LOCAL) !=
-            0) {
-            (*logger)(fmt::format("retrieving branch {} local reference in git "
-                                  "repository {} failed with:\n{}",
-                                  branch,
-                                  GetGitCAS()->git_path_.string(),
-                                  GitLastError()),
-                      true /*fatal*/);
-            // release resources
-            git_reference_free(local_ref);
-            return std::nullopt;
-        }
-        auto refname = std::string(git_reference_name(local_ref));
-        // release resources
-        git_reference_free(local_ref);
-        return refname;
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "get branch local refname failed with:\n{}",
-                    ex.what());
-        return std::nullopt;
-    }
-#endif  // BOOTSTRAP_BUILD_TOOL
-}
-
 auto GitRepo::GetCommitFromRemote(std::string const& repo_url,
                                   std::string const& branch,
                                   anon_logger_ptr const& logger) noexcept

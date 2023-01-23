@@ -138,14 +138,6 @@ class GitRepo {
     [[nodiscard]] auto GetHeadCommit(anon_logger_ptr const& logger) noexcept
         -> std::optional<std::string>;
 
-    /// \brief Get the local refname of a given branch.
-    /// Only possible with real repository and thus non-thread-safe.
-    /// Returns the refname as a string, or nullopt if failure.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto GetBranchLocalRefname(
-        std::string const& branch,
-        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
-
     /// \brief Retrieve commit hash from remote branch given its name.
     /// Only possible with real repository and thus non-thread-safe.
     /// Returns the retrieved commit hash, or nullopt if failure.
