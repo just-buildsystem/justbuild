@@ -530,6 +530,12 @@
   , "patch": [["@", "patches", "", "libgit2_v1.2.0_fix-fake-repo.patch"]]
   , "patch-part": ["a", "src", "repository.c"]
   }
+, "remote.c":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "remote.c"]]
+  , "patch": [["@", "patches", "", "libgit2_v1.2.0_fix-proxy-settings.patch"]]
+  , "patch-part": ["a", "src", "remote.c"]
+  }
 , "git2internal":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
