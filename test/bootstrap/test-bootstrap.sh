@@ -20,9 +20,12 @@ export PATH=/bin:/usr/bin:$PATH
 
 readonly OUTDIR=${TEST_TMPDIR}/out
 readonly LBRDIR=${TEST_TMPDIR}/local-build-root
+readonly EMPTY=${TEST_TMPDIR}/empty
+readonly PRUNED_CONFIG=${TEST_TMPDIR}/pruned_config
 
 mkdir -p "${OUTDIR}"
 mkdir -p "${LBRDIR}"
+mkdir -p "${EMPTY}"
 
 BOOTSTRAP_BIN=./bin/bootstrap.py
 
@@ -35,7 +38,10 @@ export JUST=$(realpath "${OUTDIR}"/boot/out/bin/just)
 echo
 echo Testing if we reached the fixed point
 echo
-readonly CONF=$(./bin/just-mr.py -C etc/repos.json --distdir=distdir --local-build-root="${LBRDIR}" setup just)
+./prune-config.py etc/repos.json ${PRUNED_CONFIG} ${EMPTY}
+cat ${PRUNED_CONFIG}
+echo
+readonly CONF=$(./bin/just-mr.py -C ${PRUNED_CONFIG} --distdir=distdir --local-build-root="${LBRDIR}" setup just)
 ${JUST} install -C ${CONF} -o "${OUTDIR}"/final-out --local-build-root="${LBRDIR}"
 
 sha256sum "${OUTDIR}"/boot/out/bin/just "${OUTDIR}"/final-out/bin/just

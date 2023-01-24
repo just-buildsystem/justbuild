@@ -6,7 +6,11 @@
     , {"type": "var", "name": "SUFFIX", "default": ""}
     ]
   , "test": ["test-bootstrap.sh"]
-  , "deps": [["", "bootstrap-src"], ["@", "just-distfiles", "", "distdir"]]
+  , "deps":
+    [ ["", "bootstrap-src"]
+    , ["@", "just-distfiles", "", "distdir"]
+    , "prune-config.py"
+    ]
   }
 , "bundled-test-debug":
   { "type": "configure"

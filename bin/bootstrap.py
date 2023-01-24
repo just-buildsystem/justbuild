@@ -237,6 +237,17 @@ def config_to_local(*, repos_file, link_targets_file):
     with open(link_targets_file, "w") as f:
         json.dump(target, f, indent=2)
 
+def prune_config(*, repos_file, empty_dir):
+    with open(repos_file) as f:
+        repos = json.load(f)
+    for repo in repos["repositories"]:
+        desc = repos["repositories"][repo]
+        if desc.get("bootstrap", {}).get("drop"):
+            desc["repository"] = {"type": "file", "path": empty_dir}
+    os.unlink(repos_file)
+    with open(repos_file, "w") as f:
+        json.dump(repos, f, indent=2)
+
 def bootstrap():
     if LOCAL_DEPS:
         print("Bootstrap build in %r from sources %r against LOCALBASE %r"
@@ -252,6 +263,9 @@ def bootstrap():
             repos_file =os.path.join(src_wrkdir, REPOS),
             link_targets_file=os.path.join(src_wrkdir, LOCAL_LINK_DIRS_MODULE, "TARGETS")
         )
+    empty_dir = os.path.join(WRKDIR, "empty_directory")
+    os.makedirs(empty_dir)
+    prune_config(repos_file=os.path.join(src_wrkdir, REPOS), empty_dir=empty_dir)
     dep_flags = setup_deps(src_wrkdir)
     # handle proto
     flags = ["-I", src_wrkdir] + dep_flags["include"] + ["-I", os.path.join(LOCALBASE, "include")]
