@@ -533,7 +533,9 @@ class FileSystemManager {
                                 entry.path().string());
                     return false;
                 }
-                read_entry(entry.path().filename(), *type);
+                if (not read_entry(entry.path().filename(), *type)) {
+                    return false;
+                }
             }
         } catch (std::exception const& ex) {
             Logger::Log(
