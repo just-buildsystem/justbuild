@@ -560,7 +560,7 @@ def distdir_tree_id_file(content):
     return os.path.join(ROOT, "distfiles-tree-map", content)
 
 
-def distdir_checkout(desc, repos):
+def distdir_checkout(name, desc, repos): # DEBUG (added name)
     """ Logic for processing the distdir repo type.
     """
     content = {}
@@ -582,7 +582,7 @@ def distdir_checkout(desc, repos):
             content[get_distfile(repo_desc)] = content_id
 
     # Hash the map as unique id for the distdir repo entry
-    distdir_content_id = git_hash(json.dumps(content).encode('utf-8'))
+    distdir_content_id = git_hash(json.dumps(content, sort_keys=True, separators=(',', ':')).encode('utf-8'))
     target_distdir_dir = distdir_repo_dir(distdir_content_id)
 
     # Check if content already exists
@@ -650,7 +650,7 @@ def checkout(desc, *, name, repos):
     if repo_type == "file":
         return file_checkout(repo_desc)
     if repo_type == "distdir":
-        return distdir_checkout(repo_desc, repos=repos)
+        return distdir_checkout(name, repo_desc, repos=repos) # DEBUG (added name)
     fail("Unknown repository type %s for %s" % (repo_type, name))
 
 
