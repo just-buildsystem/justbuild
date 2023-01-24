@@ -65,6 +65,9 @@
             , "-Wformat-security"
             , "-Wmissing-declarations"
             , "-Wno-implicit-fallthrough"
+            , "-Wno-sign-compare"
+            , "-Wno-unused-parameter"
+            , "-Wno-uninitialized"
             ]
           ]
         }

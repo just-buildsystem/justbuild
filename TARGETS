@@ -178,13 +178,15 @@
     { "type": "let*"
     , "bindings":
       [ ["USE_SHA1", "OpenSSL"]
+      , ["USE_SHA256", "OpenSSL"]
       , ["USE_SSH", false]
       , ["USE_HTTPS", "OpenSSL"]
       , ["USE_GSSAPI", false]
       ]
     , "body":
       { "type": "env"
-      , "vars": ["USE_SHA1", "USE_SSH", "USE_HTTPS", "USE_GSSAPI"]
+      , "vars":
+        ["USE_SHA1", "USE_SHA256", "USE_SSH", "USE_HTTPS", "USE_GSSAPI"]
       }
     }
   }

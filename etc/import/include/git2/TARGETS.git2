@@ -14,6 +14,7 @@
     , "USE_NTLMCLIENT"
     , "USE_GSSAPI"
     , "USE_SHA1"
+    , "USE_SHA256"
     , "USE_HTTPS"
     ]
   , "target": "feature_header"
@@ -130,6 +131,16 @@
                 , ["mbedTLS", [["GIT_SHA1_MBEDTLS", 1]]]
                 ]
               }
+            , { "type": "case*"
+              , "expr": {"type": "var", "name": "USE_SHA256"}
+              , "case":
+                [ ["Builtin", [["GIT_SHA256_BUILTIN", 1]]]
+                , ["Win32", [["GIT_SHA256_WIN32", 1]]]
+                , ["CommonCrypto", [["GIT_SHA256_COMMON_CRYPTO", 1]]]
+                , ["OpenSSL", [["GIT_SHA256_OPENSSL", 1]]]
+                , ["mbedTLS", [["GIT_SHA256_MBEDTLS", 1]]]
+                ]
+              }
             ]
           }
         ]
@@ -146,7 +157,7 @@
 , "sys/repository.h":
   { "type": ["@", "rules", "patch", "file"]
   , "src": [["FILE", null, "sys/repository.h"]]
-  , "patch": [["@", "patches", "", "libgit2_v1.2.0_fix-fake-repo.patch"]]
+  , "patch": [["@", "patches", "", "libgit2_v1.5.0_fix-fake-repo.patch"]]
   , "patch-part": ["a", "include", "git2", "sys", "repository.h"]
   }
 , "TREE":
@@ -173,6 +184,7 @@
     , "deprecated.h"
     , "describe.h"
     , "diff.h"
+    , "email.h"
     , "errors.h"
     , "filter.h"
     , "global.h"
@@ -226,6 +238,7 @@
     , "sys/credential.h"
     , "sys/cred.h"
     , "sys/diff.h"
+    , "sys/email.h"
     , "sys/filter.h"
     , "sys/hashsig.h"
     , "sys/index.h"
@@ -238,6 +251,7 @@
     , "sys/refdb_backend.h"
     , "sys/reflog.h"
     , "sys/refs.h"
+    , "sys/remote.h"
     , "sys/repository.h"
     , "sys/stream.h"
     , "sys/transport.h"

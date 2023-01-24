@@ -28,6 +28,7 @@
     , "USE_NTLMCLIENT"
     , "USE_GSSAPI"
     , "USE_SHA1"
+    , "USE_SHA256"
     , "USE_HTTPS"
     , "USE_HTTP_PARSER"
     , "USE_BUNDLED_ZLIB"
@@ -65,8 +66,16 @@
       , "\"mbedTLS\": link against mbedTLS (from system or open name)"
       , "\"Win32\": link against Windows' SHA1 implementation (always from system)"
       , "\"CommonCrypto\": build with shipped common_crypto implementation"
-      , "\"Generic\": build with shipped SHA1 implementation"
       , "\"HTTPS\": inherit from ~USE_HTTPS~, or fall back to \"CollisionDetection\""
+      ]
+    , "USE_SHA256":
+      [ "true: use \"Builtin\""
+      , "\"Builtin\": build with shipped RFC 6234 implementation"
+      , "\"OpenSSL\": link against OpenSSL compat library (from system or open name)"
+      , "\"mbedTLS\": link against mbedTLS (from system or open name)"
+      , "\"Win32\": link against Windows' SHA1 implementation (always from system)"
+      , "\"CommonCrypto\": build with shipped common_crypto implementation"
+      , "\"HTTPS\": inherit from ~USE_HTTPS~, or fall back to \"Builtin\""
       ]
     , "WINHTTP": ["boolean. use \"WinHTTP\" if \"USE_HTTPS\" is true"]
     }
@@ -89,6 +98,7 @@
     , "USE_NTLMCLIENT"
     , "USE_GSSAPI"
     , "USE_SHA1"
+    , "USE_SHA256"
     , "USE_HTTPS"
     , "USE_HTTP_PARSER"
     , "USE_BUNDLED_ZLIB"
@@ -119,6 +129,7 @@
       , ["USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
       , ["USE_GSSAPI", {"type": "var", "name": "USE_GSSAPI", "default": true}]
       , ["USE_SHA1", {"type": "var", "name": "USE_SHA1", "default": true}]
+      , ["USE_SHA256", {"type": "var", "name": "USE_SHA256", "default": true}]
       , ["USE_HTTPS", {"type": "var", "name": "USE_HTTPS", "default": true}]
       , [ "WINHTTP"
         , { "type": "var"
@@ -189,6 +200,27 @@
           , "default": {"type": "var", "name": "USE_SHA1"}
           }
         ]
+      , [ "USE_SHA256"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "USE_SHA256"}
+          , "case":
+            [ [true, "Builtin"]
+            , [ "HTTPS"
+              , { "type": "case*"
+                , "expr": {"type": "var", "name": "USE_HTTPS"}
+                , "case":
+                  [ ["SecureTransport", "CommonCrypto"]
+                  , ["WinHTTP", "Win32"]
+                  , [false, "Builtin"]
+                  , [null, "Builtin"]
+                  ]
+                , "default": {"type": "var", "name": "USE_HTTPS"}
+                }
+              ]
+            ]
+          , "default": {"type": "var", "name": "USE_SHA256"}
+          }
+        ]
       ]
     , "body":
       { "type": "env"
@@ -204,6 +236,7 @@
         , "USE_NTLMCLIENT"
         , "USE_GSSAPI"
         , "USE_SHA1"
+        , "USE_SHA256"
         , "USE_HTTPS"
         , "USE_HTTP_PARSER"
         , "USE_BUNDLED_ZLIB"

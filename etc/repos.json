@@ -384,11 +384,11 @@
   , "com_github_libgit2_libgit2":
     { "repository":
       { "type": "archive"
-      , "content": "8e2e6a6faa3708b448ad891fbd3aa7673c65bcd2"
-      , "fetch": "https://github.com/libgit2/libgit2/archive/refs/tags/v1.2.0.tar.gz"
-      , "sha256": "701a5086a968a46f25e631941b99fc23e4755ca2c56f59371ce1d94b9a0cc643"
-      , "sha512": "428188de153fdf8ff5bf78949f4a3a89fba57b87a8b641f92fed501df6a8cfdb72e0ffe0bf61a98adf210a2867134eb4421ea4b8d8219331aabc3daddd92f5fc"
-      , "subdir": "libgit2-1.2.0"
+      , "content": "3673ddf85118955a7611a93968f9d1af35e7815c"
+      , "fetch": "https://github.com/libgit2/libgit2/archive/refs/tags/v1.5.0.tar.gz"
+      , "sha256": "8de872a0f201b33d9522b817c92e14edb4efad18dae95cf156cf240b2efff93e"
+      , "sha512": "7a32b27cd32bd03ce7be6c127317f82a4ac6f16615c3234699676781f4858d057edb0410b2fe36fd2e634b00748a8b0be17f23809e09a7602ba48185134300f7"
+      , "subdir": "libgit2-1.5.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.git2"
