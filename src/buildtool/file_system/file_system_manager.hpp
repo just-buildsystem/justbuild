@@ -360,7 +360,8 @@ class FileSystemManager {
     [[nodiscard]] static auto Exists(std::filesystem::path const& path) noexcept
         -> bool {
         try {
-            return std::filesystem::exists(path);
+            auto const status = std::filesystem::symlink_status(path);
+            return std::filesystem::exists(status);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "checking for existence of path{}:\n{}",
@@ -375,7 +376,8 @@ class FileSystemManager {
     [[nodiscard]] static auto IsFile(std::filesystem::path const& file) noexcept
         -> bool {
         try {
-            if (!std::filesystem::is_regular_file(file)) {
+            auto const status = std::filesystem::symlink_status(file);
+            if (!std::filesystem::is_regular_file(status)) {
                 return false;
             }
         } catch (std::exception const& e) {
@@ -392,7 +394,8 @@ class FileSystemManager {
     [[nodiscard]] static auto IsDirectory(
         std::filesystem::path const& dir) noexcept -> bool {
         try {
-            return std::filesystem::is_directory(dir);
+            auto const status = std::filesystem::symlink_status(dir);
+            return std::filesystem::is_directory(status);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "checking if path {} corresponds to a directory:\n{}",
@@ -406,27 +409,14 @@ class FileSystemManager {
 
     /// \brief Checks whether a path corresponds to an executable or not.
     /// \param[in]  path Path to check
-    /// \param[in]  is_file_known   (Optional) If true, we assume that the path
-    /// corresponds to a file, if false, we check if it's a file or not first.
-    /// Default value is false
     /// \returns true if path corresponds to an executable object, false
     /// otherwise
-    [[nodiscard]] static auto IsExecutable(std::filesystem::path const& path,
-                                           bool is_file_known = false) noexcept
-        -> bool {
-        if (not is_file_known and not IsFile(path)) {
-            return false;
-        }
-
+    [[nodiscard]] static auto IsExecutable(
+        std::filesystem::path const& path) noexcept -> bool {
         try {
-            namespace fs = std::filesystem;
-            auto exec_flags = fs::perms::owner_exec bitor
-                              fs::perms::group_exec bitor
-                              fs::perms::others_exec;
-            auto exec_perms = fs::status(path).permissions() bitand exec_flags;
-            if (exec_perms == fs::perms::none) {
-                return false;
-            }
+            auto const status = std::filesystem::symlink_status(path);
+            return std::filesystem::is_regular_file(status) and
+                   HasExecPermissions(status);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "checking if path {} corresponds to an executable:\n{}",
@@ -441,23 +431,32 @@ class FileSystemManager {
     /// \brief Gets type of object in path according to file system
     [[nodiscard]] static auto Type(std::filesystem::path const& path) noexcept
         -> std::optional<ObjectType> {
-        if (IsFile(path)) {
-            if (IsExecutable(path, true)) {
-                return ObjectType::Executable;
+        try {
+            auto const status = std::filesystem::symlink_status(path);
+            if (std::filesystem::is_regular_file(status)) {
+                if (HasExecPermissions(status)) {
+                    return ObjectType::Executable;
+                }
+                return ObjectType::File;
             }
-            return ObjectType::File;
-        }
-        if (IsDirectory(path)) {
-            return ObjectType::Tree;
-        }
-        if (Exists(path)) {
-            Logger::Log(LogLevel::Debug,
-                        "object type for {} is not supported yet.",
-                        path.string());
-        }
-        else {
-            Logger::Log(
-                LogLevel::Trace, "non-existing object path {}.", path.string());
+            if (std::filesystem::is_directory(status)) {
+                return ObjectType::Tree;
+            }
+            if (std::filesystem::exists(status)) {
+                Logger::Log(LogLevel::Debug,
+                            "object type for {} is not supported yet.",
+                            path.string());
+            }
+            else {
+                Logger::Log(LogLevel::Trace,
+                            "non-existing object path {}.",
+                            path.string());
+            }
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "checking type of path {} failed with:\n{}",
+                        path.string(),
+                        e.what());
         }
         return std::nullopt;
     }
@@ -520,20 +519,26 @@ class FileSystemManager {
         ReadDirEntryFunc const& read_entry) noexcept -> bool {
         try {
             for (auto const& entry : std::filesystem::directory_iterator{dir}) {
-                std::optional<ObjectType> type{};
-                if (entry.is_regular_file()) {
-                    type = ObjectType::File;
+                ObjectType type{};
+                auto const status = entry.symlink_status();
+                if (std::filesystem::is_regular_file(status)) {
+                    if (HasExecPermissions(status)) {
+                        type = ObjectType::Executable;
+                    }
+                    else {
+                        type = ObjectType::File;
+                    }
                 }
-                else if (entry.is_directory()) {
+                else if (std::filesystem::is_directory(status)) {
                     type = ObjectType::Tree;
                 }
-                if (not type) {
+                else {
                     Logger::Log(LogLevel::Error,
                                 "unsupported type for dir entry {}",
                                 entry.path().string());
                     return false;
                 }
-                if (not read_entry(entry.path().filename(), *type)) {
+                if (not read_entry(entry.path().filename(), type)) {
                     return false;
                 }
             }
@@ -778,6 +783,23 @@ class FileSystemManager {
             Logger::Log(LogLevel::Error, e.what());
             return false;
         }
+    }
+
+    static auto HasExecPermissions(
+        std::filesystem::file_status const& status) noexcept -> bool {
+        try {
+            namespace fs = std::filesystem;
+            static constexpr auto exec_flags = fs::perms::owner_exec bitor
+                                               fs::perms::group_exec bitor
+                                               fs::perms::others_exec;
+            auto exec_perms = status.permissions() bitand exec_flags;
+            return exec_perms != fs::perms::none;
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "checking for executable permissions failed with:\n{}",
+                        e.what());
+        }
+        return false;
     }
 };  // class FileSystemManager
 

@@ -40,13 +40,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 
     SECTION("Add executable blob to storage") {
@@ -55,13 +55,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 }
 
@@ -89,13 +89,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 
     SECTION("Add non-executable blob to storage") {
@@ -104,13 +104,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 
     SECTION("Add executable blob to storage") {
@@ -119,13 +119,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 }
 
@@ -153,13 +153,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 
     SECTION("Add non-executable blob to storage") {
@@ -168,13 +168,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 
     SECTION("Add executable blob to storage") {
@@ -183,12 +183,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         auto file_path = storage.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
 
         auto exe_path = storage.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path, true));
-        CHECK(not FileSystemManager::IsExecutable(*file_path, true));
+        CHECK(FileSystemManager::IsExecutable(*exe_path));
+        CHECK(not FileSystemManager::IsExecutable(*file_path));
     }
 }

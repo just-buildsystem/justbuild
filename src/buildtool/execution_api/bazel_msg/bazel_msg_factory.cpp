@@ -509,9 +509,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
         // create and store file
         try {
             const auto full_name = root / name;
-            const bool is_executable =
-                FileSystemManager::IsExecutable(full_name, true);
-            if (auto digest = store_file(full_name, is_executable)) {
+            if (auto digest = store_file(full_name, IsExecutableObject(type))) {
                 auto file = CreateFileNode(name.string(), type, {});
                 file.set_allocated_digest(gsl::owner<bazel_re::Digest*>{
                     new bazel_re::Digest{std::move(*digest)}});
@@ -568,15 +566,11 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
         // create and store file
         try {
             const auto full_name = root / name;
-            const bool is_executable =
-                FileSystemManager::IsExecutable(full_name, true);
-            if (auto digest = store_file(full_name, is_executable)) {
+            if (auto digest = store_file(full_name, IsExecutableObject(type))) {
                 if (auto raw_id = FromHexString(
                         NativeSupport::Unprefix(digest->hash()))) {
-                    entries[std::move(*raw_id)].emplace_back(
-                        name.string(),
-                        is_executable ? ObjectType::Executable
-                                      : ObjectType::File);
+                    entries[std::move(*raw_id)].emplace_back(name.string(),
+                                                             type);
                     return true;
                 }
             }

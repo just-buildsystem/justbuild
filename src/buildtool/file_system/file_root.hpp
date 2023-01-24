@@ -186,8 +186,7 @@ class FileRoot {
                 if (std::holds_alternative<pairs_t>(data_)) {
                     auto const& data = std::get<pairs_t>(data_);
                     auto it = data.find(name);
-                    return (it != data.end() and
-                            it->second == ObjectType::File);
+                    return (it != data.end() and IsFileObject(it->second));
                 }
             } catch (...) {
             }
@@ -238,7 +237,7 @@ class FileRoot {
                 auto const& data = std::get<pairs_t>(data_);
                 return Iterator{FilteredIterator{
                     data.begin(), data.end(), [](auto const& x) {
-                        return x.second == ObjectType::File;
+                        return IsFileObject(x.second);
                     }}};
             }
             // std::holds_alternative<tree_t>(data_) == true
@@ -254,7 +253,7 @@ class FileRoot {
                 auto const& data = std::get<pairs_t>(data_);
                 return Iterator{FilteredIterator{
                     data.begin(), data.end(), [](auto const& x) {
-                        return x.second == ObjectType::Tree;
+                        return IsTreeObject(x.second);
                     }}};
             }
 
