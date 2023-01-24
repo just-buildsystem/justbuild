@@ -43,10 +43,7 @@
         , "com_github_cares_cares"
         , "com_github_grpc_grpc"
         , "com_github_libgit2_libgit2"
-        , "catch2"
-        , "com_github_curl_curl"
         , "bzip2"
-        , "com_github_libarchive_libarchive"
         ]
       }
     , "target_root": "import targets"
@@ -410,6 +407,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.catch2"
     , "bindings": {"rules": "rules"}
+    , "bootstrap": {"drop": true}
     }
   , "com_github_curl_curl":
     { "repository":
@@ -428,6 +426,7 @@
       , "ssl": "ssl"
       , "cares": "com_github_cares_cares"
       }
+    , "bootstrap": {"drop": true}
     }
   , "com_github_libarchive_libarchive":
     { "repository":
@@ -446,6 +445,7 @@
       , "ssl": "ssl"
       , "bzip2": "bzip2"
       }
+    , "bootstrap": {"drop": true}
     }
   , "test-credentials":
     {"repository": {"type": "file", "path": "test/etc/credentials"}}
