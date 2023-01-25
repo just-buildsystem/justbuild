@@ -23,6 +23,7 @@ extern "C" {
 #include <git2/sys/odb_backend.h>
 }
 
+#ifndef BOOTSTRAP_BUILD_TOOL
 namespace {
 
 constexpr std::size_t kWaitTime{2};  // time in ms between tries for git locks
@@ -273,12 +274,8 @@ void backend_free(git_odb_backend* /*_backend*/) {}
     return b;
 }
 
-#ifndef BOOTSTRAP_BUILD_TOOL
-
 // A backend that can be used to read and create tree objects in-memory.
 auto const kInMemoryODBParent = CreateInMemoryODBParent();
-
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 struct FetchIntoODBBackend {
     git_odb_backend parent;
@@ -319,12 +316,8 @@ void fetch_backend_free(git_odb_backend* /*_backend*/) {}
     return b;
 }
 
-#ifndef BOOTSTRAP_BUILD_TOOL
-
 // A backend that can be used to fetch from the remote of another repository.
 auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
-
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 // callback to enable SSL certificate check for remote fetch
 const auto certificate_check_cb = [](git_cert* /*cert*/,
@@ -369,6 +362,7 @@ const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
 }
 
 }  // namespace
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 auto GitRepo::Open(GitCASPtr git_cas) noexcept -> std::optional<GitRepo> {
 #ifdef BOOTSTRAP_BUILD_TOOL
