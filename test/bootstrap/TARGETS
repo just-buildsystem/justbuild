@@ -25,6 +25,24 @@
     , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
     }
   }
+, "bundled-test-gnu":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "bundled-test"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["SUFFIX", "-gnu"]
+      , [ "TEST_ENV"
+        , { "type": "singleton_map"
+          , "key": "JUST_BUILD_CONFIG"
+          , "value": "{\"COMPILER_FAMILY\": \"gnu\", \"CC\": \"gcc\", \"CXX\": \"g++\"}"
+          }
+        ]
+      ]
+    , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
+    }
+  }
 , "well_known_protos":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs": [["@", "protoc", "", "well_known_protos"]]
@@ -66,6 +84,7 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["bundled-test", "bundled-test-debug", "prebuilt-test"]
+  , "deps":
+    ["bundled-test", "bundled-test-debug", "bundled-test-gnu", "prebuilt-test"]
   }
 }
