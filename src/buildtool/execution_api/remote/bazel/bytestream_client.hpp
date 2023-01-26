@@ -122,7 +122,7 @@ class ByteStreamClient {
                 // writing from the returned `committed_size`.
                 auto const committed_size = QueryWriteStatus(resource_name);
                 if (committed_size <= 0) {
-                    logger_.Emit(LogLevel::Debug,
+                    logger_.Emit(LogLevel::Error,
                                  "broken stream for upload to resource name {}",
                                  resource_name);
                     return false;
@@ -134,7 +134,7 @@ class ByteStreamClient {
             }
         } while (pos < data.size());
         if (not writer->WritesDone()) {
-            logger_.Emit(LogLevel::Debug,
+            logger_.Emit(LogLevel::Error,
                          "broken stream for upload to resource name {}",
                          resource_name);
             return false;
@@ -142,7 +142,7 @@ class ByteStreamClient {
 
         auto status = writer->Finish();
         if (not status.ok()) {
-            LogStatus(&logger_, LogLevel::Debug, status);
+            LogStatus(&logger_, LogLevel::Error, status);
             return false;
         }
 
