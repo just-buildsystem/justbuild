@@ -35,7 +35,7 @@
       [ ["SUFFIX", "-gnu"]
       , [ "TEST_ENV"
         , { "type": "singleton_map"
-          , "key": "JUST_BUILD_CONFIG"
+          , "key": "JUST_BUILD_CONF"
           , "value": "{\"COMPILER_FAMILY\": \"gnu\", \"CC\": \"gcc\", \"CXX\": \"g++\"}"
           }
         ]

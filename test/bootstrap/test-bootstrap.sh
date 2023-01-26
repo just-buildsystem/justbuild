@@ -42,7 +42,8 @@ echo
 cat ${PRUNED_CONFIG}
 echo
 readonly CONF=$(./bin/just-mr.py -C ${PRUNED_CONFIG} --distdir=distdir --local-build-root="${LBRDIR}" setup just)
-${JUST} install -C ${CONF} -o "${OUTDIR}"/final-out --local-build-root="${LBRDIR}"
+: ${JUST_BUILD_CONF:="{}"}
+${JUST} install -C ${CONF} -D "${JUST_BUILD_CONF}" -o "${OUTDIR}"/final-out --local-build-root="${LBRDIR}"
 
 sha256sum "${OUTDIR}"/boot/out/bin/just "${OUTDIR}"/final-out/bin/just
 cmp "${OUTDIR}"/boot/out/bin/just "${OUTDIR}"/final-out/bin/just
