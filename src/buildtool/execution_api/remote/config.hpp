@@ -17,12 +17,10 @@
 
 #include <cstdint>
 #include <map>
-#include <memory>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "gsl-lite/gsl-lite.hpp"
@@ -33,6 +31,31 @@
 struct PortTag : type_safe_arithmetic_tag<std::uint16_t> {};
 using Port = type_safe_arithmetic<PortTag>;
 
+[[nodiscard]] static auto ParsePort(int const port_num) noexcept
+    -> std::optional<Port> {
+    try {
+        static constexpr int kMaxPortNumber{
+            std::numeric_limits<uint16_t>::max()};
+        if (port_num >= 0 and port_num <= kMaxPortNumber) {
+            return gsl::narrow_cast<Port::value_t>(port_num);
+        }
+
+    } catch (std::out_of_range const& e) {
+        Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");
+    }
+    return std::nullopt;
+}
+
+[[nodiscard]] static auto ParsePort(std::string const& port) noexcept
+    -> std::optional<Port> {
+    try {
+        auto port_num = std::stoi(port);
+        return ParsePort(port_num);
+    } catch (std::invalid_argument const& e) {
+        Logger::Log(LogLevel::Error, "Port raised invalid_argument exception.");
+    }
+    return std::nullopt;
+}
 class RemoteExecutionConfig {
   public:
     struct ServerAddress {
@@ -108,20 +131,9 @@ class RemoteExecutionConfig {
             not std::getline(iss, port, ':')) {
             return std::nullopt;
         }
-        try {
-            static constexpr int kMaxPortNumber{
-                std::numeric_limits<uint16_t>::max()};
-            auto port_num = std::stoi(port);
-            if (not host.empty() and port_num >= 0 and
-                port_num <= kMaxPortNumber) {
-                return ServerAddress{std::move(host),
-                                     gsl::narrow_cast<Port::value_t>(port_num)};
-            }
-        } catch (std::out_of_range const& e) {
-            Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");
-        } catch (std::invalid_argument const& e) {
-            Logger::Log(LogLevel::Error,
-                        "Port raised invalid_argument exception.");
+        auto port_num = ParsePort(port);
+        if (not host.empty() and port_num) {
+            return ServerAddress{std::move(host), *port_num};
         }
         return std::nullopt;
     }
