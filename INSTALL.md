@@ -31,7 +31,7 @@ variables. The full list can be obtained via `just-mr describe`.
 | ARCH | x86, x86_64, arm, arm64 | x86_64 |
 | HOST_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
 | TARGET_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
-| COMPILER_FAMILY | gnu, clang, unknown | clang |
+| COMPILER_FAMILY | gnu, clang, unknown | unknown |
 | DEBUG | true, false | false |
 | BUILD_STATIC_BINARY | true, false | false |
 
