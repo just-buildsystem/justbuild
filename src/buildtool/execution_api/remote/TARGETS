@@ -28,6 +28,7 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/execution_api/common", "bytestream-common"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]

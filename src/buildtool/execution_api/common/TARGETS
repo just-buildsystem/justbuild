@@ -19,4 +19,10 @@
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "private-deps": [["src/buildtool/file_system", "object_type"]]
   }
+, "bytestream-common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bytestream-common"]
+  , "hdrs": ["bytestream_common.hpp"]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  }
 }

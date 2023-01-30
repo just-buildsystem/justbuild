@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "google/bytestream/bytestream.grpc.pb.h"
+#include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_client_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -177,9 +178,6 @@ class ByteStreamClient {
     }
 
   private:
-    // Chunk size for uploads (default size used by BuildBarn)
-    constexpr static std::size_t kChunkSize = 64 * 1024;
-
     std::unique_ptr<google::bytestream::ByteStream::Stub> stub_;
     Logger logger_{"ByteStreamClient"};
 
