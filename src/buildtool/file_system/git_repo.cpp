@@ -162,6 +162,7 @@ constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }
     }
+    Logger::Log(LogLevel::Error, "failed walk for git tree entry: {}", name);
     return -1;  // fail
 }
 
