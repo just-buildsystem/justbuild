@@ -238,7 +238,8 @@ class ExecutorImpl {
             if (auto it = entry_map.find(digest); it != entry_map.end()) {
                 auto const& entry = it->second;
                 if (entry->IsTree()) {
-                    if (not VerifyOrUploadTree(api, *entry->Tree())) {
+                    auto const& tree = entry->Tree();
+                    if (not tree or not VerifyOrUploadTree(api, *tree)) {
                         return false;
                     }
                 }
