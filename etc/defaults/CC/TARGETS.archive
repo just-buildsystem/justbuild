@@ -35,8 +35,7 @@
               , { "type": "if"
                 , "cond": {"type": "var", "name": "DEBUG"}
                 , "then":
-                  [ "-Werror"
-                  , "-g"
+                  [ "-g"
                   , "-Wextra"
                   , "-Wunused"
                   , "-Wshadow"
