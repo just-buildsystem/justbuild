@@ -57,6 +57,11 @@ class LocalStorage {
         return cas_tree_.StoreBlobFromBytes(bytes);
     }
 
+    [[nodiscard]] auto StoreTree(std::filesystem::path const& file_path)
+        const noexcept -> std::optional<bazel_re::Digest> {
+        return cas_tree_.StoreBlobFromFile(file_path);
+    }
+
     /// \brief Obtain blob path from digest with x-bit.
     /// NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest,
