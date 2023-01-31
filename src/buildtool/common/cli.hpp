@@ -176,9 +176,9 @@ static inline auto SetupLogArguments(
            },
            fmt::format("Log limit (higher is more verbose) in interval [{},{}] "
                        "(Default: {}).",
-                       kFirstLogLevel,
-                       kLastLogLevel,
-                       kDefaultLogLevel))
+                       static_cast<int>(kFirstLogLevel),
+                       static_cast<int>(kLastLogLevel),
+                       static_cast<int>(kDefaultLogLevel)))
         ->type_name("NUM");
     app->add_flag("--plain-log",
                   clargs->plain_log,

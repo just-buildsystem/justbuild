@@ -107,7 +107,11 @@ class LogSinkCmdLine final : public ILogSink {
                     break;
             }
         }
-        return fmt::format(style, "{}", prefix);
+        try {
+            return fmt::format(style, "{}", prefix);
+        } catch (...) {
+            return prefix;
+        }
     }
 };
 

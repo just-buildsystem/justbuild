@@ -50,10 +50,16 @@
                                               LogLevel level,
                                               grpc::Status const& s) noexcept {
     if (logger == nullptr) {
-        Logger::Log(level, "{}: {}", s.error_code(), s.error_message());
+        Logger::Log(level,
+                    "{}: {}",
+                    static_cast<int>(s.error_code()),
+                    s.error_message());
     }
     else {
-        logger->Emit(level, "{}: {}", s.error_code(), s.error_message());
+        logger->Emit(level,
+                     "{}: {}",
+                     static_cast<int>(s.error_code()),
+                     s.error_message());
     }
 }
 
@@ -62,10 +68,10 @@
     LogLevel level,
     google::rpc::Status const& s) noexcept {
     if (logger == nullptr) {
-        Logger::Log(level, "{}: {}", s.code(), s.message());
+        Logger::Log(level, "{}: {}", static_cast<int>(s.code()), s.message());
     }
     else {
-        logger->Emit(level, "{}: {}", s.code(), s.message());
+        logger->Emit(level, "{}: {}", static_cast<int>(s.code()), s.message());
     }
 }
 

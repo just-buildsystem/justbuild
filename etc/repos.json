@@ -188,18 +188,18 @@
   , "fmt":
     { "repository":
       { "type": "zip"
-      , "content": "939f915e9957eda2194ecf8874149e903c99d071"
-      , "fetch": "https://github.com/fmtlib/fmt/releases/download/7.0.3/fmt-7.0.3.zip"
-      , "sha256": "decfdf9ad274070fa85f26407b816f5a4d82205ae86bac1990be658d0795ea4d"
-      , "sha512": "377efc454d902d925c2f889107ceb2dc7ed1c813f0035f91448f388558a732fd3df101161c679c23a950d3687cc5bf69eedee2bd90f41edd0b220e466759d62b"
-      , "subdir": "fmt-7.0.3"
+      , "content": "558d83d0fedb1f1ee3c3c4f1576d549cae7614ed"
+      , "fetch": "https://github.com/fmtlib/fmt/releases/download/9.1.0/fmt-9.1.0.zip"
+      , "sha256": "cceb4cb9366e18a5742128cb3524ce5f50e88b476f1e54737a47ffdf4df4c996"
+      , "sha512": "482d1ceaf042e97c66ff570babe9bd6f9cab7e4eec3dc56eb7d5e075b6b9b16f8eb333e96de9627fa33324d32b88d2aacebd0c34c3c706650eaa1729b0dd7fd6"
+      , "subdir": "fmt-9.1.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.fmt"
     , "bindings": {"rules": "rules"}
     , "bootstrap":
       { "include_dir": "include/fmt"
-      , "build": "cd src && {cxx} {cxxflags} -I ../include -c *.cc && {ar} cqs ../libfmt.a *.o"
+      , "build": "cd src && {cxx} {cxxflags} -I ../include -c os.cc format.cc && {ar} cqs ../libfmt.a *.o"
       , "link": ["-lfmt"]
       }
     , "local_bootstrap":

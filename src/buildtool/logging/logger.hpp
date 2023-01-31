@@ -127,7 +127,7 @@ class Logger {
         }
         else {
             // format the message
-            auto fmsg = fmt::format(msg, std::forward<T_Args>(args)...);
+            auto fmsg = fmt::vformat(msg, fmt::make_format_args(args...));
             // recursive call without format arguments
             FormatAndForward(logger, sinks, level, fmsg);
         }
