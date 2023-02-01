@@ -32,6 +32,7 @@
     , [["./", "just-mr", "TESTS"], "just-mr"]
     , [["./", "git-import", "TESTS"], "git-import"]
     , [["./", "gc", "TESTS"], "gc"]
+    , [["./", "execution-service", "TESTS"], "execution-service"]
     ]
   }
 }

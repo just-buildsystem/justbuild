@@ -1,0 +1,8 @@
+{ "simple_build":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["simple_build"]
+  , "test": ["simple_build.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["simple_build"]}
+}
