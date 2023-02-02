@@ -24,7 +24,6 @@
 /* \brief Thread- and process-safe file locking mechanism for paths.
  * User guarantees write access in the parent directory of the path given, as
  * the lock will be placed there and missing tree directories will be created.
- * Lock path and name conventions: a/b.c, a/b/, a/b => a/b.lock; / => /.lock;
  */
 class LockFile {
   public:
@@ -41,7 +40,7 @@ class LockFile {
     auto operator=(LockFile const&) = delete;
     auto operator=(LockFile&& other) noexcept -> LockFile&;
 
-    /// \brief Tries to acquire a lock file in the given directory path.
+    /// \brief Tries to acquire a lock file with the given name.
     /// Missing directories will be created if write permission exists.
     /// Returns the lock file object on success, nullopt on failure.
     [[nodiscard]] static auto Acquire(std::filesystem::path const& fspath,
