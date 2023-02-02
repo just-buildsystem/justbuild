@@ -14,7 +14,8 @@ just install-cas [OPTIONS] <OBJECT_ID>\\
 just describe [OPTIONS] [[module] target]\\
 just rebuild [OPTIONS] [[module] target]\\
 just traverse -g <GRAPH_FILE> -o <OUT_DIR> [OPTIONS]\\
-just gc [OPTIONS]
+just gc [OPTIONS]\\
+just execute [OPTIONS]
 
 * DESCRIPTION
 
@@ -247,6 +248,14 @@ uplinked to the youngest generation; therefore, upon a call to ~gc~
 everything not referenced since the last call to ~gc~ is purged
 and the corresponding disk space reclaimed.
 
+** execute
+
+This subcommand starts a single node remote execution service,
+honoring the just native remote protocol.
+ 
+If the flag --compatible is provided, the execution service will honor
+the original remote build execution protocol.
+
 * OPTIONS
 
 ** Generic program information
@@ -261,7 +270,7 @@ and the corresponding disk space reclaimed.
    At increased computational effort, be compatible with the original
    remote build execution protocol. As the change affects identifiers,
    the flag must be used consistently for all related invocations.\\
-   Supported by: analyse|build|install-cas|install|rebuild|traverse.
+   Supported by: analyse|build|install-cas|install|rebuild|traverse|execute.
 
 ** Build configuration options
 
@@ -316,12 +325,12 @@ and the corresponding disk space reclaimed.
    JSON array with the list of strings representing the launcher to
    prepend actions' commands before being executed locally. Default
    value: ~["env", "--"]~ \\
-   Supported by: build|install|rebuild|traverse.
+   Supported by: build|install|rebuild|traverse|execute.
 
    *--local-build-root* PATH\\
    Root for local CAS, cache, and build directories. The path will be
    created if it does not exist already.\\
-   Supported by: build|install-cas|install|rebuild|traverse|gc.
+   Supported by: build|install-cas|install|rebuild|traverse|gc|execute.
 
    *--main* NAME\\
    The repository to take the target from.\\
@@ -373,11 +382,15 @@ and the corresponding disk space reclaimed.
    Path to local log file. ~just~ will store the information printed
    on stderr in the log file along with the thread id and timestamp
    when the output has been generated.\\
-   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse.
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
 
    *--log-limit* NUM\\
    Log limit (higher is more verbose) in interval [0,6] (Default: 3).\\
-   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse.
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
+
+   *--plain-log*\\
+   Do not use ANSI escape sequences to highlight messages.\\
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
 
    *--expression-log-limit* NUM\\
    In error messages, truncate the entries in the enumeration of the active
@@ -440,7 +453,7 @@ and the corresponding disk space reclaimed.
    *--tls-ca-cert* PATH\\
    Path to a TLS CA certificate that is trusted to sign the server
    certificate.
-   Supported by: build|install-cas|install|rebuild|traverse.
+   Supported by: build|install-cas|install|rebuild|traverse|execute.
    
    *--tls-client-cert* PATH\\
    Path to a TLS client certificate to enable mTLS. It must be passed
@@ -564,6 +577,26 @@ and the corresponding disk space reclaimed.
 
    *--rule*\\
    Module and target arguments refer to a rule instead of a target.
+
+** *execute* specific options
+
+   *-p,--port* INT\\
+   Execution service will listen to this port. If unset, the service will listen to the first available one.
+
+   *--info-file* TEXT\\
+   Write the used port, interface, and pid to this file in JSON format. If the file exists, it will be overwritten.
+
+   *-i,--interface* TEXT\\
+   Interface to use. If unset, the loopback device is used.
+
+   *--pid-file* TEXT\\
+   Write pid to this file in plain txt. If the file exists, it will be overwritten.
+
+   *--tls-server-cert* TEXT\\
+   Path to the TLS server certificate.
+
+   *--tls-server-key* TEXT\\
+   Path to the TLS server key.
 
 * EXIT STATUS
 
