@@ -81,6 +81,16 @@
   , "test": ["test-bootstrap-prebuilt.sh"]
   , "deps": ["distro-bootstrap-deps", "staged-sources"]
   }
+, "mixed-test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["bootstrap-test-mixed"]
+  , "test": ["test-mixed-bootstrap.sh"]
+  , "deps":
+    [ "distro-bootstrap-deps"
+    , "staged-sources"
+    , ["@", "just-distfiles", "", "distdir"]
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
