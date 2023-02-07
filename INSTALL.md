@@ -117,6 +117,11 @@ almost certainly want to set the scratch directory.
 env PACKAGE=YES LOCALBASE=/usr python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR}/just-work
 ```
 
+If some dependencies should nevertheless be built from source (typically
+taking the necessary archives from a specified distdir) those can be
+specified in the `NON_LOCAL_DEPS` variable which, if set, has to contain
+a JSON list.
+
 # Installing `just-mr`
 
 In order to set up multi-repository configurations, usually the tools `just-mr`
