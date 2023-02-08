@@ -78,7 +78,7 @@ EOF
 }
 
 _just_completion(){
-    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild gc -h --help version)
+    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild gc execute -h --help version)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=${COMP_WORDS[1]}
@@ -86,15 +86,15 @@ _just_completion(){
     local conf
     # first check if the current word matches a subcommand
     # if we check directly with cmd, we fail to autocomplete install to install-cas
-    if [[ $word =~ ^(build|analyse|describe|install-cas|install|rebuild|gc) ]]
+    if [[ $word =~ ^(build|analyse|describe|install-cas|install|rebuild|gc|execute) ]]
     then
         COMPREPLY=($(compgen -W "${SUBCOMMANDS[*]}" -- $word))
-    elif [[ $cmd =~ ^(install-cas) ]]
+    elif [[ $cmd =~ ^(install-cas|execute|gc) ]]
     then
         local _opts=($(_just_subcommand_options $cmd))
         COMPREPLY=($(compgen -f -W "${_opts[*]}" -- $word ))
         compopt -o plusdirs -o bashdefault -o default
-    elif [[ $cmd =~ ^(build|analyse|describe|install|rebuild|gc) ]]
+    elif [[ $cmd =~ ^(build|analyse|describe|install|rebuild) ]]
     then
         local _opts=($(_just_subcommand_options $cmd))
         # look for -C and --main
@@ -162,7 +162,7 @@ EOF
 }
 
 _just-mr_completion(){
-    local readonly SUBCOMMANDS=(setup setup-env fetch update "do" version build analyse describe install-cas install rebuild gc)
+    local readonly SUBCOMMANDS=(setup setup-env fetch update "do" version build analyse describe install-cas install rebuild gc execute)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=$(_just-mr_parse_subcommand "${COMP_WORDS[@]}")
@@ -184,7 +184,7 @@ _just-mr_completion(){
         local _opts=($(_just-mr_options "just-mr $cmd"))
         local _repos=($(_just-mr_repos $prev))
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_repos[*]}" -- $word ))
-    elif [[ "$cmd" =~ ^(version|build|analyse|describe|install-cas|install|rebuild|gc) ]]
+    elif [[ "$cmd" =~ ^(version|build|analyse|describe|install-cas|install|rebuild|gc|execute) ]]
     then
         # just subcommand options and modules/targets eventually using the
         # auto-generated configuration
