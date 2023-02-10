@@ -89,6 +89,10 @@ auto ExecutionServiceImpl::Execute(
         {c.output_directories().begin(), c.output_directories().end()},
         env_vars,
         {});
+    action->SetCacheFlag(a.do_not_cache()
+                             ? IExecutionAction::CacheFlag::DoNotCacheOutput
+                             : IExecutionAction::CacheFlag::CacheOutput);
+
     logger_.Emit(LogLevel::Info, "Execute {}", request->action_digest().hash());
     auto tmp = action->Execute(&logger_);
     ::build::bazel::remote::execution::v2::ExecuteResponse response{};
@@ -129,7 +133,7 @@ auto ExecutionServiceImpl::Execute(
 
     op.mutable_response()->PackFrom(response);
     writer->Write(op);
-    if (tmp->ExitCode() == 0 &&
+    if (tmp->ExitCode() == 0 && !a.do_not_cache() &&
         !storage_.StoreActionResult(request->action_digest(),
                                     response.result())) {
         auto str = fmt::format("Could not store action result for action {}",
