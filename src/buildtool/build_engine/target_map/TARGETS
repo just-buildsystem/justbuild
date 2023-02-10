@@ -28,6 +28,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , "target_cache_key"
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   }

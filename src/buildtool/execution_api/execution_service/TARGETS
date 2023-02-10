@@ -92,7 +92,9 @@
   , "srcs": ["capabilities_server.cpp"]
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
-  , "deps": [["src/buildtool/execution_api/local", "local"]]
-  , "private-deps": [["src/buildtool/logging", "logging"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
   }
 }
