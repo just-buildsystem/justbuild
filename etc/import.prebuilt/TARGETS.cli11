@@ -1,22 +1,6 @@
 { "cli11":
   { "type": ["@", "rules", "CC", "library"]
-  , "hdrs":
-    [ "Option.hpp"
-    , "Split.hpp"
-    , "Formatter.hpp"
-    , "ConfigFwd.hpp"
-    , "Version.hpp"
-    , "TypeTools.hpp"
-    , "Validators.hpp"
-    , "FormatterFwd.hpp"
-    , "Macros.hpp"
-    , "StringTools.hpp"
-    , "Error.hpp"
-    , "Timer.hpp"
-    , "CLI.hpp"
-    , "App.hpp"
-    , "Config.hpp"
-    ]
+  , "hdrs": [["TREE", null, "."]]
   , "stage": ["CLI"]
   }
 }
