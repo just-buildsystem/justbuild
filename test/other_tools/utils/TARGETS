@@ -31,9 +31,20 @@
   , "test": ["curl_usage_test.sh"]
   , "deps": [["test/utils", "test_utils_install"], "curl_usage_install"]
   }
+, "curl_url":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["curl_url"]
+  , "srcs": ["curl_url.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/other_tools/utils", "curl_url_handle"]
+    ]
+  , "stage": ["test", "other_tools", "utils"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["archive_usage", "curl_usage_test"]
+  , "deps": ["archive_usage", "curl_usage_test", "curl_url"]
   }
 }
