@@ -41,6 +41,7 @@
     , ["", "libarchive"]
     , ["src/utils/cpp", "archive_ops"]
     ]
+  , "stage": ["test", "utils", "cpp"]
   }
 , "file_locking":
   { "type": ["@", "rules", "CC/test", "test"]
