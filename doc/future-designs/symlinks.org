@@ -61,17 +61,18 @@ do contain symbolic links, e.g., shared libraries pointing to
 the specific version (like ~libfoo.so.3~ as a symlink pointing to
 ~libfoo.so.3.1.4~) or detours through ~/etc/alternatives~.
 
-** Proposed treatment of symbolic links
-
-*** "Shopping list" for bootstrapping against pre-compiled dependencies
+** Implemented stop-gap: "shopping list" for bootstrapping
 
 As a stop-gap measure to support building the tool itself against
 pre-installed dependencies with the respective directories containing
 symbolic links, or tools (like ~protoc~) being symbolic links (e.g.,
-to the specific version), repositories can specify a list of files
+to the specific version), repositories can specify, in the ~"copy"~
+attribute of the ~"local_bootstrap"~ parameter, a list of files
 and directories to be copied as part of the bootstrapping process
 to a fresh clean directory serving as root; during this copying,
 symlinks are followed.
+
+** Proposed treatment of symbolic links
 
 *** "Ignore-special" roots
 

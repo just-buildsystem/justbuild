@@ -272,6 +272,30 @@ def prune_config(*, repos_file, empty_dir):
     with open(repos_file, "w") as f:
         json.dump(repos, f, indent=2)
 
+def copy_roots(*, repos_file, copy_dir):
+    with open(repos_file) as f:
+        repos = json.load(f)
+    for repo in repos["repositories"]:
+        desc = repos["repositories"][repo]
+        to_copy = desc.get("bootstrap", {}).get("copy")
+        if to_copy:
+            old_root = desc["repository"]["path"]
+            new_root = os.path.join(copy_dir, repo)
+            for x in to_copy:
+                src = os.path.join(old_root, x)
+                dst = os.path.join(new_root, x)
+                if os.path.isdir(src):
+                    shutil.copytree(src, dst,
+                                     symlinks=False, dirs_exist_ok=True)
+                elif os.path.isfile(src):
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.copyfile(src, dst, follow_symlinks=True)
+                    shutil.copymode(src, dst, follow_symlinks=True)
+            desc["repository"]["path"] = new_root
+    os.unlink(repos_file)
+    with open(repos_file, "w") as f:
+        json.dump(repos, f, indent=2)
+
 def bootstrap():
     if LOCAL_DEPS:
         print("Bootstrap build in %r from sources %r against LOCALBASE %r"
@@ -290,6 +314,8 @@ def bootstrap():
     empty_dir = os.path.join(WRKDIR, "empty_directory")
     os.makedirs(empty_dir)
     prune_config(repos_file=os.path.join(src_wrkdir, REPOS), empty_dir=empty_dir)
+    copy_dir = os.path.join(WRKDIR, "copied_roots")
+    copy_roots(repos_file=os.path.join(src_wrkdir, REPOS), copy_dir=copy_dir)
     dep_flags = setup_deps(src_wrkdir)
     # handle proto
     flags = ["-I", src_wrkdir] + dep_flags["include"] + ["-I", os.path.join(LOCALBASE, "include")]

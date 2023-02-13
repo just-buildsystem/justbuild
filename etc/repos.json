@@ -241,6 +241,10 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
     , "bindings": {"rules": "rules-protobuf", "zlib": "zlib"}
+    , "local_bootstrap":
+      { "copy":
+        ["bin/protoc", "include/google/protobuf", "proto/google/protobuf"]
+      }
     }
   , "bazel_remote_apis":
     { "repository":
@@ -374,6 +378,8 @@
       , "re2": "re2"
       , "cares": "com_github_cares_cares"
       }
+    , "local_bootstrap":
+      {"copy": ["bin/grpc_cpp_plugin", "include/grpc", "include/grpcpp"]}
     }
   , "com_github_libgit2_libgit2":
     { "repository":
@@ -393,7 +399,7 @@
       , "patches": "patches"
       }
     , "bootstrap": {"include_dir": "include", "include_name": "."}
-    , "local_bootstrap": {"local_path": "include"}
+    , "local_bootstrap": {"local_path": "include", "copy": ["git2.h", "git2"]}
     }
   , "catch2":
     { "repository":
