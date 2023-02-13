@@ -35,46 +35,48 @@ auto ExecutionServiceImpl::Execute(
     }
     auto path = storage_.BlobPath(request->action_digest(), false);
     if (!path) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL,
-                              fmt::format("could not retrieve blob {} from cas",
-                                          request->action_digest().hash())};
+        auto const& str = fmt::format("could not retrieve blob {} from cas",
+                                      request->action_digest().hash());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     ::build::bazel::remote::execution::v2::Action a{};
     {
         std::ifstream f(*path);
         if (!a.ParseFromIstream(&f)) {
-            return ::grpc::Status{
-                grpc::StatusCode::INTERNAL,
-                fmt::format("failed to parse action from blob {}",
-                            request->action_digest().hash())};
+            auto const& str = fmt::format("failed to parse action from blob {}",
+                                          request->action_digest().hash());
+            logger_.Emit(LogLevel::Error, str);
+            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
     }
     path = storage_.BlobPath(a.command_digest(), false);
     if (!path) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL,
-                              fmt::format("could not retrieve blob {} from cas",
-                                          request->action_digest().hash())};
+        auto const& str = fmt::format("could not retrieve blob {} from cas",
+                                      a.command_digest().hash());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     ::build::bazel::remote::execution::v2::Command c{};
     {
         std::ifstream f(*path);
         if (!c.ParseFromIstream(&f)) {
-            return ::grpc::Status{
-                grpc::StatusCode::INTERNAL,
+            auto const& str =
                 fmt::format("failed to parse command from blob {}",
-                            a.command_digest().hash())};
+                            a.command_digest().hash());
+            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
     }
-    if (Compatibility::IsCompatible()) {
-        path = storage_.BlobPath(a.input_root_digest(), false);
-    }
-    else {
-        path = storage_.TreePath(a.input_root_digest());
-    }
+    path = Compatibility::IsCompatible()
+               ? storage_.BlobPath(a.input_root_digest(), false)
+               : storage_.TreePath(a.input_root_digest());
+
     if (!path) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL,
-                              fmt::format("could not retrieve tree {} from cas",
-                                          a.input_root_digest().hash())};
+        auto const& str =
+            fmt::format("could not retrieve input root {} from cas",
+                        a.input_root_digest().hash());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     auto op = ::google::longrunning::Operation{};
     op.set_name("just-remote-execution");
@@ -95,6 +97,9 @@ auto ExecutionServiceImpl::Execute(
 
     logger_.Emit(LogLevel::Info, "Execute {}", request->action_digest().hash());
     auto tmp = action->Execute(&logger_);
+    logger_.Emit(LogLevel::Trace,
+                 "Finished execution of {}",
+                 request->action_digest().hash());
     ::build::bazel::remote::execution::v2::ExecuteResponse response{};
     for (auto const& [path, info] : tmp->Artifacts()) {
         if (info.type == ObjectType::Tree) {
