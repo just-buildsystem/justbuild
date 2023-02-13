@@ -117,18 +117,30 @@ auto ExecutionServiceImpl::Execute(
     }
     response.set_cached_result(tmp->IsCached());
 
-    if (tmp->HasStdErr()) {
-        logger_.Emit(LogLevel::Error, tmp->StdErr());
-    }
     op.set_done(true);
     ::google::rpc::Status status{};
     *(response.mutable_status()) = status;
-    response.mutable_result()->set_exit_code(tmp->ExitCode());
+    auto* result = response.mutable_result();
+    result->set_exit_code(tmp->ExitCode());
     if (tmp->HasStdErr()) {
-        response.mutable_result()->set_stderr_raw(tmp->StdErr().data());
+        auto dgst = storage_.StoreBlob(tmp->StdErr(), /*is_executable=*/false);
+        if (!dgst) {
+            auto str = fmt::format("Could not store stderr of action {}",
+                                   request->action_digest().hash());
+            logger_.Emit(LogLevel::Error, str);
+            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        }
+        result->mutable_stderr_digest()->CopyFrom(*dgst);
     }
     if (tmp->HasStdOut()) {
-        response.mutable_result()->set_stdout_raw(tmp->StdOut().data());
+        auto dgst = storage_.StoreBlob(tmp->StdOut(), /*is_executable=*/false);
+        if (!dgst) {
+            auto str = fmt::format("Could not store stdout of action {}",
+                                   request->action_digest().hash());
+            logger_.Emit(LogLevel::Error, str);
+            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        }
+        result->mutable_stdout_digest()->CopyFrom(*dgst);
     }
 
     op.mutable_response()->PackFrom(response);
