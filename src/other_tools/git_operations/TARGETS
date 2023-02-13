@@ -34,4 +34,16 @@
     , ["", "libgit2"]
     ]
   }
+, "git_config_settings":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_config_settings"]
+  , "hdrs": ["git_config_settings.hpp"]
+  , "srcs": ["git_config_settings.cpp"]
+  , "stage": ["src", "other_tools", "git_operations"]
+  , "private-deps":
+    [ ["src/other_tools/utils", "curl_url_handle"]
+    , ["", "libgit2"]
+    , ["@", "fmt", "", "fmt"]
+    ]
+  }
 }
