@@ -50,9 +50,12 @@ class GitRepoRemote : public GitRepo {
 
     /// \brief Retrieve commit hash from remote branch given its name.
     /// Only possible with real repository and thus non-thread-safe.
+    /// If non-null, use given config snapshot to interact with config entries;
+    /// otherwise, use a snapshot from the current repo and share pointer to it.
     /// Returns the retrieved commit hash, or nullopt if failure.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto GetCommitFromRemote(
+        std::shared_ptr<git_config> cfg,
         std::string const& repo_url,
         std::string const& branch,
         anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
@@ -60,9 +63,12 @@ class GitRepoRemote : public GitRepo {
     /// \brief Fetch from given remote. It can either fetch a given named
     /// branch, or it can fetch with base refspecs.
     /// Only possible with real repository and thus non-thread-safe.
-    /// Returns a success flag.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto FetchFromRemote(std::string const& repo_url,
+    /// If non-null, use given config snapshot to interact with config entries;
+    /// otherwise, use a snapshot from the current repo and share pointer to it.
+    /// Returns a success flag. It guarantees the logger is called
+    /// exactly once with fatal if failure.
+    [[nodiscard]] auto FetchFromRemote(std::shared_ptr<git_config> cfg,
+                                       std::string const& repo_url,
                                        std::optional<std::string> const& branch,
                                        anon_logger_ptr const& logger) noexcept
         -> bool;

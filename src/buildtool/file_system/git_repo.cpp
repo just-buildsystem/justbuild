@@ -1073,7 +1073,7 @@ auto GitRepo::ReadTreeData(std::string const& data,
 }
 
 auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
-    -> std::optional<std::pair<std::string, std::string> > {
+    -> std::optional<std::pair<std::string, std::string>> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
         InMemoryODBBackend b{kInMemoryODBParent, &entries};

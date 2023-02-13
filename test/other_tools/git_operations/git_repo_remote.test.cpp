@@ -185,7 +185,7 @@ TEST_CASE("Single-threaded real repository remote operations",
 
         // remote ls
         auto remote_commit = repo_remote_ls_bare->GetCommitFromRemote(
-            *repo_path, "master", logger);
+            nullptr, *repo_path, "master", logger);
         REQUIRE(remote_commit);
         CHECK(*remote_commit == kRootCommit);
     }
@@ -198,7 +198,7 @@ TEST_CASE("Single-threaded real repository remote operations",
 
         // fetch
         CHECK(repo_fetch_all_bare->FetchFromRemote(
-            *repo_path, std::nullopt, logger));
+            nullptr, *repo_path, std::nullopt, logger));
     }
 
     SECTION("Fetch branch from remote") {
@@ -211,7 +211,7 @@ TEST_CASE("Single-threaded real repository remote operations",
 
         // fetch
         CHECK(repo_fetch_branch_bare->FetchFromRemote(
-            *repo_path, "master", logger));
+            nullptr, *repo_path, "master", logger));
     }
 }
 

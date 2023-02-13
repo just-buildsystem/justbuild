@@ -17,6 +17,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/other_tools/git_operations/git_config_settings.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -67,48 +68,6 @@ void fetch_backend_free(git_odb_backend* /*_backend*/) {}
 // A backend that can be used to fetch from the remote of another repository.
 auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
 
-// callback to enable SSL certificate check for remote fetch
-const auto certificate_check_cb = [](git_cert* /*cert*/,
-                                     int /*valid*/,
-                                     const char* /*host*/,
-                                     void* /*payload*/) -> int { return 1; };
-
-// callback to remote fetch without an SSL certificate check
-const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
-                                           int /*valid*/,
-                                           const char* /*host*/,
-                                           void* /*payload*/) -> int {
-    return 0;
-};
-
-/// \brief Set a custom SSL certificate check callback to honor the existing Git
-/// configuration of a repository trying to connect to a remote.
-[[nodiscard]] auto SetCustomSSLCertificateCheckCallback(git_repository* repo)
-    -> git_transport_certificate_check_cb {
-    // check SSL verification settings, from most to least specific
-    std::optional<int> check_cert{std::nullopt};
-    // check gitconfig; ignore errors
-    git_config* cfg{nullptr};
-    int tmp{};
-    if (git_repository_config(&cfg, repo) == 0 and
-        git_config_get_bool(&tmp, cfg, "http.sslVerify") == 0) {
-        check_cert = tmp;
-    }
-    if (not check_cert) {
-        // check for GIT_SSL_NO_VERIFY environment variable
-        const char* ssl_no_verify_var{std::getenv("GIT_SSL_NO_VERIFY")};
-        if (ssl_no_verify_var != nullptr and
-            git_config_parse_bool(&tmp, ssl_no_verify_var) == 0) {
-            check_cert = tmp;
-        }
-    }
-    // cleanup memory
-    git_config_free(cfg);
-    // set callback
-    return (check_cert and check_cert.value() == 0) ? certificate_passthrough_cb
-                                                    : certificate_check_cb;
-}
-
 }  // namespace
 
 auto GitRepoRemote::Open(GitCASPtr git_cas) noexcept
@@ -157,7 +116,8 @@ auto GitRepoRemote::InitAndOpen(std::filesystem::path const& repo_path,
     return std::nullopt;
 }
 
-auto GitRepoRemote::GetCommitFromRemote(std::string const& repo_url,
+auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
+                                        std::string const& repo_url,
                                         std::string const& branch,
                                         anon_logger_ptr const& logger) noexcept
     -> std::optional<std::string> {
@@ -183,14 +143,34 @@ auto GitRepoRemote::GetCommitFromRemote(std::string const& repo_url,
         }
         auto remote = std::unique_ptr<git_remote, decltype(&remote_closer)>(
             remote_ptr, remote_closer);
+        // get the canonical url
+        auto canonical_url = std::string(git_remote_url(remote.get()));
+
+        // get a well-defined config file
+        if (not cfg) {
+            // get config snapshot of current repo (shared with caller)
+            cfg = GetConfigSnapshot();
+            if (cfg == nullptr) {
+                (*logger)(fmt::format("retrieving config object in get commit "
+                                      "from remote failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return std::nullopt;
+            }
+        }
 
         // connect to remote
         git_remote_callbacks callbacks{};
         git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
 
-        // set custom SSL verification callback
-        callbacks.certificate_check =
-            SetCustomSSLCertificateCheckCallback(GetRepoRef().get());
+        // set custom SSL verification callback; use canonicalized url
+        auto cert_check =
+            GitConfigSettings::GetSSLCallback(cfg, canonical_url, logger);
+        if (not cert_check) {
+            // error occurred while handling the url
+            return std::nullopt;
+        }
+        callbacks.certificate_check = *cert_check;
 
         git_proxy_options proxy_opts{};
         git_proxy_options_init(&proxy_opts, GIT_PROXY_OPTIONS_VERSION);
@@ -251,7 +231,8 @@ auto GitRepoRemote::GetCommitFromRemote(std::string const& repo_url,
     }
 }
 
-auto GitRepoRemote::FetchFromRemote(std::string const& repo_url,
+auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
+                                    std::string const& repo_url,
                                     std::optional<std::string> const& branch,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
@@ -279,6 +260,24 @@ auto GitRepoRemote::FetchFromRemote(std::string const& repo_url,
         // wrap remote object
         auto remote = std::unique_ptr<git_remote, decltype(&remote_closer)>(
             remote_ptr, remote_closer);
+        // get the canonical url
+        auto canonical_url = std::string(git_remote_url(remote.get()));
+
+        // get a well-defined config file
+        if (not cfg) {
+            // get config snapshot of current repo
+            git_config* cfg_ptr{nullptr};
+            if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef().get()) !=
+                0) {
+                (*logger)(fmt::format("retrieving config object in fetch from "
+                                      "remote failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return false;
+            }
+            // share pointer with caller
+            cfg.reset(cfg_ptr, config_closer);
+        }
 
         // define default fetch options
         git_fetch_options fetch_opts{};
@@ -287,9 +286,25 @@ auto GitRepoRemote::FetchFromRemote(std::string const& repo_url,
         // set the option to auto-detect proxy settings
         fetch_opts.proxy_opts.type = GIT_PROXY_AUTO;
 
-        // set custom SSL verification callback
-        fetch_opts.callbacks.certificate_check =
-            SetCustomSSLCertificateCheckCallback(GetRepoRef().get());
+        // set custom SSL verification callback; use canonicalized url
+        if (not cfg) {
+            // get config snapshot of current repo (shared with caller)
+            cfg = GetConfigSnapshot();
+            if (cfg == nullptr) {
+                (*logger)(fmt::format("retrieving config object in fetch from "
+                                      "remote failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return false;
+            }
+        }
+        auto cert_check =
+            GitConfigSettings::GetSSLCallback(cfg, canonical_url, logger);
+        if (not cert_check) {
+            // error occurred while handling the url
+            return false;
+        }
+        fetch_opts.callbacks.certificate_check = *cert_check;
 
         // disable update of the FETCH_HEAD pointer
         fetch_opts.update_fetchhead = 0;
@@ -352,7 +367,17 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
                                 msg),
                     fatal);
             });
-        return tmp_repo->GetCommitFromRemote(repo_url, branch, wrapped_logger);
+        // get the config of the correct target repo
+        auto cfg = GetConfigSnapshot();
+        if (cfg == nullptr) {
+            (*logger)(fmt::format("retrieving config object in update commit "
+                                  "via tmp repo failed with:\n{}",
+                                  GitLastError()),
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        return tmp_repo->GetCommitFromRemote(
+            cfg, repo_url, branch, wrapped_logger);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "update commit via tmp repo failed with:\n{}",
@@ -395,7 +420,17 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
                             "While doing branch fetch via tmp repo:\n{}", msg),
                         fatal);
                 });
-            return tmp_repo->FetchFromRemote(repo_url, branch, wrapped_logger);
+            // get the config of the correct target repo
+            auto cfg = GetConfigSnapshot();
+            if (cfg == nullptr) {
+                (*logger)(fmt::format("retrieving config object in fetch via "
+                                      "tmp repo failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return false;
+            }
+            return tmp_repo->FetchFromRemote(
+                cfg, repo_url, branch, wrapped_logger);
         }
         return false;
     } catch (std::exception const& ex) {
