@@ -33,6 +33,9 @@ using git_transport_certificate_check_cb = auto (*)(git_cert*,
 using anon_logger_t = std::function<void(std::string const&, bool)>;
 using anon_logger_ptr = std::shared_ptr<anon_logger_t>;
 
+/// \brief Contains the proxy URL if proxy is set, or nullopt if proxy unset.
+using ProxyInfo = std::optional<std::string>;
+
 namespace GitConfigSettings {
 
 /// \brief Get a custom SSL certificate check callback to honor the existing
@@ -43,6 +46,14 @@ namespace GitConfigSettings {
                                   std::string const& url,
                                   anon_logger_ptr const& logger)
     -> std::optional<git_transport_certificate_check_cb>;
+
+/// \brief Get the remote proxy settings from envariables and the given git
+/// config snapshot. Performs same checks and honors same settings as git.
+/// Returns the proxy state and information, or nullopt if errors.
+[[nodiscard]] auto GetProxySettings(std::shared_ptr<git_config> const& cfg,
+                                    std::string const& url,
+                                    anon_logger_ptr const& logger)
+    -> std::optional<ProxyInfo>;
 
 }  // namespace GitConfigSettings
 
