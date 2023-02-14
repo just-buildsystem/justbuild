@@ -91,7 +91,7 @@ class ExecutionServiceImpl final
     auto Execute(
         ::grpc::ServerContext* context,
         const ::build::bazel::remote::execution::v2::ExecuteRequest* request,
-        ::grpc::ServerWriter< ::google::longrunning::Operation>* writer)
+        ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
         -> ::grpc::Status override;
 
     // Wait for an execution operation to complete. When the client initially
@@ -105,10 +105,46 @@ class ExecutionServiceImpl final
         ::grpc::ServerContext* context,
         const ::build::bazel::remote::execution::v2::WaitExecutionRequest*
             request,
-        ::grpc::ServerWriter< ::google::longrunning::Operation>* writer)
+        ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
         -> ::grpc::Status override;
 
   private:
+    [[nodiscard]] auto GetAction(
+        ::build::bazel::remote::execution::v2::ExecuteRequest const* request)
+        const noexcept -> std::pair<
+            std::optional<::build::bazel::remote::execution::v2::Action>,
+            std::optional<std::string>>;
+    [[nodiscard]] auto GetCommand(
+        ::build::bazel::remote::execution::v2::Action const& action)
+        const noexcept -> std::pair<
+            std::optional<::build::bazel::remote::execution::v2::Command>,
+            std::optional<std::string>>;
+
+    [[nodiscard]] auto GetIExecutionAction(
+        ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
+        ::build::bazel::remote::execution::v2::Action const& action) const
+        -> std::pair<std::optional<IExecutionAction::Ptr>,
+                     std::optional<std::string>>;
+
+    [[nodiscard]] auto GetResponse(
+        ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
+        IExecutionResponse::Ptr const& i_execution_response) const noexcept
+        -> std::pair<
+            std::optional<
+                ::build::bazel::remote::execution::v2::ExecuteResponse>,
+            std::optional<std::string>>;
+
+    [[nodiscard]] auto WriteResponse(
+        ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
+        IExecutionResponse::Ptr const& i_execution_response,
+        ::build::bazel::remote::execution::v2::Action const& action,
+        ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
+        const noexcept -> std::optional<std::string>;
+
+    [[nodiscard]] auto AddResult(
+        ::build::bazel::remote::execution::v2::ExecuteResponse* response,
+        IExecutionResponse::Ptr const& i_execution_response,
+        std::string const& hash) const noexcept -> std::optional<std::string>;
     LocalStorage storage_{};
     IExecutionApi::Ptr api_{new LocalApi()};
     Logger logger_{"execution-service"};
