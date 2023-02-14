@@ -1,4 +1,21 @@
 { "ares":
+  { "type": "export"
+  , "target": "ares_lib"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    , "BUILD_POSITION_INDEPENDENT"
+    ]
+  }
+, "ares_lib":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["ares"]
   , "pure C": ["YES"]
