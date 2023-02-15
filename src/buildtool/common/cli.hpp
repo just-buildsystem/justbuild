@@ -228,19 +228,17 @@ static inline auto SetupAnalysisArguments(
            "Instead of the target result, request input for this action.")
         ->type_name("ACTION");
     app->add_option_function<std::vector<std::string>>(
-           "target",
-           [clargs](auto const& target_raw) {
-               if (target_raw.size() > 1) {
-                   clargs->target =
-                       nlohmann::json{target_raw[0], target_raw[1]};
-               }
-               else {
-                   clargs->target = nlohmann::json{target_raw[0]}[0];
-               }
-           },
-           "Module and target name to build.\n"
-           "Assumes current module if module name is omitted.")
-        ->expected(2);
+        "target",
+        [clargs](auto const& target_raw) {
+            if (target_raw.size() == 1) {
+                clargs->target = nlohmann::json(target_raw[0]);
+            }
+            else {
+                clargs->target = nlohmann::json(target_raw);
+            }
+        },
+        "Module and target name to build.\n"
+        "Assumes current module if module name is omitted.");
     app->add_option("--target-root",
                     clargs->target_root,
                     "Path of the target files' root directory.\n"

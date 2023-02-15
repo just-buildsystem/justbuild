@@ -550,7 +550,7 @@ void SetupHashFunction() {
             Base::EntityName{Base::NamedTarget{main_repo, current_module, ""}},
             [&clargs](std::string const& parse_err) {
                 Logger::Log(LogLevel::Error,
-                            "Parsing target name {} failed with:\n{}.",
+                            "Parsing target name {} failed with:\n{}",
                             clargs.target->dump(),
                             parse_err);
             });
