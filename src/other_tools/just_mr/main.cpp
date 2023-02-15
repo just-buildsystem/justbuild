@@ -350,16 +350,13 @@ void SetupDefaultLogging() {
     if (just_args.IsNotNull()) {
         for (auto const& [cmd_name, cmd_args] : just_args->Map()) {
             // get list of string args for current command
-            clargs->just_cmd.just_args[cmd_name] =
-                [&cmd_args = cmd_args]() -> std::vector<std::string> {
-                std::vector<std::string> args{};
-                auto const& args_list = cmd_args->List();
-                args.resize(args_list.size());
-                for (auto const& arg : args_list) {
-                    args.emplace_back(arg->String());
-                }
-                return args;
-            }();
+            std::vector<std::string> args{};
+            auto const& args_list = cmd_args->List();
+            args.reserve(args_list.size());
+            for (auto const& arg : args_list) {
+                args.emplace_back(arg->String());
+            }
+            clargs->just_cmd.just_args[cmd_name] = std::move(args);
         }
     }
     // read config lookup order
