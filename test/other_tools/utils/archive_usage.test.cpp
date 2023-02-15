@@ -17,7 +17,7 @@
 
 #include "catch2/catch.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/utils/cpp/archive_ops.hpp"
+#include "src/other_tools/utils/archive_ops.hpp"
 
 extern "C" {
 #include <archive.h>

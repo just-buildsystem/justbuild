@@ -16,7 +16,7 @@
 
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
-#include "src/utils/cpp/archive_ops.hpp"
+#include "src/other_tools/utils/archive_ops.hpp"
 
 namespace {
 

@@ -79,16 +79,6 @@
     , ["", "libcurl"]
     ]
   }
-, "archive_ops":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["archive_ops"]
-  , "hdrs": ["archive_ops.hpp"]
-  , "srcs": ["archive_ops.cpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
-  , "stage": ["src", "utils", "cpp"]
-  , "private-deps":
-    [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
-  }
 , "file_locking":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["file_locking"]

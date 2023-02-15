@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_OTHER_TOOLS_ARCHIVE_OPS_HPP
-#define INCLUDED_SRC_OTHER_TOOLS_ARCHIVE_OPS_HPP
+#ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_ARCHIVE_OPS_HPP
+#define INCLUDED_SRC_OTHER_TOOLS_UTILS_ARCHIVE_OPS_HPP
 
 #include <filesystem>
 #include <optional>
@@ -97,4 +97,4 @@ class ArchiveOps {
         -> std::optional<std::string>;
 };
 
-#endif  // INCLUDED_SRC_OTHER_TOOLS_ARCHIVE_OPS_HPP
+#endif  // INCLUDED_SRC_OTHER_TOOLS_UTILS_ARCHIVE_OPS_HPP

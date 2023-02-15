@@ -10,7 +10,7 @@
   , "private-deps":
     [ ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "archive_ops"]
+    , ["src/other_tools/utils", "archive_ops"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   , "private-ldflags": ["-lpthread"]

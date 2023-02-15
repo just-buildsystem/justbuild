@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/utils/cpp/archive_ops.hpp"
+#include "src/other_tools/utils/archive_ops.hpp"
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
-
-#ifndef BOOTSTRAP_BUILD_TOOL
 
 extern "C" {
 #include <archive.h>
@@ -53,13 +51,8 @@ void archive_read_closer(archive* a_in) {
 
 }  // namespace
 
-#endif  // BOOTSTRAP_BUILD_TOOL
-
 auto ArchiveOps::WriteEntry(archive_entry* entry, archive* aw)
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     std::filesystem::path entry_path{archive_entry_sourcepath(entry)};
     // only write to archive if entry is file
     if (FileSystemManager::IsFile(entry_path)) {
@@ -74,14 +67,10 @@ auto ArchiveOps::WriteEntry(archive_entry* entry, archive* aw)
         }
     }
     return std::nullopt;
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::CopyData(archive* ar, archive* aw)
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     int r{};
     const void* buff{nullptr};
     size_t size{};
@@ -102,14 +91,10 @@ auto ArchiveOps::CopyData(archive* ar, archive* aw)
         }
     }
     return std::nullopt;  // success!
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     switch (type) {
         case ArchiveType::kArchiveTypeZip: {
             if (archive_write_set_format_zip(aw) != ARCHIVE_OK) {
@@ -139,14 +124,10 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
         } break;
     }
     return std::nullopt;  // success!
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     switch (type) {
         case ArchiveType::kArchiveTypeZip: {
             if (archive_read_support_format_zip(ar) != ARCHIVE_OK) {
@@ -176,18 +157,13 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
         } break;
     }
     return std::nullopt;  // success!
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::CreateArchive(ArchiveType type,
                                std::string const& name,
                                std::filesystem::path const& source) noexcept
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     return CreateArchive(type, name, source, std::filesystem::path("."));
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::CreateArchive(ArchiveType type,
@@ -195,9 +171,6 @@ auto ArchiveOps::CreateArchive(ArchiveType type,
                                std::filesystem::path const& source,
                                std::filesystem::path const& destDir) noexcept
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     try {
         // make sure paths will be relative wrt current dir
         auto rel_source = std::filesystem::relative(source);
@@ -270,26 +243,18 @@ auto ArchiveOps::CreateArchive(ArchiveType type,
             LogLevel::Error, "archive create failed with:\n{}", ex.what());
         return std::nullopt;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::ExtractArchive(ArchiveType type,
                                 std::filesystem::path const& source) noexcept
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     return ExtractArchive(type, source, std::filesystem::path("."));
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto ArchiveOps::ExtractArchive(ArchiveType type,
                                 std::filesystem::path const& source,
                                 std::filesystem::path const& destDir) noexcept
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     try {
         std::unique_ptr<archive, decltype(&archive_read_closer)> a_in{
             archive_read_new(), archive_read_closer};
@@ -362,5 +327,4 @@ auto ArchiveOps::ExtractArchive(ArchiveType type,
             LogLevel::Error, "archive extract failed with:\n{}", ex.what());
         return std::nullopt;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
