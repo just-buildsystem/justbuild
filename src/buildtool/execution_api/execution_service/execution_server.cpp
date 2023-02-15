@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "fmt/format.h"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 
 auto ExecutionServiceImpl::GetAction(
@@ -31,8 +32,9 @@ auto ExecutionServiceImpl::GetAction(
     // get action description
     auto path = storage_.BlobPath(request->action_digest(), false);
     if (!path) {
-        auto str = fmt::format("could not retrieve blob {} from cas",
-                               request->action_digest().hash());
+        auto str = fmt::format(
+            "could not retrieve blob {} from cas",
+            NativeSupport::Unprefix(request->action_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return {std::nullopt, str};
     }
@@ -40,8 +42,9 @@ auto ExecutionServiceImpl::GetAction(
     {
         std::ifstream f(*path);
         if (!action.ParseFromIstream(&f)) {
-            auto str = fmt::format("failed to parse action from blob {}",
-                                   request->action_digest().hash());
+            auto str = fmt::format(
+                "failed to parse action from blob {}",
+                NativeSupport::Unprefix(request->action_digest().hash()));
             logger_.Emit(LogLevel::Error, str);
             return {std::nullopt, str};
         }
@@ -52,8 +55,9 @@ auto ExecutionServiceImpl::GetAction(
                : storage_.TreePath(action.input_root_digest());
 
     if (!path) {
-        auto str = fmt::format("could not retrieve input root {} from cas",
-                               action.input_root_digest().hash());
+        auto str = fmt::format(
+            "could not retrieve input root {} from cas",
+            NativeSupport::Unprefix(action.input_root_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return {std::nullopt, str};
     }
@@ -67,8 +71,9 @@ auto ExecutionServiceImpl::GetCommand(
 
     auto path = storage_.BlobPath(action.command_digest(), false);
     if (!path) {
-        auto str = fmt::format("could not retrieve blob {} from cas",
-                               action.command_digest().hash());
+        auto str = fmt::format(
+            "could not retrieve blob {} from cas",
+            NativeSupport::Unprefix(action.command_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return {std::nullopt, str};
     }
@@ -77,8 +82,9 @@ auto ExecutionServiceImpl::GetCommand(
     {
         std::ifstream f(*path);
         if (!c.ParseFromIstream(&f)) {
-            auto str = fmt::format("failed to parse command from blob {}",
-                                   action.command_digest().hash());
+            auto str = fmt::format(
+                "failed to parse command from blob {}",
+                NativeSupport::Unprefix(action.command_digest().hash()));
             logger_.Emit(LogLevel::Error, str);
             return {std::nullopt, str};
         }
@@ -119,8 +125,9 @@ auto ExecutionServiceImpl::GetIExecutionAction(
         env_vars,
         {});
     if (!i_execution_action) {
-        auto str = fmt::format("could not create action from {}",
-                               request->action_digest().hash());
+        auto str = fmt::format(
+            "could not create action from {}",
+            NativeSupport::Unprefix(request->action_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return {std::nullopt, str};
     }
@@ -162,7 +169,8 @@ static void AddOutputPaths(
 auto ExecutionServiceImpl::AddResult(
     ::build::bazel::remote::execution::v2::ExecuteResponse* response,
     IExecutionResponse::Ptr const& i_execution_response,
-    std::string const& hash) const noexcept -> std::optional<std::string> {
+    std::string const& action_hash) const noexcept
+    -> std::optional<std::string> {
     AddOutputPaths(response, i_execution_response);
     auto* result = response->mutable_result();
     result->set_exit_code(i_execution_response->ExitCode());
@@ -170,7 +178,8 @@ auto ExecutionServiceImpl::AddResult(
         auto dgst = storage_.StoreBlob(i_execution_response->StdErr(),
                                        /*is_executable=*/false);
         if (!dgst) {
-            auto str = fmt::format("Could not store stderr of action {}", hash);
+            auto str =
+                fmt::format("Could not store stderr of action {}", action_hash);
             logger_.Emit(LogLevel::Error, str);
             return str;
         }
@@ -180,7 +189,8 @@ auto ExecutionServiceImpl::AddResult(
         auto dgst = storage_.StoreBlob(i_execution_response->StdOut(),
                                        /*is_executable=*/false);
         if (!dgst) {
-            auto str = fmt::format("Could not store stdout of action {}", hash);
+            auto str =
+                fmt::format("Could not store stdout of action {}", action_hash);
             logger_.Emit(LogLevel::Error, str);
             return str;
         }
@@ -206,8 +216,10 @@ auto ExecutionServiceImpl::GetResponse(
 
     ::build::bazel::remote::execution::v2::ExecuteResponse response{};
     AddStatus(&response);
-    auto err = AddResult(
-        &response, i_execution_response, request->action_digest().hash());
+    auto err =
+        AddResult(&response,
+                  i_execution_response,
+                  NativeSupport::Unprefix(request->action_digest().hash()));
     if (err) {
         return {std::nullopt, *err};
     }
@@ -224,7 +236,6 @@ auto ExecutionServiceImpl::WriteResponse(
 
     auto [execute_response, msg_r] = GetResponse(request, i_execution_response);
     if (!execute_response) {
-
         return *msg_r;
     }
 
@@ -232,8 +243,9 @@ auto ExecutionServiceImpl::WriteResponse(
     if (i_execution_response->ExitCode() == 0 && !action.do_not_cache() &&
         !storage_.StoreActionResult(request->action_digest(),
                                     execute_response->result())) {
-        auto str = fmt::format("Could not store action result for action {}",
-                               request->action_digest().hash());
+        auto str = fmt::format(
+            "Could not store action result for action {}",
+            NativeSupport::Unprefix(request->action_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return str;
     }
@@ -244,9 +256,9 @@ auto ExecutionServiceImpl::WriteResponse(
     op.set_name("just-remote-execution");
     op.set_done(true);
     if (!writer->Write(op)) {
-        auto str =
-            fmt::format("Could not write execution response for action {}",
-                        request->action_digest().hash());
+        auto str = fmt::format(
+            "Could not write execution response for action {}",
+            NativeSupport::Unprefix(request->action_digest().hash()));
         logger_.Emit(LogLevel::Error, str);
         return str;
     }
@@ -274,11 +286,13 @@ auto ExecutionServiceImpl::Execute(
         return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg};
     }
 
-    logger_.Emit(LogLevel::Info, "Execute {}", request->action_digest().hash());
+    logger_.Emit(LogLevel::Info,
+                 "Execute {}",
+                 NativeSupport::Unprefix(request->action_digest().hash()));
     auto i_execution_response = i_execution_action->get()->Execute(&logger_);
     logger_.Emit(LogLevel::Trace,
                  "Finished execution of {}",
-                 request->action_digest().hash());
+                 NativeSupport::Unprefix(request->action_digest().hash()));
     auto err = WriteResponse(request, i_execution_response, *action, writer);
     if (err) {
         return ::grpc::Status{grpc::StatusCode::INTERNAL, *err};

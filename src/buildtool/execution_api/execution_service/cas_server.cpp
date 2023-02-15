@@ -32,7 +32,9 @@ auto CASServiceImpl::FindMissingBlobs(
     }
     for (auto const& x : request->blob_digests()) {
         auto const& hash = x.hash();
-        logger_.Emit(LogLevel::Trace, "FindMissingBlobs: {}", hash);
+        logger_.Emit(LogLevel::Trace,
+                     "FindMissingBlobs: {}",
+                     NativeSupport::Unprefix(hash));
         if (NativeSupport::IsTree(hash)) {
             if (!storage_.TreePath(x)) {
                 auto* d = response->add_missing_blob_digests();
@@ -61,20 +63,24 @@ auto CASServiceImpl::BatchUpdateBlobs(
     }
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
-        logger_.Emit(LogLevel::Trace, "BatchUpdateBlobs: {}", hash);
+        logger_.Emit(LogLevel::Trace,
+                     "BatchUpdateBlobs: {}",
+                     NativeSupport::Unprefix(hash));
         auto* r = response->add_responses();
         r->mutable_digest()->CopyFrom(x.digest());
         if (NativeSupport::IsTree(hash)) {
             if (!storage_.StoreTree(x.data())) {
-                auto const& str = fmt::format(
-                    "BatchUpdateBlobs: could not upload tree {}", hash);
+                auto const& str =
+                    fmt::format("BatchUpdateBlobs: could not upload tree {}",
+                                NativeSupport::Unprefix(hash));
                 logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
         }
         else if (!storage_.StoreBlob(x.data(), false)) {
             auto const& str =
-                fmt::format("BatchUpdateBlobs: could not upload blob {}", hash);
+                fmt::format("BatchUpdateBlobs: could not upload blob {}",
+                            NativeSupport::Unprefix(hash));
             logger_.Emit(LogLevel::Error, str);
             return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }

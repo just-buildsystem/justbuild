@@ -19,6 +19,7 @@
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -60,7 +61,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
                      root_digest_.hash(),
-                     action.hash());
+                     NativeSupport::Unprefix(action.hash()));
     }
 
     if (do_cache) {

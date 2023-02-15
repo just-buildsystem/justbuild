@@ -27,7 +27,9 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
-    [["src/buildtool/execution_api/local", "garbage_collector"]]
+    [ ["src/buildtool/execution_api/local", "garbage_collector"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
   }
 , "cas_server":
   { "type": ["@", "rules", "CC", "library"]

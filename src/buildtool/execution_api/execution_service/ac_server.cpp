@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 
 #include "fmt/format.h"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 
 auto ActionCacheServiceImpl::GetActionResult(
@@ -25,7 +26,7 @@ auto ActionCacheServiceImpl::GetActionResult(
     -> ::grpc::Status {
     logger_.Emit(LogLevel::Trace,
                  "GetActionResult: {}",
-                 request->action_digest().hash());
+                 NativeSupport::Unprefix(request->action_digest().hash()));
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
@@ -34,9 +35,10 @@ auto ActionCacheServiceImpl::GetActionResult(
     }
     auto x = ac_.CachedResult(request->action_digest());
     if (!x) {
-        return grpc::Status{
-            grpc::StatusCode::NOT_FOUND,
-            fmt::format("{} missing from AC", request->action_digest().hash())};
+        return grpc::Status{grpc::StatusCode::NOT_FOUND,
+                            fmt::format("{} missing from AC",
+                                        NativeSupport::Unprefix(
+                                            request->action_digest().hash()))};
     }
     *response = *x;
     return ::grpc::Status::OK;
