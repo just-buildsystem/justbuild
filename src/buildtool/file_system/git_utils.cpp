@@ -14,8 +14,59 @@
 
 #include "src/buildtool/file_system/git_utils.hpp"
 
+#include "fmt/core.h"
+#include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/hex_string.hpp"
+
 extern "C" {
 #include <git2.h>
+}
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+namespace {
+constexpr std::size_t kOIDRawSize{GIT_OID_RAWSZ};
+constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
+}  // namespace
+#endif  // BOOTSTRAP_BUILD_TOOL
+
+auto GitLastError() noexcept -> std::string {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    git_error const* err{nullptr};
+    if ((err = git_error_last()) != nullptr and err->message != nullptr) {
+        return fmt::format("error code {}: {}", err->klass, err->message);
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+    return "<unknown error>";
+}
+
+auto GitObjectID(std::string const& id, bool is_hex_id) noexcept
+    -> std::optional<git_oid> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    if (id.size() < (is_hex_id ? kOIDHexSize : kOIDRawSize)) {
+        Logger::Log(LogLevel::Error,
+                    "invalid git object id {}",
+                    is_hex_id ? id : ToHexString(id));
+        return std::nullopt;
+    }
+    git_oid oid{};
+    if (is_hex_id and git_oid_fromstr(&oid, id.c_str()) == 0) {
+        return oid;
+    }
+    if (not is_hex_id and
+        git_oid_fromraw(
+            &oid,
+            reinterpret_cast<unsigned char const*>(id.data())  // NOLINT
+            ) == 0) {
+        return oid;
+    }
+    Logger::Log(LogLevel::Error,
+                "parsing git object id {} failed with:\n{}",
+                is_hex_id ? id : ToHexString(id),
+                GitLastError());
+    return std::nullopt;
+#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 void repo_closer(gsl::owner<git_repository*> repo) {

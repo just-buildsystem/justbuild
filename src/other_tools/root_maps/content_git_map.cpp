@@ -89,7 +89,7 @@ auto CreateContentGitMap(
                         return;
                     }
                     // open fake repo wrap for GitCAS
-                    auto just_git_repo = GitRepo::Open(op_result.git_cas);
+                    auto just_git_repo = GitRepoRemote::Open(op_result.git_cas);
                     if (not just_git_repo) {
                         (*logger)("Could not open Git cache repository!",
                                   /*fatal=*/true);
@@ -205,7 +205,8 @@ auto CreateContentGitMap(
                                 return;
                             }
                             // fetch all into Git cache
-                            auto just_git_repo = GitRepo::Open(just_git_cas);
+                            auto just_git_repo =
+                                GitRepoRemote::Open(just_git_cas);
                             if (not just_git_repo) {
                                 (*logger)(
                                     "Could not open Git cache repository!",

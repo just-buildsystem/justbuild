@@ -30,44 +30,6 @@ extern "C" {
 
 namespace {
 
-constexpr std::size_t kOIDRawSize{GIT_OID_RAWSZ};
-constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
-
-[[nodiscard]] auto GitLastError() noexcept -> std::string {
-    git_error const* err{nullptr};
-    if ((err = git_error_last()) != nullptr and err->message != nullptr) {
-        return fmt::format("error code {}: {}", err->klass, err->message);
-    }
-    return "<unknown error>";
-}
-
-[[nodiscard]] auto GitObjectID(std::string const& id,
-                               bool is_hex_id = false) noexcept
-    -> std::optional<git_oid> {
-    if (id.size() < (is_hex_id ? kOIDHexSize : kOIDRawSize)) {
-        Logger::Log(LogLevel::Error,
-                    "invalid git object id {}",
-                    is_hex_id ? id : ToHexString(id));
-        return std::nullopt;
-    }
-    git_oid oid{};
-    if (is_hex_id and git_oid_fromstr(&oid, id.c_str()) == 0) {
-        return oid;
-    }
-    if (not is_hex_id and
-        git_oid_fromraw(
-            &oid,
-            reinterpret_cast<unsigned char const*>(id.data())  // NOLINT
-            ) == 0) {
-        return oid;
-    }
-    Logger::Log(LogLevel::Error,
-                "parsing git object id {} failed with:\n{}",
-                is_hex_id ? id : ToHexString(id),
-                GitLastError());
-    return std::nullopt;
-}
-
 [[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept
     -> std::optional<ObjectType> {
     switch (type) {

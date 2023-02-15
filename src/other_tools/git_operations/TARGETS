@@ -16,8 +16,21 @@
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
     [ ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/file_system", "git_repo"]
+    , "git_repo_remote"
     , ["src/buildtool/logging", "logging"]
+    ]
+  }
+, "git_repo_remote":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_repo_remote"]
+  , "hdrs": ["git_repo_remote.hpp"]
+  , "srcs": ["git_repo_remote.cpp"]
+  , "deps": [["src/buildtool/file_system", "git_repo"]]
+  , "stage": ["src", "other_tools", "git_operations"]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["@", "fmt", "", "fmt"]
+    , ["", "libgit2"]
     ]
   }
 }

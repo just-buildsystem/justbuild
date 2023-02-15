@@ -27,7 +27,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
                                     auto /* unused */,
                                     auto const& key) {
         // perform git update commit
-        auto git_repo = GitRepo::Open(git_cas);  // wrap the tmp odb
+        auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
         if (not git_repo) {
             (*logger)(
                 fmt::format("Failed to open tmp Git repository for remote {}",

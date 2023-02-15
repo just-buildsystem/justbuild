@@ -15,9 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_UTILS_HPP
 
+#include <optional>
+
 #include "gsl-lite/gsl-lite.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 extern "C" {
+struct git_oid;
 struct git_odb;
 struct git_repository;
 struct git_tree;
@@ -30,6 +34,15 @@ struct git_remote;
 struct git_commit;
 struct git_tree_entry;
 }
+
+constexpr std::size_t kWaitTime{2};  // time in ms between tries for git locks
+
+[[nodiscard]] auto GitObjectID(std::string const& id,
+                               bool is_hex_id = false) noexcept
+    -> std::optional<git_oid>;
+
+/// \brief Retrieve error message of last libgit2 call.
+[[nodiscard]] auto GitLastError() noexcept -> std::string;
 
 void repo_closer(gsl::owner<git_repository*> repo);
 

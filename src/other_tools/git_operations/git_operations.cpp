@@ -17,15 +17,15 @@
 #include <vector>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 
 auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
                                       AsyncMapConsumerLoggerPtr const& logger)
     -> GitOpValue {
-    // Create and open a GitRepo at given target location
-    auto git_repo =
-        GitRepo::InitAndOpen(crit_op_params.target_path, /*is_bare=*/false);
+    // Create and open a GitRepoRemote at given target location
+    auto git_repo = GitRepoRemote::InitAndOpen(crit_op_params.target_path,
+                                               /*is_bare=*/false);
     if (git_repo == std::nullopt) {
         (*logger)(fmt::format("could not initialize git repository {}",
                               crit_op_params.target_path.string()),
@@ -60,9 +60,9 @@ auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
         return GitOpValue({nullptr, std::nullopt});
     }
     // Create and open a GitRepo at given target location
-    auto git_repo =
-        GitRepo::InitAndOpen(crit_op_params.target_path,
-                             /*is_bare=*/crit_op_params.init_bare.value());
+    auto git_repo = GitRepoRemote::InitAndOpen(
+        crit_op_params.target_path,
+        /*is_bare=*/crit_op_params.init_bare.value());
     if (git_repo == std::nullopt) {
         (*logger)(
             fmt::format("could not initialize {} git repository {}",
@@ -86,7 +86,7 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
         return GitOpValue({nullptr, std::nullopt});
     }
     // Open a GitRepo at given location
-    auto git_repo = GitRepo::Open(crit_op_params.target_path);
+    auto git_repo = GitRepoRemote::Open(crit_op_params.target_path);
     if (git_repo == std::nullopt) {
         (*logger)(fmt::format("could not open git repository {}",
                               crit_op_params.target_path.string()),
@@ -120,7 +120,7 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
         return GitOpValue({nullptr, std::nullopt});
     }
     // Open a GitRepo at given location
-    auto git_repo = GitRepo::Open(crit_op_params.target_path);
+    auto git_repo = GitRepoRemote::Open(crit_op_params.target_path);
     if (git_repo == std::nullopt) {
         (*logger)(fmt::format("could not open git repository {}",
                               crit_op_params.target_path.string()),

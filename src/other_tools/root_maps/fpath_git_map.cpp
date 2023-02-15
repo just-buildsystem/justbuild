@@ -37,7 +37,7 @@ auto CreateFilePathGitMap(
                     fatal);
             });
         // check if path is a part of a git repo
-        auto repo_root = GitRepo::GetRepoRootFromPath(
+        auto repo_root = GitRepoRemote::GetRepoRootFromPath(
             key, wrapped_logger);  // static function
         if (not repo_root) {
             return;
@@ -51,7 +51,8 @@ auto CreateFilePathGitMap(
                           /*fatal=*/true);
                 return;
             }
-            auto git_repo = GitRepo::Open(git_cas);  // link fake repo to odb
+            auto git_repo =
+                GitRepoRemote::Open(git_cas);  // link fake repo to odb
             if (not git_repo) {
                 (*logger)(fmt::format("Could not open repository {}",
                                       repo_root->string()),
@@ -81,7 +82,7 @@ auto CreateFilePathGitMap(
                         return;
                     }
                     auto git_repo =
-                        GitRepo::Open(git_cas);  // link fake repo to odb
+                        GitRepoRemote::Open(git_cas);  // link fake repo to odb
                     if (not git_repo) {
                         (*logger)(fmt::format("Could not open repository {}",
                                               repo_root.string()),

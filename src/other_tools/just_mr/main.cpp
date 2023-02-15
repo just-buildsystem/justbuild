@@ -839,7 +839,8 @@ void DefaultReachableRepositories(
         return kExitUpdateError;
     }
     // Init and open git repo
-    auto git_repo = GitRepo::InitAndOpen(tmp_dir->GetPath(), /*is_bare=*/true);
+    auto git_repo =
+        GitRepoRemote::InitAndOpen(tmp_dir->GetPath(), /*is_bare=*/true);
     if (not git_repo) {
         Logger::Log(LogLevel::Error,
                     "Failed to initialize repository in tmp dir {} for git "

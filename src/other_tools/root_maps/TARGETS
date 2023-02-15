@@ -32,7 +32,9 @@
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
-    [["src/buildtool/file_system", "git_repo"], ["src/utils/cpp", "tmp_dir"]]
+    [ ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
   }
 , "fpath_git_map":
   { "type": ["@", "rules", "CC", "library"]

@@ -16,7 +16,7 @@
 
 #include <algorithm>
 
-#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -111,7 +111,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   CommitGitMap::SetterPtr const& ws_setter,
                   CommitGitMap::LoggerPtr const& logger) {
     // ensure commit exists, and fetch if needed
-    auto git_repo = GitRepo::Open(git_cas);  // link fake repo to odb
+    auto git_repo = GitRepoRemote::Open(git_cas);  // link fake repo to odb
     if (not git_repo) {
         (*logger)(
             fmt::format("Could not open repository {}", repo_root.string()),
@@ -193,7 +193,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 // ensure commit exists, and fetch if needed
                 auto git_repo =
-                    GitRepo::Open(git_cas);  // link fake repo to odb
+                    GitRepoRemote::Open(git_cas);  // link fake repo to odb
                 if (not git_repo) {
                     (*logger)(fmt::format("Could not open repository {}",
                                           repo_root.string()),

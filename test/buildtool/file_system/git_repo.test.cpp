@@ -208,55 +208,6 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
     }
 }
 
-TEST_CASE("Single-threaded real repository remote operations", "[git_repo]") {
-    auto repo_path = TestUtils::CreateTestRepoWithCheckout();
-    REQUIRE(repo_path);
-
-    // setup dummy logger
-    auto logger = std::make_shared<GitRepo::anon_logger_t>(
-        [](auto const& msg, bool fatal) {
-            Logger::Log(fatal ? LogLevel::Error : LogLevel::Progress,
-                        std::string(msg));
-        });
-
-    SECTION("Get commit id from remote") {
-        // make bare real repo to call remote ls from
-        auto path_remote_ls_bare = TestUtils::CreateTestRepoWithCheckout();
-        REQUIRE(path_remote_ls_bare);
-        auto repo_remote_ls_bare = GitRepo::Open(*path_remote_ls_bare);
-        REQUIRE(repo_remote_ls_bare);
-
-        // remote ls
-        auto remote_commit = repo_remote_ls_bare->GetCommitFromRemote(
-            *repo_path, "master", logger);
-        REQUIRE(remote_commit);
-        CHECK(*remote_commit == kRootCommit);
-    }
-
-    SECTION("Fetch with base refspecs from remote") {
-        // make bare real repo to fetch into
-        auto path_fetch_all_bare = TestUtils::CreateTestRepoWithCheckout();
-        REQUIRE(path_fetch_all_bare);
-        auto repo_fetch_all_bare = GitRepo::Open(*path_fetch_all_bare);
-
-        // fetch
-        CHECK(repo_fetch_all_bare->FetchFromRemote(
-            *repo_path, std::nullopt, logger));
-    }
-
-    SECTION("Fetch branch from remote") {
-        // make bare real repo to fetch into
-        auto path_fetch_branch_bare = TestUtils::CreateTestRepoWithCheckout();
-        REQUIRE(path_fetch_branch_bare);
-        auto repo_fetch_branch_bare = GitRepo::Open(*path_fetch_branch_bare);
-        REQUIRE(repo_fetch_branch_bare);
-
-        // fetch
-        CHECK(repo_fetch_branch_bare->FetchFromRemote(
-            *repo_path, "master", logger));
-    }
-}
-
 TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
     auto repo_path = TestUtils::CreateTestRepoWithCheckout();
     REQUIRE(repo_path);
@@ -409,66 +360,6 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             CHECK_FALSE(*result_non_bare);
         }
     }
-
-    SECTION("Fetch objects from remote via temporary repository") {
-        SECTION("Fetch all into repository") {
-            // set repo to fetch into
-            auto path_fetch_all = TestUtils::GetRepoPath();
-            auto repo_fetch_all =
-                GitRepo::InitAndOpen(path_fetch_all, /*is_bare=*/true);
-            REQUIRE(repo_fetch_all);
-
-            // check commit is not there before fetch
-            CHECK_FALSE(
-                *repo_fetch_all->CheckCommitExists(kRootCommit, logger));
-
-            // create path for tmp repo to use for fetch
-            auto tmp_path_fetch_all = TestUtils::GetRepoPath();
-            // fetch with base refspecs
-            REQUIRE(repo_fetch_all->FetchViaTmpRepo(
-                tmp_path_fetch_all, *repo_path, std::nullopt, logger));
-
-            // check commit is there after fetch
-            CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
-        }
-
-        SECTION("Fetch with refspec into repository") {
-            // set repo to fetch into
-            auto path_fetch_wRefspec = TestUtils::GetRepoPath();
-            auto repo_fetch_wRefspec =
-                GitRepo::InitAndOpen(path_fetch_wRefspec, /*is_bare=*/true);
-            REQUIRE(repo_fetch_wRefspec);
-
-            // check commit is not there before fetch
-            CHECK_FALSE(
-                *repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
-
-            // create path for tmp repo to use for fetch
-            auto tmp_path_fetch_wRefspec = TestUtils::GetRepoPath();
-            // fetch all
-            REQUIRE(repo_fetch_wRefspec->FetchViaTmpRepo(
-                tmp_path_fetch_wRefspec, *repo_path, "master", logger));
-
-            // check commit is there after fetch
-            CHECK(*repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
-        }
-    }
-
-    SECTION("Update commit from remote via temporary repository") {
-        auto path_commit_upd = TestUtils::GetRepoPath();
-        auto repo_commit_upd =
-            GitRepo::InitAndOpen(path_commit_upd, /*is_bare=*/true);
-        REQUIRE(repo_commit_upd);
-
-        // create path for tmp repo to use for remote ls
-        auto tmp_path_commit_upd = TestUtils::GetRepoPath();
-        // do remote ls
-        auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            tmp_path_commit_upd, *repo_path, "master", logger);
-
-        REQUIRE(fetched_commit);
-        CHECK(*fetched_commit == kRootCommit);
-    }
 }
 
 TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
@@ -547,76 +438,6 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                                 remote_repo->CheckCommitExists(kRootCommit,
                                                                logger);
                             CHECK(*result_containing);
-                        } break;
-                    }
-                },
-                id);
-        }
-
-        starting_signal = true;
-        starting_signal.notify_all();
-
-        // wait for threads to finish
-        for (auto& thread : threads) {
-            thread.join();
-        }
-    }
-
-    // define target repo, from which fetch ops will be initiated
-    auto target_repo_path = TestUtils::GetRepoPath();
-    auto target_repo = GitRepo::InitAndOpen(target_repo_path, /*is_bare=*/true);
-    REQUIRE(target_repo);
-
-    SECTION("Fetching into same repository from remote") {
-        constexpr int NUM_CASES = 4;
-        for (int id{}; id < kNumThreads; ++id) {
-            threads.emplace_back(
-                [&target_repo, &remote_repo_path, &logger, &starting_signal](
-                    int tid) {
-                    starting_signal.wait(false);
-                    // cases based on thread number
-                    switch (tid % NUM_CASES) {
-                        case 0: {
-                            auto result_containing =
-                                target_repo->CheckCommitExists(kRootCommit,
-                                                               logger);
-                            CHECK(result_containing);  // check it returns
-                                                       // something
-                        } break;
-                        case 1: {
-                            // create path for tmp repo to use for fetch
-                            auto tmp_path_fetch_all = TestUtils::GetRepoPath();
-                            // fetch with base refspecs
-                            CHECK(
-                                target_repo->FetchViaTmpRepo(tmp_path_fetch_all,
-                                                             *remote_repo_path,
-                                                             std::nullopt,
-                                                             logger));
-                        } break;
-                        case 2: {
-                            // create path for tmp repo to use for fetch
-                            auto tmp_path_fetch_wRefspec =
-                                TestUtils::GetRepoPath();
-                            // fetch specific branch
-                            CHECK(target_repo->FetchViaTmpRepo(
-                                tmp_path_fetch_wRefspec,
-                                *remote_repo_path,
-                                "master",
-                                logger));
-                        } break;
-                        case 3: {
-                            // create path for tmp repo to use for remote ls
-                            auto tmp_path_commit_upd = TestUtils::GetRepoPath();
-                            // do remote ls
-                            auto fetched_commit =
-                                target_repo->UpdateCommitViaTmpRepo(
-                                    tmp_path_commit_upd,
-                                    *remote_repo_path,
-                                    "master",
-                                    logger);
-
-                            REQUIRE(fetched_commit);
-                            CHECK(*fetched_commit == kRootCommit);
                         } break;
                     }
                 },

@@ -17,7 +17,7 @@
   , "srcs": ["import_to_git_map.cpp"]
   , "deps":
     [ "critical_git_op_map"
-    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "path"]
     ]
@@ -34,7 +34,7 @@
   , "hdrs": ["git_update_map.hpp"]
   , "srcs": ["git_update_map.cpp"]
   , "deps":
-    [ ["src/buildtool/file_system", "git_repo"]
+    [ ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "fmt", "", "fmt"]

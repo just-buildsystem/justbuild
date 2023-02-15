@@ -15,8 +15,8 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP
 
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 using StringPair = std::pair<std::string, std::string>;

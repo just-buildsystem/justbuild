@@ -18,7 +18,7 @@
 #include <filesystem>
 #include <string>
 
-#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/path.hpp"
 

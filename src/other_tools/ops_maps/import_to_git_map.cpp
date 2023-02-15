@@ -81,7 +81,8 @@ auto CreateImportToGitMap(
                             return;
                         }
                         // fetch all into Git cache
-                        auto just_git_repo = GitRepo::Open(op_result.git_cas);
+                        auto just_git_repo =
+                            GitRepoRemote::Open(op_result.git_cas);
                         if (not just_git_repo) {
                             (*logger)(fmt::format("Could not open Git "
                                                   "repository {}",
@@ -188,7 +189,7 @@ void KeepCommitAndSetTree(
                           /*fatal=*/true);
                 return;
             }
-            auto git_repo = GitRepo::Open(git_cas);
+            auto git_repo = GitRepoRemote::Open(git_cas);
             if (not git_repo) {
                 (*logger)(fmt::format("Could not open Git repository {}",
                                       target_path.string()),

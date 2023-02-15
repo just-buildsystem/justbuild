@@ -138,25 +138,6 @@ class GitRepo {
     [[nodiscard]] auto GetHeadCommit(anon_logger_ptr const& logger) noexcept
         -> std::optional<std::string>;
 
-    /// \brief Retrieve commit hash from remote branch given its name.
-    /// Only possible with real repository and thus non-thread-safe.
-    /// Returns the retrieved commit hash, or nullopt if failure.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto GetCommitFromRemote(
-        std::string const& repo_url,
-        std::string const& branch,
-        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
-
-    /// \brief Fetch from given remote. It can either fetch a given named
-    /// branch, or it can fetch with base refspecs.
-    /// Only possible with real repository and thus non-thread-safe.
-    /// Returns a success flag.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto FetchFromRemote(std::string const& repo_url,
-                                       std::optional<std::string> const& branch,
-                                       anon_logger_ptr const& logger) noexcept
-        -> bool;
-
     /// \brief Get the tree id of a subtree given the root commit
     /// Calling it from a fake repository allows thread-safe use.
     /// Returns the subtree hash, as a string, or nullopt if failure.
@@ -195,36 +176,6 @@ class GitRepo {
                                          anon_logger_ptr const& logger) noexcept
         -> std::optional<bool>;
 
-    /// \brief Get commit from remote via a temporary repository.
-    /// Calling it from a fake repository allows thread-safe use.
-    /// Creates a temporary real repository at the given location and uses it to
-    /// retrieve from the remote the commit of a branch given its name.
-    /// Caller needs to make sure the temporary directory exists and that the
-    /// given path is thread- and process-safe!
-    /// Returns the commit hash, as a string, or nullopt if failure.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto UpdateCommitViaTmpRepo(
-        std::filesystem::path const& tmp_repo_path,
-        std::string const& repo_url,
-        std::string const& branch,
-        anon_logger_ptr const& logger) const noexcept
-        -> std::optional<std::string>;
-
-    /// \brief Fetch from a remote via a temporary repository.
-    /// Calling it from a fake repository allows thread-safe use.
-    /// Creates a temporary real repository at the given location and uses a
-    /// custom backend to redirect the fetched objects into the desired odb.
-    /// Caller needs to make sure the temporary directory exists and that the
-    /// given path is thread- and process-safe!
-    /// Uses either a given branch, or fetches using base refspecs.
-    /// Returns a success flag.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto FetchViaTmpRepo(
-        std::filesystem::path const& tmp_repo_path,
-        std::string const& repo_url,
-        std::optional<std::string> const& branch,
-        anon_logger_ptr const& logger) noexcept -> bool;
-
     /// \brief Try to retrieve the root of the repository containing the
     /// given path, if the path is actually part of a repository.
     /// Returns the git folder if path is in a git repo, empty string if path is
@@ -244,10 +195,20 @@ class GitRepo {
     // default to real repo, as that is non-thread-safe
     bool is_repo_fake_{false};
 
+  protected:
     /// \brief Open "fake" repository wrapper for existing CAS.
     explicit GitRepo(GitCASPtr git_cas) noexcept;
     /// \brief Open real repository at given location.
     explicit GitRepo(std::filesystem::path const& repo_path) noexcept;
+
+    [[nodiscard]] auto GetRepoRef() const noexcept
+        -> std::unique_ptr<git_repository, decltype(&repo_closer)> const&;
+
+    [[nodiscard]] auto GetGitPath() const noexcept
+        -> std::filesystem::path const&;
+
+    [[nodiscard]] auto GetGitOdb() const noexcept
+        -> std::unique_ptr<git_odb, decltype(&odb_closer)> const&;
 
     /// \brief Helper function to allocate and populate the char** pointer of a
     /// git_strarray from a vector of standard strings. User MUST use
