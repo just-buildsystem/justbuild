@@ -12,6 +12,29 @@
     ]
   , "stage": ["test", "other_tools", "utils"]
   }
+, "curl_usage_install":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "tainted": ["test"]
+  , "name": ["curl_usage"]
+  , "srcs": ["curl_usage.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/other_tools/utils", "curl_context"]
+    , ["src/other_tools/utils", "curl_easy_handle"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["test", "other_tools", "utils"]
+  }
+, "curl_usage_test":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["curl_usage_test"]
+  , "test": ["curl_usage_test.sh"]
+  , "deps": [["test/utils", "test_utils_install"], "curl_usage_install"]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["archive_usage"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["archive_usage", "curl_usage_test"]
+  }
 }

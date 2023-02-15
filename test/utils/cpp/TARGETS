@@ -9,26 +9,6 @@
     ]
   , "stage": ["test", "utils", "cpp"]
   }
-, "curl_usage_install":
-  { "type": ["@", "rules", "CC", "binary"]
-  , "tainted": ["test"]
-  , "name": ["curl_usage"]
-  , "srcs": ["curl_usage.test.cpp"]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/utils/cpp", "curl_context"]
-    , ["src/utils/cpp", "curl_easy_handle"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    ]
-  , "stage": ["test", "utils", "cpp"]
-  }
-, "curl_usage_test":
-  { "type": ["@", "rules", "shell/test", "script"]
-  , "name": ["curl_usage_test"]
-  , "test": ["curl_usage_test.sh"]
-  , "deps": [["test/utils", "test_utils_install"], "curl_usage_install"]
-  }
 , "file_locking":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["file_locking"]
@@ -43,8 +23,5 @@
   , "stage": ["test", "utils", "cpp"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "deps": ["path", "curl_usage_test", "file_locking"]
-  }
+  {"type": "install", "tainted": ["test"], "deps": ["path", "file_locking"]}
 }

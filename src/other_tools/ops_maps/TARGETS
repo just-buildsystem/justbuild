@@ -59,7 +59,7 @@
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
-    [ ["src/utils/cpp", "curl_easy_handle"]
+    [ ["src/other_tools/utils", "curl_easy_handle"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]

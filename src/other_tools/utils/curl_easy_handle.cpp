@@ -12,29 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/utils/cpp/curl_easy_handle.hpp"
+#include "src/other_tools/utils/curl_easy_handle.hpp"
 
 #include <fstream>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-#ifndef BOOTSTRAP_BUILD_TOOL
 extern "C" {
 #include "curl/curl.h"
 }
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 void curl_easy_closer(gsl::owner<CURL*> curl) {
-#ifndef BOOTSTRAP_BUILD_TOOL
     curl_easy_cleanup(curl);
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return nullptr;
-#else
     try {
         auto curl = std::make_shared<CurlEasyHandle>();
         auto* handle = curl_easy_init();
@@ -49,7 +42,6 @@ auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
                     ex.what());
         return nullptr;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto CurlEasyHandle::EasyWriteToFile(gsl::owner<char*> data,
@@ -57,14 +49,10 @@ auto CurlEasyHandle::EasyWriteToFile(gsl::owner<char*> data,
                                      size_t nmemb,
                                      gsl::owner<void*> userptr)
     -> std::streamsize {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return 0;
-#else
     auto actual_size = static_cast<std::streamsize>(size * nmemb);
     auto* file = static_cast<std::ofstream*>(userptr);
     file->write(data, actual_size);  // append chunk
     return actual_size;
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto CurlEasyHandle::EasyWriteToString(gsl::owner<char*> data,
@@ -72,21 +60,14 @@ auto CurlEasyHandle::EasyWriteToString(gsl::owner<char*> data,
                                        size_t nmemb,
                                        gsl::owner<void*> userptr)
     -> std::streamsize {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return 0;
-#else
     size_t actual_size = size * nmemb;
     (static_cast<std::string*>(userptr))->append(data, actual_size);
     return static_cast<std::streamsize>(actual_size);
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto CurlEasyHandle::DownloadToFile(
     std::string const& url,
     std::filesystem::path const& file_path) noexcept -> int {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return 1;
-#else
     try {
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
@@ -127,14 +108,10 @@ auto CurlEasyHandle::DownloadToFile(
                     ex.what());
         return 1;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
     -> std::optional<std::string> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
     try {
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
@@ -171,5 +148,4 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
                     ex.what());
         return std::nullopt;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }

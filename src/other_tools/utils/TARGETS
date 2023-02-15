@@ -8,4 +8,25 @@
   , "private-deps":
     [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
   }
+, "curl_context":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["curl_context"]
+  , "hdrs": ["curl_context.hpp"]
+  , "srcs": ["curl_context.cpp"]
+  , "stage": ["src", "other_tools", "utils"]
+  , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
+  }
+, "curl_easy_handle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["curl_easy_handle"]
+  , "hdrs": ["curl_easy_handle.hpp"]
+  , "srcs": ["curl_easy_handle.cpp"]
+  , "deps": ["curl_context", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "stage": ["src", "other_tools", "utils"]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["", "libcurl"]
+    ]
+  }
 }

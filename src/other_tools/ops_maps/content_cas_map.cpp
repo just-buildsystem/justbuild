@@ -17,7 +17,7 @@
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
-#include "src/utils/cpp/curl_easy_handle.hpp"
+#include "src/other_tools/utils/curl_easy_handle.hpp"
 
 namespace {
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_OTHER_TOOLS_CURL_EASY_HANDLE_HPP
-#define INCLUDED_SRC_OTHER_TOOLS_CURL_EASY_HANDLE_HPP
+#ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_EASY_HANDLE_HPP
+#define INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_EASY_HANDLE_HPP
 
 #include <filesystem>
 #include <functional>
@@ -21,7 +21,7 @@
 #include <optional>
 
 #include "gsl-lite/gsl-lite.hpp"
-#include "src/utils/cpp/curl_context.hpp"
+#include "src/other_tools/utils/curl_context.hpp"
 
 extern "C" {
 #if defined(BUILDING_LIBCURL) || defined(CURL_STRICTER)
@@ -67,7 +67,7 @@ class CurlEasyHandle {
         nullptr,
         curl_easy_closer};
 
-    /// \brief Overwrites write_callback to redirrect to file instead of stdout.
+    /// \brief Overwrites write_callback to redirect to file instead of stdout.
     [[nodiscard]] auto static EasyWriteToFile(gsl::owner<char*> data,
                                               size_t size,
                                               size_t nmemb,
@@ -83,4 +83,4 @@ class CurlEasyHandle {
         -> std::streamsize;
 };
 
-#endif  // INCLUDED_SRC_OTHER_TOOLS_CURL_EASY_HANDLE_HPP
+#endif  // INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_EASY_HANDLE_HPP

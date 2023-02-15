@@ -14,8 +14,8 @@
 
 #include "catch2/catch.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/utils/cpp/curl_context.hpp"
-#include "src/utils/cpp/curl_easy_handle.hpp"
+#include "src/other_tools/utils/curl_context.hpp"
+#include "src/other_tools/utils/curl_easy_handle.hpp"
 
 // The caller of this test needs to make sure the port is given as content of
 // the file "port.txt" in the directory where this test is run

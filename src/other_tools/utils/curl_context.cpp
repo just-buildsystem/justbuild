@@ -12,29 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/utils/cpp/curl_context.hpp"
+#include "src/other_tools/utils/curl_context.hpp"
 
 #include "src/buildtool/logging/logger.hpp"
 
-#ifndef BOOTSTRAP_BUILD_TOOL
 extern "C" {
 #include <curl/curl.h>
 }
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 CurlContext::CurlContext() noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
     // NOLINTNEXTLINE(hicpp-signed-bitwise)
     if (not(initialized_ = (curl_global_init(CURL_GLOBAL_DEFAULT) >= 0))) {
         Logger::Log(LogLevel::Error, "initializing libcurl failed");
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }
 
 CurlContext::~CurlContext() noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
     if (initialized_) {
         curl_global_cleanup();
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 }

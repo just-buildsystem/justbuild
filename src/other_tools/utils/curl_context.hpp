@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_OTHER_TOOLS_CURL_CONTEXT_HPP
-#define INCLUDED_SRC_OTHER_TOOLS_CURL_CONTEXT_HPP
+#ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_CONTEXT_HPP
+#define INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_CONTEXT_HPP
 
 /// \brief Maintainer of a libcurl state.
 /// Classes, static methods, and global functions dealing with curl operations
@@ -33,4 +33,4 @@ class CurlContext {
     bool initialized_{false};
 };
 
-#endif  // INCLUDED_SRC_OTHER_TOOLS_CURL_CONTEXT_HPP
+#endif  // INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_CONTEXT_HPP
