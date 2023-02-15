@@ -15,11 +15,12 @@
 #ifndef CAS_SERVER_HPP
 #define CAS_SERVER_HPP
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/local/local_storage.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-class CASServiceImpl final : public build::bazel::remote::execution::v2::
-                                 ContentAddressableStorage::Service {
+class CASServiceImpl final
+    : public bazel_re::ContentAddressableStorage::Service {
   public:
     // Determine if blobs are present in the CAS.
     //
@@ -27,12 +28,10 @@ class CASServiceImpl final : public build::bazel::remote::execution::v2::
     // are already present in the CAS and do not need to be uploaded again.
     //
     // There are no method-specific errors.
-    auto FindMissingBlobs(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::FindMissingBlobsRequest*
-            request,
-        ::build::bazel::remote::execution::v2::FindMissingBlobsResponse*
-            response) -> ::grpc::Status override;
+    auto FindMissingBlobs(::grpc::ServerContext* context,
+                          const ::bazel_re::FindMissingBlobsRequest* request,
+                          ::bazel_re::FindMissingBlobsResponse* response)
+        -> ::grpc::Status override;
     // Upload many blobs at once.
     //
     // The server may enforce a limit of the combined total size of blobs
@@ -58,12 +57,10 @@ class CASServiceImpl final : public build::bazel::remote::execution::v2::
     // * `INVALID_ARGUMENT`: The
     // [Digest][build.bazel.remote.execution.v2.Digest] does not match the
     // provided data.
-    auto BatchUpdateBlobs(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::BatchUpdateBlobsRequest*
-            request,
-        ::build::bazel::remote::execution::v2::BatchUpdateBlobsResponse*
-            response) -> ::grpc::Status override;
+    auto BatchUpdateBlobs(::grpc::ServerContext* context,
+                          const ::bazel_re::BatchUpdateBlobsRequest* request,
+                          ::bazel_re::BatchUpdateBlobsResponse* response)
+        -> ::grpc::Status override;
     // Download many blobs at once.
     //
     // The server may enforce a limit of the combined total size of blobs
@@ -84,11 +81,9 @@ class CASServiceImpl final : public build::bazel::remote::execution::v2::
     //
     // Every error on individual read will be returned in the corresponding
     // digest status.
-    auto BatchReadBlobs(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::BatchReadBlobsRequest*
-            request,
-        ::build::bazel::remote::execution::v2::BatchReadBlobsResponse* response)
+    auto BatchReadBlobs(::grpc::ServerContext* context,
+                        const ::bazel_re::BatchReadBlobsRequest* request,
+                        ::bazel_re::BatchReadBlobsResponse* response)
         -> ::grpc::Status override;
     // Fetch the entire directory tree rooted at a node.
     //
@@ -114,11 +109,9 @@ class CASServiceImpl final : public build::bazel::remote::execution::v2::
     // Errors:
     //
     // * `NOT_FOUND`: The requested tree root is not present in the CAS.
-    auto GetTree(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::GetTreeRequest* request,
-        ::grpc::ServerWriter<
-            ::build::bazel::remote::execution::v2::GetTreeResponse>* writer)
+    auto GetTree(::grpc::ServerContext* context,
+                 const ::bazel_re::GetTreeRequest* request,
+                 ::grpc::ServerWriter< ::bazel_re::GetTreeResponse>* writer)
         -> ::grpc::Status override;
 
   private:

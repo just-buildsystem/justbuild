@@ -16,9 +16,9 @@
 #define CAPABILITIES_SERVER_HPP
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "src/buildtool/common/bazel_types.hpp"
 
-class CapabilitiesServiceImpl final
-    : public build::bazel::remote::execution::v2::Capabilities::Service {
+class CapabilitiesServiceImpl final : public bazel_re::Capabilities::Service {
   public:
     // GetCapabilities returns the server capabilities configuration of the
     // remote endpoint.
@@ -28,11 +28,9 @@ class CapabilitiesServiceImpl final
     //   CacheCapabilities and ExecutionCapabilities.
     // * Execution only endpoints should return ExecutionCapabilities.
     // * CAS + Action Cache only endpoints should return CacheCapabilities.
-    auto GetCapabilities(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::GetCapabilitiesRequest*
-            request,
-        ::build::bazel::remote::execution::v2::ServerCapabilities* response)
+    auto GetCapabilities(::grpc::ServerContext* context,
+                         const ::bazel_re::GetCapabilitiesRequest* request,
+                         ::bazel_re::ServerCapabilities* response)
         -> ::grpc::Status override;
 };
 #endif

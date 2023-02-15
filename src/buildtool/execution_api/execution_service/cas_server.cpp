@@ -20,10 +20,8 @@
 
 auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::FindMissingBlobsRequest*
-        request,
-    ::build::bazel::remote::execution::v2::FindMissingBlobsResponse* response)
-    -> ::grpc::Status {
+    const ::bazel_re::FindMissingBlobsRequest* request,
+    ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
@@ -51,10 +49,8 @@ auto CASServiceImpl::FindMissingBlobs(
 
 auto CASServiceImpl::BatchUpdateBlobs(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::BatchUpdateBlobsRequest*
-        request,
-    ::build::bazel::remote::execution::v2::BatchUpdateBlobsResponse* response)
-    -> ::grpc::Status {
+    const ::bazel_re::BatchUpdateBlobsRequest* request,
+    ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
@@ -90,9 +86,8 @@ auto CASServiceImpl::BatchUpdateBlobs(
 
 auto CASServiceImpl::BatchReadBlobs(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::BatchReadBlobsRequest* request,
-    ::build::bazel::remote::execution::v2::BatchReadBlobsResponse* response)
-    -> ::grpc::Status {
+    const ::bazel_re::BatchReadBlobsRequest* request,
+    ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
@@ -128,9 +123,8 @@ auto CASServiceImpl::BatchReadBlobs(
 
 auto CASServiceImpl::GetTree(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::GetTreeRequest* /*request*/,
-    ::grpc::ServerWriter<
-        ::build::bazel::remote::execution::v2::GetTreeResponse>* /*writer*/)
+    const ::bazel_re::GetTreeRequest* /*request*/,
+    ::grpc::ServerWriter< ::bazel_re::GetTreeResponse>* /*writer*/)
     -> ::grpc::Status {
     auto const* str = "GetTree not implemented";
     logger_.Emit(LogLevel::Error, str);

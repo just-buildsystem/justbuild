@@ -20,10 +20,8 @@
 
 auto ActionCacheServiceImpl::GetActionResult(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::GetActionResultRequest*
-        request,
-    ::build::bazel::remote::execution::v2::ActionResult* response)
-    -> ::grpc::Status {
+    const ::bazel_re::GetActionResultRequest* request,
+    ::bazel_re::ActionResult* response) -> ::grpc::Status {
     logger_.Emit(LogLevel::Trace,
                  "GetActionResult: {}",
                  NativeSupport::Unprefix(request->action_digest().hash()));
@@ -46,10 +44,9 @@ auto ActionCacheServiceImpl::GetActionResult(
 
 auto ActionCacheServiceImpl::UpdateActionResult(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::UpdateActionResultRequest*
+    const ::bazel_re::UpdateActionResultRequest*
     /*request*/,
-    ::build::bazel::remote::execution::v2::ActionResult* /*response*/)
-    -> ::grpc::Status {
+    ::bazel_re::ActionResult* /*response*/) -> ::grpc::Status {
     auto const* str = "UpdateActionResult not implemented";
     logger_.Emit(LogLevel::Error, str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};

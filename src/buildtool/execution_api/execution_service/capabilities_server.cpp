@@ -19,21 +19,19 @@
 
 auto CapabilitiesServiceImpl::GetCapabilities(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::GetCapabilitiesRequest*
+    const ::bazel_re::GetCapabilitiesRequest*
     /*request*/,
-    ::build::bazel::remote::execution::v2::ServerCapabilities* response)
-    -> ::grpc::Status {
+    ::bazel_re::ServerCapabilities* response) -> ::grpc::Status {
     if (!Compatibility::IsCompatible()) {
         auto const* str = "GetCapabilities not implemented";
         Logger::Log(LogLevel::Error, str);
         return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
     }
-    ::build::bazel::remote::execution::v2::CacheCapabilities cache;
-    ::build::bazel::remote::execution::v2::ExecutionCapabilities exec;
+    ::bazel_re::CacheCapabilities cache;
+    ::bazel_re::ExecutionCapabilities exec;
 
     cache.add_digest_function(
-        ::build::bazel::remote::execution::v2::DigestFunction_Value::
-            DigestFunction_Value_SHA256);
+        ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
     static constexpr std::size_t kMaxBatchTransferSize = 1024 * 1024;
     cache.set_max_batch_total_size_bytes(kMaxBatchTransferSize);
@@ -42,8 +40,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     *(response->mutable_cache_capabilities()) = cache;
 
     exec.set_digest_function(
-        ::build::bazel::remote::execution::v2::DigestFunction_Value::
-            DigestFunction_Value_SHA256);
+        ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     exec.set_exec_enabled(true);
 
     *(response->mutable_execution_capabilities()) = exec;

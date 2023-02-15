@@ -24,11 +24,9 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 
-auto ExecutionServiceImpl::GetAction(
-    ::build::bazel::remote::execution::v2::ExecuteRequest const* request)
-    const noexcept
-    -> std::pair<std::optional<::build::bazel::remote::execution::v2::Action>,
-                 std::optional<std::string>> {
+auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
+    const noexcept -> std::pair<std::optional<::bazel_re::Action>,
+                                std::optional<std::string>> {
     // get action description
     auto path = storage_.BlobPath(request->action_digest(), false);
     if (!path) {
@@ -38,7 +36,7 @@ auto ExecutionServiceImpl::GetAction(
         logger_.Emit(LogLevel::Error, str);
         return {std::nullopt, str};
     }
-    ::build::bazel::remote::execution::v2::Action action{};
+    ::bazel_re::Action action{};
     {
         std::ifstream f(*path);
         if (!action.ParseFromIstream(&f)) {
@@ -64,10 +62,9 @@ auto ExecutionServiceImpl::GetAction(
     return {std::move(action), std::nullopt};
 }
 
-auto ExecutionServiceImpl::GetCommand(
-    ::build::bazel::remote::execution::v2::Action const& action) const noexcept
-    -> std::pair<std::optional<::build::bazel::remote::execution::v2::Command>,
-                 std::optional<std::string>> {
+auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
+    const noexcept -> std::pair<std::optional<::bazel_re::Command>,
+                                std::optional<std::string>> {
 
     auto path = storage_.BlobPath(action.command_digest(), false);
     if (!path) {
@@ -78,7 +75,7 @@ auto ExecutionServiceImpl::GetCommand(
         return {std::nullopt, str};
     }
 
-    ::build::bazel::remote::execution::v2::Command c{};
+    ::bazel_re::Command c{};
     {
         std::ifstream f(*path);
         if (!c.ParseFromIstream(&f)) {
@@ -92,7 +89,7 @@ auto ExecutionServiceImpl::GetCommand(
     return {c, std::nullopt};
 }
 
-static auto GetEnvVars(::build::bazel::remote::execution::v2::Command const& c)
+static auto GetEnvVars(::bazel_re::Command const& c)
     -> std::map<std::string, std::string> {
     std::map<std::string, std::string> env_vars{};
     std::transform(c.environment_variables().begin(),
@@ -105,8 +102,8 @@ static auto GetEnvVars(::build::bazel::remote::execution::v2::Command const& c)
 }
 
 auto ExecutionServiceImpl::GetIExecutionAction(
-    ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
-    ::build::bazel::remote::execution::v2::Action const& action) const
+    ::bazel_re::ExecuteRequest const* request,
+    ::bazel_re::Action const& action) const
     -> std::pair<std::optional<IExecutionAction::Ptr>,
                  std::optional<std::string>> {
 
@@ -137,26 +134,24 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     return {std::move(i_execution_action), std::nullopt};
 }
 
-static void AddOutputPaths(
-    ::build::bazel::remote::execution::v2::ExecuteResponse* response,
-    IExecutionResponse::Ptr const& execution) noexcept {
+static void AddOutputPaths(::bazel_re::ExecuteResponse* response,
+                           IExecutionResponse::Ptr const& execution) noexcept {
     auto const& size = static_cast<int>(execution->Artifacts().size());
     response->mutable_result()->mutable_output_files()->Reserve(size);
     response->mutable_result()->mutable_output_directories()->Reserve(size);
 
     for (auto const& [path, info] : execution->Artifacts()) {
-        auto dgst = static_cast<::build::bazel::remote::execution::v2::Digest>(
-            info.digest);
+        auto dgst = static_cast<::bazel_re::Digest>(info.digest);
 
         if (info.type == ObjectType::Tree) {
-            ::build::bazel::remote::execution::v2::OutputDirectory out_dir;
+            ::bazel_re::OutputDirectory out_dir;
             *(out_dir.mutable_path()) = path;
             *(out_dir.mutable_tree_digest()) = std::move(dgst);
             response->mutable_result()->mutable_output_directories()->Add(
                 std::move(out_dir));
         }
         else {
-            ::build::bazel::remote::execution::v2::OutputFile out_file;
+            ::bazel_re::OutputFile out_file;
             *(out_file.mutable_path()) = path;
             *(out_file.mutable_digest()) = std::move(dgst);
             out_file.set_is_executable(info.type == ObjectType::Executable);
@@ -167,7 +162,7 @@ static void AddOutputPaths(
 }
 
 auto ExecutionServiceImpl::AddResult(
-    ::build::bazel::remote::execution::v2::ExecuteResponse* response,
+    ::bazel_re::ExecuteResponse* response,
     IExecutionResponse::Ptr const& i_execution_response,
     std::string const& action_hash) const noexcept
     -> std::optional<std::string> {
@@ -199,8 +194,7 @@ auto ExecutionServiceImpl::AddResult(
     return std::nullopt;
 }
 
-static void AddStatus(
-    ::build::bazel::remote::execution::v2::ExecuteResponse* response) noexcept {
+static void AddStatus(::bazel_re::ExecuteResponse* response) noexcept {
     ::google::rpc::Status status{};
     // we run the action locally, so no communication issues should happen
     status.set_code(grpc::StatusCode::OK);
@@ -208,13 +202,12 @@ static void AddStatus(
 }
 
 auto ExecutionServiceImpl::GetResponse(
-    ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
+    ::bazel_re::ExecuteRequest const* request,
     IExecutionResponse::Ptr const& i_execution_response) const noexcept
-    -> std::pair<
-        std::optional<::build::bazel::remote::execution::v2::ExecuteResponse>,
-        std::optional<std::string>> {
+    -> std::pair<std::optional<::bazel_re::ExecuteResponse>,
+                 std::optional<std::string>> {
 
-    ::build::bazel::remote::execution::v2::ExecuteResponse response{};
+    ::bazel_re::ExecuteResponse response{};
     AddStatus(&response);
     auto err =
         AddResult(&response,
@@ -228,9 +221,9 @@ auto ExecutionServiceImpl::GetResponse(
 }
 
 auto ExecutionServiceImpl::WriteResponse(
-    ::build::bazel::remote::execution::v2::ExecuteRequest const* request,
+    ::bazel_re::ExecuteRequest const* request,
     IExecutionResponse::Ptr const& i_execution_response,
-    ::build::bazel::remote::execution::v2::Action const& action,
+    ::bazel_re::Action const& action,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     const noexcept -> std::optional<std::string> {
 
@@ -267,7 +260,7 @@ auto ExecutionServiceImpl::WriteResponse(
 
 auto ExecutionServiceImpl::Execute(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::ExecuteRequest* request,
+    const ::bazel_re::ExecuteRequest* request,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
 
@@ -302,8 +295,7 @@ auto ExecutionServiceImpl::Execute(
 
 auto ExecutionServiceImpl::WaitExecution(
     ::grpc::ServerContext* /*context*/,
-    const ::build::bazel::remote::execution::v2::
-        WaitExecutionRequest* /*request*/,
+    const ::bazel_re::WaitExecutionRequest* /*request*/,
     ::grpc::ServerWriter<::google::longrunning::Operation>* /*writer*/)
     -> ::grpc::Status {
     auto const* str = "WaitExecution not implemented";

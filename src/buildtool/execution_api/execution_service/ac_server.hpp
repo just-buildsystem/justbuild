@@ -16,11 +16,11 @@
 #define AC_SERVER_HPP
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/local/local_ac.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-class ActionCacheServiceImpl final
-    : public build::bazel::remote::execution::v2::ActionCache::Service {
+class ActionCacheServiceImpl final : public bazel_re::ActionCache::Service {
   public:
     // Retrieve a cached execution result.
     //
@@ -34,11 +34,9 @@ class ActionCacheServiceImpl final
     // Errors:
     //
     // * `NOT_FOUND`: The requested `ActionResult` is not in the cache.
-    auto GetActionResult(
-        ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::GetActionResultRequest*
-            request,
-        ::build::bazel::remote::execution::v2::ActionResult* response)
+    auto GetActionResult(::grpc::ServerContext* context,
+                         const ::bazel_re::GetActionResultRequest* request,
+                         ::bazel_re::ActionResult* response)
         -> ::grpc::Status override;
     // Upload a new execution result.
     //
@@ -58,10 +56,8 @@ class ActionCacheServiceImpl final
     //   entry to the cache.
     auto UpdateActionResult(
         ::grpc::ServerContext* context,
-        const ::build::bazel::remote::execution::v2::UpdateActionResultRequest*
-            request,
-        ::build::bazel::remote::execution::v2::ActionResult* response)
-        -> ::grpc::Status override;
+        const ::bazel_re::UpdateActionResultRequest* request,
+        ::bazel_re::ActionResult* response) -> ::grpc::Status override;
 
   private:
     LocalCAS<ObjectType::File> cas_{};
