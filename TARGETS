@@ -262,7 +262,8 @@
     [ [["TREE", null, "bin"], "."]
     , [["TREE", null, "rules"], "."]
     , [["TREE", null, "etc"], "."]
-    , [["TREE", null, "src"], "."]
+    , [["TREE", null, "src/buildtool"], "."]
+    , [["TREE", null, "src/utils"], "."]
     ]
   }
 , "large-tests":
