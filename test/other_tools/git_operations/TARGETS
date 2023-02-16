@@ -23,6 +23,25 @@
     , "critical_git_ops_test_install"
     ]
   }
+, "git_repo_remote":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["git_repo_remote_test"]
+  , "srcs": ["git_repo_remote.test.cpp"]
+  , "data": [["test/buildtool/file_system", "test_data"]]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/utils/cpp", "atomic"]
+    , ["test/utils", "shell_quoting"]
+    ]
+  , "stage": ["test", "other_tools", "git_operations"]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["critical_git_ops_mp"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["critical_git_ops_mp", "git_repo_remote"]
+  }
 }
