@@ -181,6 +181,7 @@ auto SetupTraverseCommandArguments(
 auto SetupGcCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
+    SetupLogArguments(app, &clargs->log);
     SetupCacheArguments(app, &clargs->endpoint);
 }
 

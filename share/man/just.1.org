@@ -382,15 +382,15 @@ the original remote build execution protocol.
    Path to local log file. ~just~ will store the information printed
    on stderr in the log file along with the thread id and timestamp
    when the output has been generated.\\
-   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
    *--log-limit* NUM\\
    Log limit (higher is more verbose) in interval [0,6] (Default: 3).\\
-   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
    *--plain-log*\\
    Do not use ANSI escape sequences to highlight messages.\\
-   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|execute.
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
    *--expression-log-limit* NUM\\
    In error messages, truncate the entries in the enumeration of the active
