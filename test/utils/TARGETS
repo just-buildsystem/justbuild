@@ -64,6 +64,12 @@
   , "tainted": ["test"]
   , "files": {"utils/run_test_server.py": ["test/utils", "run_test_server.py"]}
   }
+, "shell_quoting":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["shell_quoting"]
+  , "hdrs": ["shell_quoting.hpp"]
+  , "stage": ["test", "utils"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]

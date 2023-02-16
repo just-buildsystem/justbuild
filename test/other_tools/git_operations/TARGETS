@@ -10,6 +10,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "other_tools", "git_operations"]
   }

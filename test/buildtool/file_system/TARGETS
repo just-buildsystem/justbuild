@@ -21,6 +21,7 @@
     , ["test/utils", "container_matchers"]
     , ["src/buildtool/file_system", "git_tree"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
@@ -35,6 +36,7 @@
     , ["test/utils", "container_matchers"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
@@ -49,6 +51,7 @@
     , ["test/utils", "container_matchers"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
@@ -80,6 +83,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/utils/cpp", "atomic"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }

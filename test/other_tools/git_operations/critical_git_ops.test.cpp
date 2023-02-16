@@ -19,6 +19,7 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "test/utils/shell_quoting.hpp"
 
 namespace {
 
@@ -62,10 +63,11 @@ class TestUtilsMP {
         bool is_bare = false) noexcept -> std::optional<std::filesystem::path> {
         auto repo_path = CreateTestRepo(prefix, is_bare);
         REQUIRE(repo_path);
-        auto cmd = fmt::format(
-            "git --git-dir={} --work-tree={} checkout master",
-            is_bare ? repo_path->string() : (*repo_path / ".git").string(),
-            repo_path->string());
+        auto cmd =
+            fmt::format("git --git-dir={} --work-tree={} checkout master",
+                        QuoteForShell(is_bare ? repo_path->string()
+                                              : (*repo_path / ".git").string()),
+                        QuoteForShell(repo_path->string()));
         if (std::system(cmd.c_str()) == 0) {
             return *repo_path;
         }
@@ -81,8 +83,8 @@ class TestUtilsMP {
         if (not FileSystemManager::Exists(repo_path)) {
             auto cmd = fmt::format("git clone {}{} {}",
                                    is_bare ? "--bare " : "",
-                                   kBundlePath,
-                                   repo_path.string());
+                                   QuoteForShell(kBundlePath),
+                                   QuoteForShell(repo_path.string()));
             if (std::system(cmd.c_str()) == 0) {
                 result = repo_path;
             }

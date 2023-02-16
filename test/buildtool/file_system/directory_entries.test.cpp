@@ -19,6 +19,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "test/utils/container_matchers.hpp"
+#include "test/utils/shell_quoting.hpp"
 
 namespace {
 
@@ -45,8 +46,8 @@ auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
         std::filesystem::path{std::to_string(counter++)}.filename();
     auto cmd = fmt::format("git clone {}{} {}",
                            do_checkout ? "--branch master " : "",
-                           kBundlePath,
-                           repo_path.string());
+                           QuoteForShell(kBundlePath),
+                           QuoteForShell(repo_path.string()));
     if (std::system(cmd.c_str()) == 0) {
         return repo_path;
     }

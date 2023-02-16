@@ -19,6 +19,7 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "test/utils/shell_quoting.hpp"
 
 static auto const kBasePath =
     std::filesystem::path{"test/buildtool/build_engine/base_maps"};
@@ -46,8 +47,9 @@ static auto const kJsonTreeId =
     auto repo_path =
         GetTestDir() / "test_repo" /
         std::filesystem::path{std::to_string(counter++)}.filename();
-    auto cmd = fmt::format(
-        "git clone --bare {} {}", kBundlePath.string(), repo_path.string());
+    auto cmd = fmt::format("git clone --bare {} {}",
+                           QuoteForShell(kBundlePath.string()),
+                           QuoteForShell(repo_path.string()));
     if (std::system(cmd.c_str()) == 0) {
         return repo_path;
     }

@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/common", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["test/utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }

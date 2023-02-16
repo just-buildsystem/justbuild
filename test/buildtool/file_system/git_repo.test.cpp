@@ -19,6 +19,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/atomic.hpp"
+#include "test/utils/shell_quoting.hpp"
 
 namespace {
 
@@ -54,10 +55,11 @@ class TestUtils {
         bool is_bare = false) noexcept -> std::optional<std::filesystem::path> {
         auto repo_path = CreateTestRepo(is_bare);
         REQUIRE(repo_path);
-        auto cmd = fmt::format(
-            "git --git-dir={} --work-tree={} checkout master",
-            is_bare ? repo_path->string() : (*repo_path / ".git").string(),
-            repo_path->string());
+        auto cmd =
+            fmt::format("git --git-dir={} --work-tree={} checkout master",
+                        QuoteForShell(is_bare ? repo_path->string()
+                                              : (*repo_path / ".git").string()),
+                        QuoteForShell(repo_path->string()));
         if (std::system(cmd.c_str()) == 0) {
             return *repo_path;
         }
@@ -69,8 +71,8 @@ class TestUtils {
         auto repo_path = GetRepoPath();
         auto cmd = fmt::format("git clone {}{} {}",
                                is_bare ? "--bare " : "",
-                               kBundlePath,
-                               repo_path.string());
+                               QuoteForShell(kBundlePath),
+                               QuoteForShell(repo_path.string()));
         if (std::system(cmd.c_str()) == 0) {
             return repo_path;
         }

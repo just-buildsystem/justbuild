@@ -18,6 +18,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "test/utils/container_matchers.hpp"
+#include "test/utils/shell_quoting.hpp"
 
 namespace {
 
@@ -52,8 +53,8 @@ auto const kFailId = std::string{"0123456789abcdef0123456789abcdef01234567"};
         std::filesystem::path{std::to_string(counter++)}.filename();
     auto cmd = fmt::format("git clone {}{} {}",
                            is_bare ? "--bare " : "",
-                           kBundlePath,
-                           repo_path.string());
+                           QuoteForShell(kBundlePath),
+                           QuoteForShell(repo_path.string()));
     if (std::system(cmd.c_str()) == 0) {
         return repo_path;
     }
