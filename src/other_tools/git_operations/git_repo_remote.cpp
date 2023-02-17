@@ -175,8 +175,22 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         git_proxy_options proxy_opts{};
         git_proxy_options_init(&proxy_opts, GIT_PROXY_OPTIONS_VERSION);
 
-        // set the option to auto-detect proxy settings
-        proxy_opts.type = GIT_PROXY_AUTO;
+        // set the proxy information
+        auto proxy_info =
+            GitConfigSettings::GetProxySettings(cfg, canonical_url, logger);
+        if (not proxy_info) {
+            // error occurred while handling the url
+            return std::nullopt;
+        }
+        if (proxy_info.value()) {
+            // found proxy
+            proxy_opts.type = GIT_PROXY_SPECIFIED;
+            proxy_opts.url = proxy_info.value().value().c_str();
+        }
+        else {
+            // no proxy
+            proxy_opts.type = GIT_PROXY_NONE;
+        }
 
         if (git_remote_connect(remote.get(),
                                GIT_DIRECTION_FETCH,
@@ -283,8 +297,22 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         git_fetch_options fetch_opts{};
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
 
-        // set the option to auto-detect proxy settings
-        fetch_opts.proxy_opts.type = GIT_PROXY_AUTO;
+        // set the proxy information
+        auto proxy_info =
+            GitConfigSettings::GetProxySettings(cfg, canonical_url, logger);
+        if (not proxy_info) {
+            // error occurred while handling the url
+            return false;
+        }
+        if (proxy_info.value()) {
+            // found proxy
+            fetch_opts.proxy_opts.type = GIT_PROXY_SPECIFIED;
+            fetch_opts.proxy_opts.url = proxy_info.value().value().c_str();
+        }
+        else {
+            // no proxy
+            fetch_opts.proxy_opts.type = GIT_PROXY_NONE;
+        }
 
         // set custom SSL verification callback; use canonicalized url
         if (not cfg) {
