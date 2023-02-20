@@ -68,6 +68,17 @@ See *just-mr-repository-config(5)* for more details on the input format.
    *--main* NAME\\
    The repository to take the target from.\\
 
+   *-f,--log-file* PATH\\
+   Path to local log file. ~just-mr~ will store the information printed
+   on stderr in the log file along with the thread id and timestamp
+   when the output has been generated.
+
+   *--log-limit* NUM\\
+   Log limit (higher is more verbose) in interval [0,6] (Default: 3).
+
+   *--plain-log*\\
+   Do not use ANSI escape sequences to highlight messages.
+
    *--just* PATH\\
    Name of the just binary in ~PATH~ or path to the just binary.\\
    Default: ~"just"~.\\

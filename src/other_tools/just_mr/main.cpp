@@ -18,6 +18,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
+#include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/ops_maps/git_update_map.hpp"
@@ -39,6 +40,7 @@ enum class SubCommand {
 struct CommandLineArguments {
     SubCommand cmd{SubCommand::kUnknown};
     MultiRepoCommonArguments common;
+    MultiRepoLogArguments log;
     MultiRepoSetupArguments setup;
     MultiRepoFetchArguments fetch;
     MultiRepoUpdateArguments update;
@@ -55,6 +57,7 @@ void SetupCommonCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupMultiRepoCommonArguments(app, &clargs->common);
+    SetupMultiRepoLogArguments(app, &clargs->log);
 }
 
 /// \brief Setup arguments for subcommand "just-mr fetch".
@@ -78,11 +81,6 @@ void SetupSetupCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupMultiRepoSetupArguments(app, &clargs->setup);
-}
-
-void SetupDefaultLogging() {
-    LogConfig::SetLogLimit(kDefaultLogLevel);
-    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory()});
 }
 
 [[nodiscard]] auto ParseCommandLineArguments(int argc, char const* const* argv)
@@ -169,6 +167,20 @@ void SetupDefaultLogging() {
     }
 
     return clargs;
+}
+
+void SetupDefaultLogging() {
+    LogConfig::SetLogLimit(kDefaultLogLevel);
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory()});
+}
+
+void SetupLogging(MultiRepoLogArguments const& clargs) {
+    LogConfig::SetLogLimit(clargs.log_limit);
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
+    for (auto const& log_file : clargs.log_files) {
+        LogConfig::AddSink(
+            LogSinkFile::CreateFactory(log_file, LogSinkFile::Mode::Overwrite));
+    }
 }
 
 [[nodiscard]] auto ReadLocation(
@@ -1110,6 +1122,7 @@ auto main(int argc, char* argv[]) -> int {
         // get the user-defined arguments
         auto arguments = ParseCommandLineArguments(argc, argv);
 
+        SetupLogging(arguments.log);
         auto config_file = ReadJustMRRC(&arguments);
         if (arguments.common.repository_config) {
             config_file = arguments.common.repository_config;
