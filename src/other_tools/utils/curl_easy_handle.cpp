@@ -14,6 +14,7 @@
 
 #include "src/other_tools/utils/curl_easy_handle.hpp"
 
+#include <cstdio>
 #include <fstream>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -26,6 +27,25 @@ extern "C" {
 void curl_easy_closer(gsl::owner<CURL*> curl) {
     curl_easy_cleanup(curl);
 }
+
+namespace {
+
+auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
+    -> std::string {
+    // obtain stream size
+    std::fseek(stream, 0, SEEK_END);
+    auto size = std::ftell(stream);
+    std::rewind(stream);
+
+    // create string buffer to hold stream content
+    std::string content(static_cast<size_t>(size), '\0');
+
+    // read stream content into string buffer
+    std::fread(content.data(), 1, content.size(), stream);
+    return content;
+}
+
+}  // namespace
 
 auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
     try {
@@ -68,6 +88,8 @@ auto CurlEasyHandle::EasyWriteToString(gsl::owner<char*> data,
 auto CurlEasyHandle::DownloadToFile(
     std::string const& url,
     std::filesystem::path const& file_path) noexcept -> int {
+    // create temporary file to capture curl debug output
+    gsl::owner<std::FILE*> tmp_file = std::tmpfile();
     try {
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
@@ -89,6 +111,9 @@ auto CurlEasyHandle::DownloadToFile(
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_VERBOSE, 1);
 
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_STDERR, tmp_file);
+
         // perform download
         auto res = curl_easy_perform(handle_.get());
 
@@ -100,18 +125,38 @@ auto CurlEasyHandle::DownloadToFile(
             // cleanup failed downloaded file, if created
             [[maybe_unused]] auto tmp_res =
                 FileSystemManager::RemoveFile(file_path);
+            Logger::Log(LogLevel::Error, [&tmp_file]() {
+                return fmt::format("curl download to file failed:\n{}",
+                                   read_stream_data(tmp_file));
+            });
+            std::fclose(tmp_file);
+            return 1;
         }
+
+        // print curl debug output if log level is tracing
+        Logger::Log(LogLevel::Trace, [&tmp_file]() {
+            return fmt::format("stderr of curl downloading to file:\n{}",
+                               read_stream_data(tmp_file));
+        });
+        std::fclose(tmp_file);
         return res;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "curl download to file failed with:\n{}",
-                    ex.what());
+        Logger::Log(LogLevel::Error, [&ex, &tmp_file]() {
+            return fmt::format(
+                "curl download to file failed with:\n{}\n"
+                "while performing:\n{}",
+                ex.what(),
+                read_stream_data(tmp_file));
+        });
+        std::fclose(tmp_file);
         return 1;
     }
 }
 
 auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
     -> std::optional<std::string> {
+    // create temporary file to capture curl debug output
+    gsl::owner<std::FILE*> tmp_file = std::tmpfile();
     try {
         // set URL
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
@@ -134,18 +179,38 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_VERBOSE, 1);
 
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_STDERR, tmp_file);
+
         // perform download
         auto res = curl_easy_perform(handle_.get());
 
         // check result
         if (res != CURLE_OK) {
+            Logger::Log(LogLevel::Error, [&tmp_file]() {
+                return fmt::format("curl download to string failed:\n{}",
+                                   read_stream_data(tmp_file));
+            });
+            std::fclose(tmp_file);
             return std::nullopt;
         }
+
+        // print curl debug output if log level is tracing
+        Logger::Log(LogLevel::Trace, [&tmp_file]() {
+            return fmt::format("stderr of curl downloading to string:\n{}",
+                               read_stream_data(tmp_file));
+        });
+        std::fclose(tmp_file);
         return content;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "curl download to string failed with:\n{}",
-                    ex.what());
+        Logger::Log(LogLevel::Error, [&ex, &tmp_file]() {
+            return fmt::format(
+                "curl download to string failed with:\n{}\n"
+                "while performing:\n{}",
+                ex.what(),
+                read_stream_data(tmp_file));
+        });
+        std::fclose(tmp_file);
         return std::nullopt;
     }
 }

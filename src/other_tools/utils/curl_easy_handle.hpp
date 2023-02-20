@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/other_tools/utils/curl_context.hpp"
