@@ -1026,7 +1026,8 @@ void DefaultReachableRepositories(
 
 /// \brief Runs execvp for given command. Only returns if execvp fails.
 [[nodiscard]] auto CallJust(std::shared_ptr<Configuration> const& config,
-                            CommandLineArguments const& arguments) -> int {
+                            CommandLineArguments const& arguments,
+                            bool forward_build_root) -> int {
     // check if subcmd_name can be taken from additional args
     auto additional_args_offset = 0U;
     auto subcommand = arguments.just_cmd.subcmd_name;
@@ -1063,7 +1064,7 @@ void DefaultReachableRepositories(
         cmd.emplace_back("-C");
         cmd.emplace_back(mr_config_path->string());
     }
-    if (use_build_root) {
+    if (use_build_root and forward_build_root) {
         cmd.emplace_back("--local-build-root");
         cmd.emplace_back(*arguments.common.just_mr_paths->root);
     }
@@ -1126,7 +1127,9 @@ auto main(int argc, char* argv[]) -> int {
         if (not arguments.common.just_path) {
             arguments.common.just_path = kDefaultJustPath;
         }
+        bool forward_build_root = true;
         if (not arguments.common.just_mr_paths->root) {
+            forward_build_root = false;
             arguments.common.just_mr_paths->root =
                 std::filesystem::weakly_canonical(
                     std::filesystem::absolute(kDefaultBuildRoot));
@@ -1192,7 +1195,7 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommands known to just and `do`
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
-            return CallJust(config, arguments);
+            return CallJust(config, arguments, forward_build_root);
         }
 
         // Run subcommand `setup` or `setup-env`
