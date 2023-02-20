@@ -99,7 +99,7 @@ void SetupDefaultLogging() {
         "update",
         "Advance Git commit IDs and print updated just-mr configuration.");
     auto* cmd_do = app.add_subcommand(
-        "do", "Canonical way of specifying just subcommands. ");
+        "do", "Canonical way of specifying just subcommands.");
     cmd_do->set_help_flag();  // disable help flag
     // define just subcommands
     std::vector<CLI::App*> cmd_just_subcmds{};

@@ -49,6 +49,7 @@ struct JustSubCmdFlags {
     bool config;
     bool build_root;
 };
+
 // ordered, so that we have replicability
 std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
     {"version", {false, false}},
