@@ -33,6 +33,7 @@ struct git_object;
 struct git_remote;
 struct git_commit;
 struct git_tree_entry;
+struct git_config;
 }
 
 constexpr std::size_t kWaitTime{2};  // time in ms between tries for git locks
@@ -69,5 +70,7 @@ void remote_closer(gsl::owner<git_remote*> remote);
 void commit_closer(gsl::owner<git_commit*> commit);
 
 void tree_entry_closer(gsl::owner<git_tree_entry*> tree_entry);
+
+void config_closer(gsl::owner<git_config*> cfg);
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_UTILS_HPP

@@ -148,3 +148,9 @@ void tree_entry_closer(gsl::owner<git_tree_entry*> tree_entry) {
     git_tree_entry_free(tree_entry);
 #endif
 }
+
+void config_closer(gsl::owner<git_config*> cfg) {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    git_config_free(cfg);
+#endif
+}

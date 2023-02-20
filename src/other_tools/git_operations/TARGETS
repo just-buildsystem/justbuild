@@ -29,6 +29,7 @@
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/file_system", "git_utils"]
     , ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
     ]

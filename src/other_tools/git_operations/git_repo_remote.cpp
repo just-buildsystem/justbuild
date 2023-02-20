@@ -15,6 +15,7 @@
 #include <src/other_tools/git_operations/git_repo_remote.hpp>
 
 #include "fmt/core.h"
+#include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 extern "C" {
@@ -402,4 +403,12 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
             LogLevel::Error, "fetch via tmp repo failed with:\n{}", ex.what());
         return false;
     }
+}
+
+auto GitRepoRemote::GetConfigSnapshot() const -> std::shared_ptr<git_config> {
+    git_config* cfg_ptr{nullptr};
+    if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef().get()) != 0) {
+        return nullptr;
+    }
+    return std::shared_ptr<git_config>(cfg_ptr, config_closer);
 }

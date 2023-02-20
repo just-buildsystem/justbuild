@@ -17,6 +17,10 @@
 
 #include "src/buildtool/file_system/git_repo.hpp"
 
+extern "C" {
+struct git_config;
+}
+
 /// \brief Extension to a Git repository, allowing remote Git operations.
 class GitRepoRemote : public GitRepo {
   public:
@@ -92,6 +96,10 @@ class GitRepoRemote : public GitRepo {
         std::string const& repo_url,
         std::optional<std::string> const& branch,
         anon_logger_ptr const& logger) noexcept -> bool;
+
+    /// \brief Get a snapshot of the repository configuration.
+    /// Returns nullptr on errors.
+    [[nodiscard]] auto GetConfigSnapshot() const -> std::shared_ptr<git_config>;
 
   private:
     /// \brief Open "fake" repository wrapper for existing CAS.
