@@ -39,9 +39,30 @@
     ]
   , "stage": ["test", "other_tools", "git_operations"]
   }
+, "git_config_run":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "tainted": ["test"]
+  , "name": ["git_config_run_test"]
+  , "srcs": ["git_config_run.test.cpp"]
+  , "private-deps":
+    [ ["", "libgit2"]
+    , ["src/other_tools/git_operations", "git_config_settings"]
+    , ["src/buildtool/file_system", "git_utils"]
+    , ["src/buildtool/file_system", "git_context"]
+    , ["src/buildtool/logging", "logging"]
+    , ["test/utils", "log_config"]
+    ]
+  , "stage": ["src"]
+  }
+, "git_config_ssl":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["git_config_ssl"]
+  , "test": ["git_config_ssl.sh"]
+  , "deps": ["git_config_run"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["critical_git_ops_mp", "git_repo_remote"]
+  , "deps": ["critical_git_ops_mp", "git_repo_remote", "git_config_ssl"]
   }
 }
