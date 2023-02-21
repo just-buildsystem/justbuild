@@ -143,10 +143,15 @@ class TestApi : public IExecutionApi {
                        bool /*unused*/) noexcept -> bool final {
         return false;  // not needed by Executor
     }
-    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& /*unused*/,
+    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& unused,
                        gsl::not_null<IExecutionApi*> const& /*unused*/) noexcept
         -> bool final {
-        return false;  // not needed by Executor
+        // Note that a false-positive "free-nonheap-object" warning is thrown by
+        // gcc 12.2 with GNU libstdc++, if the caller passes a temporary vector
+        // that is not used by this function. Therefore, we explicitly use this
+        // vector here to suppress this warning. The actual value returned is
+        // irrelevant for testing though.
+        return unused.empty();  // not needed by Executor
     }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
