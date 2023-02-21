@@ -93,8 +93,24 @@ auto main(int argc, char* argv[]) -> int {
             }
         }
         else if (test_type == "proxy") {
-            Logger::Log(LogLevel::Error, "Proxy tests not yet implemented");
-            return 1;
+            auto proxy_info =
+                GitConfigSettings::GetProxySettings(cfg, test_url, logger);
+            if (not proxy_info) {
+                Logger::Log(LogLevel::Error, "Missing proxy_info");
+                return 1;
+            }
+            // check expected result
+            auto expected_result =
+                (argc >= 4) ? std::make_optional<std::string>(args[3])
+                            : std::nullopt;
+            auto actual_result = proxy_info.value();
+            if (actual_result != expected_result) {
+                Logger::Log(LogLevel::Error,
+                            "Expected test result {}, but obtained {}",
+                            expected_result ? *expected_result : "nullopt",
+                            actual_result ? *actual_result : "nullopt");
+                return 1;
+            }
         }
         else {
             Logger::Log(LogLevel::Error,

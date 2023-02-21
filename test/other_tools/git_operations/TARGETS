@@ -56,13 +56,26 @@
   }
 , "git_config_ssl":
   { "type": ["@", "rules", "shell/test", "script"]
+  , "tainted": ["test"]
   , "name": ["git_config_ssl"]
   , "test": ["git_config_ssl.sh"]
+  , "deps": ["git_config_run"]
+  }
+, "git_config_proxy":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "tainted": ["test"]
+  , "name": ["git_config_proxy"]
+  , "test": ["git_config_proxy.sh"]
   , "deps": ["git_config_run"]
   }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["critical_git_ops_mp", "git_repo_remote", "git_config_ssl"]
+  , "deps":
+    [ "critical_git_ops_mp"
+    , "git_repo_remote"
+    , "git_config_ssl"
+    , "git_config_proxy"
+    ]
   }
 }
