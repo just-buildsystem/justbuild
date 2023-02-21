@@ -33,7 +33,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         auto digest = ArtifactDigest::Create<ObjectType::File>(content);
 
         // Valid blob
-        BazelBlob blob{digest, content};
+        BazelBlob blob{digest, content, /*is_exec=*/false};
 
         // Search blob via digest
         auto digests = cas_client.FindMissingBlobs(instance_name, {digest});
@@ -65,7 +65,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         faulty_digest.set_size_bytes(4);
 
         // Faulty blob
-        BazelBlob faulty_blob{faulty_digest, content};
+        BazelBlob faulty_blob{faulty_digest, content, /*is_exec=*/false};
 
         // Search faulty digest
         CHECK(cas_client.FindMissingBlobs(instance_name, {faulty_digest})

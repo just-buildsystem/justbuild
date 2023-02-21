@@ -155,7 +155,7 @@ class ExecutorImpl {
                 if (not VerifyOrUploadKnownArtifact(
                         remote_api,
                         artifact->Content().Repository(),
-                        object_info_opt->digest)) {
+                        *object_info_opt)) {
                     Logger::Log(
                         LogLevel::Error,
                         "artifact {} should be present in CAS but is missing.",
@@ -256,8 +256,10 @@ class ExecutorImpl {
                     return false;
                 }
                 try {
-                    container.Emplace(
-                        std::move(BazelBlob{digest, std::move(*content)}));
+                    container.Emplace(std::move(
+                        BazelBlob{digest,
+                                  std::move(*content),
+                                  IsExecutableObject(entry->Type())}));
                 } catch (std::exception const& ex) {
                     Logger::Log(LogLevel::Error,
                                 "failed to create blob with: ",
@@ -273,17 +275,17 @@ class ExecutorImpl {
     /// \brief Lookup blob via digest in local git repositories and upload.
     /// \param api          The endpoint used for uploading
     /// \param repo         The global repository name, the artifact belongs to
-    /// \param digest       The digest of the object
+    /// \param info         The info of the object
     /// \param hash         The git-sha1 hash of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadGitArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        ArtifactDigest const& digest,
+        Artifact::ObjectInfo const& info,
         std::string const& hash) noexcept -> bool {
         std::optional<std::string> content;
         if (NativeSupport::IsTree(
-                static_cast<bazel_re::Digest>(digest).hash())) {
+                static_cast<bazel_re::Digest>(info.digest).hash())) {
             // if known tree is not available, recursively upload its content
             auto tree = ReadGitTree(repo, hash);
             if (not tree) {
@@ -303,8 +305,8 @@ class ExecutorImpl {
         }
 
         // upload artifact content
-        auto container =
-            BlobContainer{{BazelBlob{digest, std::move(*content)}}};
+        auto container = BlobContainer{{BazelBlob{
+            info.digest, std::move(*content), IsExecutableObject(info.type)}}};
         return api->Upload(container, /*skip_find_missing=*/true);
     }
 
@@ -343,22 +345,22 @@ class ExecutorImpl {
     /// \brief Lookup blob via digest in local git repositories and upload.
     /// \param api          The endpoint used for uploading
     /// \param repo         The global repository name, the artifact belongs to
-    /// \param digest       The digest of the object
+    /// \param info         The info of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        ArtifactDigest const& digest) noexcept -> bool {
+        Artifact::ObjectInfo const& info) noexcept -> bool {
         if (Compatibility::IsCompatible()) {
-            auto opt = Compatibility::GetGitEntry(digest.hash());
+            auto opt = Compatibility::GetGitEntry(info.digest.hash());
             if (opt) {
                 auto const& [git_sha1_hash, comp_repo] = *opt;
                 return VerifyOrUploadGitArtifact(
-                    api, comp_repo, digest, git_sha1_hash);
+                    api, comp_repo, info, git_sha1_hash);
             }
             return false;
         }
-        return VerifyOrUploadGitArtifact(api, repo, digest, digest.hash());
+        return VerifyOrUploadGitArtifact(api, repo, info, info.digest.hash());
     }
 
     /// \brief Lookup file via path in local workspace root and upload.
@@ -385,7 +387,9 @@ class ExecutorImpl {
         }
         auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
         if (not api->Upload(
-                BlobContainer{{BazelBlob{digest, std::move(*content)}}})) {
+                BlobContainer{{BazelBlob{digest,
+                                         std::move(*content),
+                                         IsExecutableObject(*object_type)}}})) {
             return std::nullopt;
         }
         return Artifact::ObjectInfo{std::move(digest), *object_type};

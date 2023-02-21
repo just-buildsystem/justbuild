@@ -95,7 +95,7 @@ auto BazelCasClient::BatchReadBlobs(
                 response,
                 [](std::vector<BazelBlob>* v,
                    bazel_re::BatchReadBlobsResponse_Response const& r) {
-                    v->emplace_back(r.digest(), r.data());
+                    v->emplace_back(r.digest(), r.data(), /*is_exec=*/false);
                 });
     }
     else {
@@ -189,7 +189,8 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
                          digest.hash(),
                          real_digest.hash());
         }
-        return BazelBlob{std::move(real_digest), std::move(*data)};
+        return BazelBlob{
+            std::move(real_digest), std::move(*data), /*is_exec=*/false};
     }
     return std::nullopt;
 }

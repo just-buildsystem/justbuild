@@ -293,7 +293,8 @@ class GraphTraverser {
                     digest.size());
             });
             try {
-                container.Emplace(BazelBlob{std::move(digest), blob});
+                container.Emplace(
+                    BazelBlob{std::move(digest), blob, /*is_exec=*/false});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Error, "failed to create blob with: ", ex.what());

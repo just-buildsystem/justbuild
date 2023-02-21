@@ -53,8 +53,8 @@ class IBundle {
         -> std::string const& = 0;
     [[nodiscard]] virtual auto Digest() const& noexcept
         -> bazel_re::Digest const& = 0;
-    [[nodiscard]] auto MakeBlob() const noexcept -> BazelBlob {
-        return BazelBlob{Digest(), Content()};
+    [[nodiscard]] auto MakeBlob(bool is_exec) const noexcept -> BazelBlob {
+        return BazelBlob{Digest(), Content(), is_exec};
     }
 };
 
@@ -382,7 +382,7 @@ template <class T>
                 }
                 dir_nodes.push_back(dir_bundle->Message());
                 if (store_blob) {
-                    (*store_blob)(dir_bundle->MakeBlob());
+                    (*store_blob)(dir_bundle->MakeBlob(/*is_exec=*/false));
                 }
             }
             else {
@@ -472,7 +472,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     if (auto bundle = DirectoryTreeToBundle("", tree, store_blob, store_info)) {
         if (store_blob) {
             try {
-                (*store_blob)(bundle->MakeBlob());
+                (*store_blob)(bundle->MakeBlob(/*is_exec=*/false));
             } catch (...) {
                 return std::nullopt;
             }
@@ -627,8 +627,8 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
         cmd->Digest(), exec_dir, output_node_properties, do_not_cache, timeout);
 
     if (store_blob) {
-        (*store_blob)(cmd->MakeBlob());
-        (*store_blob)(action->MakeBlob());
+        (*store_blob)(cmd->MakeBlob(/*is_exec=*/false));
+        (*store_blob)(action->MakeBlob(/*is_exec=*/false));
     }
 
     return action->Digest();

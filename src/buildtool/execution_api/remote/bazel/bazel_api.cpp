@@ -219,7 +219,9 @@ auto BazelApi::CreateAction(
         }
         for (auto& blob : blobs) {
             try {
-                container.Emplace(std::move(blob));
+                auto exec = IsExecutableObject(
+                    info_map[ArtifactDigest{blob.digest}].type);
+                container.Emplace(BazelBlob{blob.digest, blob.data, exec});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Error, "failed to emplace blob: ", ex.what());

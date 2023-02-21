@@ -193,7 +193,8 @@ using ExecProps = std::map<std::string, std::string>;
     std::string output_path{"output_file"};
 
     auto api = api_factory();
-    CHECK(api->Upload(BlobContainer{{BazelBlob{test_digest, test_content}}},
+    CHECK(api->Upload(BlobContainer{{BazelBlob{
+                          test_digest, test_content, /*is_exec=*/false}}},
                       false));
 
     auto action =

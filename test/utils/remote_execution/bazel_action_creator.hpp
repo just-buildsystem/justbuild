@@ -59,12 +59,12 @@
 
     auto cmd_data = cmd.SerializeAsString();
     auto cmd_id = ArtifactDigest::Create<ObjectType::File>(cmd_data);
-    blobs.emplace_back(cmd_id, cmd_data);
+    blobs.emplace_back(cmd_id, cmd_data, /*is_exec=*/false);
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
     auto dir_id = ArtifactDigest::Create<ObjectType::File>(dir_data);
-    blobs.emplace_back(dir_id, dir_data);
+    blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
     action.set_allocated_command_digest(
@@ -75,7 +75,7 @@
 
     auto action_data = action.SerializeAsString();
     auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
-    blobs.emplace_back(action_id, action_data);
+    blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
     BazelCasClient cas_client(info->host, info->port);
 

@@ -25,7 +25,7 @@ auto ProcessDirectoryMessage(bazel_re::Directory const& dir) noexcept
     -> std::optional<BazelBlob> {
     auto data = dir.SerializeAsString();
     auto digest = ArtifactDigest::Create<ObjectType::File>(data);
-    return BazelBlob{std::move(digest), std::move(data)};
+    return BazelBlob{std::move(digest), std::move(data), /*is_exec=*/false};
 }
 
 }  // namespace

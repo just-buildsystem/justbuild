@@ -188,7 +188,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
-    REQUIRE(api.Upload(BlobContainer{{BazelBlob{test_digest, test_content}}},
+    REQUIRE(api.Upload(BlobContainer{{BazelBlob{
+                           test_digest, test_content, /*is_exec=*/false}}},
                        false));
 
     std::string input_path{"dir/subdir/input"};

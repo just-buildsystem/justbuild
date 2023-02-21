@@ -69,8 +69,10 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                                                   /*is_tree=*/true));
             digest.set_size_bytes(
                 gsl::narrow<google::protobuf::int64>(git_tree->second.size()));
-            return std::make_shared<BlobTree>(
-                BazelBlob{digest, git_tree->second}, nodes);
+            return std::make_shared<BlobTree>(BazelBlob{digest,
+                                                        git_tree->second,
+                                                        /*is_exec=*/false},
+                                              nodes);
         }
     } catch (...) {
         return std::nullopt;

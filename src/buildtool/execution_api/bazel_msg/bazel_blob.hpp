@@ -25,22 +25,30 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
 struct BazelBlob {
-    BazelBlob(bazel_re::Digest mydigest, std::string mydata)
-        : digest{std::move(mydigest)}, data{std::move(mydata)} {}
+    BazelBlob(bazel_re::Digest mydigest, std::string mydata, bool is_exec)
+        : digest{std::move(mydigest)},
+          data{std::move(mydata)},
+          is_exec{is_exec} {}
 
     bazel_re::Digest digest{};
     std::string data{};
+    bool is_exec{};  // optional: hint to put the blob in executable CAS
 };
 
 [[nodiscard]] static inline auto CreateBlobFromFile(
     std::filesystem::path const& file_path) noexcept
     -> std::optional<BazelBlob> {
-    auto const content = FileSystemManager::ReadFile(file_path);
+    auto const type = FileSystemManager::Type(file_path);
+    if (not type) {
+        return std::nullopt;
+    }
+    auto const content = FileSystemManager::ReadFile(file_path, *type);
     if (not content.has_value()) {
         return std::nullopt;
     }
     return BazelBlob{ArtifactDigest::Create<ObjectType::File>(*content),
-                     *content};
+                     *content,
+                     IsExecutableObject(*type)};
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP

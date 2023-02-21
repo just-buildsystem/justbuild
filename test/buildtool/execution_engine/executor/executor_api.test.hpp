@@ -44,7 +44,8 @@ static inline void RunBlobUpload(ApiFactory const& factory) {
         ArtifactDigest{HashFunction::ComputeBlobHash(blob).HexString(),
                        blob.size(),
                        /*is_tree=*/false},
-        blob}}}));
+        blob,
+        /*is_exec=*/false}}}));
 }
 
 [[nodiscard]] static inline auto GetTestDir() -> std::filesystem::path {
@@ -301,8 +302,9 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
 
     // upload blobs
     auto api = factory();
-    REQUIRE(api->Upload(BlobContainer{
-        {BazelBlob{foo_digest, foo}, BazelBlob{bar_digest, bar}}}));
+    REQUIRE(api->Upload(
+        BlobContainer{{BazelBlob{foo_digest, foo, /*is_exec=*/false},
+                       BazelBlob{bar_digest, bar, /*is_exec=*/false}}}));
 
     // define known artifacts
     auto foo_desc = ArtifactDescription{foo_digest, ObjectType::File};

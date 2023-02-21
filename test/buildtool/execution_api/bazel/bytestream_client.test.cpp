@@ -108,9 +108,15 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>("foo"), "foo"};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>("bar"), "bar"};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>("baz"), "baz"};
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>("foo"),
+                      "foo",
+                      /*is_exec=*/false};
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>("bar"),
+                      "bar",
+                      /*is_exec=*/false};
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>("baz"),
+                      "baz",
+                      /*is_exec=*/false};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},
@@ -156,11 +162,14 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
         }
 
         BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
-                      content_foo};
+                      content_foo,
+                      /*is_exec=*/false};
         BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
-                      content_bar};
+                      content_bar,
+                      /*is_exec=*/false};
         BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(content_baz),
-                      content_baz};
+                      content_baz,
+                      /*is_exec=*/false};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},

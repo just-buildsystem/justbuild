@@ -194,7 +194,8 @@ class LocalApi final : public IExecutionApi {
 
             // Collect blob.
             try {
-                container.Emplace(BazelBlob{digest, *content});
+                container.Emplace(
+                    BazelBlob{digest, *content, IsExecutableObject(info.type)});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Error, "failed to emplace blob: ", ex.what());
@@ -211,8 +212,9 @@ class LocalApi final : public IExecutionApi {
         -> bool final {
         for (auto const& blob : blobs) {
             auto const is_tree = NativeSupport::IsTree(blob.digest.hash());
-            auto cas_digest = is_tree ? storage_->StoreTree(blob.data)
-                                      : storage_->StoreBlob(blob.data);
+            auto cas_digest =
+                is_tree ? storage_->StoreTree(blob.data)
+                        : storage_->StoreBlob(blob.data, blob.is_exec);
             if (not cas_digest or not std::equal_to<bazel_re::Digest>{}(
                                       *cas_digest, blob.digest)) {
                 return false;
