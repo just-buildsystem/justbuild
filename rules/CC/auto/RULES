@@ -952,4 +952,150 @@
       }
     }
   }
+, "config_file":
+  { "doc":
+    [ "Generate a C/C++ config header from a given template"
+    , ""
+    , "Generate a C/C++ configuration header using defines specified via the"
+    , "target configuration. In the usual case, a target using this rule is"
+    , "configured by depending on it from a target that uses the built-in"
+    , "\"configure\" rule."
+    ]
+  , "field_doc":
+    { "output":
+      [ "Name of the header file to generate (incl. file name ext). Components are joined with /."
+      ]
+    , "input": ["The input configuration file, used as template."]
+    , "magic_string":
+      [ "The magic string (e.g., \"cmakedefine\") which identifies in which line"
+      , "we have to \"#define\" or \"#undef\" variables according to what is"
+      , "defined in the config field \"defines\"."
+      ]
+    , "@only": ["If set, only replace @VAR@ and not ${VAR}"]
+    }
+  , "config_doc":
+    { "defines":
+      [ "Set a define to a specific value unless its value is \"null\". Must"
+      , "contain a list of pairs. The first element of each pair is the define"
+      , "name and the second argument is the value to set. Strings must be"
+      , "properly escaped. Defines generated from this field are added last,"
+      , "so that they can refer to defines from other \"defines*\" values."
+      ]
+    }
+  , "string_fields": ["magic_string", "@only", "output"]
+  , "target_fields": ["input"]
+  , "config_vars": ["defines"]
+  , "imports":
+    { "first": "first_list_entry"
+    , "last": "last_list_entry"
+    , "stage_singleton_field": ["", "stage_singleton_field"]
+    }
+  , "implicit": {"runner": ["config_runner.py"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "runner"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "runner"], ["location", "runner"]]
+          , "body":
+            {"type": "CALL_EXPRESSION", "name": "stage_singleton_field"}
+          }
+        ]
+      , [ "dict-defines"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach"
+            , "range": {"type": "var", "name": "defines", "default": []}
+            , "var": "pair"
+            , "body":
+              { "type": "let*"
+              , "bindings":
+                [ ["list", {"type": "var", "name": "pair"}]
+                , ["key", {"type": "CALL_EXPRESSION", "name": "first"}]
+                , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                ]
+              , "body":
+                { "type": "singleton_map"
+                , "key": {"type": "var", "name": "key"}
+                , "value": {"type": "var", "name": "val"}
+                }
+              }
+            }
+          }
+        ]
+      , [ "magic_string"
+        , { "type": "assert_non_empty"
+          , "msg": "A non-empty string has to be provided for magic_string"
+          , "$1":
+            {"type": "join", "$1": {"type": "FIELD", "name": "magic_string"}}
+          }
+        ]
+      , [ "@only"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "@only"}
+          , "then": "true"
+          , "else": "false"
+          }
+        ]
+      , [ "param-blob"
+        , { "type": "singleton_map"
+          , "key": "param-file"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "json_encode"
+              , "$1": {"type": "var", "name": "dict-defines"}
+              }
+            }
+          }
+        ]
+      , [ "input-blob"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "input"], ["location", "input-file"]]
+          , "body":
+            {"type": "CALL_EXPRESSION", "name": "stage_singleton_field"}
+          }
+        ]
+      , [ "outfile"
+        , { "type": "ACTION"
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "param-blob"}
+              , {"type": "var", "name": "input-blob"}
+              , {"type": "var", "name": "runner"}
+              ]
+            }
+          , "cmd":
+            [ "./runner"
+            , "input-file"
+            , "param-file"
+            , {"type": "var", "name": "magic_string"}
+            , {"type": "var", "name": "@only"}
+            ]
+          , "outs": ["out"]
+          }
+        ]
+      , [ "outfile"
+        , { "type": "singleton_map"
+          , "key":
+            { "type": "join"
+            , "separator": "/"
+            , "$1": {"type": "FIELD", "name": "output"}
+            }
+          , "value":
+            { "type": "lookup"
+            , "key": "out"
+            , "map": {"type": "var", "name": "outfile"}
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "outfile"}
+      , "runfiles": {"type": "var", "name": "outfile"}
+      }
+    }
+  }
 }
