@@ -221,7 +221,7 @@
       , ["ENABLE_LIBXML2", false]
       , ["ENABLE_EXPAT", false]
       , ["ENABLE_PCREPOSIX", false]
-      , ["ENABLE_LibGCC", false]
+      , ["ENABLE_LIBGCC", false]
       , ["ENABLE_CNG", false]
       , ["XATTR_PROVIDER", "gnu"]
       , ["ENABLE_ACL", false]
@@ -236,7 +236,7 @@
         , "ENABLE_LIBXML2"
         , "ENABLE_EXPAT"
         , "ENABLE_PCREPOSIX"
-        , "ENABLE_LibGCC"
+        , "ENABLE_LIBGCC"
         , "ENABLE_CNG"
         , "XATTR_PROVIDER"
         , "ENABLE_ACL"

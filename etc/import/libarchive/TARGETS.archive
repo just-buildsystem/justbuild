@@ -18,7 +18,7 @@
     , "ENABLE_LIBXML2"
     , "ENABLE_EXPAT"
     , "ENABLE_PCREPOSIX"
-    , "ENABLE_LibGCC"
+    , "ENABLE_LIBGCC"
     , "ENABLE_CNG"
     , "ENABLE_XATTR"
     , "ENABLE_ACL"
@@ -164,7 +164,7 @@
                 , {"type": "var", "name": "ENABLE_PCREPOSIX"}
                 ]
               , ["HAVE_LIBPCRE", {"type": "var", "name": "ENABLE_PCRE"}]
-              , ["HAVE_LIBGCC", {"type": "var", "name": "ENABLE_LibGCC"}]
+              , ["HAVE_LIBGCC", {"type": "var", "name": "ENABLE_LIBGCC"}]
               , ["HAVE_LIBACL", {"type": "var", "name": "ENABLE_ACL"}]
               , ["HAVE_LIBRICHACL", {"type": "var", "name": "ENABLE_RICHACL"}]
               ]
@@ -1607,6 +1607,7 @@
     , ["src", "archive_acl"]
     , ["src", "archive_xattr"]
     , ["src", "archive_richacl"]
+    , ["src", "archive_hidden_symbols"]
     ]
   }
 }

@@ -1,6 +1,7 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["OS", "COMPILER_FAMILY", "DEBUG", "ENABLE_BZip2"]
+  , "arguments_config":
+    ["OS", "COMPILER_FAMILY", "DEBUG", "ENABLE_BZip2", "HIDE_SYMBOLS"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CFLAGS":
     { "type": "let*"
@@ -92,6 +93,27 @@
             [ ["hp-ux", ["-D_XOPEN_SOURCE=500"]]
             , ["mac", ["-Wno-deprecated-declarations"]]
             ]
+          }
+        , { "type": "if"
+          , "cond":
+            { "type": "=="
+            , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+            , "$2": "msvc"
+            }
+          , "then": []
+          , "else":
+            { "type": "if"
+            , "cond": {"type": "var", "name": "HIDE_SYMBOLS"}
+            , "then":
+              { "type": "case*"
+              , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+              , "case":
+                [ ["clang", ["-D__LIBARCHIVE_ENABLE_VISIBILITY"]]
+                , ["gnu", ["-D__LIBARCHIVE_ENABLE_VISIBILITY"]]
+                , ["intel", ["-D__LIBARCHIVE_ENABLE_VISIBILITY"]]
+                ]
+              }
+            }
           }
         ]
       }

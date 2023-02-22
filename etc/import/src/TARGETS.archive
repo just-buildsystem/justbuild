@@ -416,11 +416,11 @@
   }
 , "archive_libgcc":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LibGCC"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_LIBGCC"]
   , "name": ["archive_libgcc"]
   , "private-ldflags":
     { "type": "if"
-    , "cond": {"type": "var", "name": "ENABLE_LibGCC"}
+    , "cond": {"type": "var", "name": "ENABLE_LIBGCC"}
     , "then":
       { "type": "if"
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
@@ -429,7 +429,7 @@
     }
   , "deps":
     { "type": "if"
-    , "cond": {"type": "var", "name": "ENABLE_LibGCC"}
+    , "cond": {"type": "var", "name": "ENABLE_LIBGCC"}
     , "then":
       { "type": "if"
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
@@ -515,6 +515,33 @@
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
       , "then": []
       , "else": [["@", "richacl", "", "richacl"]]
+      }
+    }
+  }
+, "archive_hidden_symbols":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY", "HIDE_SYMBOLS"]
+  , "name": ["archive_hidden_symbols"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond":
+      { "type": "=="
+      , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+      , "$2": "msvc"
+      }
+    , "then": []
+    , "else":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "HIDE_SYMBOLS"}
+      , "then":
+        { "type": "case*"
+        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "case":
+          [ ["clang", ["-fvisibility=hidden"]]
+          , ["gnu", ["-fvisibility=hidden"]]
+          , ["intel", ["-fvisibility=hidden"]]
+          ]
+        }
       }
     }
   }

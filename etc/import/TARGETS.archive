@@ -30,7 +30,7 @@
     , "ENABLE_LIBXML2"
     , "ENABLE_EXPAT"
     , "ENABLE_PCREPOSIX"
-    , "ENABLE_LibGCC"
+    , "ENABLE_LIBGCC"
     , "ENABLE_CNG"
     , "ENABLE_XATTR"
     , "ENABLE_ACL"
@@ -41,6 +41,7 @@
     , "XATTR_PROVIDER"
     , "ENABLE_RICHACL"
     , "USE_NFS4"
+    , "HIDE_SYMBOLS"
     ]
   , "config_doc":
     { "ENABLE_MBEDTLS":
@@ -77,8 +78,8 @@
     , "ENABLE_PCREPOSIX":
       [ "Boolean. Default value: true. Link against PCREPOSIX (system or open name)."
       ]
-    , "ENABLE_LibGCC":
-      [ "Boolean. Default value: true. Link against LibGCC (system or open name)."
+    , "ENABLE_LIBGCC":
+      [ "Boolean. Default value: true. Link against LIBGCC (system or open name)."
       ]
     , "ENABLE_CNG":
       [ "Boolean. Use CNG (Crypto Next Generation)."
@@ -104,6 +105,11 @@
       ["Boolean. Link against RichACL (system or open name)."]
     , "USE_NSF4":
       ["Boolean. Explicitly give the NSF4 support state for the target OS."]
+    , "HIDE_SYMBOLS":
+      [ "Boolean. Default value: true."
+      , "Hide all symbols not officially external."
+      , "Has effect if ~COMPILER_FAMILY~==\"clang\"|\"gnu\"|\"intel\"."
+      ]
     }
   }
 , "archive_config":
@@ -115,6 +121,7 @@
     , "COMPILER_FAMILY"
     , "USE_SYSTEM_LIBS"
     , "DEBUG"
+    , "HIDE_SYMBOLS"
     , "ENABLE_MBEDTLS"
     , "ENABLE_NETTLE"
     , "ENABLE_OPENSSL"
@@ -128,7 +135,7 @@
     , "ENABLE_LIBXML2"
     , "ENABLE_EXPAT"
     , "ENABLE_PCREPOSIX"
-    , "ENABLE_LibGCC"
+    , "ENABLE_LIBGCC"
     , "ENABLE_CNG"
     , "ENABLE_XATTR"
     , "ENABLE_ACL"
@@ -242,8 +249,8 @@
       , [ "ENABLE_PCREPOSIX"
         , {"type": "var", "name": "ENABLE_PCREPOSIX", "default": true}
         ]
-      , [ "ENABLE_LibGCC"
-        , {"type": "var", "name": "ENABLE_LibGCC", "default": true}
+      , [ "ENABLE_LIBGCC"
+        , {"type": "var", "name": "ENABLE_LIBGCC", "default": true}
         ]
       , [ "ENABLE_CNG"
         , { "type": "case*"
@@ -313,6 +320,9 @@
         , {"type": "var", "name": "ENABLE_RICHACL", "default": false}
         ]
       , ["USE_NFS4", {"type": "var", "name": "USE_NFS4", "default": true}]
+      , [ "HIDE_SYMBOLS"
+        , {"type": "var", "name": "HIDE_SYMBOLS", "default": true}
+        ]
       ]
     , "body":
       { "type": "env"
@@ -332,7 +342,7 @@
         , "ENABLE_LIBXML2"
         , "ENABLE_EXPAT"
         , "ENABLE_PCREPOSIX"
-        , "ENABLE_LibGCC"
+        , "ENABLE_LIBGCC"
         , "ENABLE_CNG"
         , "ENABLE_XATTR"
         , "ENABLE_ACL"
@@ -343,6 +353,7 @@
         , "XATTR_PROVIDER"
         , "ENABLE_RICHACL"
         , "USE_NFS4"
+        , "HIDE_SYMBOLS"
         ]
       }
     }
