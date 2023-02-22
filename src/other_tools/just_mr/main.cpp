@@ -19,6 +19,7 @@
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
+#include "src/buildtool/main/version.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/ops_maps/git_update_map.hpp"
@@ -29,6 +30,7 @@ namespace {
 
 enum class SubCommand {
     kUnknown,
+    kMRVersion,
     kFetch,
     kUpdate,
     kSetup,
@@ -87,6 +89,8 @@ void SetupSetupCommandArguments(
     -> CommandLineArguments {
     CLI::App app("just-mr");
     app.option_defaults()->take_last();
+    auto* cmd_mrversion = app.add_subcommand(
+        "mrversion", "Print version information in JSON format of this tool.");
     auto* cmd_setup =
         app.add_subcommand("setup", "Setup and generate just configuration");
     auto* cmd_setup_env = app.add_subcommand(
@@ -136,7 +140,10 @@ void SetupSetupCommandArguments(
         std::exit(kExitClargsError);
     }
 
-    if (*cmd_setup) {
+    if (*cmd_mrversion) {
+        clargs.cmd = SubCommand::kMRVersion;
+    }
+    else if (*cmd_setup) {
         clargs.cmd = SubCommand::kSetup;
     }
     else if (*cmd_setup_env) {
@@ -1121,6 +1128,11 @@ auto main(int argc, char* argv[]) -> int {
     try {
         // get the user-defined arguments
         auto arguments = ParseCommandLineArguments(argc, argv);
+
+        if (arguments.cmd == SubCommand::kMRVersion) {
+            std::cout << version() << std::endl;
+            return kExitSuccess;
+        }
 
         SetupLogging(arguments.log);
         auto config_file = ReadJustMRRC(&arguments);

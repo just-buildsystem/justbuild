@@ -92,6 +92,13 @@ See *just-mr-repository-config(5)* for more details on the input format.
 
 * SUBCOMMANDS
 
+** mrversion
+
+Print on stdout a JSON object providing version information for
+this tool itself; the ~version~ subcommand calls the ~version~
+subcommand of just. The version information for just-mr is in the
+same format that also ~just~ uses.
+
 ** setup|setup-env
 
 These subcommands fetch all required repositories and generate an appropriate
