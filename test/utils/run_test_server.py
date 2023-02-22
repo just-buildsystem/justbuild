@@ -38,7 +38,6 @@ if __name__ == "__main__":
     # set up server args
     hostname = "127.0.0.1"
     # setup server obj
-    port = 0
     with HTTPServer((hostname, 0), HTTPHandler) as httpd:
         # print port number
         socket_info = httpd.socket.getsockname()
