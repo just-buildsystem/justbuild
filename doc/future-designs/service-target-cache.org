@@ -15,7 +15,7 @@ project before being used as a dependency. Therefore, if remote
 execution is used, for a first-party dependency, we expect all
 actions to be in cache. As dependencies are typically updated less
 often than the code being developed is changed, in most builds,
-the dependecies are in target-level cache. In other words, in a
+the dependencies are in target-level cache. In other words, in a
 remote-execution setup, the whole code of dependencies is fetched
 just to walk through the action graph a single time to get the
 necessary cache hits.
@@ -151,7 +151,7 @@ but not all roots have to be absent (as ~just~ can always upload
 those trees to CAS). It is an error if, outside the computations
 delegated to ~just serve~, a non-export target is requested from a
 repository containing an absent root. Moreover, whenever there is
-a dependency on a repository containting an absent root, a ~just
+a dependency on a repository containing an absent root, a ~just
 serve~ endpoint has to be specified in the invocation of ~just~.
 
 *** Auxiliary changes
@@ -203,7 +203,7 @@ In this way, content-fixed repositories can be generated in a
 generic way, e.g., using other version-control systems or specialized
 artifact-fetching tools.
 
-Additionally, for archive-like repositoires in the ~just-mr~
+Additionally, for archive-like repositories in the ~just-mr~
 repository specification (currently ~archive~ and ~zip~), a ~git~
 tree identifier can be specified. If the tree is known to ~just-mr~,
 or the ~"pragma"~ ~"absent"~ is given, it will just use that tree.
@@ -213,7 +213,7 @@ subdirectory. In this way, also archives can be used as absent roots.
 
 **** ~just-mr fetch~ to support storing in remote-execution CAS
 
-The ~fetch~ subcommond of ~just-mr~ will get an additional option to
+The ~fetch~ subcommand of ~just-mr~ will get an additional option to
 support backing up the fetched information not to a local directory,
 but instead to the CAS of the specified remote-execution endpoint.
 This includes

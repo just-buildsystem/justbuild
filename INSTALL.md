@@ -63,9 +63,9 @@ before to be present as well).
   script is written in such a way that the source is not modified.
 - The scratch directory (defaulting to python's `tempfile.mkdtemp()`).
   The script assumes it can use that directory entirely on its own
-  with no other processes interfering. The bootstraped binary has
-  path `out/bin/just` relative to that direcotry.
-- A directory where (some of) the archives of the dependecies
+  with no other processes interfering. The bootstrapped binary has
+  path `out/bin/just` relative to that directory.
+- A directory where (some of) the archives of the dependencies
   are downloaded ahead of time (defaulting to `.distfiles` in the
   user's home directory). Whenever an archive is needed, it is
   first checked if a file with the basename of the URL exists in
@@ -78,7 +78,7 @@ bootstrap phase is carried out sequentially rather than in parallel.
 Moreover, when constructing the build configuration, the scripts
 starts with the value of the environment variable `JUST_BUILD_CONF` instead
 of the empty object, if this variable is set. One configuration parameter
-is the build enviroment `ENV` that can be used to set an unusual
+is the build environment `ENV` that can be used to set an unusual
 value of `PATH`, e.g.,
 ``` sh
 env JUST_BUILD_CONF='{"ENV": {"PATH": "/opt/toolchain/bin"}}' python3 ./bin/boostrap.py
@@ -86,11 +86,11 @@ env JUST_BUILD_CONF='{"ENV": {"PATH": "/opt/toolchain/bin"}}' python3 ./bin/boos
 Additionally, if `SOURCE_DATE_EPOCH` is set in the build environment, it
 is forwarded to the build configuration as well. If, on the other hand,
 `CC` or `CXX` are set in the build configuration, those are also used
-for the initial setps of the bootstrap procedure. Remember that setting
+for the initial steps of the bootstrap procedure. Remember that setting
 one of those variables also requires to the the `COMPILER_FAMILY` to
 ensure the proper flags are used (if in doubt, set to `"unknown"`).
 
-In any case, the resulting binary is selfcontained and can be moved
+In any case, the resulting binary is self-contained and can be moved
 to an appropriate location in `PATH`.
 
 ### Bootstrapping against preinstalled dependencies (package building)
@@ -100,7 +100,7 @@ sufficiently compatible versions. The full list of dependencies
 can be found in `etc/repos.json`. This file also specifies, in
 the `"local_path"` attribute of `"local_bootstrap"`, the location
 relative to `LOCALBASE` (typically `/usr` or `/usr/local`) that
-is taken as root for the logical respository of that dependency.
+is taken as root for the logical repository of that dependency.
 If your distribution prefers to install each package in a separate
 directory, you can always take `/` as `LOCALBASE` and adapt these
 paths accordingly. The instructions on how to link those dependencies
@@ -128,4 +128,4 @@ In order to set up multi-repository configurations, usually the tools `just-mr`
 is used. It also a useful launcher for `just`.
 
 This tool is Python3 script located at `bin/just-mr.py` and can simply be put
-into an appropirate location in `PATH`.
+into an appropriate location in `PATH`.

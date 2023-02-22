@@ -8,7 +8,7 @@ our expression language.
 
 All expressions are given by JSON values. One can think of expressions
 as abstract syntax trees serialized to JSON; nevertheless, the precise
-semantics is given by the evaluation mechanism decribed later.
+semantics is given by the evaluation mechanism described later.
 
 ** Semantic Values
 
@@ -41,8 +41,8 @@ mechanism; the precise evaluation is as follows.
 - For JSON objects (wich can be understood as maps, or dicts), the
   key ~"type"~ has be be present and has to be a literal string.
   That string determines the syntactical construct (sloppily also
-  referred to as "function") the object represents, and the remaning
-  evaluation depends on the syntactial construct. The syntactical
+  referred to as "function") the object represents, and the remaining
+  evaluation depends on the syntactical construct. The syntactical
   construct has to be either one of the built-in ones or a special
   function available in the given context (e.g., ~"ACTION"~ within
   the expression defining a rule).
@@ -75,11 +75,11 @@ a literal string.
 
 For each pair in ~"bindings"~ the second component is evaluated, in
 the order the pairs occur. After each evaluation, a new environment
-is taken for the subesequent evaluations; the new environment is
+is taken for the subsequent evaluations; the new environment is
 like the old one but amended at the position given by the first
 component of the pair to now map to the value just obtained.
 
-Finally, the ~"body"~ is evaluated in the final environemnt (after
+Finally, the ~"body"~ is evaluated in the final environment (after
 evaluating all binding entries) and the result of evaluating the
 ~"body"~ is the value for the whole ~"let*"~ expression.
 
@@ -132,10 +132,10 @@ expression.
 
 If the key ~"case"~ is present, it has to be a list of pairs. In this
 case, the key ~"expr"~ is evaluated. It is an error if that evaluates
-to a name-containg value. The result of that evaluation
+to a name-containing value. The result of that evaluation
 is sequentially compared to the evaluation of the first components
 of the ~"case"~ list until an equal value is found. In this case,
-the evalaution of the second component of the pair is the value of
+the evaluation of the second component of the pair is the value of
 the ~"case*"~ expression.
 
 If the ~"case"~ key is absent, or no equality is found, the result of
@@ -154,7 +154,7 @@ evaluates to ~true~.
 
 For disjunction, the evaluation mechanism is the same, but the truth
 values and connective are taken dually. So, ~"and"~ and ~"or"~ are
-logical conjunction and disjuction, respectively, using short-cut
+logical conjunction and disjunction, respectively, using short-cut
 evaluation if syntactically admissible (i.e., if the argument is
 syntactically a list).
 
@@ -192,7 +192,7 @@ last value obtained.
 
 **** Regular functions
 
-First ~"$1"~ is evaluated; for binary functions ~"$2"~ is evaluted
+First ~"$1"~ is evaluated; for binary functions ~"$2"~ is evaluated
 next. For functions that accept keyword arguments, those are
 evaluated as well. Finally the function is applied to this (or
 those) argument(s) to obtain the final result.
@@ -202,7 +202,7 @@ those) argument(s) to obtain the final result.
 - ~"nub_right"~ The argument has to be a list. It is an error if that list
   contains (directly or indirectly) a name. The result is the
   input list, except that for all duplicate values, all but the
-  rightmost occurence is removed.
+  rightmost occurrence is removed.
 
 - ~"basename"~ The argument has to be a string. This string is
   interpreted as a path, and the file name thereof is returned.
@@ -322,7 +322,7 @@ reported together with a stack trace. This, however, might not
 be the most informative way to present a problem to the user,
 especially if the underlying problem is a proper user error, e.g.,
 in rule usage (leaving out mandatory arguments, violating semantical
-prerequisits, etc). To allow proper error reporting, the following
+prerequisites, etc). To allow proper error reporting, the following
 functions are available. All of them have an optional argument
 ~"msg"~ that is evaluated (only) in case of error and the result of
 that evaluation included in the error message presented to the user.

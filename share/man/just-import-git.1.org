@@ -13,7 +13,7 @@ just-import-deps [OPTIONS] URL [foreign repository name]
 
 Extend an existing *just-mr-repository-config(5)* by adding one
 git repository. In doing so, the dependencies declared in the
-imported repository are added as well and ~"file"~ respositories
+imported repository are added as well and ~"file"~ repositories
 are transformed to ~"subdir"~ parts of the imported repository.
 This solves the problem, that a repository can refer to itself only
 as ~"."~ in a portable way. The importing party, however, always
@@ -61,7 +61,7 @@ The resulting configuration is printed on standard output.
    *--map* THEIRS OURS\\
    Map repositories from the imported configuration to already
    existing ones. Those repositories are not imported (and the
-   search for their transitive dependency is ommitted) and instead
+   search for their transitive dependency is omitted) and instead
    the specified already existing repository is used. This is
    useful, if a sufficiently compatible repository already exists
    in the configuration.
@@ -70,7 +70,7 @@ The resulting configuration is printed on standard output.
    Use the file, specified by path relative to the repository
    root, as multi-repository specification in the imported
    repository. If not specifed, for a config file is searched
-   in the same way as ~just-mr~ does, when invoced with ~--no-rc~,
+   in the same way as ~just-mr~ does, when invoked with ~--no-rc~,
    however leaving out searches relative to global roots (~"home"~
    and ~"system"~). In other words, ~repos.json~ and ~etc/repos.json~
    are tried if this option is not given.

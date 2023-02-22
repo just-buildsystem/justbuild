@@ -8,7 +8,7 @@ from which APIs for various languages can be generated. As protocol
 buffers can contain other protocol buffers, the description files
 themselves have a dependency structure.
 
-From a software-engeneering point of view, the challenge is to
+From a software-engineering point of view, the challenge is to
 ensure that the author of the description files does not have to
 be aware of the languages for which APIs will be generated later.
 In fact, the main benefit of the language-independent description
@@ -32,7 +32,7 @@ dependencies; as those targets will have an appropriate notion of
 equality, no duplicate work is done and hence, as a side effect,
 staging or symbol conflicts are avoided as well.
 
-** Prelimanary remark: action identifiers
+** Preliminary remark: action identifiers
 
 Actions are defined as Merkle-tree hash of the contents. As all
 components (input tree, list of output strings, command vector,
@@ -46,7 +46,7 @@ long as the values for all duplicate keys are equal).
 When constructing the action graph for traversal, we can drop
 duplicates (i.e., actions with the same identifier, and hence the
 same description). For the serialization of the graph as part of
-the analyse command, we can afford the preperatory step to compute
+the analyse command, we can afford the preparatory step to compute
 a map from action id to list of origins.
 
 ** Equality
@@ -203,7 +203,7 @@ As a graph node can only be defined with all data given, the defined
 dependency structure is cycle-free by construction. However, the
 tree unfolding will usually be exponentially larger. For internal
 handling, this is not a problem: our shared-pointer implementation
-can efficently represent a directed acyclic graph and since we
+can efficiently represent a directed acyclic graph and since we
 cache hashes in expressions, we can compute the overall hash without
 folding the structure to a tree. When presenting nodes to the user,
 we only show the map of identifier to definition, to avoid that
@@ -255,7 +255,7 @@ the abstract node-type specifying strings to rule names. So, in
 the implementation these are just two expression pointers (with
 their defined notion of equality, i.e., equality of the respective
 Merkle-tree hashes). Such a pair of pointers also forms an additional
-variant of a name value, refering to such an anonymous target.
+variant of a name value, referring to such an anonymous target.
 
 It should be noted that such an anonymous target contains all the
 information needed to evaluate it in the same way as a regular (named)
@@ -269,7 +269,7 @@ We keep the property that a user can only request named targets.
 So anonymous targets have to be requested by other targets. We
 also keep the property that other targets are only requested at
 certain fixed steps in the evaluation of a target. To still achieve
-a meaningful use of anonymous targets our rule language hanldes
+a meaningful use of anonymous targets our rule language handles
 anonymous targets in the following way.
 
 ***** Rules parameter ~"anonymous"~
@@ -319,8 +319,8 @@ The evaluation of a target defined by a user-defined rule is handled
 as follows. After the target fields are evaluated as usual, an
 additional step is carried out.
 
-For each anymous-target field, i.e., for each key in the ~"anonymous"~
-map, a list of anymous targets is generated from the corresponding
+For each anonymous-target field, i.e., for each key in the ~"anonymous"~
+map, a list of anonymous targets is generated from the corresponding
 value: take all targets from the specified ~"target"~ field in all
 their specified configuration transitions (they have already been
 evaluated) and take the values provided for the specified ~"provider"~

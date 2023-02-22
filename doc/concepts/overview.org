@@ -122,7 +122,7 @@ rule, or expression is expected, they use the same naming scheme.
   all other names given by lists have length at least 3.
 - A list ~["./", relative-module-path, name]~ refers to a target
   with the given name in the module that has the specified path
-  relative to the current moudle (in the current repository).
+  relative to the current module (in the current repository).
 - A list ~["@", repository, module, name]~ refers to the target
   with the specified name in the specified module of the specified
   repository.

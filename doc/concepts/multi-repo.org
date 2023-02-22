@@ -13,7 +13,7 @@ this repository as a function of the referenced external targets.
 *** Binding in a separate repository configuration
 
 The actual binding of the free repository names is specified in a
-separte repository-configuration file, which is specified on the
+separate repository-configuration file, which is specified on the
 command line (via the ~-C~ option); this command-line argument
 is optional and the default is that the repository worked on has
 no external dependencies. Typically (but not necessarily), this
@@ -31,14 +31,14 @@ of the repository worked upon. Additional roots file names (for
 target, rule, and expression) can be specified. For keys not given,
 the same rules for default values apply as for the corresponding
 command-line arguments. Additionally, for each repository, the
-key "bindings" specifies the map of the open respository names to
+key "bindings" specifies the map of the open repository names to
 the global names that provide these dependencies. Repositories may
 depend on each other (or even themselves), but the resulting global
 target graph has to be cycle free.
 
 Whenever a location has to be specified, the value has to be a
 list, with the first entry being specifying the naming scheme; the
-semantics of the remaning entries depends on the scheme (see "Root
+semantics of the remaining entries depends on the scheme (see "Root
 Naming Schemes" below).
 
 Additionally, the key ~"main"~ (with default ~""~) specifies
@@ -92,7 +92,7 @@ In the following, we assume it is located at ~/etc/just/repos.json~.
 }
 #+END_SRC
 
-It specifes 3 repositories, with global names ~foobar~, ~barimpl~,
+It specifies 3 repositories, with global names ~foobar~, ~barimpl~,
 and ~env~. Within ~foobar~, the repository name ~base~ refers to
 ~barimpl~, the repository that can be found at ~/opt/barimpl~.
 
@@ -100,7 +100,7 @@ The repository ~env~ is the main repository and there is no workspace
 root defined for it, so it only provides bindings for external
 repositories ~foo~ and ~bar~, but the actual repository is taken
 from the working directory (unless ~-w~ is specified). In this way,
-it provides an environment for developping applications based on
+it provides an environment for developing applications based on
 ~foo~ and ~bar~.
 
 For example, the invocation ~just build -C /etc/just/repos.conf
@@ -115,9 +115,9 @@ taking ~base~ refer to the repository at ~/opt/barimpl~) and
 *** Reference in target files
 
 In addition to the normal target references (string for a target in
-the name module, moudle-target pair for a target in same repository,
+the name module, module-target pair for a target in same repository,
 ~["./", relpath, target]~ relative addressing, ~["FILE", null,
-name]~ explicit file refence in the same moudle), references of the
+name]~ explicit file reference in the same module), references of the
 form ~["@", repo, module, target]~ can be specified, where ~repo~
 is string referring to an open name. That open repository name is
 resolved to the global name by the ~"bindings"~ parameter of the

@@ -61,7 +61,7 @@ Additionally, repositories can reach additional repositories via
 bindings. Moreover, this repository-level dependency relation
 is not necessarily cycle free. In particular, we cannot use the
 tree unfolding as canonical representation of that graph up to
-bisumlation, as we do with most other data structures. To still get
+bisimulation, as we do with most other data structures. To still get
 a canonical representation, we factor out the largest bisimulation,
 i.e., minimize the respective automaton (with repositories as
 states, local data as locally observable properties, and the binding
@@ -74,7 +74,7 @@ edges are traversed in lexicographical order. The entry point is
 hence recognisable as repository ~"0"~.
 
 The repository key content-identifier of the canonically formatted
-canonical serialisaiton of the JSON encoding of the obtain
+canonical serialisation of the JSON encoding of the obtain
 multi-repository configuration (with repository-free git-root
 descriptions). The serialisation itself is stored in CAS.
 
@@ -131,7 +131,7 @@ for caching. An export target is then fully described by
 - the target name of the export target within that repository,
   described as module-name pair, and
 - the effective configuration.
-More precisely, the canoncical description is the JSON object with
+More precisely, the canonical description is the JSON object with
 those values for the keys ~"repo_key"~, ~"target_name"~, and ~"effective_config"~,
 respectively. The repository key is the blob identifier of the
 canonical serialisation (including sorted keys, etc) of the just
@@ -214,6 +214,6 @@ used through the same export target. For a well-structured repository,
 this should not be a natural property anyway.
 
 The forwarding of artifacts are the reason we chose that in the
-non-cached anlysis of an export target the artifacts are passed on
+non-cached analysis of an export target the artifacts are passed on
 as received and are not wrapped in an "add to cache" action. The
 latter choice would violate that projection property we rely upon.

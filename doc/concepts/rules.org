@@ -68,7 +68,7 @@ declared as ~"target_fields"~ or as ~"implicit"~) to a configuration
 expression. Here, a configuration expression is any expression
 in our language. It has access to the ~"config_vars"~ and the
 ~"config_fields"~ and has to evaluate to a list of maps. Each map
-specifies a transition to the current configuration by ammending
+specifies a transition to the current configuration by amending
 it on the domain of that map to the given value.
 
 *** ~"imports"~
@@ -82,7 +82,7 @@ Expressions themselves are defined in expression files, the default
 name being ~EXPRESSIONS~.
 
 Each expression is a JSON object. The only mandatory key is
-~"expression"~ wich has to be an expression in our language. It
+~"expression"~ which has to be an expression in our language. It
 optionally can have a key ~"vars"~ where the value has to be a list
 of strings (and the default is the empty list). Additionally, it
 can have another optional key ~"imports"~ following the same scheme
@@ -109,8 +109,8 @@ expect names as inputs.
 
 **** ~DEP_ARTIFACTS~ and ~DEP_RUNFILES~
 
-These functions give access to the artifacts, or runfiles, respecitively,
-of one of the targets depended upon. It takes two (evalutated)
+These functions give access to the artifacts, or runfiles, respectively,
+of one of the targets depended upon. It takes two (evaluated)
 arguments, the mandatory ~"dep"~ and the optional ~"transition"~.
 
 The argument ~"dep"~ has to evaluate to an abstract name (as can be
@@ -130,7 +130,7 @@ is the mandatory argument ~"provider"~ which has to evaluate to a
 string. The function returns the value of the provides map of the
 target at the given provider. If the key is not in the provides
 map (or the value at that key is ~null~), the optional argument
-~"default"~ is evaluted and returned. The default for ~"default"~
+~"default"~ is evaluated and returned. The default for ~"default"~
 is the empty list.
 
 **** ~BLOB~
@@ -208,14 +208,14 @@ be the result of the evaluation of the defining expression of a target.
 This function takes one mandatory argument ~"name"~ which is
 unevaluated; it has to a be a string literal. The expression imported
 by that name through the imports field is evaluated in the current
-enviroment restricted to the variables of that expression. The result
+environment restricted to the variables of that expression. The result
 of that evaluation is the result of the ~CALL_EXPRESSION~ statement.
 
-During the evaluation of an expression, rule fields can stil be
+During the evaluation of an expression, rule fields can still be
 accessed through the functions ~FIELD~, ~DEP_ARTIFACTS~, etc. In
 particular, even an expression with no variables (that, hence, is
 always evaluated in the empty environment) can carry out non-trivial
-compuations and be non-constant. The special functions ~BLOB~,
+computations and be non-constant. The special functions ~BLOB~,
 ~ACTION~, and ~RESULT~ are also available. If inside the evaluation
 of an expression the function ~CALL_EXPRESSION~ is used, the name
 argument refers to the ~"imports"~ map of that expression. So the
@@ -248,7 +248,7 @@ following way.
   effectively has used of the configuration the variables used by
   the ~arguments_config~ in the rule invocation, the ~config_vars~
   the rule specified, and the parts of the configuration used by
-  a target dependend upon. For a target dependend upon, all parts
+  a target dependent upon. For a target dependent upon, all parts
   it used of its configuration are relevant expect for those fixed
   by the configuration transition.
 
@@ -258,7 +258,7 @@ following way.
 ** Example of developing a rule
 
 Let's consider step by step an example of writing a rule. Say we want
-to write a rule that programatically patches some files.
+to write a rule that programmatically patches some files.
 
 *** Framework: The minimal rule
 
@@ -281,7 +281,7 @@ strings. In the defining expression we can access them directly via
 the ~FIELD~ function. Strings can be used when defining maps, but
 we can also create artifacts from them, using the ~BLOB~ function.
 To create a map, we can use the ~singleton_map~ function. We define
-values step by setp, using the ~let*~ construct.
+values step by step, using the ~let*~ construct.
 
 #+BEGIN_SRC
 { "script only":
@@ -327,7 +327,7 @@ with ~foreach_map~.
 
 Next, we have to keep in mind that targets may place their artifacts
 at arbitrary logical locations. For us that means that first
-we have to make a decission at which logical locations we want
+we have to make a decision at which logical locations we want
 to place the output artifacts. As one thinks of patching as an
 in-place operation, we chose to logically place the outputs where
 the inputs have been. Of course, we do not modify the input files
@@ -451,7 +451,7 @@ A typical invocation of that rule would be a target file like the following.
 }
 #+END_SRC
 As the input file has the same name as a target (in the same module),
-we use the explict file reference in the specification of the sources.
+we use the explicit file reference in the specification of the sources.
 
 *** Implicit dependencies and config transitions
 
@@ -462,7 +462,7 @@ generator. Then we have to do some additional considerations.
   on the targets the user specifies. Additionally, our code
   generator is also an implicit dependency. And as it is under
   active development, we certainly do not want it to be taken from
-  the ambient build environment (as we did in the previous exmaple
+  the ambient build environment (as we did in the previous example
   with ~ed~ which, however, is a pretty stable tool). So we use an
   ~implicit~ target for this.
 - Next, we notice that our code generator is used during the

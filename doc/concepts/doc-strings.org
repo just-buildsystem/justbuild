@@ -13,7 +13,7 @@ we add documentation directly into the respective definitions.
 ** Multi-line strings in JSON
 
 In JSON, the newline character is encoded specially and not taken
-literally; also, there is not implict joining of string literals.
+literally; also, there is not implicit joining of string literals.
 So, in order to also have documentation readable in the JSON
 representation itself, instead of single strings, we take arrays
 of strings, with the understanding that they describe the strings
@@ -24,7 +24,7 @@ obtained by joining the entries with newline characters.
 While documentation is highly recommended, it still remains optional.
 Therefore, when in the following we state that a key is for a list
 or a map, it is always implied that it may be absent; in this case,
-the empy array or the empty map is taken as default, respectively.
+the empty array or the empty map is taken as default, respectively.
 
 ** Rules
 
@@ -55,14 +55,14 @@ documentation on the provided data.
     , ""
     , "Define a library that can be used to be statically linked to a"
     , "binary. To do so, the target can simply be specified in the deps"
-    , "field of a binary; it can also be a dependecy of another library"
+    , "field of a binary; it can also be a dependency of another library"
     , "and the information is then propagated to the corresponding binary."
     ]
   , "string_fields": ["name"]
   , "target_fields": ["srcs", "hdrs", "private-hdrs", "deps"]
   , "field_doc":
     { "name":
-      ["The base name of the libary (i.e., the name without the leading lib)."]
+      ["The base name of the library (i.e., the name without the leading lib)."]
     , "srcs": ["The source files (i.e., *.c files) of the library."]
     , "hdrs":
       [ "The public header files of this library. Targets depending on"
@@ -122,7 +122,7 @@ As export targets play the role of interfaces between repositories,
 it is important that they be documented as well. Again, export targets
 are described as a JSON object with fixed set of keys amd we use
 the keys ~doc~ and ~config_doc~ for documentation. Here ~doc~ is an
-array of strings describing the targted in general and ~config_doc~
+array of strings describing the targeted in general and ~config_doc~
 is a map from (some of) the variables of the ~flexible_config~ to
 an array of strings describing this parameter.
 
