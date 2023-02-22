@@ -572,7 +572,7 @@ void DefaultReachableRepositories(
                         *arguments.common.just_mr_paths->workspace_root)) {
                     Logger::Log(
                         LogLevel::Warning,
-                        "Writing distributiona files to workspace location {}, "
+                        "Writing distribution files to workspace location {}, "
                         "which is different to the workspace of the requested "
                         "main repository {}.",
                         fetch_dir->string(),

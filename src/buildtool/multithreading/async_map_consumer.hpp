@@ -40,8 +40,8 @@ using AsyncMapConsumerLoggerPtr = std::shared_ptr<AsyncMapConsumerLogger>;
 // ready. As template parameters, it takes the type that keys will have, the
 // type that their corresponding values will have and the type of the underlying
 // thread-safe associative container. The default thread-safe associative
-// container is AsyncMap<Key, Value> and any substite must have the same public
-// interface to be used in AsyncMapConsumer.
+// container is AsyncMap<Key, Value> and any substitute must have the same
+// public interface to be used in AsyncMapConsumer.
 template <typename Key, typename Value, typename Map = AsyncMap<Key, Value>>
 class AsyncMapConsumer {
   public:

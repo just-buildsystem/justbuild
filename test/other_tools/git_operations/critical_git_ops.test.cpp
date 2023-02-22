@@ -100,7 +100,7 @@ class TestUtilsMP {
     static inline std::atomic<int> counter = 0;
 };
 
-TEST_CASE("Crtitical git operations", "[critical_git_op_map]") {
+TEST_CASE("Critical git operations", "[critical_git_op_map]") {
     // setup the repos needed
     auto prefix = TestUtilsMP::GetUniqueTestDir();
     REQUIRE(prefix);

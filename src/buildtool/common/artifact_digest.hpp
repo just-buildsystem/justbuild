@@ -26,9 +26,9 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 // Provides getter for size with convenient non-protobuf type. Contains a
-// unprefixed hex string as hash. For communication with the exeution API it can
-// be cast to bazel_re::Digest which is the wire format that contains prefixed
-// hashes in native mode.
+// unprefixed hex string as hash. For communication with the execution API it
+// can be cast to bazel_re::Digest which is the wire format that contains
+// prefixed hashes in native mode.
 class ArtifactDigest {
     friend struct std::hash<ArtifactDigest>;
 

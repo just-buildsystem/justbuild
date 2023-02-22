@@ -57,7 +57,7 @@ class BazelCasClient {
     /// \param[in] instance_name Name of the CAS instance
     /// \param[in] begin         Start of the blobs to upload
     /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs sucessfully updated
+    /// \returns The digests of blobs successfully updated
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
         std::vector<BazelBlob>::const_iterator const& begin,
@@ -68,7 +68,7 @@ class BazelCasClient {
     /// \param[in] instance_name Name of the CAS instance
     /// \param[in] begin         Start of the blobs to upload
     /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs sucessfully updated
+    /// \returns The digests of blobs successfully updated
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
         BlobContainer::iterator const& begin,
@@ -79,7 +79,7 @@ class BazelCasClient {
     /// \param[in] instance_name Name of the CAS instance
     /// \param[in] begin         Start of the blobs to upload
     /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs sucessfully updated
+    /// \returns The digests of blobs successfully updated
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
         BlobContainer::RelatedBlobList::iterator const& begin,

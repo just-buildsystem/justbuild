@@ -99,7 +99,7 @@ class Auth {
                 return false;
             }
 
-            // to enable mTLS, both tls_client_{ceritifcate,key} must be
+            // to enable mTLS, both tls_client_{certificate,key} must be
             // supplied
             if (ClientCert().empty() && not(ClientKey().empty())) {
                 Logger::Log(LogLevel::Error,
@@ -112,7 +112,7 @@ class Auth {
                 return false;
             }
 
-            // to enable mTLS, both tls_server_{ceritifcate,key} must be
+            // to enable mTLS, both tls_server_{certificate,key} must be
             // supplied
             if (ServerCert().empty() && not(ServerKey().empty())) {
                 Logger::Log(LogLevel::Error,

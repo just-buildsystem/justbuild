@@ -253,7 +253,7 @@ template <class T>
     return file_node;
 }
 
-/// \brief Create profobuf message DirectoryNode from Artifact::ObjectInfo
+/// \brief Create protobuf message DirectoryNode from Artifact::ObjectInfo
 [[nodiscard]] auto CreateDirectoryNodeFromObjectInfo(
     std::string const& name,
     Artifact::ObjectInfo const& object_info) noexcept
@@ -266,7 +266,7 @@ template <class T>
     return dir_node;
 }
 
-/// \brief Create bundle for profobuf message DirectoryNode from Directory.
+/// \brief Create bundle for protobuf message DirectoryNode from Directory.
 [[nodiscard]] auto CreateDirectoryNodeBundle(std::string const& dir_name,
                                              bazel_re::Directory const& dir)
     -> DirectoryNodeBundle::Ptr {
@@ -311,7 +311,7 @@ template <class T>
     return CommandBundle::Create(msg, content_creator, digest_creator);
 }
 
-/// \brief Create bundle for profobuf message Action from Command.
+/// \brief Create bundle for protobuf message Action from Command.
 [[nodiscard]] auto CreateActionBundle(
     bazel_re::Digest const& command,
     bazel_re::Digest const& root_dir,

@@ -357,12 +357,12 @@ auto UnaryExpr(std::function<ExpressionPtr(ExpressionPtr const&)> const& f)
             return f(argument);
         } catch (Evaluator::EvaluationError const& ex) {
             throw Evaluator::EvaluationError::WhileEval(
-                fmt::format("Having evaluted the argument to {}:",
+                fmt::format("Having evaluated the argument to {}:",
                             argument->ToString()),
                 ex);
         } catch (std::exception const& ex) {
             throw Evaluator::EvaluationError::WhileEvaluating(
-                fmt::format("Having evaluted the argument to {}:",
+                fmt::format("Having evaluated the argument to {}:",
                             argument->ToString()),
                 ex);
         }
@@ -856,7 +856,7 @@ auto DisjointUnionExpr(SubExprEvaluator&& eval,
         auto msg_expr = expr->Map().Find("msg");
         if (not msg_expr) {
             throw Evaluator::EvaluationError::WhileEvaluating(
-                fmt::format("Having evaluted the argument to {}:",
+                fmt::format("Having evaluated the argument to {}:",
                             argument->ToString()),
                 ex);
         }

@@ -232,7 +232,7 @@ void withDependencies(
         deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
 
-    // Compute the effective dependecy on config variables
+    // Compute the effective dependency on config variables
     std::unordered_set<std::string> effective_vars;
     auto const& param_vars = data->target_vars;
     effective_vars.insert(param_vars.begin(), param_vars.end());
@@ -520,9 +520,10 @@ void withDependencies(
                   auto fail_msg =
                       eval(expr->Get("fail_message", "action failed"s), env);
                   if (not fail_msg->IsString()) {
-                      throw Evaluator::EvaluationError{fmt::format(
-                          "fail_message has to evalute to a string, but got {}",
-                          fail_msg->ToString())};
+                      throw Evaluator::EvaluationError{
+                          fmt::format("fail_message has to evaluate to a "
+                                      "string, but got {}",
+                                      fail_msg->ToString())};
                   }
                   may_fail = std::optional{fail_msg->String()};
               }
@@ -842,7 +843,7 @@ void withRuleDefinition(
         auto const& field_expression = data->config_exprs[field_name];
         auto field_value = field_expression.Evaluate(
             param_config, {}, [&logger, &field_name](auto const& msg) {
-                (*logger)(fmt::format("While evaluating config fieled {}:\n{}",
+                (*logger)(fmt::format("While evaluating config field {}:\n{}",
                                       field_name,
                                       msg),
                           true);

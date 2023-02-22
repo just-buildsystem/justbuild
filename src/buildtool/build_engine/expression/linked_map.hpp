@@ -212,7 +212,7 @@ class LinkedMap {
         auto const& my_items = Items();
         auto const& other_items = other.Items();
         // Search for duplicates, using that iteration over the items is
-        // orderd by keys.
+        // ordered by keys.
         auto me = my_items.begin();
         auto they = other_items.begin();
         while (me != my_items.end() and they != other_items.end()) {
@@ -360,7 +360,7 @@ class LinkedMap {
             }
         }
 
-        // No more comaprisons to be made; copy over the remaining
+        // No more comparisons to be made; copy over the remaining
         // entries
         items.insert(items.end(), citemsit, citemsend);
         items.insert(items.end(), nitemsit, nitemsend);

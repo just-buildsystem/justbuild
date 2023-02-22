@@ -811,7 +811,7 @@ void GenericRuleWithDeps(
         deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
 
-    // Compute the effective dependecy on config variables
+    // Compute the effective dependency on config variables
     std::unordered_set<std::string> effective_vars;
     auto param_vars = desc->ReadStringList("arguments_config");
     effective_vars.insert(param_vars->begin(), param_vars->end());

@@ -25,7 +25,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-/// Implements client side for serivce defined here:
+/// Implements client side for service defined here:
 /// https://github.com/bazelbuild/bazel/blob/4b6ad34dbba15dacebfb6cbf76fa741649cdb007/third_party/remoteapis/build/bazel/remote/execution/v2/remote_execution.proto#L137
 class BazelAcClient {
   public:

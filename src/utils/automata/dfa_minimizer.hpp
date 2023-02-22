@@ -33,7 +33,7 @@
 // they transition for the same symbol to two differently named non-existing
 // states. This is done for efficiency reasons, as we then can avoid creating an
 // additional bucket for non-existing states. This is sufficient for our use
-// case, as we are only interested in the bisimiulation of states in complete
+// case, as we are only interested in the bisimulation of states in complete
 // graphs.
 class DFAMinimizer {
     // Maps symbols to states

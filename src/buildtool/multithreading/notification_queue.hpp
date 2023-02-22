@@ -149,7 +149,7 @@ class NotificationQueue {
     }
 
     // Method to communicate to the notification queue that there will not be
-    // any more queries. Queries after calling this method are not guaratied to
+    // any more queries. Queries after calling this method are not guarantied to
     // work as expected
     void done() {
         {

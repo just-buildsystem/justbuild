@@ -119,7 +119,7 @@ class RemoteExecutionConfig {
     // Server address of cache endpoint for rebuild.
     std::optional<ServerAddress> cache_address_{};
 
-    // Platform properies for execution.
+    // Platform properties for execution.
     std::map<std::string, std::string> platform_properties_{};
 
     [[nodiscard]] static auto ParseAddress(std::string const& address) noexcept

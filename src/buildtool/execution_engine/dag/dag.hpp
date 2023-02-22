@@ -528,7 +528,7 @@ class DependencyGraph : DirectedAcyclicGraph {
 
     DependencyGraph() noexcept = default;
 
-    // DependencyGraph should not be copiable or movable. This could be changed
+    // DependencyGraph should not be copyable or movable. This could be changed
     // in the case we want to make the graph construction to be functional
     DependencyGraph(DependencyGraph const&) = delete;
     DependencyGraph(DependencyGraph&&) = delete;

@@ -98,7 +98,7 @@ auto main() -> int {
     // 1. move to correct directory
     {
         auto anchor = FileSystemManager::ChangeDirectory(tmp_dir->GetPath());
-        // 2. create the archvies wrt to current directory
+        // 2. create the archives wrt to current directory
         std::optional<std::string> res{std::nullopt};
         res = ArchiveOps::CreateArchive(
             ArchiveType::kArchiveTypeZip, "zip_repo.zip", "root");

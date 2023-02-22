@@ -126,7 +126,7 @@ TEST_CASE("Zero copies", "[linked_map]") {
         for (int i{0}; i < kCount; ++i) {
             auto key = std::to_string(i);
             REQUIRE(map->contains(key));
-            // underlaying map's initializer_list produces a single copy
+            // underlying map's initializer_list produces a single copy
             CHECK(map->at(key).Count() == 1);
         }
     }
@@ -157,7 +157,7 @@ TEST_CASE("Zero copies", "[linked_map]") {
         }
     }
 
-    SECTION("Via underlaying map and emplace") {
+    SECTION("Via underlying map and emplace") {
         for (int i{0}; i < kCount; ++i) {
             map_t::underlying_map_t update{};
             update.emplace(std::to_string(i), CopyCounter());

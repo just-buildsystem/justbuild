@@ -257,7 +257,7 @@ TEST_CASE("Task can be executed and doesn't steal contents", "[task]") {
 
 TEST_CASE("Task moving from named object can be executed", "[task]") {
     // Constructing Tasks from named objects using Task{std::move(named_object)}
-    // is only a way to explicitely express that the constructor from Task that
+    // is only a way to explicitly express that the constructor from Task that
     // will be called will treat `named_object` as an rvalue (temporary object).
     // We could accomplish the same by using `Task t{Type{args}};` where `Type`
     // is the type of the callable object.
@@ -282,7 +282,7 @@ TEST_CASE("Task moving from named object can be executed", "[task]") {
             t_add_three();
 
             // External data must have been affected by side effect but in this
-            // case `add_three` is a moved-from object so there is no guarrantee
+            // case `add_three` is a moved-from object so there is no guarantee
             // about the data it holds
             CHECK(num == initial_value + 3);
         }

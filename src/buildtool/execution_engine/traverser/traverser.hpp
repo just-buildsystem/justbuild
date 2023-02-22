@@ -66,7 +66,7 @@ class Traverser {
 
     // Traverse starting by the artifacts with the given identifiers, avoiding
     // executing actions that are not strictly needed to build the given
-    // artifacs
+    // artifacts
     [[nodiscard]] auto Traverse(
         std::unordered_set<ArtifactIdentifier> const& target_ids) noexcept
         -> bool;
