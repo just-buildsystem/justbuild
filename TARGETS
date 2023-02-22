@@ -31,7 +31,7 @@
     , "COMPILER_FAMILY":
       [ "The compiler family to use as (cross) toolchain."
       , ""
-      , "Supported values are \"unkonwn\" (the default), \"clang\", and \"gcc\"."
+      , "Supported values are \"unknown\" (the default), \"clang\", and \"gcc\"."
       , "The unknown compiler family tries to not make any assumptions on the"
       , "used C and C++ compilers and uses the generic \"cc\" and \"c++\" as"
       , "names for the respective compilers; typically used in conjunction with"
@@ -44,7 +44,7 @@
     , "BUILD_STATIC_BINARY":
       [ "Boolean, default false. If set, try to build a (mainly) static binary."
       ]
-    , "DEBUG": ["Boolean, default false. Wheter a to build a debug version."]
+    , "DEBUG": ["Boolean, default false. Whether to build a debug version."]
     , "OS":
       [ "Operating system to build for."
       , ""
