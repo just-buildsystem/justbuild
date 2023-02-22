@@ -30,7 +30,6 @@
 #include "src/other_tools/just_mr/utils.hpp"
 
 constexpr auto kDefaultLogLevel = LogLevel::Progress;
-constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
 
 /// \brief Arguments common to all just-mr subcommands
 struct MultiRepoCommonArguments {
