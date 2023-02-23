@@ -26,7 +26,7 @@
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "graph_traverser_remote":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["graph_traverser_remote"]
   , "srcs": ["graph_traverser_remote.test.cpp"]
   , "data": ["test_data"]

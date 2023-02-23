@@ -1,5 +1,5 @@
 { "ac_client":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["ac_client"]
   , "srcs": ["bazel_ac_client.test.cpp"]
   , "private-deps":
@@ -11,7 +11,7 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "cas_client":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["cas_client"]
   , "srcs": ["bazel_cas_client.test.cpp"]
   , "private-deps":
@@ -23,7 +23,7 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "execution_client":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["execution_client"]
   , "srcs": ["bazel_execution_client.test.cpp"]
   , "private-deps":
@@ -35,7 +35,7 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "bytestream_client":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["bytestream_client"]
   , "srcs": ["bytestream_client.test.cpp"]
   , "private-deps":
@@ -47,7 +47,7 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "network":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["network"]
   , "srcs": ["bazel_network.test.cpp"]
   , "private-deps":
@@ -73,7 +73,7 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "bazel_api":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["bazel_api"]
   , "srcs": ["bazel_api.test.cpp"]
   , "private-deps":

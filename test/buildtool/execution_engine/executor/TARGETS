@@ -19,7 +19,7 @@
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
 , "local":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["local"]
   , "srcs": ["executor_api_local.test.cpp"]
   , "data": ["test_data"]
@@ -37,7 +37,7 @@
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
 , "remote_bazel":
-  { "type": ["@", "rules", "CC/test", "test"]
+  { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["remote_bazel"]
   , "srcs": ["executor_api_remote_bazel.test.cpp"]
   , "data": ["test_data"]
