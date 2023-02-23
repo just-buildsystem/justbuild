@@ -4,10 +4,16 @@
   , "hdrs": ["progress.hpp"]
   , "stage": ["src", "buildtool", "progress_reporting"]
   , "deps":
-    [ ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["src/buildtool/logging", "logging"]
-    , ["@", "fmt", "", "fmt"]
+    [ "task_tracker"
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
     ]
+  }
+, "task_tracker":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["task_tracker"]
+  , "hdrs": ["task_tracker.hpp"]
+  , "stage": ["src", "buildtool", "progress_reporting"]
+  , "deps": [["src/buildtool/logging", "logging"]]
   }
 , "base_progress_reporter":
   { "type": ["@", "rules", "CC", "library"]

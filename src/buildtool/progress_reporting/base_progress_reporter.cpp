@@ -36,7 +36,8 @@ auto BaseProgressReporter::Reporter() -> GraphTraverser::progress_reporter_t {
             cv->wait_for(lock, std::chrono::milliseconds(delay));
             if (not *done) {
                 // Note: order matters; queued has to be queried last
-                std::string sample = Progress::Instance().Sample();
+                std::string sample =
+                    Progress::Instance().TaskTracker().Sample();
                 int cached = stats.ActionsCachedCounter();
                 int run = stats.ActionsExecutedCounter();
                 int queued = stats.ActionsQueuedCounter();

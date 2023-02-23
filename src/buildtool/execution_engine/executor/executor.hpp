@@ -88,7 +88,7 @@ class ExecutorImpl {
 
         // do not count statistics for rebuilder fetching from cache
         if (cache_flag != IExecutionAction::CacheFlag::FromCacheOnly) {
-            Progress::Instance().Start(action->Content().Id());
+            Progress::Instance().TaskTracker().Start(action->Content().Id());
             Statistics::Instance().IncrementActionsQueuedCounter();
         }
 
@@ -459,7 +459,7 @@ class ExecutorImpl {
         else {
             Statistics::Instance().IncrementActionsExecutedCounter();
         }
-        Progress::Instance().Stop(action->Content().Id());
+        Progress::Instance().TaskTracker().Stop(action->Content().Id());
 
         PrintInfo(logger, action->Command(), response);
         bool should_fail_outputs = false;
