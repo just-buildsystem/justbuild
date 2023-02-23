@@ -4,4 +4,27 @@
   , "hdrs": ["statistics.hpp"]
   , "stage": ["src", "other_tools", "just_mr", "progress_reporting"]
   }
+, "progress":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["progress"]
+  , "hdrs": ["progress.hpp"]
+  , "stage": ["src", "other_tools", "just_mr", "progress_reporting"]
+  , "deps": [["src/buildtool/progress_reporting", "task_tracker"]]
+  }
+, "progress_reporter":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["progress_reporter"]
+  , "hdrs": ["progress_reporter.hpp"]
+  , "srcs": ["progress_reporter.cpp"]
+  , "stage": ["src", "other_tools", "just_mr", "progress_reporting"]
+  , "deps": [["src/buildtool/progress_reporting", "base_progress_reporter"]]
+  , "private-deps":
+    [ "progress"
+    , "statistics"
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  }
 }
