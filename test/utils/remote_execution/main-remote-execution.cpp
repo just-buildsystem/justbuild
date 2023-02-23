@@ -63,10 +63,8 @@ void wait_for_grpc_to_shutdown() {
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
 
-    // In case remote execution address is not valid, we skip tests. This is in
-    // order to avoid tests being dependent on the environment.
     if (not ConfigureRemoteExecution()) {
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
 
     int result = Catch::Session().run(argc, argv);
