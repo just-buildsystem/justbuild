@@ -12,16 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_REPORTER_HPP
-#define INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_REPORTER_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_PROGRESS_REPORTER_HPP
+#define INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_PROGRESS_REPORTER_HPP
 
-#ifndef BOOTSTRAP_BUILD_TOOL
+#include <atomic>
+#include <condition_variable>
+#include <cstdint>
+#include <functional>
 
-#include "src/buildtool/graph_traverser/graph_traverser.hpp"
+// Type of a progress reporter. The reporter may only block in such a way that
+// it return on a notification of the condition variable; moreover, it has to
+// exit once the boolean is true.
+using progress_reporter_t =
+    std::function<void(std::atomic<bool>*, std::condition_variable*)>;
 
 class BaseProgressReporter {
   public:
-    static auto Reporter() -> GraphTraverser::progress_reporter_t;
+    [[nodiscard]] static auto Reporter(
+        std::function<void(void)> report) noexcept -> progress_reporter_t;
 
   private:
     constexpr static int64_t kStartDelayMillis = 3000;
@@ -30,6 +38,4 @@ class BaseProgressReporter {
     constexpr static int64_t kDelayScalingFactorDenominator = 70;
 };
 
-#endif
-
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_PROGRESS_REPORTER_HPP

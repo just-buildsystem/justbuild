@@ -45,6 +45,7 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/utils/cpp/json.hpp"
 
 class GraphTraverser {
@@ -63,12 +64,6 @@ class GraphTraverser {
             extra_infos;
         bool failed_artifacts;
     };
-
-    // Type of a progress reporter. The reporter
-    // may only block in such a way that it return on a notification of the
-    // condition variable; moreover, it has to exit once the boolean is true.
-    using progress_reporter_t =
-        std::function<void(std::atomic<bool>*, std::condition_variable*)>;
 
     explicit GraphTraverser(CommandLineArguments clargs)
         : clargs_{std::move(clargs)},

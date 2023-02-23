@@ -43,7 +43,7 @@
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
-#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
+#include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #endif
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -1286,7 +1286,7 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(arguments.build),
                                         std::move(stage_args),
                                         std::move(rebuild_args)},
-                                       BaseProgressReporter::Reporter()};
+                                       ProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
