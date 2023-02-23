@@ -13,7 +13,7 @@
     , ["src/other_tools/utils", "archive_ops"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
-  , "private-ldflags": ["-lpthread"]
+  , "private-ldflags": ["-pthread"]
   , "stage": ["src"]
   }
 , "just_mr_mp":

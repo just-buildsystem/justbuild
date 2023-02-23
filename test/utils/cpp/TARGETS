@@ -21,6 +21,7 @@
     , ["src/utils/cpp", "atomic"]
     ]
   , "stage": ["test", "utils", "cpp"]
+  , "private-ldflags": ["-pthread"]
   }
 , "TESTS":
   {"type": "install", "tainted": ["test"], "deps": ["path", "file_locking"]}

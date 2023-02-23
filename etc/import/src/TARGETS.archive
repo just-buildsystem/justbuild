@@ -6,7 +6,7 @@
     { "type": "if"
     , "cond":
       {"type": "==", "$1": {"type": "var", "name": "OS"}, "$2": "linux"}
-    , "then": ["-lpthread"]
+    , "then": ["-pthread"]
     }
   }
 , "archive_crypt":

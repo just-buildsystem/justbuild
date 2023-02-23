@@ -7,7 +7,7 @@
     , "-lutil_hash_openssl"
     , "-lgit2_pcre"
     , "-lgit2_http_parser"
-    , "-lpthread"
+    , "-pthread"
     ]
   }
 }

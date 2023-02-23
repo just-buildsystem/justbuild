@@ -57,7 +57,7 @@
     , "then":
       { "type": "case*"
       , "expr": {"type": "var", "name": "OS"}
-      , "case": [["linux", ["-lpthread"]]]
+      , "case": [["linux", ["-pthread"]]]
       }
     }
   }

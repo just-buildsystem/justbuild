@@ -3,6 +3,7 @@
   , "name": ["task"]
   , "hdrs": ["task.hpp"]
   , "stage": ["src", "buildtool", "multithreading"]
+  , "private-ldflags": ["-pthread"]
   }
 , "notification_queue":
   { "type": ["@", "rules", "CC", "library"]

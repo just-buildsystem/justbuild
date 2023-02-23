@@ -18,5 +18,6 @@
   , "deps":
     ["log_level", ["@", "fmt", "", "fmt"], ["@", "gsl-lite", "", "gsl-lite"]]
   , "stage": ["src", "buildtool", "logging"]
+  , "private-ldflags": ["-pthread"]
   }
 }

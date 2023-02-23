@@ -20,8 +20,8 @@
       , "bzip2": "bzip2"
       , "libarchive": "com_github_libarchive_libarchive"
       }
-    , "bootstrap": {"link": ["-lpthread"]}
-    , "bootstrap_local": {"link": ["-lpthread"]}
+    , "bootstrap": {"link": ["-pthread"]}
+    , "bootstrap_local": {"link": ["-pthread"]}
     }
   , "just-distfiles":
     { "repository":
@@ -218,13 +218,13 @@
     , "bindings": {"rules": "rules-boringssl"}
     , "bootstrap":
       { "build": "SYS=`uname -s | tr 'A-Z' 'a-z'` && ARCH=`uname -m` && {cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c $SYS-$ARCH/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
-      , "link": ["-lcrypto", "-lpthread"]
+      , "link": ["-lcrypto", "-pthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
       }
     , "local_bootstrap":
       { "local_path": "include/openssl"
-      , "link": ["-lcrypto", "-lpthread"]
+      , "link": ["-lcrypto", "-pthread"]
       , "link_dirs": ["lib"]
       }
     }

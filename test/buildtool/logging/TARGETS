@@ -20,6 +20,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "buildtool", "logging"]
+  , "private-ldflags": ["-pthread"]
   }
 , "TESTS":
   {"type": "install", "tainted": ["test"], "deps": ["log_sink_file", "logger"]}

@@ -23,7 +23,6 @@
 
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"

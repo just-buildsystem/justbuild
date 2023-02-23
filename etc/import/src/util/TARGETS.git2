@@ -80,7 +80,7 @@
     , "$1":
       [ { "type": "if"
         , "cond": {"type": "var", "name": "THREADSAFE"}
-        , "then": ["-lpthread"]
+        , "then": ["-pthread"]
         }
       , { "type": "case"
         , "expr": {"type": "var", "name": "OS"}

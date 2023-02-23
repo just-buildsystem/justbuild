@@ -14,6 +14,8 @@
 
 #include "src/buildtool/file_system/git_repo.hpp"
 
+#include <thread>
+
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
