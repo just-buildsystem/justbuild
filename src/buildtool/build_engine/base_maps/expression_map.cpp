@@ -45,9 +45,8 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
                 auto const& target_ = id.GetNamedTarget();
                 auto func_it = json_values[0]->find(target_.name);
                 if (func_it == json_values[0]->end()) {
-                    (*logger)(fmt::format("Cannot find expression {} in {}",
-                                          target_.name,
-                                          target_.module),
+                    (*logger)(fmt::format("Cannot find expression {}",
+                                          EntityName(target_).ToString()),
                               true);
                     return;
                 }
