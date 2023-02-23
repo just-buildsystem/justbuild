@@ -115,6 +115,10 @@ class CASServiceImpl final
         -> ::grpc::Status override;
 
   private:
+    [[nodiscard]] auto CheckDigestConsistency(std::string const& ref,
+                                              std::string const& computed)
+        const noexcept -> std::optional<std::string>;
+
     LocalStorage storage_{};
     Logger logger_{"execution-service"};
 };

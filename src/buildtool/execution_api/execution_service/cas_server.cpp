@@ -18,6 +18,9 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 
+static constexpr std::size_t kJustHashLength = 42;
+static constexpr std::size_t kSHA256Length = 64;
+
 auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
@@ -47,6 +50,18 @@ auto CASServiceImpl::FindMissingBlobs(
     return ::grpc::Status::OK;
 }
 
+auto CASServiceImpl::CheckDigestConsistency(
+    std::string const& ref,
+    std::string const& computed) const noexcept -> std::optional<std::string> {
+    if (ref != computed) {
+        auto const& str = fmt::format(
+            "Blob {} is corrupted: digest and data do not correspond", ref);
+        logger_.Emit(LogLevel::Error, str);
+        return str;
+    }
+    return std::nullopt;
+}
+
 auto CASServiceImpl::BatchUpdateBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchUpdateBlobsRequest* request,
@@ -59,26 +74,42 @@ auto CASServiceImpl::BatchUpdateBlobs(
     }
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
+        auto const& hash_lenght = hash.size();
+        if (hash_lenght != kJustHashLength and hash_lenght != kSHA256Length) {
+            auto const& str = fmt::format("Unsupported digest {}", hash);
+            logger_.Emit(LogLevel::Error, str);
+            return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+        }
         logger_.Emit(LogLevel::Trace,
                      "BatchUpdateBlobs: {}",
                      NativeSupport::Unprefix(hash));
         auto* r = response->add_responses();
         r->mutable_digest()->CopyFrom(x.digest());
         if (NativeSupport::IsTree(hash)) {
-            if (!storage_.StoreTree(x.data())) {
+            auto const& dgst = storage_.StoreTree(x.data());
+            if (!dgst) {
                 auto const& str =
                     fmt::format("BatchUpdateBlobs: could not upload tree {}",
                                 NativeSupport::Unprefix(hash));
                 logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
+            if (auto err = CheckDigestConsistency(hash, dgst->hash())) {
+                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
+            }
         }
-        else if (!storage_.StoreBlob(x.data(), false)) {
-            auto const& str =
-                fmt::format("BatchUpdateBlobs: could not upload blob {}",
-                            NativeSupport::Unprefix(hash));
-            logger_.Emit(LogLevel::Error, str);
-            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        else {
+            auto const& dgst = storage_.StoreBlob(x.data(), false);
+            if (!dgst) {
+                auto const& str =
+                    fmt::format("BatchUpdateBlobs: could not upload blob {}",
+                                NativeSupport::Unprefix(hash));
+                logger_.Emit(LogLevel::Error, str);
+                return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+            }
+            if (auto err = CheckDigestConsistency(hash, dgst->hash())) {
+                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
+            }
         }
     }
     return ::grpc::Status::OK;
