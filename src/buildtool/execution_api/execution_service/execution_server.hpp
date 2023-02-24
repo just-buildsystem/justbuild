@@ -18,8 +18,8 @@
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
@@ -107,7 +107,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         -> ::grpc::Status override;
 
   private:
-    LocalStorage storage_{};
+    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
     IExecutionApi::Ptr api_{new LocalApi()};
     Logger logger_{"execution-service"};
 

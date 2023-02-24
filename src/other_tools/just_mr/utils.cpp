@@ -14,14 +14,14 @@
 
 #include "src/other_tools/just_mr/utils.hpp"
 
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace JustMR::Utils {
 
 auto GetGitCacheRoot() noexcept -> std::filesystem::path {
-    return LocalExecutionConfig::BuildRoot() / "git";
+    return StorageConfig::BuildRoot() / "git";
 }
 
 auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
@@ -42,20 +42,19 @@ auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
 
 auto CreateTypedTmpDir(std::string const& type) noexcept -> TmpDirPtr {
     // try to create parent dir
-    auto parent_path =
-        LocalExecutionConfig::BuildRoot() / "tmp-workspaces" / type;
+    auto parent_path = StorageConfig::BuildRoot() / "tmp-workspaces" / type;
     return TmpDir::Create(parent_path);
 }
 
 auto GetArchiveTreeIDFile(std::string const& repo_type,
                           std::string const& content) noexcept
     -> std::filesystem::path {
-    return LocalExecutionConfig::BuildRoot() / "tree-map" / repo_type / content;
+    return StorageConfig::BuildRoot() / "tree-map" / repo_type / content;
 }
 
 auto GetDistdirTreeIDFile(std::string const& content) noexcept
     -> std::filesystem::path {
-    return LocalExecutionConfig::BuildRoot() / "distfiles-tree-map" / content;
+    return StorageConfig::BuildRoot() / "distfiles-tree-map" / content;
 }
 
 auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
@@ -79,23 +78,24 @@ auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
 auto AddToCAS(std::string const& data) noexcept
     -> std::optional<std::filesystem::path> {
     // get file CAS instance
-    auto const& casf = LocalCAS<ObjectType::File>::Instance();
-    // write to casf
-    auto digest = casf.StoreBlobFromBytes(data);
+    auto const& cas = Storage::Instance().CAS();
+    // write to cas
+    auto digest = cas.StoreBlob(data);
     if (digest) {
-        return casf.BlobPath(*digest);
+        return cas.BlobPath(*digest, /*is_executable=*/false);
     }
     return std::nullopt;
 }
 
 void AddDistfileToCAS(std::filesystem::path const& distfile,
                       JustMR::PathsPtr const& just_mr_paths) noexcept {
-    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+    auto const& cas = Storage::Instance().CAS();
     for (auto const& dirpath : just_mr_paths->distdirs) {
         auto candidate = dirpath / distfile;
         if (FileSystemManager::Exists(candidate)) {
             // try to add to CAS
-            [[maybe_unused]] auto digest = casf.StoreBlobFromFile(candidate);
+            [[maybe_unused]] auto digest =
+                cas.StoreBlob(candidate, /*is_executable=*/false);
         }
     }
 }

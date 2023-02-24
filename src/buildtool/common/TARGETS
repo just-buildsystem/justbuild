@@ -105,6 +105,7 @@
   , "deps":
     [ ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/multithreading", "atomic_value"]
     ]
   , "stage": ["src", "buildtool", "common"]

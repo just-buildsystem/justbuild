@@ -21,20 +21,6 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
-/// \brief Determines the storage path of a blob identified by a hash value. The
-/// same sharding technique as used in git is applied, meaning, the hash value
-/// is separated into a directory part and file part. Two characters are used
-/// for the directory part, the rest for the file, which results in 256 possible
-/// directories.
-/// \param root     The root path of the storage.
-/// \param id       The hash value of the blob.
-/// \returns The sharded file path.
-[[nodiscard]] static inline auto GetStoragePath(
-    std::filesystem::path const& root,
-    std::string const& id) noexcept -> std::filesystem::path {
-    return root / id.substr(0, 2) / id.substr(2, id.size() - 2);
-}
-
 enum class StoreMode {
     // First thread to write conflicting file wins.
     FirstWins,
@@ -45,7 +31,11 @@ enum class StoreMode {
     LastWins
 };
 
-template <ObjectType kType, StoreMode kMode, bool kSetEpochTime>
+template <ObjectType kType,
+          StoreMode kMode,
+          bool kSetEpochTime,
+          class = std::enable_if_t<kType == ObjectType::File or
+                                   kType == ObjectType::Executable>>
 class FileStorage {
   public:
     explicit FileStorage(std::filesystem::path storage_root) noexcept
@@ -68,9 +58,16 @@ class FileStorage {
         return AtomicAddFromBytes(id, bytes);
     }
 
+    /// \brief Determines the storage path of a blob identified by a hash value.
+    /// The same sharding technique as used in git is applied, meaning, the hash
+    /// value is separated into a directory part and file part. Two characters
+    /// are used for the directory part, the rest for the file, which results in
+    /// 256 possible directories.
+    /// \param id       The hash value of the blob.
+    /// \returns The sharded file path.
     [[nodiscard]] auto GetPath(std::string const& id) const noexcept
         -> std::filesystem::path {
-        return GetStoragePath(storage_root_, id);
+        return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
     }
 
   private:

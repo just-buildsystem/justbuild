@@ -14,7 +14,7 @@
 
 #include "catch2/catch.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 namespace {
@@ -73,9 +73,10 @@ template <class T>
 
 // Read graph from CAS
 [[nodiscard]] auto ReadGraph(std::string const& hash) -> nlohmann::json {
-    auto& cas = LocalCAS<ObjectType::File>::Instance();
+    auto const& cas = Storage::Instance().CAS();
     auto blob = cas.BlobPath(
-        ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false});
+        ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false},
+        /*is_executable=*/false);
     REQUIRE(blob);
     auto content = FileSystemManager::ReadFile(*blob);
     REQUIRE(content);

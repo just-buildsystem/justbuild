@@ -24,8 +24,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class LocalApi;
 
@@ -50,7 +49,7 @@ class LocalAction final : public IExecutionAction {
 
   private:
     Logger logger_{"LocalExecution"};
-    std::shared_ptr<LocalStorage> storage_;
+    gsl::not_null<Storage const*> storage_;
     ArtifactDigest root_digest_{};
     std::vector<std::string> cmdline_{};
     std::vector<std::string> output_files_{};
@@ -60,7 +59,7 @@ class LocalAction final : public IExecutionAction {
     std::chrono::milliseconds timeout_{kDefaultTimeout};
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
-    LocalAction(std::shared_ptr<LocalStorage> storage,
+    LocalAction(gsl::not_null<Storage const*> storage,
                 ArtifactDigest root_digest,
                 std::vector<std::string> command,
                 std::vector<std::string> output_files,

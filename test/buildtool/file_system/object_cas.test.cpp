@@ -16,16 +16,17 @@
 
 #include "catch2/catch.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_cas.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "LocalCAS", "[execution_api]") {
+TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
     std::string test_content{"test"};
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     SECTION("CAS for files") {
-        LocalCAS<ObjectType::File> cas{};
+        ObjectCAS<ObjectType::File> cas{StorageConfig::GenerationCacheDir(0) /
+                                        "casf"};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {
@@ -63,7 +64,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "LocalCAS", "[execution_api]") {
     }
 
     SECTION("CAS for executables") {
-        LocalCAS<ObjectType::Executable> cas{};
+        ObjectCAS<ObjectType::Executable> cas{
+            StorageConfig::GenerationCacheDir(0) / "casx"};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

@@ -15,34 +15,34 @@
 #include <string>
 
 #include "catch2/catch.hpp"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalStorage: Add blob to storage from bytes",
-                 "[execution_api]") {
+                 "LocalCAS: Add blob to storage from bytes",
+                 "[storage]") {
     std::string test_bytes("test");
 
-    LocalStorage storage{};
+    auto const& cas = Storage::Instance().CAS();
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_bytes);
 
     // check blob not in storage
-    CHECK(not storage.BlobPath(test_digest, true));
-    CHECK(not storage.BlobPath(test_digest, false));
+    CHECK(not cas.BlobPath(test_digest, true));
+    CHECK(not cas.BlobPath(test_digest, false));
 
     // ensure previous calls did not accidentially create the blob
-    CHECK(not storage.BlobPath(test_digest, true));
-    CHECK(not storage.BlobPath(test_digest, false));
+    CHECK(not cas.BlobPath(test_digest, true));
+    CHECK(not cas.BlobPath(test_digest, false));
 
     SECTION("Add non-executable blob to storage") {
-        CHECK(storage.StoreBlob(test_bytes, false));
+        CHECK(cas.StoreBlob(test_bytes, false));
 
-        auto file_path = storage.BlobPath(test_digest, false);
+        auto file_path = cas.BlobPath(test_digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_digest, true);
+        auto exe_path = cas.BlobPath(test_digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));
@@ -50,14 +50,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 
     SECTION("Add executable blob to storage") {
-        CHECK(storage.StoreBlob(test_bytes, true));
+        CHECK(cas.StoreBlob(test_bytes, true));
 
-        auto file_path = storage.BlobPath(test_digest, false);
+        auto file_path = cas.BlobPath(test_digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_digest, true);
+        auto exe_path = cas.BlobPath(test_digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));
@@ -66,47 +66,32 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalStorage: Add blob to storage from non-executable file",
-                 "[execution_api]") {
+                 "LocalCAS: Add blob to storage from non-executable file",
+                 "[storage]") {
     std::filesystem::path non_exec_file{
-        "test/buildtool/execution_api/data/non_executable_file"};
+        "test/buildtool/storage/data/non_executable_file"};
 
-    LocalStorage storage{};
+    auto const& cas = Storage::Instance().CAS();
     auto test_blob = CreateBlobFromFile(non_exec_file);
     REQUIRE(test_blob);
 
     // check blob not in storage
-    CHECK(not storage.BlobPath(test_blob->digest, true));
-    CHECK(not storage.BlobPath(test_blob->digest, false));
+    CHECK(not cas.BlobPath(test_blob->digest, true));
+    CHECK(not cas.BlobPath(test_blob->digest, false));
 
     // ensure previous calls did not accidentially create the blob
-    CHECK(not storage.BlobPath(test_blob->digest, true));
-    CHECK(not storage.BlobPath(test_blob->digest, false));
-
-    SECTION("Add blob to storage without specifying x-bit") {
-        CHECK(storage.StoreBlob(non_exec_file));
-
-        auto file_path = storage.BlobPath(test_blob->digest, false);
-        REQUIRE(file_path);
-        CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path));
-
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
-        REQUIRE(exe_path);
-        CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path));
-    }
+    CHECK(not cas.BlobPath(test_blob->digest, true));
+    CHECK(not cas.BlobPath(test_blob->digest, false));
 
     SECTION("Add non-executable blob to storage") {
-        CHECK(storage.StoreBlob(non_exec_file, false));
+        CHECK(cas.StoreBlob(non_exec_file, false));
 
-        auto file_path = storage.BlobPath(test_blob->digest, false);
+        auto file_path = cas.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
+        auto exe_path = cas.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));
@@ -114,14 +99,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 
     SECTION("Add executable blob to storage") {
-        CHECK(storage.StoreBlob(non_exec_file, true));
+        CHECK(cas.StoreBlob(non_exec_file, true));
 
-        auto file_path = storage.BlobPath(test_blob->digest, false);
+        auto file_path = cas.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
+        auto exe_path = cas.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));
@@ -130,47 +115,32 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalStorage: Add blob to storage from executable file",
-                 "[execution_api]") {
+                 "LocalCAS: Add blob to storage from executable file",
+                 "[storage]") {
     std::filesystem::path exec_file{
-        "test/buildtool/execution_api/data/executable_file"};
+        "test/buildtool/storage/data/executable_file"};
 
-    LocalStorage storage{};
+    auto const& cas = Storage::Instance().CAS();
     auto test_blob = CreateBlobFromFile(exec_file);
     REQUIRE(test_blob);
 
     // check blob not in storage
-    CHECK(not storage.BlobPath(test_blob->digest, true));
-    CHECK(not storage.BlobPath(test_blob->digest, false));
+    CHECK(not cas.BlobPath(test_blob->digest, true));
+    CHECK(not cas.BlobPath(test_blob->digest, false));
 
     // ensure previous calls did not accidentially create the blob
-    CHECK(not storage.BlobPath(test_blob->digest, true));
-    CHECK(not storage.BlobPath(test_blob->digest, false));
-
-    SECTION("Add blob to storage without specifying x-bit") {
-        CHECK(storage.StoreBlob(exec_file));
-
-        auto file_path = storage.BlobPath(test_blob->digest, false);
-        REQUIRE(file_path);
-        CHECK(FileSystemManager::IsFile(*file_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path));
-
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
-        REQUIRE(exe_path);
-        CHECK(FileSystemManager::IsFile(*exe_path));
-        CHECK(FileSystemManager::IsExecutable(*exe_path));
-        CHECK(not FileSystemManager::IsExecutable(*file_path));
-    }
+    CHECK(not cas.BlobPath(test_blob->digest, true));
+    CHECK(not cas.BlobPath(test_blob->digest, false));
 
     SECTION("Add non-executable blob to storage") {
-        CHECK(storage.StoreBlob(exec_file, false));
+        CHECK(cas.StoreBlob(exec_file, false));
 
-        auto file_path = storage.BlobPath(test_blob->digest, false);
+        auto file_path = cas.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
+        auto exe_path = cas.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));
@@ -178,14 +148,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 
     SECTION("Add executable blob to storage") {
-        CHECK(storage.StoreBlob(exec_file, true));
+        CHECK(cas.StoreBlob(exec_file, true));
 
-        auto file_path = storage.BlobPath(test_blob->digest, false);
+        auto file_path = cas.BlobPath(test_blob->digest, false);
         REQUIRE(file_path);
         CHECK(FileSystemManager::IsFile(*file_path));
         CHECK(not FileSystemManager::IsExecutable(*file_path));
 
-        auto exe_path = storage.BlobPath(test_blob->digest, true);
+        auto exe_path = cas.BlobPath(test_blob->digest, true);
         REQUIRE(exe_path);
         CHECK(FileSystemManager::IsFile(*exe_path));
         CHECK(FileSystemManager::IsExecutable(*exe_path));

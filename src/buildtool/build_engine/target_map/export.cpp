@@ -18,10 +18,8 @@
 
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 namespace {
 auto const kExpectedFields = std::unordered_set<std::string>{"config_doc",
@@ -145,7 +143,7 @@ void ExportRule(
         ComputeTargetCacheKey(*exported_target, target_config);
     if (target_cache_key) {
         if (auto target_cache_value =
-                TargetCache::Instance().Read(*target_cache_key)) {
+                Storage::Instance().TargetCache().Read(*target_cache_key)) {
             auto const& [entry, info] = *target_cache_value;
             if (auto result = entry.ToResult()) {
                 auto deps_info = TargetGraphInformation{

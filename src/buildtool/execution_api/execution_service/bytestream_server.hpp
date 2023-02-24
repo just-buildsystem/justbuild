@@ -16,8 +16,8 @@
 #define BYTESTREAM_SERVER_HPP
 
 #include "google/bytestream/bytestream.grpc.pb.h"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
   public:
@@ -76,7 +76,7 @@ class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
         -> ::grpc::Status override;
 
   private:
-    LocalStorage storage_{};
+    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
     Logger logger_{"execution-service:bytestream"};
 };
 

@@ -17,8 +17,8 @@
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/local/local_ac.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class ActionCacheServiceImpl final : public bazel_re::ActionCache::Service {
   public:
@@ -60,8 +60,7 @@ class ActionCacheServiceImpl final : public bazel_re::ActionCache::Service {
         ::bazel_re::ActionResult* response) -> ::grpc::Status override;
 
   private:
-    LocalCAS<ObjectType::File> cas_{};
-    LocalAC ac_{&cas_};
+    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
     Logger logger_{"execution-service"};
 };
 

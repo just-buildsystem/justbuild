@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_ENTRY_HPP
-#define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_ENTRY_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_ENTRY_HPP
+#define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_ENTRY_HPP
 
 #include <optional>
 #include <unordered_map>
@@ -30,9 +30,9 @@
 
 // Entry for target cache. Created from target, contains TargetResult.
 class TargetCacheEntry {
-    friend class TargetCache;
-
   public:
+    explicit TargetCacheEntry(nlohmann::json desc) : desc_(std::move(desc)) {}
+
     // Create the entry from target with replacement artifacts/infos.
     // Replacement artifacts must replace all non-known artifacts by known.
     [[nodiscard]] static auto FromTarget(
@@ -53,16 +53,15 @@ class TargetCacheEntry {
         gsl::not_null<std::vector<Artifact::ObjectInfo>*> const& infos)
         const noexcept -> bool;
 
-  private:
-    nlohmann::json desc_;
-
-    explicit TargetCacheEntry(nlohmann::json desc) : desc_(std::move(desc)) {}
     [[nodiscard]] auto ToJson() const& -> nlohmann::json const& {
         return desc_;
     }
     [[nodiscard]] auto ToJson() && -> nlohmann::json {
         return std::move(desc_);
     }
+
+  private:
+    nlohmann::json desc_;
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_ENTRY_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_ENTRY_HPP

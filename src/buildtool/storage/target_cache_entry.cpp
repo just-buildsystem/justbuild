@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/build_engine/target_map/target_cache_entry.hpp"
+#include "src/buildtool/storage/target_cache_entry.hpp"
 
 #include <algorithm>
 #include <exception>

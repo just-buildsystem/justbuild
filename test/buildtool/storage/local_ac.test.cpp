@@ -16,21 +16,21 @@
 
 #include "catch2/catch.hpp"
 #include "gsl-lite/gsl-lite.hpp"
-#include "src/buildtool/execution_api/local/local_ac.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 [[nodiscard]] static auto RunDummyExecution(
-    gsl::not_null<LocalAC*> const& ac,
-    gsl::not_null<LocalCAS<ObjectType::File>*> cas_,
+    gsl::not_null<LocalAC<true> const*> const& ac,
+    gsl::not_null<LocalCAS<true> const*> const& cas_,
     bazel_re::Digest const& action_id,
     std::string const& seed) -> bool;
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAC: Single action, single result",
-                 "[execution_api]") {
-    LocalCAS cas{};
-    LocalAC ac{&cas};
+                 "[storage]") {
+    auto const& ac = Storage::Instance().ActionCache();
+    auto const& cas = Storage::Instance().CAS();
 
     auto action_id = ArtifactDigest::Create<ObjectType::File>("action");
     CHECK(not ac.CachedResult(action_id));
@@ -41,9 +41,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAC: Two different actions, two different results",
-                 "[execution_api]") {
-    LocalCAS cas{};
-    LocalAC ac{&cas};
+                 "[storage]") {
+    auto const& ac = Storage::Instance().ActionCache();
+    auto const& cas = Storage::Instance().CAS();
 
     auto action_id1 = ArtifactDigest::Create<ObjectType::File>("action1");
     auto action_id2 = ArtifactDigest::Create<ObjectType::File>("action2");
@@ -70,9 +70,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAC: Two different actions, same two results",
-                 "[execution_api]") {
-    LocalCAS cas{};
-    LocalAC ac{&cas};
+                 "[storage]") {
+    auto const& ac = Storage::Instance().ActionCache();
+    auto const& cas = Storage::Instance().CAS();
 
     auto action_id1 = ArtifactDigest::Create<ObjectType::File>("action1");
     auto action_id2 = ArtifactDigest::Create<ObjectType::File>("action2");
@@ -98,10 +98,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAC: Same two actions, two differnet results",
-                 "[execution_api]") {
-    LocalCAS cas{};
-    LocalAC ac{&cas};
+                 "LocalAC: Same two actions, two different results",
+                 "[storage]") {
+    auto const& ac = Storage::Instance().ActionCache();
+    auto const& cas = Storage::Instance().CAS();
 
     auto action_id = ArtifactDigest::Create<ObjectType::File>("same action");
     CHECK(not ac.CachedResult(action_id));
@@ -123,15 +123,15 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK(result_content1 != result_content2);
 }
 
-auto RunDummyExecution(gsl::not_null<LocalAC*> const& ac,
-                       gsl::not_null<LocalCAS<ObjectType::File>*> cas_,
+auto RunDummyExecution(gsl::not_null<LocalAC<true> const*> const& ac,
+                       gsl::not_null<LocalCAS<true> const*> const& cas_,
                        bazel_re::Digest const& action_id,
                        std::string const& seed) -> bool {
     bazel_re::ActionResult result{};
     *result.add_output_files() = [&]() {
         bazel_re::OutputFile out{};
         out.set_path(seed);
-        auto digest = cas_->StoreBlobFromBytes("");
+        auto digest = cas_->StoreBlob("");
         out.set_allocated_digest(
             gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
         out.set_is_executable(false);

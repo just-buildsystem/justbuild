@@ -22,7 +22,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 
 TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
-    std::filesystem::path workspace{"test/buildtool/execution_api/data"};
+    std::filesystem::path workspace{"test/buildtool/storage/data"};
 
     std::filesystem::path subdir1 = workspace / "subdir1";
     std::filesystem::path subdir2 = subdir1 / "subdir2";

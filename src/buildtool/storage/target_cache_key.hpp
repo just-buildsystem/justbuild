@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_KEY_HPP
-#define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_KEY_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
+#define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
 
+#include <functional>
 #include <optional>
 #include <utility>
 
@@ -46,4 +47,4 @@ class TargetCacheKey {
     Artifact::ObjectInfo id_;
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_CACHE_KEY_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP

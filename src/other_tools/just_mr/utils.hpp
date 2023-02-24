@@ -19,8 +19,8 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/main/constants.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 /* Paths and constants required by just-mr */
@@ -29,12 +29,11 @@ std::unordered_set<std::string> const kLocationTypes{"workspace",
                                                      "home",
                                                      "system"};
 auto const kDefaultJustPath = "just";
-auto const kDefaultRCPath = LocalExecutionConfig::GetUserHome() / ".just-mrrc";
-auto const kDefaultBuildRoot = LocalExecutionConfig::GetUserDir();
+auto const kDefaultRCPath = StorageConfig::GetUserHome() / ".just-mrrc";
+auto const kDefaultBuildRoot = StorageConfig::kDefaultBuildRoot;
 auto const kDefaultCheckoutLocationsFile =
-    LocalExecutionConfig::GetUserHome() / ".just-local.json";
-auto const kDefaultDistdirs =
-    LocalExecutionConfig::GetUserHome() / ".distfiles";
+    StorageConfig::GetUserHome() / ".just-local.json";
+auto const kDefaultDistdirs = StorageConfig::GetUserHome() / ".distfiles";
 
 std::vector<std::string> const kAltDirs = {"target_root",
                                            "rule_root",

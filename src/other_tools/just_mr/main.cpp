@@ -223,7 +223,7 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
         root_path = *ws_root;
     }
     if (root == "home") {
-        root_path = LocalExecutionConfig::GetUserHome();
+        root_path = StorageConfig::GetUserHome();
     }
     if (root == "system") {
         root_path = FileSystemManager::GetCurrentDirectory().root_path();
@@ -262,7 +262,7 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             root_path = *ws_root;
         }
         if (root_str == "home") {
-            root_path = LocalExecutionConfig::GetUserHome();
+            root_path = StorageConfig::GetUserHome();
         }
         if (root_str == "system") {
             root_path = FileSystemManager::GetCurrentDirectory().root_path();
@@ -1416,9 +1416,9 @@ auto main(int argc, char* argv[]) -> int {
             arguments.common.explicit_distdirs.begin(),
             arguments.common.explicit_distdirs.end());
 
-        // Setup LocalExecutionConfig to store the local_build_root properly
+        // Setup LocalStorageConfig to store the local_build_root properly
         // and make the cas and git cache roots available
-        if (not LocalExecutionConfig::SetBuildRoot(
+        if (not StorageConfig::SetBuildRoot(
                 *arguments.common.just_mr_paths->root)) {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");

@@ -16,10 +16,10 @@
 #define INCLUDED_SRC_TEST_UTILS_HERMETICITY_LOCAL_HPP
 
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class HermeticLocalTestFixture {
   public:
@@ -36,12 +36,10 @@ class HermeticLocalTestFixture {
 
         if (FileSystemManager::RemoveDirectory(case_dir, true) and
             FileSystemManager::CreateDirectoryExclusive(case_dir) and
-            LocalExecutionConfig::SetBuildRoot(case_dir)) {
+            StorageConfig::SetBuildRoot(case_dir)) {
             // After the build root has been changed, the file roots of the
-            // static CAS instances needs to be updated.
-            LocalCAS<ObjectType::File>::Instance().Reset();
-            LocalCAS<ObjectType::Executable>::Instance().Reset();
-            LocalCAS<ObjectType::Tree>::Instance().Reset();
+            // static storage instances need to be updated.
+            Storage::Reinitialize();
             Logger::Log(LogLevel::Debug,
                         "created test-local cache dir {}",
                         case_dir.string());

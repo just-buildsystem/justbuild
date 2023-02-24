@@ -14,7 +14,7 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 
-#include "src/buildtool/execution_api/local/local_cas.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
@@ -43,8 +43,8 @@ auto RepositoryConfig::RepositoryKey(std::string const& repo) const noexcept
         return data->key.SetOnceAndGet(
             [this, &unique]() -> std::optional<std::string> {
                 if (auto graph = BuildGraphForRepository(unique)) {
-                    auto& cas = LocalCAS<ObjectType::File>::Instance();
-                    if (auto digest = cas.StoreBlobFromBytes(graph->dump(2))) {
+                    auto const& cas = Storage::Instance().CAS();
+                    if (auto digest = cas.StoreBlob(graph->dump(2))) {
                         return ArtifactDigest{*digest}.hash();
                     }
                 }

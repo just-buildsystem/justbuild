@@ -21,7 +21,7 @@
 #include "fmt/format.h"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -64,11 +64,12 @@ auto BytestreamServiceImpl::Read(
 
     if (NativeSupport::IsTree(*hash)) {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
-        path = storage_.TreePath(static_cast<bazel_re::Digest>(dgst));
+        path = storage_->CAS().TreePath(static_cast<bazel_re::Digest>(dgst));
     }
     else {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, false};
-        path = storage_.BlobPath(static_cast<bazel_re::Digest>(dgst), false);
+        path = storage_->CAS().BlobPath(static_cast<bazel_re::Digest>(dgst),
+                                        false);
     }
     if (!path) {
         auto str = fmt::format("could not find {}", *hash);
@@ -135,14 +136,14 @@ auto BytestreamServiceImpl::Write(
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     if (NativeSupport::IsTree(*hash)) {
-        if (not storage_.StoreTree(tmp)) {
+        if (not storage_->CAS().StoreTree(tmp)) {
             auto str = fmt::format("could not store tree {}", *hash);
             logger_.Emit(LogLevel::Error, str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
         }
     }
     else {
-        if (not storage_.StoreBlob(tmp)) {
+        if (not storage_->CAS().StoreBlob(tmp, /*is_executable=*/false)) {
             auto str = fmt::format("could not store blob {}", *hash);
             logger_.Emit(LogLevel::Error, str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};

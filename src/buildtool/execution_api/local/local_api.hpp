@@ -30,8 +30,8 @@
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
@@ -68,7 +68,7 @@ class LocalApi final : public IExecutionApi {
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto const infos = storage_->RecursivelyReadTreeLeafs(
+                auto const infos = storage_->CAS().RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not infos or
                     not RetrieveToPaths(infos->second, infos->first)) {
@@ -76,7 +76,7 @@ class LocalApi final : public IExecutionApi {
                 }
             }
             else {
-                auto const blob_path = storage_->BlobPath(
+                auto const blob_path = storage_->CAS().BlobPath(
                     info.digest, IsExecutableObject(info.type));
                 if (not blob_path or
                     not FileSystemManager::CreateDirectory(
@@ -107,7 +107,7 @@ class LocalApi final : public IExecutionApi {
 
             if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
                 auto const success =
-                    storage_->DumpToStream(info, out, raw_tree);
+                    storage_->CAS().DumpToStream(info, out, raw_tree);
                 std::fclose(out);
                 if (not success) {
                     Logger::Log(LogLevel::Error,
@@ -159,7 +159,7 @@ class LocalApi final : public IExecutionApi {
         for (auto const& info : missing_artifacts_info) {
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
-                auto const& infos = storage_->ReadDirectTreeEntries(
+                auto const& infos = storage_->CAS().ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
                 if (not infos or not RetrieveToCas(infos->second, api)) {
                     return false;
@@ -169,9 +169,9 @@ class LocalApi final : public IExecutionApi {
             // Determine artifact path.
             auto const& path =
                 IsTreeObject(info.type)
-                    ? storage_->TreePath(info.digest)
-                    : storage_->BlobPath(info.digest,
-                                         IsExecutableObject(info.type));
+                    ? storage_->CAS().TreePath(info.digest)
+                    : storage_->CAS().BlobPath(info.digest,
+                                               IsExecutableObject(info.type));
             if (not path) {
                 return false;
             }
@@ -213,8 +213,8 @@ class LocalApi final : public IExecutionApi {
         for (auto const& blob : blobs) {
             auto const is_tree = NativeSupport::IsTree(blob.digest.hash());
             auto cas_digest =
-                is_tree ? storage_->StoreTree(blob.data)
-                        : storage_->StoreBlob(blob.data, blob.is_exec);
+                is_tree ? storage_->CAS().StoreTree(blob.data)
+                        : storage_->CAS().StoreBlob(blob.data, blob.is_exec);
             if (not cas_digest or not std::equal_to<bazel_re::Digest>{}(
                                       *cas_digest, blob.digest)) {
                 return false;
@@ -331,8 +331,8 @@ class LocalApi final : public IExecutionApi {
         -> bool final {
         return static_cast<bool>(
             NativeSupport::IsTree(static_cast<bazel_re::Digest>(digest).hash())
-                ? storage_->TreePath(digest)
-                : storage_->BlobPath(digest, false));
+                ? storage_->CAS().TreePath(digest)
+                : storage_->CAS().BlobPath(digest, false));
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
@@ -341,8 +341,8 @@ class LocalApi final : public IExecutionApi {
         for (auto const& digest : digests) {
             auto const& path = NativeSupport::IsTree(
                                    static_cast<bazel_re::Digest>(digest).hash())
-                                   ? storage_->TreePath(digest)
-                                   : storage_->BlobPath(digest, false);
+                                   ? storage_->CAS().TreePath(digest)
+                                   : storage_->CAS().BlobPath(digest, false);
             if (not path) {
                 result.push_back(digest);
             }
@@ -351,7 +351,7 @@ class LocalApi final : public IExecutionApi {
     }
 
   private:
-    std::shared_ptr<LocalStorage> storage_{std::make_shared<LocalStorage>()};
+    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP

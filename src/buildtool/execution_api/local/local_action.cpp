@@ -20,9 +20,11 @@
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
 
 namespace {
@@ -48,6 +50,24 @@ class BuildCleanupAnchor {
     std::filesystem::path const build_path{};
 };
 
+[[nodiscard]] auto CreateDigestFromLocalOwnedTree(
+    gsl::not_null<Storage const*> const& storage,
+    std::filesystem::path const& dir_path) -> std::optional<bazel_re::Digest> {
+    auto const& cas = storage->CAS();
+    auto store_blob = [&cas](auto path, auto is_exec) {
+        return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
+    };
+    auto store_tree = [&cas](auto bytes,
+                             auto /*dir*/) -> std::optional<bazel_re::Digest> {
+        return cas.StoreTree(bytes);
+    };
+    return Compatibility::IsCompatible()
+               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+                     dir_path, store_blob, store_tree)
+               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+                     dir_path, store_blob, store_tree);
+}
+
 }  // namespace
 
 auto LocalAction::Execute(Logger const* logger) noexcept
@@ -65,7 +85,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (do_cache) {
-        if (auto result = storage_->CachedActionResult(action)) {
+        if (auto result = storage_->ActionCache().CachedResult(action)) {
             if (result->exit_code() == 0) {
                 return IExecutionResponse::Ptr{
                     new LocalResponse{action.hash(),
@@ -95,7 +115,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     -> std::optional<Output> {
     auto exec_path =
-        CreateUniquePath(LocalExecutionConfig::CacheRootDir(0) / "exec_root" /
+        CreateUniquePath(StorageConfig::BuildRoot() / "exec_root" /
                          NativeSupport::Unprefix(action_id.hash()));
 
     if (not exec_path) {
@@ -135,7 +155,8 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 
         if (CollectAndStoreOutputs(&result.action, build_root)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
-                if (not storage_->StoreActionResult(action_id, result.action)) {
+                if (not storage_->ActionCache().StoreResult(action_id,
+                                                            result.action)) {
                     logger_.Emit(LogLevel::Warning,
                                  "failed to store action results");
                 }
@@ -152,7 +173,7 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 auto LocalAction::StageFile(std::filesystem::path const& target_path,
                             Artifact::ObjectInfo const& info) const -> bool {
     auto blob_path =
-        storage_->BlobPath(info.digest, IsExecutableObject(info.type));
+        storage_->CAS().BlobPath(info.digest, IsExecutableObject(info.type));
 
     if (not blob_path) {
         logger_.Emit(LogLevel::Error,
@@ -171,7 +192,8 @@ auto LocalAction::StageInputFiles(
         return false;
     }
 
-    auto infos = storage_->RecursivelyReadTreeLeafs(root_digest_, exec_path);
+    auto infos =
+        storage_->CAS().RecursivelyReadTreeLeafs(root_digest_, exec_path);
     if (not infos) {
         return false;
     }
@@ -236,7 +258,7 @@ auto LocalAction::CollectOutputFile(std::filesystem::path const& exec_path,
     }
     bool is_executable = IsExecutableObject(*type);
     auto digest =
-        storage_->StoreBlob</*kOwner=*/true>(file_path, is_executable);
+        storage_->CAS().StoreBlob</*kOwner=*/true>(file_path, is_executable);
     if (digest) {
         auto out_file = bazel_re::OutputFile{};
         out_file.set_path(local_path);
@@ -257,30 +279,8 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
         Logger::Log(LogLevel::Error, "expected directory at {}", local_path);
         return std::nullopt;
     }
-    std::optional<bazel_re::Digest> digest{std::nullopt};
-    if (Compatibility::IsCompatible()) {
-        digest = BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
-            dir_path,
-            [this](auto path, auto is_exec) {
-                return storage_->StoreBlob</*kOwner=*/true>(path, is_exec);
-            },
-            [this](auto bytes,
-                   auto /*dir*/) -> std::optional<bazel_re::Digest> {
-                return storage_->StoreBlob(bytes);
-            });
-    }
-    else {
-        digest = BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
-            dir_path,
-            [this](auto path, auto is_exec) {
-                return storage_->StoreBlob</*kOwner=*/true>(path, is_exec);
-            },
-            [this](auto bytes,
-                   auto /*entries*/) -> std::optional<bazel_re::Digest> {
-                return storage_->StoreTree(bytes);
-            });
-    }
-    if (digest) {
+
+    if (auto digest = CreateDigestFromLocalOwnedTree(storage_, dir_path)) {
         auto out_dir = bazel_re::OutputDirectory{};
         out_dir.set_path(local_path);
         out_dir.set_allocated_tree_digest(
@@ -322,7 +322,8 @@ auto LocalAction::CollectAndStoreOutputs(
 
 auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)
     const noexcept -> gsl::owner<bazel_re::Digest*> {
-    if (auto digest = storage_->StoreBlob</*kOwner=*/true>(file_path)) {
+    if (auto digest = storage_->CAS().StoreBlob</*kOwner=*/true>(
+            file_path, /*is_executable=*/false)) {
         return new bazel_re::Digest{std::move(*digest)};
     }
     return nullptr;

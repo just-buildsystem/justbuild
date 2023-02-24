@@ -16,8 +16,8 @@
 #define CAS_SERVER_HPP
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/local/local_storage.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class CASServiceImpl final
     : public bazel_re::ContentAddressableStorage::Service {
@@ -119,7 +119,7 @@ class CASServiceImpl final
                                               std::string const& computed)
         const noexcept -> std::optional<std::string>;
 
-    LocalStorage storage_{};
+    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
     Logger logger_{"execution-service"};
 };
 #endif

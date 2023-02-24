@@ -21,6 +21,9 @@
 
 #ifdef BOOTSTRAP_BUILD_TOOL
 
+#include <cstdint>
+#include <string>
+
 namespace build::bazel::remote::execution::v2 {
 struct Digest {
     std::string hash_;

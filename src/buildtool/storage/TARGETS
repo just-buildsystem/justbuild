@@ -1,0 +1,47 @@
+{ "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "hdrs": ["config.hpp"]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  }
+, "storage":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["storage"]
+  , "hdrs":
+    [ "storage.hpp"
+    , "local_cas.hpp"
+    , "local_cas.tpp"
+    , "local_ac.hpp"
+    , "local_ac.tpp"
+    , "target_cache.hpp"
+    , "target_cache.tpp"
+    , "target_cache_key.hpp"
+    , "target_cache_entry.hpp"
+    , "garbage_collector.hpp"
+    ]
+  , "srcs":
+    ["target_cache_key.cpp", "target_cache_entry.cpp", "garbage_collector.cpp"]
+  , "deps":
+    [ "config"
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system", "object_cas"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/utils/cpp", "file_locking"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "json", "", "json"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  }
+}

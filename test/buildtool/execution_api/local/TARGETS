@@ -1,31 +1,4 @@
-{ "local_cas":
-  { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["local_cas"]
-  , "srcs": ["local_cas.test.cpp"]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["test/utils", "local_hermeticity"]
-    ]
-  , "stage": ["test", "buildtool", "execution_api", "local"]
-  }
-, "local_ac":
-  { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["local_ac"]
-  , "srcs": ["local_ac.test.cpp"]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["test/utils", "local_hermeticity"]
-    ]
-  , "stage": ["test", "buildtool", "execution_api", "local"]
-  }
-, "local_execution":
+{ "local_execution":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_execution"]
   , "srcs": ["local_execution.test.cpp"]
@@ -51,23 +24,9 @@
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }
-, "local_storage":
-  { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["local_storage"]
-  , "srcs": ["local_storage.test.cpp"]
-  , "data": [["test/buildtool/execution_api", "test_data"]]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["test/utils", "local_hermeticity"]
-    ]
-  , "stage": ["test", "buildtool", "execution_api", "local"]
-  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps":
-    ["local_ac", "local_api", "local_cas", "local_execution", "local_storage"]
+  , "deps": ["local_api", "local_execution"]
   }
 }

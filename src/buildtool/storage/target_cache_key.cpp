@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 
 #include <exception>
 
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 auto TargetCacheKey::Create(std::string const& repo_key,
                             BuildMaps::Base::NamedTarget const& target_name,
@@ -35,8 +35,8 @@ auto TargetCacheKey::Create(std::string const& repo_key,
              {"target_name",
               nlohmann::json{target_name.module, target_name.name}.dump()},
              {"effective_config", effective_config.ToString()}}};
-        static auto const& cas = LocalCAS<ObjectType::File>::Instance();
-        if (auto target_key = cas.StoreBlobFromBytes(target_desc.dump(2))) {
+        if (auto target_key = Storage::Instance().CAS().StoreBlob(
+                target_desc.dump(2), /*is_executable=*/false)) {
             return TargetCacheKey{
                 {ArtifactDigest{*target_key}, ObjectType::File}};
         }

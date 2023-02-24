@@ -24,27 +24,29 @@
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache_entry.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/main/analyse.hpp"
 #include "src/buildtool/main/constants.hpp"
 #include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
 #include "src/buildtool/main/install_cas.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/target_cache_entry.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #endif
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -300,10 +302,11 @@ void SetupLogging(LogArguments const& clargs) {
 void SetupExecutionConfig(EndpointArguments const& eargs,
                           BuildArguments const& bargs,
                           RebuildArguments const& rargs) {
+    using StorageConfig = StorageConfig;
     using LocalConfig = LocalExecutionConfig;
     using RemoteConfig = RemoteExecutionConfig;
     if (not(not eargs.local_root or
-            (LocalConfig::SetBuildRoot(*eargs.local_root))) or
+            (StorageConfig::SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
         Logger::Log(LogLevel::Error, "failed to configure local execution.");
@@ -1217,7 +1220,7 @@ void WriteTargetCacheEntries(
             [&key = key, &target = target, &extra_infos, &downloader]() {
                 if (auto entry =
                         TargetCacheEntry::FromTarget(target, extra_infos)) {
-                    if (not TargetCache::Instance().Store(
+                    if (not Storage::Instance().TargetCache().Store(
                             key, *entry, downloader)) {
                         Logger::Log(LogLevel::Warning,
                                     "Failed writing target cache entry for {}",

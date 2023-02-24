@@ -1,0 +1,37 @@
+{ "test_data":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    [ "data/executable_file"
+    , "data/non_executable_file"
+    , "data/subdir1/file1"
+    , "data/subdir1/subdir2/file2"
+    ]
+  , "stage": ["test", "buildtool", "storage"]
+  }
+, "local_cas":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["local_cas"]
+  , "srcs": ["local_cas.test.cpp"]
+  , "data": [["test/buildtool/storage", "test_data"]]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["test/utils", "local_hermeticity"]
+    ]
+  , "stage": ["test", "buildtool", "storage"]
+  }
+, "local_ac":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["local_ac"]
+  , "srcs": ["local_ac.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["test/utils", "local_hermeticity"]
+    ]
+  , "stage": ["test", "buildtool", "storage"]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["local_cas", "local_ac"]}
+}

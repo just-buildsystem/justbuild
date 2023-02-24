@@ -17,9 +17,8 @@
 #include <algorithm>
 
 #include "src/buildtool/execution_api/common/execution_common.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
@@ -33,12 +32,13 @@ namespace {
     std::shared_ptr<std::unordered_map<std::string, std::string>> const&
         content_list,
     std::filesystem::path const& tmp_dir) noexcept -> bool {
-    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+    auto const& cas = Storage::Instance().CAS();
     return std::all_of(content_list->begin(),
                        content_list->end(),
-                       [&casf, tmp_dir](auto const& kv) {
-                           auto content_path = casf.BlobPath(
-                               ArtifactDigest(kv.second, 0, false));
+                       [&cas, tmp_dir](auto const& kv) {
+                           auto content_path =
+                               cas.BlobPath(ArtifactDigest(kv.second, 0, false),
+                                            /*is_executable=*/false);
                            if (content_path) {
                                return FileSystemManager::CreateFileHardlink(
                                    *content_path,  // from: cas_path/content_id

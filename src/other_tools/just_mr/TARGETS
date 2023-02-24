@@ -33,7 +33,7 @@
   , "srcs": ["utils.cpp"]
   , "deps":
     [ ["src/utils/cpp", "tmp_dir"]
-    , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/main", "constants"]
     , ["src/buildtool/build_engine/expression", "expression"]
     ]

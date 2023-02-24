@@ -10,6 +10,19 @@
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
+, "object_cas":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["object_cas"]
+  , "srcs": ["object_cas.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test", "catch-main"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["test/utils", "local_hermeticity"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
 , "git_tree":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["git_tree"]
@@ -93,6 +106,7 @@
   , "deps":
     [ "file_root"
     , "file_system_manager"
+    , "object_cas"
     , "git_tree"
     , "directory_entries"
     , "git_repo"

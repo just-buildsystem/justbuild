@@ -16,7 +16,7 @@
 
 #include "fmt/format.h"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 
 static constexpr std::size_t kJustHashLength = 42;
 static constexpr std::size_t kSHA256Length = 64;
@@ -51,12 +51,12 @@ auto CASServiceImpl::FindMissingBlobs(
         }
         logger_.Emit(LogLevel::Trace, "FindMissingBlobs: {}", hash);
         if (NativeSupport::IsTree(hash)) {
-            if (!storage_.TreePath(x)) {
+            if (!storage_->CAS().TreePath(x)) {
                 auto* d = response->add_missing_blob_digests();
                 d->CopyFrom(x);
             }
         }
-        else if (!storage_.BlobPath(x, false)) {
+        else if (!storage_->CAS().BlobPath(x, false)) {
             auto* d = response->add_missing_blob_digests();
             d->CopyFrom(x);
         }
@@ -99,7 +99,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
         auto* r = response->add_responses();
         r->mutable_digest()->CopyFrom(x.digest());
         if (NativeSupport::IsTree(hash)) {
-            auto const& dgst = storage_.StoreTree(x.data());
+            auto const& dgst = storage_->CAS().StoreTree(x.data());
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload tree {}", hash);
@@ -111,7 +111,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
             }
         }
         else {
-            auto const& dgst = storage_.StoreBlob(x.data(), false);
+            auto const& dgst = storage_->CAS().StoreBlob(x.data(), false);
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload blob {}", hash);
@@ -141,10 +141,10 @@ auto CASServiceImpl::BatchReadBlobs(
         r->mutable_digest()->CopyFrom(digest);
         std::optional<std::filesystem::path> path;
         if (NativeSupport::IsTree(digest.hash())) {
-            path = storage_.TreePath(digest);
+            path = storage_->CAS().TreePath(digest);
         }
         else {
-            path = storage_.BlobPath(digest, false);
+            path = storage_->CAS().BlobPath(digest, false);
         }
         if (!path) {
             google::rpc::Status status;

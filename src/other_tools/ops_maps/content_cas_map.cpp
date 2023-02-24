@@ -15,8 +15,8 @@
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 #include "src/buildtool/crypto/hasher.hpp"
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"
@@ -61,9 +61,9 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             JustMRStatistics::Instance().IncrementQueuedCounter();
         }
         // check if content already in CAS
-        auto const& casf = LocalCAS<ObjectType::File>::Instance();
+        auto const& cas = Storage::Instance().CAS();
         auto digest = ArtifactDigest(key.content, 0, false);
-        if (casf.BlobPath(digest)) {
+        if (cas.BlobPath(digest, /*is_executable=*/false)) {
             (*setter)(true);
             return;
         }
@@ -74,7 +74,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                  : std::filesystem::path(key.fetch_url).filename().string());
         JustMR::Utils::AddDistfileToCAS(repo_distfile, just_mr_paths);
         // check if content is in CAS now
-        if (casf.BlobPath(digest)) {
+        if (cas.BlobPath(digest, /*is_executable=*/false)) {
             (*setter)(true);
             return;
         }

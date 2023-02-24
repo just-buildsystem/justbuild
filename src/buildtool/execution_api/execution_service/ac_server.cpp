@@ -15,7 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 
 #include "fmt/format.h"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 
 auto ActionCacheServiceImpl::GetActionResult(
     ::grpc::ServerContext* /*context*/,
@@ -30,7 +30,7 @@ auto ActionCacheServiceImpl::GetActionResult(
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    auto x = ac_.CachedResult(request->action_digest());
+    auto x = storage_->ActionCache().CachedResult(request->action_digest());
     if (!x) {
         return grpc::Status{
             grpc::StatusCode::NOT_FOUND,

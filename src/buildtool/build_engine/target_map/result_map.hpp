@@ -30,14 +30,14 @@
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache.hpp"
-#include "src/buildtool/build_engine/target_map/target_cache_key.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Target {

@@ -14,8 +14,8 @@
 
 #include "src/other_tools/root_maps/content_git_map.hpp"
 
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/archive_ops.hpp"
@@ -159,10 +159,11 @@ auto CreateContentGitMap(
                                   /*fatal=*/true);
                         return;
                     }
-                    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+                    auto const& cas = Storage::Instance().CAS();
                     // content is in CAS if here, so no need to check nullopt
                     auto content_cas_path =
-                        casf.BlobPath(ArtifactDigest(content_id, 0, false))
+                        cas.BlobPath(ArtifactDigest(content_id, 0, false),
+                                     /*is_executable=*/false)
                             .value();
                     auto res = ExtractArchive(
                         content_cas_path, repo_type, tmp_dir->GetPath());

@@ -15,6 +15,17 @@
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
+, "object_cas":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["object_cas"]
+  , "hdrs": ["object_cas.hpp"]
+  , "deps":
+    [ "file_storage"
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 , "file_system_manager":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["file_system_manager"]

@@ -14,8 +14,8 @@
 
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 
-#include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
@@ -54,9 +54,10 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                  logger]([[maybe_unused]] auto const& values) {
                     // content is now in CAS
                     // copy content from CAS into fetch_dir
-                    auto const& casf = LocalCAS<ObjectType::File>::Instance();
+                    auto const& cas = Storage::Instance().CAS();
                     auto content_path =
-                        casf.BlobPath(ArtifactDigest(content, 0, false));
+                        cas.BlobPath(ArtifactDigest(content, 0, false),
+                                     /*is_executable=*/false);
                     if (content_path) {
                         auto target_name = fetch_dir / distfile;
                         if (FileSystemManager::Exists(target_name)) {
@@ -100,9 +101,10 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
         }
         else {
             // copy content from CAS into fetch_dir
-            auto const& casf = LocalCAS<ObjectType::File>::Instance();
+            auto const& cas = Storage::Instance().CAS();
             auto content_path =
-                casf.BlobPath(ArtifactDigest(key.archive.content, 0, false));
+                cas.BlobPath(ArtifactDigest(key.archive.content, 0, false),
+                             /*is_executable=*/false);
             if (content_path) {
                 auto target_name = fetch_dir / distfile;
                 if (FileSystemManager::Exists(target_name)) {

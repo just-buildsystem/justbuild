@@ -24,8 +24,8 @@
 #include "fmt/format.h"
 #include "gsl-lite/gsl-lite.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 
 static void UpdateTimeStamp(::google::longrunning::Operation* op) {
     ::google::protobuf::Timestamp t;
@@ -40,7 +40,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     const noexcept -> std::pair<std::optional<::bazel_re::Action>,
                                 std::optional<std::string>> {
     // get action description
-    auto path = storage_.BlobPath(request->action_digest(), false);
+    auto path = storage_->CAS().BlobPath(request->action_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                request->action_digest().hash());
@@ -59,8 +59,8 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     }
 
     path = Compatibility::IsCompatible()
-               ? storage_.BlobPath(action.input_root_digest(), false)
-               : storage_.TreePath(action.input_root_digest());
+               ? storage_->CAS().BlobPath(action.input_root_digest(), false)
+               : storage_->CAS().TreePath(action.input_root_digest());
 
     if (!path) {
         auto str = fmt::format("could not retrieve input root {} from cas",
@@ -75,7 +75,7 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     const noexcept -> std::pair<std::optional<::bazel_re::Command>,
                                 std::optional<std::string>> {
 
-    auto path = storage_.BlobPath(action.command_digest(), false);
+    auto path = storage_->CAS().BlobPath(action.command_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                action.command_digest().hash());
@@ -141,10 +141,10 @@ auto ExecutionServiceImpl::GetIExecutionAction(
 }
 
 static auto GetDirectoryFromDigest(::bazel_re::Digest const& digest,
-                                   LocalStorage const& storage) noexcept
+                                   Storage const& storage) noexcept
     -> std::optional<::bazel_re::Directory> {
     // determine directory path from digest
-    auto const& path = storage.BlobPath(digest, /*is_executable=*/false);
+    auto const& path = storage.CAS().BlobPath(digest, /*is_executable=*/false);
     if (not path) {
         return std::nullopt;
     }
@@ -166,7 +166,7 @@ static auto GetDirectoryFromDigest(::bazel_re::Digest const& digest,
 // NOLINTNEXTLINE(misc-no-recursion)
 static auto CollectChildDirectoriesRecursively(
     ::bazel_re::Directory const& root,
-    LocalStorage const& storage,
+    Storage const& storage,
     gsl::not_null<std::unordered_map<::bazel_re::Digest,
                                      ::bazel_re::Directory>*> map) noexcept
     -> bool {
@@ -196,7 +196,7 @@ static auto CollectChildDirectoriesRecursively(
 }
 
 static auto GetChildrenFromDirectory(::bazel_re::Directory const& root,
-                                     LocalStorage const& storage) noexcept
+                                     Storage const& storage) noexcept
     -> std::optional<std::vector<::bazel_re::Directory>> {
     // determine child directories
     std::unordered_map<::bazel_re::Digest, ::bazel_re::Directory> map{};
@@ -232,7 +232,7 @@ static auto GetChildrenFromDirectory(::bazel_re::Directory const& root,
 
 static auto CreateTreeDigestFromDirectoryDigest(
     ::bazel_re::Digest const& dir_digest,
-    LocalStorage const& storage) noexcept -> std::optional<::bazel_re::Digest> {
+    Storage const& storage) noexcept -> std::optional<::bazel_re::Digest> {
     // determine root directory message
     auto root = GetDirectoryFromDigest(dir_digest, storage);
     if (not root) {
@@ -256,7 +256,8 @@ static auto CreateTreeDigestFromDirectoryDigest(
 
     // serialize and store tree message
     auto content = tree.SerializeAsString();
-    auto tree_digest = storage.StoreBlob(content, /*is_executable=*/false);
+    auto tree_digest =
+        storage.CAS().StoreBlob(content, /*is_executable=*/false);
     if (not tree_digest) {
         return std::nullopt;
     }
@@ -266,7 +267,7 @@ static auto CreateTreeDigestFromDirectoryDigest(
 
 static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
                            IExecutionResponse::Ptr const& execution,
-                           LocalStorage const& storage) noexcept -> bool {
+                           Storage const& storage) noexcept -> bool {
     auto const& size = static_cast<int>(execution->Artifacts().size());
     response->mutable_result()->mutable_output_files()->Reserve(size);
     response->mutable_result()->mutable_output_directories()->Reserve(size);
@@ -311,7 +312,7 @@ auto ExecutionServiceImpl::AddResult(
     IExecutionResponse::Ptr const& i_execution_response,
     std::string const& action_hash) const noexcept
     -> std::optional<std::string> {
-    if (not AddOutputPaths(response, i_execution_response, storage_)) {
+    if (not AddOutputPaths(response, i_execution_response, *storage_)) {
         auto str = fmt::format("Error in creating output paths of action {}",
                                action_hash);
         logger_.Emit(LogLevel::Error, str);
@@ -320,8 +321,8 @@ auto ExecutionServiceImpl::AddResult(
     auto* result = response->mutable_result();
     result->set_exit_code(i_execution_response->ExitCode());
     if (i_execution_response->HasStdErr()) {
-        auto dgst = storage_.StoreBlob(i_execution_response->StdErr(),
-                                       /*is_executable=*/false);
+        auto dgst = storage_->CAS().StoreBlob(i_execution_response->StdErr(),
+                                              /*is_executable=*/false);
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stderr of action {}", action_hash);
@@ -331,8 +332,8 @@ auto ExecutionServiceImpl::AddResult(
         result->mutable_stderr_digest()->CopyFrom(*dgst);
     }
     if (i_execution_response->HasStdOut()) {
-        auto dgst = storage_.StoreBlob(i_execution_response->StdOut(),
-                                       /*is_executable=*/false);
+        auto dgst = storage_->CAS().StoreBlob(i_execution_response->StdOut(),
+                                              /*is_executable=*/false);
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stdout of action {}", action_hash);
@@ -375,8 +376,8 @@ auto ExecutionServiceImpl::StoreActionResult(
     ::bazel_re::Action const& action) const noexcept
     -> std::optional<std::string> {
     if (i_execution_response->ExitCode() == 0 && !action.do_not_cache() &&
-        !storage_.StoreActionResult(request->action_digest(),
-                                    execute_response.result())) {
+        !storage_->ActionCache().StoreResult(request->action_digest(),
+                                             execute_response.result())) {
         auto str = fmt::format("Could not store action result for action {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, str);

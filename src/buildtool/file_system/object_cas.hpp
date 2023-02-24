@@ -1,4 +1,4 @@
-// Copyright 2022 Huawei Cloud Computing Technology Co., Ltd.
+// Copyright 2023 Huawei Cloud Computing Technology Co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,68 +12,82 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_CAS_HPP
+#define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_CAS_HPP
 
+#include <memory>
 #include <sstream>
 #include <thread>
 
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/execution_api/local/garbage_collector.hpp"
-#endif
 
-template <ObjectType kType = ObjectType::File>
-class LocalCAS {
+/// \brief CAS for storing objects as plain blobs.
+/// Automatically computes the digest for storing a blob from file path/bytes.
+/// The actual object type is given as a template parameter. Depending on the
+/// object type, files written to the file system may have different properties
+/// (e.g., the x-bit set) or the digest may be computed differently (e.g., tree
+/// digests in non-compatible mode). Supports custom "exists callback", which
+/// is used to check blob existence before every read and write operation.
+/// \tparam kType   The object type to store as blob.
+template <ObjectType kType>
+class ObjectCAS {
   public:
-    LocalCAS() noexcept = default;
+    /// \brief Callback type for checking blob existence.
+    /// \returns true if a blob for the given digest exists at the given path.
+    using ExistsFunc = std::function<bool(bazel_re::Digest const&,
+                                          std::filesystem::path const&)>;
 
-    LocalCAS(LocalCAS const&) = delete;
-    LocalCAS(LocalCAS&&) = delete;
-    auto operator=(LocalCAS const&) -> LocalCAS& = delete;
-    auto operator=(LocalCAS&&) -> LocalCAS& = delete;
-    ~LocalCAS() noexcept = default;
+    /// Default callback for checking blob existence.
+    static inline ExistsFunc const kDefaultExists = [](auto /*digest*/,
+                                                       auto path) {
+        return FileSystemManager::IsFile(path);
+    };
 
-    [[nodiscard]] static auto Instance() noexcept -> LocalCAS<kType>& {
-        static auto instance = LocalCAS<kType>{};
-        return instance;
-    }
+    /// \brief Create new object CAS in store_path directory.
+    /// The optional "exists callback" is used to check blob existence before
+    /// every read and write operation. It promises that a blob for the given
+    /// digest exists at the given path if true was returned.
+    /// \param store_path   The path to use for storing blobs.
+    /// \param exists       (optional) Function for checking blob existence.
+    explicit ObjectCAS(std::filesystem::path const& store_path,
+                       ExistsFunc exists = kDefaultExists)
+        : file_store_{store_path}, exists_{std::move(exists)} {}
 
-    auto Reset() noexcept -> void {
-        file_store_ = FileStorage<kStorageType,
-                                  StoreMode::FirstWins,
-                                  /*kSetEpochTime=*/true>{
-            LocalExecutionConfig::CASDir<kType>(0)};
-    }
+    ObjectCAS(ObjectCAS const&) = delete;
+    ObjectCAS(ObjectCAS&&) = delete;
+    auto operator=(ObjectCAS const&) -> ObjectCAS& = delete;
+    auto operator=(ObjectCAS&&) -> ObjectCAS& = delete;
+    ~ObjectCAS() noexcept = default;
 
+    /// \brief Store blob from bytes.
+    /// \param bytes    The bytes do create the blob from.
+    /// \returns Digest of the stored blob or nullopt in case of error.
     [[nodiscard]] auto StoreBlobFromBytes(std::string const& bytes)
         const noexcept -> std::optional<bazel_re::Digest> {
         return StoreBlob(bytes, /*is_owner=*/true);
     }
 
+    /// \brief Store blob from file path.
+    /// \param file_path    The path of the file to store as blob.
+    /// \param is_owner     Indicates ownership for optimization (hardlink).
+    /// \returns Digest of the stored blob or nullopt in case of error.
     [[nodiscard]] auto StoreBlobFromFile(std::filesystem::path const& file_path,
                                          bool is_owner = false) const noexcept
         -> std::optional<bazel_re::Digest> {
         return StoreBlob(file_path, is_owner);
     }
 
+    /// \brief Get path to blob.
+    /// \param digest   Digest of the blob to lookup.
+    /// \returns Path to blob if found or nullopt otherwise.
     [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest) const noexcept
         -> std::optional<std::filesystem::path> {
         auto id = NativeSupport::Unprefix(digest.hash());
         auto blob_path = file_store_.GetPath(id);
-#ifndef BOOTSTRAP_BUILD_TOOL
-        // Try to find blob in CAS generations and uplink if required.
-        auto found = FindAndUplinkBlob(id);
-#else
-        auto found = FileSystemManager::IsFile(blob_path);
-#endif
-        if (not found) {
+        if (not IsAvailable(digest, blob_path)) {
             logger_.Emit(LogLevel::Debug, "Blob not found {}", id);
             return std::nullopt;
         }
@@ -85,10 +99,11 @@ class LocalCAS {
     static constexpr auto kStorageType =
         kType == ObjectType::Tree ? ObjectType::File : kType;
 
-    Logger logger_{std::string{"LocalCAS"} + ToChar(kType)};
+    Logger logger_{std::string{"ObjectCAS"} + ToChar(kType)};
 
     FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
-        file_store_{LocalExecutionConfig::CASDir<kType>(0)};
+        file_store_;
+    ExistsFunc exists_;
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {
@@ -103,6 +118,16 @@ class LocalCAS {
             return ArtifactDigest::Create<kType>(*bytes);
         }
         return std::nullopt;
+    }
+
+    [[nodiscard]] auto IsAvailable(
+        bazel_re::Digest const& digest,
+        std::filesystem::path const& path) const noexcept -> bool {
+        try {
+            return exists_ and exists_(digest, path);
+        } catch (...) {
+            return false;
+        }
     }
 
     /// \brief Store blob from bytes to storage.
@@ -123,14 +148,11 @@ class LocalCAS {
     template <class T>
     [[nodiscard]] auto StoreBlob(T const& data, bool is_owner) const noexcept
         -> std::optional<bazel_re::Digest> {
-        auto digest = CreateDigest(data);
-        if (digest) {
+        if (auto digest = CreateDigest(data)) {
             auto id = NativeSupport::Unprefix(digest->hash());
-#ifndef BOOTSTRAP_BUILD_TOOL
-            if (FindAndUplinkBlob(id)) {
+            if (IsAvailable(*digest, file_store_.GetPath(id))) {
                 return digest;
             }
-#endif
             if (StoreBlobData(id, data, is_owner)) {
                 return digest;
             }
@@ -139,21 +161,6 @@ class LocalCAS {
         logger_.Emit(LogLevel::Debug, "Failed to create digest.");
         return std::nullopt;
     }
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-    [[nodiscard]] auto FindAndUplinkBlob(std::string const& id) const noexcept
-        -> bool {
-        if (Compatibility::IsCompatible()) {
-            return GarbageCollector::FindAndUplinkBlob(
-                id, kType == ObjectType::Executable);
-        }
-        if (kType == ObjectType::Tree) {
-            return GarbageCollector::FindAndUplinkTree(id);
-        }
-        return GarbageCollector::FindAndUplinkBlob(
-            id, kType == ObjectType::Executable);
-    }
-#endif
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_CAS_HPP
