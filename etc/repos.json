@@ -418,11 +418,11 @@
   , "com_github_curl_curl":
     { "repository":
       { "type": "archive"
-      , "content": "ad8994cddb93ba26e041d23130b08d2d9438ea0b"
-      , "fetch": "https://github.com/curl/curl/releases/download/curl-7_85_0/curl-7.85.0.tar.gz"
-      , "sha256": "78a06f918bd5fde3c4573ef4f9806f56372b32ec1829c9ec474799eeee641c27"
-      , "sha512": "bbad693bcde9c55e5942499950d76011f53ad43d3270eee2c8db486bcf46f5fc92b32dd8752caf4c5976fe493d083e2d34fa299cb96fb8e76d8f5fcc2cc56a36"
-      , "subdir": "curl-7.85.0"
+      , "content": "23ecab2d4e4d9f35aabb15d361f4fcb2c55febb8"
+      , "fetch": "https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.gz"
+      , "sha256": "cdb38b72e36bc5d33d5b8810f8018ece1baa29a8f215b4495e495ded82bbf3c7"
+      , "sha512": "67701d458548712bbfaa55f2ebefbf87cdbba01b7b1200f608b1c3af67e8dd8e243fa89f256446d217d658a5a1242331d8b0168ab600351e74ee0e2511e79dae"
+      , "subdir": "curl-7.88.1"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.curl"

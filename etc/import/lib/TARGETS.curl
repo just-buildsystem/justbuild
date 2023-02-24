@@ -40,6 +40,11 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
+    , "HAVE_RAND_EGD"
+    , "HAVE_BORINGSSL"
+    , "HAVE_SSL_CTX_SET_QUIC_METHOD"
+    , "HAVE_QUICHE_CONN_SET_QLOG_FD"
+    , "HAVE_ZSTD_CREATEDSTREAM"
     ]
   , "target": "config_header"
   , "config":
@@ -119,11 +124,10 @@
               , ["STDC_HEADERS", 1]
               , ["HAVE_VARIADIC_MACROS_C99", 1]
               , ["HAVE_VARIADIC_MACROS_GCC", 1]
+              , ["HAVE_RAND_EGD", {"type": "var", "name": "HAVE_RAND_EGD"}]
+              , ["HAVE_BORINGSSL", {"type": "var", "name": "HAVE_BORINGSSL"}]
+              , ["HAVE_LIBZ", {"type": "var", "name": "USE_ZLIB"}]
               ]
-            , { "type": "if"
-              , "cond": {"type": "var", "name": "USE_ZLIB"}
-              , "then": [["HAVE_LIBZ", 1], ["HAVE_ZLIB_H", 1]]
-              }
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_THREADED_RESOLVER"}
               , "then":
@@ -202,6 +206,14 @@
               , ["HAVE_LIBIDN2", {"type": "var", "name": "USE_LIBIDN2"}]
               , ["HAVE_BROTLI", {"type": "var", "name": "USE_BROTLI"}]
               , ["HAVE_ZSTD", {"type": "var", "name": "USE_ZSTD"}]
+              , [ "HAVE_ZSTD_CREATEDSTREAM"
+                , { "type": "and"
+                  , "$1":
+                    [ {"type": "var", "name": "USE_ZSTD"}
+                    , {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM"}
+                    ]
+                  }
+                ]
               , [ "CURL_CA_FALLBACK"
                 , {"type": "var", "name": "CURL_CA_FALLBACK"}
                 ]
@@ -231,7 +243,15 @@
                   { "type": "fail"
                   , "msg": "libcurl: only one HTTP/3 backend can be selected, but both quiche and ngtcp2 given."
                   }
-                , "else": [["USE_QUICHE", 1]]
+                , "else":
+                  [ [ "HAVE_SSL_CTX_SET_QUIC_METHOD"
+                    , {"type": "var", "name": "HAVE_SSL_CTX_SET_QUIC_METHOD"}
+                    ]
+                  , ["USE_QUICHE", 1]
+                  , [ "HAVE_QUICHE_CONN_SET_QLOG_FD"
+                    , {"type": "var", "name": "HAVE_QUICHE_CONN_SET_QLOG_FD"}
+                    ]
+                  ]
                 }
               }
             , { "type": "if"
@@ -252,26 +272,16 @@
                 , "else": [["USE_MSH3", 1]]
                 }
               }
-            , { "type": "if"
-              , "cond": {"type": "var", "name": "CURL_USE_LIBPSL"}
-              , "then":
-                [["USE_LIBPSL", 1], ["HAVE_LIBPSL", 1], ["HAVE_LIBPSL_H", 1]]
-              }
-            , { "type": "if"
-              , "cond": {"type": "var", "name": "CURL_USE_LIBSSH2"}
-              , "then":
-                [ ["USE_LIBSSH2", 1]
-                , ["HAVE_LIBSSH2", 1]
-                , ["HAVE_LIBSSH2_H", 1]
-                ]
-              }
+            , [ ["USE_LIBPSL", {"type": "var", "name": "CURL_USE_LIBPSL"}]
+              , ["USE_LIBSSH2", {"type": "var", "name": "CURL_USE_LIBSSH2"}]
+              ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "CURL_USE_LIBSSH"}
               , "then":
                 { "type": "if"
                 , "cond": {"type": "var", "name": "CURL_USE_LIBSSH2"}
                 , "then": []
-                , "else": [["USE_LIBSSH", 1], ["HAVE_LIBSSH_LIBSSH_H", 1]]
+                , "else": [["USE_LIBSSH", 1]]
                 }
               }
             , { "type": "if"
@@ -282,6 +292,22 @@
                 , { "type": "=="
                   , "$1": {"type": "var", "name": "OS"}
                   , "$2": "windows"
+                  }
+                ]
+              , [ "HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID"
+                , { "type": "and"
+                  , "$1":
+                    [ {"type": "var", "name": "ENABLE_IPV6"}
+                    , { "type": "if"
+                      , "cond":
+                        { "type": "=="
+                        , "$1": {"type": "var", "name": "OS"}
+                        , "$2": "windows"
+                        }
+                      , "then": false
+                      , "else": true
+                      }
+                    ]
                   }
                 ]
               ]
@@ -341,8 +367,6 @@
               , ["HAVE_SYS_XATTR_H", "sys/xattr.h"]
               , ["HAVE_ARPA_INET_H", "arpa/inet.h"]
               , ["HAVE_ARPA_TFTP_H", "arpa/tftp.h"]
-              , ["HAVE_ASSERT_H", "assert.h"]
-              , ["HAVE_ERRNO_H", "errno.h"]
               , ["HAVE_FCNTL_H", "fcntl.h"]
               , ["HAVE_IDN2_H", "idn2.h"]
               , ["HAVE_IFADDRS_H", "ifaddrs.h"]
@@ -371,7 +395,6 @@
               , ["HAVE_TIME_H", "time.h"]
               , ["HAVE_UNISTD_H", "unistd.h"]
               , ["HAVE_UTIME_H", "utime.h"]
-              , ["HAVE_PROCESS_H", "process.h"]
               , ["HAVE_STDDEF_H", "stddef.h"]
               , ["HAVE_STDINT_H", "stdint.h"]
               , ["HAVE_SYS_UTSNAME_H", "sys/utsname.h"]
@@ -392,36 +415,30 @@
         , { "type": "++"
           , "$1":
             [ { "type": "if"
-              , "cond":
-                { "type": "and"
-                , "$1":
-                  [ {"type": "var", "name": "ENABLE_IPV6"}
-                  , { "type": "if"
-                    , "cond":
-                      { "type": "=="
-                      , "$1": {"type": "var", "name": "OS"}
-                      , "$2": "windows"
-                      }
-                    , "then": false
-                    , "else": true
-                    }
-                  ]
-                }
+              , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
               , "then":
-                [ [ "HAVE_SOCKADDR_IN6_SIN6_SCOPE_ID"
-                  , [ "((struct sockaddr_in6*)NULL)->sin6_scope_id"
-                    , {"type": "var", "name": "sys_hdrs"}
+                { "type": "if"
+                , "cond": {"type": "var", "name": "HAVE_RAND_EGD"}
+                , "then": []
+                , "else":
+                  [ [ "HAVE_RAND_EGD"
+                    , ["RAND_egd", {"type": "var", "name": "sys_hdrs"}]
                     ]
                   ]
-                ]
+                }
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
               , "then":
-                [ [ "HAVE_BORINGSSL"
-                  , ["OPENSSL_IS_BORINGSSL", ["openssl/base.h"]]
+                { "type": "if"
+                , "cond": {"type": "var", "name": "HAVE_BORINGSSL"}
+                , "then": []
+                , "else":
+                  [ [ "HAVE_BORINGSSL"
+                    , ["OPENSSL_IS_BORINGSSL", ["openssl/base.h"]]
+                    ]
                   ]
-                ]
+                }
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "USE_QUICHE"}
@@ -433,8 +450,49 @@
                   , "msg": "libcurl: only one HTTP/3 backend can be selected, but both quiche and ngtcp2 given."
                   }
                 , "else":
-                  [ [ "HAVE_QUICHE_CONN_SET_QLOG_FD"
-                    , ["quiche_conn_set_qlog_fd", ["quiche.h"]]
+                  { "type": "if"
+                  , "cond":
+                    {"type": "var", "name": "HAVE_SSL_CTX_SET_QUIC_METHOD"}
+                  , "then": []
+                  , "else":
+                    [ [ "HAVE_SSL_CTX_SET_QUIC_METHOD"
+                      , ["SSL_CTX_set_quic_method", ["openssl/ssl.h"]]
+                      ]
+                    ]
+                  }
+                }
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "USE_QUICHE"}
+              , "then":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "USE_NGTCP2"}
+                , "then":
+                  { "type": "fail"
+                  , "msg": "libcurl: only one HTTP/3 backend can be selected, but both quiche and ngtcp2 given."
+                  }
+                , "else":
+                  { "type": "if"
+                  , "cond":
+                    {"type": "var", "name": "HAVE_QUICHE_CONN_SET_QLOG_FD"}
+                  , "then": []
+                  , "else":
+                    [ [ "HAVE_QUICHE_CONN_SET_QLOG_FD"
+                      , ["quiche_conn_set_qlog_fd", ["quiche.h"]]
+                      ]
+                    ]
+                  }
+                }
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "USE_ZSTD"}
+              , "then":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM"}
+                , "then": []
+                , "else":
+                  [ [ "HAVE_ZSTD_CREATEDSTREAM"
+                    , ["ZSTD_createDStream", ["zstd.h"]]
                     ]
                   ]
                 }
@@ -447,9 +505,7 @@
                 }
               , "then":
                 [ [ "USE_WIN32_CRYPTO"
-                  , [ "CryptAcquireContext"
-                    , {"type": "var", "name": "sys_hdrs"}
-                    ]
+                  , ["CryptAcquireContext", ["windows.h", "wincrypt.h"]]
                   ]
                 ]
               }
@@ -540,7 +596,7 @@
                 , ["gethostbyname_r", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_SIGNAL"
-                , ["SIGALRM", {"type": "var", "name": "sys_hdrs"}]
+                , ["signal", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_STRTOLL"
                 , ["strtoll", {"type": "var", "name": "sys_hdrs"}]
@@ -588,8 +644,11 @@
               , [ "HAVE_MACH_ABSOLUTE_TIME"
                 , ["mach_absolute_time", {"type": "var", "name": "sys_hdrs"}]
                 ]
+              , [ "HAVE_INET_NTOP"
+                , ["inet_ntop", {"type": "var", "name": "sys_hdrs"}]
+                ]
               , [ "HAVE_INET_PTON"
-                , ["init_pton", {"type": "var", "name": "sys_hdrs"}]
+                , ["inet_pton", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_FSETXATTR"
                 , ["fsetxattr", {"type": "var", "name": "sys_hdrs"}]
@@ -608,6 +667,14 @@
                 , ["socketpair", {"type": "var", "name": "sys_hdrs"}]
                 ]
               ]
+            , { "type": "if"
+              , "cond":
+                { "type": "=="
+                , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+                , "$2": "msvc"
+                }
+              , "then": [["HAVE_SNPRINTF", ["snprintf", ["stdio.h"]]]]
+              }
             , { "type": "case*"
               , "expr": {"type": "var", "name": "OS"}
               , "case":
@@ -902,257 +969,9 @@
     ]
   }
 , "libcurl_csources":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs":
-    [ "altsvc.c"
-    , "amigaos.c"
-    , "asyn-ares.c"
-    , "asyn-thread.c"
-    , "base64.c"
-    , "bufref.c"
-    , "c-hyper.c"
-    , "conncache.c"
-    , "connect.c"
-    , "content_encoding.c"
-    , "cookie.c"
-    , "curl_addrinfo.c"
-    , "curl_ctype.c"
-    , "curl_des.c"
-    , "curl_endian.c"
-    , "curl_fnmatch.c"
-    , "curl_get_line.c"
-    , "curl_gethostname.c"
-    , "curl_gssapi.c"
-    , "curl_memrchr.c"
-    , "curl_multibyte.c"
-    , "curl_ntlm_core.c"
-    , "curl_ntlm_wb.c"
-    , "curl_path.c"
-    , "curl_range.c"
-    , "curl_rtmp.c"
-    , "curl_sasl.c"
-    , "curl_sspi.c"
-    , "curl_threads.c"
-    , "dict.c"
-    , "doh.c"
-    , "dotdot.c"
-    , "dynbuf.c"
-    , "easy.c"
-    , "easygetopt.c"
-    , "easyoptions.c"
-    , "escape.c"
-    , "file.c"
-    , "fileinfo.c"
-    , "fopen.c"
-    , "formdata.c"
-    , "ftp.c"
-    , "ftplistparser.c"
-    , "getenv.c"
-    , "getinfo.c"
-    , "gopher.c"
-    , "h2h3.c"
-    , "hash.c"
-    , "headers.c"
-    , "hmac.c"
-    , "hostasyn.c"
-    , "hostip.c"
-    , "hostip4.c"
-    , "hostip6.c"
-    , "hostsyn.c"
-    , "hsts.c"
-    , "http.c"
-    , "http2.c"
-    , "http_chunks.c"
-    , "http_digest.c"
-    , "http_negotiate.c"
-    , "http_ntlm.c"
-    , "http_proxy.c"
-    , "http_aws_sigv4.c"
-    , "idn_win32.c"
-    , "if2ip.c"
-    , "imap.c"
-    , "inet_ntop.c"
-    , "inet_pton.c"
-    , "krb5.c"
-    , "ldap.c"
-    , "llist.c"
-    , "md4.c"
-    , "md5.c"
-    , "memdebug.c"
-    , "mime.c"
-    , "mprintf.c"
-    , "mqtt.c"
-    , "multi.c"
-    , "netrc.c"
-    , "nonblock.c"
-    , "openldap.c"
-    , "parsedate.c"
-    , "pingpong.c"
-    , "pop3.c"
-    , "progress.c"
-    , "psl.c"
-    , "rand.c"
-    , "rename.c"
-    , "rtsp.c"
-    , "select.c"
-    , "sendf.c"
-    , "setopt.c"
-    , "sha256.c"
-    , "share.c"
-    , "slist.c"
-    , "smb.c"
-    , "smtp.c"
-    , "socketpair.c"
-    , "socks.c"
-    , "socks_gssapi.c"
-    , "socks_sspi.c"
-    , "speedcheck.c"
-    , "splay.c"
-    , "strcase.c"
-    , "strdup.c"
-    , "strerror.c"
-    , "strtok.c"
-    , "strtoofft.c"
-    , "system_win32.c"
-    , "telnet.c"
-    , "tftp.c"
-    , "timediff.c"
-    , "timeval.c"
-    , "transfer.c"
-    , "url.c"
-    , "urlapi.c"
-    , "version.c"
-    , "version_win32.c"
-    , "warnless.c"
-    , "wildcard.c"
-    ]
-  }
+  {"type": ["@", "rules", "data", "staged"], "srcs": [["GLOB", null, "*.c"]]}
 , "libcurl_hheaders":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs":
-    [ "altsvc.h"
-    , "amigaos.h"
-    , "arpa_telnet.h"
-    , "asyn.h"
-    , "bufref.h"
-    , "c-hyper.h"
-    , "conncache.h"
-    , "connect.h"
-    , "content_encoding.h"
-    , "cookie.h"
-    , "curl_addrinfo.h"
-    , "curl_base64.h"
-    , "curl_ctype.h"
-    , "curl_des.h"
-    , "curl_endian.h"
-    , "curl_fnmatch.h"
-    , "curl_get_line.h"
-    , "curl_gethostname.h"
-    , "curl_gssapi.h"
-    , "curl_hmac.h"
-    , "curl_krb5.h"
-    , "curl_ldap.h"
-    , "curl_md4.h"
-    , "curl_md5.h"
-    , "curl_memory.h"
-    , "curl_memrchr.h"
-    , "curl_multibyte.h"
-    , "curl_ntlm_core.h"
-    , "curl_ntlm_wb.h"
-    , "curl_path.h"
-    , "curl_printf.h"
-    , "curl_range.h"
-    , "curl_rtmp.h"
-    , "curl_sasl.h"
-    , "curl_setup.h"
-    , "curl_setup_once.h"
-    , "curl_sha256.h"
-    , "curl_sspi.h"
-    , "curl_threads.h"
-    , "curlx.h"
-    , "dict.h"
-    , "doh.h"
-    , "dotdot.h"
-    , "dynbuf.h"
-    , "easy_lock.h"
-    , "easyif.h"
-    , "easyoptions.h"
-    , "escape.h"
-    , "file.h"
-    , "fileinfo.h"
-    , "fopen.h"
-    , "formdata.h"
-    , "ftp.h"
-    , "ftplistparser.h"
-    , "getinfo.h"
-    , "gopher.h"
-    , "h2h3.h"
-    , "hash.h"
-    , "headers.h"
-    , "hostip.h"
-    , "hsts.h"
-    , "http.h"
-    , "http2.h"
-    , "http_chunks.h"
-    , "http_digest.h"
-    , "http_negotiate.h"
-    , "http_ntlm.h"
-    , "http_proxy.h"
-    , "http_aws_sigv4.h"
-    , "if2ip.h"
-    , "imap.h"
-    , "inet_ntop.h"
-    , "inet_pton.h"
-    , "llist.h"
-    , "memdebug.h"
-    , "mime.h"
-    , "mqtt.h"
-    , "multihandle.h"
-    , "multiif.h"
-    , "netrc.h"
-    , "nonblock.h"
-    , "parsedate.h"
-    , "pingpong.h"
-    , "pop3.h"
-    , "progress.h"
-    , "psl.h"
-    , "quic.h"
-    , "rand.h"
-    , "rename.h"
-    , "rtsp.h"
-    , "select.h"
-    , "sendf.h"
-    , "setopt.h"
-    , "setup-vms.h"
-    , "share.h"
-    , "sigpipe.h"
-    , "slist.h"
-    , "smb.h"
-    , "smtp.h"
-    , "sockaddr.h"
-    , "socketpair.h"
-    , "socks.h"
-    , "speedcheck.h"
-    , "splay.h"
-    , "strcase.h"
-    , "strdup.h"
-    , "strerror.h"
-    , "strtok.h"
-    , "strtoofft.h"
-    , "system_win32.h"
-    , "telnet.h"
-    , "tftp.h"
-    , "timediff.h"
-    , "timeval.h"
-    , "transfer.h"
-    , "url.h"
-    , "urlapi-int.h"
-    , "urldata.h"
-    , "version_win32.h"
-    , "warnless.h"
-    , "wildcard.h"
-    ]
-  }
+  {"type": ["@", "rules", "data", "staged"], "srcs": [["GLOB", null, "*.h"]]}
 , "curl_vauth_cfiles":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
@@ -1212,6 +1031,7 @@
     , "vtls/schannel.h"
     , "vtls/sectransp.h"
     , "vtls/vtls.h"
+    , "vtls/vtls_int.h"
     , "vtls/wolfssl.h"
     , "vtls/x509asn1.h"
     ]
@@ -1219,12 +1039,21 @@
 , "curl_vquic_cfiles":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    ["vquic/msh3.c", "vquic/ngtcp2.c", "vquic/quiche.c", "vquic/vquic.c"]
+    [ "vquic/curl_msh3.c"
+    , "vquic/curl_ngtcp2.c"
+    , "vquic/curl_quiche.c"
+    , "vquic/vquic.c"
+    ]
   }
 , "curl_vquic_hfiles":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    ["vquic/msh3.h", "vquic/ngtcp2.h", "vquic/quiche.h", "vquic/vquic.h"]
+    [ "vquic/curl_msh3.h"
+    , "vquic/curl_ngtcp2.h"
+    , "vquic/curl_quiche.h"
+    , "vquic/vquic_int.h"
+    , "vquic/vquic.h"
+    ]
   }
 , "curl_vssh_cfiles":
   { "type": ["@", "rules", "data", "staged"]

@@ -29,10 +29,6 @@
           }
         , ["-DHAVE_CONFIG_H", "-DBUILDING_LIBCURL"]
         , { "type": "if"
-          , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
-          , "then": ["-DOPENSSL_SUPPRESS_DEPRECATED"]
-          }
-        , { "type": "if"
           , "cond":
             { "type": "=="
             , "$1": {"type": "var", "name": "COMPILER_FAMILY"}

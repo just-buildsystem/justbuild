@@ -54,6 +54,11 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
+    , "HAVE_RAND_EGD"
+    , "HAVE_BORINGSSL"
+    , "HAVE_SSL_CTX_SET_QUIC_METHOD"
+    , "HAVE_QUICHE_CONN_SET_QLOG_FD"
+    , "HAVE_ZSTD_CREATEDSTREAM"
     ]
   , "config_doc":
     { "CURL_HIDDEN_SYMBOLS":
@@ -159,6 +164,26 @@
       [ "Boolean. Manually set whether to use GNU or POSIX version of ~strerror_r~ function."
       , "Only safe to set if _GNU_SOURCE is set no _POSIX_SOURCE overwrite exists."
       ]
+    , "HAVE_RAND_EGD":
+      [ "Boolean. `RAND_egd` present in OpenSSL."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
+    , "HAVE_BORINGSSL":
+      [ "Boolean. OpenSSL is BoringSSL."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
+    , "HAVE_SSL_CTX_SET_QUIC_METHOD":
+      [ "Boolean. `SSL_CTX_set_quic_method` present in OpenSSL."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
+    , "HAVE_QUICHE_CONN_SET_QLOG_FD":
+      [ "Boolean. `quiche_conn_set_qlog_fd` present in QUICHE."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
+    , "HAVE_ZSTD_CREATEDSTREAM":
+      [ "Boolean. `ZSTD_createDStream` present in Zstd."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
     }
   }
 , "curl_config":
@@ -206,6 +231,11 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
+    , "HAVE_RAND_EGD"
+    , "HAVE_BORINGSSL"
+    , "HAVE_SSL_CTX_SET_QUIC_METHOD"
+    , "HAVE_QUICHE_CONN_SET_QLOG_FD"
+    , "HAVE_ZSTD_CREATEDSTREAM"
     ]
   , "target": ["./", "lib", "libcurl"]
   , "config":
@@ -368,6 +398,27 @@
       , [ "USE_GNU_STRERROR_R"
         , {"type": "var", "name": "USE_GNU_STRERROR_R", "default": false}
         ]
+      , [ "HAVE_RAND_EGD"
+        , {"type": "var", "name": "HAVE_RAND_EGD", "default": false}
+        ]
+      , [ "HAVE_BORINGSSL"
+        , {"type": "var", "name": "HAVE_BORINGSSL", "default": false}
+        ]
+      , [ "HAVE_SSL_CTX_SET_QUIC_METHOD"
+        , { "type": "var"
+          , "name": "HAVE_SSL_CTX_SET_QUIC_METHOD"
+          , "default": false
+          }
+        ]
+      , [ "HAVE_QUICHE_CONN_SET_QLOG_FD"
+        , { "type": "var"
+          , "name": "HAVE_QUICHE_CONN_SET_QLOG_FD"
+          , "default": false
+          }
+        ]
+      , [ "HAVE_ZSTD_CREATEDSTREAM"
+        , {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM", "default": false}
+        ]
       ]
     , "body":
       { "type": "env"
@@ -408,6 +459,11 @@
         , "CURL_CA_PATH"
         , "CURL_CA_FALLBACK"
         , "USE_GNU_STRERROR_R"
+        , "HAVE_RAND_EGD"
+        , "HAVE_BORINGSSL"
+        , "HAVE_SSL_CTX_SET_QUIC_METHOD"
+        , "HAVE_QUICHE_CONN_SET_QLOG_FD"
+        , "HAVE_ZSTD_CREATEDSTREAM"
         ]
       }
     }
