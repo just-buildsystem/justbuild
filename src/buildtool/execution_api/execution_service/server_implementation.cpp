@@ -23,6 +23,7 @@
 #include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 #include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
@@ -100,7 +101,9 @@ auto ServerImpl::Run() -> bool {
 
     auto const& info_str = nlohmann::to_string(info);
     Logger::Log(LogLevel::Info,
-                fmt::format("execution service started: {}", info_str));
+                fmt::format("{}execution service started: {}",
+                            Compatibility::IsCompatible() ? "compatible " : "",
+                            info_str));
 
     if (!info_file_.empty()) {
         if (!TryWrite(info_file_, info_str)) {

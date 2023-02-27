@@ -14,6 +14,7 @@
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/execution_api/local", "garbage_collector"]
+    , ["src/buildtool/compatibility", "compatibility"]
     ]
   }
 , "ac_server":
