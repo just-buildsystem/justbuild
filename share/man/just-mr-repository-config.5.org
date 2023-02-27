@@ -85,6 +85,23 @@ The following fields are supported:
   This entry is optional. If missing, the root directory of the Git repository
   is used.
 
+*** ~"git tree"~
+
+It defines as workspace root a known Git tree obtainable by a generic command.
+
+The following fields are supported:
+
+- ~"id"~ provides the Git tree identifier.
+  This entry is mandatory.
+
+- ~"cmd"~ provides a list of strings forming a command which promises that, when
+  executed in an empty directory (anywhere in the file system), creates in that
+  directory a directory structure containing the promised Git tree (either
+  top-level or in some subdirectory).
+  This entry is mandatory.
+
+- ~"env"~ provides a map of envariables to be set for executing the command.
+
 *** ~"distdir"~
 
 It defines as workspace root a directory with the distribution archives
