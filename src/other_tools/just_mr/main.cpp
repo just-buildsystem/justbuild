@@ -185,8 +185,10 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
     LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
     for (auto const& log_file : clargs.log_files) {
-        LogConfig::AddSink(
-            LogSinkFile::CreateFactory(log_file, LogSinkFile::Mode::Overwrite));
+        LogConfig::AddSink(LogSinkFile::CreateFactory(
+            log_file,
+            clargs.log_append ? LogSinkFile::Mode::Append
+                              : LogSinkFile::Mode::Overwrite));
     }
 }
 
@@ -1086,6 +1088,21 @@ void DefaultReachableRepositories(
     if (use_build_root and forward_build_root) {
         cmd.emplace_back("--local-build-root");
         cmd.emplace_back(*arguments.common.just_mr_paths->root);
+    }
+    // forward logging arguments
+    if (not arguments.log.log_files.empty()) {
+        cmd.emplace_back("--log-append");
+        for (auto const& log_file : arguments.log.log_files) {
+            cmd.emplace_back("-f");
+            cmd.emplace_back(log_file.string());
+        }
+    }
+    cmd.emplace_back("--log-limit");
+    cmd.emplace_back(
+        std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
+            arguments.log.log_limit)));
+    if (arguments.log.plain_log) {
+        cmd.emplace_back("--plain-log");
     }
     // add args read from just-mrrc
     if (subcommand and arguments.just_cmd.just_args.contains(*subcommand)) {

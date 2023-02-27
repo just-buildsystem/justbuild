@@ -79,6 +79,9 @@ See *just-mr-repository-config(5)* for more details on the input format.
    *--plain-log*\\
    Do not use ANSI escape sequences to highlight messages.
 
+   *--log_append*\\
+   Append messages to log file instead of overwriting existing.
+
    *--just* PATH\\
    Name of the just binary in ~PATH~ or path to the just binary.\\
    Default: ~"just"~.\\
@@ -165,6 +168,10 @@ prefixed to the provided arguments. The main repository for the ~setup~ step can
 be provided in the configuration or on the command line. If no main repository
 is provided, the lexicographical first repository from the configuration is
 used.
+
+All logging arguments given to ~just-mr~ are passed to ~just~ as early arguments.
+If log files are provided, an unconditional ~--log-append~ argument is passed as
+well, which ensures no log messages will get overwritten.
 
 ** version|describe|analyse|build|install|install-cas|rebuild|gc
 
