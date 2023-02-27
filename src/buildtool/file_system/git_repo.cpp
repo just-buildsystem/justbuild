@@ -654,13 +654,21 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
             (*logger)(
-                "WARNING: subtree id retireval from commit called on a real "
+                "WARNING: subtree id retrieval from commit called on a real "
                 "repository!\n",
                 false /*fatal*/);
         }
         // get commit object
         git_oid commit_oid;
-        git_oid_fromstr(&commit_oid, commit.c_str());
+        if (git_oid_fromstr(&commit_oid, commit.c_str()) != 0) {
+            (*logger)(
+                fmt::format("commit ID parsing in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            return std::nullopt;
+        }
 
         git_commit* commit_ptr{nullptr};
         if (git_commit_lookup(&commit_ptr, repo_.get(), &commit_oid) != 0) {
@@ -749,7 +757,15 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
             }
             // get tree object from tree id
             git_oid tree_oid;
-            git_oid_fromstr(&tree_oid, tree_id.c_str());
+            if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
+                (*logger)(
+                    fmt::format("tree ID parsing in git repository {} failed "
+                                "with:\n{}",
+                                GetGitCAS()->git_path_.string(),
+                                GitLastError()),
+                    true /*fatal*/);
+                return std::nullopt;
+            }
 
             git_tree* tree_ptr{nullptr};
             if (git_tree_lookup(&tree_ptr, repo_.get(), &tree_oid) != 0) {
@@ -864,7 +880,16 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
         }
         // lookup commit in current repo state
         git_oid commit_oid;
-        git_oid_fromstr(&commit_oid, commit.c_str());
+        if (git_oid_fromstr(&commit_oid, commit.c_str()) != 0) {
+            (*logger)(
+                fmt::format("commit ID parsing in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            return std::nullopt;
+        }
+
         git_commit* commit_obj = nullptr;
         auto lookup_res =
             git_commit_lookup(&commit_obj, repo_.get(), &commit_oid);
