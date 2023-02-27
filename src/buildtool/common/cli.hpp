@@ -45,6 +45,7 @@ struct LogArguments {
     std::vector<std::filesystem::path> log_files{};
     LogLevel log_limit{kDefaultLogLevel};
     bool plain_log{false};
+    bool log_append{false};
 };
 
 /// \brief Arguments required for analysing targets.
@@ -201,6 +202,10 @@ static inline auto SetupLogArguments(
     app->add_flag("--plain-log",
                   clargs->plain_log,
                   "Do not use ANSI escape sequences to highlight messages.");
+    app->add_flag(
+        "--log-append",
+        clargs->log_append,
+        "Append messages to log file instead of overwriting existing.");
 }
 
 static inline auto SetupAnalysisArguments(

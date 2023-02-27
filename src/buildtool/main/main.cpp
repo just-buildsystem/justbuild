@@ -288,8 +288,10 @@ void SetupLogging(LogArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
     LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
     for (auto const& log_file : clargs.log_files) {
-        LogConfig::AddSink(
-            LogSinkFile::CreateFactory(log_file, LogSinkFile::Mode::Overwrite));
+        LogConfig::AddSink(LogSinkFile::CreateFactory(
+            log_file,
+            clargs.log_append ? LogSinkFile::Mode::Append
+                              : LogSinkFile::Mode::Overwrite));
     }
 }
 

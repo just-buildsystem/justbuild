@@ -252,7 +252,7 @@ and the corresponding disk space reclaimed.
 
 This subcommand starts a single node remote execution service,
 honoring the just native remote protocol.
- 
+
 If the flag --compatible is provided, the execution service will honor
 the original remote build execution protocol.
 
@@ -392,6 +392,10 @@ the original remote build execution protocol.
    Do not use ANSI escape sequences to highlight messages.\\
    Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
+   *--log-append*\\
+   Append messages to log file instead of overwriting existing.\\
+   Supported by: analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+
    *--expression-log-limit* NUM\\
    In error messages, truncate the entries in the enumeration of the active
    environment, as well as the expression to be evaluated, to the specified
@@ -454,7 +458,7 @@ the original remote build execution protocol.
    Path to a TLS CA certificate that is trusted to sign the server
    certificate.
    Supported by: build|install-cas|install|rebuild|traverse|execute.
-   
+
    *--tls-client-cert* PATH\\
    Path to a TLS client certificate to enable mTLS. It must be passed
    in conjunction with *--tls-client-key* and *--tls-ca-cert*.
