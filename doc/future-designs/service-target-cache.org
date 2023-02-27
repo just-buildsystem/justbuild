@@ -158,7 +158,7 @@ serve~ endpoint has to be specified in the invocation of ~just~.
 
 **** ~just-mr~ pragma ~"absent"~
 
-For ~just-mr~ to know how to contruct the repository description,
+For ~just-mr~ to know how to construct the repository description,
 the description used by ~just-mr~ is extended. More precisely, a
 new key ~"absent"~ is allowed in the ~"pragma"~ dictionary of a
 repository description. If the specified value is true, ~just-mr~
@@ -196,7 +196,7 @@ Such a repository is given by
 - a command that, when executed in an empty directory (anywhere
   in the file system) will create in that directory a directory
   structure containing the specified ~git~ tree (either top-level
-  or in some sudirectory). Moreover, that command does not modify
+  or in some subdirectory). Moreover, that command does not modify
   anything outside the directory it is called in; it is an error
   if the specified tree is not created in this way.
 In this way, content-fixed repositories can be generated in a

@@ -100,7 +100,7 @@ documentation on the provided data.
       ]
     , "link-args":
       [ "List of strings that have to be added to the command line for linking actions"
-      , "in targets depending on on this library"
+      , "in targets depending on this library"
       ]
     }
   , "expression": { ... }

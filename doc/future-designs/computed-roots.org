@@ -60,7 +60,7 @@ file, so that it can be used during analysis. Still, the information
 is already present in the prebuilt binary, causing unnecessary
 maintenance overhead; instead, the target file could be a function
 of that library which can form its own content-fixed root (e.g., a
-~git tree~ root), so that the computed value is easily cachable.
+~git tree~ root), so that the computed value is easily cacheable.
 
 *** Simplified rule definition and alternative syntax
 
@@ -78,14 +78,14 @@ but people argue that it is hard to write by hand. However, it is
 unlikely to get agreement on which syntax is best to use. Now, if
 rule and expression files could be generated, this argument would
 not be necessary. Moreover, rules are typically versioned and
-unfrequently changed, so the step of generating the official syntax
+infrequently changed, so the step of generating the official syntax
 from the convenient one would typically be in cache.
 
 ** Proposal: Support computed roots
 
 We propose computed roots as a clean principle to add the needed (and
 a lot more) flexibility for the described use cases, while ensuring
-that all computations of roots are properly cachable at high level.
+that all computations of roots are properly cacheable at high level.
 In this way, we do not compromise efficient builds, as the price of
 the additional flexibility, in the typical case, is just a single
 cache lookup. Of course, it is up to the user to ensure that this

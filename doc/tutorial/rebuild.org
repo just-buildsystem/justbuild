@@ -206,7 +206,7 @@ non-reproducibility, however, more modifications of the environment
 are necessary.
 
 A simple, but effective, way for modifying the build environment
-is the option ~-L~ to the set the local launcher, a list of
+is the option ~-L~ to set the local launcher, a list of
 strings the argument vector is prefixed with before the action is
 executed. The default ~["env", "--"]~ simply resolves the program
 to be executed in the current value of ~PATH~, but a different

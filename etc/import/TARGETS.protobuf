@@ -3,7 +3,7 @@
   , "doc":
     [ "The protobuffer compiler."
     , ""
-    , "This target typically is used as an implict dependency of"
+    , "This target typically is used as an implicit dependency of"
     , "the protobuffer rules."
     ]
   , "target": ["src/google/protobuf", "protoc"]

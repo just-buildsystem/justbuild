@@ -5,7 +5,8 @@
   , "config_vars": ["PATCH", "ENV"]
   , "field_doc":
     { "src":
-      ["The single source file to patch, typically an explict file reference."]
+      [ "The single source file to patch, typically an explicit file reference."
+      ]
     , "patch": ["The patch to apply."]
     , "patch-part":
       [ "If the patch contains hunks for multiple files, only apply hunks for"

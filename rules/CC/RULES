@@ -2,7 +2,7 @@
   { "doc":
     [ "A rule to provide defaults."
     , "All CC targets take their defaults for CC, CXX, flags, etc from"
-    , "the target [\"CC\", \"defaults\"]. This is probably the only sensibe"
+    , "the target [\"CC\", \"defaults\"]. This is probably the only sensible"
     , "use of this rule. As targets form a different root, the defaults"
     , "can be provided without changing this directory."
     ]
@@ -149,7 +149,7 @@
       , "with \"/\"."
       ]
     , "pure C":
-      [ "If non-empty, compile as C sources rathter than C++ sources."
+      [ "If non-empty, compile as C sources rather than C++ sources."
       , "In particular, CC is used to compile rather than CXX (or their"
       , "respective defaults)."
       ]
@@ -235,7 +235,7 @@
       ]
     , "link-args":
       [ "List of strings that have to be added to the command line for linking actions"
-      , "in targets depending on on this library"
+      , "in targets depending on this library"
       ]
     }
   , "anonymous":

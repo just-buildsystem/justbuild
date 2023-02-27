@@ -87,10 +87,10 @@ Additionally, if `SOURCE_DATE_EPOCH` is set in the build environment, it
 is forwarded to the build configuration as well. If, on the other hand,
 `CC` or `CXX` are set in the build configuration, those are also used
 for the initial steps of the bootstrap procedure. Remember that setting
-one of those variables also requires to the the `COMPILER_FAMILY` to
+one of those variables also requires the `COMPILER_FAMILY` to
 ensure the proper flags are used (if in doubt, set to `"unknown"`).
 
-In any case, the resulting binary is self-contained and can be moved
+In any case, the resulting binary is self contained and can be moved
 to an appropriate location in `PATH`.
 
 ### Bootstrapping against preinstalled dependencies (package building)

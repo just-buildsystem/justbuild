@@ -252,7 +252,7 @@ to understand this in detail and the rational behind it.
   contains the unpatched source file ~definitions.units~. In this
   way, we avoid any surprises in the expansion of a glob when a new
   source file is added with a name equal to an already existing target.
-- Only files are are considered for matching the glob. Directories
+- Only files are considered for matching the glob. Directories
   are ignored.
 - Matches are only considered at the top-level directory. In this
   way, only one directory has to be read during analysis; allowing

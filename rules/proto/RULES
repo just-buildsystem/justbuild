@@ -1,8 +1,8 @@
 { "library":
   { "doc":
-    [ "A proto library as abtract data structure."
+    [ "A proto library as abstract data structure."
     , ""
-    , "Such a libray does not produce any artifacts itself, but it can be"
+    , "Such a library does not produce any artifacts itself, but it can be"
     , "used as a dependency for various language-specific rules."
     ]
   , "target_fields": ["srcs", "deps"]
@@ -16,7 +16,7 @@
       ]
     , "name": ["The name of the (abstract) library."]
     , "service":
-      [ "If non empty, generate a service library (with acces sto \"rpc\""
+      [ "If non empty, generate a service library (with access to \"rpc\""
       , "definitions) instead of a regular one."
       ]
     }
@@ -24,7 +24,7 @@
   , "runfiles_doc": ["None"]
   , "provides_doc":
     { "proto":
-      [ "A list containing a single target-graph node with the defintion of"
+      [ "A list containing a single target-graph node with the definition of"
       , "this proto library. The node types generated are \"library\" and"
       , "\"service library\"."
       ]

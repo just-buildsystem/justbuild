@@ -4,7 +4,7 @@
     , ""
     , "Runfiles and \"compile-deps\" of \"libs\" are staged to \"include\","
     , "artifacts and \"link-deps\" to \"lib\", in a flat way."
-    , "Articats of \"bins\" are staged to \"bin\"."
+    , "Artifacts of \"bins\" are staged to \"bin\"."
     , "The source files underlying \"protos\" are staged to \"proto\"."
     , "The artifacts of \"deps\" are directly added to the stage."
     , "This is only for testing bootstrapping against preinstalled dependencies."
