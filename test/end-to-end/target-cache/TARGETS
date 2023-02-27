@@ -1,15 +1,14 @@
 { "target-cache-hit":
-  { "type": ["@", "rules", "shell/test", "script"]
+  { "type": ["test/end-to-end", "with remote"]
   , "name": ["target-cache-hit"]
   , "test": ["target-cache-hit.sh"]
   , "deps":
     [ ["test/end-to-end", "tool-under-test"]
     , ["test/end-to-end", "mr-tool-under-test"]
-    , ["@", "credentials", "", ""]
     ]
   }
 , "artifacts-sync":
-  { "type": ["@", "rules", "shell/test", "script"]
+  { "type": ["test/end-to-end", "with remote"]
   , "name": ["artifacts-sync"]
   , "test": ["artifacts-sync.sh"]
   , "deps":
@@ -17,7 +16,6 @@
     , ["./", "test-data-artifacts-sync", "greetlib"]
     , ["./", "test-data-artifacts-sync", "pydicts"]
     , "bootstrap-src-staged"
-    , ["@", "credentials", "", ""]
     ]
   }
 , "bootstrap-src-staged":

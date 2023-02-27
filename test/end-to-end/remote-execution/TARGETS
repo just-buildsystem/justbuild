@@ -1,35 +1,27 @@
 { "native-protocol":
-  { "type": ["@", "rules", "shell/test", "script"]
+  { "type": ["test/end-to-end", "with remote"]
   , "name": ["native-protocol"]
   , "test": ["native-protocol.sh"]
   , "deps":
     [ ["test/end-to-end", "tool-under-test"]
     , ["test/end-to-end", "mr-tool-under-test"]
-    , ["@", "credentials", "", ""]
     ]
   }
 , "large-blobs":
-  { "type": ["@", "rules", "shell/test", "script"]
+  { "type": ["test/end-to-end", "with remote"]
   , "name": ["large-blobs"]
   , "test": ["large-blobs.sh"]
-  , "deps":
-    [["test/end-to-end", "tool-under-test"], ["@", "credentials", "", ""]]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
   }
 , "upload-test":
-  { "type": ["@", "rules", "shell/test", "script"]
+  { "type": ["test/end-to-end", "with remote"]
   , "name": ["upload-test"]
   , "test": ["upload-test.sh"]
-  , "deps":
-    [["test/end-to-end", "tool-under-test"], ["@", "credentials", "", ""]]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps":
-    [ "native-protocol"
-    , "large-blobs"
-    , "upload-test"
-    , ["@", "credentials", "", ""]
-    ]
+  , "deps": ["native-protocol", "large-blobs", "upload-test"]
   }
 }

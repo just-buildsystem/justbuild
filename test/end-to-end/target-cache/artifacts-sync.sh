@@ -59,13 +59,6 @@ readonly LBRDIR="$TEST_TMPDIR/local-build-root"
 readonly TESTDIR="$TEST_TMPDIR/test-root"
 readonly CREDENTIALS_DIR="${PWD}/credentials"
 
-if [ "${REMOTE_EXECUTION_ADDRESS:-}" = "" ]; then
-  echo
-  echo "Test skipped, since no remote execution is specified."
-  echo
-  return
-fi
-
 REMOTE_EXECUTION_ARGS="-r $REMOTE_EXECUTION_ADDRESS"
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
   REMOTE_EXECUTION_ARGS="$REMOTE_EXECUTION_ARGS --remote-execution-property $REMOTE_EXECUTION_PROPERTIES"

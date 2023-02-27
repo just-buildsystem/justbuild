@@ -59,19 +59,17 @@ export CONF="$(realpath repos.json)"
 
 # Build remotely
 AUTH_ARGS=""
-if [ "${REMOTE_EXECUTION_ADDRESS:-}" != "" ]; then
-  REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
-  if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
-    REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
-  fi
-  if [ -f "${CREDENTIALS_DIR}/ca.crt" ]; then
-    AUTH_ARGS=" --tls-ca-cert ${CREDENTIALS_DIR}/ca.crt "
-    if [ -f "${CREDENTIALS_DIR}/client.crt" ]; then
-      AUTH_ARGS=" --tls-client-cert ${CREDENTIALS_DIR}/client.crt "${AUTH_ARGS}
-    fi
-    if [ -f "${CREDENTIALS_DIR}/client.key" ]; then
-      AUTH_ARGS=" --tls-client-key ${CREDENTIALS_DIR}/client.key "${AUTH_ARGS}
-    fi
-  fi
-  "${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR}" ${ARGS} ${REMOTE_EXECUTION_ARGS} ${AUTH_ARGS} 2>&1
+REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
+if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
+  REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
+if [ -f "${CREDENTIALS_DIR}/ca.crt" ]; then
+  AUTH_ARGS=" --tls-ca-cert ${CREDENTIALS_DIR}/ca.crt "
+  if [ -f "${CREDENTIALS_DIR}/client.crt" ]; then
+    AUTH_ARGS=" --tls-client-cert ${CREDENTIALS_DIR}/client.crt "${AUTH_ARGS}
+  fi
+  if [ -f "${CREDENTIALS_DIR}/client.key" ]; then
+    AUTH_ARGS=" --tls-client-key ${CREDENTIALS_DIR}/client.key "${AUTH_ARGS}
+  fi
+fi
+"${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR}" ${ARGS} ${REMOTE_EXECUTION_ARGS} ${AUTH_ARGS} 2>&1
