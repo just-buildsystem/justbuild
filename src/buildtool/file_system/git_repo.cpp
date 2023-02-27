@@ -965,6 +965,53 @@ auto GitRepo::GetRepoRootFromPath(std::filesystem::path const& fpath,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+auto GitRepo::CheckTreeExists(std::string const& tree_id,
+                              anon_logger_ptr const& logger) noexcept
+    -> std::optional<bool> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            Logger::Log(LogLevel::Debug,
+                        "Subtree lookup called on a real repository");
+        }
+        // get git oid
+        git_oid tree_oid;
+        if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
+            (*logger)(fmt::format("tree ID parsing in git repository {} failed "
+                                  "with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // get tree object
+        git_tree* tree_ptr = nullptr;
+        auto lookup_res = git_tree_lookup(&tree_ptr, repo_.get(), &tree_oid);
+        git_tree_free(tree_ptr);
+        if (lookup_res != 0) {
+            if (lookup_res == GIT_ENOTFOUND) {
+                return false;  // tree not found
+            }
+            (*logger)(
+                fmt::format("tree lookup in git repository {} failed with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            return std::nullopt;
+        }
+        return true;  // tree found
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "check subtree exists failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }

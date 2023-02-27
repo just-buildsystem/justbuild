@@ -186,6 +186,15 @@ class GitRepo {
         anon_logger_ptr const& logger) noexcept
         -> std::optional<std::filesystem::path>;
 
+    /// \brief Check if given tree ID is present in the directory structure of
+    /// the local repository.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Returns a status of tree presence, or nullopt if failure.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto CheckTreeExists(std::string const& tree_id,
+                                       anon_logger_ptr const& logger) noexcept
+        -> std::optional<bool>;
+
   private:
     // IMPORTANT! The GitCAS object must be defined before the repo object to
     // keep the GitContext alive until cleanup ends.
