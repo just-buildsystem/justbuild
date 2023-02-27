@@ -603,6 +603,12 @@ the original remote build execution protocol.
    *--tls-server-key* TEXT\\
    Path to the TLS server key.
 
+  *----log-operations-threshold* INT\\
+  Once the number of operations stored exceeds twice 2^n, where n is given by
+  the option --log-operations-threshold, at most 2^n operations will be removed,
+  in a FIFO scheme. If unset, defaults to 14. Must be in the range [0,255].
+
+
 * EXIT STATUS
 
 The exit status of ~just~ is one of the following values:

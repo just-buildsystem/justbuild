@@ -40,6 +40,7 @@
 #include "src/buildtool/main/install_cas.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/local/garbage_collector.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -426,6 +427,9 @@ void SetupExecutionServiceConfig(ExecutionServiceArguments const& args) {
                         args.info_file->string());
             std::exit(kExitFailure);
         }
+    }
+    if (args.op_exponent) {
+        OperationCache::SetExponent(*args.op_exponent);
     }
 }
 

@@ -150,6 +150,7 @@ struct ExecutionServiceArguments {
     std::optional<std::filesystem::path> info_file{std::nullopt};
     std::optional<std::string> interface{std::nullopt};
     std::optional<std::string> pid_file{std::nullopt};
+    std::optional<uint8_t> op_exponent;
 };
 
 static inline auto SetupCommonArguments(
@@ -549,5 +550,13 @@ static inline auto SetupExecutionServiceArguments(
         es_args->pid_file,
         "Write pid to this file in plain txt. If the file exists, it "
         "will be overwritten.");
+
+    app->add_option(
+        "--log-operations-threshold",
+        es_args->op_exponent,
+        "Once the number of operations stored exceeds twice 2^n, where n is "
+        "given by the option --log-operations-threshold, at most 2^n "
+        "operations will be removed, in a FIFO scheme. If unset, defaults to "
+        "14. Must be in the range [0,255]");
 }
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP

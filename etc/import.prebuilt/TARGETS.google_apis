@@ -25,6 +25,7 @@
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_longrunning_operations_proto"]
   , "srcs": ["google/longrunning/operations.proto"]
+  , "service": ["yes"]
   , "deps":
     [ "google_api_annotations_proto"
     , "google_api_http_proto"

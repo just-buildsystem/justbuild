@@ -14,9 +14,10 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/execution_api/local", "garbage_collector"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , "operation_cache"
     ]
+  , "private-ldflags": ["-pthread"]
   }
 , "ac_server":
   { "type": ["@", "rules", "CC", "library"]
@@ -31,9 +32,7 @@
     , ["src/buildtool/common", "bazel_types"]
     ]
   , "private-deps":
-    [ ["src/buildtool/execution_api/local", "garbage_collector"]
-    , ["src/buildtool/compatibility", "compatibility"]
-    ]
+    [["src/buildtool/execution_api/local", "garbage_collector"]]
   }
 , "cas_server":
   { "type": ["@", "rules", "CC", "library"]
@@ -65,6 +64,7 @@
     , "cas_server"
     , "bytestream_server"
     , "capabilities_server"
+    , "operations_server"
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/auth", "auth"]
     , ["@", "json", "", "json"]
@@ -104,5 +104,23 @@
     [ ["src/buildtool/logging", "logging"]
     , ["src/buildtool/compatibility", "compatibility"]
     ]
+  }
+, "operation_cache":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["operation_cache"]
+  , "hdrs": ["operation_cache.hpp"]
+  , "srcs": ["operation_cache.cpp"]
+  , "deps": [["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "buildtool", "execution_api", "execution_service"]
+  , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
+  }
+, "operations_server":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["operations_server"]
+  , "hdrs": ["operations_server.hpp"]
+  , "srcs": ["operations_server.cpp"]
+  , "deps": [["src/buildtool/logging", "logging"], "operation_cache"]
+  , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
+  , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   }
 }

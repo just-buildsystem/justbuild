@@ -29,6 +29,7 @@
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
+#include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -53,6 +54,7 @@ auto ServerImpl::Run() -> bool {
     CASServiceImpl cas{};
     BytestreamServiceImpl b{};
     CapabilitiesServiceImpl cap{};
+    OperarationsServiceImpl op{};
 
     grpc::ServerBuilder builder;
 
@@ -60,7 +62,8 @@ auto ServerImpl::Run() -> bool {
         .RegisterService(&ac)
         .RegisterService(&cas)
         .RegisterService(&b)
-        .RegisterService(&cap);
+        .RegisterService(&cap)
+        .RegisterService(&op);
 
     std::shared_ptr<grpc::ServerCredentials> creds;
     if (Auth::GetAuthMethod() == AuthMethod::kTLS) {

@@ -23,6 +23,7 @@
     , [ "src/buildtool/execution_api/execution_service"
       , "server_implementation"
       ]
+    , ["src/buildtool/execution_api/execution_service", "operation_cache"]
     , "common"
     , "version"
     , "analyse"

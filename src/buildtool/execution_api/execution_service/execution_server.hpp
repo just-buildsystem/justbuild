@@ -107,6 +107,10 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         -> ::grpc::Status override;
 
   private:
+    LocalStorage storage_{};
+    IExecutionApi::Ptr api_{new LocalApi()};
+    Logger logger_{"execution-service"};
+
     [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)
         const noexcept -> std::pair<std::optional<::bazel_re::Action>,
                                     std::optional<std::string>>;
@@ -126,21 +130,17 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         -> std::pair<std::optional<::bazel_re::ExecuteResponse>,
                      std::optional<std::string>>;
 
-    [[nodiscard]] auto WriteResponse(
+    [[nodiscard]] auto StoreActionResult(
         ::bazel_re::ExecuteRequest const* request,
         IExecutionResponse::Ptr const& i_execution_response,
-        ::bazel_re::Action const& action,
-        ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
-        const noexcept -> std::optional<std::string>;
+        ::bazel_re::ExecuteResponse const& execute_response,
+        ::bazel_re::Action const& action) const noexcept
+        -> std::optional<std::string>;
 
     [[nodiscard]] auto AddResult(
         ::bazel_re::ExecuteResponse* response,
         IExecutionResponse::Ptr const& i_execution_response,
         std::string const& hash) const noexcept -> std::optional<std::string>;
-
-    LocalStorage storage_{};
-    IExecutionApi::Ptr api_{new LocalApi()};
-    Logger logger_{"execution-service"};
 };
 
 #endif
