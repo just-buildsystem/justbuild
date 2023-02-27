@@ -63,7 +63,7 @@
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
-    auto dir_id = ArtifactDigest::Create<ObjectType::File>(dir_data);
+    auto dir_id = ArtifactDigest::Create<ObjectType::Tree>(dir_data);
     blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
