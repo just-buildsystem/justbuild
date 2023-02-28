@@ -59,6 +59,9 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         return;
     }
     if (not is_commit_present.value()) {
+        // start work reporting
+        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
+        JustMRStatistics::Instance().IncrementQueuedCounter();
         // if commit not there, fetch it
         auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
@@ -108,10 +111,6 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                "Keep referenced tree alive"  // message
                            },
                            GitOpType::KEEP_TAG};
-        // start work reporting
-        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
-        JustMRStatistics::Instance().IncrementQueuedCounter();
-        // do the fetch
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},

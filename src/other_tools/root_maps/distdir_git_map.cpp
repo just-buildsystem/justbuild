@@ -103,6 +103,8 @@ auto CreateDistdirGitMap(
                         {"git tree",
                          distdir_tree_id,
                          JustMR::Utils::GetGitCacheRoot().string()}));
+                    // report cache hit
+                    JustMRStatistics::Instance().IncrementCacheHitsCounter();
                 },
                 [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
                     auto const& msg, bool fatal) {
