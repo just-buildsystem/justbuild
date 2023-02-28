@@ -449,6 +449,96 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
         });
 }
 
+/// \brief Perform checkout for a git tree type repository.
+/// Guarantees the logger is called exactly once with fatal if a failure occurs.
+void GitTreeCheckout(ExpressionPtr const& repo_desc,
+                     ExpressionPtr&& repos,
+                     std::string const& repo_name,
+                     gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+                     gsl::not_null<TaskSystem*> const& ts,
+                     ReposToSetupMap::SetterPtr const& setter,
+                     ReposToSetupMap::LoggerPtr const& logger) {
+    // enforce mandatory fields
+    auto repo_desc_hash = repo_desc->At("id");
+    if (not repo_desc_hash) {
+        (*logger)("GitTreeCheckout: Mandatory field \'id\' is missing",
+                  /*fatal=*/true);
+        return;
+    }
+    if (not repo_desc_hash->get()->IsString()) {
+        (*logger)(
+            "GitTreeCheckout: Unsupported value for mandatory field \'id\'",
+            /*fatal=*/true);
+        return;
+    }
+    auto repo_desc_cmd = repo_desc->At("cmd");
+    if (not repo_desc_cmd) {
+        (*logger)("GitTreeCheckout: Mandatory field \'cmd\' is missing",
+                  /*fatal=*/true);
+        return;
+    }
+    if (not repo_desc_cmd->get()->IsList()) {
+        (*logger)(
+            "GitTreeCheckout: Unsupported value for mandatory field \'cmd\'",
+            /*fatal=*/true);
+        return;
+    }
+    std::vector<std::string> cmd{};
+    for (auto const& token : repo_desc_cmd->get()->List()) {
+        if (token.IsNotNull() and token->IsString()) {
+            cmd.emplace_back(token->String());
+        }
+        else {
+            (*logger)(fmt::format("GitTreeCheckout: Unsupported entry {} in "
+                                  "mandatory field \'cmd\'",
+                                  token->ToString()),
+                      /*fatal=*/true);
+            return;
+        }
+    }
+    std::map<std::string, std::string> env{};
+    auto repo_desc_env = repo_desc->Get("env", Expression::none_t{});
+    if (repo_desc_env.IsNotNull() and repo_desc_env->IsMap()) {
+        for (auto const& envar : repo_desc_env->Map().Items()) {
+            if (envar.second.IsNotNull() and envar.second->IsString()) {
+                env.insert({envar.first, envar.second->String()});
+            }
+            else {
+                (*logger)(fmt::format("GitTreeCheckout: Unsupported value {} "
+                                      "for key {} in optional field \'envs\'",
+                                      envar.second->ToString(),
+                                      nlohmann::json(envar.first).dump()),
+                          /*fatal=*/true);
+                return;
+            }
+        }
+    }
+    // populate struct
+    TreeIdInfo tree_id_info = {
+        repo_desc_hash->get()->String(), /* hash */
+        std::move(env),                  /* env_vars */
+        std::move(cmd)                   /* command */
+    };
+    // get the WS root as git tree
+    tree_id_git_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(tree_id_info)},
+        [repos = std::move(repos), repo_name, setter](auto const& values) {
+            auto ws_root = *values[0];
+            nlohmann::json cfg({});
+            cfg["workspace_root"] = ws_root;
+            SetReposTakeOver(&cfg, repos, repo_name);
+            (*setter)(std::move(cfg));
+        },
+        [logger, repo_name](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While setting the workspace root for "
+                                  "repository {} of type git tree:\n{}",
+                                  repo_name,
+                                  msg),
+                      fatal);
+        });
+}
+
 }  // namespace
 
 auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
@@ -459,6 +549,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                            gsl::not_null<FilePathGitMap*> const& fpath_git_map,
                            gsl::not_null<ContentCASMap*> const& content_cas_map,
                            gsl::not_null<DistdirGitMap*> const& distdir_git_map,
+                           gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
                            std::size_t jobs) -> ReposToSetupMap {
     auto setup_repo = [config,
                        main,
@@ -467,7 +558,8 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                        content_git_map,
                        fpath_git_map,
                        content_cas_map,
-                       distdir_git_map](auto ts,
+                       distdir_git_map,
+                       tree_id_git_map](auto ts,
                                         auto setter,
                                         auto logger,
                                         auto /* unused */,
@@ -578,6 +670,16 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     std::move(repos),
                                     key,
                                     distdir_git_map,
+                                    ts,
+                                    setter,
+                                    wrapped_logger);
+                    break;
+                }
+                case CheckoutType::GitTree: {
+                    GitTreeCheckout(*resolved_repo_desc,
+                                    std::move(repos),
+                                    key,
+                                    tree_id_git_map,
                                     ts,
                                     setter,
                                     wrapped_logger);

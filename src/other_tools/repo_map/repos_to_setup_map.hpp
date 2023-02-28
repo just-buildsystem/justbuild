@@ -20,6 +20,7 @@
 #include "src/other_tools/root_maps/content_git_map.hpp"
 #include "src/other_tools/root_maps/distdir_git_map.hpp"
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
+#include "src/other_tools/root_maps/tree_id_git_map.hpp"
 
 /// \brief Maps a global repo name to a JSON object containing the workspace
 /// root and the TAKE_OVER fields.
@@ -33,6 +34,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                            gsl::not_null<FilePathGitMap*> const& fpath_git_map,
                            gsl::not_null<ContentCASMap*> const& content_cas_map,
                            gsl::not_null<DistdirGitMap*> const& distdir_git_map,
+                           gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
                            std::size_t jobs) -> ReposToSetupMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP

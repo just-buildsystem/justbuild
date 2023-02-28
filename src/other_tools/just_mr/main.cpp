@@ -1137,6 +1137,9 @@ void DefaultReachableRepositories(
                                                &import_to_git_map,
                                                &critical_git_op_map,
                                                arguments.common.jobs);
+    auto tree_id_git_map = CreateTreeIdGitMap(&critical_git_op_map,
+                                              *arguments.common.local_launcher,
+                                              arguments.common.jobs);
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,
                                                     interactive,
@@ -1145,6 +1148,7 @@ void DefaultReachableRepositories(
                                                     &fpath_git_map,
                                                     &content_cas_map,
                                                     &distdir_git_map,
+                                                    &tree_id_git_map,
                                                     arguments.common.jobs);
 
     // set up map for progress tracing
@@ -1421,6 +1425,13 @@ auto main(int argc, char* argv[]) -> int {
         }
         if (arguments.setup.sub_main) {
             arguments.common.main = arguments.setup.sub_main;
+        }
+
+        // check for errors in setting up local launcher arg
+        if (not arguments.common.local_launcher) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to configure local execution.");
+            return kExitGenericFailure;
         }
 
         // Run subcommands known to just and `do`
