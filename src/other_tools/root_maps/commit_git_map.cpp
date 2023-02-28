@@ -32,79 +32,6 @@ namespace {
         });
 }
 
-}  // namespace
-
-/// \brief Create a CommitGitMap object
-auto CreateCommitGitMap(
-    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    JustMR::PathsPtr const& just_mr_paths,
-    std::size_t jobs) -> CommitGitMap {
-    auto commit_to_git = [critical_git_op_map, just_mr_paths](auto ts,
-                                                              auto setter,
-                                                              auto logger,
-                                                              auto /* unused */,
-                                                              auto const& key) {
-        // get root for repo (making sure that if repo is a path, it is
-        // absolute)
-        std::string fetch_repo = key.repo_url;
-        if (GitURLIsPath(fetch_repo)) {
-            fetch_repo = std::filesystem::absolute(fetch_repo).string();
-        }
-        std::filesystem::path repo_root =
-            JustMR::Utils::GetGitRoot(just_mr_paths, fetch_repo);
-        // ensure git repo
-        // define Git operation to be done
-        GitOpKey op_key = {
-            {
-                repo_root,     // target_path
-                "",            // git_hash
-                "",            // branch
-                std::nullopt,  // message
-                not just_mr_paths->git_checkout_locations.contains(
-                    fetch_repo)  // init_bare
-            },
-            GitOpType::ENSURE_INIT};
-        critical_git_op_map->ConsumeAfterKeysReady(
-            ts,
-            {std::move(op_key)},
-            [key, repo_root, critical_git_op_map, ts, setter, logger](
-                auto const& values) {
-                GitOpValue op_result = *values[0];
-                // check flag
-                if (not op_result.result) {
-                    (*logger)("Git init failed",
-                              /*fatal=*/true);
-                    return;
-                }
-                // setup a wrapped_logger
-                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [logger, target_path = repo_root](auto const& msg,
-                                                      bool fatal) {
-                        (*logger)(fmt::format("While ensuring commit for "
-                                              "repository {}:\n{}",
-                                              target_path.string(),
-                                              msg),
-                                  fatal);
-                    });
-                EnsureCommit(key,
-                             repo_root,
-                             op_result.git_cas,
-                             critical_git_op_map,
-                             ts,
-                             setter,
-                             wrapped_logger);
-            },
-            [logger, target_path = repo_root](auto const& msg, bool fatal) {
-                (*logger)(fmt::format("While running critical Git op "
-                                      "ENSURE_INIT for target {}:\n{}",
-                                      target_path.string(),
-                                      msg),
-                          fatal);
-            });
-    };
-    return AsyncMapConsumer<GitRepoInfo, nlohmann::json>(commit_to_git, jobs);
-}
-
 void EnsureCommit(GitRepoInfo const& repo_info,
                   std::filesystem::path const& repo_root,
                   GitCASPtr const& git_cas,
@@ -254,4 +181,77 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         // report cache hit
         JustMRStatistics::Instance().IncrementCacheHitsCounter();
     }
+}
+
+}  // namespace
+
+/// \brief Create a CommitGitMap object
+auto CreateCommitGitMap(
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    JustMR::PathsPtr const& just_mr_paths,
+    std::size_t jobs) -> CommitGitMap {
+    auto commit_to_git = [critical_git_op_map, just_mr_paths](auto ts,
+                                                              auto setter,
+                                                              auto logger,
+                                                              auto /* unused */,
+                                                              auto const& key) {
+        // get root for repo (making sure that if repo is a path, it is
+        // absolute)
+        std::string fetch_repo = key.repo_url;
+        if (GitURLIsPath(fetch_repo)) {
+            fetch_repo = std::filesystem::absolute(fetch_repo).string();
+        }
+        std::filesystem::path repo_root =
+            JustMR::Utils::GetGitRoot(just_mr_paths, fetch_repo);
+        // ensure git repo
+        // define Git operation to be done
+        GitOpKey op_key = {
+            {
+                repo_root,     // target_path
+                "",            // git_hash
+                "",            // branch
+                std::nullopt,  // message
+                not just_mr_paths->git_checkout_locations.contains(
+                    fetch_repo)  // init_bare
+            },
+            GitOpType::ENSURE_INIT};
+        critical_git_op_map->ConsumeAfterKeysReady(
+            ts,
+            {std::move(op_key)},
+            [key, repo_root, critical_git_op_map, ts, setter, logger](
+                auto const& values) {
+                GitOpValue op_result = *values[0];
+                // check flag
+                if (not op_result.result) {
+                    (*logger)("Git init failed",
+                              /*fatal=*/true);
+                    return;
+                }
+                // setup a wrapped_logger
+                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                    [logger, target_path = repo_root](auto const& msg,
+                                                      bool fatal) {
+                        (*logger)(fmt::format("While ensuring commit for "
+                                              "repository {}:\n{}",
+                                              target_path.string(),
+                                              msg),
+                                  fatal);
+                    });
+                EnsureCommit(key,
+                             repo_root,
+                             op_result.git_cas,
+                             critical_git_op_map,
+                             ts,
+                             setter,
+                             wrapped_logger);
+            },
+            [logger, target_path = repo_root](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While running critical Git op "
+                                      "ENSURE_INIT for target {}:\n{}",
+                                      target_path.string(),
+                                      msg),
+                          fatal);
+            });
+    };
+    return AsyncMapConsumer<GitRepoInfo, nlohmann::json>(commit_to_git, jobs);
 }
