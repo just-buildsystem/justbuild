@@ -61,14 +61,4 @@ using ImportToGitMap =
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> ImportToGitMap;
 
-// Helper function
-void KeepCommitAndSetTree(
-    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    std::string const& commit,
-    std::filesystem::path const& target,
-    GitCASPtr const& git_cas,
-    gsl::not_null<TaskSystem*> const& ts,
-    ImportToGitMap::SetterPtr const& setter,
-    ImportToGitMap::LoggerPtr const& logger);
-
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_IMPORT_TO_GIT_MAP_HPP

@@ -19,6 +19,70 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 
+namespace {
+
+void KeepCommitAndSetTree(
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    std::string const& commit,
+    std::filesystem::path const& target_path,
+    GitCASPtr const& git_cas,
+    gsl::not_null<TaskSystem*> const& ts,
+    ImportToGitMap::SetterPtr const& setter,
+    ImportToGitMap::LoggerPtr const& logger) {
+    // Keep tag for commit
+    GitOpKey op_key = {{
+                           JustMR::Utils::GetGitCacheRoot(),  // target_path
+                           commit,                            // git_hash
+                           "",                                // branch
+                           "Keep referenced tree alive"       // message
+                       },
+                       GitOpType::KEEP_TAG};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [commit, target_path, git_cas, setter, logger](auto const& values) {
+            GitOpValue op_result = *values[0];
+            // check flag
+            if (not op_result.result) {
+                (*logger)("Keep tag failed",
+                          /*fatal=*/true);
+                return;
+            }
+            auto git_repo = GitRepoRemote::Open(git_cas);
+            if (not git_repo) {
+                (*logger)(fmt::format("Could not open Git repository {}",
+                                      target_path.string()),
+                          /*fatal=*/true);
+                return;
+            }
+            // get tree id and return it
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger, commit](auto const& msg, bool fatal) {
+                    (*logger)(
+                        fmt::format("While getting subtree from commit {}:\n{}",
+                                    commit,
+                                    msg),
+                        fatal);
+                });
+            auto tree_hash =
+                git_repo->GetSubtreeFromCommit(commit, ".", wrapped_logger);
+            if (not tree_hash) {
+                return;
+            }
+            (*setter)(std::pair<std::string, GitCASPtr>(*tree_hash, git_cas));
+        },
+        [logger, commit, target_path](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While running critical Git op KEEP_TAG for "
+                                  "commit {} in target {}:\n{}",
+                                  commit,
+                                  target_path.string(),
+                                  msg),
+                      fatal);
+        });
+}
+
+}  // namespace
+
 auto CreateImportToGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> ImportToGitMap {
@@ -160,64 +224,4 @@ auto CreateImportToGitMap(
     };
     return AsyncMapConsumer<CommitInfo, std::pair<std::string, GitCASPtr>>(
         import_to_git, jobs);
-}
-
-void KeepCommitAndSetTree(
-    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    std::string const& commit,
-    std::filesystem::path const& target_path,
-    GitCASPtr const& git_cas,
-    gsl::not_null<TaskSystem*> const& ts,
-    ImportToGitMap::SetterPtr const& setter,
-    ImportToGitMap::LoggerPtr const& logger) {
-    // Keep tag for commit
-    GitOpKey op_key = {{
-                           JustMR::Utils::GetGitCacheRoot(),  // target_path
-                           commit,                            // git_hash
-                           "",                                // branch
-                           "Keep referenced tree alive"       // message
-                       },
-                       GitOpType::KEEP_TAG};
-    critical_git_op_map->ConsumeAfterKeysReady(
-        ts,
-        {std::move(op_key)},
-        [commit, target_path, git_cas, setter, logger](auto const& values) {
-            GitOpValue op_result = *values[0];
-            // check flag
-            if (not op_result.result) {
-                (*logger)("Keep tag failed",
-                          /*fatal=*/true);
-                return;
-            }
-            auto git_repo = GitRepoRemote::Open(git_cas);
-            if (not git_repo) {
-                (*logger)(fmt::format("Could not open Git repository {}",
-                                      target_path.string()),
-                          /*fatal=*/true);
-                return;
-            }
-            // get tree id and return it
-            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                [logger, commit](auto const& msg, bool fatal) {
-                    (*logger)(
-                        fmt::format("While getting subtree from commit {}:\n{}",
-                                    commit,
-                                    msg),
-                        fatal);
-                });
-            auto tree_hash =
-                git_repo->GetSubtreeFromCommit(commit, ".", wrapped_logger);
-            if (not tree_hash) {
-                return;
-            }
-            (*setter)(std::pair<std::string, GitCASPtr>(*tree_hash, git_cas));
-        },
-        [logger, commit, target_path](auto const& msg, bool fatal) {
-            (*logger)(fmt::format("While running critical Git op KEEP_TAG for "
-                                  "commit {} in target {}:\n{}",
-                                  commit,
-                                  target_path.string(),
-                                  msg),
-                      fatal);
-        });
 }
