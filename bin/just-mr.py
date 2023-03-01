@@ -560,7 +560,7 @@ def distdir_tree_id_file(content):
     return os.path.join(ROOT, "distfiles-tree-map", content)
 
 
-def distdir_checkout(name, desc, repos): # DEBUG (added name)
+def distdir_checkout(desc, repos):
     """ Logic for processing the distdir repo type.
     """
     content = {}
@@ -650,7 +650,7 @@ def checkout(desc, *, name, repos):
     if repo_type == "file":
         return file_checkout(repo_desc)
     if repo_type == "distdir":
-        return distdir_checkout(name, repo_desc, repos=repos) # DEBUG (added name)
+        return distdir_checkout(repo_desc, repos=repos)
     fail("Unknown repository type %s for %s" % (repo_type, name))
 
 
