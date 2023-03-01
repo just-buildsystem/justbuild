@@ -65,19 +65,28 @@ echo test > "${FILE_ROOT}/test_dir2/test_dir3/test_file"
 echo "Set up local git repo"
 # NOTE: Libgit2 has no support for Git bundles yet
 mkdir -p "${GIT_ROOT}"
+mkdir -p bin
+cat > bin/git_dir_setup.sh <<EOF
+mkdir -p foo/bar
+echo foo > foo.txt
+echo bar > foo/bar.txt
+echo baz > foo/bar/baz.txt
+EOF
+# set up git repo
 (
   cd "${GIT_ROOT}" \
-  && mkdir -p foo/bar \
-  && echo foo > foo.txt \
-  && echo bar > foo/bar.txt \
+  && sh "${SERVER_ROOT}/bin/git_dir_setup.sh" \
   && git init -b test \
   && git config user.email "nobody@example.org" \
   && git config user.name "Nobody" \
   && git add . \
   && git commit -m "test" --date="1970-01-01T00:00Z"
 )
-# the root commit ID is known -- see git_repo.test.cpp
 readonly GIT_REPO_COMMIT="$(cd "${GIT_ROOT}" && git rev-parse HEAD)"
+
+echo "Set up git tree repo"
+# get tree id; only the content of the directory structure matters
+readonly GIT_TREE_ID="$(cd "${GIT_ROOT}" && git ls-tree "${GIT_REPO_COMMIT}" foo/bar | awk '{print $3}')"
 
 echo "Publish remote repos to HTTP server"
 # start Python server as remote repos location
@@ -134,6 +143,13 @@ cat > test-repos.json <<EOF
       , "branch": "test"
       , "commit": "${GIT_REPO_COMMIT}"
       , "subdir": "foo"
+      }
+    }
+  , "git_tree_repo":
+    { "repository":
+      { "type": "git tree"
+      , "id": "${GIT_TREE_ID}"
+      , "cmd": ["sh", "${SERVER_ROOT}/bin/git_dir_setup.sh"]
       }
     }
   , "file_repo1":
