@@ -51,7 +51,7 @@ struct LogArguments {
 /// \brief Arguments required for analysing targets.
 struct AnalysisArguments {
     std::optional<std::size_t> expression_log_limit{};
-    std::string defines{};
+    std::vector<std::string> defines{};
     std::filesystem::path config_file{};
     std::optional<nlohmann::json> target{};
     std::optional<std::string> request_action_input{};
@@ -218,12 +218,14 @@ static inline auto SetupAnalysisArguments(
                                 "in error messages (Default {})",
                                 Evaluator::kDefaultExpressionLogLimit))
         ->type_name("NUM");
-    app->add_option(
+    app->add_option_function<std::string>(
            "-D,--defines",
-           clargs->defines,
+           [clargs](auto const& d) { clargs->defines.emplace_back(d); },
            "Define an overlay configuration via an in-line JSON object."
-           "Latest wins.")
-        ->type_name("JSON");
+           " Multiple options overlay.")
+        ->type_name("JSON")
+        ->trigger_on_parse();  // run callback on all instances while parsing,
+                               // not after all parsing is done
     app->add_option(
            "-c,--config", clargs->config_file, "Path to configuration file.")
         ->type_name("PATH");

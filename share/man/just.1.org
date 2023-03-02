@@ -292,7 +292,8 @@ the original remote build execution protocol.
    Defines, via an in-line JSON object a configuration to overlay
    (in the sense of ~map_union~) to the configuration
    obtained by the *--config* option. If *-D* is given several times,
-   only the latest *-D* option is taken.\\
+   the *-D* options overlay in the order they are given on the command
+   line.\\
    Supported by: analyse|build|describe|install|rebuild.
 
    *--request-action-input* ACTION\\

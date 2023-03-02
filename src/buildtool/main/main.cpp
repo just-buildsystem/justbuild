@@ -487,21 +487,20 @@ void SetupHashFunction() {
         }
     }
 
-    if (not clargs.defines.empty()) {
+    for (auto const& s : clargs.defines) {
         try {
-            auto map =
-                Expression::FromJson(nlohmann::json::parse(clargs.defines));
+            auto map = Expression::FromJson(nlohmann::json::parse(s));
             if (not map->IsMap()) {
                 Logger::Log(LogLevel::Error,
-                            "Defines {} does not contain a map.",
-                            clargs.defines);
+                            "Defines entry {} does not contain a map.",
+                            nlohmann::json(s).dump());
                 std::exit(kExitFailure);
             }
             config = config.Update(map);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
-                        "Parsing defines {} failed with error:\n{}",
-                        clargs.defines,
+                        "Parsing defines entry {} failed with error:\n{}",
+                        nlohmann::json(s).dump(),
                         e.what());
             std::exit(kExitFailure);
         }

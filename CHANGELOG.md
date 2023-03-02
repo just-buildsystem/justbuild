@@ -12,6 +12,12 @@ A feature release on top of `1.0.0`, backwards compatible.
   and mutual TLS
 - `just-mr` is now available as C++ binary and supports fetching in parallel
 
+### Important changes
+
+- The option `-D` now accumulates instead of ignoring all but the
+  latest occurence. This is an incompatible change of the command
+  line, but not affecting the backwards compatibility of the build.
+
 ### Other changes
 
 - `just analyse` now supports a new option `--dump-export-targets`
