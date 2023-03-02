@@ -1110,7 +1110,7 @@ void DefaultReachableRepositories(
     // report progress
     auto nr = repos_to_report->size();
     Logger::Log(LogLevel::Info,
-                "Found {} {} to check out",
+                "Found {} {} to set up",
                 nr,
                 nr == 1 ? "repository" : "repositories");
 
