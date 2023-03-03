@@ -74,7 +74,7 @@ class Artifact {
             if (not(iss.get() == '[') or not std::getline(iss, id, ':') or
                 not std::getline(iss, size_str, ':') or
                 not std::getline(iss, type, ']')) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Debug,
                             "failed parsing object info from string.");
                 return std::nullopt;
             }
@@ -85,10 +85,10 @@ class Artifact {
                     ArtifactDigest{id, size, IsTreeObject(object_type)},
                     object_type};
             } catch (std::out_of_range const& e) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Debug,
                             "size raised out_of_range exception.");
             } catch (std::invalid_argument const& e) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Debug,
                             "size raised invalid_argument exception.");
             }
             return std::nullopt;
