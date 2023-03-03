@@ -137,6 +137,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         ::bazel_re::ExecuteResponse* response,
         IExecutionResponse::Ptr const& i_execution_response,
         std::string const& hash) const noexcept -> std::optional<std::string>;
+
     LocalStorage storage_{};
     IExecutionApi::Ptr api_{new LocalApi()};
     Logger logger_{"execution-service"};

@@ -11,10 +11,11 @@
     , ["src/buildtool/common", "bazel_types"]
     ]
   , "private-deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/execution_api/local", "garbage_collector"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }
 , "ac_server":
