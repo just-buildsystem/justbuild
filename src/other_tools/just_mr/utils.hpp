@@ -52,14 +52,14 @@ struct JustSubCmdFlags {
 
 // ordered, so that we have replicability
 std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
-    {"version", {false, false}},
-    {"describe", {true, false}},
-    {"analyse", {true, true}},
-    {"build", {true, true}},
-    {"install", {true, true}},
-    {"rebuild", {true, true}},
-    {"install-cas", {false, true}},
-    {"gc", {false, true}}};
+    {"version", {false /*config*/, false /*build_root*/}},
+    {"describe", {true /*config*/, false /*build_root*/}},
+    {"analyse", {true /*config*/, true /*build_root*/}},
+    {"build", {true /*config*/, true /*build_root*/}},
+    {"install", {true /*config*/, true /*build_root*/}},
+    {"rebuild", {true /*config*/, true /*build_root*/}},
+    {"install-cas", {false /*config*/, true /*build_root*/}},
+    {"gc", {false /*config*/, true /*build_root*/}}};
 
 nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
     {{{"root", "workspace"}, {"path", "repos.json"}},
