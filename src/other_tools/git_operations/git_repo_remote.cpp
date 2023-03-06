@@ -378,8 +378,8 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     try {
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
-            (*logger)("WARNING: commit update called on a real repository!\n",
-                      false /*fatal*/);
+            Logger::Log(LogLevel::Debug,
+                        "Commit update called on a real repository");
         }
         // create the temporary real repository
         auto tmp_repo =
@@ -422,8 +422,8 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
     try {
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
-            (*logger)("WARNING: branch fetch called on a real repository!\n",
-                      false /*fatal*/);
+            Logger::Log(LogLevel::Debug,
+                        "Branch fetch called on a real repository");
         }
         // create the temporary real repository
         // it can be bare, as the refspecs for this fetch will be given

@@ -653,10 +653,9 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
     try {
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
-            (*logger)(
-                "WARNING: subtree id retrieval from commit called on a real "
-                "repository!\n",
-                false /*fatal*/);
+            Logger::Log(
+                LogLevel::Debug,
+                "Subtree id retrieval from commit called on a real repository");
         }
         // get commit object
         git_oid commit_oid;
@@ -750,10 +749,9 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
         if (subdir != ".") {
             // preferably with a "fake" repository!
             if (not IsRepoFake()) {
-                (*logger)(
-                    "WARNING: subtree id retrieval from tree called on a real "
-                    "repository!\n",
-                    false /*fatal*/);
+                Logger::Log(LogLevel::Debug,
+                            "Subtree id retrieval from tree called on a real "
+                            "repository");
             }
             // get tree object from tree id
             git_oid tree_oid;
@@ -827,10 +825,9 @@ auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
     try {
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
-            (*logger)(
-                "WARNING: subtree id retrieval from path called on a real "
-                "repository!\n",
-                false /*fatal*/);
+            Logger::Log(
+                LogLevel::Debug,
+                "Subtree id retrieval from path called on a real repository");
         }
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<anon_logger_t>(
@@ -875,8 +872,8 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
     try {
         // preferably with a "fake" repository!
         if (not IsRepoFake()) {
-            (*logger)("WARNING: commit lookup called on a real repository!\n",
-                      false /*fatal*/);
+            Logger::Log(LogLevel::Debug,
+                        "Commit lookup called on a real repository");
         }
         // lookup commit in current repo state
         git_oid commit_oid;
