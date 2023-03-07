@@ -25,9 +25,11 @@ namespace {
 
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// Returns the content.
-[[nodiscard]] auto NetworkFetch(std::string const& fetch_url) noexcept
+[[nodiscard]] auto NetworkFetch(std::string const& fetch_url,
+                                JustMR::CAInfoPtr const& ca_info) noexcept
     -> std::optional<std::string> {
-    auto curl_handle = CurlEasyHandle::Create();
+    auto curl_handle =
+        CurlEasyHandle::Create(ca_info->no_ssl_verify, ca_info->ca_bundle);
     if (not curl_handle) {
         return std::nullopt;
     }
@@ -46,12 +48,13 @@ template <Hasher::HashType type>
 }  // namespace
 
 auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
+                         JustMR::CAInfoPtr const& ca_info,
                          std::size_t jobs) -> ContentCASMap {
-    auto ensure_in_cas = [just_mr_paths](auto /*unused*/,
-                                         auto setter,
-                                         auto logger,
-                                         auto /*unused*/,
-                                         auto const& key) {
+    auto ensure_in_cas = [just_mr_paths, ca_info](auto /*unused*/,
+                                                  auto setter,
+                                                  auto logger,
+                                                  auto /*unused*/,
+                                                  auto const& key) {
         // start work reporting, but only if part of a distdir
         if (key.origin_from_distdir) {
             JustMRProgress::Instance().TaskTracker().Start(key.origin);
@@ -83,7 +86,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             return;
         }
         // now do the actual fetch
-        auto data = NetworkFetch(key.fetch_url);
+        auto data = NetworkFetch(key.fetch_url, ca_info);
         if (data == std::nullopt) {
             (*logger)(fmt::format("Failed to fetch a file with id {} from {}",
                                   key.content,

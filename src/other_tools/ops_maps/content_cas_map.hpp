@@ -53,6 +53,7 @@ struct ArchiveRepoInfo {
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
 
 [[nodiscard]] auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
+                                       JustMR::CAInfoPtr const& ca_info,
                                        std::size_t jobs) -> ContentCASMap;
 
 namespace std {

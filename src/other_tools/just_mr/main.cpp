@@ -794,6 +794,7 @@ void DefaultReachableRepositories(
 
     // create async maps
     auto content_cas_map = CreateContentCASMap(arguments.common.just_mr_paths,
+                                               arguments.common.ca_info,
                                                arguments.common.jobs);
     auto repo_fetch_map =
         CreateRepoFetchMap(&content_cas_map, *fetch_dir, arguments.common.jobs);
@@ -1118,6 +1119,7 @@ void DefaultReachableRepositories(
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
     auto content_cas_map = CreateContentCASMap(arguments.common.just_mr_paths,
+                                               arguments.common.ca_info,
                                                arguments.common.jobs);
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map, arguments.common.jobs);
