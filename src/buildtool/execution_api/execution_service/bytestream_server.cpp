@@ -53,30 +53,28 @@ auto BytestreamServiceImpl::Read(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    std::optional<std::filesystem::path> path{};
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
+
+    std::optional<std::filesystem::path> path{};
+
     if (NativeSupport::IsTree(*hash)) {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
         path = storage_.TreePath(static_cast<bazel_re::Digest>(dgst));
-        if (!path) {
-            auto str = fmt::format("could not find {}", *hash);
-            logger_.Emit(LogLevel::Error, str);
-            return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, str};
-        }
     }
-    ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, false};
-    path = storage_.BlobPath(static_cast<bazel_re::Digest>(dgst), false);
+    else {
+        ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, false};
+        path = storage_.BlobPath(static_cast<bazel_re::Digest>(dgst), false);
+    }
     if (!path) {
         auto str = fmt::format("could not find {}", *hash);
         logger_.Emit(LogLevel::Error, str);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, str};
     }
-
     std::ifstream blob{*path};
 
     ::google::bytestream::ReadResponse response;
