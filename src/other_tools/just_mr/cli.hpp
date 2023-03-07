@@ -92,16 +92,16 @@ static inline void SetupMultiRepoCommonArguments(
            "Root for CAS, repository space, etc.")
         ->type_name("PATH");
     app->add_option_function<std::string>(
-           "-L",
+           "--checkout-locations",
            [clargs](auto const& checkout_locations_raw) {
                clargs->checkout_locations_file =
                    std::filesystem::weakly_canonical(
                        std::filesystem::absolute(checkout_locations_raw));
            },
            "Specification file for checkout locations.")
-        ->type_name("CHECKOUT_LOCATION");
+        ->type_name("CHECKOUT_LOCATIONS");
     app->add_option_function<std::string>(
-           "--local-launcher",
+           "-L, --local-launcher",
            [clargs](auto const& launcher_raw) {
                clargs->local_launcher =
                    nlohmann::json::parse(launcher_raw)

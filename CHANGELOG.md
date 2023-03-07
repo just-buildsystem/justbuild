@@ -18,6 +18,12 @@ A feature release on top of `1.0.0`, backwards compatible.
   latest occurrence. This is an incompatible change of the command
   line, but not affecting the backwards compatibility of the build.
 
+- The option `-L` of `just-mr` now is an alternative name for option
+  `--local-launcher` instead of `--checkout-locations`, and thus
+  matching its meaning in `just`. This is an incompatible change of
+  the command line, but not affecting the backwards compatibility of
+  the build.
+
 ### Other changes
 
 - `just analyse` now supports a new option `--dump-export-targets`

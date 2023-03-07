@@ -928,7 +928,7 @@ def main():
                         dest="repository_config",
                         help="Repository-description file to use",
                         metavar="FILE")
-    parser.add_argument("-L",
+    parser.add_argument("--checkout-locations",
                         dest="checkout_location",
                         help="Specification file for checkout locations")
     parser.add_argument("--local-build-root",
