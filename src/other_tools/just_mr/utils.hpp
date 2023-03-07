@@ -115,7 +115,13 @@ struct Paths {
     std::vector<std::filesystem::path> distdirs{};
 };
 
+struct CAInfo {
+    bool no_ssl_verify{false};
+    std::optional<std::filesystem::path> ca_bundle{std::nullopt};
+};
+
 using PathsPtr = std::shared_ptr<JustMR::Paths>;
+using CAInfoPtr = std::shared_ptr<JustMR::CAInfo>;
 
 namespace Utils {
 

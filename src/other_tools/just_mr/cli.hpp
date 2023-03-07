@@ -38,6 +38,7 @@ struct MultiRepoCommonArguments {
     std::vector<std::string> explicit_distdirs{};
     JustMR::PathsPtr just_mr_paths = std::make_shared<JustMR::Paths>();
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
+    JustMR::CAInfoPtr ca_info = std::make_shared<JustMR::CAInfo>();
     std::optional<std::filesystem::path> just_path{std::nullopt};
     std::optional<std::string> main{std::nullopt};
     std::optional<std::filesystem::path> rc_path{std::nullopt};
@@ -123,6 +124,19 @@ static inline void SetupMultiRepoCommonArguments(
         ->type_name("PATH")
         ->trigger_on_parse();  // run callback on all instances while parsing,
                                // not after all parsing is done
+    app->add_flag("--no-fetch-ssl-verify",
+                  clargs->ca_info->no_ssl_verify,
+                  "Do not perform SSL verification when fetching archives from "
+                  "remote.");
+    app->add_option_function<std::string>(
+           "--fetch-cacert",
+           [clargs](auto const& cacert_raw) {
+               clargs->ca_info->ca_bundle = std::filesystem::weakly_canonical(
+                   std::filesystem::absolute(cacert_raw));
+           },
+           "CA certificate bundle to use for SSL verification when fetching "
+           "archives from remote.")
+        ->type_name("CA_BUNDLE");
     app->add_option("--just", clargs->just_path, "Path to the just binary.")
         ->type_name("PATH");
     app->add_option("--main",
