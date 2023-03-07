@@ -15,7 +15,7 @@ A feature release on top of `1.0.0`, backwards compatible.
 ### Important changes
 
 - The option `-D` now accumulates instead of ignoring all but the
-  latest occurence. This is an incompatible change of the command
+  latest occurrence. This is an incompatible change of the command
   line, but not affecting the backwards compatibility of the build.
 
 ### Other changes
@@ -26,7 +26,7 @@ A feature release on top of `1.0.0`, backwards compatible.
 
 Initial stable release.
 
-### Important changes sice `1.0.0~beta6`
+### Important changes since `1.0.0~beta6`
 
 - built-in rule "tree" added
 - clean up of user-defined rules for C++
@@ -36,7 +36,7 @@ Initial stable release.
 
 ### Important changes since `1.0.0~beta5`
 
-- The "confgiure" built-in rule now evaluates "target". Also,
+- The "configure" built-in rule now evaluates "target". Also,
   a bug in the computation of the effective configuration
   was fixed.
 - Option `--dump-vars` added to `just analyse`
