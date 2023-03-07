@@ -79,7 +79,7 @@ See *just-mr-repository-config(5)* for more details on the input format.
    *--plain-log*\\
    Do not use ANSI escape sequences to highlight messages.
 
-   *--log_append*\\
+   *--log-append*\\
    Append messages to log file instead of overwriting existing.
 
    *--just* PATH\\
