@@ -20,6 +20,10 @@ readonly JUST="${PWD}/bin/tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly TOOLS_DIR="${TEST_TMPDIR}/tools"
 readonly OUT="${TEST_TMPDIR}/out"
+BUILD_ARGS="--local-build-root ${LBR}"
+if [ -n "${COMPATIBLE:-}" ]; then
+  BUILD_ARGS="$BUILD_ARGS --compatible"
+fi
 
 # Have tools in the "outside environment" to later demonstrate
 # that the action was _not_ rerun.
@@ -64,14 +68,14 @@ EOF
 cat TARGETS
 
 # Build to fill the cache
-"${JUST}" build --local-build-root "${LBR}" \
+"${JUST}" build ${BUILD_ARGS} \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 
 # Demonstrate that from now on, we don't build anything any more
 rm -rf "${TOOLS_DIR}"
 
 # Verify the large file is in cache
-"${JUST}" install --local-build-root "${LBR}" -o "${OUT}/out-large" \
+"${JUST}" install ${BUILD_ARGS} -o "${OUT}/out-large" \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' large 2>&1
 wc -c "${OUT}/out-large/out.txt"
 test $(cat "${OUT}/out-large/out.txt" | wc -c) -gt 100000
@@ -80,7 +84,7 @@ test $(cat "${OUT}/out-large/out.txt" | wc -c) -gt 100000
 "${JUST}" gc --local-build-root "${LBR}" 2>&1
 
 # Use the tree
-"${JUST}" build --local-build-root "${LBR}" \
+"${JUST}" build ${BUILD_ARGS} \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' tree 2>&1
 
 # collect garbage again
@@ -92,7 +96,7 @@ wc -c "${OUT}/root.tar"
 test $(cat "${OUT}/root.tar" | wc -c) -lt 100000
 
 # Verify that the tree is fully in cache
-"${JUST}" install --local-build-root "${LBR}" -o "${OUT}/out-tree" \
+"${JUST}" install ${BUILD_ARGS} -o "${OUT}/out-tree" \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' tree 2>&1
 ls -R "${OUT}/out-tree"
 test -f "${OUT}/out-tree/out/hello/world/tree/hello.txt"
