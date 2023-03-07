@@ -87,6 +87,14 @@ See *just-mr-repository-config(5)* for more details on the input format.
    *--log-append*\\
    Append messages to log file instead of overwriting existing.
 
+   *--no-fetch-ssl-verify*\\
+   Disable the default peer SSL certificate verification step when fetching
+   archives (for which we verify the hash anyway) from remote.
+
+   *--fetch-cacert* PATH\\
+   Path to the CA certificate bundle containing one or more certificates to be
+   used to peer verify archive fetches from remote.
+
    *--just* PATH\\
    Name of the just binary in ~PATH~ or path to the just binary.\\
    Default: ~"just"~.\\
