@@ -37,6 +37,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> checkout_locations_file{std::nullopt};
     std::vector<std::string> explicit_distdirs{};
     JustMR::PathsPtr just_mr_paths = std::make_shared<JustMR::Paths>();
+    std::optional<std::vector<std::string>> local_launcher{std::nullopt};
     std::optional<std::filesystem::path> just_path{std::nullopt};
     std::optional<std::string> main{std::nullopt};
     std::optional<std::filesystem::path> rc_path{std::nullopt};
@@ -99,6 +100,18 @@ static inline void SetupMultiRepoCommonArguments(
            },
            "Specification file for checkout locations.")
         ->type_name("CHECKOUT_LOCATION");
+    app->add_option_function<std::string>(
+           "--local-launcher",
+           [clargs](auto const& launcher_raw) {
+               clargs->local_launcher =
+                   nlohmann::json::parse(launcher_raw)
+                       .template get<std::vector<std::string>>();
+           },
+           "JSON array with the list of strings representing the launcher to "
+           "prepend actions' commands before being executed locally.")
+        ->type_name("JSON")
+        ->run_callback_for_default()
+        ->default_val(nlohmann::json{"env", "--"}.dump());
     app->add_option_function<std::string>(
            "--distdir",
            [clargs](auto const& distdir_raw) {

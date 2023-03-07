@@ -1241,6 +1241,7 @@ void DefaultReachableRepositories(
 
     bool use_config{false};
     bool use_build_root{false};
+    bool use_launcher{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
@@ -1256,6 +1257,7 @@ void DefaultReachableRepositories(
             }
         }
         use_build_root = kKnownJustSubcommands.at(*subcommand).build_root;
+        use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
     }
     // build just command
     std::vector<std::string> cmd = {arguments.common.just_path->string()};
@@ -1269,6 +1271,12 @@ void DefaultReachableRepositories(
     if (use_build_root and forward_build_root) {
         cmd.emplace_back("--local-build-root");
         cmd.emplace_back(*arguments.common.just_mr_paths->root);
+    }
+    if (use_launcher and arguments.common.local_launcher and
+        not arguments.common.local_launcher->empty()) {
+        cmd.emplace_back("--local-launcher");
+        cmd.emplace_back(
+            nlohmann::json(*arguments.common.local_launcher).dump());
     }
     // forward logging arguments
     if (not arguments.log.log_files.empty()) {
