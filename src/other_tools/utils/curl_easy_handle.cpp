@@ -48,6 +48,13 @@ auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
 }  // namespace
 
 auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
+    return Create(false, std::nullopt);
+}
+
+auto CurlEasyHandle::Create(
+    bool no_ssl_verify,
+    std::optional<std::filesystem::path> const& ca_bundle) noexcept
+    -> std::shared_ptr<CurlEasyHandle> {
     try {
         auto curl = std::make_shared<CurlEasyHandle>();
         auto* handle = curl_easy_init();
@@ -55,6 +62,9 @@ auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
             return nullptr;
         }
         curl->handle_.reset(handle);
+        // store CA info
+        curl->no_ssl_verify_ = no_ssl_verify;
+        curl->ca_bundle_ = ca_bundle;
         return curl;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
@@ -113,6 +123,17 @@ auto CurlEasyHandle::DownloadToFile(
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_STDERR, tmp_file);
+
+        // set SSL options
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(),
+                         CURLOPT_SSL_VERIFYPEER,
+                         static_cast<int>(not no_ssl_verify_));
+        if (ca_bundle_) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+            curl_easy_setopt(
+                handle_.get(), CURLOPT_CAINFO, ca_bundle_->c_str());
+        }
 
         // perform download
         auto res = curl_easy_perform(handle_.get());
@@ -181,6 +202,17 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
 
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_STDERR, tmp_file);
+
+        // set SSL options
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(),
+                         CURLOPT_SSL_VERIFYPEER,
+                         static_cast<int>(not no_ssl_verify_));
+        if (ca_bundle_) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+            curl_easy_setopt(
+                handle_.get(), CURLOPT_CAINFO, ca_bundle_->c_str());
+        }
 
         // perform download
         auto res = curl_easy_perform(handle_.get());

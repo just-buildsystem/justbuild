@@ -49,6 +49,12 @@ class CurlEasyHandle {
     [[nodiscard]] auto static Create() noexcept
         -> std::shared_ptr<CurlEasyHandle>;
 
+    /// \brief Create a CurlEasyHandle object with non-default CA info
+    [[nodiscard]] auto static Create(
+        bool no_ssl_verify,
+        std::optional<std::filesystem::path> const& ca_bundle) noexcept
+        -> std::shared_ptr<CurlEasyHandle>;
+
     /// \brief Download file from URL into given file_path.
     /// Will perform cleanup (i.e., remove empty file) in case download fails.
     /// Returns 0 if successful.
@@ -67,6 +73,9 @@ class CurlEasyHandle {
     std::unique_ptr<CURL, decltype(&curl_easy_closer)> handle_{
         nullptr,
         curl_easy_closer};
+
+    bool no_ssl_verify_{false};
+    std::optional<std::filesystem::path> ca_bundle_{std::nullopt};
 
     /// \brief Overwrites write_callback to redirect to file instead of stdout.
     [[nodiscard]] auto static EasyWriteToFile(gsl::owner<char*> data,
