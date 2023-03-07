@@ -54,10 +54,6 @@ class GarbageCollector {
                                          std::string const& id) noexcept
         -> bool;
 
-    [[nodiscard]] auto static UplinkBazelTree(int index,
-                                              std::string const& id) noexcept
-        -> bool;
-
     [[nodiscard]] auto static UplinkBazelDirectory(
         int index,
         std::string const& id) noexcept -> bool;

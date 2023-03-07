@@ -234,59 +234,6 @@ auto GarbageCollector::UplinkTree(int index, std::string const& id) noexcept
     return true;
 }
 
-auto GarbageCollector::UplinkBazelTree(int index,
-                                       std::string const& id) noexcept -> bool {
-    // Determine bazel tree path of given generation.
-    auto root = LocalExecutionConfig::CASDir<ObjectType::File>(index);
-    auto tree_path = GetStoragePath(root, id);
-    if (not FileSystemManager::IsFile(tree_path)) {
-        return false;
-    }
-
-    // Determine bazel tree entries.
-    auto content = FileSystemManager::ReadFile(tree_path);
-    bazel_re::Tree tree{};
-    if (not tree.ParseFromString(*content)) {
-        return false;
-    }
-
-    // Uplink bazel tree entries.
-    auto dir = tree.root();
-    for (auto const& file : dir.files()) {
-        if (not UplinkBlob(index,
-                           NativeSupport::Unprefix(file.digest().hash()),
-                           file.is_executable())) {
-            return false;
-        }
-    }
-    for (auto const& directory : dir.directories()) {
-        if (not UplinkBazelDirectory(
-                index, NativeSupport::Unprefix(directory.digest().hash()))) {
-            return false;
-        }
-    }
-
-    // Determine bazel tree path in latest generation.
-    auto root_latest = LocalExecutionConfig::CASDir<ObjectType::File>(0);
-    auto tree_path_latest = GetStoragePath(root_latest, id);
-
-    // Uplink bazel tree from older generation to the latest generation.
-    if (not FileSystemManager::IsFile(tree_path_latest)) {
-        if (not FileSystemManager::CreateDirectory(
-                tree_path_latest.parent_path())) {
-            return false;
-        }
-        if (not FileSystemManager::CreateFileHardlink(
-                tree_path,
-                tree_path_latest,
-                /*log_failure_at=*/LogLevel::Debug) and
-            not FileSystemManager::IsFile(tree_path_latest)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 // NOLINTNEXTLINE(misc-no-recursion)
 auto GarbageCollector::UplinkBazelDirectory(int index,
                                             std::string const& id) noexcept
@@ -414,7 +361,7 @@ auto GarbageCollector::UplinkActionCacheEntryBlob(
     }
     for (auto const& directory : result.output_directories()) {
         if (Compatibility::IsCompatible()) {
-            if (not UplinkBazelTree(
+            if (not UplinkBazelDirectory(
                     index,
                     NativeSupport::Unprefix(directory.tree_digest().hash()))) {
                 return false;
