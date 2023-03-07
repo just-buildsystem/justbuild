@@ -96,7 +96,6 @@
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/execution_api/common", "common"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   , "private-deps":

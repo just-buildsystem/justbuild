@@ -1209,24 +1209,27 @@ void WriteTargetCacheEntries(
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api) {
     auto ts = TaskSystem{jobs};
-    TargetCache::Instance().SetLocalApi(local_api);
-    TargetCache::Instance().SetRemoteApi(remote_api);
+    auto downloader = [&local_api, &remote_api](auto infos) {
+        return remote_api->RetrieveToCas(infos, local_api);
+    };
     for (auto const& [key, target] : cache_targets) {
-        ts.QueueTask([&key = key, &target = target, &extra_infos]() {
-            if (auto entry =
-                    TargetCacheEntry::FromTarget(target, extra_infos)) {
-                if (not TargetCache::Instance().Store(key, *entry)) {
+        ts.QueueTask(
+            [&key = key, &target = target, &extra_infos, &downloader]() {
+                if (auto entry =
+                        TargetCacheEntry::FromTarget(target, extra_infos)) {
+                    if (not TargetCache::Instance().Store(
+                            key, *entry, downloader)) {
+                        Logger::Log(LogLevel::Warning,
+                                    "Failed writing target cache entry for {}",
+                                    key.Id().ToString());
+                    }
+                }
+                else {
                     Logger::Log(LogLevel::Warning,
-                                "Failed writing target cache entry for {}",
+                                "Failed creating target cache entry for {}",
                                 key.Id().ToString());
                 }
-            }
-            else {
-                Logger::Log(LogLevel::Warning,
-                            "Failed creating target cache entry for {}",
-                            key.Id().ToString());
-            }
-        });
+            });
     }
 }
 #endif

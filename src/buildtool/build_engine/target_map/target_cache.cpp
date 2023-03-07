@@ -28,11 +28,13 @@
 #endif
 
 auto TargetCache::Store(TargetCacheKey const& key,
-                        TargetCacheEntry const& value) const noexcept -> bool {
+                        TargetCacheEntry const& value,
+                        ArtifactDownloader const& downloader) const noexcept
+    -> bool {
     // Before a target-cache entry is stored in local CAS, make sure any created
     // artifact for this target is downloaded from the remote CAS to the local
     // CAS.
-    if (not DownloadKnownArtifacts(value)) {
+    if (not DownloadKnownArtifacts(value, downloader)) {
         return false;
     }
     if (auto digest = CAS().StoreBlobFromBytes(value.ToJson().dump(2))) {
@@ -89,17 +91,11 @@ auto TargetCache::Read(TargetCacheKey const& key) const noexcept
 }
 
 auto TargetCache::DownloadKnownArtifacts(
-    TargetCacheEntry const& value) const noexcept -> bool {
+    TargetCacheEntry const& value,
+    ArtifactDownloader const& downloader) const noexcept -> bool {
     std::vector<Artifact::ObjectInfo> artifacts_info;
-    if (not value.ToArtifacts(&artifacts_info)) {
-        return false;
-    }
-#ifndef BOOTSTRAP_BUILD_TOOL
-    // Sync KNOWN artifacts from remote to local CAS.
-    return remote_api_->RetrieveToCas(artifacts_info, local_api_);
-#else
-    return true;
-#endif
+    return downloader and value.ToArtifacts(&artifacts_info) and
+           downloader(artifacts_info);
 }
 
 auto TargetCache::ComputeCacheDir(int index) -> std::filesystem::path {

@@ -30,12 +30,12 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/execution_api/common/execution_api.hpp"
-#endif
 
 class TargetCache {
   public:
+    using ArtifactDownloader =
+        std::function<bool(std::vector<Artifact::ObjectInfo> const&)>;
+
     TargetCache() = default;
     TargetCache(TargetCache const&) = delete;
     TargetCache(TargetCache&&) = delete;
@@ -49,25 +49,14 @@ class TargetCache {
     }
 
     // Store new key entry pair in the target cache.
-    [[nodiscard]] auto Store(TargetCacheKey const& key,
-                             TargetCacheEntry const& value) const noexcept
-        -> bool;
+    [[nodiscard]] auto Store(
+        TargetCacheKey const& key,
+        TargetCacheEntry const& value,
+        ArtifactDownloader const& downloader) const noexcept -> bool;
 
     // Read existing entry and object info for given key from the target cache.
     [[nodiscard]] auto Read(TargetCacheKey const& key) const noexcept
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-    auto SetLocalApi(gsl::not_null<IExecutionApi*> const& api) noexcept
-        -> void {
-        local_api_ = api;
-    };
-
-    auto SetRemoteApi(gsl::not_null<IExecutionApi*> const& api) noexcept
-        -> void {
-        remote_api_ = api;
-    };
-#endif
 
   private:
     Logger logger_{"TargetCache"};
@@ -75,13 +64,10 @@ class TargetCache {
                 StoreMode::LastWins,
                 /*kSetEpochTime=*/false>
         file_store_{ComputeCacheDir(0)};
-#ifndef BOOTSTRAP_BUILD_TOOL
-    IExecutionApi* local_api_{};
-    IExecutionApi* remote_api_{};
-#endif
 
     [[nodiscard]] auto DownloadKnownArtifacts(
-        TargetCacheEntry const& value) const noexcept -> bool;
+        TargetCacheEntry const& value,
+        ArtifactDownloader const& downloader) const noexcept -> bool;
     [[nodiscard]] static auto CAS() noexcept -> LocalCAS<ObjectType::File>& {
         return LocalCAS<ObjectType::File>::Instance();
     }
