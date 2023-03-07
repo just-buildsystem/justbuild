@@ -26,7 +26,8 @@
 class TargetCacheKey {
   public:
     [[nodiscard]] static auto Create(
-        BuildMaps::Base::EntityName const& target,
+        std::string const& repo_key,
+        BuildMaps::Base::NamedTarget const& target_name,
         Configuration const& effective_config) noexcept
         -> std::optional<TargetCacheKey>;
 

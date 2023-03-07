@@ -77,6 +77,18 @@ void FinalizeExport(
                                       true);
     (*setter)(std::move(analysis_result));
 }
+
+[[nodiscard]] auto ComputeTargetCacheKey(
+    BuildMaps::Base::EntityName const& exported_target,
+    Configuration const& target_config) -> std::optional<TargetCacheKey> {
+    static auto const& repos = RepositoryConfig::Instance();
+    auto const& target_name = exported_target.GetNamedTarget();
+    if (auto repo_key = repos.RepositoryKey(target_name.repository)) {
+        return TargetCacheKey::Create(*repo_key, target_name, target_config);
+    }
+    return std::nullopt;
+}
+
 }  // namespace
 
 void ExportRule(
@@ -130,7 +142,7 @@ void ExportRule(
     auto target_config = effective_config.Update(fixed_config);
 
     auto target_cache_key =
-        TargetCacheKey::Create(*exported_target, target_config);
+        ComputeTargetCacheKey(*exported_target, target_config);
     if (target_cache_key) {
         if (auto target_cache_value =
                 TargetCache::Instance().Read(*target_cache_key)) {

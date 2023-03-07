@@ -19,30 +19,26 @@
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/local_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-auto TargetCacheKey::Create(BuildMaps::Base::EntityName const& target,
+auto TargetCacheKey::Create(std::string const& repo_key,
+                            BuildMaps::Base::NamedTarget const& target_name,
                             Configuration const& effective_config) noexcept
     -> std::optional<TargetCacheKey> {
-    static auto const& repos = RepositoryConfig::Instance();
     try {
-        if (auto repo_key =
-                repos.RepositoryKey(target.GetNamedTarget().repository)) {
-            // target's repository is content-fixed, we can compute a cache key
-            auto const& name = target.GetNamedTarget();
-            auto target_desc = nlohmann::json{
-                {{"repo_key", *repo_key},
-                 {"target_name", nlohmann::json{name.module, name.name}.dump()},
-                 {"effective_config", effective_config.ToString()}}};
-            static auto const& cas = LocalCAS<ObjectType::File>::Instance();
-            if (auto target_key = cas.StoreBlobFromBytes(target_desc.dump(2))) {
-                return TargetCacheKey{
-                    {ArtifactDigest{*target_key}, ObjectType::File}};
-            }
+        // target's repository is content-fixed, we can compute a cache key
+        auto target_desc = nlohmann::json{
+            {{"repo_key", repo_key},
+             {"target_name",
+              nlohmann::json{target_name.module, target_name.name}.dump()},
+             {"effective_config", effective_config.ToString()}}};
+        static auto const& cas = LocalCAS<ObjectType::File>::Instance();
+        if (auto target_key = cas.StoreBlobFromBytes(target_desc.dump(2))) {
+            return TargetCacheKey{
+                {ArtifactDigest{*target_key}, ObjectType::File}};
         }
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
