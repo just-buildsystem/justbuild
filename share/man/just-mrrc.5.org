@@ -81,7 +81,7 @@ An example just-mrrc file could look like the following:
 , "local build root": {"root": "home", "path": ".cache/just"}
 , "checkout locations": {"root": "home", "path": ".just-local.json"}
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
-, "just": {"root": "system", "path": "usr/bin"}
+, "just": {"root": "system", "path": "usr/bin/just"}
 , "just args":
   { "build": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
   , "install": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
