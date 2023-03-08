@@ -125,7 +125,7 @@ auto ResolveRepo(ExpressionPtr const& repo_desc,
         return ResolveRepo(repo_desc, repos, &seen);
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Error,
-                    "Config: while resolving dependencies: {}",
+                    "Config: While resolving dependencies: {}",
                     e.what());
         return std::nullopt;
     }

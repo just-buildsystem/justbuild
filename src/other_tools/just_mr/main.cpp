@@ -114,7 +114,7 @@ void SetupSetupCommandArguments(
     for (auto const& known_subcmd : kKnownJustSubcommands) {
         auto* subcmd = app.add_subcommand(
             known_subcmd.first,
-            "Run setup and call \'just " + known_subcmd.first + "\'.");
+            "Run setup and call \"just " + known_subcmd.first + "\".");
         subcmd->set_help_flag();  // disable help flag
         cmd_just_subcmds.emplace_back(subcmd);
     }
@@ -606,7 +606,7 @@ void DefaultReachableRepositories(
     auto repos = (*config)["repositories"];
     if (not repos.IsNotNull()) {
         Logger::Log(LogLevel::Error,
-                    "Config: mandatory key \"repositories\" "
+                    "Config: Mandatory key \"repositories\" "
                     "missing");
         return kExitFetchError;
     }
@@ -658,8 +658,8 @@ void DefaultReachableRepositories(
                         "Writing distribution files to workspace location {}, "
                         "which is different to the workspace of the requested "
                         "main repository {}.",
-                        fetch_dir->string(),
-                        repo_path_as_path.string());
+                        nlohmann::json(fetch_dir->string()).dump(),
+                        nlohmann::json(repo_path_as_path.string()).dump());
                 }
             }
         }
@@ -675,8 +675,8 @@ void DefaultReachableRepositories(
         auto repo_desc = repos->At(repo_name);
         if (not repo_desc) {
             Logger::Log(LogLevel::Error,
-                        "Config: missing config entry for repository {}",
-                        repo_name);
+                        "Config: Missing config entry for repository {}",
+                        nlohmann::json(repo_name).dump());
             return kExitFetchError;
         }
         auto repo = repo_desc->get()->At("repository");
@@ -685,33 +685,34 @@ void DefaultReachableRepositories(
                 JustMR::Utils::ResolveRepo(repo->get(), repos);
             if (not resolved_repo_desc) {
                 Logger::Log(LogLevel::Error,
-                            "Config: found cyclic dependency for "
+                            "Config: Found cyclic dependency for "
                             "repository {}",
-                            repo_name);
+                            nlohmann::json(repo_name).dump());
                 return kExitFetchError;
             }
             // get repo_type
             auto repo_type = (*resolved_repo_desc)->At("type");
             if (not repo_type) {
                 Logger::Log(LogLevel::Error,
-                            "Config: mandatory key \"type\" missing "
+                            "Config: Mandatory key \"type\" missing "
                             "for repository {}",
-                            repo_name);
+                            nlohmann::json(repo_name).dump());
                 return kExitFetchError;
             }
             if (not repo_type->get()->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Config: unsupported value for key \'type\' for "
+                            "Config: Unsupported value {} for key \"type\" for "
                             "repository {}",
-                            repo_name);
+                            repo_type->get()->ToString(),
+                            nlohmann::json(repo_name).dump());
                 return kExitFetchError;
             }
             auto repo_type_str = repo_type->get()->String();
             if (not kCheckoutTypeMap.contains(repo_type_str)) {
                 Logger::Log(LogLevel::Error,
                             "Unknown repository type {} for {}",
-                            repo_type_str,
-                            repo_name);
+                            nlohmann::json(repo_type_str).dump(),
+                            nlohmann::json(repo_name).dump());
                 return kExitFetchError;
             }
             // only do work if repo is archive type
@@ -726,7 +727,8 @@ void DefaultReachableRepositories(
                 if (not repo_desc_content->get()->IsString()) {
                     Logger::Log(
                         LogLevel::Error,
-                        "Unsupported value for mandatory field \'content\'");
+                        "Unsupported value {} for mandatory field \"content\"",
+                        repo_desc_content->get()->ToString());
                     return kExitFetchError;
                 }
                 auto repo_desc_fetch = (*resolved_repo_desc)->At("fetch");
@@ -737,8 +739,9 @@ void DefaultReachableRepositories(
                 }
                 if (not repo_desc_fetch->get()->IsString()) {
                     Logger::Log(LogLevel::Error,
-                                "ArchiveCheckout: Unsupported value for "
-                                "mandatory field \'fetch\'");
+                                "ArchiveCheckout: Unsupported value {} for "
+                                "mandatory field \"fetch\"",
+                                repo_desc_fetch->get()->ToString());
                     return kExitFetchError;
                 }
                 auto repo_desc_subdir =
@@ -779,8 +782,8 @@ void DefaultReachableRepositories(
         }
         else {
             Logger::Log(LogLevel::Error,
-                        "Config: missing repository description for {}",
-                        repo_name);
+                        "Config: Missing repository description for {}",
+                        nlohmann::json(repo_name).dump());
             return kExitFetchError;
         }
     }
@@ -872,7 +875,7 @@ void DefaultReachableRepositories(
     auto repos = (*config)["repositories"];
     if (not repos.IsNotNull()) {
         Logger::Log(LogLevel::Error,
-                    "Config: mandatory key \"repositories\" "
+                    "Config: Mandatory key \"repositories\" "
                     "missing");
         return kExitUpdateError;
     }
@@ -883,8 +886,8 @@ void DefaultReachableRepositories(
         auto repo_desc_parent = repos->At(repo_name);
         if (not repo_desc_parent) {
             Logger::Log(LogLevel::Error,
-                        "Config: missing config entry for repository {}",
-                        repo_name);
+                        "Config: Missing config entry for repository {}",
+                        nlohmann::json(repo_name).dump());
             return kExitUpdateError;
         }
         auto repo_desc = repo_desc_parent->get()->At("repository");
@@ -893,33 +896,34 @@ void DefaultReachableRepositories(
                 JustMR::Utils::ResolveRepo(repo_desc->get(), repos);
             if (not resolved_repo_desc) {
                 Logger::Log(LogLevel::Error,
-                            fmt::format("Config: found cyclic dependency for "
+                            fmt::format("Config: Found cyclic dependency for "
                                         "repository {}",
-                                        repo_name));
+                                        nlohmann::json(repo_name).dump()));
                 return kExitUpdateError;
             }
             // get repo_type
             auto repo_type = (*resolved_repo_desc)->At("type");
             if (not repo_type) {
                 Logger::Log(LogLevel::Error,
-                            "Config: mandatory key \"type\" missing "
+                            "Config: Mandatory key \"type\" missing "
                             "for repository {}",
-                            repo_name);
+                            nlohmann::json(repo_name).dump());
                 return kExitUpdateError;
             }
             if (not repo_type->get()->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Config: unsupported value for key \'type\' for "
+                            "Config: Unsupported value {} for key \"type\" for "
                             "repository {}",
-                            repo_name);
+                            repo_type->get()->ToString(),
+                            nlohmann::json(repo_name).dump());
                 return kExitUpdateError;
             }
             auto repo_type_str = repo_type->get()->String();
             if (not kCheckoutTypeMap.contains(repo_type_str)) {
                 Logger::Log(LogLevel::Error,
                             "Unknown repository type {} for {}",
-                            repo_type_str,
-                            repo_name);
+                            nlohmann::json(repo_type_str).dump(),
+                            nlohmann::json(repo_name).dump());
                 return kExitUpdateError;
             }
             // only do work if repo is git type
@@ -927,30 +931,32 @@ void DefaultReachableRepositories(
                 auto repo_desc_repository =
                     (*resolved_repo_desc)->At("repository");
                 if (not repo_desc_repository) {
-                    Logger::Log(LogLevel::Error,
-                                "Mandatory field \"repository\" is missing");
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Config: Mandatory field \"repository\" is missing");
                     return kExitUpdateError;
                 }
                 if (not repo_desc_repository->get()->IsString()) {
-                    Logger::Log(
-                        LogLevel::Error,
-                        "Config: unsupported value for key \'repository\' for "
-                        "repository {}",
-                        repo_name);
+                    Logger::Log(LogLevel::Error,
+                                "Config: Unsupported value {} for key "
+                                "\"repository\" for repository {}",
+                                repo_desc_repository->get()->ToString(),
+                                nlohmann::json(repo_name).dump());
                     return kExitUpdateError;
                 }
                 auto repo_desc_branch = (*resolved_repo_desc)->At("branch");
                 if (not repo_desc_branch) {
-                    Logger::Log(LogLevel::Error,
-                                "Mandatory field \"branch\" is missing");
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Config: Mandatory field \"branch\" is missing");
                     return kExitUpdateError;
                 }
                 if (not repo_desc_branch->get()->IsString()) {
-                    Logger::Log(
-                        LogLevel::Error,
-                        "Config: unsupported value for key \'branch\' for "
-                        "repository {}",
-                        repo_name);
+                    Logger::Log(LogLevel::Error,
+                                "Config: Unsupported value {} for key "
+                                "\"branch\" for repository {}",
+                                repo_desc_branch->get()->ToString(),
+                                nlohmann::json(repo_name).dump());
                     return kExitUpdateError;
                 }
                 repos_to_update.emplace_back(
@@ -959,16 +965,16 @@ void DefaultReachableRepositories(
             }
             else {
                 Logger::Log(LogLevel::Error,
-                            "Config: argument {} is not the name of a git type "
-                            "repository",
-                            repo_name);
+                            "Config: Argument {} is not the name of a \"git\" "
+                            "type repository",
+                            nlohmann::json(repo_name).dump());
                 return kExitUpdateError;
             }
         }
         else {
             Logger::Log(LogLevel::Error,
-                        "Config: missing repository description for {}",
-                        repo_name);
+                        "Config: Missing repository description for {}",
+                        nlohmann::json(repo_name).dump());
             return kExitUpdateError;
         }
     }
@@ -1087,7 +1093,8 @@ void DefaultReachableRepositories(
             else {
                 Logger::Log(
                     LogLevel::Error,
-                    "Unsupported value for field 'main' in configuration.");
+                    "Unsupported value {} for field \"main\" in configuration.",
+                    main_from_config->ToString());
             }
         }
     }
@@ -1257,7 +1264,7 @@ void DefaultReachableRepositories(
                 MultiRepoSetup(config, arguments, /*interactive=*/false);
             if (not mr_config_path) {
                 Logger::Log(LogLevel::Error,
-                            "Failed to setup config while calling \'just {}\'",
+                            "Failed to setup config while calling \"just {}\"",
                             *subcommand);
                 return kExitSetupError;
             }
@@ -1315,7 +1322,7 @@ void DefaultReachableRepositories(
     }
 
     Logger::Log(LogLevel::Info,
-                "Setup finished, exec \'{}\'",
+                "Setup finished, exec \"{}\"",
                 nlohmann::json(cmd).dump());
 
     // create argv
