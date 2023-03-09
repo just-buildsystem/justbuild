@@ -20,7 +20,6 @@ readonly JUST="$PWD/bin/tool-under-test"
 readonly JUST_MR="$PWD/bin/mr-tool-under-test"
 readonly LBRDIR="$TEST_TMPDIR/local-build-root"
 readonly TESTDIR="$TEST_TMPDIR/test-root"
-readonly CREDENTIALS_DIR="${PWD}/credentials"
 
 # create project files including an exported target
 mkdir -p "$TESTDIR"
@@ -61,23 +60,13 @@ export CONF="$("$JUST_MR" -C repos.json --local-build-root="$LBRDIR" setup main)
 "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
 
 REMOTE_EXECUTION_ARGS=""
-AUTH_ARGS=""
 if [ "${REMOTE_EXECUTION_ADDRESS:-}" != "" ]; then
   REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
   if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
     REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
   fi
-  if [ -f "${CREDENTIALS_DIR}/ca.crt" ]; then
-    AUTH_ARGS=" --tls-ca-cert ${CREDENTIALS_DIR}/ca.crt "
-    if [ -f "${CREDENTIALS_DIR}/client.crt" ]; then
-      AUTH_ARGS=" --tls-client-cert ${CREDENTIALS_DIR}/client.crt "${AUTH_ARGS}
-    fi
-    if [ -f "${CREDENTIALS_DIR}/client.key" ]; then
-      AUTH_ARGS=" --tls-client-key ${CREDENTIALS_DIR}/client.key "${AUTH_ARGS}
-    fi
-  fi
 fi
 
 # build project twice remotely to trigger a target cache hit
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS} 2>&1
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS ${AUTH_ARGS} 2>&1
+"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1
+"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1
