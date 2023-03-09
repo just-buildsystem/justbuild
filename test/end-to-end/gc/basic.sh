@@ -103,4 +103,12 @@ test -f "${OUT}/out-tree/out/hello/world/tree/hello.txt"
 test -f "${OUT}/out-tree/out/hello/world/tree/name.txt"
 test "$(cat "${OUT}/out-tree/out/hello/world/tree/name.txt")" = "World"
 
+# check if all files in generation 0 have been linked and not copied
+readonly NON_LINKED_FILES=$(find ${LBR}/protocol-dependent/generation-0 -type f -exec sh -c 'test $(stat -c %h {}) != 2' \; -print)
+echo
+echo "Files with link count!=2:"
+echo "${NON_LINKED_FILES:-"<none>"}"
+echo
+test -z "${NON_LINKED_FILES}"
+
 echo OK
