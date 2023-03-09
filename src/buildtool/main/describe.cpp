@@ -101,7 +101,7 @@ void PrettyPrintRule(nlohmann::json const& rdesc) {
     auto provides_doc = rdesc.find("provides_doc");
     if (provides_doc != rdesc.end()) {
         std::cout << " - Documented providers\n";
-        for (auto& el : provides_doc->items()) {
+        for (auto const& el : provides_doc->items()) {
             std::cout << "   - " << el.key() << "\n";
             PrintDoc(el.value(), "     | ");
         }

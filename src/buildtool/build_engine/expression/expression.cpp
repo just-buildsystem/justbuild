@@ -202,7 +202,7 @@ auto Expression::FromJson(nlohmann::json const& json) noexcept
         }
         if (json.is_object()) {
             auto m = Expression::map_t::underlying_map_t{};
-            for (auto& el : json.items()) {
+            for (auto const& el : json.items()) {
                 m.emplace(el.key(), FromJson(el.value()));
             }
             return ExpressionPtr{Expression::map_t{m}};
