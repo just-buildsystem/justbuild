@@ -24,8 +24,6 @@ time_stop = 0
 result = "UNKNOWN"
 stderr = ""
 stdout = ""
-remotestdout = ""
-remotestderr = ""
 
 
 def dump_results():
@@ -39,10 +37,6 @@ def dump_results():
         f.write("%s\n" % (stdout, ))
     with open("stderr", "w") as f:
         f.write("%s\n" % (stderr, ))
-    with open("remotestdout", "w") as f:
-        f.write("%s\n" % (remotestdout, ))
-    with open("remotestderr", "w") as f:
-        f.write("%s\n" % (remotestderr, ))
 
 
 dump_results()
@@ -58,11 +52,15 @@ os.makedirs(REMOTE_DIR, exist_ok=True)
 REMOTE_INFO = os.path.join(REMOTE_DIR, "info.json")
 REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
 
+if os.path.exists(REMOTE_INFO):
+    print(f"Warning: removing unexpected info file {REMOTE_INFO}")
+    os.remove(REMOTE_INFO)
+
 remote_cmd = [
     "./just", "execute",
     "--info-file", REMOTE_INFO,
     "--local-build-root", REMOTE_LBR,
-    "--log-limit", "5", "--plain-log",
+    "--log-limit", "6", "--plain-log",
 ]
 
 compatible = json.loads(sys.argv[1])
@@ -70,10 +68,12 @@ if compatible:
     remote_cmd.append("--compatible")
 
 
+remotestdout = open("remotestdout", "w")
+remotestderr = open("remotestderr", "w")
 remote_proc = subprocess.Popen(
     remote_cmd,
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE,
+    stdout=remotestdout,
+    stderr=remotestderr,
 )
 
 while not os.path.exists(REMOTE_INFO):
@@ -110,8 +110,6 @@ stdout = ret.stdout.decode("utf-8")
 stderr = ret.stderr.decode("utf-8")
 remote_proc.terminate()
 rout, rerr = remote_proc.communicate()
-remotestdout = rout.decode("utf-8")
-remotestderr = rerr.decode("utf-8")
 
 dump_results()
 
