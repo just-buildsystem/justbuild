@@ -1286,7 +1286,7 @@ void DefaultReachableRepositories(
         cmd.emplace_back(*arguments.common.just_mr_paths->root);
     }
     if (use_launcher and arguments.common.local_launcher and
-        not arguments.common.local_launcher->empty()) {
+        (arguments.common.local_launcher != kDefaultLauncher)) {
         cmd.emplace_back("--local-launcher");
         cmd.emplace_back(
             nlohmann::json(*arguments.common.local_launcher).dump());
