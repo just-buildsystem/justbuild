@@ -1,22 +1,6 @@
 { "cli11_headers":
   { "type": "tree"
   , "name": "CLI"
-  , "deps":
-    [ "Option.hpp"
-    , "Split.hpp"
-    , "Formatter.hpp"
-    , "ConfigFwd.hpp"
-    , "Version.hpp"
-    , "TypeTools.hpp"
-    , "Validators.hpp"
-    , "FormatterFwd.hpp"
-    , "Macros.hpp"
-    , "StringTools.hpp"
-    , "Error.hpp"
-    , "Timer.hpp"
-    , "CLI.hpp"
-    , "App.hpp"
-    , "Config.hpp"
-    ]
+  , "deps": [["GLOB", null, "*.hpp"], ["TREE", null, "impl"]]
   }
 }
