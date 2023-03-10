@@ -53,6 +53,8 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/compatibility", "compatibility"]
     , "log_config"
     , "test_env"

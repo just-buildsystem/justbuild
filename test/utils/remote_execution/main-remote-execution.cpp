@@ -22,6 +22,8 @@
 #include "catch2/catch.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/test_env.hpp"
 
@@ -58,10 +60,26 @@ void wait_for_grpc_to_shutdown() {
     return static_cast<bool>(RemoteExecutionConfig::RemoteAddress());
 }
 
+[[nodiscard]] auto ConfigureBuildRoot() -> bool {
+    auto cache_dir = FileSystemManager::GetCurrentDirectory() / "cache";
+    if (not FileSystemManager::CreateDirectoryExclusive(cache_dir) or
+        not StorageConfig::SetBuildRoot(cache_dir)) {
+        return false;
+    }
+    // After the build root has been changed, the file roots of the
+    // static storage instances need to be updated.
+    Storage::Reinitialize();
+    return true;
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
+
+    if (not ConfigureBuildRoot()) {
+        return EXIT_FAILURE;
+    }
 
     if (not ConfigureRemoteExecution()) {
         return EXIT_FAILURE;
