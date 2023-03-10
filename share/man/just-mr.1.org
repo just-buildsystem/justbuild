@@ -200,7 +200,13 @@ applies.
 The exit status of ~just-mr~ is one of the following values:
   - 0: the command completed successfully
   - 64: setup succeeded, but exec failed
-  - 65: any other error occurred in just-mr
+  - 65: any unspecified error occurred in just-mr
+  - 66: unknown subcommand
+  - 67: error parsing the command-line arguments
+  - 68: error parsing the configuration
+  - 69: error during fetch
+  - 70: error during update
+  - 71: error during setup
 
 Any other exit code that does not have bit 64 set is a status value from ~just~,
 if ~just-mr~ is used as a launcher. See *just(1)* for more details.
