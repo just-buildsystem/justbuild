@@ -27,10 +27,10 @@
 #include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-constexpr auto kDefaultLogLevel = LogLevel::Progress;
 constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
 
 /// \brief Arguments common to all commands.
@@ -377,7 +377,7 @@ static inline auto SetupCommonBuildArguments(
            "JSON array with the list of strings representing the launcher to "
            "prepend actions' commands before being executed locally.")
         ->type_name("JSON")
-        ->default_val(nlohmann::json{"env", "--"}.dump());
+        ->default_val(nlohmann::json(kDefaultLauncher).dump());
 }
 
 static inline auto SetupBuildArguments(

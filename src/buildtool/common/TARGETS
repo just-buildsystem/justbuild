@@ -1,9 +1,17 @@
-{ "cli":
+{ "clidefaults":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["clidefaults"]
+  , "hdrs": ["clidefaults.hpp"]
+  , "stage": ["src", "buildtool", "common"]
+  , "deps": [["src/buildtool/logging", "log_level"]]
+  }
+, "cli":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["cli"]
   , "hdrs": ["cli.hpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/expression", "expression"]
+    [ "clidefaults"
+    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["@", "cli11", "", "cli11"]

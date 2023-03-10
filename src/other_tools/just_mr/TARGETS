@@ -59,6 +59,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/logging", "log_level"]

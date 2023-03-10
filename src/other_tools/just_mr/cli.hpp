@@ -25,11 +25,10 @@
 #include "fmt/core.h"
 #include "gsl-lite/gsl-lite.hpp"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
-
-constexpr auto kDefaultLogLevel = LogLevel::Progress;
 
 /// \brief Arguments common to all just-mr subcommands
 struct MultiRepoCommonArguments {
@@ -112,7 +111,7 @@ static inline void SetupMultiRepoCommonArguments(
            "prepend actions' commands before being executed locally.")
         ->type_name("JSON")
         ->run_callback_for_default()
-        ->default_val(nlohmann::json{"env", "--"}.dump());
+        ->default_val(nlohmann::json(kDefaultLauncher).dump());
     app->add_option_function<std::string>(
            "--distdir",
            [clargs](auto const& distdir_raw) {
