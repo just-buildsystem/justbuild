@@ -1299,10 +1299,12 @@ void DefaultReachableRepositories(
             cmd.emplace_back(log_file.string());
         }
     }
-    cmd.emplace_back("--log-limit");
-    cmd.emplace_back(
-        std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
-            arguments.log.log_limit)));
+    if (arguments.log.log_limit != kDefaultLogLevel) {
+        cmd.emplace_back("--log-limit");
+        cmd.emplace_back(
+            std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
+                arguments.log.log_limit)));
+    }
     if (arguments.log.plain_log) {
         cmd.emplace_back("--plain-log");
     }
