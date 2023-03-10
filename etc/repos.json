@@ -42,7 +42,6 @@
         , "com_github_cares_cares"
         , "com_github_grpc_grpc"
         , "com_github_libgit2_libgit2"
-        , "bzip2"
         ]
       }
     , "target_root": "import targets"
@@ -328,6 +327,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.bzip2"
     , "bindings": {"rules": "rules-bzip2"}
+    , "bootstrap": {"drop": true}
     }
   , "re2":
     { "repository":
