@@ -594,10 +594,18 @@ auto GitRepo::KeepTag(std::string const& commit,
         // create tag
         git_oid oid;
         auto name = fmt::format("keep-{}", commit);
+        git_strarray tag_names{};
+
+        // check if tag hasn't already been added by another process
+        if (git_tag_list_match(&tag_names, name.c_str(), repo_.get()) == 0 and
+            tag_names.count > 0) {
+            git_strarray_dispose(&tag_names);
+            return true;  // success!
+        }
+        git_strarray_dispose(&tag_names);  // free any allocated unused space
 
         size_t max_attempts = kGitLockNumTries;  // number of tries
         int err = 0;
-        git_strarray tag_names{};
         std::string err_mess{};
         while (max_attempts > 0) {
             --max_attempts;
@@ -612,6 +620,10 @@ auto GitRepo::KeepTag(std::string const& commit,
                 return true;  // success!
             }
             err_mess = GitLastError();  // store last error message
+            // only retry if failure is due to locking
+            if (err != GIT_ELOCKED) {
+                break;
+            }
             // check if tag hasn't already been added by another process
             if (git_tag_list_match(&tag_names, name.c_str(), repo_.get()) ==
                     0 and
