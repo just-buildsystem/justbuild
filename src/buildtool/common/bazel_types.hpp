@@ -47,7 +47,7 @@ using int64 = int64_t;
 
 #else
 
-#include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "build/bazel/remote/execution/v2/remote_execution.pb.h"
 
 #endif
 

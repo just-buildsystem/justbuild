@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
