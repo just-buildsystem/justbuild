@@ -598,6 +598,7 @@ auto GitRepo::KeepTag(std::string const& commit,
         size_t max_attempts = kGitLockNumTries;  // number of tries
         int err = 0;
         git_strarray tag_names{};
+        std::string err_mess{};
         while (max_attempts > 0) {
             --max_attempts;
             err = git_tag_create(&oid,
@@ -610,6 +611,7 @@ auto GitRepo::KeepTag(std::string const& commit,
             if (err == 0) {
                 return true;  // success!
             }
+            err_mess = GitLastError();  // store last error message
             // check if tag hasn't already been added by another process
             if (git_tag_list_match(&tag_names, name.c_str(), repo_.get()) ==
                     0 and
@@ -623,9 +625,11 @@ auto GitRepo::KeepTag(std::string const& commit,
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(kGitLockWaitTime));
         }
-        (*logger)(fmt::format("tag creation in git repository {} failed",
-                              GetGitCAS()->git_path_.string()),
-                  true /*fatal*/);
+        (*logger)(
+            fmt::format("tag creation in git repository {} failed with:\n{}",
+                        GetGitCAS()->git_path_.string(),
+                        err_mess),
+            true /*fatal*/);
         return false;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error, "keep tag failed with:\n{}", ex.what());
