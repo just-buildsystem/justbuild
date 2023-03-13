@@ -36,7 +36,10 @@ struct git_tree_entry;
 struct git_config;
 }
 
-constexpr std::size_t kWaitTime{2};  // time in ms between tries for git locks
+// time in ms between tries for git locks
+constexpr std::size_t kGitLockWaitTime{100};
+// number of retries for git locks
+constexpr std::size_t kGitLockNumTries{10};
 
 [[nodiscard]] auto GitObjectID(std::string const& id,
                                bool is_hex_id = false) noexcept
