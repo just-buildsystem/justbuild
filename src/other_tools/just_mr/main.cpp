@@ -1323,9 +1323,8 @@ void DefaultReachableRepositories(
         cmd.emplace_back(*it);
     }
 
-    Logger::Log(LogLevel::Info,
-                "Setup finished, exec \"{}\"",
-                nlohmann::json(cmd).dump());
+    Logger::Log(
+        LogLevel::Info, "Setup finished, exec {}", nlohmann::json(cmd).dump());
 
     // create argv
     std::vector<char*> argv{};
