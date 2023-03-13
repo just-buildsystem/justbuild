@@ -364,6 +364,7 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
         git_repository* tmp_repo{nullptr};
         size_t max_attempts = 3;  // number of tries
         int err = 0;
+        std::string err_mess{};
         while (max_attempts > 0) {
             --max_attempts;
             err = git_repository_init(
@@ -372,6 +373,7 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
                 git_repository_free(tmp_repo);
                 return GitRepo(repo_path);  // success
             }
+            err_mess = GitLastError();      // store last error message
             git_repository_free(tmp_repo);  // cleanup before next attempt
             // check if init hasn't already happened in another process
             if (git_repository_open_ext(nullptr,
@@ -383,11 +385,10 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
             // repo still not created, so sleep and try again
             std::this_thread::sleep_for(std::chrono::milliseconds(kWaitTime));
         }
-        Logger::Log(
-            LogLevel::Error,
-            "initializing git repository {} failed with error code:\n{}",
-            (repo_path / "").string(),
-            err);
+        Logger::Log(LogLevel::Error,
+                    "initializing git repository {} failed with:\n{}",
+                    (repo_path / "").string(),
+                    err_mess);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "initializing git repository {} failed with:\n{}",
