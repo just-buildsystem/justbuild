@@ -297,7 +297,10 @@ GitRepo::GitRepo(std::filesystem::path const& repo_path) noexcept {
         auto cas = std::make_shared<GitCAS>();
         // open repo, but retain it
         git_repository* repo_ptr{nullptr};
-        if (git_repository_open(&repo_ptr, repo_path.c_str()) != 0) {
+        if (git_repository_open_ext(&repo_ptr,
+                                    repo_path.c_str(),
+                                    GIT_REPOSITORY_OPEN_NO_SEARCH,
+                                    nullptr) != 0) {
             Logger::Log(LogLevel::Error,
                         "opening git repository {} failed with:\n{}",
                         repo_path.string(),
