@@ -25,7 +25,7 @@
   }
 , "git_repo_remote":
   { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["git_repo_remote_test"]
+  , "name": ["git_repo_remote"]
   , "srcs": ["git_repo_remote.test.cpp"]
   , "data": [["test/buildtool/file_system", "test_data"]]
   , "private-deps":

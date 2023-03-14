@@ -48,7 +48,7 @@ cd "${ROOT}"
 
 echo "Run curl usage test"
 error=false
-test/other_tools/utils/curl_usage & res=$!
+test/other_tools/utils/curl_usage_install & res=$!
 wait $res
 if [ $? -ne 0 ]; then
     error=true

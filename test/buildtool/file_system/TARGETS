@@ -86,7 +86,7 @@
   }
 , "git_repo":
   { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["git_repo_test"]
+  , "name": ["git_repo"]
   , "srcs": ["git_repo.test.cpp"]
   , "data": ["test_data"]
   , "private-deps":

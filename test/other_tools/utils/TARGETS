@@ -14,7 +14,7 @@
 , "curl_usage_install":
   { "type": ["@", "rules", "CC", "binary"]
   , "tainted": ["test"]
-  , "name": ["curl_usage"]
+  , "name": ["curl_usage_install"]
   , "srcs": ["curl_usage.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
@@ -25,9 +25,9 @@
     ]
   , "stage": ["test", "other_tools", "utils"]
   }
-, "curl_usage_test":
+, "curl_usage":
   { "type": ["@", "rules", "shell/test", "script"]
-  , "name": ["curl_usage_test"]
+  , "name": ["curl_usage"]
   , "test": ["curl_usage_test.sh"]
   , "deps": [["test/utils", "test_utils_install"], "curl_usage_install"]
   }
@@ -45,6 +45,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["archive_usage", "curl_usage_test", "curl_url"]
+  , "deps": ["archive_usage", "curl_usage", "curl_url"]
   }
 }
