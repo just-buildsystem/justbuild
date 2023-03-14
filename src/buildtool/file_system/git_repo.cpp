@@ -598,6 +598,8 @@ auto GitRepo::KeepTag(std::string const& commit,
                 git_strarray_dispose(&tag_names);
                 return true;  // success!
             }
+            git_strarray_dispose(
+                &tag_names);  // free any allocated unused space
             // tag still not in, so sleep and try again
             std::this_thread::sleep_for(std::chrono::milliseconds(kWaitTime));
         }
