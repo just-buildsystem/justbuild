@@ -756,6 +756,7 @@ auto CurlURLHandle::NoproxyStringMatches(std::string const& no_proxy) noexcept
         if (url_port != nullptr) {
             tmp_pattern += ":";
             tmp_pattern += std::string(url_port);
+            curl_free(url_port);
         }
         auto url_hostport_as_pattern = ParseNoproxyPattern(tmp_pattern);
 
