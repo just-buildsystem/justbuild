@@ -39,7 +39,7 @@ cp -r "${ORIG_LOCALBASE}" "${LOCALBASE}"
 
 # - gsl-liste
 rm -rf "${LOCALBASE}/include/gsl-lite"
-cp distdir/0.37.0.tar.gz "${DISTDIR}"
+cp distdir/v0.40.0.tar.gz "${DISTDIR}"
 
 # - fmt
 rm -rf "${LOCALBASE}/include/fmt*"

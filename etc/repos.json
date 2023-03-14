@@ -142,12 +142,11 @@
   , "gsl-lite":
     { "repository":
       { "type": "archive"
-      , "content": "ecbc51f342f7ad97ed4c236f36d2fb2279240d7b"
-      , "distfile": "0.37.0.tar.gz"
-      , "fetch": "https://github.com/gsl-lite/gsl-lite/archive/0.37.0.tar.gz"
-      , "sha256": "a31d51b73742bb234acab8d2411223cf299e760ed713f0840ffed0dabe57ca38"
-      , "sha512": "7cc94a252933bb9c66d58387e2093173c7aa810f854b38b5a9148dafb20346a9a01351f528c4e987f6abf919132dc4bd50189a58d543b476635d6f20887c7543"
-      , "subdir": "gsl-lite-0.37.0/include/gsl"
+      , "content": "6a2245941d8a713897f439c35512593683f6ad48"
+      , "fetch": "https://github.com/gsl-lite/gsl-lite/archive/v0.40.0.tar.gz"
+      , "sha256": "65af4ec8a1050dac4f1ca4622881bb02a9c3978a9baec289fb56e25412d6cac7"
+      , "sha512": "afd65009bf33f54cd1caf1988b725e618bee4f4f779825ae1df55017034c6fff75feaa737a358a7f5e690757637f4d281c2f22d06c39efb81dacd7d1949251df"
+      , "subdir": "gsl-lite-0.40.0/include/gsl"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.gsl"

@@ -506,7 +506,6 @@ TEST_CASE("Iterate tree entries", "[git_tree]") {
 
     std::vector<std::string> names{};
     for (auto const& [name, entry] : *tree_root) {
-        CHECK(entry);
         names.emplace_back(name);
     }
     CHECK_THAT(names,
