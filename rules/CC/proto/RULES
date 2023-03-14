@@ -57,6 +57,7 @@
     , "defaults": [["./", "..", "defaults"]]
     , "proto-deps":
       [ ["@", "grpc", "", "grpc++_codegen_proto"]
+      , ["@", "grpc", "", "grpc++_codegen_base_src"]
       , ["@", "protoc", "", "C++ runtime"]
       ]
     , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]

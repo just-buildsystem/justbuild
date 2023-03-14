@@ -83,4 +83,9 @@
   , "private-ldflags": ["-lgrpc++_codegen_base_src"]
   , "deps": ["grpc++"]
   }
+, "grpc++_codegen_base_src":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": [["include", "grpcpp"]]
+  , "private-ldflags": ["-lgrpc++_codegen_base_src"]
+  }
 }
