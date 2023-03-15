@@ -16,7 +16,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
 #include "src/buildtool/logging/logger.hpp"

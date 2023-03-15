@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"

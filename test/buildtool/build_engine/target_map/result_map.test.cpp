@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 

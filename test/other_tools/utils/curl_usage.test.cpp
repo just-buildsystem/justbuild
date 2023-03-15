@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/other_tools/utils/curl_context.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"

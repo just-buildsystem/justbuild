@@ -14,7 +14,7 @@
 
 #include <filesystem>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"

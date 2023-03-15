@@ -19,7 +19,9 @@
 #include <thread>
 #include <unordered_set>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators_all.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/utils/container_matchers.hpp"
 

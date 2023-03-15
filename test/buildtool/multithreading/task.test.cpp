@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/multithreading/task.hpp"
 
 namespace {
-
+constexpr int kDummyValue{5};
 struct StatelessCallable {
     void operator()() noexcept {}
 };
@@ -25,7 +25,7 @@ struct ValueCaptureCallable {
     explicit ValueCaptureCallable(int i) noexcept : number{i} {}
 
     // NOLINTNEXTLINE
-    void operator()() noexcept { number += 5; }
+    void operator()() noexcept { number += kDummyValue; }
 
     int number;
 };
@@ -125,12 +125,24 @@ TEST_CASE("Task constructed from lambda is not empty", "[task]") {
         SECTION("Value capture") {
             int a = 1;
             // NOLINTNEXTLINE
-            Task t_value{[num = a]() mutable { num += 5; }};
+            Task t_value{[num = a]() mutable {
+                num += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(num);
+            }};
             // NOLINTNEXTLINE
-            auto lambda = [num = a]() mutable { num += 5; };
+            auto lambda = [num = a]() mutable {
+                num += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(num);
+            };
             Task t_from_named_lambda_value_capture{lambda};
 
-            CHECK(Task{[num = a]() mutable { num += 5; }});
+            CHECK(Task{[num = a]() mutable {
+                num += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(num);
+            }});
             CHECK(Task{lambda});
             CHECK(t_value);
             CHECK(t_from_named_lambda_value_capture);
@@ -174,7 +186,11 @@ TEST_CASE("Task can be executed and doesn't steal contents", "[task]") {
             int const initial_value = 2;
             int num = initial_value;
             // NOLINTNEXTLINE
-            Task t_add_five{[a = num]() mutable { a += 5; }};
+            Task t_add_five{[a = num]() mutable {
+                a += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(a);
+            }};
             t_add_five();
 
             // Internal data can not be observed, external data does not change
@@ -197,7 +213,11 @@ TEST_CASE("Task can be executed and doesn't steal contents", "[task]") {
             int const initial_value = 2;
             int num = initial_value;
             // NOLINTNEXTLINE
-            auto add_five = [a = num]() mutable { a += 5; };
+            auto add_five = [a = num]() mutable {
+                a += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(a);
+            };
             Task t_add_five{add_five};
             t_add_five();
 
@@ -227,7 +247,11 @@ TEST_CASE("Task can be executed and doesn't steal contents", "[task]") {
             int const initial_value = 2;
             int num = initial_value;
             // NOLINTNEXTLINE
-            std::function<void()> add_five{[a = num]() mutable { a += 5; }};
+            std::function<void()> add_five{[a = num]() mutable {
+                a += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(a);
+            }};
             Task t_add_five{add_five};
             t_add_five();
 
@@ -295,7 +319,11 @@ TEST_CASE("Task moving from named object can be executed", "[task]") {
             int const initial_value = 2;
             int num = initial_value;
             // NOLINTNEXTLINE
-            auto add_five = [a = num]() mutable { a += 5; };
+            auto add_five = [a = num]() mutable {
+                a += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(a);
+            };
             Task t_add_five{std::move(add_five)};
             t_add_five();
 
@@ -320,7 +348,11 @@ TEST_CASE("Task moving from named object can be executed", "[task]") {
             int const initial_value = 2;
             int num = initial_value;
             // NOLINTNEXTLINE
-            std::function<void()> add_five{[a = num]() mutable { a += 5; }};
+            std::function<void()> add_five{[a = num]() mutable {
+                a += kDummyValue;
+                // get rid of "set but unused var"
+                static_cast<void>(a);
+            }};
             Task t_add_five{std::move(add_five)};
             t_add_five();
 

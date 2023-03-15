@@ -18,7 +18,8 @@
 #include <filesystem>
 #include <iostream>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators_all.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
 class CopyFileFixture {

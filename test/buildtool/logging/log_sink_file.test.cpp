@@ -13,9 +13,12 @@
 // limitations under the License.
 
 #include <fstream>
+#include <iostream>
 #include <thread>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/generators/catch_generators_all.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -104,10 +107,11 @@ TEST_CASE("LogSinkFile", "[logging]") {
         CHECK(lines.size() == num_threads + 1);
 
         // check for corrupted content
-        using Catch::Matchers::Contains;
         for (auto const& line : lines) {
-            CHECK_THAT(line,
-                       Contains("somecontent") or Contains("this is thread "));
+            CHECK_THAT(
+                line,
+                Catch::Matchers::ContainsSubstring("somecontent") ||
+                    Catch::Matchers::ContainsSubstring("this is thread"));
         }
     }
 }

@@ -14,7 +14,7 @@
 
 #include <thread>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/file_locking.hpp"

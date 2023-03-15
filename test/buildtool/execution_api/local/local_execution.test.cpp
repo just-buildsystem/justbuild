@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "test/utils/hermeticity/local.hpp"

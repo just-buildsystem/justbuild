@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
@@ -78,7 +79,8 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(result->Result() == result_t{boolean, number, string});
         CHECK_THROWS_AS(result->String(), Expression::ExpressionTypeError);
 
-        CHECK_THAT(list->List(), Catch::Equals<ExpressionPtr>({number}));
+        CHECK_THAT(list->List(),
+                   Catch::Matchers::Equals<ExpressionPtr>({number}));
         CHECK_THROWS_AS(list->Map(), Expression::ExpressionTypeError);
 
         REQUIRE(map->Map().at("3"s) == number);

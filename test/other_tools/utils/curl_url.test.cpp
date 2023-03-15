@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
 TEST_CASE("Curl URL handle basics", "[curl_url_handle_basics]") {

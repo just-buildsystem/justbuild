@@ -14,7 +14,7 @@
 
 #include <algorithm>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/expression/linked_map.hpp"
 #include "test/utils/container_matchers.hpp"
 

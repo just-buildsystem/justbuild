@@ -1,7 +1,36 @@
-{ "catch2":
+{ "catch2-config-header-blueprint":
+  { "type": ["@", "rules", "CC/auto", "config_file"]
+  , "input": [["./", "src/catch2", "catch_user_config.hpp.in"]]
+  , "output": ["catch2", "catch_user_config.hpp"]
+  , "magic_string": ["cmakedefine"]
+  , "@only": ["true"]
+  }
+, "catch2-config-header":
+  { "type": "configure"
+  , "target": "catch2-config-header-blueprint"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "defines"
+        , [ ["CATCH_CONFIG_DEFAULT_REPORTER", "console"]
+          , ["CATCH_CONFIG_CONSOLE_WIDTH", "80"]
+          ]
+        ]
+      ]
+    , "body": {"type": "env", "vars": ["defines"]}
+    }
+  }
+, "catch2":
   { "type": ["@", "rules", "CC", "library"]
-  , "hdrs": ["catch.hpp"]
-  , "private-ldflags": ["-lpthread"]
-  , "stage": ["catch2"]
+  , "name": ["Catch2"]
+  , "hdrs": [["./", "src/catch2", "hdrs"], "catch2-config-header"]
+  , "srcs": [["./", "src/catch2", "srcs"]]
+  }
+, "catch2-main":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["Catch2Main"]
+  , "hdrs": ["catch2-config-header"]
+  , "srcs": [["./", "src/catch2", "main"]]
+  , "deps": ["catch2"]
   }
 }

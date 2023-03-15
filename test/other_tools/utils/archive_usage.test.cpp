@@ -15,7 +15,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/other_tools/utils/archive_ops.hpp"
 

@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <functional>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"

@@ -14,7 +14,7 @@
 
 #include <string>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/multithreading/async_map.hpp"
 #include "src/buildtool/multithreading/async_map_node.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"

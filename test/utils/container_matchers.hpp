@@ -16,19 +16,21 @@
 #define INCLUDED_SRC_TEST_UTILS_CONTAINER_MATCHERS_HPP
 
 #include <algorithm>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <type_traits>
 #include <unordered_set>
 #include <vector>
 
-#include "catch2/catch.hpp"
+#include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 
 /// \brief Matcher to check if the sets of elements present in two different
 /// containers are the same
 template <class LeftContainer, class RightContainer>
 class UniqueElementsUnorderedMatcher
-    : public Catch::MatcherBase<LeftContainer> {
+    : public Catch::Matchers::MatcherBase<LeftContainer> {
 
     RightContainer rhs_;
 
@@ -101,7 +103,8 @@ inline auto HasSameUniqueElementsAs(std::initializer_list<T> const& rc)
 
 /// \brief Matcher to compare the contents of two containers up to permutation
 template <class LeftContainer>
-class ContainerUnorderedMatcher : public Catch::MatcherBase<LeftContainer> {
+class ContainerUnorderedMatcher
+    : public Catch::Matchers::MatcherBase<LeftContainer> {
   public:
     using value_type = typename LeftContainer::value_type;
     using T = value_type;
