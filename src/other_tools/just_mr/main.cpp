@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <filesystem>
 #include <utility>
 
 #include <nlohmann/json.hpp>
@@ -286,7 +287,8 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     // set default if rcpath not given
     if (not clargs->common.norc) {
         if (not rc_path) {
-            rc_path = kDefaultRCPath;
+            rc_path = std::filesystem::weakly_canonical(
+                std::filesystem::absolute(kDefaultRCPath));
         }
         else {
             if (not FileSystemManager::IsFile(*rc_path)) {
