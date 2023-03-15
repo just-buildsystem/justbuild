@@ -1,16 +1,4 @@
-{ "ac_client":
-  { "type": ["test/utils/remote_execution", "CC test"]
-  , "name": ["ac_client"]
-  , "srcs": ["bazel_ac_client.test.cpp"]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["test/utils", "execution_bazel"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
-    ]
-  , "stage": ["test", "buildtool", "execution_api", "bazel"]
-  }
-, "cas_client":
+{ "cas_client":
   { "type": ["test/utils/remote_execution", "CC test"]
   , "name": ["cas_client"]
   , "srcs": ["bazel_cas_client.test.cpp"]
@@ -88,8 +76,7 @@
   { "type": "install"
   , "tainted": ["test"]
   , "deps":
-    [ "ac_client"
-    , "bytestream_client"
+    [ "bytestream_client"
     , "cas_client"
     , "execution_client"
     , "msg_factory"

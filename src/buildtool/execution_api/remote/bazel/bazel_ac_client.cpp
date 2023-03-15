@@ -56,31 +56,3 @@ auto BazelAcClient::GetActionResult(
     }
     return response;
 }
-
-auto BazelAcClient::UpdateActionResult(std::string const& instance_name,
-                                       bazel_re::Digest const& action_digest,
-                                       bazel_re::ActionResult const& result,
-                                       int priority) noexcept
-    -> std::optional<bazel_re::ActionResult> {
-    auto policy = std::make_unique<bazel_re::ResultsCachePolicy>();
-    policy->set_priority(priority);
-
-    bazel_re::UpdateActionResultRequest request{};
-    request.set_instance_name(instance_name);
-    request.set_allocated_action_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{action_digest}});
-    request.set_allocated_action_result(gsl::owner<bazel_re::ActionResult*>{
-        new bazel_re::ActionResult{result}});
-    request.set_allocated_results_cache_policy(policy.release());
-
-    grpc::ClientContext context;
-    bazel_re::ActionResult response;
-    grpc::Status status =
-        stub_->UpdateActionResult(&context, request, &response);
-
-    if (not status.ok()) {
-        LogStatus(&logger_, LogLevel::Debug, status);
-        return std::nullopt;
-    }
-    return response;
-}

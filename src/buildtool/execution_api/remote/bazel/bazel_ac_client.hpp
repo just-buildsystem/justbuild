@@ -39,12 +39,6 @@ class BazelAcClient {
         std::vector<std::string> const& inline_output_files) noexcept
         -> std::optional<bazel_re::ActionResult>;
 
-    [[nodiscard]] auto UpdateActionResult(std::string const& instance_name,
-                                          bazel_re::Digest const& digest,
-                                          bazel_re::ActionResult const& result,
-                                          int priority) noexcept
-        -> std::optional<bazel_re::ActionResult>;
-
   private:
     std::unique_ptr<bazel_re::ActionCache::Stub> stub_;
     Logger logger_{"RemoteAcClient"};
