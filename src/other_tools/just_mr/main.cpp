@@ -523,7 +523,7 @@ void ReachableRepositories(
 
         // Add overlay repositories
         std::unordered_set<std::string> setup_repos_set{include_repos_set};
-        for (auto const& repo : setup_repos->to_include) {
+        for (auto const& repo : include_repos_set) {
             auto repos_repo = repos->Get(repo, Expression::none_t{});
             if (repos_repo.IsNotNull()) {
                 // copy over any present alternative root dirs
