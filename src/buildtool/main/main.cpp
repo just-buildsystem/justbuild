@@ -1387,12 +1387,19 @@ auto main(int argc, char* argv[]) -> int {
                             result->id.ToString());
 
                 auto const& stat = Statistics::Instance();
-                Logger::Log(LogLevel::Info,
-                            "Export targets found: {} cached, {} uncached, "
-                            "{} not eligible for caching",
-                            stat.ExportsCachedCounter(),
-                            stat.ExportsUncachedCounter(),
-                            stat.ExportsNotEligibleCounter());
+                {
+                    auto cached = stat.ExportsCachedCounter();
+                    auto uncached = stat.ExportsUncachedCounter();
+                    auto not_eligible = stat.ExportsNotEligibleCounter();
+                    Logger::Log(cached + uncached + not_eligible > 0
+                                    ? LogLevel::Info
+                                    : LogLevel::Debug,
+                                "Export targets found: {} cached, {} uncached, "
+                                "{} not eligible for caching",
+                                cached,
+                                uncached,
+                                not_eligible);
+                }
 
                 ReportTaintedness(*result);
                 auto const& [actions, blobs, trees] = result_map.ToResult();
