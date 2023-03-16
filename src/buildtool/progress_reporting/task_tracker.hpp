@@ -55,6 +55,11 @@ class TaskTracker {
         return result;
     }
 
+    [[nodiscard]] auto Active() noexcept -> std::size_t {
+        std::unique_lock lock(m_);
+        return running_.size();
+    }
+
   private:
     uint64_t prio_{};
     std::mutex m_{};
