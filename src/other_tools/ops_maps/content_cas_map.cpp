@@ -55,11 +55,6 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                                                   auto logger,
                                                   auto /*unused*/,
                                                   auto const& key) {
-        // start work reporting, but only if part of a distdir
-        if (key.origin_from_distdir) {
-            JustMRProgress::Instance().TaskTracker().Start(key.origin);
-            JustMRStatistics::Instance().IncrementQueuedCounter();
-        }
         // check if content already in CAS
         auto const& cas = Storage::Instance().CAS();
         auto digest = ArtifactDigest(key.content, 0, false);
@@ -67,6 +62,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             (*setter)(true);
             return;
         }
+        JustMRProgress::Instance().TaskTracker().Start(key.origin);
         // add distfile to CAS
         auto repo_distfile =
             (key.distfile
@@ -75,6 +71,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
         JustMR::Utils::AddDistfileToCAS(repo_distfile, just_mr_paths);
         // check if content is in CAS now
         if (cas.BlobPath(digest, /*is_executable=*/false)) {
+            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
             (*setter)(true);
             return;
         }
@@ -131,12 +128,8 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                       /*fatal=*/true);
             return;
         }
+        JustMRProgress::Instance().TaskTracker().Stop(key.origin);
         (*setter)(true);
-        // report work done, but only if part of a distdir
-        if (key.origin_from_distdir) {
-            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
-            JustMRStatistics::Instance().IncrementExecutedCounter();
-        }
     };
     return AsyncMapConsumer<ArchiveContent, bool>(ensure_in_cas, jobs);
 }

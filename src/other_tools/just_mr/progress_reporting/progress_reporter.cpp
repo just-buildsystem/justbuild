@@ -27,30 +27,21 @@
 
 auto JustMRProgressReporter::Reporter() noexcept -> progress_reporter_t {
     return BaseProgressReporter::Reporter([]() {
-        int total =
-            gsl::narrow<int>(JustMRProgress::Instance().RepositorySet().size());
-        // Note: order of stats queries matters!
-        auto const& sample = JustMRProgress::Instance().TaskTracker().Sample();
+        int total = JustMRProgress::Instance().GetTotal();
         auto const& stats = JustMRStatistics::Instance();
         int local = stats.LocalPathsCounter();
         int cached = stats.CacheHitsCounter();
         int run = stats.ExecutedCounter();
-        int queued = stats.QueuedCounter();
-        int active = queued - run;
+        auto active = JustMRProgress::Instance().TaskTracker().Active();
+        auto sample = JustMRProgress::Instance().TaskTracker().Sample();
         std::string msg;
-        if (active > 0 and !sample.empty()) {
-            auto const& repo_set = JustMRProgress::Instance().RepositorySet();
-            if (repo_set.find(sample) != repo_set.end()) {
-                msg = fmt::format(
-                    "{} local roots, {} cached, {} run, {} processing "
-                    "({}{})",
-                    local,
-                    cached,
-                    run,
-                    active,
-                    nlohmann::json(sample).dump(),
-                    active > 1 ? ", ..." : "");
-            }
+        msg = fmt::format("{} local, {} cached, {} done", local, cached, run);
+        if ((active > 0) && !sample.empty()) {
+            msg = fmt::format("{}; {} fetches ({}{})",
+                              msg,
+                              active,
+                              nlohmann::json(sample).dump(),
+                              active > 1 ? ", ..." : "");
         }
         constexpr int kOneHundred{100};
         int total_work = total - cached - local;

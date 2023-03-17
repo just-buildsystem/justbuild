@@ -28,10 +28,6 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
                                     auto logger,
                                     auto /* unused */,
                                     auto const& key) {
-        // start progress trace for Git repo
-        auto id = fmt::format("{}:{}", key.first, key.second);
-        JustMRProgress::Instance().TaskTracker().Start(id);
-        JustMRStatistics::Instance().IncrementQueuedCounter();
         // perform git update commit
         auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
         if (not git_repo) {
@@ -57,15 +53,16 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
                     fatal);
             });
         // update commit
+        auto id = fmt::format("{}:{}", key.first, key.second);
+        JustMRProgress::Instance().TaskTracker().Start(id);
         auto new_commit = git_repo->UpdateCommitViaTmpRepo(
             tmp_dir->GetPath(), key.first, key.second, wrapped_logger);
+        JustMRProgress::Instance().TaskTracker().Stop(id);
         if (not new_commit) {
             return;
         }
-        (*setter)(new_commit->c_str());
-        // stop progress trace for Git repo
-        JustMRProgress::Instance().TaskTracker().Stop(id);
         JustMRStatistics::Instance().IncrementExecutedCounter();
+        (*setter)(new_commit->c_str());
     };
     return AsyncMapConsumer<StringPair, std::string>(update_commits, jobs);
 }

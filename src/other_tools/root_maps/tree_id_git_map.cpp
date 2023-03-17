@@ -54,13 +54,13 @@ void KeepCommitAndSetRoot(
                 return;
             }
             // set the workspace root
-            (*ws_setter)(nlohmann::json::array(
-                {"git tree",
-                 tree_id_info.hash,
-                 JustMR::Utils::GetGitCacheRoot().string()}));
-            // report work done
-            JustMRProgress::Instance().TaskTracker().Stop(tree_id_info.origin);
-            JustMRStatistics::Instance().IncrementExecutedCounter();
+            JustMRProgress::Instance().TaskTracker().Start(tree_id_info.origin);
+            (*ws_setter)(
+                std::pair(nlohmann::json::array(
+                              {"git tree",
+                               tree_id_info.hash,
+                               JustMR::Utils::GetGitCacheRoot().string()}),
+                          false));
         },
         [logger, commit, target_path = tmp_dir->GetPath()](auto const& msg,
                                                            bool fatal) {
@@ -133,9 +133,7 @@ auto CreateTreeIdGitMap(
                     return;
                 }
                 if (not *tree_found) {
-                    // start work reporting;
                     JustMRProgress::Instance().TaskTracker().Start(key.origin);
-                    JustMRStatistics::Instance().IncrementQueuedCounter();
                     // create temporary location for command execution root
                     auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("git-tree");
                     if (not tmp_dir) {
@@ -309,12 +307,12 @@ auto CreateTreeIdGitMap(
                 }
                 else {
                     // tree found, so return the git tree root as-is
-                    (*setter)(nlohmann::json::array(
-                        {"git tree",
-                         key.hash,
-                         JustMR::Utils::GetGitCacheRoot().string()}));
-                    // report cache hit
-                    JustMRStatistics::Instance().IncrementCacheHitsCounter();
+                    (*setter)(std::pair(
+                        nlohmann::json::array(
+                            {"git tree",
+                             key.hash,
+                             JustMR::Utils::GetGitCacheRoot().string()}),
+                        true));
                 }
             },
             [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
@@ -327,5 +325,6 @@ auto CreateTreeIdGitMap(
                           fatal);
             });
     };
-    return AsyncMapConsumer<TreeIdInfo, nlohmann::json>(tree_to_git, jobs);
+    return AsyncMapConsumer<TreeIdInfo, std::pair<nlohmann::json, bool>>(
+        tree_to_git, jobs);
 }

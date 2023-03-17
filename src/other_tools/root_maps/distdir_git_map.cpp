@@ -99,12 +99,12 @@ auto CreateDistdirGitMap(
                     }
                     // subdir is ".", so no need to deal with the Git cache
                     // set the workspace root
-                    (*setter)(nlohmann::json::array(
-                        {"git tree",
-                         distdir_tree_id,
-                         JustMR::Utils::GetGitCacheRoot().string()}));
-                    // report cache hit
-                    JustMRStatistics::Instance().IncrementCacheHitsCounter();
+                    (*setter)(std::pair(
+                        nlohmann::json::array(
+                            {"git tree",
+                             distdir_tree_id,
+                             JustMR::Utils::GetGitCacheRoot().string()}),
+                        true));
                 },
                 [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
                     auto const& msg, bool fatal) {
@@ -117,9 +117,6 @@ auto CreateDistdirGitMap(
                 });
         }
         else {
-            // start work reporting
-            JustMRProgress::Instance().TaskTracker().Start(key.origin);
-            JustMRStatistics::Instance().IncrementQueuedCounter();
             // fetch the gathered distdir repos into CAS
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -180,15 +177,13 @@ auto CreateDistdirGitMap(
                                 return;
                             }
                             // set the workspace root
-                            (*setter)(nlohmann::json::array(
-                                {"git tree",
-                                 distdir_tree_id,
-                                 JustMR::Utils::GetGitCacheRoot().string()}));
-                            // report work done
-                            JustMRProgress::Instance().TaskTracker().Stop(
-                                origin);
-                            JustMRStatistics::Instance()
-                                .IncrementExecutedCounter();
+                            (*setter)(
+                                std::pair(nlohmann::json::array(
+                                              {"git tree",
+                                               distdir_tree_id,
+                                               JustMR::Utils::GetGitCacheRoot()
+                                                   .string()}),
+                                          false));
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {
@@ -209,5 +204,6 @@ auto CreateDistdirGitMap(
                 });
         }
     };
-    return AsyncMapConsumer<DistdirInfo, nlohmann::json>(distdir_to_git, jobs);
+    return AsyncMapConsumer<DistdirInfo, std::pair<nlohmann::json, bool>>(
+        distdir_to_git, jobs);
 }

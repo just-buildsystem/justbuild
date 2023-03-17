@@ -114,12 +114,12 @@ auto CreateContentGitMap(
                         return;
                     }
                     // set the workspace root
-                    (*setter)(nlohmann::json::array(
-                        {"git tree",
-                         *subtree_hash,
-                         JustMR::Utils::GetGitCacheRoot().string()}));
-                    // report cache hit
-                    JustMRStatistics::Instance().IncrementCacheHitsCounter();
+                    (*setter)(std::pair(
+                        nlohmann::json::array(
+                            {"git tree",
+                             *subtree_hash,
+                             JustMR::Utils::GetGitCacheRoot().string()}),
+                        true));
                 },
                 [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
                     auto const& msg, bool fatal) {
@@ -132,9 +132,6 @@ auto CreateContentGitMap(
                 });
         }
         else {
-            // start work reporting;
-            JustMRProgress::Instance().TaskTracker().Start(key.archive.origin);
-            JustMRStatistics::Instance().IncrementQueuedCounter();
             // do the fetch and import_to_git
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -242,15 +239,13 @@ auto CreateContentGitMap(
                                 return;
                             }
                             // set the workspace root
-                            (*setter)(nlohmann::json::array(
-                                {"git tree",
-                                 *subtree_hash,
-                                 JustMR::Utils::GetGitCacheRoot().string()}));
-                            // report work done
-                            JustMRProgress::Instance().TaskTracker().Stop(
-                                origin);
-                            JustMRStatistics::Instance()
-                                .IncrementExecutedCounter();
+                            (*setter)(
+                                std::pair(nlohmann::json::array(
+                                              {"git tree",
+                                               *subtree_hash,
+                                               JustMR::Utils::GetGitCacheRoot()
+                                                   .string()}),
+                                          false));
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {
@@ -271,6 +266,6 @@ auto CreateContentGitMap(
                 });
         }
     };
-    return AsyncMapConsumer<ArchiveRepoInfo, nlohmann::json>(gitify_content,
-                                                             jobs);
+    return AsyncMapConsumer<ArchiveRepoInfo, std::pair<nlohmann::json, bool>>(
+        gitify_content, jobs);
 }

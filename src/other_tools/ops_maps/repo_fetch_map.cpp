@@ -39,9 +39,6 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
         auto tree_id_file = JustMR::Utils::GetArchiveTreeIDFile(
             key.repo_type, key.archive.content);
         if (not FileSystemManager::Exists(tree_id_file)) {
-            // start work reporting
-            JustMRProgress::Instance().TaskTracker().Start(key.archive.origin);
-            JustMRStatistics::Instance().IncrementQueuedCounter();
             // make sure content is in CAS
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -77,10 +74,8 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                             return;
                         }
                         // success
-                        (*setter)(true);
-                        // report work done
-                        JustMRProgress::Instance().TaskTracker().Stop(origin);
                         JustMRStatistics::Instance().IncrementExecutedCounter();
+                        (*setter)(true);
                     }
                     else {
                         (*logger)(
@@ -123,9 +118,8 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                     return;
                 }
                 // success
-                (*setter)(true);
-                // report cache hit
                 JustMRStatistics::Instance().IncrementCacheHitsCounter();
+                (*setter)(true);
             }
             else {
                 (*logger)(fmt::format("Content {} could not be found in CAS",

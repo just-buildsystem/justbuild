@@ -15,11 +15,15 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP
 
+#include <utility>
+
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
-/// \brief Maps the content of an archive to the resulting Git tree WS root.
-using ContentGitMap = AsyncMapConsumer<ArchiveRepoInfo, nlohmann::json>;
+/// \brief Maps the content of an archive to the resulting Git tree WS root,
+/// togehter with the information whether it was a cache hit.
+using ContentGitMap =
+    AsyncMapConsumer<ArchiveRepoInfo, std::pair<nlohmann::json, bool>>;
 
 [[nodiscard]] auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,

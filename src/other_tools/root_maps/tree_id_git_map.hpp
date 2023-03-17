@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
 
 #include <string>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
@@ -43,8 +44,9 @@ struct hash<TreeIdInfo> {
 }  // namespace std
 
 /// \brief Maps a known tree provided through a generic command to its
-/// workspace root.
-using TreeIdGitMap = AsyncMapConsumer<TreeIdInfo, nlohmann::json>;
+/// workspace root and the information whether it was a cache it.
+using TreeIdGitMap =
+    AsyncMapConsumer<TreeIdInfo, std::pair<nlohmann::json, bool>>;
 
 [[nodiscard]] auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,

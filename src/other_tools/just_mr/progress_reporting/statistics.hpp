@@ -27,12 +27,10 @@ class JustMRStatistics {
     void Reset() noexcept {
         num_local_paths_ = 0;
         num_cache_hits_ = 0;
-        num_queued_ = 0;
         num_executed_ = 0;
     }
     void IncrementLocalPathsCounter() noexcept { ++num_local_paths_; }
     void IncrementCacheHitsCounter() noexcept { ++num_cache_hits_; }
-    void IncrementQueuedCounter() noexcept { ++num_queued_; }
     void IncrementExecutedCounter() noexcept { ++num_executed_; }
 
     [[nodiscard]] auto LocalPathsCounter() const noexcept -> int {
@@ -41,9 +39,6 @@ class JustMRStatistics {
     [[nodiscard]] auto CacheHitsCounter() const noexcept -> int {
         return num_cache_hits_;
     }
-    [[nodiscard]] auto QueuedCounter() const noexcept -> int {
-        return num_queued_;
-    }
     [[nodiscard]] auto ExecutedCounter() const noexcept -> int {
         return num_executed_;
     }
@@ -51,7 +46,6 @@ class JustMRStatistics {
   private:
     std::atomic<int> num_local_paths_{};  // roots that are actual paths
     std::atomic<int> num_cache_hits_{};   // no-ops
-    std::atomic<int> num_queued_{};       // actual work queued
     std::atomic<int> num_executed_{};     // actual work done
 };
 

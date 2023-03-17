@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_DISTDIR_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_DISTDIR_GIT_MAP_HPP
 
+#include <utility>
+
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
@@ -33,8 +35,10 @@ struct DistdirInfo {
 };
 
 /// \brief Maps a list of repositories belonging to a distdir to its
-/// corresponding workspace root.
-using DistdirGitMap = AsyncMapConsumer<DistdirInfo, nlohmann::json>;
+/// corresponding workspace root and indication whether this was a cache
+/// hit.
+using DistdirGitMap =
+    AsyncMapConsumer<DistdirInfo, std::pair<nlohmann::json, bool>>;
 
 [[nodiscard]] auto CreateDistdirGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,

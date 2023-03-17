@@ -103,10 +103,16 @@ void GitCheckout(ExpressionPtr const& repo_desc,
         ts,
         {std::move(git_repo_info)},
         [repos = std::move(repos), repo_name, setter](auto const& values) {
-            auto ws_root = *values[0];
+            auto ws_root = values[0]->first;
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
             SetReposTakeOver(&cfg, repos, repo_name);
+            if (values[0]->second) {
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            }
+            else {
+                JustMRStatistics::Instance().IncrementExecutedCounter();
+            }
             (*setter)(std::move(cfg));
         },
         [logger, repo_name](auto const& msg, bool fatal) {
@@ -188,10 +194,16 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
         ts,
         {std::move(archive_repo_info)},
         [repos = std::move(repos), repo_name, setter](auto const& values) {
-            auto ws_root = *values[0];
+            auto ws_root = values[0]->first;
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
             SetReposTakeOver(&cfg, repos, repo_name);
+            if (values[0]->second) {
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            }
+            else {
+                JustMRStatistics::Instance().IncrementExecutedCounter();
+            }
             (*setter)(std::move(cfg));
         },
         [logger, repo_name, repo_type](auto const& msg, bool fatal) {
@@ -236,9 +248,6 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         repo_desc_pragma ? repo_desc_pragma->get()->At("to_git") : std::nullopt;
     if (pragma_to_git and pragma_to_git->get()->IsBool() and
         pragma_to_git->get()->Bool()) {
-        // start work reporting
-        JustMRProgress::Instance().TaskTracker().Start(repo_name);
-        JustMRStatistics::Instance().IncrementQueuedCounter();
         // get the WS root as git tree
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
@@ -250,8 +259,7 @@ void FileCheckout(ExpressionPtr const& repo_desc,
                 SetReposTakeOver(&cfg, repos, repo_name);
                 (*setter)(std::move(cfg));
                 // report work done
-                JustMRProgress::Instance().TaskTracker().Stop(repo_name);
-                JustMRStatistics::Instance().IncrementExecutedCounter();
+                JustMRStatistics::Instance().IncrementLocalPathsCounter();
             },
             [logger, repo_name](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While setting the workspace root for "
@@ -438,10 +446,16 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
         ts,
         {std::move(distdir_info)},
         [repos = std::move(repos), repo_name, setter](auto const& values) {
-            auto ws_root = *values[0];
+            auto ws_root = values[0]->first;
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
             SetReposTakeOver(&cfg, repos, repo_name);
+            if (values[0]->second) {
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            }
+            else {
+                JustMRStatistics::Instance().IncrementExecutedCounter();
+            }
             (*setter)(std::move(cfg));
         },
         [logger, repo_name](auto const& msg, bool fatal) {
@@ -530,10 +544,16 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
         ts,
         {std::move(tree_id_info)},
         [repos = std::move(repos), repo_name, setter](auto const& values) {
-            auto ws_root = *values[0];
+            auto ws_root = values[0]->first;
             nlohmann::json cfg({});
             cfg["workspace_root"] = ws_root;
             SetReposTakeOver(&cfg, repos, repo_name);
+            if (values[0]->second) {
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            }
+            else {
+                JustMRStatistics::Instance().IncrementExecutedCounter();
+            }
             (*setter)(std::move(cfg));
         },
         [logger, repo_name](auto const& msg, bool fatal) {
@@ -575,6 +595,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
             // no repository checkout required
             nlohmann::json cfg({});
             SetReposTakeOver(&cfg, repos, key);
+            JustMRStatistics::Instance().IncrementLocalPathsCounter();
             (*setter)(std::move(cfg));
         }
         else {

@@ -34,16 +34,13 @@ class JustMRProgress {
         return task_tracker_;
     }
 
-    // Return a reference to the repository set. It is the responsibility of the
-    // caller to ensure that access only happens in a single-threaded context.
-    [[nodiscard]] auto RepositorySet() noexcept
-        -> std::unordered_set<std::string>& {
-        return repo_set_;
-    }
+    [[nodiscard]] auto GetTotal() const noexcept -> int { return total_; }
+
+    void SetTotal(int total) noexcept { total_ = total; }
 
   private:
     ::TaskTracker task_tracker_{};
-    std::unordered_set<std::string> repo_set_{};
+    int total_{};
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_HPP

@@ -59,9 +59,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         return;
     }
     if (not is_commit_present.value()) {
-        // start work reporting
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
-        JustMRStatistics::Instance().IncrementQueuedCounter();
         // if commit not there, fetch it
         auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
@@ -147,11 +145,10 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                     return;
                 }
                 // set the workspace root
-                (*ws_setter)(
-                    nlohmann::json::array({"git tree", *subtree, repo_root}));
-                // report work done
                 JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
-                JustMRStatistics::Instance().IncrementExecutedCounter();
+                (*ws_setter)(std::pair(
+                    nlohmann::json::array({"git tree", *subtree, repo_root}),
+                    false));
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
@@ -176,9 +173,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             return;
         }
         // set the workspace root
-        (*ws_setter)(nlohmann::json::array({"git tree", *subtree, repo_root}));
-        // report cache hit
-        JustMRStatistics::Instance().IncrementCacheHitsCounter();
+        (*ws_setter)(std::pair(
+            nlohmann::json::array({"git tree", *subtree, repo_root}), true));
     }
 }
 
@@ -252,5 +248,6 @@ auto CreateCommitGitMap(
                           fatal);
             });
     };
-    return AsyncMapConsumer<GitRepoInfo, nlohmann::json>(commit_to_git, jobs);
+    return AsyncMapConsumer<GitRepoInfo, std::pair<nlohmann::json, bool>>(
+        commit_to_git, jobs);
 }
