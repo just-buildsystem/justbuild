@@ -10,9 +10,18 @@
   , "test": ["fetch.sh"]
   , "deps": [["test/end-to-end", "mr-tool-under-test"]]
   }
+, "fetch-gc":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["fetch-gc"]
+  , "test": ["fetch-gc.sh"]
+  , "deps":
+    [ ["test/end-to-end", "mr-tool-under-test"]
+    , ["test/end-to-end", "tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["cas-independent", "fetch"]
+  , "deps": ["cas-independent", "fetch", "fetch-gc"]
   }
 }
