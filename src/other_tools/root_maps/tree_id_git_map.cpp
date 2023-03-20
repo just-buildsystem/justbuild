@@ -14,7 +14,9 @@
 
 #include "src/other_tools/root_maps/tree_id_git_map.hpp"
 
+#include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -182,8 +184,11 @@ auto CreateTreeIdGitMap(
                         ts,
                         {std::move(op_key)},
                         [tmp_dir,  // keep tmp_dir alive
+                         out_dir,  // keep stdout/stderr of command alive
                          critical_git_op_map,
                          just_git_cas = op_result.git_cas,
+                         cmdline,
+                         command_output,
                          key,
                          ts,
                          setter,
@@ -224,12 +229,31 @@ auto CreateTreeIdGitMap(
                                 return;
                             }
                             if (not *tree_check) {
+                                std::string out_str{};
+                                std::string err_str{};
+                                auto cmd_out = FileSystemManager::ReadFile(
+                                    command_output->stdout_file);
+                                auto cmd_err = FileSystemManager::ReadFile(
+                                    command_output->stderr_file);
+                                if (cmd_out) {
+                                    out_str = *cmd_out;
+                                }
+                                if (cmd_err) {
+                                    err_str = *cmd_err;
+                                }
+                                std::string output{};
+                                if (!out_str.empty() || !err_str.empty()) {
+                                    output = fmt::format(
+                                        ".\nOutput of command:\n{}{}",
+                                        out_str,
+                                        err_str);
+                                }
                                 (*logger)(
-                                    fmt::format(
-                                        "Given command\n{}\ndid not create "
-                                        "specified tree {}",
-                                        nlohmann::json(key.command).dump(),
-                                        key.hash),
+                                    fmt::format("Executing {} did not create "
+                                                "specified tree {}{}",
+                                                nlohmann::json(cmdline).dump(),
+                                                key.hash,
+                                                output),
                                     /*fatal=*/true);
                                 return;
                             }
