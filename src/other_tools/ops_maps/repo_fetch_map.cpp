@@ -34,11 +34,12 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                                   : std::filesystem::path(key.archive.fetch_url)
                                         .filename()
                                         .string());
-        // if archive available as a git tree ID stored to file,
-        // that's good enough, as it means it needs no fetching
-        auto tree_id_file = JustMR::Utils::GetArchiveTreeIDFile(
-            key.repo_type, key.archive.content);
-        if (not FileSystemManager::Exists(tree_id_file)) {
+        // check if content not already in CAS
+        auto const& cas = Storage::Instance().CAS();
+        auto content_path =
+            cas.BlobPath(ArtifactDigest(key.archive.content, 0, false),
+                         /*is_executable=*/false);
+        if (not content_path) {
             // make sure content is in CAS
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
@@ -49,41 +50,32 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                  origin = key.archive.origin,
                  setter,
                  logger]([[maybe_unused]] auto const& values) {
-                    // content is now in CAS
-                    // copy content from CAS into fetch_dir
+                    // content is now in CAS, so copy content into fetch_dir
                     auto const& cas = Storage::Instance().CAS();
                     auto content_path =
                         cas.BlobPath(ArtifactDigest(content, 0, false),
-                                     /*is_executable=*/false);
-                    if (content_path) {
-                        auto target_name = fetch_dir / distfile;
-                        if (FileSystemManager::Exists(target_name)) {
-                            std::filesystem::permissions(
-                                target_name,
-                                std::filesystem::perms::owner_write,
-                                std::filesystem::perm_options::add);
-                        }
-                        if (not FileSystemManager::CopyFile(*content_path,
-                                                            target_name)) {
-                            (*logger)(fmt::format(
-                                          "Failed to copy content {} from CAS "
-                                          "to {}",
-                                          content,
-                                          target_name.string()),
-                                      /*fatal=*/true);
-                            return;
-                        }
-                        // success
-                        JustMRStatistics::Instance().IncrementExecutedCounter();
-                        (*setter)(true);
+                                     /*is_executable=*/false)
+                            .value();
+                    auto target_name = fetch_dir / distfile;
+                    if (FileSystemManager::Exists(target_name)) {
+                        std::filesystem::permissions(
+                            target_name,
+                            std::filesystem::perms::owner_write,
+                            std::filesystem::perm_options::add);
                     }
-                    else {
+                    if (not FileSystemManager::CopyFile(content_path,
+                                                        target_name)) {
                         (*logger)(
-                            fmt::format("Content {} could not be found in CAS",
-                                        content),
+                            fmt::format("Failed to copy content {} from CAS "
+                                        "to {}",
+                                        content,
+                                        target_name.string()),
                             /*fatal=*/true);
                         return;
                     }
+                    // success
+                    JustMRStatistics::Instance().IncrementExecutedCounter();
+                    (*setter)(true);
                 },
                 [logger, content = key.archive.content](auto const& msg,
                                                         bool fatal) {
@@ -95,38 +87,24 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                 });
         }
         else {
-            // copy content from CAS into fetch_dir
-            auto const& cas = Storage::Instance().CAS();
-            auto content_path =
-                cas.BlobPath(ArtifactDigest(key.archive.content, 0, false),
-                             /*is_executable=*/false);
-            if (content_path) {
-                auto target_name = fetch_dir / distfile;
-                if (FileSystemManager::Exists(target_name)) {
-                    std::filesystem::permissions(
-                        target_name,
-                        std::filesystem::perms::owner_write,
-                        std::filesystem::perm_options::add);
-                }
-                if (not FileSystemManager::CopyFile(*content_path,
-                                                    target_name)) {
-                    (*logger)(fmt::format("Failed to copy content {} from CAS "
-                                          "to {}",
-                                          key.archive.content,
-                                          target_name.string()),
-                              /*fatal=*/true);
-                    return;
-                }
-                // success
-                JustMRStatistics::Instance().IncrementCacheHitsCounter();
-                (*setter)(true);
+            auto target_name = fetch_dir / distfile;
+            if (FileSystemManager::Exists(target_name)) {
+                std::filesystem::permissions(
+                    target_name,
+                    std::filesystem::perms::owner_write,
+                    std::filesystem::perm_options::add);
             }
-            else {
-                (*logger)(fmt::format("Content {} could not be found in CAS",
-                                      key.archive.content),
+            if (not FileSystemManager::CopyFile(*content_path, target_name)) {
+                (*logger)(fmt::format("Failed to copy content {} from CAS "
+                                      "to {}",
+                                      key.archive.content,
+                                      target_name.string()),
                           /*fatal=*/true);
                 return;
             }
+            // success
+            JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            (*setter)(true);
         }
     };
     return AsyncMapConsumer<ArchiveRepoInfo, bool>(fetch_repo, jobs);
