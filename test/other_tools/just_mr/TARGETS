@@ -26,5 +26,15 @@
     , "just_mr_install"
     ]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["just_mr_mp"]}
+, "git-tree-verbosity":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["git-tree-verbosity"]
+  , "test": ["verbosity.sh"]
+  , "deps": ["just_mr_install"]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["just_mr_mp", "git-tree-verbosity"]
+  }
 }
