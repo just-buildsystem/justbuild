@@ -68,6 +68,14 @@ The just-mrrc is given by a JSON object.
   configuration file. If the key ~"local launcher"~ is absent, the
   default ~["env", "--"]~ is assumed.
 
+- The value for the key ~"log limit"~, if given, sets the default
+  value for the log limit, that can be overridden by the command-line
+  options.
+
+- The value ~"log files"~, if given, has to be a list of location
+  objects, specifying additional log files, on top of those specified
+  on the command line.
+
 - The value for the key ~"just args"~ is a JSON object. Its keys are ~just~
   subcommands and its value is a JSON list of strings. For the corresponding
   subcommand, these strings are prefixed to the ~just~ argument vector, if
@@ -87,6 +95,8 @@ An example just-mrrc file could look like the following:
 , "local build root": {"root": "home", "path": ".cache/just"}
 , "checkout locations": {"root": "home", "path": ".just-local.json"}
 , "local launcher": ["env", "--"]
+, "log limit": 4
+, "log files": [{"root": "home", "path": ".log/just/latest-invocation"}]
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
 , "just": {"root": "system", "path": "usr/bin/just"}
 , "just args":

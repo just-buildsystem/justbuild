@@ -47,7 +47,7 @@ struct MultiRepoCommonArguments {
 
 struct MultiRepoLogArguments {
     std::vector<std::filesystem::path> log_files{};
-    LogLevel log_limit{kDefaultLogLevel};
+    std::optional<LogLevel> log_limit{};
     bool plain_log{false};
     bool log_append{false};
 };

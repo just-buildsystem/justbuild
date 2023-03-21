@@ -20,6 +20,7 @@
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/logging/log_config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/main/version.hpp"
@@ -188,7 +189,12 @@ void SetupDefaultLogging() {
 }
 
 void SetupLogging(MultiRepoLogArguments const& clargs) {
-    LogConfig::SetLogLimit(clargs.log_limit);
+    if (clargs.log_limit) {
+        LogConfig::SetLogLimit(*clargs.log_limit);
+    }
+    else {
+        LogConfig::SetLogLimit(kDefaultLogLevel);
+    }
     LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
     for (auto const& log_file : clargs.log_files) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
@@ -414,6 +420,44 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
         }
         else {
             clargs->common.local_launcher = kDefaultLauncher;
+        }
+    }
+    // Set log limit, if specified and not set on the command line
+    if (not clargs->log.log_limit) {
+        auto limit = rc_config["log limit"];
+        if (limit.IsNotNull()) {
+            if (not limit->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file specified log-limit has to be "
+                            "a number, but found {}",
+                            limit->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->log.log_limit = ToLogLevel(limit->Number());
+            LogConfig::SetLogLimit(*clargs->log.log_limit);
+        }
+    }
+    // Add additional log sinks specified in the rc file.
+    auto log_files = rc_config["log files"];
+    if (log_files.IsNotNull()) {
+        if (not log_files->IsList()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-provided log files have to be a list of "
+                        "location objects, but found {}",
+                        log_files->ToString());
+            std::exit(kExitConfigError);
+        }
+        for (auto const& log_file : log_files->List()) {
+            auto path =
+                ReadLocation(log_file->ToJson(),
+                             clargs->common.just_mr_paths->workspace_root);
+            if (path) {
+                LogConfig::AddSink(LogSinkFile::CreateFactory(
+                    path->first,
+                    clargs->log.log_append ? LogSinkFile::Mode::Append
+                                           : LogSinkFile::Mode::Overwrite));
+                clargs->log.log_files.emplace_back(path->first);
+            }
         }
     }
     // read config lookup order
@@ -1239,11 +1283,12 @@ void DefaultReachableRepositories(
             cmd.emplace_back(log_file.string());
         }
     }
-    if (arguments.log.log_limit != kDefaultLogLevel) {
+    if (arguments.log.log_limit and
+        *arguments.log.log_limit != kDefaultLogLevel) {
         cmd.emplace_back("--log-limit");
         cmd.emplace_back(
             std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
-                arguments.log.log_limit)));
+                *arguments.log.log_limit)));
     }
     if (arguments.log.plain_log) {
         cmd.emplace_back("--plain-log");

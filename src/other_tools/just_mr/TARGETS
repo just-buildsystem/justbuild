@@ -6,6 +6,7 @@
   , "private-deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/main", "version"]
     , "cli"
     , "exit_codes"
