@@ -16,7 +16,7 @@
 set -eu
 
 
-readonly JUST_MR="${PWD}/bin/just-mr-under-test"
+readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly TOOLS_DIR="${TEST_TMPDIR}/tools"
 readonly COMPUTE_TREE_DIR="${TEST_TMPDIR}/generate-the-tree-id"
 readonly LBR="${TEST_TMPDIR}/local-build-root"

@@ -3,7 +3,6 @@
   , "tainted": ["test"]
   , "dirs":
     [ [["./", "git_operations", "TESTS"], "git_operations"]
-    , [["./", "just_mr", "TESTS"], "just_mr"]
     , [["./", "utils", "TESTS"], "utils"]
     ]
   }

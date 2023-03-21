@@ -19,9 +19,50 @@
     , ["test/end-to-end", "tool-under-test"]
     ]
   }
+, "create_test_archives":
+  { "type": ["@", "rules", "CC", "binary"]
+  , "tainted": ["test"]
+  , "name": ["create_test_archives"]
+  , "srcs": ["create_test_archives.cpp"]
+  , "private-deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/other_tools/utils", "archive_ops"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  , "private-ldflags": ["-pthread"]
+  , "stage": ["src"]
+  }
+, "just_mr_mp":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["just_mr_mp"]
+  , "test": ["just-mr.test.sh"]
+  , "deps":
+    [ "create_test_archives"
+    , ["test/utils", "test_utils_install"]
+    , ["test/end-to-end", "mr-tool-under-test"]
+    ]
+  }
+, "git-tree-verbosity":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["git-tree-verbosity"]
+  , "test": ["verbosity.sh"]
+  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["cas-independent", "fetch", "fetch-gc"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["cas-independent", "fetch", "fetch-gc"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["just_mr_mp", "git-tree-verbosity"]
+        }
+      ]
+    }
   }
 }

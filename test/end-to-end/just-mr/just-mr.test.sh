@@ -27,11 +27,7 @@ server_cleanup() {
 readonly ROOT=`pwd`
 readonly WRKDIR="${TEST_TMPDIR}/wrkdir"
 
-# set the just-mr versions to be run
-# Python version won't be able to find wget, unzip, and tar
-
-# readonly JUST_MR_PY="${ROOT}/bin/just-mr.py"
-readonly JUST_MR_CPP="${ROOT}/bin/just-mr-under-test"
+readonly JUST_MR_CPP="${ROOT}/bin/mr-tool-under-test"
 
 # set paths
 readonly SERVER_ROOT="${TEST_TMPDIR}/server-root"
