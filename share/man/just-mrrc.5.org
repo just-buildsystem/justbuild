@@ -62,6 +62,12 @@ The just-mrrc is given by a JSON object.
   path to the ~just~ binary to use for execution, if ~just-mr~ is used as a
   launcher.
 
+- The value for the key ~"local launcher"~, if given, is list of
+  strings setting the default for local launcher for ~just-mr~;
+  command-line arguments take precedence over the value in the
+  configuration file. If the key ~"local launcher"~ is absent, the
+  default ~["env", "--"]~ is assumed.
+
 - The value for the key ~"just args"~ is a JSON object. Its keys are ~just~
   subcommands and its value is a JSON list of strings. For the corresponding
   subcommand, these strings are prefixed to the ~just~ argument vector, if
@@ -80,6 +86,7 @@ An example just-mrrc file could look like the following:
   ]
 , "local build root": {"root": "home", "path": ".cache/just"}
 , "checkout locations": {"root": "home", "path": ".just-local.json"}
+, "local launcher": ["env", "--"]
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
 , "just": {"root": "system", "path": "usr/bin/just"}
 , "just args":

@@ -109,9 +109,7 @@ static inline void SetupMultiRepoCommonArguments(
            },
            "JSON array with the list of strings representing the launcher to "
            "prepend actions' commands before being executed locally.")
-        ->type_name("JSON")
-        ->run_callback_for_default()
-        ->default_val(nlohmann::json(kDefaultLauncher).dump());
+        ->type_name("JSON");
     app->add_option_function<std::string>(
            "--distdir",
            [clargs](auto const& distdir_raw) {

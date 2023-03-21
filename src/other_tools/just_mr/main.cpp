@@ -387,6 +387,35 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             clargs->just_cmd.just_args[cmd_name] = std::move(args);
         }
     }
+    // read default for local launcher
+    if (not clargs->common.local_launcher) {
+        auto launcher = rc_config["local launcher"];
+        if (launcher.IsNotNull()) {
+            if (not launcher->IsList()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file provided launcher {} is not a "
+                            "list of strings",
+                            launcher->ToString());
+                std::exit(kExitConfigError);
+            }
+            std::vector<std::string> default_launcher{};
+            default_launcher.reserve(launcher->List().size());
+            for (auto const& entry : launcher->List()) {
+                if (not entry->IsString()) {
+                    Logger::Log(LogLevel::Error,
+                                "Configuration-file provided launcher {} is "
+                                "not a list of strings",
+                                launcher->ToString());
+                    std::exit(kExitConfigError);
+                }
+                default_launcher.emplace_back(entry->String());
+            }
+            clargs->common.local_launcher = default_launcher;
+        }
+        else {
+            clargs->common.local_launcher = kDefaultLauncher;
+        }
+    }
     // read config lookup order
     auto config_lookup_order = rc_config["config lookup order"];
     if (config_lookup_order.IsNotNull()) {
