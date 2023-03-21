@@ -73,18 +73,21 @@ class GitRepoRemote : public GitRepo {
                                        anon_logger_ptr const& logger) noexcept
         -> bool;
 
-    /// \brief Get commit from remote via a temporary repository.
-    /// Calling it from a fake repository allows thread-safe use.
-    /// Creates a temporary real repository at the given location and uses it to
-    /// retrieve from the remote the commit of a branch given its name.
+    /// \brief Get commit from given branch on the remote. If URL is SSH, shells
+    /// out to system git to perform an ls-remote call, ensuring correct
+    /// handling of the remote connection settings (in particular proxy and
+    /// SSH). A temporary directory is needed to pipe the stdout and stderr to.
+    /// If URL is non-SSH, uses tmp dir to connect to remote and retrieve the
+    /// commit of a branch asynchronously using libgit2.
     /// Caller needs to make sure the temporary directory exists and that the
     /// given path is thread- and process-safe!
     /// Returns the commit hash, as a string, or nullopt if failure.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto UpdateCommitViaTmpRepo(
-        std::filesystem::path const& tmp_repo_path,
+        std::filesystem::path const& tmp_dir,
         std::string const& repo_url,
         std::string const& branch,
+        std::vector<std::string> const& launcher,
         anon_logger_ptr const& logger) const noexcept
         -> std::optional<std::string>;
 

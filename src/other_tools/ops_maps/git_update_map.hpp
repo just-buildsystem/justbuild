@@ -38,6 +38,7 @@ struct hash<StringPair> {
 }  // namespace std
 
 [[nodiscard]] auto CreateGitUpdateMap(GitCASPtr const& git_cas,
+                                      std::vector<std::string> const& launcher,
                                       std::size_t jobs) -> GitUpdateMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP

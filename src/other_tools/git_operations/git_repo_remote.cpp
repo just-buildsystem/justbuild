@@ -387,46 +387,106 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
 }
 
 auto GitRepoRemote::UpdateCommitViaTmpRepo(
-    std::filesystem::path const& tmp_repo_path,
+    std::filesystem::path const& tmp_dir,
     std::string const& repo_url,
     std::string const& branch,
+    std::vector<std::string> const& launcher,
     anon_logger_ptr const& logger) const noexcept
     -> std::optional<std::string> {
     try {
-        // preferably with a "fake" repository!
-        if (not IsRepoFake()) {
-            Logger::Log(LogLevel::Debug,
-                        "Commit update called on a real repository");
-        }
-        // create the temporary real repository
-        auto tmp_repo =
-            GitRepoRemote::InitAndOpen(tmp_repo_path, /*is_bare=*/true);
-        if (tmp_repo == std::nullopt) {
-            return std::nullopt;
-        }
-        // setup wrapped logger
-        auto wrapped_logger = std::make_shared<anon_logger_t>(
-            [logger](auto const& msg, bool fatal) {
+        // check for internally supported protocols
+        if (IsSupported(repo_url)) {
+            // preferably with a "fake" repository!
+            if (not IsRepoFake()) {
+                Logger::Log(LogLevel::Debug,
+                            "Commit update called on a real repository");
+            }
+            // create the temporary real repository
+            auto tmp_repo =
+                GitRepoRemote::InitAndOpen(tmp_dir, /*is_bare=*/true);
+            if (tmp_repo == std::nullopt) {
+                return std::nullopt;
+            }
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<anon_logger_t>(
+                [logger](auto const& msg, bool fatal) {
+                    (*logger)(
+                        fmt::format(
+                            "While doing commit update via tmp repo:\n{}", msg),
+                        fatal);
+                });
+            // get the config of the correct target repo
+            auto cfg = GetConfigSnapshot();
+            if (cfg == nullptr) {
                 (*logger)(
-                    fmt::format("While doing commit update via tmp repo:\n{}",
-                                msg),
-                    fatal);
-            });
-        // get the config of the correct target repo
-        auto cfg = GetConfigSnapshot();
-        if (cfg == nullptr) {
-            (*logger)(fmt::format("retrieving config object in update commit "
-                                  "via tmp repo failed with:\n{}",
-                                  GitLastError()),
-                      true /*fatal*/);
+                    fmt::format("retrieving config object in update commit "
+                                "via tmp repo failed with:\n{}",
+                                GitLastError()),
+                    true /*fatal*/);
+                return std::nullopt;
+            }
+            return tmp_repo->GetCommitFromRemote(
+                cfg, repo_url, branch, wrapped_logger);
+        }
+        // default to shelling out to git for non-explicitly supported protocols
+        auto cmdline = launcher;
+        cmdline.insert(cmdline.end(), {"git", "ls-remote", repo_url, branch});
+        // set up the system command
+        SystemCommand system{repo_url};
+        auto const command_output =
+            system.Execute(cmdline,
+                           {},            // default env
+                           GetGitPath(),  // which path is not actually relevant
+                           tmp_dir);
+        // output file can be read anyway
+        std::string out_str{};
+        auto cmd_out = FileSystemManager::ReadFile(command_output->stdout_file);
+        if (cmd_out) {
+            out_str = *cmd_out;
+        }
+        // check for command failure
+        if (not command_output) {
+            std::string err_str{};
+            auto cmd_err =
+                FileSystemManager::ReadFile(command_output->stderr_file);
+
+            if (cmd_err) {
+                err_str = *cmd_err;
+            }
+            std::string output{};
+            if (!out_str.empty() || !err_str.empty()) {
+                output = fmt::format(" with output:\n{}{}", out_str, err_str);
+            }
+            (*logger)(fmt::format("List remote commits command {} failed{}",
+                                  nlohmann::json(cmdline).dump(),
+                                  output),
+                      /*fatal=*/true);
             return std::nullopt;
         }
-        return tmp_repo->GetCommitFromRemote(
-            cfg, repo_url, branch, wrapped_logger);
+        // report failure to read generated output file or the file is empty
+        if (out_str.empty()) {
+            (*logger)(fmt::format("List remote commits command {} failed to "
+                                  "produce an output",
+                                  nlohmann::json(cmdline).dump()),
+                      /*fatal=*/true);
+
+            return std::nullopt;
+        }
+        // parse the output: it should contain two tab-separated columns,
+        // with the commit being the first entry
+        auto str_len = out_str.find('\t');
+        if (str_len == std::string::npos) {
+            (*logger)(fmt::format("List remote commits command {} produced "
+                                  "malformed output:\n{}",
+                                  out_str),
+                      /*fatal=*/true);
+            return std::nullopt;
+        }
+        // success!
+        return out_str.substr(0, str_len);
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "update commit via tmp repo failed with:\n{}",
-                    ex.what());
+        Logger::Log(
+            LogLevel::Error, "Update commit failed with:\n{}", ex.what());
         return std::nullopt;
     }
 }

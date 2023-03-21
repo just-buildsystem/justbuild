@@ -21,13 +21,14 @@
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
-auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
-    -> GitUpdateMap {
-    auto update_commits = [git_cas](auto /* unused */,
-                                    auto setter,
-                                    auto logger,
-                                    auto /* unused */,
-                                    auto const& key) {
+auto CreateGitUpdateMap(GitCASPtr const& git_cas,
+                        std::vector<std::string> const& launcher,
+                        std::size_t jobs) -> GitUpdateMap {
+    auto update_commits = [git_cas, launcher](auto /* unused */,
+                                              auto setter,
+                                              auto logger,
+                                              auto /* unused */,
+                                              auto const& key) {
         // perform git update commit
         auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
         if (not git_repo) {
@@ -55,8 +56,11 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas, std::size_t jobs)
         // update commit
         auto id = fmt::format("{}:{}", key.first, key.second);
         JustMRProgress::Instance().TaskTracker().Start(id);
-        auto new_commit = git_repo->UpdateCommitViaTmpRepo(
-            tmp_dir->GetPath(), key.first, key.second, wrapped_logger);
+        auto new_commit = git_repo->UpdateCommitViaTmpRepo(tmp_dir->GetPath(),
+                                                           key.first,
+                                                           key.second,
+                                                           launcher,
+                                                           wrapped_logger);
         JustMRProgress::Instance().TaskTracker().Stop(id);
         if (not new_commit) {
             return;

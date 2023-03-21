@@ -285,11 +285,12 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
             GitRepoRemote::InitAndOpen(path_commit_upd, /*is_bare=*/true);
         REQUIRE(repo_commit_upd);
 
-        // create path for tmp repo to use for remote ls
+        // create tmp dir to use for commits update
         auto tmp_path_commit_upd = TestUtils::GetRepoPath();
+        REQUIRE(FileSystemManager::CreateDirectory(tmp_path_commit_upd));
         // do remote ls
         auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            tmp_path_commit_upd, *repo_path, "master", logger);
+            tmp_path_commit_upd, *repo_path, "master", {}, logger);
 
         REQUIRE(fetched_commit);
         CHECK(*fetched_commit == kRootCommit);
@@ -375,14 +376,17 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                 logger));
                         } break;
                         case 3: {
-                            // create path for tmp repo to use for remote ls
+                            // create tmp dir to use for commits update
                             auto tmp_path_commit_upd = TestUtils::GetRepoPath();
+                            REQUIRE(FileSystemManager::CreateDirectory(
+                                tmp_path_commit_upd));
                             // do remote ls
                             auto fetched_commit =
                                 target_repo->UpdateCommitViaTmpRepo(
                                     tmp_path_commit_upd,
                                     *remote_repo_path,
                                     "master",
+                                    {},
                                     logger);
 
                             REQUIRE(fetched_commit);
