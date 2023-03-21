@@ -270,8 +270,10 @@ auto CreateTreeIdGitMap(
                                 return;
                             }
                             // define temp repo path
-                            auto tmp_repo_path = CreateUniquePath(target_path);
-                            if (not tmp_repo_path) {
+                            auto tmp_dir =
+                                JustMR::Utils::CreateTypedTmpDir("git-tree");
+                            ;
+                            if (not tmp_dir) {
                                 (*logger)(fmt::format("Could not create unique "
                                                       "path for target {}",
                                                       target_path.string()),
@@ -290,13 +292,12 @@ auto CreateTreeIdGitMap(
                                                 msg),
                                             fatal);
                                     });
-                            auto success = just_git_repo->FetchViaTmpRepo(
-                                *tmp_repo_path,
-                                target_path.string(),
-                                std::nullopt,
-                                launcher,
-                                wrapped_logger);
-                            if (not success) {
+                            if (not just_git_repo->FetchViaTmpRepo(
+                                    tmp_dir->GetPath(),
+                                    target_path.string(),
+                                    std::nullopt,
+                                    launcher,
+                                    wrapped_logger)) {
                                 return;
                             }
                             // setup a wrapped_logger

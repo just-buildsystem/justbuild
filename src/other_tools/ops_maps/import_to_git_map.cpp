@@ -157,9 +157,10 @@ auto CreateImportToGitMap(
                                       /*fatal=*/true);
                             return;
                         }
-                        // define temp repo path
-                        auto tmp_repo_path = CreateUniquePath(target_path);
-                        if (not tmp_repo_path) {
+                        // create tmp directory
+                        auto tmp_dir =
+                            JustMR::Utils::CreateTypedTmpDir("import-to-git");
+                        if (not tmp_dir) {
                             (*logger)(
                                 fmt::format("Could not create unique path "
                                             "for target {}",
@@ -178,13 +179,12 @@ auto CreateImportToGitMap(
                                                     msg),
                                         fatal);
                                 });
-                        auto success =
-                            just_git_repo->FetchViaTmpRepo(*tmp_repo_path,
-                                                           target_path.string(),
-                                                           std::nullopt,
-                                                           launcher,
-                                                           wrapped_logger);
-                        if (not success) {
+                        if (not just_git_repo->FetchViaTmpRepo(
+                                tmp_dir->GetPath(),
+                                target_path.string(),
+                                std::nullopt,
+                                launcher,
+                                wrapped_logger)) {
                             return;
                         }
                         // setup a wrapped_logger

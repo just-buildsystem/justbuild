@@ -50,7 +50,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [logger](auto const& msg, bool fatal) {
                 (*logger)(
-                    fmt::format("While updating commit via tmp repo:\n{}", msg),
+                    fmt::format("While updating commit from remote:\n{}", msg),
                     fatal);
             });
         // update commit

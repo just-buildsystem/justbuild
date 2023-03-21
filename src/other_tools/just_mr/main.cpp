@@ -1007,8 +1007,9 @@ void DefaultReachableRepositories(
     // Initialize resulting config to be updated
     auto mr_config = config->ToJson();
     // Create async map
-    auto git_update_map =
-        CreateGitUpdateMap(git_repo->GetGitCAS(), arguments.common.jobs);
+    auto git_update_map = CreateGitUpdateMap(git_repo->GetGitCAS(),
+                                             *arguments.common.local_launcher,
+                                             arguments.common.jobs);
 
     // set up progress observer
     JustMRProgress::Instance().SetTotal(repos_to_update.size());
@@ -1116,10 +1117,13 @@ void DefaultReachableRepositories(
                                                arguments.common.ca_info,
                                                arguments.common.jobs);
     auto import_to_git_map =
-        CreateImportToGitMap(&critical_git_op_map, arguments.common.jobs);
+        CreateImportToGitMap(&critical_git_op_map,
+                             *arguments.common.local_launcher,
+                             arguments.common.jobs);
 
     auto commit_git_map = CreateCommitGitMap(&critical_git_op_map,
                                              arguments.common.just_mr_paths,
+                                             *arguments.common.local_launcher,
                                              arguments.common.jobs);
     auto content_git_map = CreateContentGitMap(&content_cas_map,
                                                &import_to_git_map,
