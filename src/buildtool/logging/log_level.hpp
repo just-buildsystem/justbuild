@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_LEVEL_HPP
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <type_traits>
 
@@ -38,6 +39,23 @@ constexpr auto kLastLogLevel = LogLevel::Trace;
     std::underlying_type_t<LogLevel> level) -> LogLevel {
     return std::min(std::max(static_cast<LogLevel>(level), kFirstLogLevel),
                     kLastLogLevel);
+}
+
+[[nodiscard]] static inline auto ToLogLevel(double level) -> LogLevel {
+    if (level < static_cast<double>(kFirstLogLevel)) {
+        return kFirstLogLevel;
+    }
+    if (level > static_cast<double>(kLastLogLevel)) {
+        return kLastLogLevel;
+    }
+    // Now we're in range, so we can round and cast.
+    try {
+        return ToLogLevel(
+            static_cast<std::underlying_type_t<LogLevel>>(std::lround(level)));
+    } catch (...) {
+        // should not happen, but chose the most conservative value
+        return kLastLogLevel;
+    }
 }
 
 [[nodiscard]] static inline auto LogLevelToString(LogLevel level)
