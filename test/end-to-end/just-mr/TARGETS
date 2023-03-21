@@ -49,6 +49,12 @@
   , "test": ["verbosity.sh"]
   , "deps": [["test/end-to-end", "mr-tool-under-test"]]
   }
+, "defaults":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["default-values"]
+  , "test": ["defaults.sh"]
+  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -60,7 +66,7 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["just_mr_mp", "git-tree-verbosity"]
+        , "else": ["just_mr_mp", "git-tree-verbosity", "defaults"]
         }
       ]
     }
