@@ -58,6 +58,7 @@ using CommitGitMap =
 [[nodiscard]] auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     JustMR::PathsPtr const& just_mr_paths,
+    std::vector<std::string> const& launcher,
     std::size_t jobs) -> CommitGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_COMMIT_GIT_MAP_HPP

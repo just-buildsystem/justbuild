@@ -64,7 +64,7 @@ class GitCAS {
     // IMPORTANT: the GitContext needs to be initialized before any git object!
     GitContext git_context_{};  // maintains a Git context while CAS is alive
     std::unique_ptr<git_odb, decltype(&odb_closer)> odb_{nullptr, odb_closer};
-    // git folder path of repo; used for logging
+    // git folder path of repo
     std::filesystem::path git_path_{};
 
     [[nodiscard]] auto OpenODB(std::filesystem::path const& repo_path) noexcept

@@ -15,8 +15,10 @@
 #include <src/other_tools/git_operations/git_repo_remote.hpp>
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
 
 extern "C" {
@@ -25,6 +27,21 @@ extern "C" {
 }
 
 namespace {
+
+/// \brief Basic check for libgit2 protocols we support. For all other cases, we
+/// should default to shell out to git instead.
+[[nodiscard]] auto IsSupported(std::string const& url) -> bool {
+    // look for explicit schemes
+    if (url.starts_with("git://") or url.starts_with("http://") or
+        url.starts_with("https://") or url.starts_with("file://")) {
+        return true;
+    }
+    // look for url as existing filesystem directory path
+    if (FileSystemManager::IsDirectory(std::filesystem::path(url))) {
+        return true;
+    }
+    return false;  // as default
+}
 
 struct FetchIntoODBBackend {
     git_odb_backend parent;
@@ -414,56 +431,105 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     }
 }
 
-auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_repo_path,
+auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                                     std::string const& repo_url,
                                     std::optional<std::string> const& branch,
+                                    std::vector<std::string> const& launcher,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
     try {
-        // preferably with a "fake" repository!
-        if (not IsRepoFake()) {
-            Logger::Log(LogLevel::Debug,
-                        "Branch fetch called on a real repository");
-        }
-        // create the temporary real repository
-        // it can be bare, as the refspecs for this fetch will be given
-        // explicitly.
-        auto tmp_repo =
-            GitRepoRemote::InitAndOpen(tmp_repo_path, /*is_bare=*/true);
-        if (tmp_repo == std::nullopt) {
-            return false;
-        }
-        // add backend, with max priority
-        FetchIntoODBBackend b{kFetchIntoODBParent, GetGitOdb().get()};
-        if (git_odb_add_backend(
-                tmp_repo->GetGitOdb().get(),
-                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-                reinterpret_cast<git_odb_backend*>(&b),
-                std::numeric_limits<int>::max()) == 0) {
-            // setup wrapped logger
-            auto wrapped_logger = std::make_shared<anon_logger_t>(
-                [logger](auto const& msg, bool fatal) {
-                    (*logger)(
-                        fmt::format(
-                            "While doing branch fetch via tmp repo:\n{}", msg),
-                        fatal);
-                });
-            // get the config of the correct target repo
-            auto cfg = GetConfigSnapshot();
-            if (cfg == nullptr) {
-                (*logger)(fmt::format("retrieving config object in fetch via "
-                                      "tmp repo failed with:\n{}",
-                                      GitLastError()),
-                          true /*fatal*/);
+        // check for internally supported protocols
+        if (IsSupported(repo_url)) {
+            // preferably with a "fake" repository!
+            if (not IsRepoFake()) {
+                Logger::Log(LogLevel::Debug,
+                            "Branch fetch called on a real repository");
+            }
+            // create the temporary real repository
+            // it can be bare, as the refspecs for this fetch will be given
+            // explicitly.
+            auto tmp_repo =
+                GitRepoRemote::InitAndOpen(tmp_dir, /*is_bare=*/true);
+            if (tmp_repo == std::nullopt) {
                 return false;
             }
-            return tmp_repo->FetchFromRemote(
-                cfg, repo_url, branch, wrapped_logger);
+            // add backend, with max priority
+            FetchIntoODBBackend b{kFetchIntoODBParent, GetGitOdb().get()};
+            if (git_odb_add_backend(
+                    tmp_repo->GetGitOdb().get(),
+                    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                    reinterpret_cast<git_odb_backend*>(&b),
+                    std::numeric_limits<int>::max()) == 0) {
+                // setup wrapped logger
+                auto wrapped_logger = std::make_shared<anon_logger_t>(
+                    [logger](auto const& msg, bool fatal) {
+                        (*logger)(fmt::format("While doing branch fetch via "
+                                              "tmp repo:\n{}",
+                                              msg),
+                                  fatal);
+                    });
+                // get the config of the correct target repo
+                auto cfg = GetConfigSnapshot();
+                if (cfg == nullptr) {
+                    (*logger)(
+                        fmt::format("retrieving config object in fetch via "
+                                    "tmp repo failed with:\n{}",
+                                    GitLastError()),
+                        true /*fatal*/);
+                    return false;
+                }
+                return tmp_repo->FetchFromRemote(
+                    cfg, repo_url, branch, wrapped_logger);
+            }
+            return false;
         }
-        return false;
+        // default to shelling out to git for non-explicitly supported protocols
+        auto cmdline = launcher;
+        // Note: Because we fetch with URL, not a known remote, no refs are
+        // being updated by default, so git has no reason to get a lock
+        // file. This however does not imply automatically that fetches
+        // might not internally wait for each other through other means.
+        cmdline.insert(cmdline.end(),
+                       {"git",
+                        "fetch",
+                        "--no-auto-gc",
+                        "--no-write-fetch-head",
+                        repo_url});
+        if (branch) {
+            cmdline.push_back(*branch);
+        }
+        // run command
+        SystemCommand system{repo_url};
+        auto const command_output = system.Execute(cmdline,
+                                                   {},  // caller env
+                                                   GetGitPath(),
+                                                   tmp_dir);
+        if (not command_output) {
+            std::string out_str{};
+            std::string err_str{};
+            auto cmd_out =
+                FileSystemManager::ReadFile(command_output->stdout_file);
+            auto cmd_err =
+                FileSystemManager::ReadFile(command_output->stderr_file);
+            if (cmd_out) {
+                out_str = *cmd_out;
+            }
+            if (cmd_err) {
+                err_str = *cmd_err;
+            }
+            std::string output{};
+            if (!out_str.empty() || !err_str.empty()) {
+                output = fmt::format(" with output:\n{}{}", out_str, err_str);
+            }
+            (*logger)(fmt::format("Fetch command {} failed{}",
+                                  nlohmann::json(cmdline).dump(),
+                                  output),
+                      /*fatal=*/true);
+            return false;
+        }
+        return true;  // fetch successful
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "fetch via tmp repo failed with:\n{}", ex.what());
+        Logger::Log(LogLevel::Error, "Fetch failed with:\n{}", ex.what());
         return false;
     }
 }

@@ -32,6 +32,8 @@
     , ["src/buildtool/file_system", "git_utils"]
     , ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/system", "system_command"]
     , "git_config_settings"
     ]
   }

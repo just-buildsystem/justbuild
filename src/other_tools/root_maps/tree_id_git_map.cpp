@@ -190,6 +190,7 @@ auto CreateTreeIdGitMap(
                          cmdline,
                          command_output,
                          key,
+                         launcher,
                          ts,
                          setter,
                          logger](auto const& values) {
@@ -293,6 +294,7 @@ auto CreateTreeIdGitMap(
                                 *tmp_repo_path,
                                 target_path.string(),
                                 std::nullopt,
+                                launcher,
                                 wrapped_logger);
                             if (not success) {
                                 return;

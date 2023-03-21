@@ -88,20 +88,22 @@ class GitRepoRemote : public GitRepo {
         anon_logger_ptr const& logger) const noexcept
         -> std::optional<std::string>;
 
-    /// \brief Fetch from a remote via a temporary repository.
-    /// Calling it from a fake repository allows thread-safe use.
-    /// Creates a temporary real repository at the given location and uses a
-    /// custom backend to redirect the fetched objects into the desired odb.
+    /// \brief Fetch from a remote. If URL is SSH, shells out to system git to
+    /// retrieve packs in a safe manner, with the only side-effect being that
+    /// there can be some redundancy in the fetched packs. The tmp dir is used
+    /// to pipe the stdout and stderr to.
+    /// If URL is non-SSH, uses tmp dir to fetch asynchronously using libgit2.
     /// Caller needs to make sure the temporary directory exists and that the
     /// given path is thread- and process-safe!
-    /// Uses either a given branch, or fetches using base refspecs.
+    /// Uses either a given branch, or fetches all (with base refspecs).
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto FetchViaTmpRepo(
-        std::filesystem::path const& tmp_repo_path,
-        std::string const& repo_url,
-        std::optional<std::string> const& branch,
-        anon_logger_ptr const& logger) noexcept -> bool;
+    [[nodiscard]] auto FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
+                                       std::string const& repo_url,
+                                       std::optional<std::string> const& branch,
+                                       std::vector<std::string> const& launcher,
+                                       anon_logger_ptr const& logger) noexcept
+        -> bool;
 
     /// \brief Get a snapshot of the repository configuration.
     /// Returns nullptr on errors.

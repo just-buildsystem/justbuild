@@ -85,12 +85,13 @@ void KeepCommitAndSetTree(
 
 auto CreateImportToGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    std::vector<std::string> const& launcher,
     std::size_t jobs) -> ImportToGitMap {
-    auto import_to_git = [critical_git_op_map](auto ts,
-                                               auto setter,
-                                               auto logger,
-                                               auto /*unused*/,
-                                               auto const& key) {
+    auto import_to_git = [critical_git_op_map, launcher](auto ts,
+                                                         auto setter,
+                                                         auto logger,
+                                                         auto /*unused*/,
+                                                         auto const& key) {
         // Perform initial commit at location: init + add . + commit
         GitOpKey op_key = {
             {
@@ -106,6 +107,7 @@ auto CreateImportToGitMap(
             {std::move(op_key)},
             [critical_git_op_map,
              target_path = key.target_path,
+             launcher,
              ts,
              setter,
              logger](auto const& values) {
@@ -134,6 +136,7 @@ auto CreateImportToGitMap(
                      commit = *op_result.result,
                      target_path,
                      git_cas = op_result.git_cas,
+                     launcher,
                      ts,
                      setter,
                      logger](auto const& values) {
@@ -179,6 +182,7 @@ auto CreateImportToGitMap(
                             just_git_repo->FetchViaTmpRepo(*tmp_repo_path,
                                                            target_path.string(),
                                                            std::nullopt,
+                                                           launcher,
                                                            wrapped_logger);
                         if (not success) {
                             return;
