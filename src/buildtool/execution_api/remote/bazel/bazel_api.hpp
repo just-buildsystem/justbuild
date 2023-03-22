@@ -53,10 +53,11 @@ class BazelApi final : public IExecutionApi {
         std::map<std::string, std::string> const& properties) noexcept
         -> IExecutionAction::Ptr final;
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        std::vector<std::filesystem::path> const& output_paths) noexcept
-        -> bool final;
+        std::vector<std::filesystem::path> const& output_paths,
+        IExecutionApi* alternative = nullptr) noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,

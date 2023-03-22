@@ -60,10 +60,14 @@ class IExecutionApi {
     /// \brief Retrieve artifacts from CAS and store to specified paths.
     /// Tree artifacts are resolved its containing file artifacts are
     /// recursively retrieved.
+    /// If the alternative is provided, it can be assumed that this
+    /// alternative CAS is more close, but it might not contain all the
+    /// needed artifacts.
+    /// NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] virtual auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        std::vector<std::filesystem::path> const& output_paths) noexcept
-        -> bool = 0;
+        std::vector<std::filesystem::path> const& output_paths,
+        IExecutionApi* alternative = nullptr) noexcept -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
     /// Tree artifacts are not resolved and instead the tree object will be
