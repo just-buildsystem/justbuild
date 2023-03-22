@@ -248,8 +248,12 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
             auto tmp_path_fetch_all = TestUtils::GetRepoPath();
             REQUIRE(FileSystemManager::CreateDirectory(tmp_path_fetch_all));
             // fetch all with base refspecs
-            REQUIRE(repo_fetch_all->FetchViaTmpRepo(
-                tmp_path_fetch_all, *repo_path, std::nullopt, {}, logger));
+            REQUIRE(repo_fetch_all->FetchViaTmpRepo(tmp_path_fetch_all,
+                                                    *repo_path,
+                                                    std::nullopt,
+                                                    "git",
+                                                    {},
+                                                    logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
@@ -271,8 +275,13 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
             REQUIRE(
                 FileSystemManager::CreateDirectory(tmp_path_fetch_wRefspec));
             // fetch all
-            REQUIRE(repo_fetch_wRefspec->FetchViaTmpRepo(
-                tmp_path_fetch_wRefspec, *repo_path, "master", {}, logger));
+            REQUIRE(
+                repo_fetch_wRefspec->FetchViaTmpRepo(tmp_path_fetch_wRefspec,
+                                                     *repo_path,
+                                                     "master",
+                                                     "git",
+                                                     {},
+                                                     logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
@@ -290,7 +299,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
         REQUIRE(FileSystemManager::CreateDirectory(tmp_path_commit_upd));
         // do remote ls
         auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            tmp_path_commit_upd, *repo_path, "master", {}, logger);
+            tmp_path_commit_upd, *repo_path, "master", "git", {}, logger);
 
         REQUIRE(fetched_commit);
         CHECK(*fetched_commit == kRootCommit);
@@ -358,6 +367,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                 target_repo->FetchViaTmpRepo(tmp_path_fetch_all,
                                                              *remote_repo_path,
                                                              std::nullopt,
+                                                             "git",
                                                              {},
                                                              logger));
                         } break;
@@ -372,6 +382,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                 tmp_path_fetch_wRefspec,
                                 *remote_repo_path,
                                 "master",
+                                "git",
                                 {},
                                 logger));
                         } break;
@@ -386,6 +397,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                     tmp_path_commit_upd,
                                     *remote_repo_path,
                                     "master",
+                                    "git",
                                     {},
                                     logger);
 

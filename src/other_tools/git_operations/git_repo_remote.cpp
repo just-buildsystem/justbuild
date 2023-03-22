@@ -390,6 +390,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     std::filesystem::path const& tmp_dir,
     std::string const& repo_url,
     std::string const& branch,
+    std::string const& git_bin,
     std::vector<std::string> const& launcher,
     anon_logger_ptr const& logger) const noexcept
     -> std::optional<std::string> {
@@ -430,7 +431,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
         }
         // default to shelling out to git for non-explicitly supported protocols
         auto cmdline = launcher;
-        cmdline.insert(cmdline.end(), {"git", "ls-remote", repo_url, branch});
+        cmdline.insert(cmdline.end(), {git_bin, "ls-remote", repo_url, branch});
         // set up the system command
         SystemCommand system{repo_url};
         auto const command_output =
@@ -494,6 +495,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
 auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                                     std::string const& repo_url,
                                     std::optional<std::string> const& branch,
+                                    std::string const& git_bin,
                                     std::vector<std::string> const& launcher,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
@@ -550,7 +552,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         // file. This however does not imply automatically that fetches
         // might not internally wait for each other through other means.
         cmdline.insert(cmdline.end(),
-                       {"git",
+                       {git_bin,
                         "fetch",
                         "--no-auto-gc",
                         "--no-write-fetch-head",

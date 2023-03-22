@@ -50,6 +50,7 @@ using TreeIdGitMap =
 
 [[nodiscard]] auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::size_t jobs) -> TreeIdGitMap;
 

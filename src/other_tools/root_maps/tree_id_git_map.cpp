@@ -79,13 +79,15 @@ void KeepCommitAndSetRoot(
 
 auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::size_t jobs) -> TreeIdGitMap {
-    auto tree_to_git = [critical_git_op_map, launcher](auto ts,
-                                                       auto setter,
-                                                       auto logger,
-                                                       auto /*unused*/,
-                                                       auto const& key) {
+    auto tree_to_git = [critical_git_op_map, git_bin, launcher](
+                           auto ts,
+                           auto setter,
+                           auto logger,
+                           auto /*unused*/,
+                           auto const& key) {
         // first, check whether tree exists already in CAS
         // ensure Git cache
         // define Git operation to be done
@@ -100,7 +102,7 @@ auto CreateTreeIdGitMap(
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [critical_git_op_map, launcher, key, ts, setter, logger](
+            [critical_git_op_map, git_bin, launcher, key, ts, setter, logger](
                 auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
@@ -190,6 +192,7 @@ auto CreateTreeIdGitMap(
                          cmdline,
                          command_output,
                          key,
+                         git_bin,
                          launcher,
                          ts,
                          setter,
@@ -296,6 +299,7 @@ auto CreateTreeIdGitMap(
                                     tmp_dir->GetPath(),
                                     target_path.string(),
                                     std::nullopt,
+                                    git_bin,
                                     launcher,
                                     wrapped_logger)) {
                                 return;

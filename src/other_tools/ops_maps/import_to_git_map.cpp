@@ -85,13 +85,15 @@ void KeepCommitAndSetTree(
 
 auto CreateImportToGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::size_t jobs) -> ImportToGitMap {
-    auto import_to_git = [critical_git_op_map, launcher](auto ts,
-                                                         auto setter,
-                                                         auto logger,
-                                                         auto /*unused*/,
-                                                         auto const& key) {
+    auto import_to_git = [critical_git_op_map, git_bin, launcher](
+                             auto ts,
+                             auto setter,
+                             auto logger,
+                             auto /*unused*/,
+                             auto const& key) {
         // Perform initial commit at location: init + add . + commit
         GitOpKey op_key = {
             {
@@ -107,6 +109,7 @@ auto CreateImportToGitMap(
             {std::move(op_key)},
             [critical_git_op_map,
              target_path = key.target_path,
+             git_bin,
              launcher,
              ts,
              setter,
@@ -136,6 +139,7 @@ auto CreateImportToGitMap(
                      commit = *op_result.result,
                      target_path,
                      git_cas = op_result.git_cas,
+                     git_bin,
                      launcher,
                      ts,
                      setter,
@@ -183,6 +187,7 @@ auto CreateImportToGitMap(
                                 tmp_dir->GetPath(),
                                 target_path.string(),
                                 std::nullopt,
+                                git_bin,
                                 launcher,
                                 wrapped_logger)) {
                             return;

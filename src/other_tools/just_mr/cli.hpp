@@ -41,6 +41,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> just_path{std::nullopt};
     std::optional<std::string> main{std::nullopt};
     std::optional<std::filesystem::path> rc_path{std::nullopt};
+    std::optional<std::filesystem::path> git_path{std::nullopt};
     bool norc{false};
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
 };
@@ -148,6 +149,10 @@ static inline void SetupMultiRepoCommonArguments(
            },
            "Use just-mrrc file from custom path.")
         ->type_name("RCFILE");
+    app->add_option("--git",
+                    clargs->git_path,
+                    "Path to the git binary. (Default: \"git\")")
+        ->type_name("PATH");
     app->add_flag("--norc", clargs->norc, "Do not use any just-mrrc file.");
     app->add_option("-j, --jobs",
                     clargs->jobs,

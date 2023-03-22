@@ -103,6 +103,11 @@ See *just-mr-repository-config(5)* for more details on the input format.
    Path to the just-mrrc file to use. See *just-mrrc(5)* for more details.\\
    Default: file path ~".just-mrrc"~ in the user's home directory.
 
+   *--git* PATH\\
+   Path to the git binary in ~PATH~ or path to the git binary. Used in the rare
+   instances when shelling out to git is needed.\\
+   Default: ~"git"~.\\
+
    *--norc*\\
    Option to prevent reading any *just-mrrc(5)* file.
 

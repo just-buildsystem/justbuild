@@ -87,6 +87,7 @@ class GitRepoRemote : public GitRepo {
         std::filesystem::path const& tmp_dir,
         std::string const& repo_url,
         std::string const& branch,
+        std::string const& git_bin,
         std::vector<std::string> const& launcher,
         anon_logger_ptr const& logger) const noexcept
         -> std::optional<std::string>;
@@ -104,6 +105,7 @@ class GitRepoRemote : public GitRepo {
     [[nodiscard]] auto FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                                        std::string const& repo_url,
                                        std::optional<std::string> const& branch,
+                                       std::string const& git_bin,
                                        std::vector<std::string> const& launcher,
                                        anon_logger_ptr const& logger) noexcept
         -> bool;

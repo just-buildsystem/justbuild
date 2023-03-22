@@ -62,6 +62,10 @@ The just-mrrc is given by a JSON object.
   path to the ~just~ binary to use for execution, if ~just-mr~ is used as a
   launcher.
 
+- The value for the key ~"git"~ is a single location object, specifying the
+  path to the git binary to use in the instances when ~just-mr~ needs to shell
+  out.
+
 - The value for the key ~"local launcher"~, if given, is list of
   strings setting the default for local launcher for ~just-mr~;
   command-line arguments take precedence over the value in the
@@ -99,6 +103,7 @@ An example just-mrrc file could look like the following:
 , "log files": [{"root": "home", "path": ".log/just/latest-invocation"}]
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
 , "just": {"root": "system", "path": "usr/bin/just"}
+, "git": {"root": "system", "path": "usr/bin/git"}
 , "just args":
   { "build": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
   , "install": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
