@@ -73,7 +73,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
-    IExecutionApi* /* alternative */) noexcept -> bool {
+    IExecutionApi* alternative) noexcept -> bool {
     if (artifacts_info.size() != output_paths.size()) {
         Logger::Log(LogLevel::Error,
                     "different number of digests and output paths.");
@@ -85,17 +85,26 @@ auto BazelApi::CreateAction(
     std::vector<std::size_t> artifact_pos{};
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
-        if (IsTreeObject(info.type)) {
-            // read object infos from sub tree and call retrieve recursively
-            auto const infos = network_->RecursivelyReadTreeLeafs(
-                info.digest, output_paths[i]);
-            if (not infos or not RetrieveToPaths(infos->second, infos->first)) {
+        if ((alternative != nullptr) and
+            alternative->IsAvailable(info.digest)) {
+            if (not alternative->RetrieveToPaths({info}, {output_paths[i]})) {
                 return false;
             }
         }
         else {
-            file_digests.emplace_back(info.digest);
-            artifact_pos.emplace_back(i);
+            if (IsTreeObject(info.type)) {
+                // read object infos from sub tree and call retrieve recursively
+                auto const infos = network_->RecursivelyReadTreeLeafs(
+                    info.digest, output_paths[i], alternative != nullptr);
+                if (not infos or
+                    not RetrieveToPaths(infos->second, infos->first)) {
+                    return false;
+                }
+            }
+            else {
+                file_digests.emplace_back(info.digest);
+                artifact_pos.emplace_back(i);
+            }
         }
     }
 
