@@ -141,7 +141,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
     try {
         // only possible for real repository!
         if (IsRepoFake()) {
-            (*logger)("cannot update commit using a fake repository!",
+            (*logger)("Cannot update commit using a fake repository!",
                       true /*fatal*/);
             return std::nullopt;
         }
@@ -150,7 +150,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         if (git_remote_create_anonymous(
                 &remote_ptr, GetRepoRef().get(), repo_url.c_str()) != 0) {
             (*logger)(
-                fmt::format("creating anonymous remote for git repository {} "
+                fmt::format("Creating anonymous remote for git repository {} "
                             "failed with:\n{}",
                             GetGitPath().string(),
                             GitLastError()),
@@ -168,7 +168,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
             // get config snapshot of current repo (shared with caller)
             cfg = GetConfigSnapshot();
             if (cfg == nullptr) {
-                (*logger)(fmt::format("retrieving config object in get commit "
+                (*logger)(fmt::format("Retrieving config object in get commit "
                                       "from remote failed with:\n{}",
                                       GitLastError()),
                           true /*fatal*/);
@@ -215,7 +215,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
                                &proxy_opts,
                                nullptr) != 0) {
             (*logger)(
-                fmt::format("connecting to remote {} for git repository {} "
+                fmt::format("Connecting to remote {} for git repository {} "
                             "failed with:\n{}",
                             repo_url,
                             GetGitPath().string(),
@@ -229,7 +229,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         size_t refs_len = 0;
         if (git_remote_ls(&refs, &refs_len, remote.get()) != 0) {
             (*logger)(
-                fmt::format("refs retrieval from remote {} failed with:\n{}",
+                fmt::format("Refs retrieval from remote {} failed with:\n{}",
                             repo_url,
                             GitLastError()),
                 true /*fatal*/);
@@ -248,7 +248,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
                 return new_commit_hash;
             }
         }
-        (*logger)(fmt::format("could not find branch {} for remote {}",
+        (*logger)(fmt::format("Could not find branch {} for remote {}",
                               branch,
                               repo_url,
                               GitLastError()),
@@ -256,7 +256,9 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         return std::nullopt;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
-                    "get commit from remote failed with:\n{}",
+                    "Get commit from branch {} of remote {} failed with:\n{}",
+                    branch,
+                    repo_url,
                     ex.what());
         return std::nullopt;
     }
@@ -270,7 +272,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
     try {
         // only possible for real repository!
         if (IsRepoFake()) {
-            (*logger)("cannot fetch commit using a fake repository!",
+            (*logger)("Cannot fetch commit using a fake repository!",
                       true /*fatal*/);
             return false;
         }
@@ -278,7 +280,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         git_remote* remote_ptr{nullptr};
         if (git_remote_create_anonymous(
                 &remote_ptr, GetRepoRef().get(), repo_url.c_str()) != 0) {
-            (*logger)(fmt::format("creating remote {} for git repository {} "
+            (*logger)(fmt::format("Creating remote {} for git repository {} "
                                   "failed with:\n{}",
                                   repo_url,
                                   GetGitPath().string(),
@@ -300,7 +302,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
             git_config* cfg_ptr{nullptr};
             if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef().get()) !=
                 0) {
-                (*logger)(fmt::format("retrieving config object in fetch from "
+                (*logger)(fmt::format("Retrieving config object in fetch from "
                                       "remote failed with:\n{}",
                                       GitLastError()),
                           true /*fatal*/);
@@ -336,7 +338,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
             // get config snapshot of current repo (shared with caller)
             cfg = GetConfigSnapshot();
             if (cfg == nullptr) {
-                (*logger)(fmt::format("retrieving config object in fetch from "
+                (*logger)(fmt::format("Retrieving config object in fetch from "
                                       "remote failed with:\n{}",
                                       GitLastError()),
                           true /*fatal*/);
@@ -370,7 +372,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
                 remote.get(), refspecs_array.get(), &fetch_opts, nullptr) !=
             0) {
             (*logger)(
-                fmt::format("fetching{} in git repository {} failed "
+                fmt::format("Fetching{} in git repository {} failed "
                             "with:\n{}",
                             branch ? fmt::format(" branch {}", *branch) : "",
                             GetGitPath().string(),
@@ -380,8 +382,11 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         }
         return true;  // success!
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "fetch from remote failed with:\n{}", ex.what());
+        Logger::Log(LogLevel::Error,
+                    "Fetch{} from remote {} failed with:\n{}",
+                    branch ? fmt::format(" branch {}", *branch) : "",
+                    repo_url,
+                    ex.what());
         return false;
     }
 }
@@ -420,7 +425,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
             auto cfg = GetConfigSnapshot();
             if (cfg == nullptr) {
                 (*logger)(
-                    fmt::format("retrieving config object in update commit "
+                    fmt::format("Retrieving config object in update commit "
                                 "via tmp repo failed with:\n{}",
                                 GitLastError()),
                     true /*fatal*/);
@@ -432,6 +437,11 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
         // default to shelling out to git for non-explicitly supported protocols
         auto cmdline = launcher;
         cmdline.insert(cmdline.end(), {git_bin, "ls-remote", repo_url, branch});
+        Logger::Log(
+            LogLevel::Debug,
+            "Git commit update for remote {} must shell out. Running:\n{}",
+            repo_url,
+            nlohmann::json(cmdline).dump());
         // set up the system command
         SystemCommand system{repo_url};
         auto const command_output =
@@ -487,8 +497,12 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
         // success!
         return out_str.substr(0, str_len);
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "Update commit failed with:\n{}", ex.what());
+        Logger::Log(LogLevel::Error,
+                    "Update commit from branch {} of remote {} via tmp dir "
+                    "failed with:\n{}",
+                    branch,
+                    repo_url,
+                    ex.what());
         return std::nullopt;
     }
 }
@@ -535,7 +549,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                 auto cfg = GetConfigSnapshot();
                 if (cfg == nullptr) {
                     (*logger)(
-                        fmt::format("retrieving config object in fetch via "
+                        fmt::format("Retrieving config object in fetch via "
                                     "tmp repo failed with:\n{}",
                                     GitLastError()),
                         true /*fatal*/);
@@ -561,6 +575,10 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         if (branch) {
             cmdline.push_back(*branch);
         }
+        Logger::Log(LogLevel::Debug,
+                    "Git fetch for remote {} must shell out. Running:\n{}",
+                    repo_url,
+                    nlohmann::json(cmdline).dump());
         // run command
         SystemCommand system{repo_url};
         auto const command_output = system.Execute(cmdline,
@@ -592,7 +610,11 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         }
         return true;  // fetch successful
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, "Fetch failed with:\n{}", ex.what());
+        Logger::Log(LogLevel::Error,
+                    "Fetch{} from remote {} via tmp dir failed with:\n{}",
+                    branch ? fmt::format(" branch {}", *branch) : "",
+                    repo_url,
+                    ex.what());
         return false;
     }
 }
