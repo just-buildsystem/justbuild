@@ -94,7 +94,8 @@ void SetupSetupCommandArguments(
 
 [[nodiscard]] auto ParseCommandLineArguments(int argc, char const* const* argv)
     -> CommandLineArguments {
-    CLI::App app("just-mr");
+    CLI::App app(
+        "just-mr, a multi-repository configuration tool and launcher for just");
     app.option_defaults()->take_last();
     auto* cmd_mrversion = app.add_subcommand(
         "mrversion", "Print version information in JSON format of this tool.");
