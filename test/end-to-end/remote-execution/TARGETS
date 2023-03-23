@@ -19,9 +19,15 @@
   , "test": ["upload-test.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
+, "install":
+  { "type": ["test/end-to-end", "with remote"]
+  , "name": ["install"]
+  , "test": ["install.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["native-protocol", "large-blobs", "upload-test"]
+  , "deps": ["native-protocol", "large-blobs", "upload-test", "install"]
   }
 }
