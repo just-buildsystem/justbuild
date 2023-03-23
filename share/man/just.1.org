@@ -424,6 +424,11 @@ the original remote build execution protocol.
    more details.\\
    Supported by: install-cas
 
+   *--raw-tree*\\
+   When installing a tree to stdout, i.e., when no option *-o* is given,
+   dump the raw tree rather than a pretty-printed version.
+   Supported by: install-cas
+
 ** Parallelism options
 
    *-J*, *--build-jobs* NUM\\
