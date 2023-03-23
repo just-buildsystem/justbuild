@@ -18,7 +18,6 @@
     , "ENV"
     , "USE_SYSTEM_LIBS"
     , "DEBUG_POOL"
-    , "ENABLE_TRACE"
     , "THREADSAFE"
     , "REGEX_BACKEND"
     , "WINHTTP"
@@ -88,7 +87,6 @@
     , "TARGET_ARCH"
     , "USE_SYSTEM_LIBS"
     , "DEBUG_POOL"
-    , "ENABLE_TRACE"
     , "THREADSAFE"
     , "REGEX_BACKEND"
     , "WINHTTP"
@@ -227,7 +225,6 @@
       , "vars":
         [ "USE_SYSTEM_LIBS"
         , "DEBUG_POOL"
-        , "ENABLE_TRACE"
         , "THREADSAFE"
         , "REGEX_BACKEND"
         , "USE_ICONV"

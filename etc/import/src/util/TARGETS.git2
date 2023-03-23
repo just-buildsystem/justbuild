@@ -50,7 +50,6 @@
     , "unix/pthread.h"
     , "win32/dir.h"
     , "win32/error.h"
-    , "win32/findfile.h"
     , "win32/mingw-compat.h"
     , "win32/msvc-compat.h"
     , "win32/path_w32.h"
@@ -100,7 +99,6 @@
   , "srcs":
     [ "win32/dir.c"
     , "win32/error.c"
-    , "win32/findfile.c"
     , "win32/map.c"
     , "win32/path_w32.c"
     , "win32/posix_w32.c"

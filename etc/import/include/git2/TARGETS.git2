@@ -5,7 +5,6 @@
     , "ARCH"
     , "TARGET_ARCH"
     , "DEBUG_POOL"
-    , "ENABLE_TRACE"
     , "THREADSAFE"
     , "REGEX_BACKEND"
     , "USE_ICONV"
@@ -47,7 +46,6 @@
         , { "type": "++"
           , "$1":
             [ [ ["GIT_DEBUG_POOL", {"type": "var", "name": "DEBUG_POOL"}]
-              , ["GIT_TRACE", {"type": "var", "name": "ENABLE_TRACE"}]
               , ["GIT_THREADS", {"type": "var", "name": "THREADSAFE"}]
               , { "type": "if"
                 , "cond": {"type": "var", "name": "IS_32BIT"}
