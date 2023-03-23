@@ -479,6 +479,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
         if (str_len == std::string::npos) {
             (*logger)(fmt::format("List remote commits command {} produced "
                                   "malformed output:\n{}",
+                                  nlohmann::json(cmdline).dump(),
                                   out_str),
                       /*fatal=*/true);
             return std::nullopt;
