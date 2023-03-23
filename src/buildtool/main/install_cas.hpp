@@ -31,6 +31,7 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 [[nodiscard]] auto FetchAndInstallArtifacts(
     gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<IExecutionApi*> const& alternative_api,
     FetchArguments const& clargs) -> bool;
 #endif
 

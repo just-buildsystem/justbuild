@@ -1299,6 +1299,7 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
+                                            traverser.GetLocalApi(),
                                             arguments.fetch)
                        ? kExitSuccess
                        : kExitFailure;

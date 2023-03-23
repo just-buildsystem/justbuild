@@ -571,7 +571,8 @@ class GraphTraverser {
         auto output_paths = PrepareOutputPaths(rel_paths);
 
         if (not output_paths or
-            not remote_api_->RetrieveToPaths(object_infos, *output_paths)) {
+            not remote_api_->RetrieveToPaths(
+                object_infos, *output_paths, GetLocalApi())) {
             Logger::Log(LogLevel::Error, "Could not retrieve outputs.");
             return std::nullopt;
         }
