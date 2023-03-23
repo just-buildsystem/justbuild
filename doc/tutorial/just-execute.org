@@ -1,0 +1,478 @@
+* just execute
+
+~just execute~ starts a single-node remote build execution service in
+the environment in which the command has been issued. Having the
+possibility to easily create a remote build execution service can
+improve the developing experience where the build environment (and the
+cache) can/should be shared among the developers. For example (and
+certainly not limited to)
+
+- when developers build on the same machine. It will allow multiple
+  users to build in the same environment and share the cache, thus
+  avoiding duplicated work.
+
+- quickly set up a testing environment that can be used by other
+  developers.
+
+For the sake of completeness, these are the files used to compile the
+examples
+#+BEGIN_SRC bash
+$ tree latex-hello-world/
+latex-hello-world/
+├── hello.tex
+├── repos.json
+└── TARGETS
+#+END_SRC
+
+They read as follows
+#+BEGIN_SRC bash
+$ cat repos.json
+{ "main": "tutorial"
+, "repositories":
+  { "latex-rules":
+    { "repository":
+      { "type": "git"
+      , "branch": "master"
+      , "commit": "ffa07d6f3b536f1a4b111c3bf5850484bb9bf3dc"
+      , "repository": "https://github.com/just-buildsystem/rules-typesetting"
+      }
+    }
+  , "tutorial":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"latex-rules": "latex-rules"}
+    }
+  }
+}
+#+END_SRC
+
+#+BEGIN_SRC bash
+$ cat TARGETS
+{ "tutorial":
+  { "type": ["@", "latex-rules", "latex", "latexmk"]
+  , "main": ["hello"]
+  , "srcs": ["hello.tex"]
+  }
+}
+#+END_SRC
+
+#+BEGIN_SRC bash
+$ cat hello.tex
+\documentclass[a4paper]{article}
+
+\author{JustBuild developers}
+\date{}
+\title {just execute}
+
+\begin{document}
+\maketitle
+
+Hello from \LaTeX!
+\end{document}
+#+END_SRC
+
+** Simple usage of ~just execute~ in the same environment
+
+In this first example, we simply call ~just execute~ and the
+environment of the caller is made available. We therefore recommend to
+have a dedicated non-priviledged ~build~ user to run the execution
+service. In the following, we will use ~%~ to indicate the prompt of
+the ~build~ user, ~$~ for a _normal_user_.
+
+To enable such a single-node execution service, it is sufficient to
+type on one shell (as ~build~ user)
+#+BEGIN_SRC bash
+% just execute -p <N>
+#+END_SRC
+Where ~<N>~ is a port number which is supposed to be available.
+
+To use it, as a _normal_ user, on a different shell type
+#+BEGIN_SRC bash
+$ just [...] -r localhost:<N> 
+#+END_SRC
+Let's run these commands to understand the output.
+
+#+BEGIN_SRC bash
+% just execute -p 8080
+INFO: execution service started: {"interface":"127.0.0.1","pid":4911,"port":8080}
+#+END_SRC
+
+Once the execution service is started, it logs out three essential
+data:
+- which interface is used (in this case, the default one, which is the
+  loopback device)
+- the pid number (number will always change)
+- the used port
+
+To exploit the execution service, run from a different shell
+#+BEGIN_SRC bash
+$ just [...] -r localhost:8080
+#+END_SRC
+
+**** Use a random port
+
+If we don't need (or know) a fixed port number, we can simply omit the
+~-p~ option. In this case, ~just execute~ will listen to a random free
+port.
+
+#+BEGIN_SRC bash
+% just execute
+INFO: execution service started: {"interface":"127.0.0.1","pid":7217,"port":33841}
+#+END_SRC
+
+The port number can be different each time we invoke the
+above command.
+
+Finally, to connect to the remote endpoint, type
+#+BEGIN_SRC bash
+$ just [...] -r localhost:33841
+#+END_SRC
+
+**** Info file
+
+Copying and pasting port numbers and pids can be
+error-prone/unfeasible if we manage several/many execution service
+instances. Therefore, the invocation of ~just execute~ can be
+decorated with the option ~--info-file <PATH>~, which will store, in
+JSON format, in ~<PATH>~ the interface, pid, and port bound to the
+running instance. The user can then easily parse this file to extract
+the required information.
+
+For example
+#+BEGIN_SRC bash
+% just execute --info-file /tmp/foo.json
+INFO: execution service started: {"interface":"127.0.0.1","pid":7680,"port":44115}
+#+END_SRC
+
+#+BEGIN_SRC bash
+$ cat /tmp/foo.json 
+{"interface":"127.0.0.1","pid":7680,"port":44115}
+#+END_SRC
+
+Please note that the info file will _not be automatically deleted_
+when the user terminates the service. The user is responsible for
+eventually removing it from the file system.
+
+
+**** Enable mTLS
+
+It is worth mentioning that mTLS must be enabled when the execution
+service starts, and it cannot be activated (or deactivated) while the
+instance runs.
+#+BEGIN_SRC bash
+% just execute [...] --tls-ca-cert <path_to_CA_cert> --tls-server-cert <path_to_server_cert> --tls-server-key <path_to_server_key>
+#+END_SRC
+
+When a client connects, it must pass the same ~CA certificate~ and
+its pair of certificate and private key, which the used certified
+authority has signed.
+#+BEGIN_SRC bash
+$ just [...] --tls-ca-cert <path_to_CA_cert> --tls-client-cert <path_to_client_cert> --tls-client-key <path_to_client_key>
+#+END_SRC
+
+***** How to generate self-signed certificates
+
+This section does not pretend to be an exaustive guide to the
+generation and management of certificates, which is well beyond the
+aim of this tutorial. We just want to provide a minimal reference for
+let users start using mTLS and having the benefits of mutual
+authentication.
+
+****** Certification Authority certificate
+
+As a first step, we need a Certification Authority certificate (~ca.crt~)
+#+BEGIN_SRC bash
+% openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:4096 -keyout ca.key -out ca.crt
+#+END_SRC
+
+****** Server certificate and key
+
+If the clients will connect using the loopback device, i.e., the users
+are logged in the same machine where ~just execute~ will run, the
+_server certificates_ can be generate with the following instructions
+#+BEGIN_SRC bash
+% openssl req -new -nodes -newkey rsa:4096 -keyout server.key -out server.csr -subj "/CN=localhost"
+% openssl x509 -req -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 0 -out server.crt
+% rm server.csr
+#+END_SRC bash
+
+On the other hand, if the clients will connect from a different
+machine, and ~just execute~ will use a different interface (see [[Expose
+a particular interface]] below), the steps are a bit more involved. We
+need an additional configuration file where we state the ip address of
+the used interface. For example, if the interface ip address is 
+~192.168.1.14~, we will write
+#+BEGIN_SRC bash
+% cat << EOF > ssl-ext-x509.cnf
+[v3_ca]
+subjectAltName = IP.1:192.168.1.14
+EOF
+#+END_SRC
+
+Then, the pair of certificate and pair can be obtained with
+#+BEGIN_SRC bash
+% openssl req -new -nodes -newkey rsa:4096 -keyout server.key -out server.csr -subj "/CN=localhost"
+% openssl x509 -req -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 0 -out server.crt -extensions v3_ca -extfile ssl-ext-x509.cnf
+% rm server.csr
+#+END_SRC bash
+
+****** Client certificate and key
+
+The client, which needs the ~ca.crt~ and ~ca.key~ files, can run the
+following
+
+#+BEGIN_SRC bash
+$ openssl req -new -nodes -newkey rsa:4096 -keyout client.key  -out client.csr
+$ openssl x509 -req -days 365 -signkey client.key -in client.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out client.crt
+$ rm client.csr
+#+END_SRC
+
+
+*** Expose a particular interface
+
+To use an interface different from the loopback one, we have to list
+it with the ~-i~ option
+#+BEGIN_SRC bash
+$ just execute -i 192.168.1.14 -p 8080 --tls-ca-cert <path_to_CA_cert> --tls-server-cert <path_to_server_cert> --tls-server-key <path_to_server_key>
+INFO: execution service started: {"interface":"192.168.1.14","pid":7917,"port":8080}
+#+END_SRC
+
+If the interface is accessible from another machine, it is also
+recommended to enable mutual TLS (mTLS) authentication.
+
+** Managing multiple build environments
+
+Since multiple instances of ~just execute~ can run in parallel
+(listening at different ports), the same machine can be the worker for
+various projects. However, to avoid conflicts between the dependencies
+and to guarantee a clean environment for each project, it is
+recommended that ~just execute~ is invoked from within a container or
+a chroot environment.
+
+In the following sections, we will set up, step by step, a dedicated
+execution service for compiling latex documents in these two
+scenarios.
+
+*** How to run ~just execute~ inside a chroot environment
+
+**** TL;DR
+- create a suitable chroot environment
+- chroot into it
+- run ~just execute~ from there
+- in a different shell, ~just build -r <interface>:<port num>~
+
+**** Full latex chroot: walkthrough
+
+This short tutorial will use ~debootstrap~ and ~schroot~ to create and
+enter the chroot environment. Of course, different strategies/programs
+can be used. 
+
+***** Prepare the root file system
+Install debian bullseye in directory ~/chroot/bullseye-latex~
+#+BEGIN_SRC bash
+sudo debootstrap bullseye /chroot/bullseye-latex
+#+END_SRC
+
+***** Create a configuration file
+
+~schroot~ needs a proper configuration file, which can be generated as
+follows
+#+BEGIN_SRC bash
+$ echo "[bullseye-latex]
+description=bullseye latex env
+directory=/chroot/bullseye-latex
+root-users=$(whoami)
+users=$(whoami)
+type=directory" | sudo tee /etc/schroot/chroot.d/bullseye-latex
+#+END_SRC
+
+Note that ~type=directory~, apart from performing the necessary
+bindings, will make ~$HOME~ shared between the host and chroot
+environment. While this can be useful for sharing artifacts, the user
+should specify a ~--local-build-root~ (aka, the cache root) different
+from the default one to avoid conflicts between the host and the
+chroot environment.
+
+***** Install required packages in the chroot environment
+
+~schroot~ also allows running commands inside the environment by
+stating it after the ~--~
+#+BEGIN_SRC bash
+$ schroot -c bullseye-latex -u root -- sh -c 'apt update && apt install -y texlive-full'
+#+END_SRC
+
+***** Start the execution service
+
+To start the execution service inside the chroot environment run
+#+BEGIN_SRC bash
+$ schroot -c bullseye-latex -- /bin/just execute --local-build-root ~/.cache/chroot/bullseye-latex -p 8080
+#+END_SRC
+
+We assumed that the binary ~just~ is available in the chroot
+environment at the path ~/bin/just~. If you don't know how to make
+~just~ available in the chroot environment, read the section [[How to
+have the binary just inside the chroot environment]] below.
+
+Since the ~$HOME~ is shared, specifying a local build root (aka, cache
+root) different from the default is highly recommended. For
+convenience, we also set a port (using the flag ~-p~) that the
+execution service will listen to.
+
+If the chosen port is available, the following output should be
+produced (note that the pid number might be different).
+#+BEGIN_SRC bash
+INFO: execution service started: {"interface":"127.0.0.1","pid":48880,"port":8080}
+#+END_SRC
+
+For example, let's compile the example listed in the introduction
+#+BEGIN_SRC bash
+$ just-mr -C repos.json install -o . -r localhost:8080
+#+END_SRC
+
+which should report
+#+BEGIN_SRC bash
+INFO: Performing repositories setup
+INFO: Found 2 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","/home/alberto/.cache/just/protocol-dependent/generation-0/git-sha1/casf/c0/086f5dc35e084224781becfedb11baee8e9e24","-o",".","-r","localhost:8080"]
+INFO: Requested target is [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
+INFO: Analysed target [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
+INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
+INFO: Discovered 1 actions, 0 trees, 1 blobs
+INFO: Building [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}].
+INFO: Processed 1 actions, 0 cache hits.
+INFO: Artifacts can be found in:
+        /home/alberto/opt/src/justbuild/doc/just-execute/latex-hello-world/hello.pdf [25e05d3560e344b0180097f21a8074ecb0d9f343:37614:f]
+#+END_SRC
+
+In the shell where ~just execute~ is running, this line should have
+appeared, witnessing that the compilation happened on the remote side
+#+BEGIN_SRC bash
+INFO (execution-service): Execute 6237d87faed1ec239512ad952eeb412cdfab372562
+#+END_SRC
+
+*** How to start ~just execute~ inside a docker container
+
+Building inside a container is another strategy to ensure no
+undeclared dependencies are pulled and to build in a fixed
+environment.
+
+We will replicate what we did for the chroot environment and create a
+suitable docker image.
+
+*** Build a suitable docker image
+
+Let's write a ~Dockerfile~ that has ~just execute~ as ~ENTRYPOINT~. We
+assume the binary ~just~ is available inside the container at path
+~/bin/just~. For more details on how to have such binary in the
+container, please refer to the section below, [[How to have the binary
+just inside a docker image]].
+
+#+SRCNAME: Dockerfile
+#+BEGIN_SRC docker
+FROM debian:bullseye-slim
+
+# We assume a statically built just is available at ./just
+COPY ./just /bin/just
+
+RUN apt update
+RUN apt install -y --no-install-recommends texlive-full
+
+ENTRYPOINT ["/bin/just", "execute"]
+#+END_SRC
+
+We build the image with
+#+BEGIN_SRC bash
+$ sudo docker image build -t bullseye-latex .
+#+END_SRC
+
+Finally, we can start the execution service
+#+BEGIN_SRC bash
+$ docker run --network host --name execute-latex -p 8080
+#+END_SRC
+
+From a different shell, we can build the latex hello world example
+listed in the introduction running
+#+BEGIN_SRC bash
+$ just-mr -C repos.json install -o . -r localhost:8080
+#+END_SRC
+
+Note that the cache that ~just execute~ populates is confined within
+the container. The cache is gone if the container is restarted (or the
+pc rebooted). If you want the cache to survive the container life
+cycle, you can bind a "host directory" within the container as
+follows
+#+BEGIN_SRC bash
+$ docker run --network host --name execute-latex --mount type=bind,source="${HOME}/.cache",target=/cache bullseye-latex -p 8080 --local-build-root /cache/docker/latex
+#+END_SRC
+
+** How to have the binary just inside the chroot environment
+
+*** Compile statically
+
+Since ~just~ and ~just-mr~ must also be available in the host
+environment, the best way to have ~just~ inside the enviroment is to
+compile a static binary, and copy it into the chroot environment.
+
+Please refer to the [[../../INSTALL.md][installation guide]] for details.
+
+**** GLIBC warning
+
+~just~ depends on a suitable ~libc~ library. If ~glibc~ is used, the
+generated static binary will still require ~glibc~ at runtime. This is
+a peculiarity of ~glibc~ and not of our tool.
+
+*** Bootstrap ~just~ inside the chroot environment
+
+Bootstrapping ~just~ is also a possibility. Please refer to the
+[[../../INSTALL.md][installation guide]] for details.
+
+** How to have the binary just inside a docker image
+
+*** Compile and copy a static binary ~just~
+
+As for the chroot environment, generate a static binary to be
+~COPY~-ed into the docker image is the recommended way.
+
+Please refer to the [[../../INSTALL.md][installation guide]] for details.
+
+*** APPENDIX Bootstrapping just inside a docker image
+
+For bootstrapping, we have to install several dependencies that might
+not be required afterward. Therefore, we exploit a multi-stage build,
+which allows to obtain a final image that does not include the
+dependencies needed for the build. For the latex example presented
+above, the ~Dockerfile~ can read
+#+SRCNAME: Dockerfile
+#+BEGIN_SRC docker
+# Stage 1: bootstrap the binary
+#
+FROM debian:bullseye-slim as build
+RUN apt update
+RUN apt install -y --no-install-recommends \
+                    clang \
+                    python3 \
+                    git \
+		    patch \
+                    unzip \
+                    wget \
+		    ca-certificates
+RUN git clone https://github.com/just-buildsystem/justbuild.git
+# use a well defined commit to foster reproducibility
+RUN git checkout 246e1b7f28f319e4be5bd24466494e6b5868ca6f
+RUN cd justbuild && ./bin/bootstrap.py . /just-boostrapped
+
+# Stage 2: setup the required environment and run just execute
+#
+FROM debian:bullseye-slim
+
+# Copy the binary from the build container
+COPY --from=build /just-boostrapped/out/bin/just /bin/just
+
+# the environment created for this example happens to satisfy the
+# run-time dependencies of just remember to double check it with your
+# project. Eventually, use a static version of just
+
+RUN apt update
+RUN apt install -y --no-install-recommends texlive-full
+
+ENTRYPOINT ["/bin/just", "execute"]
+#+END_SRC

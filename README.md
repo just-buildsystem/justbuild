@@ -22,6 +22,7 @@ taken from user-defined rules described by functional expressions.
   - [Targets versus `FILE`, `GLOB`, and `TREE`](doc/tutorial/target-file-glob-tree.org)
   - [Ensuring reproducibility](doc/tutorial/rebuild.org)
   - [Using protobuf](doc/tutorial/proto.org)
+  - [How to create a single-node remote execution service](doc/tutorial/just-execute.org)
 
 ## Documentation
 
