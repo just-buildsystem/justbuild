@@ -21,10 +21,12 @@
   , "hdrs": ["object_cas.hpp"]
   , "deps":
     [ "file_storage"
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
+  , "private-deps": [["src/buildtool/execution_api/common", "common"]]
   }
 , "file_system_manager":
   { "type": ["@", "rules", "CC", "library"]

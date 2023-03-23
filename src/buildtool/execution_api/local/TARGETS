@@ -7,14 +7,16 @@
     , ["@", "json", "", "json"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/remote", "config"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]
+  , "private-deps":
+    [ ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
   }
 , "local":
   { "type": ["@", "rules", "CC", "library"]
@@ -22,8 +24,7 @@
   , "hdrs": ["local_api.hpp", "local_action.hpp", "local_response.hpp"]
   , "srcs": ["local_action.cpp"]
   , "deps":
-    [ "config"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl-lite", "", "gsl-lite"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -32,8 +33,6 @@
     , ["src/buildtool/execution_api/bazel_msg", "blob_tree"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/logging", "logging"]
     ]
@@ -41,6 +40,9 @@
   , "private-deps":
     [ ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/system", "system_command"]
+    , "config"
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "bazel_types"]
     ]
   }
 }
