@@ -41,7 +41,14 @@ auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
     std::string content(static_cast<size_t>(size), '\0');
 
     // read stream content into string buffer
-    std::fread(content.data(), 1, content.size(), stream);
+    auto n = std::fread(content.data(), 1, content.size(), stream);
+    if (n != static_cast<size_t>(size)) {
+        Logger::Log(LogLevel::Warning,
+                    "Reading curl log from temporary file failed: read only {} "
+                    "bytes while {} were expected",
+                    n,
+                    size);
+    }
     return content;
 }
 
