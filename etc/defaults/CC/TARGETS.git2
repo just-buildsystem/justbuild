@@ -32,7 +32,12 @@
       , "default":
         { "type": "++"
         , "$1":
-          [ ["-std=gnu90", "-D_GNU_SOURCE", "-Wall", "-Wextra"]
+          [ [ "-std=gnu90"
+            , "-D_GNU_SOURCE"
+            , "-Wall"
+            , "-Wextra"
+            , "-DGIT_DEPRECATE_HARD"
+            ]
           , { "type": "case"
             , "expr": {"type": "var", "name": "OS"}
             , "case":

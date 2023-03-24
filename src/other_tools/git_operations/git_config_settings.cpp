@@ -298,8 +298,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                     for (auto const& elem : matches) {
                         if (git_config_parse_path(&tmp_buf,
                                                   elem.second.c_str()) == 0) {
-                            if (git_buf_contains_nul(&tmp_buf) == 0 and
-                                tmp_buf.size == 0) {
+                            if (tmp_buf.size == 0) {
                                 // cleanup memory
                                 git_buf_dispose(&tmp_buf);
                                 return ProxyInfo{std::nullopt};
@@ -314,31 +313,28 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                         if (git_config_parse_path(
                                 &tmp_buf, matches.begin()->second.c_str()) ==
                             0) {
-                            if (git_buf_contains_nul(&tmp_buf) == 0) {
-                                auto tmp_str = std::string(tmp_buf.ptr);
-                                // cleanup memory
-                                git_buf_dispose(&tmp_buf);
-                                // get proxy url in standard form
-                                auto proxy_info =
-                                    GetProxyAsPermissiveUrl(tmp_str);
-                                if (not proxy_info) {
-                                    // unexpected behavior
-                                    (*logger)(
-                                        "While getting proxy "
-                                        "settings:\npermissive parsing of "
-                                        "remote-specific proxy URL failed",
-                                        true /*fatal*/);
-                                    return std::nullopt;
-                                }
-                                return proxy_info.value();
+                            auto tmp_str = std::string(tmp_buf.ptr);
+                            // cleanup memory
+                            git_buf_dispose(&tmp_buf);
+                            // get proxy url in standard form
+                            auto proxy_info = GetProxyAsPermissiveUrl(tmp_str);
+                            if (not proxy_info) {
+                                // unexpected behavior
+                                (*logger)(
+                                    "While getting proxy "
+                                    "settings:\npermissive parsing of "
+                                    "remote-specific proxy URL failed",
+                                    true /*fatal*/);
+                                return std::nullopt;
                             }
+                            return proxy_info.value();
                         }
                     }
                     // check the generic "http.proxy" gitconfig entry;
                     // ignore errors
                     if (git_config_get_string_buf(
                             &tmp_buf, cfg.get(), R"(http.proxy)") == 0) {
-                        if (git_buf_contains_nul(&tmp_buf) == 0) {
+                        if (tmp_buf.size > 0) {
                             auto tmp_str = std::string(tmp_buf.ptr);
                             // cleanup memory
                             git_buf_dispose(&tmp_buf);
@@ -354,6 +350,8 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                             }
                             return proxy_info.value();
                         }
+                        // cleanup memory
+                        git_buf_dispose(&tmp_buf);
                     }
                     // check proxy envariables depending on the scheme
                     auto url_scheme = parsed_url.value()->GetScheme();
