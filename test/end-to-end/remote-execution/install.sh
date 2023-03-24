@@ -20,9 +20,12 @@ readonly JUST="${PWD}/bin/tool-under-test"
 readonly WRKDIR="${PWD}"
 readonly LBRDIR_A="${TEST_TMPDIR}/local-build-root/instance-A"
 readonly LBRDIR_B="${TEST_TMPDIR}/local-build-root/instance-B"
+readonly LBRDIR_C="${TEST_TMPDIR}/local-build-root/instance-C"
 readonly SRCDIR_A="${TEST_TMPDIR}/src/instance-A"
 readonly SRCDIR_B="${TEST_TMPDIR}/src/instance-B"
+readonly SRCDIR_C="${TEST_TMPDIR}/src/instance-C"
 readonly OUTDIR_B="${TEST_TMPDIR}/out/instance-B"
+readonly OUTDIR_C="${TEST_TMPDIR}/out/instance-C"
 
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
 LOCAL_ARGS=""
@@ -67,6 +70,20 @@ do
     cmp "${SRCDIR_A}/tree/$f" "${OUTDIR_B}/first/$f"
 done
 
+## ... and to remember
+
+"${JUST}" install-cas --local-build-root "${LBRDIR_B}" \
+          -o "${OUTDIR_B}/first-discard" \
+          --remember ${REMOTE_EXECUTION_ARGS} "${TREE_ID}" 2>&1
+
+"${JUST}" install-cas --local-build-root "${LBRDIR_B}" \
+          -o "${OUTDIR_B}/first-from-local" ${LOCAL_ARGS} "${TREE_ID}" 2>&1
+for f in $(cd "${SRCDIR_A}/tree" && find . -type f)
+do
+    cmp "${SRCDIR_A}/tree/$f" "${OUTDIR_B}/first-from-local/$f"
+done
+
+
 # install-cas has to prefer (at least: use) local CAS, also with remote endpoint
 
 ## instance B builds locally, to fill local CAS
@@ -98,6 +115,44 @@ TREE_ID=$(jq -r '.tree.id' "${WRKDIR}/tree.json")"::t"
 for f in $(cd "${SRCDIR_B}/tree" && find . -type f)
 do
     cmp "${SRCDIR_B}/tree/$f" "${OUTDIR_B}/second/$f"
+done
+
+# install --remember
+
+## install a tree with --remember
+
+mkdir -p "${SRCDIR_C}"
+cd "${SRCDIR_C}"
+touch ROOT
+
+cat > TARGETS <<'EOF'
+{ "":
+  { "type": "generic"
+  , "out_dirs": ["out"]
+  , "cmds":
+    [ "mkdir -p out/foo out/bar out/baz"
+    , "echo some file content > out/foo/data.txt"
+    , "echo more file content > out/bar/file.txt"
+    , "echo even more file content > out/bar/another_file.txt"
+    ]
+  }
+}
+EOF
+
+"${JUST}" install --local-build-root "${LBRDIR_C}" \
+          --remember -o "${OUTDIR_C}/remote" \
+          --dump-artifacts "${WRKDIR}/tree.json" ${REMOTE_EXECUTION_ARGS} 2>&1
+
+## now it should also be available for local installation
+
+TREE_ID=$(jq -r ".\"${OUTDIR_C}/remote/out\".id" "${WRKDIR}/tree.json")"::t"
+"${JUST}" install-cas --local-build-root "${LBRDIR_C}" \
+          -o "${OUTDIR_C}/local" \
+          ${LOCAL_ARGS} "${TREE_ID}" 2>&1
+
+for f in $(cd "${OUTDIR_C}/remote/out" && find . -type f)
+do
+    cmp "${OUTDIR_C}/remote/out/$f" "${OUTDIR_C}/local/$f"
 done
 
 echo OK
