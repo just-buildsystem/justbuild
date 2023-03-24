@@ -385,7 +385,6 @@
               , ["HAVE_SSL_H", "ssl.h"]
               , ["HAVE_STDATOMIC_H", "stdatomic.h"]
               , ["HAVE_STDBOOL_H", "stdbool.h"]
-              , ["HAVE_STDINT_H", "stdint.h"]
               , ["HAVE_STDLIB_H", "stdlib.h"]
               , ["HAVE_STRING_H", "string.h"]
               , ["HAVE_STRINGS_H", "strings.h"]
@@ -396,7 +395,6 @@
               , ["HAVE_UNISTD_H", "unistd.h"]
               , ["HAVE_UTIME_H", "utime.h"]
               , ["HAVE_STDDEF_H", "stddef.h"]
-              , ["HAVE_STDINT_H", "stdint.h"]
               , ["HAVE_SYS_UTSNAME_H", "sys/utsname.h"]
               , ["HAVE_ATOMIC", "stdatomic.h"]
               ]
@@ -600,9 +598,6 @@
                 ]
               , [ "HAVE_STRTOLL"
                 , ["strtoll", {"type": "var", "name": "sys_hdrs"}]
-                ]
-              , [ "HAVE__STRTOI64"
-                , ["_strtoi64", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_STRERROR_R"
                 , ["strerror_r", {"type": "var", "name": "sys_hdrs"}]
