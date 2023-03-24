@@ -51,7 +51,8 @@ cp foo baz/baz/foo
 cp bar baz/baz/bar
 
 # create the repo
-git init -b master > /dev/null
+git init > /dev/null
+git checkout -q -b master
 git config user.name "Nobody"
 git config user.email "nobody@example.org"
 

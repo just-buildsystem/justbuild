@@ -72,7 +72,8 @@ EOF
 (
   cd "${GIT_ROOT}" \
   && sh "${SERVER_ROOT}/bin/git_dir_setup.sh" \
-  && git init -b test \
+  && git init \
+  && git checkout -q -b test \
   && git config user.email "nobody@example.org" \
   && git config user.name "Nobody" \
   && git add . \
