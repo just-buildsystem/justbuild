@@ -104,6 +104,7 @@ struct BuildArguments {
 /// \brief Arguments required for staging.
 struct StageArguments {
     std::filesystem::path output_dir{};
+    bool remember{false};
 };
 
 /// \brief Arguments required for rebuilding.
@@ -116,6 +117,7 @@ struct RebuildArguments {
 struct FetchArguments {
     std::string object_id{};
     std::optional<std::filesystem::path> output_path{};
+    bool remember{false};
     bool raw_tree{};
 };
 
@@ -424,6 +426,9 @@ static inline auto SetupStageArguments(
            "Path of the directory where outputs will be copied.")
         ->type_name("PATH")
         ->required();
+
+    app->add_flag(
+        "--remember", clargs->remember, "Copy object to local CAS first");
 }
 
 static inline auto SetupRebuildArguments(
@@ -463,6 +468,9 @@ static inline auto SetupFetchArguments(
     app->add_flag("--raw-tree",
                   clargs->raw_tree,
                   "Dump raw tree object (omit pretty printing)");
+
+    app->add_flag(
+        "--remember", clargs->remember, "Copy object to local CAS first");
 }
 
 static inline auto SetupGraphArguments(

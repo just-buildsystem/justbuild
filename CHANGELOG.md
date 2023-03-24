@@ -26,6 +26,9 @@ A feature release on top of `1.0.0`, backwards compatible.
 
 ### Other changes
 
+- `just install` and `just install-cas` now have a new `--remember`
+  option ensuring that the installed artifacts are also mirrored in
+  local CAS
 - `just analyse` now supports a new option `--dump-export-targets`
 
 ## Release `1.0.0` (2022-12-12)

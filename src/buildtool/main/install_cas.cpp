@@ -67,6 +67,14 @@ auto FetchAndInstallArtifacts(
     FetchArguments const& clargs) -> bool {
     auto object_info = ObjectInfoFromLiberalString(clargs.object_id);
 
+    if (clargs.remember) {
+        if (not api->RetrieveToCas({object_info}, alternative_api)) {
+            Logger::Log(LogLevel::Warning,
+                        "Failed to copy artifact {} to local CAS",
+                        object_info.ToString());
+        }
+    }
+
     if (clargs.output_path) {
         auto output_path = (*clargs.output_path / "").parent_path();
         if (FileSystemManager::IsDirectory(output_path)) {

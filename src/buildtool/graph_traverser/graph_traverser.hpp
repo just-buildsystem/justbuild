@@ -141,6 +141,12 @@ class GraphTraverser {
                                failed_artifacts};
         }
 
+        if (clargs_.stage->remember) {
+            if (not remote_api_->RetrieveToCas(*object_infos, GetLocalApi())) {
+                Logger::Log(LogLevel::Warning, "Failed to copy objects to CAS");
+            }
+        }
+
         auto output_paths = RetrieveOutputs(rel_paths, *object_infos);
         if (not output_paths) {
             return std::nullopt;

@@ -429,6 +429,11 @@ the original remote build execution protocol.
    dump the raw tree rather than a pretty-printed version.
    Supported by: install-cas
 
+   *--remember*\\
+   Ensure that all installed artifacts are available in local CAS as well,
+   even when using remote execution.
+   Supported by: install|traverse|install-cas
+
 ** Parallelism options
 
    *-J*, *--build-jobs* NUM\\
