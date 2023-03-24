@@ -165,7 +165,7 @@ sed -i "s|RANDOM_STRING_2 \".*\"|RANDOM_STRING_2 \"$RANDOM_STRING\"|" greet/src/
 EXEC_HASH=
 FILE_HASH=
 TREE_HASH=
-readonly TC_HASHES=$(get_tc_hashes $REMOTE_EXECUTION_ID)
+readonly TC_HASHES="$(get_tc_hashes $REMOTE_EXECUTION_ID)"
 for TC_HASH in $TC_HASHES; do
   TC_ENTRY=$("$JUST" install-cas --local-build-root "$LBRDIR" $ARGS ${TC_HASH})
   EXEC_HASH=${EXEC_HASH:-$(echo $TC_ENTRY | jq -r '.artifacts."main".data.id // ""')}
