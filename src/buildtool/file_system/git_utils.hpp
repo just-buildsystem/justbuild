@@ -23,7 +23,6 @@
 extern "C" {
 struct git_oid;
 struct git_odb;
-struct git_repository;
 struct git_tree;
 struct git_treebuilder;
 struct git_index;
@@ -47,8 +46,6 @@ constexpr std::size_t kGitLockNumTries{10};
 
 /// \brief Retrieve error message of last libgit2 call.
 [[nodiscard]] auto GitLastError() noexcept -> std::string;
-
-void repo_closer(gsl::owner<git_repository*> repo);
 
 void odb_closer(gsl::owner<git_odb*> odb);
 

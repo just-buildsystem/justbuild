@@ -19,6 +19,10 @@
 
 #include "src/buildtool/file_system/git_cas.hpp"
 
+extern "C" {
+struct git_repository;
+}
+
 /// \brief Git repository logic.
 /// Models both a real repository, owning the underlying ODB
 /// (non-thread-safe), as well as a "fake" repository, which only wraps an
@@ -196,11 +200,35 @@ class GitRepo {
         -> std::optional<bool>;
 
   private:
+    /// \brief Wrapped git_repository with guarded destructor.
+    /// Kept privately nested to avoid misuse of its raw pointer members.
+    class GuardedRepo {
+      public:
+        GuardedRepo() noexcept = delete;
+        explicit GuardedRepo(std::shared_mutex* mutex) noexcept;
+        ~GuardedRepo() noexcept;
+
+        // prohibit moves and copies
+        GuardedRepo(GuardedRepo const&) = delete;
+        GuardedRepo(GuardedRepo&& other) = delete;
+        auto operator=(GuardedRepo const&) = delete;
+        auto operator=(GuardedRepo&& other) = delete;
+
+        // get the bare pointer
+        [[nodiscard]] auto Ptr() -> git_repository*;
+        [[nodiscard]] auto PtrRef() -> git_repository**;
+
+      private:
+        std::shared_mutex* mutex_;
+        git_repository* repo_{nullptr};
+    };
+
+    using GuardedRepoPtr = std::shared_ptr<GuardedRepo>;
+
     // IMPORTANT! The GitCAS object must be defined before the repo object to
     // keep the GitContext alive until cleanup ends.
     GitCASPtr git_cas_{nullptr};
-    std::unique_ptr<git_repository, decltype(&repo_closer)> repo_{nullptr,
-                                                                  repo_closer};
+    GuardedRepoPtr repo_{nullptr};
     // default to real repo, as that is non-thread-safe
     bool is_repo_fake_{false};
 
@@ -210,8 +238,7 @@ class GitRepo {
     /// \brief Open real repository at given location.
     explicit GitRepo(std::filesystem::path const& repo_path) noexcept;
 
-    [[nodiscard]] auto GetRepoRef() const noexcept
-        -> std::unique_ptr<git_repository, decltype(&repo_closer)> const&;
+    [[nodiscard]] auto GetRepoRef() const noexcept -> GuardedRepoPtr;
 
     [[nodiscard]] auto GetGitPath() const noexcept
         -> std::filesystem::path const&;

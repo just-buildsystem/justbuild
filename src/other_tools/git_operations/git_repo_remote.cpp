@@ -148,7 +148,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         // create remote
         git_remote* remote_ptr{nullptr};
         if (git_remote_create_anonymous(
-                &remote_ptr, GetRepoRef().get(), repo_url.c_str()) != 0) {
+                &remote_ptr, GetRepoRef()->Ptr(), repo_url.c_str()) != 0) {
             (*logger)(
                 fmt::format("Creating anonymous remote for git repository {} "
                             "failed with:\n{}",
@@ -279,7 +279,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         // create remote from repo
         git_remote* remote_ptr{nullptr};
         if (git_remote_create_anonymous(
-                &remote_ptr, GetRepoRef().get(), repo_url.c_str()) != 0) {
+                &remote_ptr, GetRepoRef()->Ptr(), repo_url.c_str()) != 0) {
             (*logger)(fmt::format("Creating remote {} for git repository {} "
                                   "failed with:\n{}",
                                   repo_url,
@@ -300,7 +300,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         if (not cfg) {
             // get config snapshot of current repo
             git_config* cfg_ptr{nullptr};
-            if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef().get()) !=
+            if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) !=
                 0) {
                 (*logger)(fmt::format("Retrieving config object in fetch from "
                                       "remote failed with:\n{}",
@@ -621,7 +621,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
 
 auto GitRepoRemote::GetConfigSnapshot() const -> std::shared_ptr<git_config> {
     git_config* cfg_ptr{nullptr};
-    if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef().get()) != 0) {
+    if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) != 0) {
         return nullptr;
     }
     return std::shared_ptr<git_config>(cfg_ptr, config_closer);

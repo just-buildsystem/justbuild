@@ -69,12 +69,6 @@ auto GitObjectID(std::string const& id, bool is_hex_id) noexcept
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-void repo_closer(gsl::owner<git_repository*> repo) {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    git_repository_free(repo);
-#endif
-}
-
 void odb_closer(gsl::owner<git_odb*> odb) {
 #ifndef BOOTSTRAP_BUILD_TOOL
     git_odb_free(odb);
