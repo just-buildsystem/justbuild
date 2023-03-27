@@ -115,12 +115,6 @@
     , ["src/util", "util_private_headers"]
     ]
   }
-, "repository.c":
-  { "type": ["@", "rules", "patch", "file"]
-  , "src": [["FILE", null, "repository.c"]]
-  , "patch": [["@", "patches", "", "libgit2_v1.5.0_fix-fake-repo.patch"]]
-  , "patch-part": ["a", "src", "libgit2", "repository.c"]
-  }
 , "libgit2_sources":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
