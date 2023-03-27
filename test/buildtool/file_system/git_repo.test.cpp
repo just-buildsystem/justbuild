@@ -372,10 +372,6 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
     REQUIRE(remote_repo_path);
     auto remote_cas = GitCAS::Open(*remote_repo_path);
     REQUIRE(remote_cas);
-    auto remote_repo = GitRepo::Open(remote_cas);
-    REQUIRE(remote_repo);
-    REQUIRE(remote_repo->GetGitCAS() == remote_cas);
-    REQUIRE(remote_repo->IsRepoFake());
 
     // setup dummy logger
     auto logger = std::make_shared<GitRepo::anon_logger_t>(
@@ -395,12 +391,15 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
         constexpr int NUM_CASES = 5;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
-                [&remote_repo, &remote_repo_path, &logger, &starting_signal](
+                [&remote_cas, &remote_repo_path, &logger, &starting_signal](
                     int tid) {
                     starting_signal.wait(false);
                     // cases based on thread number
                     switch (tid % NUM_CASES) {
                         case 0: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from commit
                             auto entry_bazbar_c =
                                 remote_repo->GetSubtreeFromCommit(
@@ -409,6 +408,9 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             CHECK(*entry_bazbar_c == kBarId);
                         } break;
                         case 1: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from root tree id
                             auto entry_bazbar_t =
                                 remote_repo->GetSubtreeFromTree(
@@ -417,6 +419,9 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             CHECK(*entry_bazbar_t == kBarId);
                         } break;
                         case 2: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             // Find repository root from path
                             auto root_path_from_bazbar =
                                 GitRepo::GetRepoRootFromPath(
@@ -425,6 +430,9 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             CHECK(*root_path_from_bazbar == *remote_repo_path);
                         } break;
                         case 3: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from path
                             auto path_bazbar = *remote_repo_path / "baz/bar";
                             auto entry_bazbar_p =
@@ -434,6 +442,9 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             CHECK(*entry_bazbar_p == kBarId);
                         } break;
                         case 4: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             auto result_containing =
                                 remote_repo->CheckCommitExists(kRootCommit,
                                                                logger);

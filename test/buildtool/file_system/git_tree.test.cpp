@@ -555,12 +555,13 @@ TEST_CASE("Thread-safety", "[git_tree]") {
     SECTION("Parsing same tree with same CAS") {
         auto cas = GitCAS::Open(*repo_path);
         REQUIRE(cas);
-        auto repo = GitRepo::Open(cas);
-        REQUIRE(repo);
 
         for (int id{}; id < kNumThreads; ++id) {
-            threads.emplace_back([&repo, &starting_signal]() {
+            threads.emplace_back([&cas, &starting_signal]() {
                 starting_signal.wait(false);
+
+                auto repo = GitRepo::Open(cas);
+                REQUIRE(repo);
 
                 auto entries = repo->ReadTree(kTreeId, true);
                 REQUIRE(entries);
