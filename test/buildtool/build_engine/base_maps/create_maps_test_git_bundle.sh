@@ -52,7 +52,7 @@ mkdir -p test_repo
 cd test_repo
 
 # create the repo
-git init > /dev/null
+git init > /dev/null 2>&1
 git checkout -q -b master
 git config user.name "Nobody"
 git config user.email "nobody@example.org"
