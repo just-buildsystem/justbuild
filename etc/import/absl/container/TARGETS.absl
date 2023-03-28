@@ -1,9 +1,16 @@
-{ "compressed_tuple":
+{ "inlined_vector":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["compressed_tuple"]
+  , "name": ["inlined_vector"]
   , "stage": ["absl", "container"]
-  , "hdrs": ["internal/compressed_tuple.h"]
-  , "deps": [["absl/utility", "utility"]]
+  , "hdrs": ["inlined_vector.h"]
+  , "deps":
+    [ "inlined_vector_internal"
+    , ["absl/algorithm", "algorithm"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    ]
   }
 , "inlined_vector_internal":
   { "type": ["@", "rules", "CC", "library"]
@@ -18,16 +25,179 @@
     , ["absl/types", "span"]
     ]
   }
-, "inlined_vector":
+, "compressed_tuple":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["inlined_vector"]
+  , "name": ["compressed_tuple"]
   , "stage": ["absl", "container"]
-  , "hdrs": ["inlined_vector.h"]
+  , "hdrs": ["internal/compressed_tuple.h"]
+  , "deps": [["absl/utility", "utility"]]
+  }
+, "fixed_array":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fixed_array"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["fixed_array.h"]
   , "deps":
-    [ "inlined_vector_internal"
+    [ "compressed_tuple"
     , ["absl/algorithm", "algorithm"]
+    , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
     , ["absl/base", "throw_delegate"]
+    , ["absl/memory", "memory"]
+    ]
+  }
+, "container_memory":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["container_memory"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/container_memory.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "layout":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["layout"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/layout.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "span"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "flat_hash_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["flat_hash_map"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["flat_hash_map.h"]
+  , "deps":
+    [ "container_memory"
+    , "hash_function_defaults"
+    , "raw_hash_map"
+    , ["absl/algorithm", "algorithm_container"]
+    , ["absl/base", "core_headers"]
+    , ["absl/memory", "memory"]
+    ]
+  }
+, "hash_function_defaults":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_function_defaults"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/hash_function_defaults.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/hash", "hash"]
+    , ["absl/strings", "strings"]
+    , ["absl/strings", "cord"]
+    ]
+  }
+, "raw_hash_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["raw_hash_map"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/raw_hash_map.h"]
+  , "deps":
+    ["container_memory", "raw_hash_set", ["absl/base", "throw_delegate"]]
+  }
+, "common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/common.h"]
+  , "deps": [["absl/meta", "type_traits"], ["absl/types", "optional"]]
+  }
+, "raw_hash_set":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["raw_hash_set"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/raw_hash_set.h"]
+  , "srcs": ["internal/raw_hash_set.cc"]
+  , "deps":
+    [ "common"
+    , "compressed_tuple"
+    , "container_memory"
+    , "hash_policy_traits"
+    , "hashtable_debug_hooks"
+    , "hashtablez_sampler"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "prefetch"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "container_common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["container_common"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/common.h"]
+  , "deps": [["absl/meta", "type_traits"]]
+  }
+, "hash_policy_traits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_policy_traits"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/hash_policy_traits.h"]
+  , "deps": ["common_policy_traits", ["absl/meta", "type_traits"]]
+  }
+, "common_policy_traits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common_policy_traits"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/common_policy_traits.h"]
+  , "deps": [["absl/meta", "type_traits"]]
+  }
+, "hashtable_debug_hooks":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hashtable_debug_hooks"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/hashtable_debug_hooks.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "hashtablez_sampler":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hashtablez_sampler"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["internal/hashtablez_sampler.h"]
+  , "srcs":
+    [ "internal/hashtablez_sampler.cc"
+    , "internal/hashtablez_sampler_force_weak_definition.cc"
+    ]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/debugging", "stacktrace"]
+    , ["absl/memory", "memory"]
+    , ["absl/profiling", "exponential_biased"]
+    , ["absl/profiling", "sample_recorder"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "flat_hash_set":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["flat_hash_set"]
+  , "stage": ["absl", "container"]
+  , "hdrs": ["flat_hash_set.h"]
+  , "deps":
+    [ "container_memory"
+    , "hash_function_defaults"
+    , "raw_hash_set"
+    , ["absl/algorithm", "algorithm_container"]
+    , ["absl/base", "core_headers"]
     , ["absl/memory", "memory"]
     ]
   }

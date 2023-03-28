@@ -1,0 +1,21 @@
+{ "exponential_biased":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["exponential_biased"]
+  , "stage": ["absl", "profiling"]
+  , "hdrs": ["internal/exponential_biased.h"]
+  , "srcs": ["internal/exponential_biased.cc"]
+  , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
+  }
+, "sample_recorder":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["sample_recorder"]
+  , "stage": ["absl", "profiling"]
+  , "hdrs": ["internal/sample_recorder.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/time", "time"]
+    ]
+  }
+}

@@ -2,24 +2,79 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["time"]
   , "stage": ["absl", "time"]
+  , "hdrs": ["civil_time.h", "clock.h", "time.h"]
   , "srcs":
     ["civil_time.cc", "clock.cc", "duration.cc", "format.cc", "time.cc"]
-  , "hdrs":
-    [ "civil_time.h"
-    , "clock.h"
-    , "time.h"
-    , "internal/get_current_time_chrono.inc"
+  , "private-hdrs":
+    [ "internal/get_current_time_chrono.inc"
     , "internal/get_current_time_posix.inc"
     ]
   , "deps":
     [ ["absl/base", "base"]
+    , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/numeric", "int128"]
     , ["absl/strings", "strings"]
-    , ["absl/base", "config"]
-    , ["./", "internal/cctz", "civil_time"]
-    , ["./", "internal/cctz", "time_zone"]
+    , "civil_time"
+    , "time_zone"
+    , ["absl/types", "optional"]
     ]
+  }
+, "civil_time":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["civil_time"]
+  , "stage": ["absl", "time"]
+  , "hdrs":
+    [ "internal/cctz/include/cctz/civil_time.h"
+    , "internal/cctz/include/cctz/civil_time_detail.h"
+    ]
+  , "srcs": ["internal/cctz/src/civil_time_detail.cc"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "time_zone":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "name": ["time_zone"]
+  , "stage": ["absl", "time"]
+  , "hdrs":
+    [ "internal/cctz/include/cctz/time_zone.h"
+    , "internal/cctz/include/cctz/zone_info_source.h"
+    ]
+  , "srcs":
+    [ "internal/cctz/src/time_zone_fixed.cc"
+    , "internal/cctz/src/time_zone_format.cc"
+    , "internal/cctz/src/time_zone_if.cc"
+    , "internal/cctz/src/time_zone_impl.cc"
+    , "internal/cctz/src/time_zone_info.cc"
+    , "internal/cctz/src/time_zone_libc.cc"
+    , "internal/cctz/src/time_zone_lookup.cc"
+    , "internal/cctz/src/time_zone_posix.cc"
+    , "internal/cctz/src/zone_info_source.cc"
+    ]
+  , "private-hdrs":
+    [ "internal/cctz/src/time_zone_fixed.h"
+    , "internal/cctz/src/time_zone_if.h"
+    , "internal/cctz/src/time_zone_impl.h"
+    , "internal/cctz/src/time_zone_info.h"
+    , "internal/cctz/src/time_zone_libc.h"
+    , "internal/cctz/src/time_zone_posix.h"
+    , "internal/cctz/src/tzfile.h"
+    ]
+  , "private-ldflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default":
+        { "type": "var"
+        , "name": "ARCH"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+        }
+      }
+    , "case": {"arm": ["-latomic"]}
+    }
+  , "deps": ["civil_time", ["absl/base", "config"]]
   }
 }

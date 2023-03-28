@@ -1,0 +1,37 @@
+{ "function_ref":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["function_ref"]
+  , "stage": ["absl", "functional"]
+  , "hdrs": ["function_ref.h", "internal/function_ref.h"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "any_invocable":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["any_invocable"]
+  , "stage": ["absl", "functional"]
+  , "hdrs": ["any_invocable.h", "internal/any_invocable.h"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "bind_front":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bind_front"]
+  , "stage": ["absl", "functional"]
+  , "hdrs": ["bind_front.h", "internal/front_binder.h"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/container", "compressed_tuple"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+}

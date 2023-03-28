@@ -1,28 +1,8 @@
-{ "span":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["span"]
-  , "stage": ["absl", "types"]
-  , "hdrs": ["internal/span.h", "span.h"]
-  , "deps":
-    [ ["absl/algorithm", "algorithm"]
-    , ["absl/base", "core_headers"]
-    , ["absl/base", "throw_delegate"]
-    , ["absl/meta", "type_traits"]
-    ]
-  }
-, "bad_optional_access":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["bad_optional_access"]
-  , "stage": ["absl", "types"]
-  , "srcs": ["bad_optional_access.cc"]
-  , "hdrs": ["bad_optional_access.h"]
-  , "deps": [["absl/base", "config"], ["absl/base", "raw_logging_internal"]]
-  }
-, "optional":
+{ "optional":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["optional"]
   , "stage": ["absl", "types"]
-  , "hdrs": ["internal/optional.h", "optional.h"]
+  , "hdrs": ["optional.h", "internal/optional.h"]
   , "deps":
     [ "bad_optional_access"
     , ["absl/base", "base_internal"]
@@ -31,6 +11,48 @@
     , ["absl/memory", "memory"]
     , ["absl/meta", "type_traits"]
     , ["absl/utility", "utility"]
+    ]
+  }
+, "bad_optional_access":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bad_optional_access"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["bad_optional_access.h"]
+  , "srcs": ["bad_optional_access.cc"]
+  , "deps": [["absl/base", "config"], ["absl/base", "raw_logging_internal"]]
+  }
+, "variant":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["variant"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["variant.h", "internal/variant.h"]
+  , "deps":
+    [ "bad_variant_access"
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "bad_variant_access":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bad_variant_access"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["bad_variant_access.h"]
+  , "srcs": ["bad_variant_access.cc"]
+  , "deps": [["absl/base", "config"], ["absl/base", "raw_logging_internal"]]
+  }
+, "span":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["span"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["span.h", "internal/span.h"]
+  , "deps":
+    [ ["absl/algorithm", "algorithm"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/meta", "type_traits"]
     ]
   }
 }

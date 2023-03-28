@@ -1,53 +1,14 @@
-{ "internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["strings_internal"]
-  , "stage": ["absl", "strings"]
-  , "srcs":
-    ["internal/escaping.cc", "internal/ostringstream.cc", "internal/utf8.cc"]
-  , "hdrs":
-    [ "internal/char_map.h"
-    , "internal/escaping.h"
-    , "internal/ostringstream.h"
-    , "internal/resize_uninitialized.h"
-    , "internal/utf8.h"
-    ]
-  , "deps":
-    [ ["absl/base", "config"]
-    , ["absl/base", "core_headers"]
-    , ["absl/base", "endian"]
-    , ["absl/base", "raw_logging_internal"]
-    , ["absl/meta", "type_traits"]
-    ]
-  }
-, "strings":
+{ "strings":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strings"]
   , "stage": ["absl", "strings"]
-  , "srcs":
-    [ "ascii.cc"
-    , "charconv.cc"
-    , "escaping.cc"
-    , "internal/charconv_bigint.cc"
-    , "internal/charconv_parse.cc"
-    , "internal/memutil.cc"
-    , "match.cc"
-    , "numbers.cc"
-    , "str_cat.cc"
-    , "str_replace.cc"
-    , "str_split.cc"
-    , "string_view.cc"
-    , "substitute.cc"
-    ]
   , "hdrs":
     [ "ascii.h"
     , "charconv.h"
     , "escaping.h"
-    , "internal/memutil.h"
-    , "internal/charconv_bigint.h"
-    , "internal/charconv_parse.h"
-    , "internal/stl_type_traits.h"
-    , "internal/str_join_internal.h"
-    , "internal/str_split_internal.h"
+    , "internal/damerau_levenshtein_distance.h"
+    , "internal/string_constant.h"
+    , "internal/has_absl_stringify.h"
     , "match.h"
     , "numbers.h"
     , "str_cat.h"
@@ -57,11 +18,36 @@
     , "string_view.h"
     , "strip.h"
     , "substitute.h"
+    , "internal/stringify_sink.h"
+    , "internal/str_join_internal.h"
+    , "internal/str_split_internal.h"
+    , "internal/stl_type_traits.h"
+    ]
+  , "srcs":
+    [ "ascii.cc"
+    , "charconv.cc"
+    , "escaping.cc"
+    , "internal/charconv_bigint.cc"
+    , "internal/charconv_parse.cc"
+    , "internal/damerau_levenshtein_distance.cc"
+    , "internal/memutil.cc"
+    , "internal/stringify_sink.cc"
+    , "match.cc"
+    , "numbers.cc"
+    , "str_cat.cc"
+    , "str_replace.cc"
+    , "str_split.cc"
+    , "string_view.cc"
+    , "substitute.cc"
+    ]
+  , "private-hdrs":
+    [ "internal/charconv_bigint.h"
+    , "internal/charconv_parse.h"
+    , "internal/memutil.h"
     ]
   , "deps":
-    [ "internal"
+    [ "strings_internal"
     , ["absl/base", "base"]
-    , ["absl/base", "bits"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "endian"]
@@ -69,13 +55,216 @@
     , ["absl/base", "throw_delegate"]
     , ["absl/memory", "memory"]
     , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
     , ["absl/numeric", "int128"]
     ]
+  }
+, "strings_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["strings_internal"]
+  , "stage": ["absl", "strings"]
+  , "hdrs":
+    [ "internal/char_map.h"
+    , "internal/escaping.h"
+    , "internal/ostringstream.h"
+    , "internal/resize_uninitialized.h"
+    , "internal/utf8.h"
+    ]
+  , "srcs":
+    ["internal/escaping.cc", "internal/ostringstream.cc", "internal/utf8.cc"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "cord":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cord"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["cord.h", "cord_buffer.h", "cord_analysis.h"]
+  , "srcs": ["cord.cc", "cord_analysis.cc", "cord_buffer.cc"]
+  , "deps":
+    [ "cord_internal"
+    , "cordz_functions"
+    , "cordz_info"
+    , "cordz_statistics"
+    , "cordz_update_scope"
+    , "cordz_update_tracker"
+    , "strings_internal"
+    , "str_format"
+    , "strings"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/container", "fixed_array"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/crc", "crc_cord_state"]
+    , ["absl/functional", "function_ref"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
+    , ["absl/types", "optional"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "cord_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cord_internal"]
+  , "stage": ["absl", "strings"]
+  , "hdrs":
+    [ "internal/cord_data_edge.h"
+    , "internal/cord_internal.h"
+    , "internal/cord_rep_btree.h"
+    , "internal/cord_rep_btree_navigator.h"
+    , "internal/cord_rep_btree_reader.h"
+    , "internal/cord_rep_crc.h"
+    , "internal/cord_rep_consume.h"
+    , "internal/cord_rep_flat.h"
+    , "internal/cord_rep_ring.h"
+    , "internal/cord_rep_ring_reader.h"
+    ]
+  , "srcs":
+    [ "internal/cord_internal.cc"
+    , "internal/cord_rep_btree.cc"
+    , "internal/cord_rep_btree_navigator.cc"
+    , "internal/cord_rep_btree_reader.cc"
+    , "internal/cord_rep_crc.cc"
+    , "internal/cord_rep_consume.cc"
+    , "internal/cord_rep_ring.cc"
+    ]
+  , "deps":
+    [ "strings"
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/container", "compressed_tuple"]
+    , ["absl/container", "container_memory"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/container", "layout"]
+    , ["absl/crc", "crc_cord_state"]
+    , ["absl/functional", "function_ref"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "cordz_functions":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cordz_functions"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_functions.h"]
+  , "srcs": ["internal/cordz_functions.cc"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/profiling", "exponential_biased"]
+    ]
+  }
+, "cordz_info":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "name": ["cordz_info"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_info.h"]
+  , "srcs": ["internal/cordz_info.cc"]
+  , "private-ldflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default":
+        { "type": "var"
+        , "name": "ARCH"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+        }
+      }
+    , "case": {"arm": ["-latomic"]}
+    }
+  , "deps":
+    [ "cord_internal"
+    , "cordz_functions"
+    , "cordz_handle"
+    , "cordz_statistics"
+    , "cordz_update_tracker"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/debugging", "stacktrace"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "cordz_update_scope":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cordz_update_scope"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_update_scope.h"]
+  , "deps":
+    [ "cord_internal"
+    , "cordz_info"
+    , "cordz_update_tracker"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    ]
+  }
+, "cordz_update_tracker":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cordz_update_tracker"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_update_tracker.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "cordz_handle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cordz_handle"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_handle.h"]
+  , "srcs": ["internal/cordz_handle.cc"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/synchronization", "synchronization"]
+    ]
+  }
+, "cordz_statistics":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cordz_statistics"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["internal/cordz_statistics.h"]
+  , "deps": ["cordz_update_tracker", ["absl/base", "config"]]
+  }
+, "str_format":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["str_format"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["str_format.h"]
+  , "deps": ["str_format_internal"]
   }
 , "str_format_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["str_format_internal"]
   , "stage": ["absl", "strings"]
+  , "hdrs":
+    [ "internal/str_format/arg.h"
+    , "internal/str_format/bind.h"
+    , "internal/str_format/checker.h"
+    , "internal/str_format/constexpr_parser.h"
+    , "internal/str_format/extension.h"
+    , "internal/str_format/float_conversion.h"
+    , "internal/str_format/output.h"
+    , "internal/str_format/parser.h"
+    ]
   , "srcs":
     [ "internal/str_format/arg.cc"
     , "internal/str_format/bind.cc"
@@ -84,29 +273,18 @@
     , "internal/str_format/output.cc"
     , "internal/str_format/parser.cc"
     ]
-  , "hdrs":
-    [ "internal/str_format/arg.h"
-    , "internal/str_format/bind.h"
-    , "internal/str_format/checker.h"
-    , "internal/str_format/extension.h"
-    , "internal/str_format/float_conversion.h"
-    , "internal/str_format/output.h"
-    , "internal/str_format/parser.h"
-    ]
   , "deps":
     [ "strings"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/functional", "function_ref"]
     , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
     , ["absl/numeric", "int128"]
+    , ["absl/numeric", "numeric_representation"]
+    , ["absl/types", "optional"]
     , ["absl/types", "span"]
+    , ["absl/utility", "utility"]
     ]
-  }
-, "str_format":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["str_format"]
-  , "stage": ["absl", "strings"]
-  , "hdrs": ["str_format.h"]
-  , "deps": ["str_format_internal"]
   }
 }

@@ -1,0 +1,40 @@
+{ "status":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["status"]
+  , "stage": ["absl", "status"]
+  , "hdrs":
+    ["status.h", "status_payload_printer.h", "internal/status_internal.h"]
+  , "srcs": ["status.cc", "status_payload_printer.cc"]
+  , "deps":
+    [ ["absl/base", "atomic_hook"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/base", "strerror"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/debugging", "stacktrace"]
+    , ["absl/debugging", "symbolize"]
+    , ["absl/functional", "function_ref"]
+    , ["absl/strings", "strings"]
+    , ["absl/strings", "cord"]
+    , ["absl/strings", "str_format"]
+    , ["absl/types", "optional"]
+    ]
+  }
+, "statusor":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["statusor"]
+  , "stage": ["absl", "status"]
+  , "hdrs": ["statusor.h", "internal/statusor_internal.h"]
+  , "srcs": ["statusor.cc"]
+  , "deps":
+    [ "status"
+    , ["absl/base", "base"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "variant"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+}

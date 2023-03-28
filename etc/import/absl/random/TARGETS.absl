@@ -1,0 +1,345 @@
+{ "random":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["random.h"]
+  , "deps":
+    [ "random_distributions"
+    , "random_seed_sequences"
+    , "random_internal_nonsecure_base"
+    , "random_internal_pcg_engine"
+    , "random_internal_pool_urbg"
+    , "random_internal_randen_engine"
+    ]
+  }
+, "random_distributions":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_distributions"]
+  , "stage": ["absl", "random"]
+  , "hdrs":
+    [ "bernoulli_distribution.h"
+    , "beta_distribution.h"
+    , "discrete_distribution.h"
+    , "distributions.h"
+    , "exponential_distribution.h"
+    , "gaussian_distribution.h"
+    , "log_uniform_int_distribution.h"
+    , "poisson_distribution.h"
+    , "uniform_int_distribution.h"
+    , "uniform_real_distribution.h"
+    , "zipf_distribution.h"
+    ]
+  , "srcs": ["discrete_distribution.cc", "gaussian_distribution.cc"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
+    , "random_internal_distribution_caller"
+    , "random_internal_fast_uniform_bits"
+    , "random_internal_fastmath"
+    , "random_internal_generate_real"
+    , "random_internal_iostream_state_saver"
+    , "random_internal_traits"
+    , "random_internal_uniform_helper"
+    , "random_internal_wide_multiply"
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "random_internal_nonsecure_base":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_nonsecure_base"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/nonsecure_base.h"]
+  , "deps":
+    [ "random_internal_pool_urbg"
+    , "random_internal_salted_seed_seq"
+    , "random_internal_seed_material"
+    , ["absl/base", "core_headers"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "random_internal_pcg_engine":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_pcg_engine"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/pcg_engine.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/numeric", "int128"]
+    , "random_internal_fastmath"
+    , "random_internal_iostream_state_saver"
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "random_internal_pool_urbg":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_pool_urbg"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/pool_urbg.h"]
+  , "srcs": ["internal/pool_urbg.cc"]
+  , "private-ldflags": ["-pthread"]
+  , "deps":
+    [ "random_internal_randen"
+    , "random_internal_seed_material"
+    , "random_internal_traits"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "raw_logging_internal"]
+    , "random_seed_gen_exception"
+    , ["absl/types", "span"]
+    ]
+  }
+, "random_internal_randen_engine":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_randen_engine"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/randen_engine.h"]
+  , "deps":
+    [ "random_internal_iostream_state_saver"
+    , "random_internal_randen"
+    , ["absl/base", "endian"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "random_seed_sequences":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_seed_sequences"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["seed_sequences.h"]
+  , "srcs": ["seed_sequences.cc"]
+  , "deps":
+    [ "random_seed_gen_exception"
+    , ["absl/base", "config"]
+    , "random_internal_pool_urbg"
+    , "random_internal_salted_seed_seq"
+    , "random_internal_seed_material"
+    , ["absl/types", "span"]
+    ]
+  }
+, "random_internal_generate_real":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_generate_real"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/generate_real.h"]
+  , "deps":
+    [ "random_internal_fastmath"
+    , "random_internal_traits"
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
+    ]
+  }
+, "random_internal_distribution_caller":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_distribution_caller"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/distribution_caller.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "fast_type_id"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "random_internal_fast_uniform_bits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_fast_uniform_bits"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/fast_uniform_bits.h"]
+  , "deps":
+    [ "random_internal_traits"
+    , ["absl/base", "config"]
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "random_internal_fastmath":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_fastmath"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/fastmath.h"]
+  , "deps": [["absl/numeric", "bits"]]
+  }
+, "random_internal_iostream_state_saver":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_iostream_state_saver"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/iostream_state_saver.h"]
+  , "deps": [["absl/meta", "type_traits"], ["absl/numeric", "int128"]]
+  }
+, "random_internal_traits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_traits"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/traits.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/numeric", "bits"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+, "random_internal_uniform_helper":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_uniform_helper"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/uniform_helper.h"]
+  , "deps":
+    [ "random_internal_traits"
+    , ["absl/base", "config"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+, "random_internal_wide_multiply":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_wide_multiply"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/wide_multiply.h"]
+  , "deps":
+    [ "random_internal_traits"
+    , ["absl/base", "config"]
+    , ["absl/numeric", "bits"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+, "random_internal_salted_seed_seq":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_salted_seed_seq"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/salted_seed_seq.h"]
+  , "deps":
+    [ "random_internal_seed_material"
+    , ["absl/container", "inlined_vector"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/types", "optional"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "random_internal_seed_material":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "OS"]
+  , "name": ["random_internal_seed_material"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/seed_material.h"]
+  , "srcs": ["internal/seed_material.cc"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+    , "then":
+      { "type": "case*"
+      , "expr": {"type": "var", "name": "OS"}
+      , "case": [["windows", ["-lbcrypt"]]]
+      }
+    }
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ [ "random_internal_fast_uniform_bits"
+        , ["absl/base", "core_headers"]
+        , ["absl/base", "dynamic_annotations"]
+        , ["absl/base", "raw_logging_internal"]
+        , ["absl/strings", "strings"]
+        , ["absl/types", "optional"]
+        , ["absl/types", "span"]
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+        , "then": []
+        , "else":
+          { "type": "case*"
+          , "expr": {"type": "var", "name": "OS"}
+          , "case": [["windows", [["@", "bcrypt", "", "bcrypt"]]]]
+          }
+        }
+      ]
+    }
+  }
+, "random_internal_randen":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_randen"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/randen.h"]
+  , "srcs": ["internal/randen.cc"]
+  , "deps":
+    [ "random_internal_platform"
+    , "random_internal_randen_hwaes"
+    , "random_internal_randen_slow"
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
+, "random_seed_gen_exception":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_seed_gen_exception"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["seed_gen_exception.h"]
+  , "srcs": ["seed_gen_exception.cc"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "random_internal_platform":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_platform"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/randen_traits.h", "internal/platform.h"]
+  , "srcs": ["internal/randen_round_keys.cc"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "random_internal_randen_hwaes":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_randen_hwaes"]
+  , "arguments_config": ["TARGET_ARCH", "COMPILER_FAMILY"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/randen_detect.h", "internal/randen_hwaes.h"]
+  , "srcs": ["internal/randen_detect.cc"]
+  , "deps":
+    [ "random_internal_platform"
+    , "random_internal_randen_hwaes_impl"
+    , ["absl/base", "config"]
+    ]
+  }
+, "random_internal_randen_slow":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_randen_slow"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["internal/randen_slow.h"]
+  , "srcs": ["internal/randen_slow.cc"]
+  , "deps":
+    [ "random_internal_platform"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+, "random_internal_randen_hwaes_impl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["random_internal_randen_hwaes_impl"]
+  , "arguments_config": ["TARGET_ARCH", "COMPILER_FAMILY"]
+  , "stage": ["absl", "random"]
+  , "private-hdrs": ["internal/randen_hwaes.h"]
+  , "srcs": ["internal/randen_hwaes.cc"]
+  , "private-cflags":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "TARGET_ARCH"}
+    , "case":
+      [ ["arm", ["-mfpu=neon"]]
+      , ["arm64", ["-march=armv8-a+crypto"]]
+      , [ "x86_64"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case": [["msvc", []]]
+          , "default": ["-maes", "-msse4.1"]
+          }
+        ]
+      ]
+    }
+  , "deps":
+    [ "random_internal_platform"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+}

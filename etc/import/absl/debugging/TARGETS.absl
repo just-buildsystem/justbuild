@@ -1,0 +1,107 @@
+{ "symbolize":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY", "ARCH", "TARGET_ARCH"]
+  , "name": ["symbolize"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/symbolize.h", "symbolize.h"]
+  , "srcs": ["symbolize.cc"]
+  , "private-hdrs":
+    [ "symbolize_darwin.inc"
+    , "symbolize_elf.inc"
+    , "symbolize_emscripten.inc"
+    , "symbolize_unimplemented.inc"
+    , "symbolize_win32.inc"
+    ]
+  , "private-ldflags":
+    { "type": "++"
+    , "$1":
+      [ { "type": "case*"
+        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "case": [["mingw", ["-ladvapi32"]]]
+        }
+      , { "type": "case"
+        , "expr":
+          { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        , "case": {"arm": ["-latomic"]}
+        }
+      ]
+    }
+  , "deps":
+    [ "debugging_internal"
+    , "demangle_internal"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/base", "malloc_internal"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "stacktrace":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["stacktrace"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["stacktrace.h", "internal/stacktrace_x86-inl.inc"]
+  , "srcs": ["stacktrace.cc"]
+  , "private-hdrs":
+    [ "internal/stacktrace_config.h"
+    , "internal/stacktrace_aarch64-inl.inc"
+    , "internal/stacktrace_arm-inl.inc"
+    , "internal/stacktrace_emscripten-inl.inc"
+    , "internal/stacktrace_generic-inl.inc"
+    , "internal/stacktrace_powerpc-inl.inc"
+    , "internal/stacktrace_riscv-inl.inc"
+    , "internal/stacktrace_unimplemented-inl.inc"
+    , "internal/stacktrace_win32-inl.inc"
+    ]
+  , "deps":
+    [ "debugging_internal"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
+, "debugging_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["debugging_internal"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs":
+    [ "internal/address_is_readable.h"
+    , "internal/elf_mem_image.h"
+    , "internal/vdso_support.h"
+    ]
+  , "srcs":
+    [ "internal/address_is_readable.cc"
+    , "internal/elf_mem_image.cc"
+    , "internal/vdso_support.cc"
+    ]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/base", "errno_saver"]
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
+, "demangle_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["demangle_internal"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/demangle.h"]
+  , "srcs": ["internal/demangle.cc"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    ]
+  }
+}

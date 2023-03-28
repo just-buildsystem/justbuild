@@ -1,0 +1,23 @@
+{ "cleanup":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cleanup"]
+  , "stage": ["absl", "cleanup"]
+  , "hdrs": ["cleanup.h"]
+  , "deps":
+    [ "cleanup_internal"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    ]
+  }
+, "cleanup_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cleanup_internal"]
+  , "stage": ["absl", "cleanup"]
+  , "hdrs": ["internal/cleanup.h"]
+  , "deps":
+    [ ["absl/base", "base_internal"]
+    , ["absl/base", "core_headers"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+}

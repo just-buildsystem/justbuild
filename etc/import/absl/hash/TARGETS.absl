@@ -1,0 +1,48 @@
+{ "hash":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash"]
+  , "stage": ["absl", "hash"]
+  , "hdrs": ["hash.h", "internal/hash.h"]
+  , "srcs": ["internal/hash.cc"]
+  , "deps":
+    [ "city"
+    , "low_level_hash"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    , ["absl/container", "fixed_array"]
+    , ["absl/functional", "function_ref"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
+    , ["absl/numeric", "int128"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "optional"]
+    , ["absl/types", "variant"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "city":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["city"]
+  , "stage": ["absl", "hash"]
+  , "hdrs": ["internal/city.h"]
+  , "srcs": ["internal/city.cc"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "endian"]
+    ]
+  }
+, "low_level_hash":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["low_level_hash"]
+  , "stage": ["absl", "hash"]
+  , "hdrs": ["internal/low_level_hash.h"]
+  , "srcs": ["internal/low_level_hash.cc"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "endian"]
+    , ["absl/numeric", "int128"]
+    ]
+  }
+}

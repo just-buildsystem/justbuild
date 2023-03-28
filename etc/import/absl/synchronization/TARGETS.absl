@@ -1,0 +1,86 @@
+{ "synchronization":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "name": ["synchronization"]
+  , "stage": ["absl", "synchronization"]
+  , "hdrs":
+    [ "barrier.h"
+    , "blocking_counter.h"
+    , "internal/create_thread_identity.h"
+    , "internal/futex.h"
+    , "internal/per_thread_sem.h"
+    , "internal/waiter.h"
+    , "mutex.h"
+    , "notification.h"
+    ]
+  , "srcs":
+    [ "barrier.cc"
+    , "blocking_counter.cc"
+    , "internal/create_thread_identity.cc"
+    , "internal/per_thread_sem.cc"
+    , "internal/waiter.cc"
+    , "notification.cc"
+    , "mutex.cc"
+    ]
+  , "private-ldflags":
+    { "type": "++"
+    , "$1":
+      [ ["-pthread"]
+      , { "type": "case"
+        , "expr":
+          { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        , "case": {"arm": ["-latomic"]}
+        }
+      ]
+    }
+  , "deps":
+    [ "graphcycles_internal"
+    , "kernel_timeout_internal"
+    , ["absl/base", "atomic_hook"]
+    , ["absl/base", "base"]
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/base", "malloc_internal"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/debugging", "stacktrace"]
+    , ["absl/debugging", "symbolize"]
+    , ["absl/time", "time"]
+    ]
+  }
+, "graphcycles_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["graphcycles_internal"]
+  , "stage": ["absl", "synchronization"]
+  , "hdrs": ["internal/graphcycles.h"]
+  , "srcs": ["internal/graphcycles.cc"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "malloc_internal"]
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
+, "kernel_timeout_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["kernel_timeout_internal"]
+  , "stage": ["absl", "synchronization"]
+  , "hdrs": ["internal/kernel_timeout.h"]
+  , "deps":
+    [ ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/time", "time"]
+    ]
+  }
+}

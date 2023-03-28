@@ -1,4 +1,105 @@
-{ "config":
+{ "base":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS", "COMPILER_FAMILY", "ARCH", "TARGET_ARCH"]
+  , "name": ["base"]
+  , "stage": ["absl", "base"]
+  , "hdrs":
+    [ "call_once.h"
+    , "casts.h"
+    , "internal/cycleclock.h"
+    , "internal/cycleclock_config.h"
+    , "internal/low_level_scheduling.h"
+    , "internal/per_thread_tls.h"
+    , "internal/spinlock.h"
+    , "internal/sysinfo.h"
+    , "internal/thread_identity.h"
+    , "internal/tsan_mutex_interface.h"
+    , "internal/unscaledcycleclock.h"
+    , "internal/unscaledcycleclock_config.h"
+    ]
+  , "srcs":
+    [ "internal/cycleclock.cc"
+    , "internal/spinlock.cc"
+    , "internal/sysinfo.cc"
+    , "internal/thread_identity.cc"
+    , "internal/unscaledcycleclock.cc"
+    ]
+  , "private-ldflags":
+    { "type": "++"
+    , "$1":
+      [ ["-pthread"]
+      , { "type": "case*"
+        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "case": [["mingw", ["-ladvapi32"]]]
+        }
+      , { "type": "case*"
+        , "expr": {"type": "var", "name": "OS"}
+        , "case": [["linux", ["-lrt"]]]
+        }
+      , { "type": "case"
+        , "expr":
+          { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        , "case": {"arm": ["-latomic"]}
+        }
+      ]
+    }
+  , "deps":
+    [ "atomic_hook"
+    , "base_internal"
+    , "config"
+    , "core_headers"
+    , "cycleclock_internal"
+    , "dynamic_annotations"
+    , "log_severity"
+    , "raw_logging_internal"
+    , "spinlock_wait"
+    , ["absl/meta", "type_traits"]
+    ]
+  }
+, "atomic_hook":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "name": ["atomic_hook"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/atomic_hook.h"]
+  , "private-ldflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default":
+        { "type": "var"
+        , "name": "ARCH"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+        }
+      }
+    , "case": {"arm": ["-latomic"]}
+    }
+  , "deps": ["config", "core_headers"]
+  }
+, "base_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["base_internal"]
+  , "stage": ["absl", "base"]
+  , "hdrs":
+    [ "internal/hide_ptr.h"
+    , "internal/identity.h"
+    , "internal/inline_variable.h"
+    , "internal/invoke.h"
+    , "internal/scheduling_mode.h"
+    ]
+  , "deps": ["config", ["absl/meta", "type_traits"]]
+  }
+, "config":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "stage": ["absl", "base"]
@@ -19,36 +120,66 @@
     ]
   , "deps": ["config"]
   }
-, "atomic_hook":
+, "cycleclock_internal":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["atomic_hook"]
+  , "name": ["cycleclock_internal"]
   , "stage": ["absl", "base"]
-  , "hdrs": ["internal/atomic_hook.h"]
-  , "deps": ["config", "core_headers"]
+  , "hdrs":
+    ["internal/cycleclock_config.h", "internal/unscaledcycleclock_config.h"]
+  , "deps": ["base_internal", "config"]
   }
 , "dynamic_annotations":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["dynamic_annotations"]
   , "stage": ["absl", "base"]
-  , "private-defines": ["__CLANG_SUPPORT_DYN_ANNOTATION__"]
-  , "srcs": ["dynamic_annotations.cc"]
-  , "hdrs": ["dynamic_annotations.h"]
+  , "hdrs": ["dynamic_annotations.h", "internal/dynamic_annotations.h"]
+  , "deps": ["config", "core_headers"]
   }
 , "log_severity":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_severity"]
   , "stage": ["absl", "base"]
-  , "srcs": ["log_severity.cc"]
   , "hdrs": ["log_severity.h"]
+  , "srcs": ["log_severity.cc"]
   , "deps": ["config", "core_headers"]
   }
 , "raw_logging_internal":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["raw_logging_internal"]
   , "stage": ["absl", "base"]
-  , "srcs": ["internal/raw_logging.cc"]
   , "hdrs": ["internal/raw_logging.h"]
-  , "deps": ["atomic_hook", "config", "core_headers", "log_severity"]
+  , "srcs": ["internal/raw_logging.cc"]
+  , "private-ldflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default":
+        { "type": "var"
+        , "name": "ARCH"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+        }
+      }
+    , "case": {"arm": ["-latomic"]}
+    }
+  , "deps":
+    ["atomic_hook", "config", "core_headers", "errno_saver", "log_severity"]
+  }
+, "spinlock_wait":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["spinlock_wait"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/spinlock_wait.h"]
+  , "srcs": ["internal/spinlock_wait.cc"]
+  , "private-hdrs":
+    [ "internal/spinlock_akaros.inc"
+    , "internal/spinlock_linux.inc"
+    , "internal/spinlock_posix.inc"
+    , "internal/spinlock_win32.inc"
+    ]
+  , "deps": ["base_internal", "core_headers", "errno_saver"]
   }
 , "errno_saver":
   { "type": ["@", "rules", "CC", "library"]
@@ -57,88 +188,76 @@
   , "hdrs": ["internal/errno_saver.h"]
   , "deps": ["config"]
   }
-, "base_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["base_internal"]
-  , "stage": ["absl", "base"]
-  , "hdrs":
-    [ "internal/hide_ptr.h"
-    , "internal/identity.h"
-    , "internal/inline_variable.h"
-    , "internal/invoke.h"
-    , "internal/scheduling_mode.h"
-    ]
-  , "deps": ["config", ["absl/meta", "type_traits"]]
-  }
-, "spinlock_wait":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["spinlock_wait"]
-  , "stage": ["absl", "base"]
-  , "srcs": ["internal/spinlock_wait.cc"]
-  , "hdrs":
-    [ "internal/spinlock_akaros.inc"
-    , "internal/spinlock_linux.inc"
-    , "internal/spinlock_posix.inc"
-    , "internal/spinlock_wait.h"
-    , "internal/spinlock_win32.inc"
-    ]
-  , "deps": ["base_internal", "core_headers", "errno_saver"]
-  }
 , "endian":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["endian"]
   , "stage": ["absl", "base"]
   , "hdrs": ["internal/endian.h", "internal/unaligned_access.h"]
-  , "deps": ["config", "core_headers"]
+  , "deps": ["base", "config", "core_headers"]
   }
-, "bits":
+, "fast_type_id":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["bits"]
+  , "name": ["fast_type_id"]
   , "stage": ["absl", "base"]
-  , "hdrs": ["internal/bits.h"]
-  , "deps": ["config", "core_headers"]
+  , "hdrs": ["internal/fast_type_id.h"]
+  , "deps": ["config"]
+  }
+, "strerror":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["strerror"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/strerror.h"]
+  , "srcs": ["internal/strerror.cc"]
+  , "deps": ["config", "core_headers", "errno_saver"]
   }
 , "throw_delegate":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["throw_delegate"]
   , "stage": ["absl", "base"]
-  , "srcs": ["internal/throw_delegate.cc"]
   , "hdrs": ["internal/throw_delegate.h"]
+  , "srcs": ["internal/throw_delegate.cc"]
   , "deps": ["config", "raw_logging_internal"]
   }
-, "base":
+, "malloc_internal":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["base"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
+  , "name": ["malloc_internal"]
   , "stage": ["absl", "base"]
-  , "srcs":
-    [ "internal/cycleclock.cc"
-    , "internal/spinlock.cc"
-    , "internal/sysinfo.cc"
-    , "internal/thread_identity.cc"
-    , "internal/unscaledcycleclock.cc"
-    ]
-  , "hdrs":
-    [ "call_once.h"
-    , "casts.h"
-    , "internal/cycleclock.h"
-    , "internal/low_level_scheduling.h"
-    , "internal/per_thread_tls.h"
-    , "internal/spinlock.h"
-    , "internal/sysinfo.h"
-    , "internal/thread_identity.h"
-    , "internal/tsan_mutex_interface.h"
-    , "internal/unscaledcycleclock.h"
-    ]
+  , "hdrs": ["internal/direct_mmap.h", "internal/low_level_alloc.h"]
+  , "srcs": ["internal/low_level_alloc.cc"]
+  , "private-ldflags":
+    { "type": "++"
+    , "$1":
+      [ ["-pthread"]
+      , { "type": "case"
+        , "expr":
+          { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        , "case": {"arm": ["-latomic"]}
+        }
+      ]
+    }
   , "deps":
-    [ "atomic_hook"
+    [ "base"
     , "base_internal"
     , "config"
     , "core_headers"
     , "dynamic_annotations"
-    , "log_severity"
     , "raw_logging_internal"
-    , "spinlock_wait"
-    , ["absl/meta", "type_traits"]
     ]
+  }
+, "prefetch":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["prefetch"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["internal/prefetch.h"]
+  , "deps": ["config"]
   }
 }

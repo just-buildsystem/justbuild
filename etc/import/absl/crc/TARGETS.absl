@@ -1,0 +1,88 @@
+{ "crc_cord_state":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["crc_cord_state"]
+  , "stage": ["absl", "crc"]
+  , "hdrs": ["internal/crc_cord_state.h"]
+  , "srcs": ["internal/crc_cord_state.cc"]
+  , "deps":
+    [ "crc32c"
+    , ["absl/base", "config"]
+    , ["absl/numeric", "bits"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "crc32c":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["crc32c"]
+  , "stage": ["absl", "crc"]
+  , "hdrs":
+    [ "crc32c.h"
+    , "internal/crc32c.h"
+    , "internal/crc_memcpy.h"
+    , "internal/crc32c_inline.h"
+    ]
+  , "srcs":
+    [ "crc32c.cc"
+    , "internal/crc_memcpy_fallback.cc"
+    , "internal/crc_memcpy_x86_64.cc"
+    , "internal/crc_non_temporal_memcpy.cc"
+    ]
+  , "deps":
+    [ "cpu_detect"
+    , "crc_internal"
+    , "non_temporal_memcpy"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "prefetch"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "cpu_detect":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["crc_cpu_detect"]
+  , "stage": ["absl", "crc"]
+  , "hdrs": ["internal/cpu_detect.h"]
+  , "srcs": ["internal/cpu_detect.cc"]
+  , "deps": [["absl/base", "base"], ["absl/base", "config"]]
+  }
+, "crc_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["crc_internal"]
+  , "stage": ["absl", "crc"]
+  , "hdrs": ["internal/crc.h", "internal/crc32_x86_arm_combined_simd.h"]
+  , "srcs": ["internal/crc.cc", "internal/crc_x86_arm_combined.cc"]
+  , "private-hdrs": ["internal/crc_internal.h"]
+  , "deps":
+    [ "cpu_detect"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/base", "endian"]
+    , ["absl/base", "prefetch"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/memory", "memory"]
+    , ["absl/numeric", "bits"]
+    ]
+  }
+, "non_temporal_memcpy":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["non_temporal_memcpy"]
+  , "stage": ["absl", "crc"]
+  , "hdrs": ["internal/non_temporal_memcpy.h"]
+  , "deps":
+    [ "non_temporal_arm_intrinsics"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    ]
+  }
+, "non_temporal_arm_intrinsics":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["non_temporal_arm_intrinsics"]
+  , "stage": ["absl", "crc"]
+  , "hdrs": ["internal/non_temporal_arm_intrinsics.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+}
