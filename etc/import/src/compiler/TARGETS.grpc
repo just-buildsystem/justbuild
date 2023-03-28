@@ -1,4 +1,11 @@
-{ "grpc_plugin_support":
+{ "proto_parser_helper":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["proto_parser_helper"]
+  , "stage": ["src", "compiler"]
+  , "srcs": ["proto_parser_helper.cc"]
+  , "hdrs": ["proto_parser_helper.h"]
+  }
+, "grpc_plugin_support":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_plugin_support"]
   , "stage": ["src", "compiler"]
@@ -36,28 +43,13 @@
     , "ruby_generator_string-inl.h"
     , "schema_interface.h"
     ]
-  , "deps": [[".", "grpc++_config_proto"], ["@", "protobuf", ".", "libprotoc"]]
-  }
-, "grpc_cpp_plugin":
-  { "type": "export"
-  , "target": "grpc_cpp_plugin (implementation)"
-  , "flexible_config":
-    [ "AR"
-    , "ARCH"
-    , "CC"
-    , "CFLAGS"
-    , "CXX"
-    , "CXXFLAGS"
-    , "ENV"
-    , "HOST_ARCH"
-    , "OS"
-    , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
-    , "ADD_CFLAGS"
-    , "ADD_CXXFLAGS"
+  , "deps":
+    [ "proto_parser_helper"
+    , ["", "grpc++_config_proto"]
+    , ["@", "protobuf", "", "libprotoc"]
     ]
   }
-, "grpc_cpp_plugin (implementation)":
+, "grpc_cpp_plugin":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["grpc_cpp_plugin"]
   , "srcs": ["cpp_plugin.cc"]

@@ -34,7 +34,6 @@
         , "protobuf"
         , "bazel_remote_apis"
         , "google_apis"
-        , "upb"
         , "com_google_absl"
         , "zlib"
         , "re2"
@@ -264,19 +263,6 @@
     , "bindings": {"rules": "rules", "patches": "patches"}
     , "pkg_bootstrap": {"local_path": "include"}
     }
-  , "upb":
-    { "repository":
-      { "type": "archive"
-      , "content": "a234f5d2ccff01ee0a36e016b482276c5078905d"
-      , "fetch": "https://github.com/protocolbuffers/upb/archive/92e63da73328d01b417cf26c2de7b0a27a0f83af.tar.gz"
-      , "sha256": "79f7de61203c4ee5e4fcb2f17c5f3338119d6eb94aca8bce05332d2c1cfee108"
-      , "sha512": "9121c15ba540dbee1e09896a42b88b8616616929c4e607dbbc2f8706a8119672f34a0e81968b1d1d62b532d22bda969a32d22755b086456d031e2689aec7f24f"
-      , "subdir": "upb-92e63da73328d01b417cf26c2de7b0a27a0f83af"
-      }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.upb"
-    , "bindings": {"rules": "rules"}
-    }
   , "com_google_absl":
     { "repository":
       { "type": "archive"
@@ -346,11 +332,11 @@
   , "com_github_grpc_grpc":
     { "repository":
       { "type": "archive"
-      , "content": "23f49d3b842f2e916c861d5150e4b7d048084888"
-      , "fetch": "https://github.com/grpc/grpc/archive/v1.31.0.tar.gz"
-      , "sha256": "1236514199d3deb111a6dd7f6092f67617cd2b147f7eda7adbafccea95de7381"
-      , "sha512": "fc68079a70c39d66cb6f028e775418a90c61694406ddfa413298ec33de2f56e26eb47e10a53fc616e32c254c84e335598dc22598a95c223698ebf8eca60f7cea"
-      , "subdir": "grpc-1.31.0"
+      , "content": "a60418787a6e6f98c584d8de42d93b8983254939"
+      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.53.0.tar.gz"
+      , "sha256": "9717ffc52120861136e478155c2ff3a9c21740e2244de52fa966f376d7471adf"
+      , "sha512": "a02fe1969787cd39061269b8c7c1313c1f599a31aa4e11760a744a9e0f85202e33832ee669b9d0d07df4af1a45470d605a69d9e4a4df89251e9b0093aee89eca"
+      , "subdir": "grpc-1.53.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.grpc"
@@ -360,10 +346,10 @@
       , "protobuf": "protobuf"
       , "libssl": "ssl"
       , "absl": "com_google_absl"
-      , "upb": "upb"
       , "zlib": "zlib"
       , "re2": "re2"
       , "cares": "com_github_cares_cares"
+      , "google_apis": "google_apis"
       }
     , "pkg_bootstrap":
       {"copy": ["bin/grpc_cpp_plugin", "include/grpc", "include/grpcpp"]}

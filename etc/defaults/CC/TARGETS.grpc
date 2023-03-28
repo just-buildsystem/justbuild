@@ -16,18 +16,22 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
-      , [ "ARCH"
+      , [ "TARGET_ARCH"
         , { "type": "var"
-          , "name": "ARCH"
+          , "name": "TARGET_ARCH"
           , "default":
-            {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
           }
         ]
       ]
     , "body":
       { "type": "++"
       , "$1":
-        [ ["-std=c99"]
+        [ ["-std=c11"]
         , { "type": "case"
           , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
           , "case": {"msvc": []}
@@ -35,6 +39,8 @@
             [ "-Wall"
             , "-Wextra"
             , "-Wno-unused-parameter"
+            , "-Wno-sign-compare"
+            , "-Wno-implicit-fallthrough"
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
@@ -72,11 +78,15 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
-      , [ "ARCH"
+      , [ "TARGET_ARCH"
         , { "type": "var"
-          , "name": "ARCH"
+          , "name": "TARGET_ARCH"
           , "default":
-            {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
           }
         ]
       ]
@@ -94,17 +104,16 @@
             , "-Wno-uninitialized"
             , "-Wno-missing-field-initializers"
             , "-DOSATOMIC_USE_INLINED=1"
+            , "-Wno-redundant-move"
+            , "-Wno-comment"
+            , "-Wno-attributes"
+            , "-Wno-unused-function"
+            , "-Wno-unknown-warning-option"
+            , "-Wno-implicit-const-int-float-conversion"
+            , "-Wno-stringop-overflow"
+            , "-Wno-stringop-truncation"
+            , "-Wno-class-memaccess"
             ]
-          }
-        , { "type": "case"
-          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
-          , "case":
-            { "clang":
-              [ "-Wno-unknown-warning-option"
-              , "-Wno-implicit-const-int-float-conversion"
-              ]
-            , "gnu": ["-Wno-stringop-overflow", "-Wno-stringop-truncation"]
-            }
           }
         , { "type": "if"
           , "cond": {"type": "var", "name": "DEBUG"}

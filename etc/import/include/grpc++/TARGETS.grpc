@@ -15,7 +15,6 @@
     , "impl/call.h"
     , "impl/channel_argument_option.h"
     , "impl/client_unary_call.h"
-    , "impl/codegen/core_codegen.h"
     , "impl/grpc_library.h"
     , "impl/method_handler_impl.h"
     , "impl/rpc_method.h"
@@ -46,31 +45,18 @@
     , "support/stub_options.h"
     , "support/sync_stream.h"
     , "support/time.h"
-    ]
-  , "stage": ["grpc++"]
-  }
-, "grpc++_config_proto_headers":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs": ["impl/codegen/config_protobuf.h"]
-  , "stage": ["grpc++"]
-  }
-, "grpc++_codegen_base_headers":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs":
-    [ "impl/codegen/async_stream.h"
+    , "impl/codegen/async_stream.h"
     , "impl/codegen/async_unary_call.h"
     , "impl/codegen/byte_buffer.h"
-    , "impl/codegen/call.h"
     , "impl/codegen/call_hook.h"
+    , "impl/codegen/call.h"
     , "impl/codegen/channel_interface.h"
     , "impl/codegen/client_context.h"
     , "impl/codegen/client_unary_call.h"
-    , "impl/codegen/completion_queue.h"
     , "impl/codegen/completion_queue_tag.h"
+    , "impl/codegen/completion_queue.h"
     , "impl/codegen/config.h"
-    , "impl/codegen/core_codegen_interface.h"
     , "impl/codegen/create_auth_context.h"
-    , "impl/codegen/grpc_library.h"
     , "impl/codegen/metadata_map.h"
     , "impl/codegen/method_handler_impl.h"
     , "impl/codegen/rpc_method.h"
@@ -81,13 +67,18 @@
     , "impl/codegen/server_interface.h"
     , "impl/codegen/service_type.h"
     , "impl/codegen/slice.h"
-    , "impl/codegen/status.h"
     , "impl/codegen/status_code_enum.h"
+    , "impl/codegen/status.h"
     , "impl/codegen/string_ref.h"
     , "impl/codegen/stub_options.h"
     , "impl/codegen/sync_stream.h"
     , "impl/codegen/time.h"
     ]
+  , "stage": ["grpc++"]
+  }
+, "grpc++_config_proto_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["impl/codegen/config_protobuf.h"]
   , "stage": ["grpc++"]
   }
 , "grpc++_codegen_proto_headers":

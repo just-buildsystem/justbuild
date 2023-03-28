@@ -1,0 +1,186 @@
+{ "upb_port":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_port"]
+  , "pure C": ["YES"]
+  , "hdrs":
+    [ "upb/internal/vsnprintf_compat.h"
+    , "upb/port_def.inc"
+    , "upb/port_undef.inc"
+    ]
+  }
+, "upb":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb"]
+  , "pure C": ["YES"]
+  , "srcs":
+    [ "upb/arena.c"
+    , "upb/decode.c"
+    , "upb/encode.c"
+    , "upb/msg.c"
+    , "upb/status.c"
+    , "upb/table.c"
+    , "upb/upb.c"
+    ]
+  , "hdrs":
+    [ "upb/arena.h"
+    , "upb/decode.h"
+    , "upb/encode.h"
+    , "upb/extension_registry.h"
+    , "upb/msg.h"
+    , "upb/status.h"
+    , "upb/upb.h"
+    , "upb/upb.hpp"
+    , "upb/msg_internal.h"
+    ]
+  , "private-hdrs":
+    ["upb/internal/decode.h", "upb/internal/table.h", "upb/internal/upb.h"]
+  , "deps":
+    ["upb_extension_registry", "upb_fastdecode", "upb_port", "upb_utf8_range"]
+  }
+, "upb_extension_registry":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_extension_registry"]
+  , "pure C": ["YES"]
+  , "hdrs": ["upb/extension_registry.h"]
+  , "srcs": ["upb/extension_registry.c"]
+  , "private-hdrs": ["upb/msg.h", "upb/msg_internal.h", "upb/upb.h"]
+  , "deps": ["upb_port", "upb_table"]
+  }
+, "upb_mini_table_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_mini_table_internal"]
+  , "pure C": ["YES"]
+  , "hdrs": ["upb/msg_internal.h"]
+  , "deps": ["upb_extension_registry", "upb_port", "upb_table", "upb"]
+  }
+, "upb_mini_table":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_mini_table"]
+  , "pure C": ["YES"]
+  , "srcs": ["upb/mini_table.c"]
+  , "hdrs": ["upb/mini_table.h", "upb/mini_table.hpp"]
+  , "deps":
+    ["upb_extension_registry", "upb_mini_table_internal", "upb_port", "upb"]
+  }
+, "upb_fastdecode":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_fastdecode"]
+  , "pure C": ["YES"]
+  , "srcs": ["upb/decode_fast.c"]
+  , "hdrs":
+    [ "upb/decode.h"
+    , "upb/decode_fast.h"
+    , "upb/internal/decode.h"
+    , "upb/internal/upb.h"
+    , "upb/msg.h"
+    , "upb/msg_internal.h"
+    ]
+  , "deps":
+    ["upb_extension_registry", "upb_port", "upb_table", "upb_utf8_range"]
+  }
+, "upb_collections":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_collections"]
+  , "pure C": ["YES"]
+  , "hdrs":
+    ["upb/array.h", "upb/collections.h", "upb/map.h", "upb/message_value.h"]
+  , "srcs": ["upb/array.c", "upb/map.c"]
+  , "deps":
+    [ "upb_mini_table"
+    , "upb_port"
+    , "upb_table"
+    , "upb"
+    , ["src/core/ext/upb-generated", "upb-generated-lib"]
+    ]
+  }
+, "upb_reflection":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_reflection"]
+  , "pure C": ["YES"]
+  , "hdrs":
+    ["upb/def.h", "upb/def.hpp", "upb/reflection.h", "upb/reflection.hpp"]
+  , "srcs": ["upb/def.c", "upb/reflection.c"]
+  , "private-hdrs": ["upb/msg.h"]
+  , "deps":
+    [ "upb_collections"
+    , "upb_mini_table"
+    , "upb_port"
+    , "upb_table"
+    , "upb"
+    , ["src/core/ext/upb-generated", "upb-generated-lib"]
+    ]
+  }
+, "upb_textformat":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_textformat"]
+  , "pure C": ["YES"]
+  , "hdrs": ["upb/text_encode.h"]
+  , "srcs": ["upb/text_encode.c"]
+  , "private-hdrs": ["upb/internal/upb.h"]
+  , "deps": ["upb_port", "upb_reflection", "upb_table"]
+  }
+, "upb_json":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_json"]
+  , "pure C": ["YES"]
+  , "hdrs": ["upb/json_decode.h", "upb/json_encode.h"]
+  , "srcs": ["upb/json_decode.c", "upb/json_encode.c"]
+  , "private-hdrs": ["upb/internal/upb.h"]
+  , "deps": ["upb_port", "upb_reflection", "upb"]
+  }
+, "upb_table":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["upb_table"]
+  , "pure C": ["YES"]
+  , "hdrs":
+    [ "upb/arena.h"
+    , "upb/internal/table.h"
+    , "upb/status.h"
+    , "upb/table_internal.h"
+    , "upb/upb.h"
+    ]
+  , "deps": ["upb_port"]
+  }
+, "upb_utf8_range":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["TARGET_ARCH", "COMPILER_FAMILY"]
+  , "name": ["upb_utf8_range"]
+  , "pure C": ["YES"]
+  , "hdrs": ["third_party/utf8_range/utf8_range.h"]
+  , "srcs":
+    { "type": "++"
+    , "$1":
+      [ ["third_party/utf8_range/naive.c"]
+      , { "type": "case*"
+        , "expr": {"type": "var", "name": "TARGET_ARCH"}
+        , "case":
+          [ ["arm", ["third_party/utf8_range/range2-neon.c"]]
+          , ["arm64", ["third_party/utf8_range/range2-neon.c"]]
+          , [ "x86_64"
+            , { "type": "case*"
+              , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+              , "case": [["msvc", []]]
+              , "default": ["third_party/utf8_range/range2-sse.c"]
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  , "private-cflags":
+    { "type": "case*"
+    , "expr": {"type": "var", "name": "TARGET_ARCH"}
+    , "case":
+      [ ["arm", ["-mfpu=neon"]]
+      , ["arm64", ["-march=armv8-a+crypto"]]
+      , [ "x86_64"
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case": [["msvc", []]]
+          , "default": ["-msse4.1"]
+          }
+        ]
+      ]
+    }
+  }
+}

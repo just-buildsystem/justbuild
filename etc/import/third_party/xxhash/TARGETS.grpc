@@ -1,0 +1,7 @@
+{ "xxhash":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["xxhash"]
+  , "pure C": ["YES"]
+  , "hdrs": ["xxhash.h"]
+  }
+}
