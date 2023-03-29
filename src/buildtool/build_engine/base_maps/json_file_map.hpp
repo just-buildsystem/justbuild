@@ -84,11 +84,15 @@ auto CreateJsonFileMap(std::size_t jobs) -> JsonFileMap {
                       true);
             return;
         }
-        auto json = nlohmann::json::parse(*file_content, nullptr, false);
-        if (json.is_discarded()) {
-            (*logger)(fmt::format("JSON file {} does not contain valid JSON.",
-                                  json_file_path.string()),
-                      true);
+        auto json = nlohmann::json();
+        try {
+            json = nlohmann::json::parse(*file_content);
+        } catch (std::exception const& e) {
+            (*logger)(
+                fmt::format("JSON file {} does not contain valid JSON:\n{}",
+                            json_file_path.string(),
+                            e.what()),
+                true);
             return;
         }
         if (!json.is_object()) {

@@ -575,7 +575,17 @@ void SetupHashFunction() {
         Logger::Log(LogLevel::Error, "Cannot read file {}.", target_file);
         std::exit(kExitFailure);
     }
-    auto const json = nlohmann::json::parse(*file_content);
+    auto json = nlohmann::json();
+    try {
+        json = nlohmann::json::parse(*file_content);
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Error,
+                    "While searching for the default target in {}:\n"
+                    "Failed to parse json with error {}",
+                    target_file,
+                    e.what());
+        std::exit(kExitFailure);
+    }
     if (not json.is_object()) {
         Logger::Log(
             LogLevel::Error, "Invalid content in target file {}.", target_file);

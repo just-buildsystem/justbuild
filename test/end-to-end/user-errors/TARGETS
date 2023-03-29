@@ -4,5 +4,15 @@
   , "test": ["flat-stage.sh"]
   , "deps": [["test/end-to-end", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["flat-stage"]}
+, "json-errors":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["json-errors"]
+  , "test": ["json-errors.sh"]
+  , "deps": [["test/end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["flat-stage", "json-errors"]
+  }
 }
