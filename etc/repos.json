@@ -394,7 +394,6 @@
       { "rules": "rules-git2"
       , "zlib": "zlib"
       , "ssl": "ssl"
-      , "patches": "patches"
       }
     , "bootstrap": {"include_dir": "include", "include_name": "."}
     , "local_bootstrap": {"local_path": "include", "copy": ["git2.h", "git2"]}
