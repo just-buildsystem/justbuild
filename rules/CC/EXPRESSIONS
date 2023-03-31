@@ -255,6 +255,77 @@
       }
     }
   }
+, "pkg-map-provider-deps":
+  { "doc": ["Collect maps from provider \"package\" for given target_fields"]
+  , "vars": ["pkg-key", "deps-fieldnames", "deps-transition"]
+  , "vars_doc":
+    { "pkg-key": ["Key to lookup in provider \"package\"."]
+    , "deps-fieldnames": ["List of target_field names to collect maps from."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
+  , "expression":
+    { "type": "disjoint_map_union"
+    , "$1":
+      { "type": "++"
+      , "$1":
+        { "type": "foreach"
+        , "var": "fieldname"
+        , "range": {"type": "var", "name": "deps-fieldnames"}
+        , "body":
+          { "type": "let*"
+          , "bindings":
+            [ ["provider", "package"]
+            , ["default", {"type": "empty_map"}]
+            , ["transition", {"type": "var", "name": "deps-transition"}]
+            ]
+          , "body":
+            { "type": "foreach"
+            , "range": {"type": "CALL_EXPRESSION", "name": "provider_list"}
+            , "var": "map"
+            , "body":
+              { "type": "lookup"
+              , "key": {"type": "var", "name": "pkg-key"}
+              , "map": {"type": "var", "name": "map"}
+              , "default": {"type": "empty_map"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+, "cflags-files-deps":
+  { "doc": ["Collect cflags files from target_fields"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
+  , "vars_doc":
+    { "deps-fieldnames": ["List of target_field names to collect files from."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"pkg-provider": "pkg-map-provider-deps"}
+  , "expression":
+    { "type": "let*"
+    , "bindings": [["pkg-key", "cflags-files"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "pkg-provider"}
+    }
+  }
+, "ldflags-files-deps":
+  { "doc": ["Collect cflags files from target_fields"]
+  , "vars": ["deps-fieldnames", "deps-transition"]
+  , "vars_doc":
+    { "deps-fieldnames": ["List of target_field names to collect files from."]
+    , "deps-transition":
+      ["The optional configuration transition for the targets."]
+    }
+  , "imports": {"pkg-provider": "pkg-map-provider-deps"}
+  , "expression":
+    { "type": "let*"
+    , "bindings": [["pkg-key", "ldflags-files"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "pkg-provider"}
+    }
+  }
 , "objects":
   { "vars":
     [ "COMPILER"
@@ -264,6 +335,7 @@
     , "hdrs"
     , "private-hdrs"
     , "compile-deps"
+    , "cflags-files"
     ]
   , "expression":
     { "type": "let*"
@@ -316,6 +388,10 @@
                   , { "type": "singleton_map"
                     , "key": {"type": "var", "name": "work src_name"}
                     , "value": {"type": "var", "name": "src_val"}
+                    }
+                  , { "type": "var"
+                    , "name": "cflags-files"
+                    , "default": {"type": "empty_map"}
                     }
                   ]
                 }
@@ -465,6 +541,7 @@
     , "stage"
     , "compile-deps"
     , "compile-args"
+    , "cflags-files"
     , "defaults-transition"
     ]
   , "imports":
@@ -593,6 +670,8 @@
     , "compile-args-deps": "compile-args-deps"
     , "link-deps": "link-deps"
     , "link-args-deps": "link-args-deps"
+    , "cflags-files-deps": "cflags-files-deps"
+    , "ldflags-files-deps": "ldflags-files-deps"
     , "lib artifact": "lib artifact"
     }
   , "expression":
@@ -612,6 +691,9 @@
             }
           }
         ]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["lib", {"type": "CALL_EXPRESSION", "name": "lib artifact"}]
       , [ "link-args"
@@ -626,6 +708,9 @@
             }
           }
         ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
+        ]
       , ["deps-fieldnames", {"type": "var", "name": "public-fieldnames"}]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , [ "compile-args"
@@ -639,6 +724,10 @@
             }
           }
         ]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , ["package", {"type": "env", "vars": ["cflags-files", "ldflags-files"]}]
       ]
     , "body":
       { "type": "RESULT"
@@ -649,7 +738,12 @@
         , "$1":
           [ { "type": "env"
             , "vars":
-              ["compile-deps", "compile-args", "link-deps", "link-args"]
+              [ "compile-deps"
+              , "compile-args"
+              , "link-deps"
+              , "link-args"
+              , "package"
+              ]
             }
           , { "type": "var"
             , "name": "extra-provides"
@@ -679,6 +773,8 @@
     , "compile-args"
     , "link-deps"
     , "link-args"
+    , "cflags-files"
+    , "ldflags-files"
     , "defaults-transition"
     ]
   , "imports":
@@ -749,6 +845,14 @@
             , "$1":
               [ {"type": "var", "name": "objects"}
               , {"type": "var", "name": "link-deps"}
+              , { "type": "var"
+                , "name": "cflags-files"
+                , "default": {"type": "empty_map"}
+                }
+              , { "type": "var"
+                , "name": "ldflags-files"
+                , "default": {"type": "empty_map"}
+                }
               ]
             }
           , "cmd":
@@ -793,6 +897,8 @@
     , "compile-args-deps": "compile-args-deps"
     , "link-deps": "link-deps"
     , "link-args-deps": "link-args-deps"
+    , "cflags-files-deps": "cflags-files-deps"
+    , "ldflags-files-deps": "ldflags-files-deps"
     , "binary": "bin artifact"
     }
   , "expression":
@@ -819,6 +925,12 @@
               ]
             }
           }
+        ]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
         ]
       ]
     , "body":

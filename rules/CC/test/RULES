@@ -101,6 +101,8 @@
     , "compile-args-deps": ["./", "..", "compile-args-deps"]
     , "link-deps": ["./", "..", "link-deps"]
     , "link-args-deps": ["./", "..", "link-args-deps"]
+    , "cflags-files-deps": ["./", "..", "cflags-files-deps"]
+    , "ldflags-files-deps": ["./", "..", "ldflags-files-deps"]
     , "binary": ["./", "..", "bin artifact"]
     , "host transition": ["transitions", "for host"]
     }
@@ -149,6 +151,9 @@
       , ["defaults-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps"]]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
       , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
       , [ "compile-args"
         , { "type": "++"
@@ -163,6 +168,9 @@
             , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
             ]
           }
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
         ]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , [ "link-args"
