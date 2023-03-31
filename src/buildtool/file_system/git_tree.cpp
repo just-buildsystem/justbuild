@@ -86,7 +86,7 @@ auto GitTree::LookupEntryByName(std::string const& name) const noexcept
     auto entry_it = entries_.find(name);
     if (entry_it == entries_.end()) {
         Logger::Log(
-            LogLevel::Error, "git tree does not contain entry {}", name);
+            LogLevel::Debug, "git tree does not contain entry {}", name);
         return nullptr;
     }
     return entry_it->second;
