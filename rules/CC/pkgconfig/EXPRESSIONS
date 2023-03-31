@@ -1,0 +1,136 @@
+{ "pkgconfig result":
+  { "vars": ["ENV", "name", "args", "stage"]
+  , "imports": {"default-ENV": ["./", "..", "default-ENV"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+              , [ { "type": "var"
+                  , "name": "ENV"
+                  , "default": {"type": "empty_map"}
+                  }
+                ]
+              ]
+            }
+          }
+        ]
+      , [ "cflags-filename"
+        , {"type": "join", "$1": [{"type": "var", "name": "name"}, ".cflags"]}
+        ]
+      , [ "cflags-files"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "ACTION"
+            , "inputs": {"type": "empty_map"}
+            , "cmd":
+              [ "/bin/sh"
+              , "-c"
+              , { "type": "join"
+                , "separator": " "
+                , "$1":
+                  { "type": "++"
+                  , "$1":
+                    [ ["pkg-config"]
+                    , [ { "type": "join_cmd"
+                        , "$1":
+                          { "type": "++"
+                          , "$1":
+                            [ {"type": "var", "name": "args", "default": []}
+                            , ["--cflags", {"type": "var", "name": "name"}]
+                            ]
+                          }
+                        }
+                      ]
+                    , [">"]
+                    , [ { "type": "join_cmd"
+                        , "$1": {"type": "var", "name": "cflags-filename"}
+                        }
+                      ]
+                    ]
+                  }
+                }
+              ]
+            , "env": {"type": "var", "name": "ENV"}
+            , "outs": [{"type": "var", "name": "cflags-filename"}]
+            }
+          }
+        ]
+      , [ "compile-args"
+        , { "type": "foreach_map"
+          , "var_key": "flag-file"
+          , "range": {"type": "var", "name": "cflags-files"}
+          , "body":
+            {"type": "join", "$1": ["@", {"type": "var", "name": "flag-file"}]}
+          }
+        ]
+      , [ "ldflags-filename"
+        , {"type": "join", "$1": [{"type": "var", "name": "name"}, ".ldflags"]}
+        ]
+      , [ "ldflags-files"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "ACTION"
+            , "inputs": {"type": "empty_map"}
+            , "cmd":
+              [ "/bin/sh"
+              , "-c"
+              , { "type": "join"
+                , "separator": " "
+                , "$1":
+                  { "type": "++"
+                  , "$1":
+                    [ ["pkg-config"]
+                    , [ { "type": "join_cmd"
+                        , "$1":
+                          { "type": "++"
+                          , "$1":
+                            [ {"type": "var", "name": "args", "default": []}
+                            , ["--libs", {"type": "var", "name": "name"}]
+                            ]
+                          }
+                        }
+                      ]
+                    , [">"]
+                    , [ { "type": "join_cmd"
+                        , "$1": {"type": "var", "name": "ldflags-filename"}
+                        }
+                      ]
+                    ]
+                  }
+                }
+              ]
+            , "env": {"type": "var", "name": "ENV"}
+            , "outs": [{"type": "var", "name": "ldflags-filename"}]
+            }
+          }
+        ]
+      , [ "link-args"
+        , { "type": "foreach_map"
+          , "var_key": "flag-file"
+          , "range": {"type": "var", "name": "ldflags-files"}
+          , "body":
+            {"type": "join", "$1": ["@", {"type": "var", "name": "flag-file"}]}
+          }
+        ]
+      , ["package", {"type": "env", "vars": ["cflags-files", "ldflags-files"]}]
+      , ["compile-deps", {"type": "empty_map"}]
+      , ["link-deps", {"type": "empty_map"}]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "provides":
+        { "type": "env"
+        , "vars":
+          ["compile-deps", "compile-args", "link-deps", "link-args", "package"]
+        }
+      }
+    }
+  }
+}

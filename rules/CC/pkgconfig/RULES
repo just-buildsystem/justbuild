@@ -1,0 +1,52 @@
+{ "system_library":
+  { "doc": ["A system library via pkg-config"]
+  , "string_fields": ["name", "args", "stage"]
+  , "implicit": {"defaults": [["./", "..", "defaults"]]}
+  , "config_vars": ["PKG_CONFIG_ARGS", "ENV"]
+  , "field_doc":
+    { "name": ["The pkg-config name of the library."]
+    , "args":
+      [ "Additional pkg-config arguments (e.g., \"--define-prefix\" or"
+      , "\"--static\"), appended to the config variable \"PKG_CONFIG_ARGS\"."
+      ]
+    , "stage": ["The stage of the internally created flag files."]
+    }
+  , "config_doc":
+    { "PKG_CONFIG_ARGS":
+      [ "Additional pkg-config arguments (e.g., \"--define-prefix\" or"
+      , "\"--static\")."
+      ]
+    , "ENV":
+      [ "The environment for any action generated. May contain colon-separated"
+      , "\"PKG_CONFIG_PATH\" for looking up pkg-config files."
+      ]
+    }
+  , "imports": {"pkgconfig result": "pkgconfig result"}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "name"
+        , { "type": "assert_non_empty"
+          , "msg": "system_library requires non-empty name"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
+        ]
+      , [ "args"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "PKG_CONFIG_ARGS", "default": []}
+            , {"type": "FIELD", "name": "args"}
+            ]
+          }
+        ]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "pkgconfig result"}
+    }
+  }
+}
