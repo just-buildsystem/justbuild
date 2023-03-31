@@ -1,0 +1,3 @@
+{ "fmt":
+  {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["fmt"]}
+}

@@ -18,6 +18,7 @@
     , "SOURCE_DATE_EPOCH"
     , "TARGET_ARCH"
     , "VERSION_EXTRA_SUFFIX"
+    , "PKG_CONFIG_ARGS"
     ]
   , "config_doc":
     { "ARCH":
@@ -83,6 +84,7 @@
     , "BUILD_STATIC_BINARY"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 , "just":

@@ -1,0 +1,9 @@
+{ "ssl":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["libssl"]
+  }
+, "crypto":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["libcrypto"]
+  }
+}

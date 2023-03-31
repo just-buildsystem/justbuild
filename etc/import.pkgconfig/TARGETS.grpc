@@ -1,0 +1,10 @@
+{ "grpc_cpp_plugin": {"type": "install", "deps": [["bin", "grpc_cpp_plugin"]]}
+, "grpc++":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["grpc++"]
+  }
+, "grpc":
+  {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["grpc"]}
+, "gpr":
+  {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["gpr"]}
+}

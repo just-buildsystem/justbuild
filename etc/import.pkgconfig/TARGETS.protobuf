@@ -1,0 +1,19 @@
+{ "protoc": {"type": "install", "deps": [["bin", "protoc"]]}
+, "libprotoc":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["libprotoc"]
+  }
+, "libprotobuf":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["protobuf"]
+  }
+, "libprotobuf_lite":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["protobuf-lite"]
+  }
+, "toolchain":
+  { "type": "install"
+  , "files": {"bin/protoc": "protoc"}
+  , "deps": [["TREE", null, "include/google/protobuf"]]
+  }
+}

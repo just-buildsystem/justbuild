@@ -1,5 +1,0 @@
-{ "protobuf":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs": [["TREE", null, "google/protobuf"]]
-  }
-}

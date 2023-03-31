@@ -1,8 +1,0 @@
-{ "fmt":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["fmt"]
-  , "stage": ["fmt"]
-  , "hdrs": [["TREE", null, "."]]
-  , "private-ldflags": ["-lfmt"]
-  }
-}

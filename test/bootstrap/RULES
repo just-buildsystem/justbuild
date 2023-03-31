@@ -133,7 +133,7 @@
               , "$1": {"type": "var", "name": "bins"}
               }
             , { "type": "to_subdir"
-              , "subdir": "proto"
+              , "subdir": "include"
               , "$1": {"type": "var", "name": "protos"}
               }
             , {"type": "var", "name": "deps"}

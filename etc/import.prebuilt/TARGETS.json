@@ -1,4 +1,0 @@
-{ "json": {"type": ["@", "rules", "CC", "library"], "hdrs": ["json headers"]}
-, "json headers":
-  {"type": "tree", "name": "nlohmann", "deps": [["TREE", null, "."]]}
-}

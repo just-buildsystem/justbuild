@@ -1,0 +1,5 @@
+{ "gsl-lite":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["gsl-lite"]
+  }
+}

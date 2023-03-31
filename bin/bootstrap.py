@@ -225,27 +225,27 @@ def config_to_local(*, repos_file, link_targets_file):
         if not isinstance(repo_desc, dict):
             repo_desc = {}
         if repo_desc.get("type") in ["archive", "zip"]:
-            local_bootstrap = desc.get("local_bootstrap", {})
+            pkg_bootstrap = desc.get("pkg_bootstrap", {})
             desc["repository"] = {
                 "type": "file",
                 "path": os.path.normpath(
                     os.path.join(
                         LOCALBASE,
-                        local_bootstrap.get("local_path", ".")))
+                        pkg_bootstrap.get("local_path", ".")))
             }
-            if "link_dirs" in local_bootstrap:
+            if "link_dirs" in pkg_bootstrap:
                 link = []
-                for entry in local_bootstrap["link_dirs"]:
+                for entry in pkg_bootstrap["link_dirs"]:
                     link += ["-L", os.path.join(LOCALBASE, entry)]
                     global_link_dirs.add(entry)
-                link += local_bootstrap.get("link", [])
-                local_bootstrap["link"] = link
-            desc["bootstrap"] = local_bootstrap
-            if "local_bootstrap" in desc:
-                del desc["local_bootstrap"]
+                link += pkg_bootstrap.get("link", [])
+                pkg_bootstrap["link"] = link
+            desc["bootstrap"] = pkg_bootstrap
+            if "pkg_bootstrap" in desc:
+                del desc["pkg_bootstrap"]
         if repo_desc.get("type") == "file":
-            local_bootstrap = desc.get("local_bootstrap", {})
-            if local_bootstrap.get("local_path") and NON_LOCAL_DEPS:
+            pkg_bootstrap = desc.get("pkg_bootstrap", {})
+            if pkg_bootstrap.get("local_path") and NON_LOCAL_DEPS:
                 # local layer gets changed, keep a copy
                 backup_name = "ORIGINAL: " + repo
                 backup_layers[backup_name] = {
@@ -255,11 +255,11 @@ def config_to_local(*, repos_file, link_targets_file):
                 changed_file_roots[repo] = backup_name
             desc["repository"] = {
                 "type": "file",
-                "path": local_bootstrap.get("local_path", desc["repository"].get("path"))
+                "path": pkg_bootstrap.get("local_path", desc["repository"].get("path"))
             }
-            desc["bootstrap"] = local_bootstrap
-            if "local_bootstrap" in desc:
-                del desc["local_bootstrap"]
+            desc["bootstrap"] = pkg_bootstrap
+            if "pkg_bootstrap" in desc:
+                del desc["pkg_bootstrap"]
 
     # For repos that we didn't change to local, make file roots point
     # to the original version, so that, in particular, the original

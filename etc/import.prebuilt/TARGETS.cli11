@@ -1,6 +1,0 @@
-{ "cli11":
-  { "type": ["@", "rules", "CC", "library"]
-  , "hdrs": [["TREE", null, "."]]
-  , "stage": ["CLI"]
-  }
-}

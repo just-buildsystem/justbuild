@@ -1,0 +1,11 @@
+{ "google_api_http_proto_file":
+  {"type": "install", "deps": ["google/api/http.proto"]}
+, "google_api_annotations_proto_file":
+  {"type": "install", "deps": ["google/api/annotations.proto"]}
+, "google_bytestream_proto_file":
+  {"type": "install", "deps": ["google/bytestream/bytestream.proto"]}
+, "google_rpc_status_proto_file":
+  {"type": "install", "deps": ["google/rpc/status.proto"]}
+, "google_longrunning_operations_proto_file":
+  {"type": "install", "deps": ["google/longrunning/operations.proto"]}
+}

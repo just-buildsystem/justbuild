@@ -136,7 +136,7 @@
   , "import targets":
     { "repository":
       {"type": "file", "path": "etc/import", "pragma": {"to_git": true}}
-    , "local_bootstrap": {"local_path": "etc/import.prebuilt"}
+    , "pkg_bootstrap": {"local_path": "etc/import.pkgconfig"}
     }
   , "gsl-lite":
     { "repository":
@@ -150,7 +150,6 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.gsl"
     , "bindings": {"rules": "rules"}
-    , "local_bootstrap": {"local_path": "include/gsl-lite"}
     }
   , "cli11":
     { "repository":
@@ -165,7 +164,6 @@
     , "target_file_name": "TARGETS.cli11"
     , "bindings": {"rules": "rules"}
     , "bootstrap": {"include_dir": "include/CLI", "include_name": "CLI"}
-    , "local_bootstrap": {"local_path": "include/CLI"}
     }
   , "json":
     { "repository":
@@ -180,7 +178,6 @@
     , "target_file_name": "TARGETS.json"
     , "bindings": {"rules": "rules"}
     , "bootstrap": {"include_name": "nlohmann"}
-    , "local_bootstrap": {"local_path": "include/nlohmann"}
     }
   , "fmt":
     { "repository":
@@ -199,8 +196,7 @@
       , "build": "cd src && {cxx} {cxxflags} -I ../include -c os.cc format.cc && {ar} cqs ../libfmt.a *.o"
       , "link": ["-lfmt"]
       }
-    , "local_bootstrap":
-      {"local_path": "include/fmt", "link": ["-lfmt"], "link_dirs": ["lib"]}
+    , "pkg_bootstrap": {"link": ["-lfmt"], "link_dirs": ["lib"]}
     }
   , "ssl":
     { "repository":
@@ -220,11 +216,7 @@
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
       }
-    , "local_bootstrap":
-      { "local_path": "include/openssl"
-      , "link": ["-lcrypto", "-pthread"]
-      , "link_dirs": ["lib"]
-      }
+    , "pkg_bootstrap": {"link": ["-lcrypto", "-pthread"], "link_dirs": ["lib"]}
     }
   , "protobuf":
     { "repository":
@@ -238,7 +230,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
     , "bindings": {"rules": "rules-protobuf", "zlib": "zlib"}
-    , "local_bootstrap":
+    , "pkg_bootstrap":
       { "copy":
         ["bin/protoc", "include/google/protobuf", "proto/google/protobuf"]
       }
@@ -254,12 +246,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.bazel_remote_apis"
-    , "bindings":
-      { "rules": "rules-protobuf"
-      , "protoc": "protobuf"
-      , "google_apis": "google_apis"
-      }
-    , "local_bootstrap": {"local_path": "proto"}
+    , "bindings": {"rules": "rules", "google_apis": "google_apis"}
     }
   , "google_apis":
     { "repository":
@@ -272,9 +259,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.google_apis"
-    , "bindings":
-      {"rules": "rules-protobuf", "protoc": "protobuf", "patches": "patches"}
-    , "local_bootstrap": {"local_path": "proto"}
+    , "bindings": {"rules": "rules", "patches": "patches"}
     }
   , "upb":
     { "repository":
@@ -377,7 +362,7 @@
       , "re2": "re2"
       , "cares": "com_github_cares_cares"
       }
-    , "local_bootstrap":
+    , "pkg_bootstrap":
       {"copy": ["bin/grpc_cpp_plugin", "include/grpc", "include/grpcpp"]}
     }
   , "com_github_libgit2_libgit2":
@@ -391,13 +376,9 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.git2"
-    , "bindings":
-      { "rules": "rules-git2"
-      , "zlib": "zlib"
-      , "ssl": "ssl"
-      }
+    , "bindings": {"rules": "rules-git2", "zlib": "zlib", "ssl": "ssl"}
     , "bootstrap": {"include_dir": "include", "include_name": "."}
-    , "local_bootstrap": {"local_path": "include", "copy": ["git2.h", "git2"]}
+    , "pkg_bootstrap": {"copy": ["git2.h", "git2"]}
     }
   , "catch2":
     { "repository":
