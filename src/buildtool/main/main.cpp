@@ -1308,6 +1308,12 @@ auto main(int argc, char* argv[]) -> int {
                                        ProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
+            if (not RepositoryConfig::Instance().SetGitCAS(
+                    StorageConfig::GitRoot())) {
+                Logger::Log(LogLevel::Debug,
+                            "Failed set Git CAS {}.",
+                            StorageConfig::GitRoot().string());
+            }
             return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
                                             traverser.GetLocalApi(),
                                             arguments.fetch)
