@@ -125,9 +125,6 @@ using CAInfoPtr = std::shared_ptr<JustMR::CAInfo>;
 
 namespace Utils {
 
-/// \brief Get the Git cache root path.
-[[nodiscard]] auto GetGitCacheRoot() noexcept -> std::filesystem::path;
-
 /// \brief Get location of Git repository. Defaults to the Git cache root when
 /// no better location is found.
 [[nodiscard]] auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,

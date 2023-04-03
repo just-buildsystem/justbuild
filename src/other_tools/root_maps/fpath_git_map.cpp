@@ -15,6 +15,7 @@
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -163,7 +164,7 @@ auto CreateFilePathGitMap(
                     std::string tree = values[0]->first;
                     // set the workspace root
                     (*setter)(nlohmann::json::array(
-                        {"git tree", tree, JustMR::Utils::GetGitCacheRoot()}));
+                        {"git tree", tree, StorageConfig::GitRoot()}));
                 },
                 [logger, target_path = key](auto const& msg, bool fatal) {
                     (*logger)(

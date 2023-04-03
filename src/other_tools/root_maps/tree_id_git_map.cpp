@@ -17,6 +17,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -35,10 +36,10 @@ void KeepCommitAndSetRoot(
     TreeIdGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
     GitOpKey op_key = {{
-                           JustMR::Utils::GetGitCacheRoot(),  // target_path
-                           commit,                            // git_hash
-                           "",                                // branch
-                           "Keep referenced tree alive"       // message
+                           StorageConfig::GitRoot(),     // target_path
+                           commit,                       // git_hash
+                           "",                           // branch
+                           "Keep referenced tree alive"  // message
                        },
                        GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
@@ -57,12 +58,11 @@ void KeepCommitAndSetRoot(
             }
             // set the workspace root
             JustMRProgress::Instance().TaskTracker().Start(tree_id_info.origin);
-            (*ws_setter)(
-                std::pair(nlohmann::json::array(
-                              {"git tree",
-                               tree_id_info.hash,
-                               JustMR::Utils::GetGitCacheRoot().string()}),
-                          false));
+            (*ws_setter)(std::pair(
+                nlohmann::json::array({"git tree",
+                                       tree_id_info.hash,
+                                       StorageConfig::GitRoot().string()}),
+                false));
         },
         [logger, commit, target_path = tmp_dir->GetPath()](auto const& msg,
                                                            bool fatal) {
@@ -92,11 +92,11 @@ auto CreateTreeIdGitMap(
         // ensure Git cache
         // define Git operation to be done
         GitOpKey op_key = {{
-                               JustMR::Utils::GetGitCacheRoot(),  // target_path
-                               "",                                // git_hash
-                               "",                                // branch
-                               std::nullopt,                      // message
-                               true                               // init_bare
+                               StorageConfig::GitRoot(),  // target_path
+                               "",                        // git_hash
+                               "",                        // branch
+                               std::nullopt,              // message
+                               true                       // init_bare
                            },
                            GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
@@ -115,10 +115,9 @@ auto CreateTreeIdGitMap(
                 auto git_repo = GitRepoRemote::Open(
                     op_result.git_cas);  // link fake repo to odb
                 if (not git_repo) {
-                    (*logger)(
-                        fmt::format("Could not open repository {}",
-                                    JustMR::Utils::GetGitCacheRoot().string()),
-                        /*fatal=*/true);
+                    (*logger)(fmt::format("Could not open repository {}",
+                                          StorageConfig::GitRoot().string()),
+                              /*fatal=*/true);
                     return;
                 }
                 // setup wrapped logger
@@ -338,16 +337,16 @@ auto CreateTreeIdGitMap(
                 }
                 else {
                     // tree found, so return the git tree root as-is
-                    (*setter)(std::pair(
-                        nlohmann::json::array(
-                            {"git tree",
-                             key.hash,
-                             JustMR::Utils::GetGitCacheRoot().string()}),
-                        true));
+                    (*setter)(
+                        std::pair(nlohmann::json::array(
+                                      {"git tree",
+                                       key.hash,
+                                       StorageConfig::GitRoot().string()}),
+                                  true));
                 }
             },
-            [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
-                auto const& msg, bool fatal) {
+            [logger, target_path = StorageConfig::GitRoot()](auto const& msg,
+                                                             bool fatal) {
                 (*logger)(fmt::format("While running critical Git "
                                       "op ENSURE_INIT bare for "
                                       "target {}:\n{}",

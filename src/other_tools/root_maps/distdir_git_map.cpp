@@ -18,6 +18,7 @@
 
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -76,15 +77,14 @@ auto CreateDistdirGitMap(
             }
             // ensure Git cache
             // define Git operation to be done
-            GitOpKey op_key = {
-                {
-                    JustMR::Utils::GetGitCacheRoot(),  // target_path
-                    "",                                // git_hash
-                    "",                                // branch
-                    std::nullopt,                      // message
-                    true                               // init_bare
-                },
-                GitOpType::ENSURE_INIT};
+            GitOpKey op_key = {{
+                                   StorageConfig::GitRoot(),  // target_path
+                                   "",                        // git_hash
+                                   "",                        // branch
+                                   std::nullopt,              // message
+                                   true                       // init_bare
+                               },
+                               GitOpType::ENSURE_INIT};
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},
@@ -99,14 +99,14 @@ auto CreateDistdirGitMap(
                     }
                     // subdir is ".", so no need to deal with the Git cache
                     // set the workspace root
-                    (*setter)(std::pair(
-                        nlohmann::json::array(
-                            {"git tree",
-                             distdir_tree_id,
-                             JustMR::Utils::GetGitCacheRoot().string()}),
-                        true));
+                    (*setter)(
+                        std::pair(nlohmann::json::array(
+                                      {"git tree",
+                                       distdir_tree_id,
+                                       StorageConfig::GitRoot().string()}),
+                                  true));
                 },
-                [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
+                [logger, target_path = StorageConfig::GitRoot()](
                     auto const& msg, bool fatal) {
                     (*logger)(fmt::format("While running critical Git "
                                           "op ENSURE_INIT for "
@@ -177,13 +177,12 @@ auto CreateDistdirGitMap(
                                 return;
                             }
                             // set the workspace root
-                            (*setter)(
-                                std::pair(nlohmann::json::array(
-                                              {"git tree",
-                                               distdir_tree_id,
-                                               JustMR::Utils::GetGitCacheRoot()
-                                                   .string()}),
-                                          false));
+                            (*setter)(std::pair(
+                                nlohmann::json::array(
+                                    {"git tree",
+                                     distdir_tree_id,
+                                     StorageConfig::GitRoot().string()}),
+                                false));
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {

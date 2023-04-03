@@ -110,6 +110,11 @@ class StorageConfig {
         return BuildRoot() / "protocol-dependent";
     }
 
+    /// \brief Directory for the git repository storing various roots
+    [[nodiscard]] static auto GitRoot() noexcept -> std::filesystem::path {
+        return BuildRoot() / "git";
+    }
+
     /// \brief Root directory of specific storage generation for compatible and
     /// non-compatible protocol types.
     [[nodiscard]] static auto GenerationCacheRoot(std::size_t index) noexcept

@@ -17,6 +17,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 
 namespace {
@@ -31,10 +32,10 @@ void KeepCommitAndSetTree(
     ImportToGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
     GitOpKey op_key = {{
-                           JustMR::Utils::GetGitCacheRoot(),  // target_path
-                           commit,                            // git_hash
-                           "",                                // branch
-                           "Keep referenced tree alive"       // message
+                           StorageConfig::GitRoot(),     // target_path
+                           commit,                       // git_hash
+                           "",                           // branch
+                           "Keep referenced tree alive"  // message
                        },
                        GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
@@ -123,15 +124,14 @@ auto CreateImportToGitMap(
                 }
                 // ensure Git cache
                 // define Git operation to be done
-                GitOpKey op_key = {
-                    {
-                        JustMR::Utils::GetGitCacheRoot(),  // target_path
-                        "",                                // git_hash
-                        "",                                // branch
-                        std::nullopt,                      // message
-                        true                               // init_bare
-                    },
-                    GitOpType::ENSURE_INIT};
+                GitOpKey op_key = {{
+                                       StorageConfig::GitRoot(),  // target_path
+                                       "",                        // git_hash
+                                       "",                        // branch
+                                       std::nullopt,              // message
+                                       true                       // init_bare
+                                   },
+                                   GitOpType::ENSURE_INIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},
@@ -212,7 +212,7 @@ auto CreateImportToGitMap(
                                              setter,
                                              wrapped_logger);
                     },
-                    [logger, target_path = JustMR::Utils::GetGitCacheRoot()](
+                    [logger, target_path = StorageConfig::GitRoot()](
                         auto const& msg, bool fatal) {
                         (*logger)(fmt::format("While running critical Git "
                                               "op ENSURE_INIT bare for "

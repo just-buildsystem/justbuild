@@ -14,6 +14,8 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -52,6 +54,7 @@
   , "private-deps":
     [ ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
@@ -69,6 +72,8 @@
     [ ["src/other_tools/utils", "archive_ops"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
@@ -87,6 +92,7 @@
     [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/system", "system_command"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr", "utils"]

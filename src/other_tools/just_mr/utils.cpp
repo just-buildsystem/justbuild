@@ -20,10 +20,6 @@
 
 namespace JustMR::Utils {
 
-auto GetGitCacheRoot() noexcept -> std::filesystem::path {
-    return StorageConfig::BuildRoot() / "git";
-}
-
 auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
                 std::string const& repo_url) noexcept -> std::filesystem::path {
     if (just_mr_paths->git_checkout_locations.contains(repo_url)) {
@@ -37,7 +33,7 @@ auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
         FileSystemManager::IsDirectory(repo_url_as_path)) {
         return repo_url_as_path;
     }
-    return GetGitCacheRoot();
+    return StorageConfig::GitRoot();
 }
 
 auto CreateTypedTmpDir(std::string const& type) noexcept -> TmpDirPtr {
