@@ -97,13 +97,13 @@ class LogSinkCmdLine final : public ILogSink {
                     style = fg(fmt::color::dark_green);
                     break;
                 case LogLevel::Performance:
-                    style = fg(fmt::color::sky_blue);
+                    style = fg(fmt::color::light_sky_blue);
                     break;
                 case LogLevel::Debug:
-                    style = fg(fmt::color::yellow);
+                    style = fg(fmt::color::sky_blue);
                     break;
                 case LogLevel::Trace:
-                    style = fg(fmt::color::light_sky_blue);
+                    style = fg(fmt::color::deep_sky_blue);
                     break;
             }
         }
