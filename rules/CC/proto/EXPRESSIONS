@@ -23,7 +23,7 @@
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "result": ["./", "..", "lib result"]
-    , "artifacts": ["./", "../..", "field_artifacts"]
+    , "runfiles": ["./", "../..", "field_runfiles"]
     , "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "protoc-deps": "protoc-deps"
     }
@@ -62,8 +62,8 @@
           , "subdir": "work"
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "well_known_protos"]]
-            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            , "bindings": [["fieldname", "proto-deps"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
             }
           }
         ]
@@ -299,7 +299,7 @@
           }
         ]
       , ["cflags", []]
-      , ["private-cflags", ["-Wno-sign-conversion", "-Wno-unused-function"]]
+      , ["private-cflags", []]
       , ["private-ldflags", []]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}

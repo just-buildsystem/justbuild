@@ -12,8 +12,7 @@
   , "implicit":
     { "protoc": [["@", "protoc", "", "protoc"]]
     , "defaults": [["./", "..", "defaults"]]
-    , "proto-deps": [["@", "protoc", "", "C++ runtime"]]
-    , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
+    , "proto-deps": [["@", "protoc", "", "libprotobuf"]]
     }
   , "imports":
     { "protoc-compile": "protoc-compile"
@@ -53,14 +52,10 @@
     ["OS", "ARCH", "HOST_ARCH", "CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
   , "implicit":
     { "protoc": [["@", "protoc", "", "protoc"]]
-    , "grpc_cpp_plugin": [["@", "grpc", "src/compiler", "grpc_cpp_plugin"]]
+    , "grpc_cpp_plugin": [["@", "grpc", "", "grpc_cpp_plugin"]]
     , "defaults": [["./", "..", "defaults"]]
     , "proto-deps":
-      [ ["@", "grpc", "", "grpc++_codegen_proto"]
-      , ["@", "grpc", "", "grpc++_codegen_base_src"]
-      , ["@", "protoc", "", "C++ runtime"]
-      ]
-    , "well_known_protos": [["@", "protoc", "", "well_known_protos"]]
+      [["@", "grpc", "", "grpc++"], ["@", "protoc", "", "libprotobuf"]]
     }
   , "imports":
     { "protoc-compile": "protoc-compile"
