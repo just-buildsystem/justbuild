@@ -33,7 +33,8 @@
   }
 , "zlibinternal":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["zlib"]
+  , "name": ["z"]
+  , "pkg-name": ["zlib"]
   , "pure C": ["YES"]
   , "srcs":
     [ "adler32.c"

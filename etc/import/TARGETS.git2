@@ -1,6 +1,6 @@
 { "git2":
   { "type": "export"
-  , "target": "git2configured"
+  , "target": "libgit2configured"
   , "doc": ["The Git linkable library"]
   , "flexible_config":
     [ "OS"
@@ -79,7 +79,7 @@
     , "WINHTTP": ["boolean. use \"WinHTTP\" if \"USE_HTTPS\" is true"]
     }
   }
-, "git2configured":
+, "libgit2configured":
   { "type": "configure"
   , "arguments_config":
     [ "OS"
@@ -101,7 +101,7 @@
     , "USE_HTTP_PARSER"
     , "USE_BUNDLED_ZLIB"
     ]
-  , "target": ["./", "src", "git2internal"]
+  , "target": ["./", "src", "libgit2"]
   , "config":
     { "type": "let*"
     , "bindings":

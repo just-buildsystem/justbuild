@@ -1,5 +1,8 @@
 { "gsl-lite":
-  {"type": ["@", "rules", "CC", "library"], "hdrs": ["gsl-lite hdrs"]}
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["gsl-lite"]
+  , "hdrs": ["gsl-lite hdrs"]
+  }
 , "gsl-lite hdrs":
   { "type": "tree"
   , "name": "gsl-lite"

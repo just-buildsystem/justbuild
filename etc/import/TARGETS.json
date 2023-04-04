@@ -1,4 +1,8 @@
-{ "json": {"type": ["@", "rules", "CC", "library"], "hdrs": ["json headers"]}
+{ "json":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["nlohmann_json"]
+  , "hdrs": ["json headers"]
+  }
 , "json headers":
   { "type": ["@", "rules", "data", "staged"]
   , "stage": ["nlohmann"]

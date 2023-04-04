@@ -24,10 +24,10 @@
     , "ADD_CFLAGS"
     ]
   }
-, "protoc_lib":
+, "libprotoc":
   { "type": "export"
   , "doc": []
-  , "target": ["src/google/protobuf", "protoc_lib"]
+  , "target": ["src/google/protobuf", "libprotoc"]
   , "flexible_config":
     [ "OS"
     , "ARCH"
@@ -45,15 +45,9 @@
     , "ADD_CFLAGS"
     ]
   }
-, "protobuf_headers":
+, "libprotobuf":
   { "type": "export"
-  , "doc": [""]
-  , "target": ["src/google/protobuf", "protobuf_headers"]
-  }
-, "C++ runtime":
-  { "type": "export"
-  , "doc": ["The library every generated C++ proto file depends upon"]
-  , "target": ["src/google/protobuf", "protobuf"]
+  , "target": ["src/google/protobuf", "libprotobuf"]
   , "flexible_config":
     [ "OS"
     , "ARCH"
@@ -64,16 +58,37 @@
     , "CXX"
     , "CXXFLAGS"
     , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
     , "CC"
     , "CFLAGS"
     , "ADD_CFLAGS"
-    , "AR"
-    , "ENV"
     ]
   }
-, "well_known_protos":
+, "libprotobuf_lite":
   { "type": "export"
-  , "doc": ["Standard well known protobufs"]
-  , "target": ["src/google/protobuf", "well_known_protos"]
+  , "target": ["src/google/protobuf", "libprotobuf_lite"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    ]
+  }
+, "toolchain_headers": {"type": "install", "deps": ["libprotobuf"]}
+, "toolchain":
+  { "type": "install"
+  , "files": {"bin/protoc": "protoc"}
+  , "dirs": [["toolchain_headers", "include"]]
   }
 }

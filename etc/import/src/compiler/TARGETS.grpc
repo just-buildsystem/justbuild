@@ -36,8 +36,7 @@
     , "ruby_generator_string-inl.h"
     , "schema_interface.h"
     ]
-  , "deps":
-    [[".", "grpc++_config_proto"], ["@", "protobuf", ".", "protoc_lib"]]
+  , "deps": [[".", "grpc++_config_proto"], ["@", "protobuf", ".", "libprotoc"]]
   }
 , "grpc_cpp_plugin":
   { "type": "export"

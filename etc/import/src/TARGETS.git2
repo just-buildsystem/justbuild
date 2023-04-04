@@ -1,7 +1,8 @@
-{ "git2internal":
+{ "libgit2":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
   , "name": ["git2"]
+  , "pkg-name": ["libgit2"]
   , "pure C": ["yes"]
   , "private-defines":
     { "type": "case"

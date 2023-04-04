@@ -92,7 +92,7 @@
     , ["@", "absl", "absl/time", "time"]
     ]
   }
-, "gpr":
+, "gpr_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["gpr"]
   , "hdrs": [["./", "include/grpc", "gpr_public_headers"]]
@@ -1416,7 +1416,7 @@
     , "grpc_server_backward_compatibility"
     ]
   }
-, "grpc":
+, "grpc_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc"]
   , "srcs":
@@ -1517,28 +1517,10 @@
   , "hdrs":
     [ ["./", "include/grpc++", "grpc++_config_proto_headers"]
     , ["./", "include/grpcpp", "grpcpp_config_proto_headers"]
-    , ["@", "protobuf", ".", "protobuf_headers"]
     ]
+  , "deps": [["@", "protobuf", ".", "libprotobuf"]]
   }
 , "grpc++_codegen_proto":
-  { "type": "export"
-  , "target": "grpc++_codegen_proto (implementation)"
-  , "flexible_config":
-    [ "OS"
-    , "ARCH"
-    , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
-    , "AR"
-    , "CC"
-    , "CFLAGS"
-    , "ADD_CFLAGS"
-    , "CXX"
-    , "CXXFLAGS"
-    , "ADD_CXXFLAGS"
-    , "ENV"
-    ]
-  }
-, "grpc++_codegen_proto (implementation)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc++_codegen_proto"]
   , "hdrs":
@@ -1594,6 +1576,66 @@
 , "grpc++":
   { "type": "export"
   , "target": "grpc++internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "grpc":
+  { "type": "export"
+  , "target": "grpc_internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "gpr":
+  { "type": "export"
+  , "target": "gpr_internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    ]
+  }
+, "grpc_cpp_plugin":
+  { "type": "export"
+  , "target": ["src/compiler", "grpc_cpp_plugin"]
   , "flexible_config":
     [ "OS"
     , "ARCH"

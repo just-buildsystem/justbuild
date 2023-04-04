@@ -1,5 +1,6 @@
 { "cli11":
   { "type": ["@", "rules", "CC", "library"]
+  , "name": ["CLI11"]
   , "hdrs": [["./", "include/CLI", "cli11_headers"]]
   }
 }

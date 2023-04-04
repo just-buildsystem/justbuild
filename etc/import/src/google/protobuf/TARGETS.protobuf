@@ -1,4 +1,21 @@
-{ "protobuf_headers":
+{ "well_known_protos":
+  { "type": "install"
+  , "deps":
+    [ "any.proto"
+    , "api.proto"
+    , "compiler/plugin.proto"
+    , "descriptor.proto"
+    , "duration.proto"
+    , "empty.proto"
+    , "field_mask.proto"
+    , "source_context.proto"
+    , "struct.proto"
+    , "timestamp.proto"
+    , "type.proto"
+    , "wrappers.proto"
+    ]
+  }
+, "protobuf_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
     [ "any.h"
@@ -229,12 +246,20 @@
     , "wire_format.h"
     , "wire_format_lite.h"
     , "wrappers.pb.h"
+    , "well_known_protos"
     ]
   , "stage": ["google", "protobuf"]
   }
-, "protobuf_lite":
+, "libprotobuf_lite":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["protobuf_lite"]
+  , "name": ["protobuf-lite"]
+  , "cflags":
+    [ "-Wno-sign-compare"
+    , "-Wno-sign-conversion"
+    , "-Wno-unused-function"
+    , "-Wno-zero-length-array"
+    , "-Wno-deprecated-declarations"
+    ]
   , "hdrs": ["protobuf_headers"]
   , "srcs":
     [ "any_lite.cc"
@@ -266,9 +291,10 @@
     , "wire_format_lite.cc"
     ]
   }
-, "protobuf":
+, "libprotobuf":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protobuf"]
+  , "hdrs": ["protobuf_headers"]
   , "srcs":
     [ "any.cc"
     , "any.pb.cc"
@@ -323,11 +349,11 @@
     , "wire_format.cc"
     , "wrappers.pb.cc"
     ]
-  , "deps": ["protobuf_lite", ["@", "zlib", "", "zlib"]]
+  , "deps": ["libprotobuf_lite", ["@", "zlib", "", "zlib"]]
   }
-, "protoc_lib":
+, "libprotoc":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["protoc_lib"]
+  , "name": ["libprotoc"]
   , "srcs":
     [ "compiler/code_generator.cc"
     , "compiler/command_line_interface.cc"
@@ -411,32 +437,13 @@
     , "compiler/subprocess.cc"
     , "compiler/zip_writer.cc"
     ]
-  , "deps": ["protobuf"]
+  , "deps": ["libprotobuf"]
   }
 , "protoc":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["protoc"]
   , "srcs": ["compiler/main.cc"]
-  , "private-deps": ["protoc_lib"]
+  , "private-deps": ["libprotoc"]
   , "private-ldflags": ["-pthread"]
   }
-, "well_known_proto_files":
-  { "type": "install"
-  , "deps":
-    [ "any.proto"
-    , "api.proto"
-    , "compiler/plugin.proto"
-    , "descriptor.proto"
-    , "duration.proto"
-    , "empty.proto"
-    , "field_mask.proto"
-    , "source_context.proto"
-    , "struct.proto"
-    , "timestamp.proto"
-    , "type.proto"
-    , "wrappers.proto"
-    ]
-  }
-, "well_known_protos":
-  {"type": "install", "dirs": [["well_known_proto_files", "google/protobuf"]]}
 }

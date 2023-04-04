@@ -53,6 +53,8 @@
 , "crypto-lib":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["crypto"]
+  , "pkg-name": ["libcrypto"]
+  , "cflags": ["-Wno-gnu-anonymous-struct", "-Wno-nested-anon-types"]
   , "hdrs": [["./", "src/include/openssl", "crypto_headers"]]
   , "private-hdrs": ["fips_fragments", "crypto_internal_headers"]
   , "srcs": ["crypto_sources", "crypto_sources_asm"]
@@ -62,6 +64,7 @@
 , "ssl-lib":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["ssl"]
+  , "pkg-name": ["libssl"]
   , "hdrs": [["./", "src/include/openssl", "ssl_headers"]]
   , "private-hdrs": ["ssl_internal_headers", "crypto_internal_headers"]
   , "srcs": ["ssl_sources"]
