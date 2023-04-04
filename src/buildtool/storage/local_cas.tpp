@@ -48,7 +48,7 @@ template <class T_CAS>
                 /*is_hex_id=*/false);
         }
     }
-    Logger::Log(LogLevel::Error,
+    Logger::Log(LogLevel::Debug,
                 "Tree {} not found in CAS",
                 NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;

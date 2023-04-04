@@ -110,7 +110,7 @@ class LocalApi final : public IExecutionApi {
                     storage_->CAS().DumpToStream(info, out, raw_tree);
                 std::fclose(out);
                 if (not success) {
-                    Logger::Log(LogLevel::Error,
+                    Logger::Log(LogLevel::Debug,
                                 "dumping {} {} to file descriptor {} failed.",
                                 IsTreeObject(info.type) ? "tree" : "blob",
                                 info.ToString(),
