@@ -55,6 +55,15 @@
   , "test": ["defaults.sh"]
   , "deps": [["test/end-to-end", "mr-tool-under-test"]]
   }
+, "install-roots":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["install-roots"]
+  , "test": ["install-roots.sh"]
+  , "deps":
+    [ ["test/end-to-end", "mr-tool-under-test"]
+    , ["test/end-to-end", "tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -62,7 +71,7 @@
   , "deps":
     { "type": "++"
     , "$1":
-      [ ["cas-independent", "fetch", "fetch-gc"]
+      [ ["cas-independent", "fetch", "fetch-gc", "install-roots"]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
