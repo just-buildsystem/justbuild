@@ -29,6 +29,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -70,20 +71,41 @@ class LocalApi final : public IExecutionApi {
                 // read object infos from sub tree and call retrieve recursively
                 auto const infos = storage_->CAS().RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
-                if (not infos or
-                    not RetrieveToPaths(infos->second, infos->first)) {
+                if (not infos) {
+                    if (Compatibility::IsCompatible()) {
+                        // infos not availablble, and in compatible mode cannot
+                        // fall back to git
+                        return false;
+                    }
+                    if (not GitApi().RetrieveToPaths({info},
+                                                     {output_paths[i]})) {
+                        return false;
+                    }
+                }
+                else if (not RetrieveToPaths(infos->second, infos->first)) {
                     return false;
                 }
             }
             else {
                 auto const blob_path = storage_->CAS().BlobPath(
                     info.digest, IsExecutableObject(info.type));
-                if (not blob_path or
-                    not FileSystemManager::CreateDirectory(
-                        output_paths[i].parent_path()) or
-                    not FileSystemManager::CopyFileAs</*kSetEpochTime=*/true,
-                                                      /*kSetWritable=*/true>(
-                        *blob_path, output_paths[i], info.type)) {
+                if (not blob_path) {
+                    if (Compatibility::IsCompatible()) {
+                        // infos not availablble, and in compatible mode cannot
+                        // fall back to git
+                        return false;
+                    }
+                    if (not GitApi().RetrieveToPaths({info},
+                                                     {output_paths[i]})) {
+                        return false;
+                    }
+                }
+                else if (not FileSystemManager::CreateDirectory(
+                             output_paths[i].parent_path()) or
+                         not FileSystemManager::CopyFileAs<
+                             /*kSetEpochTime=*/true,
+                             /*kSetWritable=*/true>(
+                             *blob_path, output_paths[i], info.type)) {
                     return false;
                 }
             }
@@ -105,17 +127,25 @@ class LocalApi final : public IExecutionApi {
             auto fd = fds[i];
             auto const& info = artifacts_info[i];
 
-            if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
+            if (gsl::owner<FILE*> out = fdopen(dup(fd), "wb")) {  // NOLINT
                 auto const success =
                     storage_->CAS().DumpToStream(info, out, raw_tree);
                 std::fclose(out);
                 if (not success) {
-                    Logger::Log(LogLevel::Debug,
-                                "dumping {} {} to file descriptor {} failed.",
-                                IsTreeObject(info.type) ? "tree" : "blob",
-                                info.ToString(),
-                                fd);
-                    return false;
+                    Logger::Log(
+                        LogLevel::Debug,
+                        "dumping {} {} from CAS to file descriptor {} failed.",
+                        IsTreeObject(info.type) ? "tree" : "blob",
+                        info.ToString(),
+                        fd);
+                    if (Compatibility::IsCompatible()) {
+                        // infos not availablble, and in compatible mode cannot
+                        // fall back to git
+                        return false;
+                    }
+                    if (not GitApi().RetrieveToFds({info}, {fd}, raw_tree)) {
+                        return false;
+                    }
                 }
             }
             else {
