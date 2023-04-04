@@ -285,10 +285,14 @@ auto Union(Expression::list_t const& dicts, size_t from, size_t to)
     if constexpr (kDisjoint) {
         auto dup = left->Map().FindConflictingDuplicate(right->Map());
         if (dup) {
+            auto left_val = left->Get(dup->get(), Expression::none_t{});
+            auto right_val = right->Get(dup->get(), Expression::none_t{});
             throw Evaluator::EvaluationError{
                 fmt::format("Map union not essentially disjoint as claimed, "
-                            "duplicate key '{}'.",
-                            dup->get())};
+                            "duplicate key {}; conflicting values:\n- {}\n- {}",
+                            nlohmann::json(dup->get()).dump(),
+                            left_val->ToString(),
+                            right_val->ToString())};
         }
     }
     return ExpressionPtr{Expression::map_t{left, right}};
