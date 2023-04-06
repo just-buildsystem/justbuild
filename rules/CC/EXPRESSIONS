@@ -100,7 +100,7 @@
   }
 , "defaults-base-provides":
   { "doc": ["Query list-provider from 'base' targets (last wins)"]
-  , "vars": ["provider"]
+  , "vars": ["provider", "default"]
   , "vars_doc":
     {"provider": ["The name of the list-provider in the provides map."]}
   , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
@@ -110,6 +110,7 @@
     , "body":
       { "type": "foldl"
       , "var": "next"
+      , "start": {"type": "var", "name": "default", "default": []}
       , "accum_var": "curr"
       , "range": {"type": "CALL_EXPRESSION", "name": "provider_list"}
       , "body":

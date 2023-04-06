@@ -1,4 +1,186 @@
-{ "library":
+{ "defaults":
+  { "doc":
+    [ "A rule to provide protoc/GRPC defaults."
+    , "Used to implement [\"CC/proto\", \"defaults\"] for CC proto libraries"
+    , "and [\"CC/proto\", \"service defaults\"] for CC proto service libraries"
+    , "(GRPC)."
+    ]
+  , "target_fields": ["base", "toolchain", "deps"]
+  , "string_fields":
+    ["PROTOC", "LDFLAGS", "ADD_LDFLAGS", "GRPC_PLUGIN", "PATH"]
+  , "config_vars": ["ARCH", "HOST_ARCH"]
+  , "field_doc":
+    { "base":
+      [ "Other targets (using the same rule) to inherit values from. If"
+      , "multiple targets are specified, for values that are overwritten (see"
+      , "documentation of other fields) the last specified value wins."
+      ]
+    , "toolchain":
+      [ "Optional toolchain directory. A collection of artifacts that provide"
+      , "the protobuf compiler and the GRPC plugin (if needed). Note that only"
+      , "artifacts of the specified targets are considered (no runfiles etc.)."
+      , "Specifying this field overlays artifacts from \"base\"."
+      ]
+    , "deps":
+      [ "Optional CC libraries the resulting CC proto libraries implicitly"
+      , "depend on. Those are typically \"libprotobuf\" for CC proto libraries"
+      , "and \"libgrpc++\" for CC proto service libraries. Specifying this"
+      , "field extends dependencies from \"base\"."
+      ]
+    , "PROTOC":
+      [ "The proto compiler. If \"toolchain\" is empty, this field's value is"
+      , "considered the proto compiler name that is looked up in \"PATH\". If"
+      , "\"toolchain\" is non-empty, this field's value is assumed to be the"
+      , "relative path to the proto compiler in \"toolchain\". Specifying this"
+      , "field overwrites values from \"base\"."
+      ]
+    , "GRPC_PLUGIN":
+      [ "The GRPC plugin for the proto compiler. If \"toolchain\" is empty,"
+      , "this field's value is considered to be the absolute system path to the"
+      , "plugin. If \"toolchain\" is non-empty, this field's value is assumed"
+      , "to be the relative path to the plugin in \"toolchain\". Specifying"
+      , "this field overwrites values from \"base\"."
+      ]
+    , "LDFLAGS":
+      [ "Linker flags for linking the final CC library. Specifying this field"
+      , "overwrites values from \"base\"."
+      ]
+    , "ADD_LDFLAGS":
+      [ "Additional linker flags for linking the final CC library. Specifying"
+      , "this field extends values from \"base\"."
+      ]
+    , "PATH":
+      [ "Path for looking up the proto compiler. Individual paths are joined"
+      , "with \":\"."
+      ]
+    }
+  , "imports":
+    { "base-provides": ["./", "..", "defaults-base-provides"]
+    , "artifacts": ["", "field_artifacts"]
+    , "compile-deps": ["CC", "compile-deps"]
+    , "compile-args-deps": ["CC", "compile-args-deps"]
+    , "link-deps": ["CC", "link-deps"]
+    , "link-args-deps": ["CC", "link-args-deps"]
+    , "cflags-files-deps": ["CC", "cflags-files-deps"]
+    , "ldflags-files-deps": ["CC", "ldflags-files-deps"]
+    , "for host": ["transitions", "for host"]
+    }
+  , "config_transitions":
+    {"toolchain": [{"type": "CALL_EXPRESSION", "name": "for host"}]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["PROTOC", {"type": "FIELD", "name": "PROTOC"}]
+      , ["LDFLAGS", {"type": "FIELD", "name": "LDFLAGS"}]
+      , ["GRPC_PLUGIN", {"type": "FIELD", "name": "GRPC_PLUGIN"}]
+      , ["PATH", {"type": "FIELD", "name": "PATH"}]
+      , ["provider", "PROTOC"]
+      , [ "PROTOC"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PROTOC"}
+          , "then": {"type": "var", "name": "PROTOC"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
+      , ["provider", "LDFLAGS"]
+      , [ "LDFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LDFLAGS"}
+          , "then": {"type": "var", "name": "LDFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
+      , ["provider", "GRPC_PLUGIN"]
+      , [ "GRPC_PLUGIN"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "GRPC_PLUGIN"}
+          , "then": {"type": "var", "name": "GRPC_PLUGIN"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
+      , ["provider", "ENV"]
+      , [ "ENV"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PATH"}
+          , "then":
+            { "type": "singleton_map"
+            , "key": "PATH"
+            , "value":
+              { "type": "join"
+              , "separator": ":"
+              , "$1": {"type": "var", "name": "PATH"}
+              }
+            }
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
+      , ["provider", "TOOLCHAIN"]
+      , ["default", {"type": "empty_map"}]
+      , [ "TOOLCHAIN"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "base-provides"}
+            , { "type": "if"
+              , "cond": {"type": "FIELD", "name": "toolchain"}
+              , "then":
+                { "type": "let*"
+                , "bindings":
+                  [ ["fieldname", "toolchain"]
+                  , [ "transition"
+                    , {"type": "CALL_EXPRESSION", "name": "for host"}
+                    ]
+                  ]
+                , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+                }
+              , "else": {"type": "empty_map"}
+              }
+            ]
+          }
+        ]
+      , [ "LDFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "LDFLAGS"}
+            , {"type": "FIELD", "name": "ADD_LDFLAGS"}
+            ]
+          }
+        ]
+      , ["deps-fieldnames", ["base", "deps"]]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+        ]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , ["link-args", {"type": "CALL_EXPRESSION", "name": "link-args-deps"}]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
+        ]
+      , ["package", {"type": "env", "vars": ["cflags-files", "ldflags-files"]}]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "provides":
+        { "type": "env"
+        , "vars":
+          [ "PROTOC"
+          , "LDFLAGS"
+          , "GRPC_PLUGIN"
+          , "ENV"
+          , "TOOLCHAIN"
+          , "compile-deps"
+          , "compile-args"
+          , "link-deps"
+          , "link-args"
+          , "package"
+          ]
+        }
+      }
+    }
+  }
+, "library":
   { "doc":
     [ "A library C++ library, generated from proto files."
     , ""
@@ -7,19 +189,10 @@
     ]
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
-  , "config_vars":
-    ["OS", "ARCH", "HOST_ARCH", "CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
+  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
   , "implicit":
-    { "protoc": [["@", "protoc", "", "protoc"]]
-    , "defaults": [["./", "..", "defaults"]]
-    , "proto-deps": [["@", "protoc", "", "libprotobuf"]]
-    }
-  , "imports":
-    { "protoc-compile": "protoc-compile"
-    , "host transition": ["transitions", "for host"]
-    }
-  , "config_transitions":
-    {"protoc": [{"type": "CALL_EXPRESSION", "name": "host transition"}]}
+    {"defaults": [["./", "..", "defaults"]], "proto-defaults": ["defaults"]}
+  , "imports": {"protoc-compile": "protoc-compile"}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -30,11 +203,8 @@
           , "$1": {"type": "FIELD", "name": "stage"}
           }
         ]
-      , [ "deps-transition"
-        , {"type": "CALL_EXPRESSION", "name": "host transition"}
-        ]
-      , ["public-fieldnames", ["deps", "proto-deps"]]
-      , ["private-fieldnames", ["deps", "proto-deps"]]
+      , ["public-fieldnames", ["deps"]]
+      , ["private-fieldnames", ["deps", "proto-defaults"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "protoc-compile"}
     }
@@ -48,24 +218,12 @@
     ]
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
-  , "config_vars":
-    ["OS", "ARCH", "HOST_ARCH", "CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
+  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
   , "implicit":
-    { "protoc": [["@", "protoc", "", "protoc"]]
-    , "grpc_cpp_plugin": [["@", "grpc", "", "grpc_cpp_plugin"]]
-    , "defaults": [["./", "..", "defaults"]]
-    , "proto-deps":
-      [["@", "grpc", "", "grpc++"], ["@", "protoc", "", "libprotobuf"]]
+    { "defaults": [["./", "..", "defaults"]]
+    , "proto-defaults": ["service defaults"]
     }
-  , "imports":
-    { "protoc-compile": "protoc-compile"
-    , "host transition": ["transitions", "for host"]
-    }
-  , "config_transitions":
-    { "protoc": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
-    , "grpc_cpp_plugin":
-      [{"type": "CALL_EXPRESSION", "name": "host transition"}]
-    }
+  , "imports": {"protoc-compile": "protoc-compile"}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -77,11 +235,8 @@
           , "$1": {"type": "FIELD", "name": "stage"}
           }
         ]
-      , [ "deps-transition"
-        , {"type": "CALL_EXPRESSION", "name": "host transition"}
-        ]
-      , ["public-fieldnames", ["deps", "proto-deps"]]
-      , ["private-fieldnames", ["deps", "proto-deps"]]
+      , ["public-fieldnames", ["deps", "proto-defaults"]]
+      , ["private-fieldnames", ["deps", "proto-defaults"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "protoc-compile"}
     }

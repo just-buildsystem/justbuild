@@ -1,0 +1,13 @@
+{ "defaults":
+  { "type": ["CC/proto", "defaults"]
+  , "PROTOC": ["protoc"]
+  , "LDFLAGS": ["-lprotobuf"]
+  , "PATH": ["/bin", "/usr/bin"]
+  }
+, "service defaults":
+  { "type": ["CC/proto", "defaults"]
+  , "base": ["defaults"]
+  , "GRPC_PLUGIN": ["/usr/bin/grpc_cpp_plugin"]
+  , "ADD_LDFLAGS": ["-lgrpc++", "-lgrpc", "-lgpr"]
+  }
+}

@@ -1,4 +1,81 @@
-{ "protoc-deps":
+{ "default-PROTOC":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "PROTOC"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
+, "default-LDFLAGS":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "LDFLAGS"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
+, "default-GRPC_PLUGIN":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "GRPC_PLUGIN"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
+, "default-ENV":
+  { "vars": ["defaults-transition"]
+  , "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "ENV"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+    }
+  }
+, "default-TOOLCHAIN":
+  { "vars": ["defaults-transition"]
+  , "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "TOOLCHAIN"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+    }
+  }
+, "protoc-deps":
   { "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
   , "expression":
     { "type": "let*"
@@ -16,7 +93,6 @@
     , "name"
     , "stage"
     , "service support"
-    , "deps-transition"
     , "public-fieldnames"
     , "private-fieldnames"
     ]
@@ -26,47 +102,57 @@
     , "runfiles": ["./", "../..", "field_runfiles"]
     , "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "protoc-deps": "protoc-deps"
+    , "default-PROTOC": "default-PROTOC"
+    , "default-LDFLAGS": "default-LDFLAGS"
+    , "default-GRPC_PLUGIN": "default-GRPC_PLUGIN"
+    , "default-ENV": "default-ENV"
+    , "default-TOOLCHAIN": "default-TOOLCHAIN"
     }
   , "expression":
     { "type": "let*"
     , "bindings":
       [ ["pure C", false]
-      , [ "protoc"
-        , { "type": "let*"
-          , "bindings":
-            [ ["fieldname", "protoc"]
-            , ["transition", {"type": "var", "name": "deps-transition"}]
-            , ["location", "protoc"]
-            ]
-          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+      , ["TOOLCHAIN_DIR", "toolchain"]
+      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "TOOLCHAIN"}
+          , "then":
+            { "type": "to_subdir"
+            , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+            , "$1": {"type": "var", "name": "TOOLCHAIN"}
+            }
           }
         ]
-      , [ "grpc_cpp_plugin"
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "service support"}
-          , "then":
-            { "type": "let*"
-            , "bindings":
-              [ ["fieldname", "grpc_cpp_plugin"]
-              , ["transition", {"type": "var", "name": "deps-transition"}]
-              , ["location", "grpc_cpp_plugin"]
+      , [ "PROTOC"
+        , { "type": "join"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "if"
+                , "cond": {"type": "var", "name": "TOOLCHAIN"}
+                , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+                }
+              , {"type": "CALL_EXPRESSION", "name": "default-PROTOC"}
               ]
-            , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
             }
-          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "GRPC_PLUGIN"
+        , { "type": "join"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "if"
+                , "cond": {"type": "var", "name": "TOOLCHAIN"}
+                , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+                }
+              , {"type": "CALL_EXPRESSION", "name": "default-GRPC_PLUGIN"}
+              ]
+            }
           }
         ]
       , ["protoc-deps", {"type": "CALL_EXPRESSION", "name": "protoc-deps"}]
-      , [ "proto deps"
-        , { "type": "to_subdir"
-          , "subdir": "work"
-          , "$1":
-            { "type": "let*"
-            , "bindings": [["fieldname", "proto-deps"]]
-            , "body": {"type": "CALL_EXPRESSION", "name": "runfiles"}
-            }
-          }
-        ]
       , [ "proto srcs"
         , { "type": "disjoint_map_union"
           , "msg": "Sources may not conflict"
@@ -139,12 +225,20 @@
       , [ "cmd"
         , { "type": "++"
           , "$1":
-            [ ["./protoc", "--proto_path=work", "--cpp_out=work"]
+            [ [ {"type": "var", "name": "PROTOC"}
+              , "--proto_path=work"
+              , "--cpp_out=work"
+              ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "service support"}
               , "then":
                 [ "--grpc_out=work"
-                , "--plugin=protoc-gen-grpc=./grpc_cpp_plugin"
+                , { "type": "join"
+                  , "$1":
+                    [ "--plugin=protoc-gen-grpc="
+                    , {"type": "var", "name": "GRPC_PLUGIN"}
+                    ]
+                  }
                 ]
               , "else": []
               }
@@ -158,9 +252,7 @@
             { "type": "map_union"
             , "$1":
               [ {"type": "var", "name": "staged all proto srcs"}
-              , {"type": "var", "name": "protoc"}
-              , {"type": "var", "name": "grpc_cpp_plugin"}
-              , {"type": "var", "name": "proto deps"}
+              , {"type": "var", "name": "TOOLCHAIN"}
               ]
             }
           , "outs": {"type": "var", "name": "outs"}
@@ -300,7 +392,9 @@
         ]
       , ["cflags", []]
       , ["private-cflags", []]
-      , ["private-ldflags", []]
+      , [ "private-ldflags"
+        , {"type": "CALL_EXPRESSION", "name": "default-LDFLAGS"}
+        ]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}
     }
