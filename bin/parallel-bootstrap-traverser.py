@@ -245,7 +245,7 @@ def run_action(action_id, *, config, root, graph, ts, callback):
     os.makedirs(action_dir)
     action_desc = graph["actions"][action_id]
 
-    num_deps = AtomicInt(len(action_desc["input"].items()))
+    num_deps = AtomicInt(len(action_desc.get("input", {}).items()))
     def run_command_and_callbacks():
         if num_deps.fetch_dec() <= 1:
             cmd = action_desc["command"]
@@ -262,7 +262,7 @@ def run_action(action_id, *, config, root, graph, ts, callback):
     if num_deps.value == 0:
         run_command_and_callbacks()
 
-    for location, desc in action_desc["input"].items():
+    for location, desc in action_desc.get("input", {}).items():
         def create_link(location):
             def do_link(path):
                 link(path, os.path.join(action_dir, location))

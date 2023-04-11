@@ -79,7 +79,7 @@ def run_action(action_id, *, config, root, graph):
         return action_dir
     os.makedirs(action_dir)
     action_desc = graph["actions"][action_id]
-    for location, desc in action_desc["input"].items():
+    for location, desc in action_desc.get("input", {}).items():
         link(build(desc, config=config, root=root, graph=graph),
              os.path.join(action_dir, location))
     cmd = action_desc["command"]
