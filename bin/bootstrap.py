@@ -43,6 +43,10 @@ CONF = {}
 if 'JUST_BUILD_CONF' in os.environ:
     CONF = json.loads(os.environ['JUST_BUILD_CONF'])
 
+if "PACKAGE" in os.environ:
+    CONF["ADD_CFLAGS"] = ["-Wno-error"] + CONF.get("ADD_CFLAGS", [])
+    CONF["ADD_CXXFLAGS"] = ["-Wno-error"] + CONF.get("ADD_CXXFLAGS", [])
+
 ARCHS = {
   'i686':'x86',
   'x86_64':'x86_64',
