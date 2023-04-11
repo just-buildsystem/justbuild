@@ -59,10 +59,18 @@ if 'SOURCE_DATE_EPOCH' in os.environ:
 CONF_STRING = json.dumps(CONF)
 
 AR="ar"
-CC="clang"
-CXX="clang++"
+CC="cc"
+CXX="c++"
 CFLAGS = []
 CXXFLAGS = []
+
+if "COMPILER_FAMILY" in CONF:
+    if CONF["COMPILER_FAMILY"] == "gnu":
+        CC="gcc"
+        CXX="g++"
+    elif CONF["COMPILER_FAMILY"] == "clang":
+        CC="clang"
+        CXX="clang++"
 
 if "AR" in CONF:
     AR=CONF["AR"]
