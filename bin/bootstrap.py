@@ -56,6 +56,24 @@ if "ARCH" not in CONF:
 if 'SOURCE_DATE_EPOCH' in os.environ:
     CONF['SOURCE_DATE_EPOCH'] = int(os.environ['SOURCE_DATE_EPOCH'])
 
+CONFIG_PATHS = []
+if 'PKG_CONFIG_PATH' in os.environ:
+    CONFIG_PATHS += [os.environ['PKG_CONFIG_PATH']]
+
+ENV = CONF.setdefault("ENV", {})
+if 'PKG_CONFIG_PATH' in ENV:
+    CONFIG_PATHS += [ENV['PKG_CONFIG_PATH']]
+
+LOCALBASE = "/"
+if 'LOCALBASE' in os.environ:
+    LOCALBASE = os.environ['LOCALBASE']
+    pkg_paths = ['lib/pkgconfig', 'share/pkgconfig']
+    if 'PKG_PATHS' in os.environ:
+        pkg_paths = json.loads(os.environ['PKG_PATHS'])
+    CONFIG_PATHS += [os.path.join(LOCALBASE,p) for p in pkg_paths]
+
+ENV['PKG_CONFIG_PATH'] = ":".join(CONFIG_PATHS)
+
 CONF_STRING = json.dumps(CONF)
 
 AR="ar"
@@ -90,7 +108,6 @@ BOOTSTRAP_CC = [CXX] + CXXFLAGS + ["-std=c++20", "-DBOOTSTRAP_BUILD_TOOL"]
 SRCDIR = os.getcwd()
 WRKDIR = None
 DISTDIR = []
-LOCALBASE = "/"
 NON_LOCAL_DEPS = []
 
 # other global variables
@@ -403,7 +420,6 @@ def main(args):
         DISTDIR = [os.path.join(Path.home(), ".distfiles")]
 
     LOCAL_DEPS = "PACKAGE" in os.environ
-    LOCALBASE = os.environ.get("LOCALBASE", "/")
     NON_LOCAL_DEPS = json.loads(os.environ.get("NON_LOCAL_DEPS", "[]"))
     bootstrap()
 
