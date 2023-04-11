@@ -226,4 +226,51 @@
       }
     }
   }
+, "contains":
+  { "doc": ["Returns the item if it is in the list or \"null\" otherwise."]
+  , "vars": ["list", "item", "list_prefix"]
+  , "vars_doc":
+    { "list": ["The list to look for the item."]
+    , "item": ["The item to look for in the list."]
+    , "list_prefix":
+      [ "An optional string, which every item in the list is prefixed with"
+      , "before comparison. Note that the returned item is not prefixed."
+      ]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "result"
+        , { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "var": "entry"
+            , "range": {"type": "var", "name": "list"}
+            , "body":
+              { "type": "if"
+              , "cond":
+                { "type": "=="
+                , "$1":
+                  { "type": "join"
+                  , "$1":
+                    [ {"type": "var", "name": "list_prefix", "default": ""}
+                    , {"type": "var", "name": "entry"}
+                    ]
+                  }
+                , "$2": {"type": "var", "name": "item"}
+                }
+              , "then": [{"type": "var", "name": "entry"}]
+              }
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "result"}
+      , "then": {"type": "join", "$1": {"type": "var", "name": "result"}}
+      , "else": null
+      }
+    }
+  }
 }

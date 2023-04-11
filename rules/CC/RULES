@@ -122,6 +122,7 @@
     , "cflags"
     , "private-cflags"
     , "private-ldflags"
+    , "pkg-name"
     ]
   , "config_vars":
     [ "CC"
@@ -180,6 +181,10 @@
       , "its dependencies will be taken care of (as anonymous targets, so no"
       , "duplicate work will be carried out, even if the same proto library"
       , "is used at various places)."
+      ]
+    , "pkg-name":
+      [ "Name to use for pkg-config files. If this field is empty, the field"
+      , "\"name\" is used instead."
       ]
     }
   , "config_doc":
@@ -318,6 +323,14 @@
           }
         ]
       , ["private-ldflags", {"type": "FIELD", "name": "private-ldflags"}]
+      , [ "pkg-name"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "pkg-name"}
+          , "then":
+            {"type": "join", "$1": {"type": "FIELD", "name": "pkg-name"}}
+          , "else": {"type": "var", "name": "name"}
+          }
+        ]
       , ["public-fieldnames", ["deps", "proto-deps"]]
       , ["private-fieldnames", ["deps", "private-deps", "proto-deps"]]
       ]
@@ -460,6 +473,248 @@
       , ["private-fieldnames", ["private-deps", "private-proto-deps"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "bin result"}
+    }
+  }
+, "install-with-deps":
+  { "doc":
+    [ "Install target's artifacts with transitive dependencies. Depending on"
+    , "the target, artifacts and dependencies will be installed to"
+    , "subdirectories \"bin\", \"include\", and \"lib\". For library targets,"
+    , "a pkg-config file is generated and provided in \"share/pkgconfig\"."
+    ]
+  , "config_vars": ["PREFIX"]
+  , "target_fields": ["targets"]
+  , "string_fields": ["flat-libs", "prefix"]
+  , "imports":
+    { "compile-deps": "compile-deps"
+    , "compile-args-deps": "compile-args-deps"
+    , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
+    , "pkg-config": "pkg-config"
+    }
+  , "field_doc":
+    { "targets": ["Targets to install artifacts from."]
+    , "flat-libs":
+      [ "Install libraries flat to the \"lib\" subdirectory. Be aware that"
+      , "conflicts may occur if any of the (transitive) libraries happen to"
+      , "have the same base name."
+      ]
+    , "prefix":
+      [ "The prefix used for pkg-config files. The path will be made absolute"
+      , "and individual directory components are joined with \"/\". If no"
+      , "prefix is specified, the value from the config variable \"PREFIX\" is"
+      , "taken, with the default value being \"/\"."
+      ]
+    }
+  , "config_doc":
+    { "PREFIX":
+      [ "The absolute path that is used as prefix inside generated pkg-config"
+      , "files. The default value for this variable is \"/\". This variable"
+      , "is ignored if the field \"prefix\" is set."
+      ]
+    }
+  , "artifacts_doc":
+    ["Installed artifacts in subdirectories (\"bin\"/\"include\"/\"lib\")."]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["pc-install-dir", "share/pkgconfig"]
+      , [ "install-stage"
+        , { "type": "disjoint_map_union"
+          , "msg": "install stages may not overlap"
+          , "$1":
+            { "type": "foreach"
+            , "var": "target"
+            , "range": {"type": "FIELD", "name": "targets"}
+            , "body":
+              { "type": "let*"
+              , "bindings":
+                [ [ "artifacts"
+                  , { "type": "DEP_ARTIFACTS"
+                    , "dep": {"type": "var", "name": "target"}
+                    , "default": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "runfiles"
+                  , { "type": "DEP_RUNFILES"
+                    , "dep": {"type": "var", "name": "target"}
+                    , "default": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "compile-deps"
+                  , { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "target"}
+                    , "provider": "compile-deps"
+                    , "default": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "link-deps"
+                  , { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "target"}
+                    , "provider": "link-deps"
+                    , "default": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "package"
+                  , { "type": "DEP_PROVIDES"
+                    , "dep": {"type": "var", "name": "target"}
+                    , "provider": "package"
+                    , "default": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "to_bin"
+                  , { "type": "lookup"
+                    , "key": "to_bin"
+                    , "map": {"type": "var", "name": "package"}
+                    }
+                  ]
+                , [ "binaries"
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "to_bin"}
+                    , "then": {"type": "var", "name": "artifacts"}
+                    , "else": {"type": "empty_map"}
+                    }
+                  ]
+                , [ "headers"
+                  , { "type": "disjoint_map_union"
+                    , "msg": "headers may not overlap"
+                    , "$1":
+                      [ {"type": "var", "name": "runfiles"}
+                      , {"type": "var", "name": "compile-deps"}
+                      ]
+                    }
+                  ]
+                , [ "libraries"
+                  , { "type": "disjoint_map_union"
+                    , "msg": "libraries may not overlap"
+                    , "$1":
+                      { "type": "++"
+                      , "$1":
+                        [ { "type": "if"
+                          , "cond": {"type": "var", "name": "to_bin"}
+                          , "then": []
+                          , "else": [{"type": "var", "name": "artifacts"}]
+                          }
+                        , [{"type": "var", "name": "link-deps"}]
+                        ]
+                      }
+                    }
+                  ]
+                , [ "pkg-name"
+                  , { "type": "lookup"
+                    , "key": "name"
+                    , "map": {"type": "var", "name": "package"}
+                    }
+                  ]
+                , [ "pkg-config"
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "pkg-name"}
+                    , "then":
+                      { "type": "let*"
+                      , "bindings":
+                        [ [ "pkg-prefix"
+                          , { "type": "if"
+                            , "cond": {"type": "FIELD", "name": "prefix"}
+                            , "then":
+                              { "type": "join"
+                              , "separator": "/"
+                              , "$1":
+                                { "type": "++"
+                                , "$1":
+                                  [[""], {"type": "FIELD", "name": "prefix"}]
+                                }
+                              }
+                            , "else":
+                              {"type": "var", "name": "PREFIX", "default": "/"}
+                            }
+                          ]
+                        , [ "pkg-version"
+                          , { "type": "lookup"
+                            , "key": "version"
+                            , "map": {"type": "var", "name": "package"}
+                            }
+                          ]
+                        , [ "pkg-cflags"
+                          , { "type": "DEP_PROVIDES"
+                            , "dep": {"type": "var", "name": "target"}
+                            , "provider": "compile-args"
+                            , "default": []
+                            }
+                          ]
+                        , [ "pkg-ldflags"
+                          , { "type": "++"
+                            , "$1":
+                              [ { "type": "DEP_PROVIDES"
+                                , "dep": {"type": "var", "name": "target"}
+                                , "provider": "link-args"
+                                , "default": []
+                                }
+                              ]
+                            }
+                          ]
+                        , [ "pkg-flag-files"
+                          , { "type": "map_union"
+                            , "$1":
+                              [ { "type": "lookup"
+                                , "key": "cflags-files"
+                                , "map": {"type": "var", "name": "package"}
+                                , "default": {"type": "empty_map"}
+                                }
+                              , { "type": "lookup"
+                                , "key": "ldflags-files"
+                                , "map": {"type": "var", "name": "package"}
+                                , "default": {"type": "empty_map"}
+                                }
+                              ]
+                            }
+                          ]
+                        , ["pkg-libs", {"type": "var", "name": "libraries"}]
+                        , ["flat-libs", {"type": "FIELD", "name": "flat-libs"}]
+                        ]
+                      , "body":
+                        { "type": "map_union"
+                        , "$1":
+                          [ {"type": "CALL_EXPRESSION", "name": "pkg-config"}
+                          , {"type": "var", "name": "pkg-flag-files"}
+                          ]
+                        }
+                      }
+                    , "else": {"type": "empty_map"}
+                    }
+                  ]
+                ]
+              , "body":
+                { "type": "map_union"
+                , "$1":
+                  [ { "type": "to_subdir"
+                    , "subdir": "bin"
+                    , "flat": true
+                    , "msg": "install binaries may not overlap"
+                    , "$1": {"type": "var", "name": "binaries"}
+                    }
+                  , { "type": "to_subdir"
+                    , "subdir": "include"
+                    , "$1": {"type": "var", "name": "headers"}
+                    }
+                  , { "type": "to_subdir"
+                    , "subdir": "lib"
+                    , "flat": {"type": "FIELD", "name": "flat-libs"}
+                    , "msg": "install libraries may not overlap"
+                    , "$1": {"type": "var", "name": "libraries"}
+                    }
+                  , { "type": "to_subdir"
+                    , "subdir": {"type": "var", "name": "pc-install-dir"}
+                    , "$1": {"type": "var", "name": "pkg-config"}
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      ]
+    , "body":
+      {"type": "RESULT", "artifacts": {"type": "var", "name": "install-stage"}}
     }
   }
 }
