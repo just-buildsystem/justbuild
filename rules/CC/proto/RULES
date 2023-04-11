@@ -8,7 +8,7 @@
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
   , "config_vars":
-    ["OS", "ARCH", "HOST_ARCH", "CXX", "CFLAGS", "ADD_CFLAGS", "AR", "ENV"]
+    ["OS", "ARCH", "HOST_ARCH", "CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
   , "implicit":
     { "protoc": [["@", "protoc", "", "protoc"]]
     , "defaults": [["./", "..", "defaults"]]
