@@ -1125,7 +1125,7 @@
     }
   }
 , "install-with-deps result":
-  { "vars": ["pc-install-dir", "targets", "prefix", "flat-libs"]
+  { "vars": ["pc-install-dir", "targets", "prefix", "flat-libs", "hdrs-only"]
   , "imports":
     { "compile-deps": "compile-deps"
     , "compile-args-deps": "compile-args-deps"
@@ -1146,13 +1146,7 @@
             , "body":
               { "type": "let*"
               , "bindings":
-                [ [ "artifacts"
-                  , { "type": "DEP_ARTIFACTS"
-                    , "dep": {"type": "var", "name": "target"}
-                    , "default": {"type": "empty_map"}
-                    }
-                  ]
-                , [ "runfiles"
+                [ [ "runfiles"
                   , { "type": "DEP_RUNFILES"
                     , "dep": {"type": "var", "name": "target"}
                     , "default": {"type": "empty_map"}
@@ -1165,33 +1159,6 @@
                     , "default": {"type": "empty_map"}
                     }
                   ]
-                , [ "link-deps"
-                  , { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "target"}
-                    , "provider": "link-deps"
-                    , "default": {"type": "empty_map"}
-                    }
-                  ]
-                , [ "package"
-                  , { "type": "DEP_PROVIDES"
-                    , "dep": {"type": "var", "name": "target"}
-                    , "provider": "package"
-                    , "default": {"type": "empty_map"}
-                    }
-                  ]
-                , [ "to_bin"
-                  , { "type": "lookup"
-                    , "key": "to_bin"
-                    , "map": {"type": "var", "name": "package"}
-                    }
-                  ]
-                , [ "binaries"
-                  , { "type": "if"
-                    , "cond": {"type": "var", "name": "to_bin"}
-                    , "then": {"type": "var", "name": "artifacts"}
-                    , "else": {"type": "empty_map"}
-                    }
-                  ]
                 , [ "headers"
                   , { "type": "disjoint_map_union"
                     , "msg": "headers may not overlap"
@@ -1201,116 +1168,163 @@
                       ]
                     }
                   ]
-                , [ "libraries"
-                  , { "type": "disjoint_map_union"
-                    , "msg": "libraries may not overlap"
-                    , "$1":
-                      { "type": "++"
-                      , "$1":
-                        [ { "type": "if"
-                          , "cond": {"type": "var", "name": "to_bin"}
-                          , "then": []
-                          , "else": [{"type": "var", "name": "artifacts"}]
+                ]
+              , "body":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "hdrs-only"}
+                , "then": {"type": "var", "name": "headers"}
+                , "else":
+                  { "type": "let*"
+                  , "bindings":
+                    [ [ "artifacts"
+                      , { "type": "DEP_ARTIFACTS"
+                        , "dep": {"type": "var", "name": "target"}
+                        , "default": {"type": "empty_map"}
+                        }
+                      ]
+                    , [ "link-deps"
+                      , { "type": "DEP_PROVIDES"
+                        , "dep": {"type": "var", "name": "target"}
+                        , "provider": "link-deps"
+                        , "default": {"type": "empty_map"}
+                        }
+                      ]
+                    , [ "package"
+                      , { "type": "DEP_PROVIDES"
+                        , "dep": {"type": "var", "name": "target"}
+                        , "provider": "package"
+                        , "default": {"type": "empty_map"}
+                        }
+                      ]
+                    , [ "to_bin"
+                      , { "type": "lookup"
+                        , "key": "to_bin"
+                        , "map": {"type": "var", "name": "package"}
+                        }
+                      ]
+                    , [ "binaries"
+                      , { "type": "if"
+                        , "cond": {"type": "var", "name": "to_bin"}
+                        , "then": {"type": "var", "name": "artifacts"}
+                        , "else": {"type": "empty_map"}
+                        }
+                      ]
+                    , [ "libraries"
+                      , { "type": "disjoint_map_union"
+                        , "msg": "libraries may not overlap"
+                        , "$1":
+                          { "type": "++"
+                          , "$1":
+                            [ { "type": "if"
+                              , "cond": {"type": "var", "name": "to_bin"}
+                              , "then": []
+                              , "else": [{"type": "var", "name": "artifacts"}]
+                              }
+                            , [{"type": "var", "name": "link-deps"}]
+                            ]
                           }
-                        , [{"type": "var", "name": "link-deps"}]
-                        ]
-                      }
-                    }
-                  ]
-                , [ "pkg-name"
-                  , { "type": "lookup"
-                    , "key": "name"
-                    , "map": {"type": "var", "name": "package"}
-                    }
-                  ]
-                , [ "pkg-config"
-                  , { "type": "if"
-                    , "cond": {"type": "var", "name": "pkg-name"}
-                    , "then":
-                      { "type": "let*"
-                      , "bindings":
-                        [ [ "pkg-prefix"
-                          , {"type": "var", "name": "prefix", "default": "/"}
-                          ]
-                        , [ "pkg-version"
-                          , { "type": "lookup"
-                            , "key": "version"
-                            , "map": {"type": "var", "name": "package"}
-                            }
-                          ]
-                        , [ "pkg-cflags"
-                          , { "type": "DEP_PROVIDES"
-                            , "dep": {"type": "var", "name": "target"}
-                            , "provider": "compile-args"
-                            , "default": []
-                            }
-                          ]
-                        , [ "pkg-ldflags"
-                          , { "type": "++"
-                            , "$1":
-                              [ { "type": "DEP_PROVIDES"
+                        }
+                      ]
+                    , [ "pkg-name"
+                      , { "type": "lookup"
+                        , "key": "name"
+                        , "map": {"type": "var", "name": "package"}
+                        }
+                      ]
+                    , [ "pkg-config"
+                      , { "type": "if"
+                        , "cond": {"type": "var", "name": "pkg-name"}
+                        , "then":
+                          { "type": "let*"
+                          , "bindings":
+                            [ ["pkg-prefix", {"type": "var", "name": "prefix"}]
+                            , [ "pkg-version"
+                              , { "type": "lookup"
+                                , "key": "version"
+                                , "map": {"type": "var", "name": "package"}
+                                }
+                              ]
+                            , [ "pkg-cflags"
+                              , { "type": "DEP_PROVIDES"
                                 , "dep": {"type": "var", "name": "target"}
-                                , "provider": "link-args"
+                                , "provider": "compile-args"
                                 , "default": []
                                 }
                               ]
-                            }
-                          ]
-                        , [ "pkg-flag-files"
-                          , { "type": "map_union"
-                            , "$1":
-                              [ { "type": "lookup"
-                                , "key": "cflags-files"
-                                , "map": {"type": "var", "name": "package"}
-                                , "default": {"type": "empty_map"}
-                                }
-                              , { "type": "lookup"
-                                , "key": "ldflags-files"
-                                , "map": {"type": "var", "name": "package"}
-                                , "default": {"type": "empty_map"}
+                            , [ "pkg-ldflags"
+                              , { "type": "++"
+                                , "$1":
+                                  [ { "type": "DEP_PROVIDES"
+                                    , "dep": {"type": "var", "name": "target"}
+                                    , "provider": "link-args"
+                                    , "default": []
+                                    }
+                                  ]
                                 }
                               ]
+                            , [ "pkg-flag-files"
+                              , { "type": "map_union"
+                                , "$1":
+                                  [ { "type": "lookup"
+                                    , "key": "cflags-files"
+                                    , "map": {"type": "var", "name": "package"}
+                                    , "default": {"type": "empty_map"}
+                                    }
+                                  , { "type": "lookup"
+                                    , "key": "ldflags-files"
+                                    , "map": {"type": "var", "name": "package"}
+                                    , "default": {"type": "empty_map"}
+                                    }
+                                  ]
+                                }
+                              ]
+                            , [ "pkg-libs"
+                              , {"type": "var", "name": "libraries"}
+                              ]
+                            , [ "flat-libs"
+                              , {"type": "var", "name": "flat-libs"}
+                              ]
+                            ]
+                          , "body":
+                            { "type": "map_union"
+                            , "$1":
+                              [ { "type": "CALL_EXPRESSION"
+                                , "name": "pkg-config"
+                                }
+                              , {"type": "var", "name": "pkg-flag-files"}
+                              ]
                             }
-                          ]
-                        , ["pkg-libs", {"type": "var", "name": "libraries"}]
-                        , ["flat-libs", {"type": "var", "name": "flat-libs"}]
-                        ]
-                      , "body":
-                        { "type": "map_union"
-                        , "$1":
-                          [ {"type": "CALL_EXPRESSION", "name": "pkg-config"}
-                          , {"type": "var", "name": "pkg-flag-files"}
-                          ]
+                          }
+                        , "else": {"type": "empty_map"}
                         }
-                      }
-                    , "else": {"type": "empty_map"}
+                      ]
+                    ]
+                  , "body":
+                    { "type": "map_union"
+                    , "$1":
+                      [ { "type": "to_subdir"
+                        , "subdir": "bin"
+                        , "flat": true
+                        , "msg": "install binaries may not overlap"
+                        , "$1": {"type": "var", "name": "binaries"}
+                        }
+                      , { "type": "to_subdir"
+                        , "subdir": "include"
+                        , "$1": {"type": "var", "name": "headers"}
+                        }
+                      , { "type": "to_subdir"
+                        , "subdir": "lib"
+                        , "flat": {"type": "var", "name": "flat-libs"}
+                        , "msg": "install libraries may not overlap"
+                        , "$1": {"type": "var", "name": "libraries"}
+                        }
+                      , { "type": "to_subdir"
+                        , "subdir": {"type": "var", "name": "pc-install-dir"}
+                        , "$1": {"type": "var", "name": "pkg-config"}
+                        }
+                      ]
                     }
-                  ]
-                ]
-              , "body":
-                { "type": "map_union"
-                , "$1":
-                  [ { "type": "to_subdir"
-                    , "subdir": "bin"
-                    , "flat": true
-                    , "msg": "install binaries may not overlap"
-                    , "$1": {"type": "var", "name": "binaries"}
-                    }
-                  , { "type": "to_subdir"
-                    , "subdir": "include"
-                    , "$1": {"type": "var", "name": "headers"}
-                    }
-                  , { "type": "to_subdir"
-                    , "subdir": "lib"
-                    , "flat": {"type": "var", "name": "flat-libs"}
-                    , "msg": "install libraries may not overlap"
-                    , "$1": {"type": "var", "name": "libraries"}
-                    }
-                  , { "type": "to_subdir"
-                    , "subdir": {"type": "var", "name": "pc-install-dir"}
-                    , "$1": {"type": "var", "name": "pkg-config"}
-                    }
-                  ]
+                  }
                 }
               }
             }
