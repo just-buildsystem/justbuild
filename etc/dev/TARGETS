@@ -1,6 +1,14 @@
-{ "just-ext-hdrs":
-  { "type": ["@", "rules", "CC/IDE", "headers"]
-  , "deps":
+{ "proto_bindings":
+  { "type": ["@", "rules", "CC", "library"]
+  , "proto":
+    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "googleapis", "", "google_bytestream_proto"]
+    ]
+  }
+, "just-ext-hdrs":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "hdrs-only": ["yes"]
+  , "targets":
     [ ["@", "ssl", "", "crypto"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl-lite", "", "gsl-lite"]
@@ -12,10 +20,7 @@
     , ["", "libcurl"]
     , ["@", "bzip2", "", "libbz2"]
     , ["", "libarchive"]
-    ]
-  , "proto":
-    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
-    , ["@", "googleapis", "", "google_bytestream_proto"]
+    , "proto_bindings"
     ]
   }
 }
