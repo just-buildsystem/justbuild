@@ -252,12 +252,12 @@
     }
   , "google_apis":
     { "repository":
-      { "type": "zip"
-      , "content": "8a1ca602cb7eb42094c853f0640489599962c2cc"
-      , "fetch": "https://github.com/googleapis/googleapis/archive/143084a2624b6591ee1f9d23e7f5241856642f4d.zip"
-      , "sha256": "7b6ea252f0b8fb5cd722f45feb83e115b689909bbb6a393a873b6cbad4ceae1d"
-      , "sha512": "319bd988d25877bc72ab7fad8309126268f88d987a64b9ffb7956bdd442938e02ec922251de933aba8d424559fd8dc43cf7954f6c865e3f863940c1e8f533c5a"
-      , "subdir": "googleapis-143084a2624b6591ee1f9d23e7f5241856642f4d"
+      { "type": "archive"
+      , "content": "5d9001f3dff8dec1880c06c0de100a0c2fc65094"
+      , "fetch": "https://github.com/googleapis/googleapis/archive/2f9af297c84c55c8b871ba4495e01ade42476c92.tar.gz"
+      , "sha256": "5bb6b0253ccf64b53d6c7249625a7e3f6c3bc6402abd52d3778bfa48258703a0"
+      , "sha512": "cdeefae807df7097174b4bb28c0900b06a68d424c00ebba4ff5add260c9c651351d5e429bfc5de42f95ebb75dadec313f7bd3991c2fa476c9104f9ea656acad4"
+      , "subdir": "googleapis-2f9af297c84c55c8b871ba4495e01ade42476c92"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.google_apis"
