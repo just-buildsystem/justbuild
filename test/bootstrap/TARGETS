@@ -43,42 +43,39 @@
     , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
     }
   }
-, "well_known_protos":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs": [["@", "protoc", "", "well_known_protos"]]
-  , "stage": ["proto"]
-  }
 , "distro-bootstrap-deps":
-  { "type": "stage-deps"
-  , "prefix": ["LOCALBASE"]
-  , "libs":
-    [ ["@", "cli11", "", "cli11"]
-    , ["@", "json", "", "json"]
+  { "type": "install"
+  , "dirs": [["just_cc_deps", "LOCALBASE"], ["just_other_deps", "LOCALBASE"]]
+  , "tainted": ["test"]
+  }
+, "just_cc_deps":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "targets":
+    [ ["@", "json", "", "json"]
     , ["@", "fmt", "", "fmt"]
-    , ["@", "ssl", "", "ssl"]
-    , ["@", "grpc", "", "grpc++"]
-    , ["@", "grpc", "", "grpc++_codegen_proto"]
-    , ["@", "bazel_remote_apis", "", "remote_execution_proto"]
     , ["@", "gsl-lite", "", "gsl-lite"]
-    , ["@", "protoc", "", "C++ runtime"]
+    , ["@", "cli11", "", "cli11"]
+    , ["@", "ssl", "", "crypto"]
     , ["", "libgit2"]
+    , ["@", "protoc", "", "protoc"]
+    , ["@", "protoc", "", "libprotobuf"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "grpc", "", "grpc_cpp_plugin"]
     ]
-  , "bins":
-    [ ["@", "protoc", "", "protoc"]
-    , ["@", "grpc", "src/compiler", "grpc_cpp_plugin"]
-    ]
+  }
+, "just_other_deps":
+  { "type": ["test/bootstrap", "stage-deps"]
   , "protos":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
     , ["@", "googleapis", "", "google_bytestream_proto"]
     ]
-  , "deps": ["well_known_protos"]
   }
 , "staged-sources":
   {"type": "install", "dirs": [[["", "bootstrap-src"], "srcs/just"]]}
-, "prebuilt-test":
+, "pkgconfig-test":
   { "type": ["@", "rules", "shell/test", "script"]
-  , "name": ["bootstrap-test-prebuilt"]
-  , "test": ["test-bootstrap-prebuilt.sh"]
+  , "name": ["bootstrap-test-pkgconfig"]
+  , "test": ["test-bootstrap-pkgconfig.sh"]
   , "deps": ["distro-bootstrap-deps", "staged-sources"]
   }
 , "mixed-test":
@@ -104,7 +101,7 @@
     [ "bundled-test"
     , "bundled-test-debug"
     , "bundled-test-gnu"
-    , "prebuilt-test"
+    , "pkgconfig-test"
     , "mixed-test"
     , "symlink-test"
     ]

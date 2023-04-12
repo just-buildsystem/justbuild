@@ -32,8 +32,6 @@ readonly TEST_BUILD_ROOT=${TMPDIR}/.just
 mkdir -p ${TEST_BUILD_ROOT}
 readonly TEST_OUT_DIR=${TMPDIR}/work-test-out
 mkdir -p ${TEST_OUT_DIR}
-readonly DISTDIR=${TMPDIR}/distdir
-mkdir -p "${DISTDIR}"
 
 # Set up local base, adding some symbolic links
 
@@ -50,8 +48,10 @@ ln -s ${UNRELATED_FILE} ${LOCALBASE}/lib/libfoo.so
 
 # bootstrap command
 
-env LOCALBASE=${LOCALBASE} PACKAGE=YES \
-    python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} ${DISTDIR}
+env LOCALBASE=${LOCALBASE} \
+    PACKAGE=YES \
+    JUST_BUILD_CONF='{"COMPILER_FAMILY":"clang", "PKG_CONFIG_ARGS":["--define-prefix"]}' \
+    python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} 2>&1
 
 # Do some sanity checks with the binary
 

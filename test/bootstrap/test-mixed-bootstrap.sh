@@ -48,8 +48,11 @@ cp distdir/fmt-9.1.0.zip "${DISTDIR}"
 
 # bootstrap command
 
-env LOCALBASE=${LOCALBASE} PACKAGE=YES NON_LOCAL_DEPS='["gsl-lite", "fmt"]' \
-    python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} ${DISTDIR}
+env LOCALBASE=${LOCALBASE} \
+    PACKAGE=YES \
+    NON_LOCAL_DEPS='["gsl-lite", "fmt"]' \
+    JUST_BUILD_CONF='{"COMPILER_FAMILY":"clang", "PKG_CONFIG_ARGS":["--define-prefix"]}' \
+    python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} ${DISTDIR} 2>&1
 
 # Do some sanity checks with the binary
 
