@@ -92,11 +92,13 @@
     , ["@", "absl", "absl/time", "time"]
     ]
   }
+, "gpr_combined":
+  {"type": "combined lib", "name": ["gpr"], "deps": ["gpr_base"]}
 , "gpr_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["gpr"]
   , "hdrs": [["./", "include/grpc", "gpr_public_headers"]]
-  , "deps": ["gpr_base"]
+  , "deps": ["gpr_combined"]
   }
 , "atomic":
   { "type": ["@", "rules", "CC", "library"]
@@ -1416,9 +1418,9 @@
     , "grpc_server_backward_compatibility"
     ]
   }
-, "grpc_internal":
+, "grpc_main":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["grpc"]
+  , "name": ["grpc_main"]
   , "srcs":
     [ "src/core/lib/surface/init.cc"
     , "src/core/plugin_registry/grpc_plugin_registry.cc"
@@ -1439,6 +1441,13 @@
     , "grpc_transport_chttp2_client_secure"
     , "grpc_transport_chttp2_server_secure"
     ]
+  }
+, "grpc_combined":
+  {"type": "combined lib", "name": ["grpc"], "deps": ["grpc_main"]}
+, "grpc_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["grpc"]
+  , "deps": ["grpc_combined", "gpr"]
   }
 , "grpc++_sources":
   { "type": ["@", "rules", "data", "staged"]
@@ -1541,9 +1550,9 @@
     , "grpc_health_upb"
     ]
   }
-, "grpc++internal":
+, "grpc++_main":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["grpc++"]
+  , "name": ["grpc++_main"]
   , "srcs":
     [ "src/cpp/client/insecure_credentials.cc"
     , "src/cpp/client/secure_credentials.cc"
@@ -1564,14 +1573,18 @@
     , "src/cpp/server/secure_server_credentials.h"
     ]
   , "deps":
-    [ "gpr"
-    , "grpc"
-    , "grpc++_base"
+    [ "grpc++_base"
     , "grpc++_codegen_base"
     , "grpc++_codegen_base_src"
     , "grpc++_codegen_proto"
-    , "grpc_secure"
     ]
+  }
+, "grpc++combined":
+  {"type": "combined lib", "name": ["grpc++"], "deps": ["grpc++_main"]}
+, "grpc++internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["grpc++"]
+  , "deps": ["grpc++combined", "grpc"]
   }
 , "grpc++":
   { "type": "export"

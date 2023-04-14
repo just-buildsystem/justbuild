@@ -1,0 +1,212 @@
+{ "combined lib":
+  { "doc": ["Combine multiple static libraries into a single one."]
+  , "target_fields": ["deps"]
+  , "string_fields": ["name", "stage"]
+  , "config_vars": ["AR", "ENV"]
+  , "implicit": {"defaults": [["@", "rules", "CC", "defaults"]]}
+  , "field_doc":
+    { "name":
+      ["The name of the library (without leading \"lib\" or trailing \".a\")."]
+    , "deps": ["All libraries (includes transitive) that should be combined."]
+    , "stage":
+      [ "The logical location of all public headers and the resulting library"
+      , "file. Individual directory components are joined with \"/\"."
+      ]
+    }
+  , "config_doc":
+    { "AR":
+      [ "The archive tool to used for creating the library. If None, the"
+      , "respective value from [\"@\", \"rules\", \"CC\", \"defaults\"] will"
+      , "be taken."
+      ]
+    , "ENV": ["The environment for any action generated."]
+    }
+  , "imports":
+    { "compile-deps": ["@", "rules", "CC", "compile-deps"]
+    , "compile-args-deps": ["@", "rules", "CC", "compile-args-deps"]
+    , "link-deps": ["@", "rules", "CC", "link-deps"]
+    , "link-args-deps": ["@", "rules", "CC", "link-args-deps"]
+    , "cflags-files-deps": ["@", "rules", "CC", "cflags-files-deps"]
+    , "ldflags-files-deps": ["@", "rules", "CC", "ldflags-files-deps"]
+    , "default-AR": ["@", "rules", "CC", "default-AR"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "AR"
+        , { "type": "var"
+          , "name": "AR"
+          , "default": {"type": "CALL_EXPRESSION", "name": "default-AR"}
+          }
+        ]
+      , ["name", {"type": "join", "$1": {"type": "FIELD", "name": "name"}}]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "libname"
+        , { "type": "join"
+          , "$1": ["lib", {"type": "var", "name": "name"}, ".a"]
+          }
+        ]
+      , [ "libpath"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "libname"}
+              ]
+            }
+          , "else": {"type": "var", "name": "libname"}
+          }
+        ]
+      , ["deps-fieldnames", ["deps"]]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+        ]
+      , ["unstaged libs", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , [ "libs"
+        , { "type": "to_subdir"
+          , "subdir": "libs"
+          , "$1": {"type": "var", "name": "unstaged libs"}
+          }
+        ]
+      , ["link-deps", {"type": "empty_map"}]
+      , [ "link-args-deps"
+        , {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
+        ]
+      , [ "non-lib-link-args-deps"
+        , { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "var": "arg"
+            , "range": {"type": "var", "name": "link-args-deps"}
+            , "body":
+              { "type": "if"
+              , "cond":
+                { "type": "lookup"
+                , "map": {"type": "var", "name": "unstaged libs"}
+                , "key": {"type": "var", "name": "arg"}
+                }
+              , "then": []
+              , "else": [{"type": "var", "name": "arg"}]
+              }
+            }
+          }
+        ]
+      , [ "link-args"
+        , { "type": "++"
+          , "$1":
+            [ [{"type": "var", "name": "libpath"}]
+            , {"type": "var", "name": "non-lib-link-args-deps"}
+            ]
+          }
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
+        ]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , [ "package"
+        , { "type": "let*"
+          , "bindings": [["name", {"type": "var", "name": "name"}]]
+          , "body":
+            {"type": "env", "vars": ["name", "cflags-files", "ldflags-files"]}
+          }
+        ]
+      , [ "combine.sh"
+        , { "type": "singleton_map"
+          , "key": "combine.sh"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join"
+              , "separator": "\n"
+              , "$1":
+                [ "set -eu"
+                , "readonly ROOT=$(pwd)"
+                , "readonly AR=$1"
+                , "readonly OUT=$2"
+                , "shift 2"
+                , "for l in $@; do"
+                , "  OUTDIR=${ROOT}/objs/$l"
+                , "  mkdir -p $OUTDIR"
+                , "  cd $OUTDIR"
+                , "  $AR -t $ROOT/$l | sort | uniq -c | sed -e 's/^\\s*//' > obj.list"
+                , "  NUM=$(wc -l obj.list | cut -d' ' -f1)"
+                , "  for o in $(seq 1 $NUM); do"
+                , "    CNT=$(sed ''$o'q;d' obj.list | cut -d' ' -f1)"
+                , "    OBJ=$(sed ''$o'q;d' obj.list | cut -d' ' -f2)"
+                , "    for i in $(seq 1 $CNT); do"
+                , "      mkdir -p $i"
+                , "      $AR -xN $i $ROOT/$l $OBJ"
+                , "      mv *.o $i/"
+                , "    done"
+                , "  done"
+                , "  cd - >/dev/null"
+                , "  $AR -qc $OUT $OUTDIR/*/*.o"
+                , "done"
+                , "$AR s $OUT"
+                ]
+              }
+            }
+          }
+        ]
+      , [ "combined lib"
+        , { "type": "ACTION"
+          , "outs": [{"type": "var", "name": "libname"}]
+          , "inputs":
+            { "type": "disjoint_map_union"
+            , "$1":
+              [ {"type": "var", "name": "libs"}
+              , {"type": "var", "name": "combine.sh"}
+              ]
+            }
+          , "cmd":
+            { "type": "++"
+            , "$1":
+              [ [ "sh"
+                , "combine.sh"
+                , {"type": "var", "name": "AR"}
+                , {"type": "var", "name": "libname"}
+                ]
+              , {"type": "keys", "$1": {"type": "var", "name": "libs"}}
+              ]
+            }
+          , "env":
+            {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "combined lib"}
+      , "provides":
+        { "type": "map_union"
+        , "$1":
+          [ { "type": "env"
+            , "vars":
+              [ "compile-deps"
+              , "compile-args"
+              , "link-deps"
+              , "link-args"
+              , "package"
+              ]
+            }
+          , { "type": "var"
+            , "name": "extra-provides"
+            , "default": {"type": "empty_map"}
+            }
+          ]
+        }
+      }
+    }
+  }
+}
