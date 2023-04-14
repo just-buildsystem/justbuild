@@ -7,6 +7,7 @@ just-mr - multi-repository configuration tool and launcher for *just(1)*.
 
 * SYNOPSIS
 
+just-mr [OPTIONS] mrversion\\
 just-mr [OPTIONS] {setup|setup-env} [--all] [main-repo]\\
 just-mr [OPTIONS] fetch [--all] [-o fetch-dir] [main-repo]\\
 just-mr [OPTIONS] update [repo...]\\
