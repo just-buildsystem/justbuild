@@ -42,6 +42,14 @@ See *just-mr-repository-config(5)* for more details on the input format.
    The default configuration lookup order can be adjusted in the just-mrrc file.
    See *just-mrrc(5)* for more details.
 
+   *-D*, *--defines* JSON\\
+   Defines, via an in-line JSON object, an overlay configuration
+   for *just(1)*; if used as a launcher for a subcommand known
+   to support *--defines*, this defines value is forwarded,
+   otherwise it is ignored. If *-D* is given several times,
+   the *-D* options overlay (in the sense of ~map_union~) in
+   the order they are given on the command line.
+
    *--local-build-root* PATH\\
    Root for local CAS, cache, and build directories. The path will be
    created if it does not exist already. This option overwrites any values set

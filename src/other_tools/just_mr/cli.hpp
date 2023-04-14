@@ -44,6 +44,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> git_path{std::nullopt};
     bool norc{false};
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
+    std::vector<std::string> defines{};
 };
 
 struct MultiRepoLogArguments {
@@ -158,6 +159,14 @@ static inline void SetupMultiRepoCommonArguments(
                     clargs->jobs,
                     "Number of jobs to run (Default: Number of cores).")
         ->type_name("NUM");
+    app->add_option_function<std::string>(
+           "-D,--defines",
+           [clargs](auto const& d) { clargs->defines.emplace_back(d); },
+           "Define overlay configuration to be forwarded to the invocation of"
+           " just, in case the subcommand supports it; otherwise ignored.")
+        ->type_name("JSON")
+        ->trigger_on_parse();  // run callback on all instances while parsing,
+                               // not after all parsing is done
 }
 
 static inline auto SetupMultiRepoLogArguments(

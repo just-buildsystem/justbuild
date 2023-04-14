@@ -63,9 +63,13 @@ parser.add_argument("-f", "--log-file", dest="log_file",
 parser.add_argument("--log-limit", dest="log_limit")
 parser.add_argument("--log-append", dest="log_append",
                     action="store_true", default=False)
+parser.add_argument("-D", "--defines", dest="defines",
+                    action="append", default=[])
 (options, args) = parser.parse_known_args(sys.argv[2:])
 
 target_dir=args[-1]
+with open(os.path.join(target_dir, "defines"), "w") as f:
+  f.write(json.dumps([json.loads(x) for x in options.defines]))
 with open(os.path.join(target_dir, "log-limit"), "w") as f:
   f.write(json.dumps(options.log_limit))
 with open(os.path.join(target_dir, "log-file"), "w") as f:
@@ -140,5 +144,30 @@ test $(jq '. == ["cmd", "line", "launcher"] ' "${PARSE_DIR}/launcher") = "true"
              --rc "${SAMPLE_RC}" -L '["env", "--"]' \
              build "${PARSE_DIR}" 2>&1
 test "$(cat "${PARSE_DIR}/launcher")" = 'null'
+
+## Command-line -D
+
+# ignored on non-build commands
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -D 'this is not json' version "${PARSE_DIR}" 2>&1
+test $(jq '. == [] ' "${PARSE_DIR}/defines") = "true"
+
+# not forwarded, if empty
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -D '{}' build "${PARSE_DIR}" 2>&1
+test $(jq '. == [] ' "${PARSE_DIR}/defines") = "true"
+
+# combined on forwarding
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -D '{"foo": "bar"}' -D '{"baz": "baz"}' -D '{"foo": "override"}' \
+             build "${PARSE_DIR}" 2>&1
+test $(jq '. == [ {"foo": "override", "baz": "baz"}] ' "${PARSE_DIR}/defines") = true
+
+# but passed arguments are given separately
+
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -D '{"foo": "bar"}' -D '{"baz": "baz"}' \
+             build -D '{"foo": "override"}' -D '{"x": "y"}' "${PARSE_DIR}" 2>&1
+test $(jq '. == [ {"foo": "bar", "baz": "baz"}, {"foo": "override"}, {"x": "y"}] ' "${PARSE_DIR}/defines") = true
 
 echo OK

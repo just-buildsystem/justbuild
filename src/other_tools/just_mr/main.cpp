@@ -1259,6 +1259,7 @@ void DefaultReachableRepositories(
     bool use_config{false};
     bool use_build_root{false};
     bool use_launcher{false};
+    bool supports_defines{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
@@ -1275,6 +1276,7 @@ void DefaultReachableRepositories(
         }
         use_build_root = kKnownJustSubcommands.at(*subcommand).build_root;
         use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
+        supports_defines = kKnownJustSubcommands.at(*subcommand).defines;
     }
     // build just command
     std::vector<std::string> cmd = {arguments.common.just_path->string()};
@@ -1312,6 +1314,31 @@ void DefaultReachableRepositories(
     }
     if (arguments.log.plain_log) {
         cmd.emplace_back("--plain-log");
+    }
+    if (supports_defines) {
+        auto overlay_config = Configuration();
+        for (auto const& s : arguments.common.defines) {
+            try {
+                auto map = Expression::FromJson(nlohmann::json::parse(s));
+                if (not map->IsMap()) {
+                    Logger::Log(LogLevel::Error,
+                                "Defines entry {} does not contain a map.",
+                                nlohmann::json(s).dump());
+                    std::exit(kExitClargsError);
+                }
+                overlay_config = overlay_config.Update(map);
+            } catch (std::exception const& e) {
+                Logger::Log(LogLevel::Error,
+                            "Parsing defines entry {} failed with error:\n{}",
+                            nlohmann::json(s).dump(),
+                            e.what());
+                std::exit(kExitClargsError);
+            }
+        }
+        if (not overlay_config.Expr()->Map().empty()) {
+            cmd.emplace_back("-D");
+            cmd.emplace_back(overlay_config.ToString());
+        }
     }
     // add args read from just-mrrc
     if (subcommand and arguments.just_cmd.just_args.contains(*subcommand)) {

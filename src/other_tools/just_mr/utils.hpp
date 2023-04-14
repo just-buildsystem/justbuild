@@ -49,18 +49,42 @@ struct JustSubCmdFlags {
     bool config;
     bool build_root;
     bool launch;
+    bool defines;
 };
 
 // ordered, so that we have replicability
 std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
-    {"version", {false /*config*/, false /*build_root*/, false /*launch*/}},
-    {"describe", {true /*config*/, false /*build_root*/, false /*launch*/}},
-    {"analyse", {true /*config*/, true /*build_root*/, false /*launch*/}},
-    {"build", {true /*config*/, true /*build_root*/, true /*launch*/}},
-    {"install", {true /*config*/, true /*build_root*/, true /*launch*/}},
-    {"rebuild", {true /*config*/, true /*build_root*/, true /*launch*/}},
-    {"install-cas", {false /*config*/, true /*build_root*/, false /*launch*/}},
-    {"gc", {false /*config*/, true /*build_root*/, false /*launch*/}}};
+    {"version",
+     {false /*config*/,
+      false /*build_root*/,
+      false /*launch*/,
+      false /*defines*/}},
+    {"describe",
+     {true /*config*/,
+      false /*build_root*/,
+      false /*launch*/,
+      true /*defines*/}},
+    {"analyse",
+     {true /*config*/,
+      true /*build_root*/,
+      false /*launch*/,
+      true /*defines*/}},
+    {"build",
+     {true /*config*/, true /*build_root*/, true /*launch*/, true /*defines*/}},
+    {"install",
+     {true /*config*/, true /*build_root*/, true /*launch*/, true /*defines*/}},
+    {"rebuild",
+     {true /*config*/, true /*build_root*/, true /*launch*/, true /*defines*/}},
+    {"install-cas",
+     {false /*config*/,
+      true /*build_root*/,
+      false /*launch*/,
+      false /*defines*/}},
+    {"gc",
+     {false /*config*/,
+      true /*build_root*/,
+      false /*launch*/,
+      false /*defines*/}}};
 
 nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
     {{{"root", "workspace"}, {"path", "repos.json"}},
