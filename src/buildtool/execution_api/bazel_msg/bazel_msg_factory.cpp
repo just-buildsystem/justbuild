@@ -24,7 +24,7 @@
 #include <string>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

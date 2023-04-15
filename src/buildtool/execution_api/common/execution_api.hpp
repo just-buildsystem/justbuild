@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"

@@ -15,7 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_HPP
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

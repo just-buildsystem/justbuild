@@ -9,7 +9,7 @@
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "dag"]
   , "private-deps": [["src/buildtool/logging", "logging"]]

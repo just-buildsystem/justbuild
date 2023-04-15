@@ -14,10 +14,11 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 namespace {
 
@@ -63,7 +64,7 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
     if (not Compatibility::IsCompatible()) {
         // in native mode: just collect and store tree digests
         for (auto const& tree : action_result.output_directories()) {
-            gsl_ExpectsAudit(NativeSupport::IsTree(tree.tree_digest().hash()));
+            ExpectsAudit(NativeSupport::IsTree(tree.tree_digest().hash()));
             try {
                 artifacts.emplace(
                     tree.path(),

@@ -23,7 +23,7 @@
     , "statistics"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "logging"]
     ]
   }

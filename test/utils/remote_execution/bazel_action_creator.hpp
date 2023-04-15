@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"

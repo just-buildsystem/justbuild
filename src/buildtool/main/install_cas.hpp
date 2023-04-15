@@ -17,10 +17,10 @@
 
 #include <string>
 
-#include <gsl-lite/gsl-lite.hpp>
-
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/cli.hpp"
+
+#include <gsl/gsl>
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #endif

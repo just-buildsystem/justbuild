@@ -17,9 +17,10 @@
 
 #include <string>
 
-#include <gsl-lite/gsl-lite.hpp>
-
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/utils/cpp/gsl.hpp"
+
+#include <gsl/gsl>
 
 /// \brief Helper functions to support the native remote-execution protocol.
 class NativeSupport {
@@ -44,7 +45,7 @@ class NativeSupport {
         if (Compatibility::IsCompatible()) {
             return hash;
         }
-        gsl_ExpectsAudit(not IsPrefixed(hash));
+        ExpectsAudit(not IsPrefixed(hash));
         return (is_tree ? kTreeTag : kBlobTag) + hash;
     }
 
@@ -53,7 +54,7 @@ class NativeSupport {
         if (Compatibility::IsCompatible()) {
             return hash;
         }
-        gsl_ExpectsAudit(IsPrefixed(hash));
+        ExpectsAudit(IsPrefixed(hash));
         return hash.substr(kTagLength);
     }
 

@@ -20,7 +20,7 @@
     [ "system"
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "system"]
   }

@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_level"]
   , "hdrs": ["log_level.hpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "logging"]
   }
 , "logging":
@@ -15,8 +15,7 @@
     , "log_sink_file.hpp"
     , "logger.hpp"
     ]
-  , "deps":
-    ["log_level", ["@", "fmt", "", "fmt"], ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["log_level", ["@", "fmt", "", "fmt"], ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "logging"]
   , "private-ldflags": ["-pthread"]
   }

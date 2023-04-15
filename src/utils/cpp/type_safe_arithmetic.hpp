@@ -18,7 +18,7 @@
 #include <limits>
 #include <type_traits>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 
 /// \struct type_safe_arithmetic_tag
 /// \brief Abstract tag defining types and limits for custom arithmetic types.
@@ -87,8 +87,8 @@ class type_safe_arithmetic {
     constexpr auto get() const -> value_t { return m_value; }
 
     constexpr void set(value_t value) {
-        gsl_Expects(value >= min_value && value <= max_value &&
-                    "value output of range");
+        Expects(value >= min_value && value <= max_value &&
+                "value output of range");
         m_value = value;
     }
 

@@ -23,7 +23,7 @@
 
 #include "CLI/CLI.hpp"
 #include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"

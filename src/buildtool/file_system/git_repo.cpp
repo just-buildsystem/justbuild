@@ -17,6 +17,7 @@
 #include <thread>
 
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -1147,7 +1148,7 @@ auto GitRepo::ReadTree(std::string const& id, bool is_hex_id) const noexcept
     }
 
 #ifndef NDEBUG
-    gsl_EnsuresAudit(ValidateEntries(entries));
+    EnsuresAudit(ValidateEntries(entries));
 #endif
 
     return entries;
@@ -1160,7 +1161,7 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
     return std::nullopt;
 #else
 #ifndef NDEBUG
-    gsl_ExpectsAudit(ValidateEntries(entries));
+    ExpectsAudit(ValidateEntries(entries));
 #endif  // NDEBUG
     // share the odb lock
     std::shared_lock lock{GetGitCAS()->mutex_};

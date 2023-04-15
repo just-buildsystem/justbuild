@@ -20,7 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 
 /// \brief Abstract response.

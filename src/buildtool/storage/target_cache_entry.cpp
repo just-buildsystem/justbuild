@@ -20,6 +20,7 @@
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 auto TargetCacheEntry::FromTarget(
     AnalysedTargetPtr const& target,
@@ -48,9 +49,9 @@ auto TargetCacheEntry::ToResult() const noexcept
     auto const& desc = ArtifactDescription::FromJson(json);
     // The assumption is that all artifacts mentioned in a target cache
     // entry are KNOWN to the remote side.
-    gsl_ExpectsAudit(desc and desc->IsKnown());
+    ExpectsAudit(desc and desc->IsKnown());
     auto const& info = desc->ToArtifact().Info();
-    gsl_ExpectsAudit(info);
+    ExpectsAudit(info);
     return *info;
 }
 

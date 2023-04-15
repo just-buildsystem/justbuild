@@ -13,7 +13,7 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , "operation_cache"

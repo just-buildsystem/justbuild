@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"

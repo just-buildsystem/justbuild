@@ -11,7 +11,7 @@
   , "targets":
     [ ["@", "ssl", "", "crypto"]
     , ["@", "grpc", "", "grpc++"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "cli11", "", "cli11"]
     , ["@", "json", "", "json"]

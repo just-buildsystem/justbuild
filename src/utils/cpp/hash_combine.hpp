@@ -15,7 +15,7 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_HASH_COMBINE_HPP
 #define INCLUDED_SRC_UTILS_CPP_HASH_COMBINE_HPP
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 
 // Taken from Boost, as hash_combine did not yet make it to STL.
 // http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0814r0.pdf

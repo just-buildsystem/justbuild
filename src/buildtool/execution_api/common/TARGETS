@@ -8,12 +8,13 @@
     , "execution_response.hpp"
     ]
   , "deps":
-    [ ["@", "gsl-lite", "", "gsl-lite"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]

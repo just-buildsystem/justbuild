@@ -5,7 +5,7 @@
     , "bindings":
       { "rules": "rules-just"
       , "just-distfiles": "just-distfiles"
-      , "gsl-lite": "gsl-lite"
+      , "gsl": "com_github_microsoft_gsl"
       , "cli11": "cli11"
       , "json": "json"
       , "fmt": "fmt"
@@ -27,7 +27,7 @@
     { "repository":
       { "type": "distdir"
       , "repositories":
-        [ "gsl-lite"
+        [ "com_github_microsoft_gsl"
         , "cli11"
         , "json"
         , "fmt"
@@ -138,18 +138,20 @@
       {"type": "file", "path": "etc/import", "pragma": {"to_git": true}}
     , "pkg_bootstrap": {"local_path": "etc/import.pkgconfig"}
     }
-  , "gsl-lite":
+  , "com_github_microsoft_gsl":
     { "repository":
       { "type": "archive"
-      , "content": "6a2245941d8a713897f439c35512593683f6ad48"
-      , "fetch": "https://github.com/gsl-lite/gsl-lite/archive/v0.40.0.tar.gz"
-      , "sha256": "65af4ec8a1050dac4f1ca4622881bb02a9c3978a9baec289fb56e25412d6cac7"
-      , "sha512": "afd65009bf33f54cd1caf1988b725e618bee4f4f779825ae1df55017034c6fff75feaa737a358a7f5e690757637f4d281c2f22d06c39efb81dacd7d1949251df"
-      , "subdir": "gsl-lite-0.40.0/include/gsl"
+      , "content": "386f0a89a47763481223a63d5026215af8d3c827"
+      , "fetch": "https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.tar.gz"
+      , "sha256": "f0e32cb10654fea91ad56bde89170d78cfbf4363ee0b01d8f097de2ba49f6ce9"
+      , "sha512": "7fa7446796c6bf82fb3bff09f86a69c446a27be528bef3b17c8bc5ad2f24d5cf86bdb3d3813ecb44726e8f395020180e97e41027330d1fbf545cc0f0b44aac29"
+      , "subdir": "GSL-4.0.0/include/gsl"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.gsl"
     , "bindings": {"rules": "rules"}
+    , "bootstrap": {"include_name": "gsl"}
+    , "pkg_bootstrap": {"local_path": "include/gsl"}
     }
   , "cli11":
     { "repository":

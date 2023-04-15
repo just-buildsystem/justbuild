@@ -22,7 +22,7 @@
 #include <shared_mutex>
 #include <utility>  // std::forward
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/utils/cpp/atomic.hpp"
 
@@ -67,14 +67,14 @@ class WaitableZeroCounter {
 class NotificationQueue {
   public:
     explicit NotificationQueue(
-        gsl::not_null<WaitableZeroCounter*> total_workload)
-        : total_workload_{std::move(total_workload)} {}
+        gsl::not_null<WaitableZeroCounter*> const& total_workload)
+        : total_workload_{total_workload} {}
 
     NotificationQueue(NotificationQueue const& other) = delete;
     NotificationQueue(NotificationQueue&& other) noexcept
         : queue_{std::move(other.queue_)},
           done_{other.done_},
-          total_workload_{std::move(other.total_workload_)} {}
+          total_workload_{other.total_workload_} {}
     ~NotificationQueue() = default;
 
     [[nodiscard]] auto operator=(NotificationQueue const& other)

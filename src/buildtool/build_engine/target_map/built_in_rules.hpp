@@ -15,7 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_BUILT_IN_RULES_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_BUILT_IN_RULES_HPP
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"

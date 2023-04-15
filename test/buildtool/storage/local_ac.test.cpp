@@ -15,7 +15,7 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"

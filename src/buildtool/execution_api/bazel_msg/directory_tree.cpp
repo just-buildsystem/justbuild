@@ -17,6 +17,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 auto DirectoryTree::AddArtifact(std::filesystem::path const& path,
                                 Artifact const* artifact) noexcept -> bool {
@@ -53,7 +54,7 @@ auto DirectoryTree::FromNamedArtifacts(
 auto DirectoryTree::AddArtifact(std::filesystem::path::iterator* begin,
                                 std::filesystem::path::iterator const& end,
                                 Artifact const* artifact) -> bool {
-    gsl_ExpectsAudit(std::distance(*begin, end) > 0);
+    ExpectsAudit(std::distance(*begin, end) > 0);
     auto segment = *((*begin)++);
     if (segment == "." or segment == "..") {  // fail on "." and ".."
         return false;

@@ -25,11 +25,12 @@
 #include <vector>
 
 #include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_function.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/utils/cpp/concepts.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 namespace BuildMaps::Base {
 
@@ -357,8 +358,8 @@ static auto inline FindDuplicates(gsl::not_null<T_Result*> const& dups,
                                   T_First const& first,
                                   T_Second const& second,
                                   T_Rest const&... rest) -> void {
-    gsl_ExpectsAudit(std::is_sorted(first.begin(), first.end()) and
-                     std::is_sorted(second.begin(), second.end()));
+    ExpectsAudit(std::is_sorted(first.begin(), first.end()) and
+                 std::is_sorted(second.begin(), second.end()));
     std::set_intersection(first.begin(),
                           first.end(),
                           second.begin(),

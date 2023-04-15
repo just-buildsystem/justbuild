@@ -21,7 +21,7 @@
 #include <optional>
 #include <string>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/other_tools/utils/curl_context.hpp"
 
 extern "C" {

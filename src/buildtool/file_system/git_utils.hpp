@@ -17,7 +17,7 @@
 
 #include <optional>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/file_system/object_type.hpp"
 
 extern "C" {

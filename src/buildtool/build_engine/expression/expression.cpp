@@ -21,9 +21,10 @@
 #include <type_traits>
 
 #include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/json.hpp"
 
 auto Expression::operator[](
@@ -208,7 +209,7 @@ auto Expression::FromJson(nlohmann::json const& json) noexcept
             return ExpressionPtr{Expression::map_t{m}};
         }
     } catch (...) {
-        gsl_EnsuresAudit(false);  // ensure that the try-block never throws
+        EnsuresAudit(false);  // ensure that the try-block never throws
     }
     return ExpressionPtr{nullptr};
 }

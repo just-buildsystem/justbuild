@@ -23,7 +23,7 @@
 #include <fnmatch.h>
 
 #include "fmt/format.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -33,6 +33,7 @@
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
 
@@ -249,8 +250,8 @@ void withDependencies(
     std::vector<BuildMaps::Target::ConfiguredTargetPtr> declared_deps{};
     std::vector<BuildMaps::Target::ConfiguredTargetPtr> implicit_deps{};
     std::vector<BuildMaps::Target::ConfiguredTargetPtr> anonymous_deps{};
-    gsl_ExpectsAudit(declared_count <= declared_and_implicit_count);
-    gsl_ExpectsAudit(declared_and_implicit_count <= dependency_values.size());
+    ExpectsAudit(declared_count <= declared_and_implicit_count);
+    ExpectsAudit(declared_and_implicit_count <= dependency_values.size());
     auto fill_target_graph = [&dependency_values](
                                  size_t const a, size_t const b, auto* deps) {
         std::transform(

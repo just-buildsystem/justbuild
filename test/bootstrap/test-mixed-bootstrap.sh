@@ -37,9 +37,9 @@ mkdir -p "${DISTDIR}"
 
 cp -r "${ORIG_LOCALBASE}" "${LOCALBASE}"
 
-# - gsl-liste
-rm -rf "${LOCALBASE}/include/gsl-lite"
-cp distdir/v0.40.0.tar.gz "${DISTDIR}"
+# - gsl
+rm -rf "${LOCALBASE}/include/gsl"
+cp distdir/v4.0.0.tar.gz "${DISTDIR}"
 
 # - fmt
 rm -rf "${LOCALBASE}/include/fmt*"
@@ -50,7 +50,7 @@ cp distdir/fmt-9.1.0.zip "${DISTDIR}"
 
 env LOCALBASE=${LOCALBASE} \
     PACKAGE=YES \
-    NON_LOCAL_DEPS='["gsl-lite", "fmt"]' \
+    NON_LOCAL_DEPS='["com_github_microsoft_gsl", "fmt"]' \
     JUST_BUILD_CONF='{"COMPILER_FAMILY":"clang", "PKG_CONFIG_ARGS":["--define-prefix"]}' \
     python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} ${DISTDIR} 2>&1
 

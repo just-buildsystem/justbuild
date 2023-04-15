@@ -53,7 +53,7 @@
   , "targets":
     [ ["@", "json", "", "json"]
     , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "cli11", "", "cli11"]
     , ["@", "ssl", "", "crypto"]
     , ["", "libgit2"]

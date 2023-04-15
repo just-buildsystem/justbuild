@@ -17,7 +17,7 @@
 
 #include <atomic>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -46,11 +46,8 @@ class Traverser {
     Traverser(Executor const& r,
               DependencyGraph const& graph,
               std::size_t jobs,
-              gsl::not_null<std::atomic<bool>*> fail_flag)
-        : runner_{r},
-          graph_{graph},
-          failed_{std::move(fail_flag)},
-          tasker_{jobs} {}
+              gsl::not_null<std::atomic<bool>*> const& fail_flag)
+        : runner_{r}, graph_{graph}, failed_{fail_flag}, tasker_{jobs} {}
     Traverser() = delete;
     Traverser(Traverser const&) = delete;
     Traverser(Traverser&&) = delete;

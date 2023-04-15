@@ -19,7 +19,7 @@
 #include <optional>
 #include <unordered_map>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
@@ -69,14 +69,12 @@ class GitTree {
     entries_t entries_;
     std::string raw_id_;
 
-    GitTree(gsl::not_null<GitCASPtr> cas,
+    GitTree(gsl::not_null<GitCASPtr> const& cas,
             entries_t&& entries,
             std::string raw_id) noexcept
-        : cas_{std::move(cas)},
-          entries_{std::move(entries)},
-          raw_id_{std::move(raw_id)} {}
+        : cas_{cas}, entries_{std::move(entries)}, raw_id_{std::move(raw_id)} {}
 
-    [[nodiscard]] static auto FromEntries(gsl::not_null<GitCASPtr> cas,
+    [[nodiscard]] static auto FromEntries(gsl::not_null<GitCASPtr> const& cas,
                                           GitRepo::tree_entries_t&& entries,
                                           std::string raw_id) noexcept
         -> std::optional<GitTree> {
@@ -93,16 +91,16 @@ class GitTree {
                 }
             }
         }
-        return GitTree(std::move(cas), std::move(e), std::move(raw_id));
+        return GitTree(cas, std::move(e), std::move(raw_id));
     }
 };
 
 class GitTreeEntry {
   public:
-    GitTreeEntry(gsl::not_null<GitCASPtr> cas,
+    GitTreeEntry(gsl::not_null<GitCASPtr> const& cas,
                  std::string raw_id,
                  ObjectType type) noexcept
-        : cas_{std::move(cas)}, raw_id_{std::move(raw_id)}, type_{type} {}
+        : cas_{cas}, raw_id_{std::move(raw_id)}, type_{type} {}
 
     [[nodiscard]] auto IsBlob() const noexcept { return IsFileObject(type_); }
     [[nodiscard]] auto IsTree() const noexcept { return IsTreeObject(type_); }

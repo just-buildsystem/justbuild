@@ -70,7 +70,7 @@
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":

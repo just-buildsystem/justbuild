@@ -20,7 +20,6 @@
 #include <optional>
 #include <utility>
 
-#include <gsl-lite/gsl-lite.hpp>
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact.hpp"
@@ -32,6 +31,9 @@
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
+#include "src/utils/cpp/gsl.hpp"
+
+#include <gsl/gsl>
 
 /// \brief The high-level target cache for storing export target's data.
 /// Supports global uplinking across all generations using the garbage
@@ -55,8 +57,7 @@ class TargetCache {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
                 cas_->StoreBlob(StorageConfig::ExecutionBackendDescription());
-            gsl_EnsuresAudit(id and
-                             ArtifactDigest{*id}.hash() == ComputeShard());
+            EnsuresAudit(id and ArtifactDigest{*id}.hash() == ComputeShard());
         }
     }
 

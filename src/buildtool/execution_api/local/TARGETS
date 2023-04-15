@@ -5,7 +5,7 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
@@ -25,7 +25,7 @@
   , "srcs": ["local_action.cpp"]
   , "deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]

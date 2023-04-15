@@ -23,11 +23,12 @@
     [ "config"
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/execution_api/common", "bytestream-common"]
+    , ["src/utils/cpp", "gsl"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -52,7 +53,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "blob_tree"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
@@ -69,7 +70,7 @@
   , "deps":
     [ ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   }

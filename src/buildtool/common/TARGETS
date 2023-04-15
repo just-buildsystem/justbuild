@@ -17,7 +17,7 @@
     , ["@", "cli11", "", "cli11"]
     , ["@", "json", "", "json"]
     , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
@@ -44,6 +44,7 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "gsl"]
     , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "common"]

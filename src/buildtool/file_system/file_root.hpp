@@ -24,7 +24,7 @@
 #include <utility>
 #include <variant>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -169,8 +169,8 @@ class FileRoot {
         explicit DirectoryEntries(pairs_t pairs) noexcept
             : data_{std::move(pairs)} {}
 
-        explicit DirectoryEntries(tree_t git_tree) noexcept
-            : data_{std::move(git_tree)} {}
+        explicit DirectoryEntries(tree_t const& git_tree) noexcept
+            : data_{git_tree} {}
 
         [[nodiscard]] auto ContainsFile(std::string const& name) const noexcept
             -> bool {
@@ -272,9 +272,9 @@ class FileRoot {
     FileRoot() noexcept = default;
     explicit FileRoot(std::filesystem::path root) noexcept
         : root_{std::move(root)} {}
-    FileRoot(gsl::not_null<GitCASPtr> cas,
-             gsl::not_null<GitTreePtr> tree) noexcept
-        : root_{git_root_t{std::move(cas), std::move(tree)}} {}
+    FileRoot(gsl::not_null<GitCASPtr> const& cas,
+             gsl::not_null<GitTreePtr> const& tree) noexcept
+        : root_{git_root_t{cas, tree}} {}
 
     [[nodiscard]] static auto FromGit(std::filesystem::path const& repo_path,
                                       std::string const& git_tree_id) noexcept

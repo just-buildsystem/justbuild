@@ -120,50 +120,53 @@ auto BazelNetwork::IsAvailable(std::vector<bazel_re::Digest> const& digests)
 template <class T_Iter>
 auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
                                  T_Iter const& last) noexcept -> bool {
-    auto num_blobs = gsl::narrow<std::size_t>(std::distance(first, last));
+    try {
+        auto num_blobs = gsl::narrow<std::size_t>(std::distance(first, last));
 
-    std::vector<bazel_re::Digest> digests{};
-    digests.reserve(num_blobs);
+        std::vector<bazel_re::Digest> digests{};
+        digests.reserve(num_blobs);
 
-    auto begin = first;
-    auto current = first;
-    std::size_t transfer_size{};
-    while (current != last) {
-        auto const& blob = *current;
-        transfer_size += blob.data.size();
-        if (transfer_size > kMaxBatchTransferSize) {
-            if (begin == current) {
-                if (cas_->UpdateSingleBlob(instance_name_, blob)) {
-                    digests.emplace_back(blob.digest);
+        auto begin = first;
+        auto current = first;
+        std::size_t transfer_size{};
+        while (current != last) {
+            auto const& blob = *current;
+            transfer_size += blob.data.size();
+            if (transfer_size > kMaxBatchTransferSize) {
+                if (begin == current) {
+                    if (cas_->UpdateSingleBlob(instance_name_, blob)) {
+                        digests.emplace_back(blob.digest);
+                    }
+                    ++current;
                 }
-                ++current;
+                else {
+                    for (auto& digest : cas_->BatchUpdateBlobs(
+                             instance_name_, begin, current)) {
+                        digests.emplace_back(std::move(digest));
+                    }
+                }
+                begin = current;
+                transfer_size = 0;
             }
             else {
-                for (auto& digest :
-                     cas_->BatchUpdateBlobs(instance_name_, begin, current)) {
-                    digests.emplace_back(std::move(digest));
-                }
+                ++current;
             }
-            begin = current;
-            transfer_size = 0;
         }
-        else {
-            ++current;
+        if (begin != current) {
+            for (auto& digest :
+                 cas_->BatchUpdateBlobs(instance_name_, begin, current)) {
+                digests.emplace_back(std::move(digest));
+            }
         }
-    }
-    if (begin != current) {
-        for (auto& digest :
-             cas_->BatchUpdateBlobs(instance_name_, begin, current)) {
-            digests.emplace_back(std::move(digest));
+
+        if (digests.size() == num_blobs) {
+            return true;
         }
+    } catch (...) {
     }
 
-    if (digests.size() != num_blobs) {
-        Logger::Log(LogLevel::Warning, "Failed to update all blobs");
-        return false;
-    }
-
-    return true;
+    Logger::Log(LogLevel::Warning, "Failed to update all blobs");
+    return false;
 }
 
 auto BazelNetwork::UploadBlobs(BlobContainer const& blobs,
@@ -206,31 +209,37 @@ auto BazelNetwork::BlobReader::Next() noexcept -> std::vector<BazelBlob> {
     std::size_t size{};
     std::vector<BazelBlob> blobs{};
 
-    while (current_ != ids_.end()) {
-        auto blob_size = gsl::narrow<std::size_t>(current_->size_bytes());
-        size += blob_size;
-        // read if size is 0 (unknown) or exceeds transfer size
-        if (blob_size == 0 or size > kMaxBatchTransferSize) {
-            // perform read of range [begin_, current_)
-            if (begin_ == current_) {
-                auto blob = cas_->ReadSingleBlob(instance_name_, *begin_);
-                if (blob) {
-                    blobs.emplace_back(std::move(*blob));
+    try {
+        while (current_ != ids_.end()) {
+            auto blob_size = gsl::narrow<std::size_t>(current_->size_bytes());
+            size += blob_size;
+            // read if size is 0 (unknown) or exceeds transfer size
+            if (blob_size == 0 or size > kMaxBatchTransferSize) {
+                // perform read of range [begin_, current_)
+                if (begin_ == current_) {
+                    auto blob = cas_->ReadSingleBlob(instance_name_, *begin_);
+                    if (blob) {
+                        blobs.emplace_back(std::move(*blob));
+                    }
+                    ++current_;
                 }
-                ++current_;
+                else {
+                    blobs =
+                        cas_->BatchReadBlobs(instance_name_, begin_, current_);
+                }
+                begin_ = current_;
+                break;
             }
-            else {
-                blobs = cas_->BatchReadBlobs(instance_name_, begin_, current_);
-            }
-            begin_ = current_;
-            break;
+            ++current_;
         }
-        ++current_;
-    }
 
-    if (begin_ != current_) {
-        blobs = cas_->BatchReadBlobs(instance_name_, begin_, current_);
-        begin_ = current_;
+        if (begin_ != current_) {
+            blobs = cas_->BatchReadBlobs(instance_name_, begin_, current_);
+            begin_ = current_;
+        }
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Error, "Reading blobs failed with: {}", e.what());
+        Ensures(false);
     }
 
     return blobs;

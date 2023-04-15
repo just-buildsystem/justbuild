@@ -28,7 +28,7 @@
 #include <utility>
 
 #include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
@@ -115,7 +115,7 @@ class GraphTraverser {
             return std::nullopt;
         }
 
-        gsl_Expects(extra_artifacts.size() == extra_infos->size());
+        Expects(extra_artifacts.size() == extra_infos->size());
         std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> infos;
         infos.reserve(extra_infos->size());
         std::transform(

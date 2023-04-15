@@ -3,7 +3,7 @@
   , "name": ["archive_ops"]
   , "hdrs": ["archive_ops.hpp"]
   , "srcs": ["archive_ops.cpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
     [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
@@ -21,7 +21,7 @@
   , "name": ["curl_easy_handle"]
   , "hdrs": ["curl_easy_handle.hpp"]
   , "srcs": ["curl_easy_handle.cpp"]
-  , "deps": ["curl_context", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["curl_context", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
@@ -34,7 +34,7 @@
   , "name": ["curl_url_handle"]
   , "hdrs": ["curl_url_handle.hpp"]
   , "srcs": ["curl_url_handle.cpp"]
-  , "deps": ["curl_context", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["curl_context", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
   }

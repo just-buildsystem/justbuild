@@ -46,10 +46,10 @@ class BazelNetwork {
         std::vector<bazel_re::Digest>::const_iterator current_;
 
         BlobReader(std::string instance_name,
-                   gsl::not_null<BazelCasClient*> cas,
+                   gsl::not_null<BazelCasClient*> const& cas,
                    std::vector<bazel_re::Digest> ids)
             : instance_name_{std::move(instance_name)},
-              cas_{std::move(cas)},
+              cas_{cas},
               ids_{std::move(ids)},
               begin_{ids_.begin()},
               current_{begin_} {};

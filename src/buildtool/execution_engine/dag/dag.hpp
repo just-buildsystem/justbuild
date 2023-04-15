@@ -27,7 +27,7 @@
 #include <variant>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact.hpp"
@@ -293,7 +293,7 @@ class DependencyGraph : DirectedAcyclicGraph {
 
       public:
         using base::base;
-        using Ptr = gsl::not_null<std::unique_ptr<ActionNode>>;
+        using Ptr = std::unique_ptr<ActionNode>;
         struct NamedOtherNodePtr {
             Action::LocalPath path;
             base::OtherNodePtr node;
@@ -474,7 +474,7 @@ class DependencyGraph : DirectedAcyclicGraph {
         using base::base;
         using typename base::OtherNode;
         using typename base::OtherNodePtr;
-        using Ptr = gsl::not_null<std::unique_ptr<ArtifactNode>>;
+        using Ptr = std::unique_ptr<ArtifactNode>;
 
         [[nodiscard]] static auto Create(Artifact const& content) noexcept
             -> Ptr {

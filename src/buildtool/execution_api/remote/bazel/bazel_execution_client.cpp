@@ -15,7 +15,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 
 #include "grpcpp/grpcpp.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/remote/bazel/bazel_client_common.hpp"
 
 namespace bazel_re = build::bazel::remote::execution::v2;

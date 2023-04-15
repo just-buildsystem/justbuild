@@ -18,7 +18,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

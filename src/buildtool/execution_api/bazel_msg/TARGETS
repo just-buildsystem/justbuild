@@ -12,6 +12,7 @@
   , "private-deps":
     [ ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "git_cas"]
+    , ["src/utils/cpp", "gsl"]
     ]
   }
 , "bazel_msg_factory":
@@ -30,7 +31,7 @@
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/utils/cpp", "hex_string"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
@@ -41,7 +42,7 @@
   , "hdrs": ["directory_tree.hpp"]
   , "srcs": ["directory_tree.cpp"]
   , "deps":
-    [ ["@", "gsl-lite", "", "gsl-lite"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     ]
@@ -59,7 +60,7 @@
   , "deps":
     [ "bazel_msg"
     , "directory_tree"
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/compatibility", "compatibility"]
     ]
   , "private-deps":

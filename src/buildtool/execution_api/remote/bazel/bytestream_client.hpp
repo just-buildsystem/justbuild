@@ -99,56 +99,61 @@ class ByteStreamClient {
 
     [[nodiscard]] auto Write(std::string const& resource_name,
                              std::string const& data) const noexcept -> bool {
-        grpc::ClientContext ctx;
-        google::bytestream::WriteResponse response{};
-        auto writer = stub_->Write(&ctx, &response);
+        try {
+            grpc::ClientContext ctx;
+            google::bytestream::WriteResponse response{};
+            auto writer = stub_->Write(&ctx, &response);
 
-        auto* allocated_data =
-            std::make_unique<std::string>(kChunkSize, '\0').release();
-        google::bytestream::WriteRequest request{};
-        request.set_resource_name(resource_name);
-        request.set_allocated_data(allocated_data);
-        std::size_t pos{};
-        do {
-            auto const size = std::min(data.size() - pos, kChunkSize);
-            allocated_data->resize(size);
-            data.copy(allocated_data->data(), size, pos);
-            request.set_write_offset(static_cast<int>(pos));
-            request.set_finish_write(pos + size >= data.size());
-            if (not writer->Write(request)) {
-                // According to the docs, quote:
-                // If there is an error or the connection is broken during the
-                // `Write()`, the client should check the status of the
-                // `Write()` by calling `QueryWriteStatus()` and continue
-                // writing from the returned `committed_size`.
-                auto const committed_size = QueryWriteStatus(resource_name);
-                if (committed_size <= 0) {
-                    logger_.Emit(LogLevel::Error,
-                                 "broken stream for upload to resource name {}",
-                                 resource_name);
-                    return false;
+            auto* allocated_data =
+                std::make_unique<std::string>(kChunkSize, '\0').release();
+            google::bytestream::WriteRequest request{};
+            request.set_resource_name(resource_name);
+            request.set_allocated_data(allocated_data);
+            std::size_t pos{};
+            do {
+                auto const size = std::min(data.size() - pos, kChunkSize);
+                allocated_data->resize(size);
+                data.copy(allocated_data->data(), size, pos);
+                request.set_write_offset(static_cast<int>(pos));
+                request.set_finish_write(pos + size >= data.size());
+                if (not writer->Write(request)) {
+                    // According to the docs, quote:
+                    // If there is an error or the connection is broken during
+                    // the `Write()`, the client should check the status of the
+                    // `Write()` by calling `QueryWriteStatus()` and continue
+                    // writing from the returned `committed_size`.
+                    auto const committed_size = QueryWriteStatus(resource_name);
+                    if (committed_size <= 0) {
+                        logger_.Emit(
+                            LogLevel::Error,
+                            "broken stream for upload to resource name {}",
+                            resource_name);
+                        return false;
+                    }
+                    pos = gsl::narrow<std::size_t>(committed_size);
                 }
-                pos = gsl::narrow<std::size_t>(committed_size);
+                else {
+                    pos += kChunkSize;
+                }
+            } while (pos < data.size());
+            if (not writer->WritesDone()) {
+                logger_.Emit(LogLevel::Error,
+                             "broken stream for upload to resource name {}",
+                             resource_name);
+                return false;
             }
-            else {
-                pos += kChunkSize;
+
+            auto status = writer->Finish();
+            if (not status.ok()) {
+                LogStatus(&logger_, LogLevel::Error, status);
+                return false;
             }
-        } while (pos < data.size());
-        if (not writer->WritesDone()) {
-            logger_.Emit(LogLevel::Error,
-                         "broken stream for upload to resource name {}",
-                         resource_name);
+
+            return gsl::narrow<std::size_t>(response.committed_size()) ==
+                   data.size();
+        } catch (...) {
             return false;
         }
-
-        auto status = writer->Finish();
-        if (not status.ok()) {
-            LogStatus(&logger_, LogLevel::Error, status);
-            return false;
-        }
-
-        return gsl::narrow<std::size_t>(response.committed_size()) ==
-               data.size();
     }
 
     template <class T_Input>

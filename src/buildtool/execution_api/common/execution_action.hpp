@@ -18,7 +18,7 @@
 #include <chrono>
 #include <memory>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 
 class Logger;

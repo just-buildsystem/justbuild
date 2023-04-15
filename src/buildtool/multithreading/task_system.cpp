@@ -14,7 +14,7 @@
 
 #include "src/buildtool/multithreading/task_system.hpp"
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"
 
 TaskSystem::TaskSystem() : TaskSystem(std::thread::hardware_concurrency()) {}
@@ -59,7 +59,7 @@ void TaskSystem::Finish() noexcept {
 }
 
 void TaskSystem::Run(std::size_t idx) {
-    gsl_Expects(thread_count_ > 0);
+    Expects(thread_count_ > 0);
 
     while (not shutdown_) {
         std::optional<Task> t{};

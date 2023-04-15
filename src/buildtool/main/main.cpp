@@ -449,7 +449,7 @@ void SetupHashFunction() {
                             FileRoot const& root,
                             std::vector<std::string> const& markers)
     -> std::optional<std::filesystem::path> {
-    gsl_Expects(subdir.is_relative());
+    Expects(subdir.is_relative());
     auto current = subdir;
     while (true) {
         for (auto const& marker : markers) {

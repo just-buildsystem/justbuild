@@ -19,9 +19,10 @@
 #include <mutex>
 #include <optional>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 // Wrapper around Value to enable async access to it in a continuation-style
 // programming way
@@ -154,7 +155,7 @@ class AsyncMapNode {
     // Not thread safe, do not use unless the value has been already set
     [[nodiscard]] auto GetValue() const& noexcept -> Value const& {
         // Will only be checked in debug build
-        gsl_ExpectsAudit(value_.has_value());
+        ExpectsAudit(value_.has_value());
         return *value_;
     }
     [[nodiscard]] auto GetValue() && noexcept = delete;

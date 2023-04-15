@@ -10,7 +10,7 @@
   , "name": ["execution_bazel"]
   , "hdrs": ["remote_execution/bazel_action_creator.hpp"]
   , "deps":
-    [ ["@", "gsl-lite", "", "gsl-lite"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/remote", "bazel_network"]
     ]
   , "stage": ["test", "utils"]

@@ -2,21 +2,21 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hash_combine"]
   , "hdrs": ["hash_combine.hpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
 , "type_safe_arithmetic":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["type_safe_arithmetic"]
   , "hdrs": ["type_safe_arithmetic.hpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
 , "json":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["json"]
   , "hdrs": ["json.hpp"]
-  , "deps": [["@", "json", "", "json"], ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["gsl", ["@", "json", "", "json"], ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
 , "concepts":
@@ -54,7 +54,7 @@
   , "name": ["tmp_dir"]
   , "hdrs": ["tmp_dir.hpp"]
   , "srcs": ["tmp_dir.cpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   , "private-deps": [["src/buildtool/file_system", "file_system_manager"]]
   }
@@ -63,11 +63,18 @@
   , "name": ["file_locking"]
   , "hdrs": ["file_locking.hpp"]
   , "srcs": ["file_locking.cpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   , "private-deps":
     [ ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "path"]
     ]
+  }
+, "gsl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["gsl"]
+  , "hdrs": ["gsl.hpp"]
+  , "deps": [["@", "gsl", "", "gsl"]]
+  , "stage": ["src", "utils", "cpp"]
   }
 }

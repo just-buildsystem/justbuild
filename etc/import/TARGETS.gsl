@@ -1,11 +1,7 @@
-{ "gsl-lite":
+{ "gsl":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["gsl-lite"]
-  , "hdrs": ["gsl-lite hdrs"]
-  }
-, "gsl-lite hdrs":
-  { "type": "tree"
-  , "name": "gsl-lite"
-  , "deps": ["gsl", "gsl-lite.h", "gsl-lite.hpp", "gsl-lite-vc6.hpp"]
+  , "name": ["gsl"]
+  , "hdrs": [["TREE", null, "."]]
+  , "stage": ["gsl"]
   }
 }

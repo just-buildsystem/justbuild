@@ -139,7 +139,7 @@ class ArtifactDescription {
                         "Serializing to JSON failed with error:\n{}",
                         ex.what());
         }
-        gsl_Ensures(false);  // unreachable
+        Ensures(false);  // unreachable
         return {};
     }
 
@@ -165,7 +165,7 @@ class ArtifactDescription {
                         "Creating artifact failed with error:\n{}",
                         ex.what());
         }
-        gsl_Ensures(false);  // unreachable
+        Ensures(false);  // unreachable
         return Artifact{{}};
     }
 

@@ -19,16 +19,17 @@
 #include <sstream>
 #include <string>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/utils/cpp/concepts.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 // Decorator for Expression containing a map. Adds Prune() and Update().
 class Configuration {
   public:
     explicit Configuration(ExpressionPtr expr) noexcept
         : expr_{std::move(expr)} {
-        gsl_ExpectsAudit(expr_->IsMap());
+        ExpectsAudit(expr_->IsMap());
     }
     explicit Configuration(Expression::map_t&& map) noexcept
         : expr_{ExpressionPtr{std::move(map)}} {}
@@ -140,7 +141,7 @@ class Configuration {
     }
 
     [[nodiscard]] auto Update(ExpressionPtr const& map) const -> Configuration {
-        gsl_ExpectsAudit(map->IsMap());
+        ExpectsAudit(map->IsMap());
         if (map->Map().empty()) {
             return *this;
         }

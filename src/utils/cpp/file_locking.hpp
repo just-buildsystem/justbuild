@@ -19,7 +19,7 @@
 #include <memory>
 #include <optional>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 
 /* \brief Thread- and process-safe file locking mechanism for paths.
  * User guarantees write access in the parent directory of the path given, as

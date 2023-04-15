@@ -28,7 +28,7 @@
   , "private-deps":
     [ "progress"
     , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "logging"]
     ]

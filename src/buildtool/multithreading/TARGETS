@@ -9,8 +9,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["notification_queue"]
   , "hdrs": ["notification_queue.hpp"]
-  , "deps":
-    ["task", ["src/utils/cpp", "atomic"], ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["task", ["src/utils/cpp", "atomic"], ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "task_system":
@@ -18,7 +17,7 @@
   , "name": ["task_system"]
   , "hdrs": ["task_system.hpp"]
   , "srcs": ["task_system.cpp"]
-  , "deps": ["notification_queue", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["notification_queue", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   , "private-deps": ["task"]
   }
@@ -26,19 +25,15 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["async_map_node"]
   , "hdrs": ["async_map_node.hpp"]
-  , "deps": ["task", "task_system", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps":
+    ["task", "task_system", ["src/utils/cpp", "gsl"], ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "async_map":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["async_map"]
   , "hdrs": ["async_map.hpp"]
-  , "deps":
-    [ "task"
-    , "task_system"
-    , "async_map_node"
-    , ["@", "gsl-lite", "", "gsl-lite"]
-    ]
+  , "deps": ["task", "task_system", "async_map_node", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "async_map_consumer":
@@ -50,7 +45,7 @@
     , "task_system"
     , "async_map_node"
     , "async_map"
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "multithreading"]
   }

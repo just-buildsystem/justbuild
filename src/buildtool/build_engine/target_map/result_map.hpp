@@ -24,7 +24,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
@@ -68,14 +68,13 @@ class ResultTargetMap {
     [[nodiscard]] auto Add(
         BuildMaps::Base::EntityName name,
         Configuration conf,
-        gsl::not_null<AnalysedTargetPtr> result,
+        gsl::not_null<AnalysedTargetPtr> const& result,
         std::optional<TargetCacheKey> target_cache_key = std::nullopt,
         bool is_export_target = false) -> AnalysedTargetPtr {
         auto part = std::hash<BuildMaps::Base::EntityName>{}(name) % width_;
         std::unique_lock lock{m_[part]};
         auto [entry, inserted] = targets_[part].emplace(
-            ConfiguredTarget{std::move(name), std::move(conf)},
-            std::move(result));
+            ConfiguredTarget{std::move(name), std::move(conf)}, result);
         if (target_cache_key) {
             cache_targets_[part].emplace(*target_cache_key, entry->second);
         }

@@ -21,8 +21,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 template <typename ValueT>
 auto ExtractValueAs(
@@ -65,7 +66,7 @@ namespace detail {
         }
         std::fill_n(iterator{oss}, depth, indent);
         oss << '}';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     if (json.is_array() and depth < until) {
@@ -79,7 +80,7 @@ namespace detail {
         }
         std::fill_n(iterator{oss}, depth, indent);
         oss << ']';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     return json.dump();
@@ -116,7 +117,7 @@ namespace detail {
         }
         std::fill_n(iterator{oss}, depth, indent);
         oss << '}';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     if (json.is_array() and depth < until) {
@@ -131,7 +132,7 @@ namespace detail {
         }
         std::fill_n(iterator{oss}, depth, indent);
         oss << ']';
-        gsl_EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
+        EnsuresAudit(nlohmann::json::parse(oss.str()) == json);
         return oss.str();
     }
     return json.dump();

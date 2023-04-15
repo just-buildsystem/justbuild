@@ -18,11 +18,12 @@
 #include <optional>
 #include <string>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 // Provides getter for size with convenient non-protobuf type. Contains a
@@ -48,7 +49,7 @@ class ArtifactDigest {
           // Tree information is only stored in a digest in native mode and
           // false in compatible mode.
           is_tree_{not Compatibility::IsCompatible() and is_tree} {
-        gsl_ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
+        ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
     }
 
     [[nodiscard]] auto hash() const& noexcept -> std::string const& {

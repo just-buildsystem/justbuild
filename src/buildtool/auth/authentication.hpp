@@ -22,9 +22,9 @@
 #include <string>
 #include <utility>
 
-#include <gsl-lite/gsl-lite.hpp>
-
 #include "src/buildtool/logging/logger.hpp"
+
+#include <gsl/gsl>
 enum class AuthMethod : std::uint8_t { kNONE, kTLS };
 
 class Auth {

@@ -105,12 +105,13 @@ class LocalResponse final : public IExecutionResponse {
     LocalAction::Output output_{};
     gsl::not_null<Storage const*> storage_;
 
-    explicit LocalResponse(std::string action_id,
-                           LocalAction::Output output,
-                           gsl::not_null<Storage const*> storage) noexcept
+    explicit LocalResponse(
+        std::string action_id,
+        LocalAction::Output output,
+        gsl::not_null<Storage const*> const& storage) noexcept
         : action_id_{std::move(action_id)},
           output_{std::move(output)},
-          storage_{std::move(storage)} {}
+          storage_{storage} {}
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP

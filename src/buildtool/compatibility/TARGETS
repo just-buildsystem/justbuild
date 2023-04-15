@@ -4,8 +4,9 @@
   , "hdrs": ["compatibility.hpp", "native_support.hpp"]
   , "deps":
     [ ["src/buildtool/crypto", "hash_function"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "compatibility"]
   }

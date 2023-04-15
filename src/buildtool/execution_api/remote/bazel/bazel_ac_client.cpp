@@ -14,7 +14,7 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_client_common.hpp"
 

@@ -20,12 +20,14 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fmt/core.h"
-#include "gsl-lite/gsl-lite.hpp"
+#include <fmt/core.h>
+
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 namespace BuildMaps::Base {
 
@@ -93,7 +95,7 @@ class ExpressionFunction {
                 logger,
                 note_user_context);
         } catch (...) {
-            gsl_EnsuresAudit(false);  // ensure that the try-block never throws
+            EnsuresAudit(false);  // ensure that the try-block never throws
             return ExpressionPtr{nullptr};
         }
     }

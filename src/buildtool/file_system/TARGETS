@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["object_type"]
   , "hdrs": ["object_type.hpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "file_system"]
   }
 , "file_storage":
@@ -36,7 +36,7 @@
     [ "object_type"
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
@@ -52,7 +52,7 @@
   , "name": ["git_cas"]
   , "hdrs": ["git_cas.hpp"]
   , "srcs": ["git_cas.cpp"]
-  , "deps": ["git_context", "git_utils", ["@", "gsl-lite", "", "gsl-lite"]]
+  , "deps": ["git_context", "git_utils", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
@@ -70,7 +70,7 @@
     , "object_type"
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "hex_string"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
@@ -99,6 +99,7 @@
     , ["", "libgit2"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "gsl"]
     ]
   , "cflags": ["-pthread"]
   }
@@ -107,7 +108,7 @@
   , "name": ["git_utils"]
   , "hdrs": ["git_utils.hpp"]
   , "srcs": ["git_utils.cpp"]
-  , "deps": [["@", "gsl-lite", "", "gsl-lite"], "object_type"]
+  , "deps": [["@", "gsl", "", "gsl"], "object_type"]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ ["", "libgit2"]
@@ -125,7 +126,7 @@
     , "file_system_manager"
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "concepts"]
     ]

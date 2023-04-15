@@ -111,7 +111,7 @@ class DFAMinimizer {
             it = buckets_.emplace(bucket_id, Bucket{std::move(symbols)}).first;
         }
         it->second.states.emplace(name, transitions);
-        gsl_Ensures(buckets_by_state_.emplace(name, bucket_id).second);
+        Ensures(buckets_by_state_.emplace(name, bucket_id).second);
     }
 
     // Compute bisimulation for each state and return a map, which maps a

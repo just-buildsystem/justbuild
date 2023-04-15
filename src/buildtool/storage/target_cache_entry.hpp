@@ -20,13 +20,14 @@
 #include <utility>
 #include <vector>
 
-#include <gsl-lite/gsl-lite.hpp>
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+
+#include <gsl/gsl>
 
 // Entry for target cache. Created from target, contains TargetResult.
 class TargetCacheEntry {

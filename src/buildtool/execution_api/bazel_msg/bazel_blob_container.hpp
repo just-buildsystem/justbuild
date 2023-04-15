@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/utils/cpp/concepts.hpp"
 
@@ -168,7 +168,7 @@ class BlobContainer {
           public:
             explicit digest_to_blob(
                 gsl::not_null<underlaying_map_t const*> blobs) noexcept
-                : blobs_{std::move(blobs)} {}
+                : blobs_{blobs} {}
             digest_to_blob(digest_to_blob const& other) noexcept = default;
             digest_to_blob(digest_to_blob&& other) noexcept = default;
             ~digest_to_blob() noexcept = default;

@@ -20,7 +20,6 @@
 #include <string>
 #include <vector>
 
-#include <gsl-lite/gsl-lite.hpp>
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -28,6 +27,8 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+
+#include <gsl/gsl>
 
 /// \brief Store global build system configuration.
 class LocalExecutionConfig {

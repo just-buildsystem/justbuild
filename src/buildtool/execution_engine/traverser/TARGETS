@@ -7,7 +7,7 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "concepts"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "traverser"]
   }

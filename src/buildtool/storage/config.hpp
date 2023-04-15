@@ -29,7 +29,6 @@
 #include <vector>
 
 #include <fmt/core.h>
-#include <gsl-lite/gsl-lite.hpp>
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -39,6 +38,9 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
+
+#include <gsl/gsl>
 
 /// \brief Global storage configuration.
 class StorageConfig {
@@ -119,7 +121,7 @@ class StorageConfig {
     /// non-compatible protocol types.
     [[nodiscard]] static auto GenerationCacheRoot(std::size_t index) noexcept
         -> std::filesystem::path {
-        gsl_ExpectsAudit(index < Data().num_generations);
+        ExpectsAudit(index < Data().num_generations);
         auto generation = std::string{"generation-"} + std::to_string(index);
         return CacheRoot() / generation;
     }

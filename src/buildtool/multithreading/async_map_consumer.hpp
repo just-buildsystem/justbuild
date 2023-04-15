@@ -25,7 +25,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/multithreading/async_map.hpp"
 #include "src/buildtool/multithreading/async_map_node.hpp"
 #include "src/buildtool/multithreading/task.hpp"

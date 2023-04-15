@@ -26,7 +26,7 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , "module_name"
@@ -65,7 +65,7 @@
   , "deps":
     [ "entity_name_data"
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/utils/cpp", "hash_combine"]
@@ -81,7 +81,7 @@
     [ "directory_map"
     , "entity_name"
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
@@ -98,7 +98,7 @@
     [ "entity_name"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
@@ -111,7 +111,8 @@
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["src/utils/cpp", "gsl"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   , "private-deps": [["src/utils/cpp", "hash_combine"]]
@@ -125,7 +126,7 @@
     [ "json_file_map"
     , "entity_name"
     , "expression_function"
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
@@ -142,10 +143,11 @@
   , "deps":
     [ "entity_name"
     , "expression_function"
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/utils/cpp", "concepts"]
+    , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   }
@@ -159,7 +161,7 @@
     , "entity_name"
     , "user_rule"
     , "expression_map"
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/multithreading", "async_map_consumer"]

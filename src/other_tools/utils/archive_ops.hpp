@@ -18,7 +18,7 @@
 #include <filesystem>
 #include <optional>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 
 extern "C" {
 using archive = struct archive;

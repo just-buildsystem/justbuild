@@ -58,7 +58,7 @@
   , "deps":
     [ ["@", "cli11", "", "cli11"]
     , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl-lite", "", "gsl-lite"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/execution_api/local", "config"]

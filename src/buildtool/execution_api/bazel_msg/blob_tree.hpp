@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "gsl-lite/gsl-lite.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
@@ -34,12 +34,7 @@ using BlobTreePtr = gsl::not_null<std::shared_ptr<BlobTree>>;
 class BlobTree {
   public:
     BlobTree(BazelBlob blob, std::vector<BlobTreePtr> nodes)
-        : blob_{std::move(blob)} {
-        nodes_.reserve(nodes.size());
-        for (auto& node : nodes) {
-            nodes_.emplace_back(std::move(node));
-        }
-    }
+        : blob_{std::move(blob)}, nodes_{std::move(nodes)} {}
 
     [[nodiscard]] auto Blob() const noexcept -> BazelBlob { return blob_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool {
