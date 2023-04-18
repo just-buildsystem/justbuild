@@ -81,7 +81,7 @@ of the empty object, if this variable is set. One configuration parameter
 is the build environment `ENV` that can be used to set an unusual
 value of `PATH`, e.g.,
 ``` sh
-env JUST_BUILD_CONF='{"ENV": {"PATH": "/opt/toolchain/bin"}}' python3 ./bin/boostrap.py
+env JUST_BUILD_CONF='{"ENV": {"PATH": "/opt/toolchain/bin"}}' python3 ./bin/bootstrap.py
 ```
 Additionally, if `SOURCE_DATE_EPOCH` is set in the build environment, it
 is forwarded to the build configuration as well. If, on the other hand,

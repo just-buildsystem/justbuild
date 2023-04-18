@@ -458,14 +458,14 @@ RUN apt install -y --no-install-recommends \
 RUN git clone https://github.com/just-buildsystem/justbuild.git
 # use a well defined commit to foster reproducibility
 RUN git checkout 246e1b7f28f319e4be5bd24466494e6b5868ca6f
-RUN cd justbuild && ./bin/bootstrap.py . /just-boostrapped
+RUN cd justbuild && ./bin/bootstrap.py . /just-bootstrapped
 
 # Stage 2: setup the required environment and run just execute
 #
 FROM debian:bullseye-slim
 
 # Copy the binary from the build container
-COPY --from=build /just-boostrapped/out/bin/just /bin/just
+COPY --from=build /just-bootstrapped/out/bin/just /bin/just
 
 # the environment created for this example happens to satisfy the
 # run-time dependencies of just remember to double check it with your
