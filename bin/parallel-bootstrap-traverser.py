@@ -196,7 +196,10 @@ def build_known(desc, *, root):
 def link(src, dest):
     dest = os.path.normpath(dest)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    os.symlink(src, dest)
+    try:
+        os.link(src, dest)
+    except:
+        os.symlink(src, dest)
 
 def build_local(desc, *, root, config):
     repo_name = desc["data"]["repository"]
