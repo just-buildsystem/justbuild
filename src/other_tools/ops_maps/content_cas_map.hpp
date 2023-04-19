@@ -40,12 +40,13 @@ struct ArchiveContent {
 
 // Used in callers of ContentCASMap which need extra fields
 struct ArchiveRepoInfo {
-    ArchiveContent archive; /* key (see ArchiveContent) */
+    ArchiveContent archive;
     std::string repo_type;
     std::string subdir;
 
     [[nodiscard]] auto operator==(const ArchiveRepoInfo& other) const -> bool {
-        return archive.content == other.archive.content;
+        return archive == other.archive && subdir == other.subdir &&
+               repo_type == other.repo_type;
     }
 };
 
@@ -70,7 +71,11 @@ template <>
 struct hash<ArchiveRepoInfo> {
     [[nodiscard]] auto operator()(const ArchiveRepoInfo& ct) const noexcept
         -> std::size_t {
-        return std::hash<ArchiveContent>{}(ct.archive);
+        size_t seed{};
+        hash_combine<ArchiveContent>(&seed, ct.archive);
+        hash_combine<std::string>(&seed, ct.subdir);
+        hash_combine<std::string>(&seed, ct.repo_type);
+        return seed;
     }
 };
 }  // namespace std
