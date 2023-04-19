@@ -72,6 +72,7 @@ before to be present as well).
   this directory and has the expected blob id (computed the same
   way as `git` does). Only if this is not the case, fetching from
   the network is attempted.
+
 Additionally, if the environment variable `DEBUG` is set, the second
 bootstrap phase is carried out sequentially rather than in parallel.
 
@@ -131,3 +132,8 @@ is used. It also a useful launcher for `just`.
 
 This tool is Python3 script located at `bin/just-mr.py` and can simply be put
 into an appropriate location in `PATH`.
+
+There is also a compiled version of `just-mr`, which is faster,
+works in parallel, and has additional features. It can be obtained
+by building the target `["", "installed just-mr"]` using the
+bootstrapped `just` and the Python3 script `bin/just-mr.py`.
