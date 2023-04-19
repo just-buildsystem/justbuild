@@ -122,6 +122,7 @@
             , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
             , "$1": {"type": "var", "name": "TOOLCHAIN"}
             }
+          , "else": {"type": "empty_map"}
           }
         ]
       , [ "PROTOC"
