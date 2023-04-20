@@ -11,6 +11,7 @@
     , "RUNS_PER_TEST"
     , "TEST_ENV"
     , "TEST_COMPATIBLE_REMOTE"
+    , "TEST_REMOTE_EXECUTION"
     ]
   , "field_doc":
     { "test":
@@ -44,6 +45,11 @@
     , "TEST_ENV": ["The environment for executing the test runner."]
     , "TEST_COMPATIBLE_REMOTE":
       ["If true, run the remote execution in compatible mode."]
+    , "TEST_REMOTE_EXECUTION":
+      [ "JSON object (aka map) containing at least \"interface\" and \"port\"."
+      , "If the remote execution service requires additional arguments, they can be listed"
+      , "in the list of strings named \"args\"."
+      ]
     }
   , "tainted": ["test"]
   , "artifacts_doc":

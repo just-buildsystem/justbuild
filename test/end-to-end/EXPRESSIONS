@@ -7,6 +7,7 @@
     , "keep"
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
+    , "TEST_REMOTE_EXECUTION"
     ]
   , "imports":
     { "artifacts_list": ["@", "rules", "", "field_artifacts_list"]
@@ -99,6 +100,9 @@
                 , "then": "true"
                 , "else": "false"
                 }
+              , { "type": "json_encode"
+                , "$1": {"type": "var", "name": "TEST_REMOTE_EXECUTION"}
+                }
               ]
             , {"type": "var", "name": "keep"}
             ]
@@ -166,6 +170,7 @@
     , "deps-fieldname"
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
+    , "TEST_REMOTE_EXECUTION"
     ]
   , "imports": {"action": "test-action"}
   , "expression":

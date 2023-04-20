@@ -38,6 +38,9 @@ def dump_results():
     with open("stderr", "w") as f:
         f.write("%s\n" % (stderr, ))
 
+def get_remote_execution_address(d):
+    return "%s:%d" % (d["interface"], int(d["port"]))
+
 
 dump_results()
 
@@ -49,40 +52,57 @@ os.makedirs(WORK_DIR, exist_ok=True)
 
 REMOTE_DIR = os.path.realpath("remote")
 os.makedirs(REMOTE_DIR, exist_ok=True)
-REMOTE_INFO = os.path.join(REMOTE_DIR, "info.json")
 REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
 
-if os.path.exists(REMOTE_INFO):
-    print(f"Warning: removing unexpected info file {REMOTE_INFO}")
-    os.remove(REMOTE_INFO)
-
-remote_cmd = [
-    "./just", "execute",
-    "--info-file", REMOTE_INFO,
-    "--local-build-root", REMOTE_LBR,
-    "--log-limit", "6", "--plain-log",
-]
+REMOTE_EXECUTION_ADDRESS = ""
 
 compatible = json.loads(sys.argv[1])
-if compatible:
-    remote_cmd.append("--compatible")
+
+custom_remote = json.loads(sys.argv[2])
+
+if not custom_remote:
+    # start just execute as remote service
+    REMOTE_INFO = os.path.join(REMOTE_DIR, "info.json")
+
+    if os.path.exists(REMOTE_INFO):
+        print(f"Warning: removing unexpected info file {REMOTE_INFO}")
+        os.remove(REMOTE_INFO)
 
 
-remotestdout = open("remotestdout", "w")
-remotestderr = open("remotestderr", "w")
-remote_proc = subprocess.Popen(
-    remote_cmd,
-    stdout=remotestdout,
-    stderr=remotestderr,
-)
+    remote_cmd = [
+        "./just", "execute",
+        "--info-file", REMOTE_INFO,
+        "--local-build-root", REMOTE_LBR,
+        "--log-limit", "6", "--plain-log",
+    ]
 
-while not os.path.exists(REMOTE_INFO):
-    time.sleep(1)
+    if compatible:
+        remote_cmd.append("--compatible")
 
-with open(REMOTE_INFO) as f:
-    info = json.load(f)
+    remotestdout = open("remotestdout", "w")
+    remotestderr = open("remotestderr", "w")
+    remote_proc = subprocess.Popen(
+        remote_cmd,
+        stdout=remotestdout,
+        stderr=remotestderr,
+    )
 
-REMOTE_EXECUTION_ADDRESS = "%s:%d" % (info["interface"], info["port"])
+    while not os.path.exists(REMOTE_INFO):
+        time.sleep(1)
+
+    with open(REMOTE_INFO) as f:
+        info = json.load(f)
+
+    REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
+else:
+    msg = "\nA custom remote service is used, please look at logs there.\n"
+    with open("remotestdout", "w") as f:
+        print(msg, file=f)
+    with open("remotestderr", "w") as f:
+        print(msg, file=f)
+
+    args = custom_remote.get("args",[])
+    REMOTE_EXECUTION_ADDRESS = " ".join((get_remote_execution_address(custom_remote), *args))
 
 ENV = dict(os.environ,
            TEST_TMPDIR=TEMP_DIR, TMPDIR=TEMP_DIR,
@@ -97,7 +117,6 @@ for k in ["TLS_CA_CERT", "TLS_CLIENT_CERT", "TLS_CLIENT_KEY"]:
     if k in ENV:
         del ENV[k]
 
-
 time_start = time.time()
 ret = subprocess.run(["sh", "../test.sh"],
                      cwd=WORK_DIR,
@@ -108,13 +127,15 @@ time_stop = time.time()
 result = "PASS" if ret.returncode == 0 else "FAIL"
 stdout = ret.stdout.decode("utf-8")
 stderr = ret.stderr.decode("utf-8")
-remote_proc.terminate()
-rout, rerr = remote_proc.communicate()
+
+if not custom_remote:
+    remote_proc.terminate()
+    rout, rerr = remote_proc.communicate()
 
 dump_results()
 
 for f in sys.argv[2:]:
-    keep_file = os.path.join(WORKDIR, f)
+    keep_file = os.path.join(WORK_DIR, f)
     if not os.path.exists(keep_file):
         open(keep_file, "a").close()
 
