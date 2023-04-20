@@ -203,7 +203,7 @@
           , "$1": {"type": "FIELD", "name": "stage"}
           }
         ]
-      , ["public-fieldnames", ["deps"]]
+      , ["public-fieldnames", ["deps", "proto-defaults"]]
       , ["private-fieldnames", ["deps", "proto-defaults"]]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "protoc-compile"}
