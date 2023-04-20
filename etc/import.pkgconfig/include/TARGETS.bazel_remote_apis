@@ -1,7 +1,0 @@
-{ "semver_proto_file":
-  {"type": "install", "deps": ["build/bazel/semver/semver.proto"]}
-, "remote_execution_proto_file":
-  { "type": "install"
-  , "deps": ["build/bazel/remote/execution/v2/remote_execution.proto"]
-  }
-}

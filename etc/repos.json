@@ -248,6 +248,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.bazel_remote_apis"
     , "bindings": {"rules": "rules", "google_apis": "google_apis"}
+    , "pkg_bootstrap": {"local_path": "include"}
     }
   , "google_apis":
     { "repository":
@@ -261,6 +262,7 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.google_apis"
     , "bindings": {"rules": "rules", "patches": "patches"}
+    , "pkg_bootstrap": {"local_path": "include"}
     }
   , "upb":
     { "repository":

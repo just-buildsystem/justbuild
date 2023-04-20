@@ -1,30 +1,30 @@
 { "google_api_http_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_api_http_proto"]
-  , "srcs": [["include", "google_api_http_proto_file"]]
+  , "srcs": ["google/api/http.proto"]
   }
 , "google_api_annotations_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_api_annotations_proto"]
-  , "srcs": [["include", "google_api_annotations_proto_file"]]
+  , "srcs": ["google/api/annotations.proto"]
   , "deps": ["google_api_http_proto"]
   }
 , "google_bytestream_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_bytestream_proto"]
+  , "srcs": ["google/bytestream/bytestream.proto"]
   , "service": ["yes"]
-  , "srcs": [["include", "google_bytestream_proto_file"]]
   , "deps": ["google_api_annotations_proto"]
   }
 , "google_rpc_status_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_rpc_status_proto"]
-  , "srcs": [["include", "google_rpc_status_proto_file"]]
+  , "srcs": ["google/rpc/status.proto"]
   }
 , "google_longrunning_operations_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_longrunning_operations_proto"]
-  , "srcs": [["include", "google_longrunning_operations_proto_file"]]
+  , "srcs": ["google/longrunning/operations.proto"]
   , "service": ["yes"]
   , "deps":
     [ "google_api_annotations_proto"

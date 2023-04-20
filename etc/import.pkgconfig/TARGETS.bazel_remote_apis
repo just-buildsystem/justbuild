@@ -1,13 +1,13 @@
 { "semver_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["semver_proto"]
-  , "srcs": [["include", "semver_proto_file"]]
+  , "srcs": ["build/bazel/semver/semver.proto"]
   }
 , "remote_execution_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["remote_execution_proto"]
   , "service": ["yes"]
-  , "srcs": [["include", "remote_execution_proto_file"]]
+  , "srcs": ["build/bazel/remote/execution/v2/remote_execution.proto"]
   , "deps":
     [ "semver_proto"
     , ["@", "google_apis", "", "google_api_annotations_proto"]
