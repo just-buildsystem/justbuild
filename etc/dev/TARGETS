@@ -18,7 +18,6 @@
     , ["@", "catch2", "", "catch2"]
     , ["", "libgit2"]
     , ["", "libcurl"]
-    , ["@", "bzip2", "", "libbz2"]
     , ["", "libarchive"]
     , "proto_bindings"
     ]

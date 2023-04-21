@@ -17,7 +17,6 @@
       , "catch2": "catch2"
       , "protoc": "protobuf"
       , "libcurl": "com_github_curl_curl"
-      , "bzip2": "bzip2"
       , "libarchive": "com_github_libarchive_libarchive"
       }
     , "bootstrap": {"link": ["-pthread"]}
