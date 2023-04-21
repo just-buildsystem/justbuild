@@ -63,7 +63,7 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
         auto const* ws_root =
             RepositoryConfig::Instance().WorkspaceRoot(target.repository);
 
-        auto src_file_reader = [ts, key, name, setter, logger, dir, ws_root](
+        auto src_file_reader = [key, name, setter, logger, dir, ws_root](
                                    bool exists_in_ws_root) {
             if (ws_root != nullptr and exists_in_ws_root) {
                 if (auto desc = ws_root->ToArtifactDescription(

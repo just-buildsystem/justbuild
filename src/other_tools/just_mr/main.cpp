@@ -1162,7 +1162,6 @@ void DefaultReachableRepositories(
                                                     &commit_git_map,
                                                     &content_git_map,
                                                     &fpath_git_map,
-                                                    &content_cas_map,
                                                     &distdir_git_map,
                                                     &tree_id_git_map,
                                                     arguments.common.jobs);
