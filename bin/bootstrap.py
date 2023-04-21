@@ -333,6 +333,8 @@ def bootstrap():
         print("Bootstrapping in %r from sources %r, taking files from %r" %
               (WRKDIR, SRCDIR, DISTDIR))
     os.makedirs(WRKDIR, exist_ok=True)
+    with open(os.path.join(WRKDIR, "build-conf.json"), 'w') as f:
+        json.dump(CONF, f, indent=2)
     src_wrkdir = os.path.join(WRKDIR, "src")
     shutil.copytree(SRCDIR, src_wrkdir)
     if LOCAL_DEPS:
