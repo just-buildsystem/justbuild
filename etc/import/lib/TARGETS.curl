@@ -1058,7 +1058,7 @@
   {"type": ["@", "rules", "data", "staged"], "srcs": ["vssh/ssh.h"]}
 , "libcurl":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["curl"]
+  , "name": ["libcurl"]
   , "pure C": ["yes"]
   , "srcs":
     [ "libcurl_csources"

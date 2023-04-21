@@ -1579,7 +1579,7 @@
   }
 , "libarchive":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["archive"]
+  , "name": ["libarchive"]
   , "pure C": ["yes"]
   , "srcs": ["libarchive_csources"]
   , "hdrs": ["libarchive_public_hheaders"]

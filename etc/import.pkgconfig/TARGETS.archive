@@ -1,0 +1,5 @@
+{ "archive":
+  { "type": ["@", "rules", "CC/pkgconfig", "system_library"]
+  , "name": ["libarchive"]
+  }
+}

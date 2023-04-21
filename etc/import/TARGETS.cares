@@ -17,7 +17,7 @@
   }
 , "ares_lib":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["ares"]
+  , "name": ["libcares"]
   , "pure C": ["YES"]
   , "private-defines":
     ["_GNU_SOURCE", "_HAS_EXCEPTIONS=0", "HAVE_CONFIG_H", "CARES_STATICLIB"]
