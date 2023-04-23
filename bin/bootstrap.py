@@ -294,6 +294,8 @@ def prune_config(*, repos_file, empty_dir):
     with open(repos_file) as f:
         repos = json.load(f)
     for repo in repos["repositories"]:
+        if repo in NON_LOCAL_DEPS:
+            continue
         desc = repos["repositories"][repo]
         if desc.get("bootstrap", {}).get("drop"):
             desc["repository"] = {"type": "file", "path": empty_dir}
