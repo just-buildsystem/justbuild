@@ -271,22 +271,24 @@
             [{"type": "var", "name": "stage"}, {"type": "var", "name": "name"}]
           }
         ]
+      , [ "test input"
+        , { "type": "map_union"
+          , "$1":
+            [ { "type": "to_subdir"
+              , "subdir": "work"
+              , "$1": {"type": "var", "name": "data"}
+              }
+            , {"type": "var", "name": "runner"}
+            , {"type": "var", "name": "test-args"}
+            , {"type": "var", "name": "test-launcher"}
+            , {"type": "var", "name": "staged test binary"}
+            ]
+          }
+        ]
       , [ "test-results"
         , { "type": "ACTION"
           , "outs": ["result", "stdout", "stderr", "time-start", "time-stop"]
-          , "inputs":
-            { "type": "map_union"
-            , "$1":
-              [ { "type": "to_subdir"
-                , "subdir": "work"
-                , "$1": {"type": "var", "name": "data"}
-                }
-              , {"type": "var", "name": "runner"}
-              , {"type": "var", "name": "test-args"}
-              , {"type": "var", "name": "test-launcher"}
-              , {"type": "var", "name": "staged test binary"}
-              ]
-            }
+          , "inputs": {"type": "var", "name": "test input"}
           , "cmd": ["./runner"]
           , "env":
             { "type": "var"
