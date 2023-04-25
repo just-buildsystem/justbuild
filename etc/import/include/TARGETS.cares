@@ -1,0 +1,5 @@
+{ "ares_include_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["ares.h", "ares_dns.h", "ares_rules.h", "ares_version.h"]
+  }
+}

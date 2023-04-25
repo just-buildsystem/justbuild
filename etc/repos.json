@@ -319,11 +319,11 @@
   , "com_github_cares_cares":
     { "repository":
       { "type": "archive"
-      , "content": "229bb6835455e73a550e4dc44f8ddac22dc34aa7"
-      , "fetch": "https://github.com/c-ares/c-ares/archive/e982924acee7f7313b4baa4ee5ec000c5e373c30.tar.gz"
-      , "sha256": "e8c2751ddc70fed9dc6f999acd92e232d5846f009ee1674f8aee81f19b2b915a"
-      , "sha512": "c213e2a15e5e8adfc3036d66537d4c9ca6b5685b1d0e7a57fe1abe44eebb99d5e0cb42f6a9259fd8ca75d1a4833dbc1009e2025e633b871b902b02f172fcc9bd"
-      , "subdir": "c-ares-e982924acee7f7313b4baa4ee5ec000c5e373c30"
+      , "content": "998c90eda4410f965ca086ce59811e2cf16c8d6b"
+      , "fetch": "https://github.com/c-ares/c-ares/archive/refs/tags/cares-1_17_2.tar.gz"
+      , "sha256": "444b7dbf33cb6e8a764d069e3485cbaaa28386d60eace6988275c3cb9534d300"
+      , "sha512": "1111f1e7eeb0e5d9e70d1a7c8566145d0a5e6e71b020f3fcaa02ecdf1931553ddeff83fdc152a1f9c5a780078e8afe3670164b631df56eecd2b638210cc59bb3"
+      , "subdir": "c-ares-cares-1_17_2"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.cares"

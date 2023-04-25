@@ -1,0 +1,113 @@
+{ "ares_lib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["OS"]
+  , "name": ["libcares"]
+  , "pure C": ["YES"]
+  , "private-defines":
+    { "type": "++"
+    , "$1":
+      [ ["HAVE_CONFIG_H", "CARES_STATICLIB"]
+      , { "type": "case"
+        , "expr": {"type": "var", "name": "OS"}
+        , "case":
+          { "darwin": ["_DARWIN_C_SOURCE"]
+          , "linux":
+            ["_GNU_SOURCE", "_POSIX_C_SOURCE=199309L", "_XOPEN_SOURCE=600"]
+          , "sunos": ["__EXTENSIONS__", "_REENTRANT", "_XOPEN_SOURCE=600"]
+          , "aix": ["_ALL_SOURCE", "_XOPEN_SOURCE=600", "_USE_IRS"]
+          , "windows":
+            [ "WIN32_LEAN_AND_MEAN"
+            , "_CRT_SECURE_NO_DEPRECATE"
+            , "_CRT_NONSTDC_NO_DEPRECATE"
+            , "_WIN32_WINNT=0x0600"
+            ]
+          }
+        }
+      ]
+    }
+  , "srcs":
+    [ "ares_android.c"
+    , "ares_cancel.c"
+    , "ares_create_query.c"
+    , "ares_data.c"
+    , "ares_destroy.c"
+    , "ares_expand_name.c"
+    , "ares_expand_string.c"
+    , "ares_fds.c"
+    , "ares_freeaddrinfo.c"
+    , "ares_free_hostent.c"
+    , "ares_free_string.c"
+    , "ares_getaddrinfo.c"
+    , "ares_getenv.c"
+    , "ares_gethostbyaddr.c"
+    , "ares_gethostbyname.c"
+    , "ares_getnameinfo.c"
+    , "ares_getsock.c"
+    , "ares_init.c"
+    , "ares_library_init.c"
+    , "ares_llist.c"
+    , "ares_mkquery.c"
+    , "ares_nowarn.c"
+    , "ares_options.c"
+    , "ares_parse_aaaa_reply.c"
+    , "ares_parse_a_reply.c"
+    , "ares_parse_caa_reply.c"
+    , "ares_parse_mx_reply.c"
+    , "ares_parse_naptr_reply.c"
+    , "ares_parse_ns_reply.c"
+    , "ares_parse_ptr_reply.c"
+    , "ares_parse_soa_reply.c"
+    , "ares_parse_srv_reply.c"
+    , "ares_parse_txt_reply.c"
+    , "ares_platform.c"
+    , "ares_process.c"
+    , "ares_query.c"
+    , "ares_search.c"
+    , "ares_send.c"
+    , "ares_strcasecmp.c"
+    , "ares_strdup.c"
+    , "ares_strerror.c"
+    , "ares_strsplit.c"
+    , "ares_timeout.c"
+    , "ares_version.c"
+    , "ares_writev.c"
+    , "ares__close_sockets.c"
+    , "ares__get_hostent.c"
+    , "ares__parse_into_addrinfo.c"
+    , "ares__readaddrinfo.c"
+    , "ares__read_line.c"
+    , "ares__sortaddrinfo.c"
+    , "ares__timeval.c"
+    , "bitncmp.c"
+    , "inet_net_pton.c"
+    , "inet_ntop.c"
+    , "windows_port.c"
+    ]
+  , "hdrs":
+    [ ["@", "grpc", "third_party", "ares_build_h"]
+    , ["@", "grpc", "third_party", "ares_config_h"]
+    , ["include", "ares_include_headers"]
+    , "ares_android.h"
+    , "ares_data.h"
+    , "ares_getenv.h"
+    , "ares_inet_net_pton.h"
+    , "ares_iphlpapi.h"
+    , "ares_ipv6.h"
+    , "ares_library_init.h"
+    , "ares_llist.h"
+    , "ares_nameser.h"
+    , "ares_nowarn.h"
+    , "ares_platform.h"
+    , "ares_private.h"
+    , "ares_setup.h"
+    , "ares_strcasecmp.h"
+    , "ares_strdup.h"
+    , "ares_strsplit.h"
+    , "ares_writev.h"
+    , "bitncmp.h"
+    , "config-dos.h"
+    , "config-win32.h"
+    , "setup_once.h"
+    ]
+  }
+}
