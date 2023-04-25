@@ -43,10 +43,101 @@
               , "-Wmissing-field-initializers"
               , "-Wwrite-strings"
               , "-Wshadow"
-              , "-Wno-unknown-warning-option"
-              , "-Wno-array-parameter"
-              , "-Wno-unused-but-set-variable"
               , "-fno-common"
+              , "-Wmissing-prototypes"
+              , "-Wold-style-definition"
+              , "-Wstrict-prototypes"
+              ]
+            ]
+          ]
+        , "body":
+          { "type": "++"
+          , "$1":
+            [ { "type": "case"
+              , "expr":
+                { "type": "var"
+                , "name": "TARGET_ARCH"
+                , "default": {"type": "var", "name": "ARCH"}
+                }
+              , "case": {"arm": ["-Wno-atomic-alignment"]}
+              }
+            , { "type": "cond"
+              , "cond":
+                [ [ { "type": "or"
+                    , "$1":
+                      [ { "type": "=="
+                        , "$1": {"type": "var", "name": "PLATFORM"}
+                        , "$2": "linux_ppc64le"
+                        }
+                      , { "type": "=="
+                        , "$1": {"type": "var", "name": "PLATFORM"}
+                        , "$2": "linux_x86_64"
+                        }
+                      , { "type": "=="
+                        , "$1": {"type": "var", "name": "PLATFORM"}
+                        , "$2": "mac_x86_64"
+                        }
+                      ]
+                    }
+                  , {"type": "var", "name": "posix_copts"}
+                  ]
+                , [ { "type": "=="
+                    , "$1": {"type": "var", "name": "PLATFORM"}
+                    , "$2": "windows_x86_64"
+                    }
+                  , ["-DWIN32_LEAN_AND_MEAN", "-DOPENSSL_NO_ASM"]
+                  ]
+                ]
+              , "default": ["-DOPENSSL_NO_ASM"]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  , "ADD_CXXFLAGS":
+    { "type": "++"
+    , "$1":
+      [ ["-std=c++20"]
+      , { "type": "let*"
+        , "bindings":
+          [ [ "OS"
+            , { "type": "var"
+              , "name": "OS"
+              , "default":
+                {"type": "fail", "msg": "Required variable 'OS' is not set."}
+              }
+            ]
+          , [ "ARCH"
+            , { "type": "var"
+              , "name": "ARCH"
+              , "default":
+                {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+              }
+            ]
+          , [ "PLATFORM"
+            , { "type": "join"
+              , "separator": "_"
+              , "$1":
+                [ {"type": "var", "name": "OS"}
+                , { "type": "var"
+                  , "name": "TARGET_ARCH"
+                  , "default": {"type": "var", "name": "ARCH"}
+                  }
+                ]
+              }
+            ]
+          , [ "posix_copts"
+            , [ "-Wa,--noexecstack"
+              , "-D_XOPEN_SOURCE=700"
+              , "-Wall"
+              , "-Wformat=2"
+              , "-Wsign-compare"
+              , "-Wmissing-field-initializers"
+              , "-Wwrite-strings"
+              , "-Wshadow"
+              , "-fno-common"
+              , "-Wmissing-declarations"
               ]
             ]
           ]

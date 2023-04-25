@@ -201,11 +201,11 @@
   , "ssl":
     { "repository":
       { "type": "archive"
-      , "content": "cdf51ff27d78e1aceb7cc01d03f9a115826501be"
-      , "fetch": "https://github.com/google/boringssl/archive/e8a935e323510419e0b37638716f6df4dcbbe6f6.tar.gz"
-      , "sha256": "5bbb2bbddf5e4e5fefd02501f930436f3f45402152d7ea9f8f27916d5cf70157"
-      , "sha512": "c1cb6a94b967985e05c699ff73d1e6aebba27903d771c58008cedbbdead53eda33e112de10691af7471e823013afada466ea1abb420a3d55cfd8e2a4b09effed"
-      , "subdir": "boringssl-e8a935e323510419e0b37638716f6df4dcbbe6f6"
+      , "content": "19cdde8ba529848172c09e84e3deb2c92dc670c3"
+      , "fetch": "https://github.com/google/boringssl/archive/6195bf8242156c9a2fa75702eee058f91b86a88b.tar.gz"
+      , "sha256": "ad0b806b6c5cbd6cae121c608945d5fed468748e330632e8d53315089ad52c67"
+      , "sha512": "bd0ff23103695a08c5072ef4e88042c32b684295ee6434124d9c9292586b72863c35246cd8002ad3de3a79a9dfe10a1e0beb594c1625bdf1d6f6175821ca75a1"
+      , "subdir": "boringssl-6195bf8242156c9a2fa75702eee058f91b86a88b"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.boringssl"
