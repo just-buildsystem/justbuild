@@ -306,11 +306,11 @@
   , "re2":
     { "repository":
       { "type": "archive"
-      , "content": "987bf33d9e876431f4ab3c630ff08605f58b98a7"
-      , "fetch": "https://github.com/google/re2/archive/aecba11114cf1fac5497aeb844b6966106de3eb6.tar.gz"
-      , "sha256": "9f385e146410a8150b6f4cb1a57eab7ec806ced48d427554b1e754877ff26c3e"
-      , "sha512": "bbe972e3fd65da69e0d7ac0e0b025fb09ad894315cb6c0e1268fa296599274f9f7c2e771aa577b340c8fa9412d8539fe3db2171d0e9ab9714f3f10910a1d5529"
-      , "subdir": "re2-aecba11114cf1fac5497aeb844b6966106de3eb6"
+      , "content": "8eebd70d7ebd33ac5d736090cecd7cfe1831b9e3"
+      , "fetch": "https://github.com/google/re2/archive/refs/tags/2022-04-01.tar.gz"
+      , "sha256": "1ae8ccfdb1066a731bba6ee0881baad5efd2cd661acd9569b689f2586e1a50e9"
+      , "sha512": "fc3d7cc1ee6bd771719845566d83ffc8c4e19d838748e842a1e19c7564473c9a0a061bebb3966ffa82de6515346f9bbddc2d94ceb3de89233f58826774bd7ce7"
+      , "subdir": "re2-2022-04-01"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.re2"
