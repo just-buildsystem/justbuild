@@ -151,7 +151,7 @@
                 , "    done"
                 , "  done"
                 , "  cd - >/dev/null"
-                , "  $AR -qc $OUT $OUTDIR/*/*.o"
+                , "  $AR -qc $OUT $(find $OUTDIR -type f -name *.o | sort)"
                 , "done"
                 , "$AR s $OUT"
                 ]
