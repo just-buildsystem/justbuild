@@ -99,6 +99,7 @@
           }
         ]
       , ["provider", "ENV"]
+      , ["default", {"type": "empty_map"}]
       , [ "ENV"
         , { "type": "if"
           , "cond": {"type": "var", "name": "PATH"}

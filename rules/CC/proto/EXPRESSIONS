@@ -153,6 +153,14 @@
             }
           }
         ]
+      , [ "protoc-ENV"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+            , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
+          }
+        ]
       , ["protoc-deps", {"type": "CALL_EXPRESSION", "name": "protoc-deps"}]
       , [ "proto srcs"
         , { "type": "disjoint_map_union"
@@ -258,6 +266,7 @@
             }
           , "outs": {"type": "var", "name": "outs"}
           , "cmd": {"type": "var", "name": "cmd"}
+          , "env": {"type": "var", "name": "protoc-ENV"}
           }
         ]
       , [ "srcs"
