@@ -75,6 +75,28 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
     }
   }
+, "default-NON_SYSTEM_TOOLS":
+  { "vars": ["defaults-transition"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range": {"type": "FIELD", "name": "proto-defaults"}
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "dep": {"type": "var", "name": "x"}
+        , "provider": "NON_SYSTEM_TOOLS"
+        , "transition":
+          { "type": "var"
+          , "name": "defaults-transition"
+          , "default": {"type": "empty_map"}
+          }
+        , "default": {"type": "empty_map"}
+        }
+      }
+    }
+  }
 , "protoc-deps":
   { "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
   , "expression":
@@ -107,6 +129,7 @@
     , "default-GRPC_PLUGIN": "default-GRPC_PLUGIN"
     , "default-ENV": "default-ENV"
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
+    , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     }
   , "expression":
     { "type": "let*"
@@ -125,13 +148,20 @@
           , "else": {"type": "empty_map"}
           }
         ]
+      , [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
+        ]
       , [ "PROTOC"
         , { "type": "join"
           , "$1":
             { "type": "++"
             , "$1":
               [ { "type": "if"
-                , "cond": {"type": "var", "name": "TOOLCHAIN"}
+                , "cond":
+                  { "type": "lookup"
+                  , "key": "PROTOC"
+                  , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+                  }
                 , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
                 }
               , {"type": "CALL_EXPRESSION", "name": "default-PROTOC"}
@@ -145,7 +175,11 @@
             { "type": "++"
             , "$1":
               [ { "type": "if"
-                , "cond": {"type": "var", "name": "TOOLCHAIN"}
+                , "cond":
+                  { "type": "lookup"
+                  , "key": "GRPC_PLUGIN"
+                  , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+                  }
                 , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
                 }
               , {"type": "CALL_EXPRESSION", "name": "default-GRPC_PLUGIN"}

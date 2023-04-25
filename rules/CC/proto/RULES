@@ -115,6 +115,46 @@
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
+      , ["provider", "NON_SYSTEM_TOOLS"]
+      , ["default", {"type": "empty_map"}]
+      , [ "NON_SYSTEM_TOOLS"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ [{"type": "CALL_EXPRESSION", "name": "base-provides"}]
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "PROTOC"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "PROTOC"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "GRPC_PLUGIN"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "GRPC_PLUGIN"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
       , ["provider", "TOOLCHAIN"]
       , ["default", {"type": "empty_map"}]
       , [ "TOOLCHAIN"
@@ -171,6 +211,7 @@
           , "GRPC_PLUGIN"
           , "ENV"
           , "TOOLCHAIN"
+          , "NON_SYSTEM_TOOLS"
           , "compile-deps"
           , "compile-args"
           , "link-deps"
