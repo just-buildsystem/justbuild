@@ -271,7 +271,12 @@ auto Union(Expression::list_t const& dicts, size_t from, size_t to)
         return Expression::kEmptyMap;
     }
     if (to == from + 1) {
-        return dicts[from];
+        auto const& entry = dicts[from];
+        if (not entry->IsMap()) {
+            throw Evaluator::EvaluationError{fmt::format(
+                "Map union list element is not a map: {}", entry->ToString())};
+        }
+        return entry;
     }
     size_t mid = from + (to - from) / 2;
     auto left = Union(dicts, from, mid);
