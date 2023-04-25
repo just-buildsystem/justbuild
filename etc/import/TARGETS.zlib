@@ -41,15 +41,20 @@
     , "compress.c"
     , "crc32.c"
     , "deflate.c"
-    , "infback.c"
-    , "inffast.c"
+    , "gzclose.c"
+    , "gzlib.c"
+    , "gzread.c"
+    , "gzwrite.c"
     , "inflate.c"
+    , "infback.c"
     , "inftrees.c"
+    , "inffast.c"
     , "trees.c"
     , "uncompr.c"
     , "zutil.c"
     ]
-  , "hdrs":
+  , "hdrs": ["zlib.h", "zconf.h"]
+  , "private-hdrs":
     [ "crc32.h"
     , "deflate.h"
     , "gzguts.h"
@@ -58,9 +63,8 @@
     , "inflate.h"
     , "inftrees.h"
     , "trees.h"
-    , "zconf.h"
-    , "zlib.h"
     , "zutil.h"
     ]
+  , "private-cflags": ["-Wno-implicit-function-declaration"]
   }
 }
