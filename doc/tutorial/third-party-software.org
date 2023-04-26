@@ -142,7 +142,7 @@ therefore need to introduce an additional binding ~"format"~ for it:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -262,7 +262,7 @@ those ~"type":"file"~ repositories the pragma ~"to_git"~ must be set for them in
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -372,7 +372,7 @@ defines the overlay ~"common-targets-layer"~, which is used by ~"fmtlib"~ and
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }

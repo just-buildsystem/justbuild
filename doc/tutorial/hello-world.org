@@ -29,7 +29,7 @@ in the workspace root:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -45,7 +45,7 @@ in the workspace root:
 In that configuration, two repositories are defined:
 
  1. The ~"rules-cc"~ repository located in the subdirectory ~rules~ of
-    [[https://github.com/just-buildsystem/rules-cc/tree/886c7b680928276d7f925d30fc206ca27d9a97d1][just-buildsystem/rules-cc:886c7b680928276d7f925d30fc206ca27d9a97d1]],
+    [[https://github.com/just-buildsystem/rules-cc/tree/123d8b03bf2440052626151c14c54abce2726e6f][just-buildsystem/rules-cc:123d8b03bf2440052626151c14c54abce2726e6f]],
     which contains the high-level concepts for building C/C++ binaries and
     libraries.
 
@@ -214,7 +214,7 @@ following content:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "886c7b680928276d7f925d30fc206ca27d9a97d1"
+      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
