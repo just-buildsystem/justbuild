@@ -89,14 +89,26 @@ the rule ~["@", "rules", "CC/test", "test"]~ and needs to depend on the
 Before we can run the test, a proper default module for ~CC/test~ must be
 provided. By specifying the appropriate target in this module the default test
 runner can be overwritten by a different test runner fom the rule's workspace
-root. However, in our case, we want to use the default runner and therefore it
+root. Moreover, all test targets share runner infrastructure from ~shell/test~,
+e.g., summarizing multiple runs per test (to detect flakyness) if the configuration
+variable ~RUNS_PER_TEST~ is set.
+
+However, in our case, we want to use the default runner and therefore it
 is sufficient to create an empty module. To do so, create the file
-~tutorial-defaults/CC/test/TARGETS~ with content:
+~tutorial-defaults/CC/test/TARGETS~ with content
 
 #+SRCNAME: tutorial-defaults/CC/test/TARGETS
 #+BEGIN_SRC js
 {}
 #+END_SRC
+
+as well as the file ~tutorial-defaults/shell/test/TARGETS~ with content
+
+#+SRCNAME: tutorial-defaults/shell/test/TARGETS
+#+BEGIN_SRC js
+{}
+#+END_SRC
+
 
 Now we can run the test (i.e., build the test result):
 
@@ -247,15 +259,6 @@ file:
   , "deps": [["", "helloworld"]]
   }
 ...
-#+END_SRC
-
-Similar to the binary tests, also for shell tests we need to provide at least an
-empty module for the test rule defaults. To do so, create the file
-~tutorial-defaults/shell/test/TARGETS~ with content:
-
-#+SRCNAME: tutorial-defaults/shell/test/TARGETS
-#+BEGIN_SRC js
-{}
 #+END_SRC
 
 Now we can run the shell test (i.e., build the test result):
