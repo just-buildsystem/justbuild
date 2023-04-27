@@ -23,7 +23,6 @@
     , "ARCH"
     , "TARGET_ARCH"
     , "COMPILER_FAMILY"
-    , "DEBUG"
     , "CC"
     , "CFLAGS"
     , "ADD_CFLAGS"

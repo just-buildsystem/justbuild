@@ -37,8 +37,10 @@
           , "default":
             [ "-Wall"
             , "-Wno-sign-compare"
+            , "-Wno-sign-conversion"
             , "-Wno-unused-function"
             , "-Wno-deprecated-declarations"
+            , "-Wno-deprecated-enum-enum-conversion"
             ]
           }
         ]

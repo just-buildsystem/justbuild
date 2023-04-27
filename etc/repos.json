@@ -221,11 +221,11 @@
   , "protobuf":
     { "repository":
       { "type": "zip"
-      , "content": "7af7165b585e4aed714555a747b6822376176ef4"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.12.4.zip"
-      , "sha256": "c5dc4cacbb303d5d0aa20c5cbb5cb88ef82ac61641c951cdf6b8e054184c5e22"
-      , "sha512": "11e7584f44994ed6e9745bf6cbbac791bb090615d362fb3bd9aa8ebc08504042303ff945007030274359e268f8d62e116eaba2bb4910431ea3f7845af23cc7c5"
-      , "subdir": "protobuf-3.12.4"
+      , "content": "5bc92c917a0714d0b37cbb9dcbbf434d132edc00"
+      , "fetch": "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v3.21.12.zip"
+      , "sha256": "f7042d540c969b00db92e8e1066a9b8099c8379c33f40f360eb9e1d98a36ca26"
+      , "sha512": "7f1c9a4297a4e47705d64932483f31ed25da928d24e351d94899038f852015d4a16c88c2b962ac4a0c62e6a3f6689f87fb4cef7165d327aae5381a7b975bdf2e"
+      , "subdir": "protobuf-3.21.12"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
