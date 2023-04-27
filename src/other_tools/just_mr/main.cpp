@@ -495,8 +495,14 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
 }
 
 [[nodiscard]] auto ReadConfiguration(
-    std::filesystem::path const& config_file) noexcept
+    std::optional<std::filesystem::path> const& config_file_opt) noexcept
     -> std::shared_ptr<Configuration> {
+    if (not config_file_opt) {
+        Logger::Log(LogLevel::Error, "Cannot find repository configuration.");
+        std::exit(kExitConfigError);
+    }
+    auto const& config_file = *config_file_opt;
+
     std::shared_ptr<Configuration> config{nullptr};
     if (not FileSystemManager::IsFile(config_file)) {
         Logger::Log(LogLevel::Error,
@@ -1243,9 +1249,10 @@ void DefaultReachableRepositories(
 }
 
 /// \brief Runs execvp for given command. Only returns if execvp fails.
-[[nodiscard]] auto CallJust(std::shared_ptr<Configuration> const& config,
-                            CommandLineArguments const& arguments,
-                            bool forward_build_root) -> int {
+[[nodiscard]] auto CallJust(
+    std::optional<std::filesystem::path> const& config_file,
+    CommandLineArguments const& arguments,
+    bool forward_build_root) -> int {
     // check if subcmd_name can be taken from additional args
     auto additional_args_offset = 0U;
     auto subcommand = arguments.just_cmd.subcmd_name;
@@ -1262,7 +1269,10 @@ void DefaultReachableRepositories(
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
+        // Read the config file if needed
         if (kKnownJustSubcommands.at(*subcommand).config) {
+            auto config = ReadConfiguration(config_file);
+
             use_config = true;
             mr_config_path =
                 MultiRepoSetup(config, arguments, /*interactive=*/false);
@@ -1390,13 +1400,6 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.common.repository_config) {
             config_file = arguments.common.repository_config;
         }
-        if (not config_file) {
-            Logger::Log(LogLevel::Error,
-                        "Cannot find repository configuration.");
-            std::exit(kExitConfigError);
-        }
-
-        auto config = ReadConfiguration(*config_file);
 
         // if optional args were not read from just-mrrc or given by user, use
         // the defaults
@@ -1481,8 +1484,11 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommands known to just and `do`
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
-            return CallJust(config, arguments, forward_build_root);
+            return CallJust(config_file, arguments, forward_build_root);
         }
+
+        // The remaining options all need the config file
+        auto config = ReadConfiguration(config_file);
 
         // Run subcommand `setup` or `setup-env`
         if (arguments.cmd == SubCommand::kSetup or
