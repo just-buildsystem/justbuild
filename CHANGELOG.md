@@ -31,6 +31,11 @@ A feature release on top of `1.0.0`, backwards compatible.
   local CAS
 - `just analyse` now supports a new option `--dump-export-targets`
 
+## Release `1.1.0~beta1` (2023-04-28)
+
+First beta release for the upcoming `1.1.0` release; see release
+notes there.
+
 ## Release `1.0.0` (2022-12-12)
 
 Initial stable release.
