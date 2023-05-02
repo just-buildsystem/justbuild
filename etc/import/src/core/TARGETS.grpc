@@ -159,11 +159,11 @@
   , "name": ["status_helper"]
   , "srcs": ["lib/gprpp/status_helper.cc"]
   , "hdrs": ["lib/gprpp/status_helper.h"]
+  , "proto": [["@", "google_apis", "", "google_rpc_status_proto"]]
   , "deps":
     [ "percent_encoding"
     , "slice"
     , ["", "debug_location"]
-    , ["@", "google_apis", "", "google_rpc_status_proto"]
     , ["", "gpr"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -2931,6 +2931,7 @@
     , "ext/xds/xds_transport_grpc.h"
     , "lib/security/credentials/xds/xds_credentials.h"
     ]
+  , "proto": [["@", "google_apis", "", "google_rpc_status_proto"]]
   , "deps":
     [ "certificate_provider_factory"
     , "certificate_provider_registry"
@@ -2941,7 +2942,6 @@
     , "default_event_engine"
     , "env"
     , "error"
-    , ["@", "google_apis", "", "google_rpc_status_proto"]
     , "grpc_fake_credentials"
     , "grpc_fault_injection_filter"
     , "grpc_lb_xds_channel_args"

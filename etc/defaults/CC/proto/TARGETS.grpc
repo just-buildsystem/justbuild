@@ -1,0 +1,7 @@
+{ "defaults":
+  { "type": ["CC/proto", "defaults"]
+  , "PROTOC": ["bin/protoc"]
+  , "deps": [["@", "protoc", "", "libprotobuf"]]
+  , "toolchain": [["@", "protoc", "", "toolchain"]]
+  }
+}
