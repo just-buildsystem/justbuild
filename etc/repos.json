@@ -79,8 +79,7 @@
     , "target_root": "defaults"
     , "rule_root": "rules"
     , "target_file_name": "TARGETS.protobuf"
-    , "bindings":
-      {"base": "rules", "protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
+    , "bindings": {"base": "rules"}
     }
   , "rules-grpc":
     { "repository": "rules"
@@ -352,7 +351,13 @@
       , "google_apis": "google_apis"
       }
     , "pkg_bootstrap":
-      {"copy": ["bin/grpc_cpp_plugin", "include/grpc", "include/grpcpp"]}
+      { "copy":
+        [ "bin/grpc_cpp_plugin"
+        , "include/grpc"
+        , "include/grpcpp"
+        , "include/grpc++"
+        ]
+      }
     }
   , "com_github_libgit2_libgit2":
     { "repository":

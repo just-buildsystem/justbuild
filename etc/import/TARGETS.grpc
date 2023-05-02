@@ -2261,19 +2261,20 @@
   { "type": "export"
   , "target": ["src/compiler", "grpc_cpp_plugin"]
   , "flexible_config":
-    [ "AR"
+    [ "OS"
     , "ARCH"
-    , "CC"
-    , "CFLAGS"
-    , "CXX"
-    , "CXXFLAGS"
-    , "ENV"
     , "HOST_ARCH"
-    , "OS"
     , "TARGET_ARCH"
     , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
     ]
   }
 }

@@ -109,11 +109,12 @@ class ByteStreamClient {
             google::bytestream::WriteRequest request{};
             request.set_resource_name(resource_name);
             request.set_allocated_data(allocated_data);
+
             std::size_t pos{};
             do {
                 auto const size = std::min(data.size() - pos, kChunkSize);
-                allocated_data->resize(size);
-                data.copy(allocated_data->data(), size, pos);
+                request.mutable_data()->resize(size);
+                data.copy(request.mutable_data()->data(), size, pos);
                 request.set_write_offset(static_cast<int>(pos));
                 request.set_finish_write(pos + size >= data.size());
                 if (not writer->Write(request)) {
