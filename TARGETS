@@ -32,7 +32,7 @@
     , "COMPILER_FAMILY":
       [ "The compiler family to use as (cross) toolchain."
       , ""
-      , "Supported values are \"unknown\" (the default), \"clang\", and \"gcc\"."
+      , "Supported values are \"unknown\" (the default), \"clang\", and \"gnu\"."
       , "The unknown compiler family tries to not make any assumptions on the"
       , "used C and C++ compilers and uses the generic \"cc\" and \"c++\" as"
       , "names for the respective compilers; typically used in conjunction with"
