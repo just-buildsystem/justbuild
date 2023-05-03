@@ -44,10 +44,11 @@ namespace {
         return nullptr;
     }
     if (++it != end) {
-        if (not entry->IsTree()) {
+        auto const& subtree = entry->Tree();
+        if (not subtree) {
             return nullptr;
         }
-        return LookupEntryPyPath(*entry->Tree(), it, end);
+        return LookupEntryPyPath(*subtree, it, end);
     }
     return entry;
 }
