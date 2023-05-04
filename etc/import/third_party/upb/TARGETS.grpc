@@ -95,12 +95,27 @@
   }
 , "upb_reflection":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["upb_reflection"]
   , "pure C": ["YES"]
   , "hdrs":
     ["upb/def.h", "upb/def.hpp", "upb/reflection.h", "upb/reflection.hpp"]
   , "srcs": ["upb/def.c", "upb/reflection.c"]
   , "private-hdrs": ["upb/msg.h"]
+  , "private-cflags":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default":
+        { "type": "var"
+        , "name": "ARCH"
+        , "default":
+          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+        }
+      }
+    , "case": {"arm": ["-Wno-type-limits"], "arm64": ["-Wno-type-limits"]}
+    }
   , "deps":
     [ "upb_collections"
     , "upb_mini_table"

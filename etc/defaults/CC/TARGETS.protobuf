@@ -33,6 +33,13 @@
               , "/wd4800"
               , "/wd4996"
               ]
+            , "gnu":
+              [ "-Wall"
+              , "-Wno-sign-compare"
+              , "-Wno-sign-conversion"
+              , "-Wno-unused-function"
+              , "-Wno-deprecated-declarations"
+              ]
             }
           , "default":
             [ "-Wall"

@@ -270,15 +270,28 @@
   }
 , "libprotobuf_lite":
   { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["COMPILER_FAMILY"]
   , "name": ["protobuf-lite"]
   , "cflags":
-    [ "-Wno-sign-compare"
-    , "-Wno-sign-conversion"
-    , "-Wno-unused-function"
-    , "-Wno-zero-length-array"
-    , "-Wno-deprecated-declarations"
-    , "-Wno-invalid-noreturn"
-    ]
+    { "type": "case"
+    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+    , "case":
+      { "gnu":
+        [ "-Wno-sign-compare"
+        , "-Wno-sign-conversion"
+        , "-Wno-unused-function"
+        , "-Wno-deprecated-declarations"
+        ]
+      }
+    , "default":
+      [ "-Wno-sign-compare"
+      , "-Wno-sign-conversion"
+      , "-Wno-unused-function"
+      , "-Wno-zero-length-array"
+      , "-Wno-deprecated-declarations"
+      , "-Wno-invalid-noreturn"
+      ]
+    }
   , "hdrs": ["protobuf_headers"]
   , "srcs":
     [ "any_lite.cc"
