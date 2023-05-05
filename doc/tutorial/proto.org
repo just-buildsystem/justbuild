@@ -309,6 +309,45 @@ into our ~C++~ rules is just convenience of our code base. If we had
 to cooperate with rules not aware of proto, we could have created
 a separate rule delegating the library creation to the anonymous
 target and then simply reflecting the values of that target.
+In fact, we could simply use an empty library with a public ~proto~
+dependency for this purpose.
+
+#+SRCNAME: TARGETS
+#+BEGIN_SRC js
+...
+, "address proto library":
+  {"type": ["@", "rules", "CC", "library"], "proto": ["address"]}
+...
+#+END_SRC
+
+#+BEGIN_SRC sh
+$ just-mr analyse 'address proto library'
+...
+INFO: Requested target is [["@","","","address proto library"],{}]
+INFO: Result of target [["@","","","address proto library"],{}]: {
+        "artifacts": {
+        },
+        "provides": {
+          ...
+          "compile-deps": {
+            "addressbook.pb.h": {"data":{"id":"6d70cd10fabcbc7591cd82aae2f100cca39d3879","path":"work/addressbook.pb.h"},"type":"ACTION"},
+            ...
+          },
+          "link-args": [
+            "libaddressbook.a",
+            ...
+          ],
+          "link-deps": {
+            "libaddressbook.a": {"data":{"id":"753073bd026b6470138c47e004469dd1d3df08d4","path":"libaddressbook.a"},"type":"ACTION"},
+            ...
+          },
+          ...
+        },
+        "runfiles": {
+        }
+      }
+$
+#+END_SRC
 
 ** Adding a test
 
