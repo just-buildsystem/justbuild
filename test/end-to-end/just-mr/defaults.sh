@@ -148,24 +148,24 @@ test "$(cat "${PARSE_DIR}/launcher")" = 'null'
 ## Command-line -D
 
 # ignored on non-build commands
-"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${PARSE}" \
              -D 'this is not json' version "${PARSE_DIR}" 2>&1
 test $(jq '. == [] ' "${PARSE_DIR}/defines") = "true"
 
 # not forwarded, if empty
-"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${PARSE}" \
              -D '{}' build "${PARSE_DIR}" 2>&1
 test $(jq '. == [] ' "${PARSE_DIR}/defines") = "true"
 
 # combined on forwarding
-"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${PARSE}" \
              -D '{"foo": "bar"}' -D '{"baz": "baz"}' -D '{"foo": "override"}' \
              build "${PARSE_DIR}" 2>&1
 test $(jq '. == [ {"foo": "override", "baz": "baz"}] ' "${PARSE_DIR}/defines") = true
 
 # but passed arguments are given separately
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${PARSE}" \
              -D '{"foo": "bar"}' -D '{"baz": "baz"}' \
              build -D '{"foo": "override"}' -D '{"x": "y"}' "${PARSE_DIR}" 2>&1
 test $(jq '. == [ {"foo": "bar", "baz": "baz"}, {"foo": "override"}, {"x": "y"}] ' "${PARSE_DIR}/defines") = true

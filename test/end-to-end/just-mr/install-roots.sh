@@ -57,7 +57,7 @@ cat > repos.json <<EOF
 EOF
 
 # Compute the repository configuration and read of tree from there
-CONF=$("${JUST_MR}" --local-build-root "${LBR}" --distdir "${DISTDIR}" setup)
+CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" --distdir "${DISTDIR}" setup)
 cat "${CONF}"
 echo
 TREE=$(jq -r '.repositories.foo.workspace_root[1]' "${CONF}")

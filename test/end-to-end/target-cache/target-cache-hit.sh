@@ -55,7 +55,7 @@ if [ "${COMPATIBLE:-}" = "YES" ]; then
 fi
 
 # build project twice locally to trigger a target cache hit
-export CONF="$("$JUST_MR" -C repos.json --local-build-root="$LBRDIR" setup main)"
+export CONF="$("$JUST_MR" --norc -C repos.json --local-build-root="$LBRDIR" setup main)"
 "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
 "$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
 

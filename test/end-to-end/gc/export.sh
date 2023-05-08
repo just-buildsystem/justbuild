@@ -22,7 +22,7 @@ readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly LBR_MR="${TEST_TMPDIR}/local-build-root-mr"
 readonly TOOLS_DIR="${TEST_TMPDIR}/tools"
 readonly OUT="${TEST_TMPDIR}/out"
-readonly JUST_MR_ARGS="--just ${JUST} --local-build-root ${LBR_MR}"
+readonly JUST_MR_ARGS="--norc --just ${JUST} --local-build-root ${LBR_MR}"
 BUILD_ARGS="--local-build-root ${LBR}"
 if [ -n "${COMPATIBLE:-}" ]; then
   BUILD_ARGS="$BUILD_ARGS --compatible"
