@@ -16,6 +16,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "catch2/catch_test_macros.hpp"
@@ -510,22 +511,10 @@ TEST_CASE("FileSystemManager", "[file_system]") {
         auto anchor =
             FileSystemManager::ChangeDirectory(test_file.parent_path());
 
-        // assemble file creation command (escape null character)
-        std::string create_file_cmd{};
-        create_file_cmd += "echo -n \"";
-        std::for_each(
-            test_content.begin(), test_content.end(), [&](auto const& c) {
-                if (c == '\0') {
-                    create_file_cmd += std::string{"\\0"};
-                }
-                else {
-                    create_file_cmd += c;
-                }
-            });
-        create_file_cmd += "\" > " + test_file.filename().string();
-
-        // run file creation command
-        std::system(create_file_cmd.c_str());
+        std::ofstream file{test_file.filename()};
+        REQUIRE(file);
+        file << test_content;
+        file.close();
 
         // check if file exists
         REQUIRE(FileSystemManager::IsFile(test_file.filename()));
