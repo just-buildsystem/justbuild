@@ -64,7 +64,8 @@
       ]
     }
   }
-, "installed just": {"type": "install", "files": {"bin/just": "just"}}
+, "installed just":
+  {"type": ["@", "rules", "CC", "install-with-deps"], "targets": ["just"]}
 , "exported-just":
   { "type": "export"
   , "target": ["src/buildtool/main", "just"]
@@ -119,7 +120,8 @@
       }
     }
   }
-, "installed just-mr": {"type": "install", "files": {"bin/just-mr": "just-mr"}}
+, "installed just-mr":
+  {"type": ["@", "rules", "CC", "install-with-deps"], "targets": ["just-mr"]}
 , "exported-just-mr":
   { "type": "export"
   , "target": ["src/other_tools/just_mr", "just-mr"]
