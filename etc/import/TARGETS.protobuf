@@ -89,10 +89,11 @@
     , "PKG_CONFIG_ARGS"
     ]
   }
+, "installed protoc":
+  {"type": ["@", "rules", "CC", "install-with-deps"], "targets": ["protoc"]}
 , "toolchain_headers": {"type": "install", "deps": ["libprotobuf"]}
 , "toolchain":
   { "type": "install"
-  , "files": {"bin/protoc": "protoc"}
-  , "dirs": [["toolchain_headers", "include"]]
+  , "dirs": [["installed protoc", "."], ["toolchain_headers", "include"]]
   }
 }

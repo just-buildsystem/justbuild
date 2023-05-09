@@ -7,4 +7,5 @@
   {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["grpc"]}
 , "gpr":
   {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["gpr"]}
+, "toolchain": {"type": "install", "deps": ["bin/grpc_cpp_plugin"]}
 }

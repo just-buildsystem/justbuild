@@ -7,8 +7,8 @@
 , "service defaults":
   { "type": ["CC/proto", "defaults"]
   , "base": ["defaults"]
-  , "GRPC_PLUGIN": ["grpc_cpp_plugin"]
+  , "GRPC_PLUGIN": ["bin/grpc_cpp_plugin"]
   , "deps": [["@", "grpc", "", "grpc++"]]
-  , "toolchain": [["@", "grpc", "", "grpc_cpp_plugin"]]
+  , "toolchain": [["@", "grpc", "", "toolchain"]]
   }
 }

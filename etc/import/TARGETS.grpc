@@ -2281,4 +2281,8 @@
     , "PKG_CONFIG_ARGS"
     ]
   }
+, "toolchain":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "targets": ["grpc_cpp_plugin"]
+  }
 }
