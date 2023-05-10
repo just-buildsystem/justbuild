@@ -1,5 +1,5 @@
 #+TITLE: JUST-MRRC
-#+MAN_CLASS_OPTIONS: section-id=5
+#+MAN_CLASS_OPTIONS: :section-id "5"
 
 * NAME
 

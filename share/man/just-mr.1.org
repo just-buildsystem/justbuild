@@ -1,5 +1,5 @@
 #+TITLE: JUST-MR
-#+MAN_CLASS_OPTIONS: section-id=1
+#+MAN_CLASS_OPTIONS: :section-id "1"
 
 * NAME
 
