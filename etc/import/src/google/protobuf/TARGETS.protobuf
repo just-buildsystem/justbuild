@@ -386,7 +386,7 @@
     , "wire_format.cc"
     , "wrappers.pb.cc"
     ]
-  , "deps": ["libprotobuf_lite", ["@", "zlib", "", "zlib"]]
+  , "deps": [["", "libprotobuf_lite"], ["@", "zlib", "", "zlib"]]
   }
 , "libprotoc":
   { "type": ["@", "rules", "CC", "library"]
@@ -476,13 +476,13 @@
     , "compiler/subprocess.cc"
     , "compiler/zip_writer.cc"
     ]
-  , "deps": ["libprotobuf"]
+  , "deps": [["", "libprotobuf"]]
   }
 , "protoc":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["protoc"]
   , "srcs": ["compiler/main.cc"]
-  , "private-deps": ["libprotoc"]
+  , "private-deps": [["", "libprotoc"]]
   , "private-ldflags": ["-pthread"]
   }
 }
