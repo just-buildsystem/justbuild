@@ -1,4 +1,24 @@
 { "strings":
+  { "type": "export"
+  , "target": "strings_internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "strings_internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strings"]
   , "stage": ["absl", "strings"]
@@ -81,6 +101,26 @@
     ]
   }
 , "cord":
+  { "type": "export"
+  , "target": "cord_internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "cord_internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["cord"]
   , "stage": ["absl", "strings"]
@@ -245,6 +285,26 @@
   , "deps": ["cordz_update_tracker", ["absl/base", "config"]]
   }
 , "str_format":
+  { "type": "export"
+  , "target": "str_format_internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "str_format_internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["str_format"]
   , "stage": ["absl", "strings"]

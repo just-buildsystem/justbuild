@@ -1,4 +1,24 @@
 { "synchronization":
+  { "type": "export"
+  , "target": "synchronization_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "synchronization_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["synchronization"]

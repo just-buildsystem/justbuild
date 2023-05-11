@@ -1,4 +1,24 @@
 { "status":
+  { "type": "export"
+  , "target": "status_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "status_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["status"]
   , "stage": ["absl", "status"]
@@ -21,6 +41,26 @@
     ]
   }
 , "statusor":
+  { "type": "export"
+  , "target": "statusor_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "statusor_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["statusor"]
   , "stage": ["absl", "status"]

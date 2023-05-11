@@ -1,4 +1,24 @@
 { "base":
+  { "type": "export"
+  , "target": "base_internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "base_internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "COMPILER_FAMILY", "ARCH", "TARGET_ARCH"]
   , "name": ["base"]
