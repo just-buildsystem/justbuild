@@ -86,6 +86,14 @@ auto main(int argc, char* argv[]) -> int {
         return EXIT_FAILURE;
     }
 
+    /**
+     * The current implementation of libgit2 uses pthread_key_t incorrectly
+     * on POSIX systems to handle thread-specific data, which requires us to
+     * explicitly make sure the main thread is the first one to call
+     * git_libgit2_init. Future versions of libgit2 will hopefully fix this.
+     */
+    GitContext::Create();
+
     int result = Catch::Session().run(argc, argv);
 
     // valgrind fails if we terminate before grpc's async shutdown threads exit

@@ -1481,6 +1481,14 @@ auto main(int argc, char* argv[]) -> int {
             return kExitGenericFailure;
         }
 
+        /**
+         * The current implementation of libgit2 uses pthread_key_t incorrectly
+         * on POSIX systems to handle thread-specific data, which requires us to
+         * explicitly make sure the main thread is the first one to call
+         * git_libgit2_init. Future versions of libgit2 will hopefully fix this.
+         */
+        GitContext::Create();
+
         // Run subcommands known to just and `do`
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {

@@ -26,10 +26,11 @@ class GitContext {
     auto operator=(GitContext const&) = delete;
     auto operator=(GitContext&& other) = delete;
 
-    GitContext() noexcept;
+    static void Create() noexcept;
     ~GitContext() noexcept;
 
   private:
+    GitContext() noexcept;
     bool initialized_{false};
 };
 

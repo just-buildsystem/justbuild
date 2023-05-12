@@ -2,7 +2,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["catch-main"]
   , "srcs": ["main.cpp"]
-  , "deps": [["@", "catch2", "", "catch2"], ["test/utils", "log_config"]]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["test/utils", "log_config"]
+    , ["src/buildtool/file_system", "git_context"]
+    ]
   , "stage": ["test"]
   }
 , "TESTS":

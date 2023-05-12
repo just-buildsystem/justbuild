@@ -15,6 +15,7 @@
 #include "src/buildtool/file_system/git_context.hpp"
 
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -34,4 +35,9 @@ GitContext::~GitContext() noexcept {
         git_libgit2_shutdown();
     }
 #endif
+}
+
+void GitContext::Create() noexcept {
+    static GitContext git_state{};
+    Expects(git_state.initialized_);
 }

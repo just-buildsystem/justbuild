@@ -49,6 +49,10 @@ namespace {
 
 #endif  // BOOTSTRAP_BUILD_TOOL
 
+GitCAS::GitCAS() noexcept {
+    GitContext::Create();
+}
+
 auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     -> GitCASPtr {
 #ifndef BOOTSTRAP_BUILD_TOOL

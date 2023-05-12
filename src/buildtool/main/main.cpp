@@ -1264,7 +1264,16 @@ auto main(int argc, char* argv[]) -> int {
             Evaluator::SetExpressionLogLimit(
                 *arguments.analysis.expression_log_limit);
         }
+
 #ifndef BOOTSTRAP_BUILD_TOOL
+        /**
+         * The current implementation of libgit2 uses pthread_key_t incorrectly
+         * on POSIX systems to handle thread-specific data, which requires us to
+         * explicitly make sure the main thread is the first one to call
+         * git_libgit2_init. Future versions of libgit2 will hopefully fix this.
+         */
+        GitContext::Create();
+
         SetupHashFunction();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);

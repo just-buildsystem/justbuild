@@ -45,7 +45,7 @@ auto main(int argc, char* argv[]) -> int {
         ConfigureLogging();
 
         // start a git context, needed to read in the config file
-        GitContext context{};
+        GitContext::Create();
 
         // handle args
         if (argc < 3) {

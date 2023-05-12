@@ -85,7 +85,11 @@
   , "hdrs": ["git_context.hpp"]
   , "srcs": ["git_context.cpp"]
   , "stage": ["src", "buildtool", "file_system"]
-  , "private-deps": [["src/buildtool/logging", "logging"], ["", "libgit2"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["", "libgit2"]
+    , ["src/utils/cpp", "gsl"]
+    ]
   }
 , "git_repo":
   { "type": ["@", "rules", "CC", "library"]

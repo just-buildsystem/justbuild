@@ -391,7 +391,7 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
         static std::mutex repo_mutex{};
         std::unique_lock lock{repo_mutex};
 
-        auto git_state = GitContext();  // initialize libgit2
+        GitContext::Create();  // initialize libgit2
 
         // check if init is actually needed
         if (git_repository_open_ext(nullptr,
@@ -1015,7 +1015,7 @@ auto GitRepo::GetRepoRootFromPath(std::filesystem::path const& fpath,
     return std::nullopt;
 #else
     try {
-        auto git_state = GitContext();  // initialize libgit2
+        GitContext::Create();  // initialize libgit2
 
         git_buf buffer = GIT_BUF_INIT_CONST(NULL, 0);
         auto res = git_repository_discover(&buffer, fpath.c_str(), 0, nullptr);
