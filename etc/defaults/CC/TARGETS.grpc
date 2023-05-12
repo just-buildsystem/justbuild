@@ -44,6 +44,10 @@
             , "-DOSATOMIC_USE_INLINED=1"
             ]
           }
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case": {"gnu": ["-Wno-clobbered"]}
+          }
         , { "type": "if"
           , "cond": {"type": "var", "name": "DEBUG"}
           , "then": ["-D_DEBUG", "-DDEBUG"]

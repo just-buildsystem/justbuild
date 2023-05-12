@@ -18,9 +18,7 @@
           , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
           , "case":
             { "msvc":
-              [ "/wd4018"
-              , "/wd4065"
-              , "/wd4146"
+              [ "/wd4065"
               , "/wd4244"
               , "/wd4251"
               , "/wd4267"
@@ -35,6 +33,7 @@
               ]
             , "gnu":
               [ "-Wall"
+              , "-Woverloaded-virtual"
               , "-Wno-sign-compare"
               , "-Wno-sign-conversion"
               , "-Wno-unused-function"
@@ -43,6 +42,7 @@
             }
           , "default":
             [ "-Wall"
+            , "-Woverloaded-virtual"
             , "-Wno-sign-compare"
             , "-Wno-sign-conversion"
             , "-Wno-unused-function"
