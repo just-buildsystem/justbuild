@@ -31,6 +31,28 @@ A feature release on top of `1.0.0`, backwards compatible.
   local CAS
 - `just analyse` now supports a new option `--dump-export-targets`
 
+## Release `1.1.0~beta2` (2023-05-15)
+
+Second beta release for the upcoming `1.1.0` release; see release
+notes there.
+
+### Changes since `1.1.0~beta1`
+
+- fix a race condition in our use of `libgit2`
+- a fix in the error handling of git trees
+- fixes to the third-party descriptions of our dependencies; in particular,
+  the structure of the `export` targets is cleaned up. These changes should
+  not affect package builds.
+- various minor fixes to documentation and tests
+
+### Note
+
+There is a regression in `libgit2` versions `1.6.1` upto and
+including `1.6.4` with a fix already committed upstream. This
+regression makes `just` unusable when built against those versions.
+Therefore, the third-party build description for `libgit2` is still
+for version `1.5.2`.
+
 ## Release `1.1.0~beta1` (2023-04-28)
 
 First beta release for the upcoming `1.1.0` release; see release
