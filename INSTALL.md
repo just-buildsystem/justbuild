@@ -135,5 +135,12 @@ into an appropriate location in `PATH`.
 
 There is also a compiled version of `just-mr`, which is faster,
 works in parallel, and has additional features. It can be obtained
-by building the target `["", "installed just-mr"]` using the
-bootstrapped `just` and the Python3 script `bin/just-mr.py`.
+by building the target `["", "installed just-mr"]`. That target
+can be built using the bootstrapped `just` and the Python3 script
+`bin/just-mr.py`. Alternatively, the bootstrapping process leaves
+in its work directory a file `repo-conf.json` with the repository
+configuration and a file `build-conf.json` with the build configuration
+used. Those can be used to build `just-mr` using the bootstrapped
+`just`. This approach is preferable for package building, as the
+same dependencies (typically the ones provided by the system) are
+used as for building `just.
