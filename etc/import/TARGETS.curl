@@ -59,6 +59,7 @@
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
     , "HAVE_ZSTD_CREATEDSTREAM"
+    , "PKG_CONFIG_ARGS"
     ]
   , "config_doc":
     { "CURL_HIDDEN_SYMBOLS":

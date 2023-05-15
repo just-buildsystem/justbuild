@@ -71,6 +71,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 , "grpc_internal":
@@ -163,6 +164,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 , "gpr_internal":
@@ -323,6 +325,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 , "grpc++internal":
@@ -2275,6 +2278,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 }

@@ -42,6 +42,7 @@
     , "ENABLE_RICHACL"
     , "USE_NFS4"
     , "HIDE_SYMBOLS"
+    , "PKG_CONFIG_ARGS"
     ]
   , "config_doc":
     { "ENABLE_MBEDTLS":

@@ -13,6 +13,7 @@
     , "AR"
     , "ENV"
     , "BUILD_POSITION_INDEPENDENT"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 }

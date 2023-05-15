@@ -31,6 +31,7 @@
     , "USE_HTTPS"
     , "USE_HTTP_PARSER"
     , "USE_BUNDLED_ZLIB"
+    , "PKG_CONFIG_ARGS"
     ]
   , "config_doc":
     { "REGEX_BACKEND":
