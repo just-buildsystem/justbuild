@@ -204,16 +204,9 @@
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
-            { "type": "++"
-            , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
-              , [ { "type": "var"
-                  , "name": "ENV"
-                  , "default": {"type": "empty_map"}
-                  }
-                ]
-              ]
-            }
+            [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+            , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
           }
         ]
       , [ "c.flags"

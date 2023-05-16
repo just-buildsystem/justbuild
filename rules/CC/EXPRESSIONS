@@ -84,7 +84,7 @@
   }
 , "default-ENV":
   { "vars": ["defaults-transition"]
-  , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
+  , "imports": {"map_provider": ["./", "..", "field_map_provider"]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -95,7 +95,7 @@
         ]
       , ["default", {"type": "empty_map"}]
       ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
     }
   }
 , "defaults-base-provides":
@@ -749,16 +749,9 @@
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
-            { "type": "++"
-            , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
-              , [ { "type": "var"
-                  , "name": "ENV"
-                  , "default": {"type": "empty_map"}
-                  }
-                ]
-              ]
-            }
+            [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+            , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
           }
         ]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
@@ -982,16 +975,9 @@
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
-            { "type": "++"
-            , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
-              , [ { "type": "var"
-                  , "name": "ENV"
-                  , "default": {"type": "empty_map"}
-                  }
-                ]
-              ]
-            }
+            [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
+            , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
           }
         ]
       , ["hdrs", {"type": "empty_map"}]
