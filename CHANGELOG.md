@@ -1,4 +1,4 @@
-## Release `1.1.0` (UNRELEASED)
+## Release `1.1.0` (2023-05-19)
 
 A feature release on top of `1.0.0`, backwards compatible.
 
@@ -30,6 +30,14 @@ A feature release on top of `1.0.0`, backwards compatible.
   option ensuring that the installed artifacts are also mirrored in
   local CAS
 - `just analyse` now supports a new option `--dump-export-targets`
+
+### Note
+
+There is a regression in `libgit2` versions `1.6.1` up to and
+including `1.6.4` with a fix already committed upstream. This
+regression makes `just` unusable when built against those versions.
+Therefore, the third-party build description for `libgit2` is still
+for version `1.5.2`.
 
 ## Release `1.1.0~beta2` (2023-05-15)
 
