@@ -75,6 +75,11 @@ The resulting configuration is printed on standard output.
    and ~"system"~). In other words, ~repos.json~ and ~etc/repos.json~
    are tried if this option is not given.
 
+   *--plain* \\
+   Pretend the foreign multi-repository specification is the
+   canonical one for a single repository. Useful, if the repository
+   to be imported does not have a repository configuration or
+   should be imported without dependencies.
 
 * See also
 

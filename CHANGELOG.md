@@ -2,6 +2,11 @@
 
 A feature release on top of `1.1.0`, backwards compatible.
 
+### Other changes
+
+- `just-import-git` now supports an option `--plain` to import a
+  repository without dependencies.
+
 ## Release `1.1.0` (2023-05-19)
 
 A feature release on top of `1.0.0`, backwards compatible.
