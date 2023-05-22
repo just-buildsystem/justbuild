@@ -4,8 +4,8 @@
   , "srcs": ["main.cpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "log_config"]
-    , ["src/buildtool/file_system", "git_context"]
+    , ["utils", "log_config"]
+    , ["@", "src", "src/buildtool/file_system", "git_context"]
     ]
   , "stage": ["test"]
   }
@@ -69,5 +69,33 @@
   { "type": "install"
   , "tainted": ["test"]
   , "deps": [["./", "bootstrap", "TESTS"]]
+  }
+, "large-tests":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [["bootstrap-test", "bootstrap-test"]]
+  }
+, "test-deps-headers":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "hdrs-only": ["yes"]
+  , "targets": [["@", "catch2", "", "catch2"]]
+  }
+, "just-ext-hdrs (unconfigured)":
+  { "type": "install"
+  , "dirs":
+    [[["@", "src", "", "just-ext-hdrs"], "."], ["test-deps-headers", "."]]
+  }
+, "just-ext-hdrs":
+  { "type": "configure"
+  , "arguments_config": ["OS", "ARCH"]
+  , "target": "just-ext-hdrs (unconfigured)"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ ["OS", {"type": "var", "name": "OS", "default": "linux"}]
+      , ["ARCH", {"type": "var", "name": "ARCH", "default": "x86_64"}]
+      ]
+    , "body": {"type": "env", "vars": ["OS", "ARCH"]}
+    }
   }
 }

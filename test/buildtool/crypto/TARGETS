@@ -4,8 +4,8 @@
   , "srcs": ["hasher.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/crypto", "hasher"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/crypto", "hasher"]
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
@@ -15,8 +15,8 @@
   , "srcs": ["hash_function.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/crypto", "hash_function"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }

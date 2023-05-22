@@ -4,7 +4,6 @@
     { "repository": {"type": "file", "path": "."}
     , "bindings":
       { "rules": "rules-just"
-      , "just-distfiles": "just-distfiles"
       , "gsl": "com_github_microsoft_gsl"
       , "cli11": "cli11"
       , "json": "json"
@@ -14,13 +13,31 @@
       , "googleapis": "google_apis"
       , "bazel_remote_apis": "bazel_remote_apis"
       , "libgit2": "com_github_libgit2_libgit2"
-      , "catch2": "catch2"
       , "protoc": "protobuf"
       , "libcurl": "com_github_curl_curl"
       , "libarchive": "com_github_libarchive_libarchive"
       }
     , "bootstrap": {"link": ["-pthread"]}
     , "bootstrap_local": {"link": ["-pthread"]}
+    }
+  , "just tests":
+    { "repository": {"type": "file", "path": "test"}
+    , "bindings":
+      { "src": "just"
+      , "rules": "rules-just"
+      , "just-distfiles": "just-distfiles"
+      , "catch2": "catch2"
+      , "gsl": "com_github_microsoft_gsl"
+      , "cli11": "cli11"
+      , "json": "json"
+      , "fmt": "fmt"
+      , "ssl": "ssl"
+      , "grpc": "com_github_grpc_grpc"
+      , "googleapis": "google_apis"
+      , "bazel_remote_apis": "bazel_remote_apis"
+      , "libgit2": "com_github_libgit2_libgit2"
+      , "protoc": "protobuf"
+      }
     }
   , "just-distfiles":
     { "repository":

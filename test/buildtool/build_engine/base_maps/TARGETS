@@ -3,9 +3,9 @@
   , "name": ["test_repo"]
   , "hdrs": ["test_repo.hpp"]
   , "deps":
-    [ ["src/buildtool/common", "config"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["test/utils", "shell_quoting"]
+    [ ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -15,8 +15,8 @@
   , "srcs": ["entity_name.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -28,9 +28,9 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/common", "config"]
-    , ["src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -42,8 +42,8 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "json_file_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -55,9 +55,9 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["src/buildtool/build_engine/base_maps", "source_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -69,8 +69,8 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "expression_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -82,8 +82,8 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }

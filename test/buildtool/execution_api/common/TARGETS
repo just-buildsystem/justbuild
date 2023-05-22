@@ -4,9 +4,9 @@
   , "hdrs": ["api_test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["src/buildtool/common", "artifact_factory"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
   }

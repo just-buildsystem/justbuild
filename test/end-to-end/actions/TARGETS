@@ -3,20 +3,20 @@
   , "name": ["equality"]
   , "test": ["action-equality.sh"]
   , "keep": ["graph.json"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "trees":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["trees"]
   , "test": ["nested-trees.sh"]
   , "keep": ["blobs.json", "trees.json", "out/index.txt"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "conflicts":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["conflicts"]
   , "test": ["conflicts.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

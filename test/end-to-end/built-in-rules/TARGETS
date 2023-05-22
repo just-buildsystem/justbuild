@@ -2,19 +2,19 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["generic_out_dirs"]
   , "test": ["generic_out_dirs.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "filegen_config":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["filegen_config"]
   , "test": ["filegen_config.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "tree":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["tree"]
   , "test": ["tree.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

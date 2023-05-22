@@ -4,11 +4,11 @@
   , "hdrs": ["graph_traverser.test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/file_system", "jsonfs"]
-    , ["src/buildtool/graph_traverser", "graph_traverser"]
-    , ["test/utils", "test_env"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "jsonfs"]
+    , ["@", "src", "src/buildtool/graph_traverser", "graph_traverser"]
+    , ["utils", "test_env"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
@@ -20,26 +20,26 @@
   , "private-deps":
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "local_hermeticity"]
+    , ["", "catch-main"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "graph_traverser_remote":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["graph_traverser_remote"]
   , "srcs": ["graph_traverser_remote.test.cpp"]
   , "data": ["test_data"]
   , "private-deps":
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
+    , ["utils", "catch-main-remote-execution"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
-  , "srcs": [["TREE", "test/buildtool/graph_traverser", "data"]]
+  , "srcs": [["TREE", null, "data"]]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "TESTS":

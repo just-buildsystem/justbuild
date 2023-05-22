@@ -1,29 +1,27 @@
 { "native-protocol":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["native-protocol"]
   , "test": ["native-protocol.sh"]
   , "deps":
-    [ ["test/end-to-end", "tool-under-test"]
-    , ["test/end-to-end", "mr-tool-under-test"]
-    ]
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   }
 , "large-blobs":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["large-blobs"]
   , "test": ["large-blobs.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "upload-test":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["upload-test"]
   , "test": ["upload-test.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "install":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["install"]
   , "test": ["install.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

@@ -270,9 +270,4 @@
     , [["TREE", null, "src/utils"], "."]
     ]
   }
-, "large-tests":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs": [[["test", "bootstrap-test"], "bootstrap-test"]]
-  }
 }

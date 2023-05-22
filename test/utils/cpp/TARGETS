@@ -4,8 +4,8 @@
   , "srcs": ["path.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/utils/cpp", "path"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/utils/cpp", "path"]
     ]
   , "stage": ["test", "utils", "cpp"]
   }
@@ -15,10 +15,10 @@
   , "srcs": ["file_locking.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/utils/cpp", "file_locking"]
-    , ["src/utils/cpp", "atomic"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/utils/cpp", "file_locking"]
+    , ["@", "src", "src/utils/cpp", "atomic"]
     ]
   , "stage": ["test", "utils", "cpp"]
   , "private-ldflags": ["-pthread"]

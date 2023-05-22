@@ -4,8 +4,8 @@
   , "srcs": ["install_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/main", "install_cas"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/main", "install_cas"]
     ]
   , "stage": ["test", "buildtool", "main"]
   }

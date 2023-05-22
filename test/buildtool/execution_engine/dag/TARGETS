@@ -4,10 +4,10 @@
   , "srcs": ["dag.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/common", "artifact_factory"]
-    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "dag"]
   }

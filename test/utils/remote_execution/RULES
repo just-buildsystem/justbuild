@@ -29,7 +29,7 @@
   , "implicit":
     { "defaults": [["@", "rules", "CC", "defaults"]]
     , "runner": ["test_runner.py"]
-    , "just": [["", "just"]]
+    , "just": [["@", "src", "", "just"]]
     }
   , "field_doc":
     { "name":

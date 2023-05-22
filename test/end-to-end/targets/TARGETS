@@ -2,37 +2,37 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["upwards"]
   , "test": ["upwards.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "repository naming":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["repo_names"]
   , "test": ["repo_names.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "resolution of built-in rules":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["built-in-resolution"]
   , "test": ["built-in-resolution.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "glob expansion":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["glob"]
   , "test": ["glob.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "configure target name":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["configure-target"]
   , "test": ["configure-target.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "configure variables":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["configure-vars"]
   , "test": ["configure-vars.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

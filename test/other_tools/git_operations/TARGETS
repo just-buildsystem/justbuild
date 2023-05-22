@@ -5,12 +5,12 @@
   , "srcs": ["critical_git_ops.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
+    , ["", "catch-main"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/other_tools/ops_maps", "critical_git_op_map"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , ["test/utils", "shell_quoting"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "other_tools", "git_operations"]
   }
@@ -19,23 +19,21 @@
   , "name": ["critical_git_ops_mp"]
   , "test": ["critical_git_ops_mp.sh"]
   , "deps":
-    [ ["test/buildtool/file_system", "test_data"]
-    , "critical_git_ops_test_install"
-    ]
+    [["buildtool/file_system", "test_data"], "critical_git_ops_test_install"]
   }
 , "git_repo_remote":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["git_repo_remote"]
   , "srcs": ["git_repo_remote.test.cpp"]
-  , "data": [["test/buildtool/file_system", "test_data"]]
+  , "data": [["buildtool/file_system", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
+    , ["", "catch-main"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/other_tools/git_operations", "git_repo_remote"]
-    , ["src/utils/cpp", "atomic"]
-    , ["test/utils", "shell_quoting"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/other_tools/git_operations", "git_repo_remote"]
+    , ["@", "src", "src/utils/cpp", "atomic"]
+    , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "other_tools", "git_operations"]
   }
@@ -45,12 +43,12 @@
   , "name": ["git_config_run_test"]
   , "srcs": ["git_config_run.test.cpp"]
   , "private-deps":
-    [ ["", "libgit2"]
-    , ["src/other_tools/git_operations", "git_config_settings"]
-    , ["src/buildtool/file_system", "git_utils"]
-    , ["src/buildtool/file_system", "git_context"]
-    , ["src/buildtool/logging", "logging"]
-    , ["test/utils", "log_config"]
+    [ ["@", "src", "", "libgit2"]
+    , ["@", "src", "src/other_tools/git_operations", "git_config_settings"]
+    , ["@", "src", "src/buildtool/file_system", "git_utils"]
+    , ["@", "src", "src/buildtool/file_system", "git_context"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["utils", "log_config"]
     ]
   , "stage": ["src"]
   }

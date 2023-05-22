@@ -11,7 +11,7 @@
   , "hdrs": ["remote_execution/bazel_action_creator.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -19,7 +19,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_config"]
   , "hdrs": ["logging/log_config.hpp"]
-  , "deps": [["src/buildtool/logging", "logging"]]
+  , "deps": [["@", "src", "src/buildtool/logging", "logging"]]
   , "stage": ["test", "utils"]
   }
 , "test_env":
@@ -28,8 +28,8 @@
   , "hdrs": ["test_env.hpp"]
   , "deps":
     [ "log_config"
-    , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -38,11 +38,11 @@
   , "name": ["local_hermeticity"]
   , "hdrs": ["hermeticity/local.hpp"]
   , "deps":
-    [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/local", "config"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/logging", "logging"]
+    [ ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -52,10 +52,10 @@
   , "srcs": ["remote_execution/main-remote-execution.cpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["src/buildtool/execution_api/remote", "config"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     , "log_config"
     , "test_env"
     ]
@@ -64,7 +64,7 @@
 , "test_utils_install":
   { "type": "install"
   , "tainted": ["test"]
-  , "files": {"utils/run_test_server.py": ["test/utils", "run_test_server.py"]}
+  , "files": {"utils/run_test_server.py": "run_test_server.py"}
   }
 , "shell_quoting":
   { "type": ["@", "rules", "CC", "library"]

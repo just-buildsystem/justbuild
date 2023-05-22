@@ -4,8 +4,8 @@
   , "srcs": ["task.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["test", "buildtool", "multithreading"]
   }
@@ -15,9 +15,9 @@
   , "srcs": ["task_system.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["test", "buildtool", "multithreading"]
   }
@@ -27,10 +27,10 @@
   , "srcs": ["async_map_node.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/multithreading", "async_map_node"]
-    , ["src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/multithreading", "async_map_node"]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["test", "buildtool", "multithreading"]
   }
@@ -40,11 +40,11 @@
   , "srcs": ["async_map.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/multithreading", "async_map"]
-    , ["src/buildtool/multithreading", "async_map_node"]
-    , ["src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/multithreading", "async_map"]
+    , ["@", "src", "src/buildtool/multithreading", "async_map_node"]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["test", "buildtool", "multithreading"]
   }
@@ -54,11 +54,11 @@
   , "srcs": ["async_map_consumer.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/multithreading", "async_map"]
-    , ["src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/multithreading", "async_map_consumer"]
+    , ["@", "src", "src/buildtool/multithreading", "async_map"]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["test", "buildtool", "multithreading"]
   }

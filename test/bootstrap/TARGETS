@@ -7,7 +7,7 @@
     ]
   , "test": ["test-bootstrap.sh"]
   , "deps":
-    [ ["", "bootstrap-src"]
+    [ ["@", "src", "", "bootstrap-src"]
     , ["@", "just-distfiles", "", "distdir"]
     , "prune-config.py"
     ]
@@ -56,7 +56,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "cli11", "", "cli11"]
     , ["@", "ssl", "", "crypto"]
-    , ["", "libgit2"]
+    , ["@", "src", "", "libgit2"]
     , ["@", "protoc", "", "protoc"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["@", "grpc", "", "grpc++"]
@@ -64,7 +64,7 @@
     ]
   }
 , "just_other_deps":
-  { "type": ["test/bootstrap", "stage-deps"]
+  { "type": ["bootstrap", "stage-deps"]
   , "protos":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
     , ["@", "googleapis", "", "google_bytestream_proto"]
@@ -74,7 +74,9 @@
     ]
   }
 , "staged-sources":
-  {"type": "install", "dirs": [[["", "bootstrap-src"], "srcs/just"]]}
+  { "type": "install"
+  , "dirs": [[["@", "src", "", "bootstrap-src"], "srcs/just"]]
+  }
 , "pkgconfig-test":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["bootstrap-test-pkgconfig"]

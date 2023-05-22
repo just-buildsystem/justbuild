@@ -2,22 +2,20 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["cas-independent"]
   , "test": ["cas-independent.sh"]
-  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  , "deps": [["end-to-end", "mr-tool-under-test"]]
   }
 , "fetch":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["fetch"]
   , "test": ["fetch.sh"]
-  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  , "deps": [["end-to-end", "mr-tool-under-test"]]
   }
 , "fetch-gc":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["fetch-gc"]
   , "test": ["fetch-gc.sh"]
   , "deps":
-    [ ["test/end-to-end", "mr-tool-under-test"]
-    , ["test/end-to-end", "tool-under-test"]
-    ]
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
 , "create_test_archives":
   { "type": ["@", "rules", "CC", "binary"]
@@ -25,10 +23,10 @@
   , "name": ["create_test_archives"]
   , "srcs": ["create_test_archives.cpp"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/other_tools/utils", "archive_ops"]
-    , ["src/utils/cpp", "tmp_dir"]
+    [ ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/other_tools/utils", "archive_ops"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
     ]
   , "private-ldflags": ["-pthread"]
   , "stage": ["src"]
@@ -39,30 +37,28 @@
   , "test": ["just-mr.test.sh"]
   , "deps":
     [ "create_test_archives"
-    , ["test/utils", "test_utils_install"]
-    , ["test/end-to-end", "mr-tool-under-test"]
+    , ["utils", "test_utils_install"]
+    , ["end-to-end", "mr-tool-under-test"]
     ]
   }
 , "git-tree-verbosity":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-tree-verbosity"]
   , "test": ["verbosity.sh"]
-  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  , "deps": [["end-to-end", "mr-tool-under-test"]]
   }
 , "defaults":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["default-values"]
   , "test": ["defaults.sh"]
-  , "deps": [["test/end-to-end", "mr-tool-under-test"]]
+  , "deps": [["end-to-end", "mr-tool-under-test"]]
   }
 , "install-roots":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-roots"]
   , "test": ["install-roots.sh"]
   , "deps":
-    [ ["test/end-to-end", "mr-tool-under-test"]
-    , ["test/end-to-end", "tool-under-test"]
-    ]
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

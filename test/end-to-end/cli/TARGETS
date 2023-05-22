@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["defaults"]
   , "test": ["defaults.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS": {"type": "install", "tainted": ["test"], "deps": ["defaults"]}
 }

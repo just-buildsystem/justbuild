@@ -1,5 +1,7 @@
 { "tool-under-test":
-  {"type": "install", "files": {"bin/tool-under-test": [".", "just"]}}
+  { "type": "install"
+  , "files": {"bin/tool-under-test": ["@", "src", "", "just"]}
+  }
 , "mr-tool-under-test":
   { "type": "install"
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -7,14 +9,15 @@
     { "bin/mr-tool-under-test":
       { "type": "if"
       , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
-      , "then": ["", "bin/just-mr.py"]
-      , "else": [".", "just-mr"]
+      , "then": ["@", "src", "", "bin/just-mr.py"]
+      , "else": ["@", "src", "", "just-mr"]
       }
     }
   }
 , "git-import-under-test":
   { "type": "install"
-  , "files": {"bin/git-import-under-test": ["", "bin/just-import-git.py"]}
+  , "files":
+    {"bin/git-import-under-test": ["@", "src", "", "bin/just-import-git.py"]}
   }
 , "TESTS":
   { "type": "install"

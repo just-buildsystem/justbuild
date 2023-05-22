@@ -4,9 +4,9 @@
   , "srcs": ["linked_map.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/build_engine/expression", "linked_map"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "linked_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }
@@ -16,9 +16,9 @@
   , "srcs": ["expression.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }
@@ -28,9 +28,9 @@
   , "srcs": ["configuration.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "container_matchers"]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }

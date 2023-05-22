@@ -11,11 +11,12 @@ be agreed upon and committed to the repository first.
 
 For all changes, remember to also update the documentation and
 add appropriate test coverage. For code to be accepted, all tests
-must pass; the two global test suites are `["test", "ALL"]` and
-`["test", "bootstrap-test"]` where the latter needs an increased
-action time out. Code is formatted with `clang-format` and linted
-with `clang-tidy`; the corresponding configuration files can be
-found in the top-level directory of this repository.
+must pass; the two global test suites are `["@", "just tests", "", "ALL"]`
+and `["@", "just tests", "test", "bootstrap-test"]` where the
+latter needs an increased action time out. Code is formatted with
+`clang-format` and linted with `clang-tidy`; the corresponding
+configuration files can be found in the top-level directory of
+this repository.
 
 Changes should be organized as a patch series, i.e., as a sequence of
 small changes that are easy to review, but nevertheless self-contained

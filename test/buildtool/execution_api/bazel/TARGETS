@@ -1,48 +1,48 @@
 { "cas_client":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["cas_client"]
   , "srcs": ["bazel_cas_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
-    , ["src/buildtool/execution_api/remote", "config"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "execution_client":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["execution_client"]
   , "srcs": ["bazel_execution_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["test/utils", "execution_bazel"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "bytestream_client":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["bytestream_client"]
   , "srcs": ["bytestream_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["test/utils", "execution_bazel"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "network":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["network"]
   , "srcs": ["bazel_network.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["test/utils", "execution_bazel"]
-    , ["src/buildtool/execution_api/remote", "bazel_network"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -50,25 +50,29 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["msg_factory"]
   , "srcs": ["bazel_msg_factory.test.cpp"]
-  , "data": [["test/buildtool/storage", "test_data"]]
+  , "data": [["buildtool/storage", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/common", "artifact_factory"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/buildtool/file_system", "object_type"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/bazel_msg"
+      , "bazel_msg_factory"
+      ]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "bazel_api":
-  { "type": ["test/utils/remote_execution", "CC test"]
+  { "type": ["utils/remote_execution", "CC test"]
   , "name": ["bazel_api"]
   , "srcs": ["bazel_api.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test/utils", "catch-main-remote-execution"]
-    , ["src/buildtool/execution_api/remote", "bazel"]
-    , ["test/buildtool/execution_api/common", "api_test"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
+    , ["buildtool/execution_api/common", "api_test"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }

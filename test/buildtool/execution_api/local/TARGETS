@@ -4,10 +4,10 @@
   , "srcs": ["local_execution.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/common", "artifact_factory"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["test/utils", "local_hermeticity"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }
@@ -17,10 +17,10 @@
   , "srcs": ["local_api.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["test/buildtool/execution_api/common", "api_test"]
-    , ["test/utils", "local_hermeticity"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["buildtool/execution_api/common", "api_test"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }

@@ -69,7 +69,7 @@
   , "implicit":
     { "runner": ["with_remote_test_runner.py"]
     , "summarizer": [["@", "rules", "shell/test", "test_summary.py"]]
-    , "just": [["", "just"]]
+    , "just": [["@", "src", "", "just"]]
     }
   , "imports":
     { "test-result": "test-result"

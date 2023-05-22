@@ -12,11 +12,11 @@
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["local_cas"]
   , "srcs": ["local_cas.test.cpp"]
-  , "data": [["test/buildtool/storage", "test_data"]]
+  , "data": [["buildtool/storage", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["test/utils", "local_hermeticity"]
+    , ["", "catch-main"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }
@@ -26,9 +26,9 @@
   , "srcs": ["local_ac.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["test/utils", "local_hermeticity"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }

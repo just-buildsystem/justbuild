@@ -4,9 +4,9 @@
   , "srcs": ["result_map.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/build_engine/target_map", "result_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
@@ -17,12 +17,12 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , ["src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["src/buildtool/build_engine/base_maps", "rule_map"]
-    , ["src/buildtool/build_engine/base_maps", "source_map"]
-    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
-    , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["@", "src", "src/buildtool/build_engine/target_map", "target_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
@@ -32,11 +32,13 @@
   , "srcs": ["target_map_internals.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["test", "catch-main"]
-    , [ "src/buildtool/build_engine/target_map"
+    , ["", "catch-main"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/target_map"
       , "target_map_testable_internals"
       ]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }

@@ -1,25 +1,23 @@
 { "target-cache-hit":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["target-cache-hit"]
   , "test": ["target-cache-hit.sh"]
   , "deps":
-    [ ["test/end-to-end", "tool-under-test"]
-    , ["test/end-to-end", "mr-tool-under-test"]
-    ]
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   }
 , "artifacts-sync":
-  { "type": ["test/end-to-end", "with remote"]
+  { "type": ["end-to-end", "with remote"]
   , "name": ["artifacts-sync"]
   , "test": ["artifacts-sync.sh"]
   , "deps":
-    [ ["test/end-to-end", "tool-under-test"]
+    [ ["end-to-end", "tool-under-test"]
     , ["./", "test-data-artifacts-sync", "greetlib"]
     , ["./", "test-data-artifacts-sync", "pydicts"]
     , "bootstrap-src-staged"
     ]
   }
 , "bootstrap-src-staged":
-  {"type": "install", "dirs": [[["", "bootstrap-src"], "foo"]]}
+  {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "foo"]]}
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]

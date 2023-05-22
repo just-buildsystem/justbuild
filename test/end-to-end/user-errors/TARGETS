@@ -2,13 +2,13 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["flat-stage"]
   , "test": ["flat-stage.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "json-errors":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["json-errors"]
   , "test": ["json-errors.sh"]
-  , "deps": [["test/end-to-end", "tool-under-test"]]
+  , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"
