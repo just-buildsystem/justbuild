@@ -36,15 +36,15 @@ namespace {
 [[nodiscard]] auto LookupEntryPyPath(
     GitTree const& tree,
     std::filesystem::path::const_iterator it,
-    std::filesystem::path::const_iterator const& end) noexcept
-    -> GitTreeEntryPtr {
+    std::filesystem::path::const_iterator const& end,
+    bool ignore_special = false) noexcept -> GitTreeEntryPtr {
     auto segment = *it;
     auto entry = tree.LookupEntryByName(segment);
     if (not entry) {
         return nullptr;
     }
     if (++it != end) {
-        auto const& subtree = entry->Tree();
+        auto const& subtree = entry->Tree(ignore_special);
         if (not subtree) {
             return nullptr;
         }
@@ -66,13 +66,19 @@ auto GitTree::Read(std::filesystem::path const& repo_path,
 }
 
 auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
-                   std::string const& tree_id) noexcept
-    -> std::optional<GitTree> {
+                   std::string const& tree_id,
+                   bool ignore_special) noexcept -> std::optional<GitTree> {
     if (auto raw_id = FromHexString(tree_id)) {
         auto repo = GitRepo::Open(cas);
         if (repo != std::nullopt) {
-            if (auto entries = repo->ReadTree(*raw_id)) {
-                return GitTree::FromEntries(cas, std::move(*entries), *raw_id);
+            if (auto entries = repo->ReadTree(
+                    *raw_id, /*is_hex_id=*/false, ignore_special)) {
+                // the raw_id value is NOT recomputed when ignore_special==true,
+                // so we set it to empty to signal that it should not be used!
+                return GitTree::FromEntries(cas,
+                                            std::move(*entries),
+                                            ignore_special ? "" : *raw_id,
+                                            ignore_special);
             }
         }
         else {
@@ -96,7 +102,8 @@ auto GitTree::LookupEntryByName(std::string const& name) const noexcept
 auto GitTree::LookupEntryByPath(
     std::filesystem::path const& path) const noexcept -> GitTreeEntryPtr {
     auto resolved = ResolveRelativePath(path);
-    return LookupEntryPyPath(*this, resolved.begin(), resolved.end());
+    return LookupEntryPyPath(
+        *this, resolved.begin(), resolved.end(), ignore_special_);
 }
 
 auto GitTree::Size() const noexcept -> std::optional<std::size_t> {
@@ -117,19 +124,24 @@ auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
     return cas_->ReadObject(raw_id_);
 }
 
-auto GitTreeEntry::Tree() const& noexcept -> std::optional<GitTree> const& {
-    return tree_cached_.SetOnceAndGet([this]() -> std::optional<GitTree> {
-        if (IsTree()) {
-            auto repo = GitRepo::Open(cas_);
-            if (repo == std::nullopt) {
-                return std::nullopt;
+auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
+    -> std::optional<GitTree> const& {
+    return tree_cached_.SetOnceAndGet(
+        [this, ignore_special]() -> std::optional<GitTree> {
+            if (IsTree()) {
+                auto repo = GitRepo::Open(cas_);
+                if (repo == std::nullopt) {
+                    return std::nullopt;
+                }
+                if (auto entries = repo->ReadTree(
+                        raw_id_, /*is_hex_id=*/false, ignore_special)) {
+                    // the raw_id value is not used when ignore_special==true
+                    return GitTree::FromEntries(
+                        cas_, std::move(*entries), raw_id_, ignore_special);
+                }
             }
-            if (auto entries = repo->ReadTree(raw_id_)) {
-                return GitTree::FromEntries(cas_, std::move(*entries), raw_id_);
-            }
-        }
-        return std::nullopt;
-    });
+            return std::nullopt;
+        });
 }
 
 auto GitTreeEntry::Size() const noexcept -> std::optional<std::size_t> {

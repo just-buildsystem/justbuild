@@ -45,8 +45,13 @@ class GitTree {
     /// \brief Read tree with given id from CAS.
     /// \param cas      Git CAS that contains the tree id.
     /// \param tree_id  Tree id as as hex string.
+    /// \param ignore_special   If set, treat symlinks as absent.
+    /// NOTE: If ignore_special==true, the stored entries might differ from the
+    /// actual tree, so the stored ID is set to empty to signal that it should
+    /// not be used.
     [[nodiscard]] static auto Read(gsl::not_null<GitCASPtr> const& cas,
-                                   std::string const& tree_id) noexcept
+                                   std::string const& tree_id,
+                                   bool ignore_special = false) noexcept
         -> std::optional<GitTree>;
 
     /// \brief Lookup by dir entry name. '.' and '..' are not allowed.
@@ -68,15 +73,22 @@ class GitTree {
     gsl::not_null<GitCASPtr> cas_;
     entries_t entries_;
     std::string raw_id_;
+    // If set, ignore all fast tree lookups and always traverse
+    bool ignore_special_;
 
     GitTree(gsl::not_null<GitCASPtr> const& cas,
             entries_t&& entries,
-            std::string raw_id) noexcept
-        : cas_{cas}, entries_{std::move(entries)}, raw_id_{std::move(raw_id)} {}
+            std::string raw_id,
+            bool ignore_special = false) noexcept
+        : cas_{cas},
+          entries_{std::move(entries)},
+          raw_id_{std::move(raw_id)},
+          ignore_special_{ignore_special} {}
 
     [[nodiscard]] static auto FromEntries(gsl::not_null<GitCASPtr> const& cas,
                                           GitRepo::tree_entries_t&& entries,
-                                          std::string raw_id) noexcept
+                                          std::string raw_id,
+                                          bool ignore_special = false) noexcept
         -> std::optional<GitTree> {
         entries_t e{};
         e.reserve(entries.size());
@@ -91,7 +103,7 @@ class GitTree {
                 }
             }
         }
-        return GitTree(cas, std::move(e), std::move(raw_id));
+        return GitTree(cas, std::move(e), std::move(raw_id), ignore_special);
     }
 };
 
@@ -106,8 +118,9 @@ class GitTreeEntry {
     [[nodiscard]] auto IsTree() const noexcept { return IsTreeObject(type_); }
 
     [[nodiscard]] auto Blob() const noexcept -> std::optional<std::string>;
-    [[nodiscard]] auto Tree() && = delete;
-    [[nodiscard]] auto Tree() const& noexcept -> std::optional<GitTree> const&;
+    [[nodiscard]] auto Tree(bool) && = delete;
+    [[nodiscard]] auto Tree(bool ignore_special = false) const& noexcept
+        -> std::optional<GitTree> const&;
 
     [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
     [[nodiscard]] auto Type() const noexcept { return type_; }

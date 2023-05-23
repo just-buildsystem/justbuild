@@ -209,6 +209,9 @@ class FileRoot {
             return true;
         }
 
+        /// \brief Retrieve a root tree as a KNOWN artifact.
+        /// User should know whether this root tree is symlink free and only
+        /// call this function accordingly.
         [[nodiscard]] auto AsKnownTree(std::string const& repository)
             const noexcept -> std::optional<ArtifactDescription> {
             if (Compatibility::IsCompatible()) {
@@ -270,20 +273,30 @@ class FileRoot {
     };
 
     FileRoot() noexcept = default;
+    explicit FileRoot(bool ignore_special) noexcept
+        : ignore_special_(ignore_special) {}
+    // avoid type narrowing errors
+    explicit FileRoot(char const* root) noexcept : root_{fs_root_t{root}} {}
     explicit FileRoot(std::filesystem::path root) noexcept
         : root_{std::move(root)} {}
+    FileRoot(std::filesystem::path root, bool ignore_special) noexcept
+        : root_{std::move(root)}, ignore_special_{ignore_special} {}
     FileRoot(gsl::not_null<GitCASPtr> const& cas,
-             gsl::not_null<GitTreePtr> const& tree) noexcept
-        : root_{git_root_t{cas, tree}} {}
+             gsl::not_null<GitTreePtr> const& tree,
+             bool ignore_special = false) noexcept
+        : root_{git_root_t{cas, tree}}, ignore_special_{ignore_special} {}
 
     [[nodiscard]] static auto FromGit(std::filesystem::path const& repo_path,
-                                      std::string const& git_tree_id) noexcept
+                                      std::string const& git_tree_id,
+                                      bool ignore_special = false) noexcept
         -> std::optional<FileRoot> {
         if (auto cas = GitCAS::Open(repo_path)) {
-            if (auto tree = GitTree::Read(cas, git_tree_id)) {
+            if (auto tree = GitTree::Read(cas, git_tree_id, ignore_special)) {
                 try {
                     return FileRoot{
-                        cas, std::make_shared<GitTree const>(std::move(*tree))};
+                        cas,
+                        std::make_shared<GitTree const>(std::move(*tree)),
+                        ignore_special};
                 } catch (...) {
                 }
             }
@@ -291,13 +304,14 @@ class FileRoot {
         return std::nullopt;
     }
 
-    // Return a complete description of the content of this root, if that can be
-    // done without any file-system access.
+    // Return a complete description of the content of this root, if
+    // content-fixed.
     [[nodiscard]] auto ContentDescription() const noexcept
         -> std::optional<nlohmann::json> {
         try {
             if (std::holds_alternative<git_root_t>(root_)) {
                 nlohmann::json j;
+                // ignore-special git-tree-based roots are still content-fixed
                 j.push_back(kGitTreeMarker);
                 j.push_back(std::get<git_root_t>(root_).tree->Hash());
                 return j;
@@ -323,7 +337,12 @@ class FileRoot {
             return static_cast<bool>(
                 std::get<git_root_t>(root_).tree->LookupEntryByPath(path));
         }
-        return FileSystemManager::Exists(std::get<fs_root_t>(root_) / path);
+        // std::holds_alternative<fs_root_t>(root_) == true
+        auto root_path = std::get<fs_root_t>(root_) / path;
+        auto exists = FileSystemManager::Exists(root_path);
+        return (ignore_special_ ? exists and FileSystemManager::Type(
+                                                 root_path) != std::nullopt
+                                : exists);
     }
 
     [[nodiscard]] auto IsFile(
@@ -380,7 +399,7 @@ class FileRoot {
                     return DirectoryEntries{&(*tree)};
                 }
                 if (auto entry = tree->LookupEntryByPath(dir_path)) {
-                    if (auto const& found_tree = entry->Tree()) {
+                    if (auto const& found_tree = entry->Tree(ignore_special_)) {
                         return DirectoryEntries{&(*found_tree)};
                     }
                 }
@@ -392,7 +411,8 @@ class FileRoot {
                         [&map](const auto& name, auto type) {
                             map.emplace(name.string(), type);
                             return true;
-                        })) {
+                        },
+                        ignore_special_)) {
                     return DirectoryEntries{std::move(map)};
                 }
             }
@@ -425,6 +445,7 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Read a blob from the root based on its ID.
     [[nodiscard]] auto ReadBlob(std::string const& blob_id) const noexcept
         -> std::optional<std::string> {
         if (std::holds_alternative<git_root_t>(root_)) {
@@ -434,9 +455,12 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Read a root tree based on its ID.
+    /// User should know whether the desired tree is symlink free and only call
+    /// this function accordingly.
     [[nodiscard]] auto ReadTree(std::string const& tree_id) const noexcept
         -> std::optional<GitTree> {
-        if (std::holds_alternative<git_root_t>(root_)) {
+        if (std::holds_alternative<git_root_t>(root_) and not ignore_special_) {
             try {
                 auto const& cas = std::get<git_root_t>(root_).cas;
                 return GitTree::Read(cas, tree_id);
@@ -481,6 +505,10 @@ class FileRoot {
 
   private:
     root_t root_;
+    // If set, forces lookups to ignore entries which are neither file nor
+    // directories instead of erroring out. This means implicitly also that
+    // there are no more fast tree lookups, i.e., tree traversal is a must.
+    bool ignore_special_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_ROOT_HPP

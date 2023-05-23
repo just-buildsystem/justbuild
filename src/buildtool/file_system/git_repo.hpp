@@ -81,8 +81,10 @@ class GitRepo {
     /// repository is required.
     /// \param id         The object id.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
+    /// \param ignore_special   If set, treat symlinks as absent.
     [[nodiscard]] auto ReadTree(std::string const& id,
-                                bool is_hex_id = false) const noexcept
+                                bool is_hex_id = false,
+                                bool ignore_special = false) const noexcept
         -> std::optional<tree_entries_t>;
 
     /// \brief Create a flat tree from entries and store tree in CAS.

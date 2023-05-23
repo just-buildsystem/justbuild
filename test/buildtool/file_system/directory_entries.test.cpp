@@ -54,6 +54,22 @@ auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
     return std::nullopt;
 }
 
+[[nodiscard]] auto CreateTestRepoSymlinks(bool do_checkout = false)
+    -> std::optional<std::filesystem::path> {
+    static std::atomic<int> counter{};
+    auto repo_path =
+        GetTestDir() / "test_repo_symlinks" /
+        std::filesystem::path{std::to_string(counter++)}.filename();
+    auto cmd = fmt::format("git clone {}{} {}",
+                           do_checkout ? "--branch master " : "",
+                           QuoteForShell(kBundleSymPath),
+                           QuoteForShell(repo_path.string()));
+    if (std::system(cmd.c_str()) == 0) {
+        return repo_path;
+    }
+    return std::nullopt;
+}
+
 }  // namespace
 
 TEST_CASE("Get entries of a directory", "[directory_entries]") {
@@ -163,5 +179,44 @@ TEST_CASE("Get entries of an empty directory", "[directory_entries]") {
         }
 
         CHECK(counter == 0);
+    }
+}
+
+TEST_CASE("Get ignore-special entries of a git tree with symlinks",
+          "[directory_entries]") {
+    auto reference_entries =
+        std::unordered_set<std::string>{"foo", "bar", "baz", ".git"};
+    auto repo = *CreateTestRepoSymlinks(true);
+    auto fs_root = FileRoot(/*ignore_special=*/true);
+    auto dir_entries = fs_root.ReadDirectory(repo);
+    CHECK(dir_entries.ContainsFile("bar"));
+    CHECK(dir_entries.ContainsFile("foo"));
+    CHECK_FALSE(dir_entries.ContainsFile("baz"));
+    {
+        // all the entries returned by FilesIterator are files,
+        // are contained in reference_entries,
+        // and are 2 (foo, and bar)
+        auto counter = 0;
+        for (const auto& x : dir_entries.FilesIterator()) {
+            REQUIRE(reference_entries.contains(x));
+            CHECK(dir_entries.ContainsFile(x));
+            ++counter;
+        }
+
+        CHECK(counter == 2);
+    }
+    {
+        // all the entries returned by DirectoriesIterator are not files (e.g.,
+        // trees),
+        // are contained in reference_entries,
+        // and are 2 (baz, and .git)
+        auto counter = 0;
+        for (const auto& x : dir_entries.DirectoriesIterator()) {
+            REQUIRE(reference_entries.contains(x));
+            CHECK_FALSE(dir_entries.ContainsFile(x));
+            ++counter;
+        }
+
+        CHECK(counter == 2);
     }
 }

@@ -514,9 +514,13 @@ class FileSystemManager {
         }
     }
 
+    /// \brief Read a filesystem directory tree.
+    /// \param ignore_special If true, do not error out when encountering
+    /// symlinks.
     [[nodiscard]] static auto ReadDirectory(
         std::filesystem::path const& dir,
-        ReadDirEntryFunc const& read_entry) noexcept -> bool {
+        ReadDirEntryFunc const& read_entry,
+        bool ignore_special = false) noexcept -> bool {
         try {
             for (auto const& entry : std::filesystem::directory_iterator{dir}) {
                 ObjectType type{};
@@ -531,6 +535,9 @@ class FileSystemManager {
                 }
                 else if (std::filesystem::is_directory(status)) {
                     type = ObjectType::Tree;
+                }
+                else if (ignore_special) {
+                    continue;
                 }
                 else {
                     Logger::Log(LogLevel::Error,

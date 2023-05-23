@@ -15,6 +15,7 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 
 #include <thread>
+#include <unordered_set>
 
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -28,6 +29,11 @@ extern "C" {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 namespace {
+
+std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
+    GIT_FILEMODE_BLOB,
+    GIT_FILEMODE_BLOB_EXECUTABLE,
+    GIT_FILEMODE_TREE};
 
 [[nodiscard]] auto ToHexString(git_oid const& oid) noexcept
     -> std::optional<std::string> {
@@ -44,6 +50,12 @@ namespace {
         return FromHexString(*hex_id);
     }
     return std::nullopt;
+}
+
+/// \brief Returns true if mode corresponds to a supported object type.
+[[nodiscard]] auto GitFileModeIsSupported(git_filemode_t const& mode) noexcept
+    -> bool {
+    return kSupportedGitFileModes.contains(mode);
 }
 
 [[nodiscard]] auto GitFileModeToObjectType(git_filemode_t const& mode) noexcept
@@ -109,6 +121,29 @@ namespace {
     });
 }
 #endif
+
+[[nodiscard]] auto flat_tree_walker_ignore_special(const char* /*root*/,
+                                                   const git_tree_entry* entry,
+                                                   void* payload) noexcept
+    -> int {
+    auto* entries =
+        reinterpret_cast<GitRepo::tree_entries_t*>(payload);  // NOLINT
+
+    std::string name = git_tree_entry_name(entry);
+    auto const* oid = git_tree_entry_id(entry);
+    if (auto raw_id = ToRawString(*oid)) {
+        if (not GitFileModeIsSupported(git_tree_entry_filemode(entry))) {
+            return 0;  // allow, but not store
+        }
+        if (auto type =
+                GitFileModeToObjectType(git_tree_entry_filemode(entry))) {
+            (*entries)[*raw_id].emplace_back(std::move(name), *type);
+            return 1;  // return >=0 on success, 1 == skip subtrees (flat)
+        }
+    }
+    Logger::Log(LogLevel::Error, "failed walk for git tree entry: {}", name);
+    return -1;  // fail
+}
 
 [[nodiscard]] auto flat_tree_walker(const char* /*root*/,
                                     const git_tree_entry* entry,
@@ -1110,7 +1145,9 @@ auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }
 
-auto GitRepo::ReadTree(std::string const& id, bool is_hex_id) const noexcept
+auto GitRepo::ReadTree(std::string const& id,
+                       bool is_hex_id,
+                       bool ignore_special) const noexcept
     -> std::optional<tree_entries_t> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
@@ -1140,7 +1177,10 @@ auto GitRepo::ReadTree(std::string const& id, bool is_hex_id) const noexcept
     tree_entries_t entries{};
     entries.reserve(git_tree_entrycount(tree.get()));
     if (git_tree_walk(
-            tree.get(), GIT_TREEWALK_PRE, flat_tree_walker, &entries) != 0) {
+            tree.get(),
+            GIT_TREEWALK_PRE,
+            ignore_special ? flat_tree_walker_ignore_special : flat_tree_walker,
+            &entries) != 0) {
         Logger::Log(LogLevel::Debug,
                     "failed to walk Git tree {}",
                     is_hex_id ? std::string{id} : ToHexString(id));
