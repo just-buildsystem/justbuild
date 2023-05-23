@@ -163,6 +163,8 @@ def extra_layers_to_import(repos_config, repos):
     as layers for the repositories to import."""
     extra_imports = set()
     for repo in repos:
+        if isinstance(repos_config[repo]["repository"], str):
+            extra_imports.add(repos_config[repo]["repository"])
         for layer in ["target_root", "rule_root", "expression_root"]:
             if layer in repos_config[repo]:
                 extra = repos_config[repo][layer]
