@@ -6,6 +6,9 @@ A feature release on top of `1.1.0`, backwards compatible.
 
 - `just-import-git` now supports an option `--plain` to import a
   repository without dependencies.
+- Minor changes to the layout of the local build root; in particular,
+  left-over execution directories will eventually get cleaned up
+  by garbage collection.
 
 ## Release `1.1.0` (2023-05-19)
 
