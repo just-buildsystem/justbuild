@@ -24,11 +24,11 @@
 namespace {
 
 auto const kBundlePath =
-    std::string{"test/buildtool/file_system/data/test_repo.bundle"};
+    std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
 auto const kRootCommit =
-    std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
-auto const kRootId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
-auto const kBazId = std::string{"27b32561185c2825150893774953906c6daa6798"};
+    std::string{"3a8dc005262e2ea32d48dbe123e1dabe20e039c1"};
+auto const kRootId = std::string{"e00aa80fd1600090930c7ec0b7146028693074bf"};
+auto const kBazId = std::string{"9df184c5a0b324f488176432724deae97adaace8"};
 
 }  // namespace
 
@@ -273,6 +273,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             REQUIRE(root_path_non_exist);
             CHECK(root_path_non_exist->empty());
         }
+
         SECTION("Bare repository") {
             auto bare_repo_path = TestUtils::CreateTestRepo(true);
             REQUIRE(bare_repo_path);

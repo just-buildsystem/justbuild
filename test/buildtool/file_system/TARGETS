@@ -74,6 +74,7 @@
     [ "data/empty_executable"
     , "data/example_file"
     , "data/test_repo.bundle"
+    , "data/test_repo_symlinks.bundle"
     , "data/subdir/nested_file"
     ]
   , "stage": ["test", "buildtool", "file_system"]
@@ -83,6 +84,12 @@
   , "deps": ["create_fs_test_git_bundle.sh"]
   , "outs": ["data/test_repo.bundle"]
   , "cmds": ["sh create_fs_test_git_bundle.sh"]
+  }
+, "data/test_repo_symlinks.bundle":
+  { "type": "generic"
+  , "deps": ["create_fs_test_git_bundle_symlinks.sh"]
+  , "outs": ["data/test_repo_symlinks.bundle"]
+  , "cmds": ["sh create_fs_test_git_bundle_symlinks.sh"]
   }
 , "git_repo":
   { "type": ["@", "rules", "CC/test", "test"]

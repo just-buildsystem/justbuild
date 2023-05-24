@@ -26,6 +26,9 @@ namespace {
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
 
+auto const kBundleSymPath =
+    std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
+
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
     if (tmp_dir != nullptr) {
@@ -71,19 +74,24 @@ auto const kBundlePath =
 
 TEST_CASE("Get entries of a directory", "[directory_entries]") {
     const std::unordered_set<std::string> reference_entries{
-        "test_repo.bundle", "empty_executable", "subdir", "example_file"};
+        "test_repo.bundle",
+        "test_repo_symlinks.bundle",
+        "empty_executable",
+        "subdir",
+        "example_file"};
 
     const auto dir = std::filesystem::path("test/buildtool/file_system/data");
 
     auto fs_root = FileRoot();
     auto dir_entries = fs_root.ReadDirectory(dir);
     CHECK(dir_entries.ContainsFile("test_repo.bundle"));
+    CHECK(dir_entries.ContainsFile("test_repo_symlinks.bundle"));
     CHECK(dir_entries.ContainsFile("empty_executable"));
     CHECK(dir_entries.ContainsFile("example_file"));
     {
         // all the entries returned by FilesIterator are files,
         // are contained in reference_entries,
-        // and are 3
+        // and are 4
         auto counter = 0;
         for (const auto& x : dir_entries.FilesIterator()) {
             REQUIRE(reference_entries.contains(x));
@@ -91,7 +99,7 @@ TEST_CASE("Get entries of a directory", "[directory_entries]") {
             ++counter;
         }
 
-        CHECK(counter == 3);
+        CHECK(counter == 4);
     }
     {
         // all the entries returned by DirectoriesIterator are not files (e.g.,

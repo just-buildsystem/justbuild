@@ -24,10 +24,10 @@
 namespace {
 
 auto const kBundlePath =
-    std::string{"test/buildtool/file_system/data/test_repo.bundle"};
+    std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
 auto const kRootCommit =
-    std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
-auto const kRootId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
+    std::string{"3a8dc005262e2ea32d48dbe123e1dabe20e039c1"};
+auto const kRootId = std::string{"e00aa80fd1600090930c7ec0b7146028693074bf"};
 
 }  // namespace
 
