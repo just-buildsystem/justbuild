@@ -26,7 +26,7 @@ namespace {
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
 auto const kRootCommit =
-    std::string{"bc5f88b46bbf0c4c61da7a1296fa9a0559b92822"};
+    std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
 
 }  // namespace
 

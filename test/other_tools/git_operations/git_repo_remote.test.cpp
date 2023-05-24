@@ -26,12 +26,8 @@ namespace {
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
 auto const kRootCommit =
-    std::string{"bc5f88b46bbf0c4c61da7a1296fa9a0559b92822"};
-auto const kRootId = std::string{"e51a219a27b672ccf17abec7d61eb4d6e0424140"};
-auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
-auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
-auto const kBazOneId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
-auto const kBazTwoId = std::string{"27b32561185c2825150893774953906c6daa6798"};
+    std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
+auto const kRootId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
 
 }  // namespace
 

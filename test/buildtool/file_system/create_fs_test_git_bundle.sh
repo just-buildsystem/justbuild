@@ -18,18 +18,17 @@ set -e
 # ---
 # Structure of test_repo:
 # ---
-# <root>   <--kTreeId (tree)
+# <root>   <--kTreeId: c610db170fbcad5f2d66fe19972495923f3b2536 (tree)
 # |
-# +--bar   <--kBarId (blob)
-# +--foo   <--kFooId (blob)
-# +--baz   <--kBazOneId (tree)
+# +--bar   <--kBarId: ba0e162e1c47469e3fe4b393a8bf8c569f302116 (blob)
+# +--foo   <--kFooId: 19102815663d23f8b75a47e7a01965dcdc96468c (blob)
+# +--baz   <--kBazId: 27b32561185c2825150893774953906c6daa6798 (tree)
 # |  +--bar
 # |  +--foo
-# |  +--baz   <--kBazTwoId (tree)
-# |  |  +--bar
-# |  |  +--foo
 # |
 # ---
+#
+# kCommitId: e4fc610c60716286b98cf51ad0c8f0d50f3aebb5 (commit)
 #
 # foo is a regular file
 # bar is an executable
@@ -44,11 +43,9 @@ cd test_repo
 printf %s "foo" >> foo  # no newline
 printf %s "bar" >> bar  # no newline
 chmod +x bar
-mkdir -p baz/baz/
+mkdir -p baz
 cp foo baz/foo
 cp bar baz/bar
-cp foo baz/baz/foo
-cp bar baz/baz/bar
 
 # create the repo
 git init > /dev/null 2>&1

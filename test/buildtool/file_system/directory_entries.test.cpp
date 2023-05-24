@@ -25,9 +25,6 @@ namespace {
 
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
-auto const kTreeId = std::string{"e51a219a27b672ccf17abec7d61eb4d6e0424140"};
-auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
-auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");

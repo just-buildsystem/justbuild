@@ -24,7 +24,7 @@ namespace {
 
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
-auto const kTreeId = std::string{"e51a219a27b672ccf17abec7d61eb4d6e0424140"};
+auto const kTreeId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
 auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
 auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 auto const kFailId = std::string{"0123456789abcdef0123456789abcdef01234567"};
@@ -348,35 +348,10 @@ TEST_CASE("Lookup entries by name", "[git_tree]") {
         CHECK(entry_baz_bar->IsBlob());
         CHECK(entry_baz_bar->Hash() == entry_bar->Hash());
 
-        auto entry_baz_baz = tree_baz->LookupEntryByName("baz");
-        REQUIRE(entry_baz_baz);
-        CHECK(entry_baz_baz->IsTree());
-
         SECTION("Lookup missing entries") {
             CHECK_FALSE(tree_baz->LookupEntryByName("fool"));
             CHECK_FALSE(tree_baz->LookupEntryByName("barn"));
             CHECK_FALSE(tree_baz->LookupEntryByName("bazel"));
-        }
-
-        SECTION("Lookup entries in sub-sub-tree") {
-            auto const& tree_baz_baz = entry_baz_baz->Tree();
-            REQUIRE(tree_baz_baz);
-
-            auto entry_baz_baz_foo = tree_baz_baz->LookupEntryByName("foo");
-            REQUIRE(entry_baz_baz_foo);
-            CHECK(entry_baz_baz_foo->IsBlob());
-            CHECK(entry_baz_baz_foo->Hash() == entry_foo->Hash());
-
-            auto entry_baz_baz_bar = tree_baz_baz->LookupEntryByName("bar");
-            REQUIRE(entry_baz_baz_bar);
-            CHECK(entry_baz_baz_bar->IsBlob());
-            CHECK(entry_baz_baz_bar->Hash() == entry_bar->Hash());
-
-            SECTION("Lookup missing entries") {
-                CHECK_FALSE(tree_baz_baz->LookupEntryByName("fool"));
-                CHECK_FALSE(tree_baz_baz->LookupEntryByName("barn"));
-                CHECK_FALSE(tree_baz_baz->LookupEntryByName("bazel"));
-            }
         }
     }
 }
@@ -431,34 +406,10 @@ TEST_CASE("Lookup entries by path", "[git_tree]") {
         CHECK(entry_baz_bar->IsBlob());
         CHECK(entry_baz_bar->Hash() == entry_bar->Hash());
 
-        auto entry_baz_baz = tree_root->LookupEntryByPath("baz/baz");
-        REQUIRE(entry_baz_baz);
-        CHECK(entry_baz_baz->IsTree());
-
         SECTION("Lookup missing entries") {
             CHECK_FALSE(tree_root->LookupEntryByPath("baz/fool"));
             CHECK_FALSE(tree_root->LookupEntryByPath("baz/barn"));
             CHECK_FALSE(tree_root->LookupEntryByPath("baz/bazel"));
-        }
-
-        SECTION("Lookup entries in sub-sub-tree") {
-            auto entry_baz_baz_foo =
-                tree_root->LookupEntryByPath("baz/baz/foo");
-            REQUIRE(entry_baz_baz_foo);
-            CHECK(entry_baz_baz_foo->IsBlob());
-            CHECK(entry_baz_baz_foo->Hash() == entry_foo->Hash());
-
-            auto entry_baz_baz_bar =
-                tree_root->LookupEntryByPath("baz/baz/bar");
-            REQUIRE(entry_baz_baz_bar);
-            CHECK(entry_baz_baz_bar->IsBlob());
-            CHECK(entry_baz_baz_bar->Hash() == entry_bar->Hash());
-
-            SECTION("Lookup missing entries") {
-                CHECK_FALSE(tree_root->LookupEntryByPath("baz/baz/fool"));
-                CHECK_FALSE(tree_root->LookupEntryByPath("baz/baz/barn"));
-                CHECK_FALSE(tree_root->LookupEntryByPath("baz/baz/bazel"));
-            }
         }
     }
 }

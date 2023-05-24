@@ -25,7 +25,7 @@ namespace {
 
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
-auto const kTreeId = std::string{"e51a219a27b672ccf17abec7d61eb4d6e0424140"};
+auto const kTreeId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
 auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
 auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 
@@ -68,7 +68,7 @@ void TestFileRootReadFile(FileRoot const& root) {
     CHECK(*bar == "bar");
 
     REQUIRE(root.Exists("baz"));
-    CHECK_FALSE(root.IsFile("baz"));
+    REQUIRE(root.IsDirectory("baz"));
 }
 
 void TestFileRootReadEntries(FileRoot const& root,
@@ -89,8 +89,7 @@ void TestFileRootReadEntries(FileRoot const& root,
 
 void TestFileRootReadDirectory(FileRoot const& root) {
     TestFileRootReadEntries(root, ".", true);
-    TestFileRootReadEntries(root, "baz", true);
-    TestFileRootReadEntries(root, "baz/baz", false);
+    TestFileRootReadEntries(root, "baz", false);
 }
 
 void TestFileRootReadFileType(FileRoot const& root) {
@@ -98,12 +97,25 @@ void TestFileRootReadFileType(FileRoot const& root) {
     REQUIRE(foo_type);
     CHECK(*foo_type == ObjectType::File);
 
-    auto bar_type = root.FileType("baz/baz/bar");
+    auto bar_type = root.FileType("baz/bar");
     REQUIRE(bar_type);
     CHECK(*bar_type == ObjectType::Executable);
 
     CHECK_FALSE(root.FileType("baz"));
     CHECK_FALSE(root.FileType("does_not_exist"));
+
+    // Check subdir
+    REQUIRE(root.Exists("baz/foo"));
+    REQUIRE(root.IsFile("baz/foo"));
+    auto bazfoo = root.ReadFile("baz/foo");
+    REQUIRE(bazfoo);
+    CHECK(*bazfoo == "foo");
+
+    REQUIRE(root.Exists("baz/bar"));
+    REQUIRE(root.IsFile("baz/bar"));
+    auto bazbar = root.ReadFile("baz/bar");
+    REQUIRE(bazbar);
+    CHECK(*bazbar == "bar");
 }
 
 }  // namespace
@@ -232,7 +244,7 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
                                   ObjectType::File,
                                   "repo"});
 
-        auto bar = root->ToArtifactDescription("baz/baz/bar", "repo");
+        auto bar = root->ToArtifactDescription("baz/bar", "repo");
         REQUIRE(bar);
         CHECK(*bar ==
               ArtifactDescription{ArtifactDigest{kBarId, 3, /*is_tree=*/false},

@@ -26,12 +26,9 @@ namespace {
 auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo.bundle"};
 auto const kRootCommit =
-    std::string{"bc5f88b46bbf0c4c61da7a1296fa9a0559b92822"};
-auto const kRootId = std::string{"e51a219a27b672ccf17abec7d61eb4d6e0424140"};
-auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
-auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
-auto const kBazOneId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
-auto const kBazTwoId = std::string{"27b32561185c2825150893774953906c6daa6798"};
+    std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
+auto const kRootId = std::string{"c610db170fbcad5f2d66fe19972495923f3b2536"};
+auto const kBazId = std::string{"27b32561185c2825150893774953906c6daa6798"};
 
 }  // namespace
 
@@ -237,14 +234,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             auto entry_baz_c =
                 repo->GetSubtreeFromCommit(kRootCommit, "baz", logger);
             REQUIRE(entry_baz_c);
-            CHECK(*entry_baz_c == kBazOneId);
-        }
-
-        SECTION("Get inner blob id") {
-            auto entry_bazbazfoo_c =
-                repo->GetSubtreeFromCommit(kRootCommit, "baz/baz/foo", logger);
-            REQUIRE(entry_bazbazfoo_c);
-            CHECK(*entry_bazbazfoo_c == kFooId);
+            CHECK(*entry_baz_c == kBazId);
         }
     }
 
@@ -258,13 +248,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
         SECTION("Get inner tree id") {
             auto entry_baz_t = repo->GetSubtreeFromTree(kRootId, "baz", logger);
             REQUIRE(entry_baz_t);
-            CHECK(*entry_baz_t == kBazOneId);
-        }
-        SECTION("Get inner blob id") {
-            auto entry_bazbazfoo_t =
-                repo->GetSubtreeFromTree(kRootId, "baz/baz/foo", logger);
-            REQUIRE(entry_bazbazfoo_t);
-            CHECK(*entry_bazbazfoo_t == kFooId);
+            CHECK(*entry_baz_t == kBazId);
         }
     }
 
@@ -279,10 +263,10 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             REQUIRE(root_path_from_baz);
             CHECK(*root_path_from_baz == *repo_path);
 
-            auto root_path_from_bazbazfoo = GitRepo::GetRepoRootFromPath(
-                *repo_path / "baz/baz/foo", logger);
-            REQUIRE(root_path_from_bazbazfoo);
-            CHECK(*root_path_from_bazbazfoo == *repo_path);
+            auto root_path_from_bazfoo =
+                GitRepo::GetRepoRootFromPath(*repo_path / "baz/foo", logger);
+            REQUIRE(root_path_from_bazfoo);
+            CHECK(*root_path_from_bazfoo == *repo_path);
 
             auto root_path_non_exist =
                 GitRepo::GetRepoRootFromPath("does_not_exist", logger);
@@ -317,15 +301,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             auto entry_baz_p =
                 repo->GetSubtreeFromPath(path_baz, kRootCommit, logger);
             REQUIRE(entry_baz_p);
-            CHECK(*entry_baz_p == kBazOneId);
-        }
-
-        SECTION("Get inner blob id") {
-            auto path_bazbazfoo = *repo_path / "baz/baz/foo";
-            auto entry_bazbazfoo_p =
-                repo->GetSubtreeFromPath(path_bazbazfoo, kRootCommit, logger);
-            REQUIRE(entry_bazbazfoo_p);
-            CHECK(*entry_bazbazfoo_p == kFooId);
+            CHECK(*entry_baz_p == kBazId);
         }
     }
 
@@ -401,22 +377,21 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from commit
-                            auto entry_bazbar_c =
+                            auto entry_baz_c =
                                 remote_repo->GetSubtreeFromCommit(
-                                    kRootCommit, "baz/bar", logger);
-                            REQUIRE(entry_bazbar_c);
-                            CHECK(*entry_bazbar_c == kBarId);
+                                    kRootCommit, "baz", logger);
+                            REQUIRE(entry_baz_c);
+                            CHECK(*entry_baz_c == kBazId);
                         } break;
                         case 1: {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from root tree id
-                            auto entry_bazbar_t =
-                                remote_repo->GetSubtreeFromTree(
-                                    kRootId, "baz/bar", logger);
-                            REQUIRE(entry_bazbar_t);
-                            CHECK(*entry_bazbar_t == kBarId);
+                            auto entry_baz_t = remote_repo->GetSubtreeFromTree(
+                                kRootId, "baz", logger);
+                            REQUIRE(entry_baz_t);
+                            CHECK(*entry_baz_t == kBazId);
                         } break;
                         case 2: {
                             auto remote_repo = GitRepo::Open(remote_cas);
@@ -434,12 +409,11 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from path
-                            auto path_bazbar = *remote_repo_path / "baz/bar";
-                            auto entry_bazbar_p =
-                                remote_repo->GetSubtreeFromPath(
-                                    path_bazbar, kRootCommit, logger);
-                            REQUIRE(entry_bazbar_p);
-                            CHECK(*entry_bazbar_p == kBarId);
+                            auto path_baz = *remote_repo_path / "baz";
+                            auto entry_baz_p = remote_repo->GetSubtreeFromPath(
+                                path_baz, kRootCommit, logger);
+                            REQUIRE(entry_baz_p);
+                            CHECK(*entry_baz_p == kBazId);
                         } break;
                         case 4: {
                             auto remote_repo = GitRepo::Open(remote_cas);
