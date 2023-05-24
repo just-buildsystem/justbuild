@@ -156,6 +156,8 @@
     , "flags-cc": ["./", "..", "flags-cc"]
     , "flags-cxx": ["./", "..", "flags-cxx"]
     , "default-ENV": ["./", "..", "default-ENV"]
+    , "default-TOOLCHAIN": ["./", "..", "default-TOOLCHAIN"]
+    , "default-NON_SYSTEM_TOOLS": ["./", "..", "default-NON_SYSTEM_TOOLS"]
     }
   , "implicit": {"defaults": [["./", "..", "defaults"]]}
   , "expression":
@@ -196,6 +198,17 @@
               ]
             }
           }
+        ]
+      , ["TOOLCHAIN_DIR", "toolchain"]
+      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
         ]
       , ["CC", {"type": "CALL_EXPRESSION", "name": "compiler-cc"}]
       , ["CXX", {"type": "CALL_EXPRESSION", "name": "compiler-cxx"}]
@@ -522,7 +535,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["file_check.sh", "c.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["file_check.sh", "c.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -565,7 +579,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["file_check.sh", "cxx.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["file_check.sh", "cxx.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -608,7 +623,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["type_check.sh", "c.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["type_check.sh", "c.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -651,7 +667,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["type_check.sh", "cxx.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["type_check.sh", "cxx.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -696,7 +713,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["symbol_check.sh", "c.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["symbol_check.sh", "c.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -746,7 +764,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["symbol_check.sh", "cxx.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["symbol_check.sh", "cxx.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -796,7 +815,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["size_check.sh", "c.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["size_check.sh", "c.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }
@@ -853,7 +873,8 @@
                 , "inputs":
                   { "type": "map_union"
                   , "$1":
-                    [ {"type": "env", "vars": ["size_check.sh", "cxx.flags"]}
+                    [ {"type": "var", "name": "TOOLCHAIN"}
+                    , {"type": "env", "vars": ["size_check.sh", "cxx.flags"]}
                     , {"type": "var", "name": "includes"}
                     ]
                   }

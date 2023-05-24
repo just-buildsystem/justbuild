@@ -2,54 +2,45 @@
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
-    { "type": "join"
-    , "$1":
-      { "type": "let*"
-      , "bindings":
-        [ ["fieldname", "defaults"]
-        , ["provider", "CC"]
-        , [ "transition"
-          , {"type": "var", "name": "defaults-transition", "default": null}
-          ]
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "CC"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
         ]
-      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
-      }
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-CXX":
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
-    { "type": "join"
-    , "$1":
-      { "type": "let*"
-      , "bindings":
-        [ ["fieldname", "defaults"]
-        , ["provider", "CXX"]
-        , [ "transition"
-          , {"type": "var", "name": "defaults-transition", "default": null}
-          ]
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "CXX"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
         ]
-      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
-      }
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-AR":
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
   , "expression":
-    { "type": "join"
-    , "$1":
-      { "type": "let*"
-      , "bindings":
-        [ ["fieldname", "defaults"]
-        , ["provider", "AR"]
-        , [ "transition"
-          , {"type": "var", "name": "defaults-transition", "default": null}
-          ]
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "AR"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
         ]
-      , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
-      }
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
 , "default-CFLAGS":
@@ -82,6 +73,21 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
+, "default-LDFLAGS":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "LDFLAGS"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
 , "default-ENV":
   { "vars": ["defaults-transition"]
   , "imports": {"map_provider": ["./", "..", "field_map_provider"]}
@@ -98,11 +104,51 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
     }
   }
+, "default-TOOLCHAIN":
+  { "vars": ["defaults-transition"]
+  , "imports": {"map_provider": ["./", "..", "field_map_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "TOOLCHAIN"]
+      , [ "transition"
+        , {"type": "var", "name": "defaults-transition", "default": null}
+        ]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+    }
+  }
+, "default-NON_SYSTEM_TOOLS":
+  { "vars": ["defaults-transition"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range": {"type": "FIELD", "name": "defaults"}
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "dep": {"type": "var", "name": "x"}
+        , "provider": "NON_SYSTEM_TOOLS"
+        , "transition":
+          { "type": "var"
+          , "name": "defaults-transition"
+          , "default": {"type": "empty_map"}
+          }
+        , "default": {"type": "empty_map"}
+        }
+      }
+    }
+  }
 , "defaults-base-provides":
   { "doc": ["Query list-provider from 'base' targets (last wins)"]
   , "vars": ["provider", "default"]
   , "vars_doc":
-    {"provider": ["The name of the list-provider in the provides map."]}
+    { "provider": ["The name of the list-provider in the provides map."]
+    , "default": ["The default if provider is missing (default: [])."]
+    }
   , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
   , "expression":
     { "type": "let*"
@@ -508,6 +554,7 @@
     [ "COMPILER"
     , "COMPILE_FLAGS"
     , "ENV"
+    , "TOOLCHAIN"
     , "srcs"
     , "hdrs"
     , "private-hdrs"
@@ -570,6 +617,10 @@
                     , "name": "cflags-files"
                     , "default": {"type": "empty_map"}
                     }
+                  , { "type": "var"
+                    , "name": "TOOLCHAIN"
+                    , "default": {"type": "empty_map"}
+                    }
                   ]
                 }
               ]
@@ -628,25 +679,64 @@
     }
   }
 , "compiler-cc":
-  { "vars": ["CC", "defaults-transition"]
+  { "vars": ["CC", "TOOLCHAIN_DIR", "NON_SYSTEM_TOOLS", "defaults-transition"]
   , "imports": {"default-CC": "default-CC"}
   , "expression":
     { "type": "var"
     , "name": "CC"
-    , "default": {"type": "CALL_EXPRESSION", "name": "default-CC"}
+    , "default":
+      { "type": "join"
+      , "$1":
+        { "type": "++"
+        , "$1":
+          [ { "type": "if"
+            , "cond":
+              { "type": "lookup"
+              , "key": "CC"
+              , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+              }
+            , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+            }
+          , {"type": "CALL_EXPRESSION", "name": "default-CC"}
+          ]
+        }
+      }
     }
   }
 , "compiler-cxx":
-  { "vars": ["CXX", "defaults-transition"]
+  { "vars": ["CXX", "TOOLCHAIN_DIR", "NON_SYSTEM_TOOLS", "defaults-transition"]
   , "imports": {"default-CXX": "default-CXX"}
   , "expression":
     { "type": "var"
     , "name": "CXX"
-    , "default": {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+    , "default":
+      { "type": "join"
+      , "$1":
+        { "type": "++"
+        , "$1":
+          [ { "type": "if"
+            , "cond":
+              { "type": "lookup"
+              , "key": "CXX"
+              , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+              }
+            , "then": ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+            }
+          , {"type": "CALL_EXPRESSION", "name": "default-CXX"}
+          ]
+        }
+      }
     }
   }
 , "compiler":
-  { "vars": ["CC", "CXX", "pure C", "defaults-transition"]
+  { "vars":
+    [ "CC"
+    , "CXX"
+    , "pure C"
+    , "TOOLCHAIN_DIR"
+    , "NON_SYSTEM_TOOLS"
+    , "defaults-transition"
+    ]
   , "imports": {"compiler-cc": "compiler-cc", "compiler-cxx": "compiler-cxx"}
   , "expression":
     { "type": "if"
@@ -727,11 +817,24 @@
     , "objects": "objects"
     , "default-AR": "default-AR"
     , "default-ENV": "default-ENV"
+    , "default-TOOLCHAIN": "default-TOOLCHAIN"
+    , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     }
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      [ ["TOOLCHAIN_DIR", "toolchain"]
+      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
+        ]
+      , ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
       , [ "COMPILE_FLAGS"
         , { "type": "++"
           , "$1":
@@ -743,7 +846,24 @@
       , [ "AR"
         , { "type": "var"
           , "name": "AR"
-          , "default": {"type": "CALL_EXPRESSION", "name": "default-AR"}
+          , "default":
+            { "type": "join"
+            , "$1":
+              { "type": "++"
+              , "$1":
+                [ { "type": "if"
+                  , "cond":
+                    { "type": "lookup"
+                    , "key": "AR"
+                    , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+                    }
+                  , "then":
+                    ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+                  }
+                , {"type": "CALL_EXPRESSION", "name": "default-AR"}
+                ]
+              }
+            }
           }
         ]
       , [ "ENV"
@@ -792,7 +912,13 @@
           , "then":
             { "type": "ACTION"
             , "outs": [{"type": "var", "name": "libpath"}]
-            , "inputs": {"type": "var", "name": "objects"}
+            , "inputs":
+              { "type": "map_union"
+              , "$1":
+                [ {"type": "var", "name": "TOOLCHAIN"}
+                , {"type": "var", "name": "objects"}
+                ]
+              }
             , "env":
               {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
             , "cmd":
@@ -959,11 +1085,25 @@
     , "flags": "flags"
     , "objects": "objects"
     , "default-ENV": "default-ENV"
+    , "default-LDFLAGS": "default-LDFLAGS"
+    , "default-TOOLCHAIN": "default-TOOLCHAIN"
+    , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     }
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      [ ["TOOLCHAIN_DIR", "toolchain"]
+      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
+        ]
+      , ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
       , [ "COMPILE_FLAGS"
         , { "type": "++"
           , "$1":
@@ -972,6 +1112,7 @@
             ]
           }
         ]
+      , ["LDFLAGS", {"type": "CALL_EXPRESSION", "name": "default-LDFLAGS"}]
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
@@ -1013,7 +1154,8 @@
           , "inputs":
             { "type": "disjoint_map_union"
             , "$1":
-              [ {"type": "var", "name": "objects"}
+              [ {"type": "var", "name": "TOOLCHAIN"}
+              , {"type": "var", "name": "objects"}
               , {"type": "var", "name": "link-deps"}
               , { "type": "var"
                 , "name": "cflags-files"
@@ -1034,6 +1176,7 @@
                 ]
               , {"type": "var", "name": "COMPILE_FLAGS"}
               , {"type": "var", "name": "link-args"}
+              , {"type": "var", "name": "LDFLAGS"}
               ]
             }
           , "env": {"type": "var", "name": "ENV"}

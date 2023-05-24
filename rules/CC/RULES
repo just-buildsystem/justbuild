@@ -6,18 +6,83 @@
     , "use of this rule. As targets form a different root, the defaults"
     , "can be provided without changing this directory."
     ]
-  , "target_fields": ["base"]
+  , "target_fields": ["base", "toolchain", "deps"]
   , "string_fields":
     [ "CC"
     , "CXX"
     , "CFLAGS"
     , "CXXFLAGS"
+    , "LDFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
+    , "ADD_LDFLAGS"
     , "AR"
     , "PATH"
+    , "SYSTEM_TOOLS"
     ]
-  , "imports": {"base-provides": "defaults-base-provides"}
+  , "field_doc":
+    { "base": ["Other targets (using the same rule) to inherit values from."]
+    , "toolchain":
+      [ "Optional toolchain directory. A collection of artifacts that provide"
+      , "the tools CC, CXX, and AR (if needed). Note that only artifacts of"
+      , "the specified targets are considered (no runfiles etc.). Specifying"
+      , "this field overlays artifacts from \"base\"."
+      ]
+    , "deps":
+      [ "Optional CC libraries any CC library and CC binary implicitly depend"
+      , "on. Those are typically \"libstdc++\" or \"libc++\" for C++ targets."
+      , "Specifying this field extends dependencies from \"base\"."
+      ]
+    , "CC": ["The C compiler to use"]
+    , "CXX": ["The C++ compiler to use"]
+    , "AR": ["The archiver tool to use"]
+    , "SYSTEM_TOOLS":
+      [ "List of tools (\"CC\", \"CXX\", or \"AR\") that should be taken from"
+      , "the system instead of from \"toolchain\" (if specified)."
+      ]
+    , "CFLAGS":
+      [ "Flags for C compilation. Specifying this field overwrites"
+      , "values from \"base\"."
+      ]
+    , "CXXFLAGS":
+      [ "Flags for C++ compilation. Specifying this field overwrites"
+      , "values from \"base\"."
+      ]
+    , "LDFLAGS":
+      [ "Linker flags for linking the final CC library. Specifying this field"
+      , "overwrites values from \"base\"."
+      ]
+    , "ADD_CFLAGS":
+      [ "Additional compilation flags for C. Specifying this field"
+      , "extends values from \"base\"."
+      ]
+    , "ADD_CXXFLAGS":
+      [ "Additional compilation flags for C++. Specifying this field"
+      , "extends values from \"base\"."
+      ]
+    , "ADD_LDFLAGS":
+      [ "Additional linker flags for linking the final CC library. Specifying"
+      , "this field extends values from \"base\"."
+      ]
+    , "PATH":
+      [ "Path for looking up the compilers. Individual paths are joined"
+      , "with \":\"."
+      ]
+    }
+  , "config_vars": ["ARCH", "HOST_ARCH"]
+  , "imports":
+    { "base-provides": "defaults-base-provides"
+    , "artifacts": ["./", "..", "field_artifacts"]
+    , "compile-deps": "compile-deps"
+    , "compile-args-deps": "compile-args-deps"
+    , "link-deps": "link-deps"
+    , "link-args-deps": "link-args-deps"
+    , "cflags-files-deps": "cflags-files-deps"
+    , "ldflags-files-deps": "ldflags-files-deps"
+    , "for host": ["transitions", "for host"]
+    }
+  , "config_transitions":
+    {"toolchain": [{"type": "CALL_EXPRESSION", "name": "for host"}]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -25,6 +90,7 @@
       , ["CXX", {"type": "FIELD", "name": "CXX"}]
       , ["CFLAGS", {"type": "FIELD", "name": "CFLAGS"}]
       , ["CXXFLAGS", {"type": "FIELD", "name": "CXXFLAGS"}]
+      , ["LDFLAGS", {"type": "FIELD", "name": "LDFLAGS"}]
       , ["AR", {"type": "FIELD", "name": "AR"}]
       , ["PATH", {"type": "FIELD", "name": "PATH"}]
       , ["provider", "CC"]
@@ -59,6 +125,14 @@
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
+      , ["provider", "LDFLAGS"]
+      , [ "LDFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LDFLAGS"}
+          , "then": {"type": "var", "name": "LDFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
       , ["provider", "AR"]
       , [ "AR"
         , { "type": "if"
@@ -84,6 +158,92 @@
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
+      , ["provider", "NON_SYSTEM_TOOLS"]
+      , ["default", {"type": "empty_map"}]
+      , [ "NON_SYSTEM_TOOLS"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ [{"type": "CALL_EXPRESSION", "name": "base-provides"}]
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "CC"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "CC"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "CXX"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "CXX"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "AR"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "AR"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              , { "type": "foreach"
+                , "range": {"type": "FIELD", "name": "SYSTEM_TOOLS"}
+                , "var": "tool"
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "tool"}
+                  , "value": false
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      , ["provider", "TOOLCHAIN"]
+      , ["default", {"type": "empty_map"}]
+      , [ "TOOLCHAIN"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "base-provides"}
+            , { "type": "if"
+              , "cond": {"type": "FIELD", "name": "toolchain"}
+              , "then":
+                { "type": "let*"
+                , "bindings":
+                  [ ["fieldname", "toolchain"]
+                  , [ "transition"
+                    , {"type": "CALL_EXPRESSION", "name": "for host"}
+                    ]
+                  ]
+                , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+                }
+              , "else": {"type": "empty_map"}
+              }
+            ]
+          }
+        ]
       , [ "CFLAGS"
         , { "type": "++"
           , "$1":
@@ -100,12 +260,49 @@
             ]
           }
         ]
+      , [ "LDFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "LDFLAGS"}
+            , {"type": "FIELD", "name": "ADD_LDFLAGS"}
+            ]
+          }
+        ]
+      , ["deps-fieldnames", ["base", "deps"]]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+        ]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , ["link-args", {"type": "CALL_EXPRESSION", "name": "link-args-deps"}]
+      , [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
+        ]
+      , ["package", {"type": "env", "vars": ["cflags-files", "ldflags-files"]}]
       ]
     , "body":
       { "type": "RESULT"
       , "provides":
         { "type": "env"
-        , "vars": ["CC", "CXX", "CFLAGS", "CXXFLAGS", "AR", "ENV"]
+        , "vars":
+          [ "CC"
+          , "CXX"
+          , "CFLAGS"
+          , "CXXFLAGS"
+          , "LDFLAGS"
+          , "AR"
+          , "ENV"
+          , "TOOLCHAIN"
+          , "NON_SYSTEM_TOOLS"
+          , "compile-deps"
+          , "compile-args"
+          , "link-deps"
+          , "link-args"
+          , "package"
+          ]
         }
       }
     }
@@ -332,8 +529,10 @@
           , "else": {"type": "var", "name": "name"}
           }
         ]
-      , ["public-fieldnames", ["deps", "proto-deps"]]
-      , ["private-fieldnames", ["deps", "private-deps", "proto-deps"]]
+      , ["public-fieldnames", ["deps", "proto-deps", "defaults"]]
+      , [ "private-fieldnames"
+        , ["deps", "private-deps", "proto-deps", "defaults"]
+        ]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "result"}
     }
@@ -471,7 +670,9 @@
           }
         ]
       , ["private-ldflags", {"type": "FIELD", "name": "private-ldflags"}]
-      , ["private-fieldnames", ["private-deps", "private-proto-deps"]]
+      , [ "private-fieldnames"
+        , ["private-deps", "private-proto-deps", "defaults"]
+        ]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "bin result"}
     }
