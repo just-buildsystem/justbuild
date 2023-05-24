@@ -62,6 +62,11 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.distfiles"
     }
+  , "toolchain":
+    { "repository":
+      {"type": "file", "path": "etc/toolchain", "pragma": {"to_git": true}}
+    , "rule_root": "rules"
+    }
   , "defaults":
     { "repository":
       {"type": "file", "path": "etc/defaults", "pragma": {"to_git": true}}
@@ -75,6 +80,7 @@
       {"type": "file", "path": "rules", "pragma": {"to_git": true}}
     , "target_root": "defaults"
     , "rule_root": "rules"
+    , "bindings": {"toolchain": "toolchain"}
     }
   , "rules-just":
     { "repository": "rules"

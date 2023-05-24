@@ -1,0 +1,258 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["OS", "ARCH", "COMPILER_FAMILY"]
+  , "base":
+    { "type": "let*"
+    , "bindings":
+      [ [ "COMPILER_FAMILY"
+        , { "type": "if"
+          , "cond":
+            { "type": "and"
+            , "$1":
+              [{"type": "var", "name": "OS"}, {"type": "var", "name": "ARCH"}]
+            }
+          , "then": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "else": "unknown"
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr":
+        {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+      , "case": {"gnu": ["gcc"], "clang": ["clang"], "unknown": ["unknown"]}
+      , "default":
+        { "type": "fail"
+        , "msg":
+          [ "Unsupported COMPILER_FAMILY"
+          , {"type": "var", "name": "COMPILER_FAMILY"}
+          ]
+        }
+      }
+    }
+  }
+, "unknown":
+  { "type": ["CC", "defaults"]
+  , "CC": ["cc"]
+  , "CXX": ["c++"]
+  , "AR": ["ar"]
+  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  }
+, "gcc":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH"]
+  , "CC":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["i686-linux-gnu-gcc"]
+        , "linux_x86_64": ["x86_64-linux-gnu-gcc"]
+        , "linux_arm": ["arm-linux-gnueabi-gcc"]
+        , "linux_arm64": ["aarch64-linux-gnu-gcc"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          ["Unsupported PLATFORM for gcc", {"type": "var", "name": "PLATFORM"}]
+        }
+      }
+    }
+  , "CXX":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["i686-linux-gnu-g++"]
+        , "linux_x86_64": ["x86_64-linux-gnu-g++"]
+        , "linux_arm": ["arm-linux-gnueabi-g++"]
+        , "linux_arm64": ["aarch64-linux-gnu-g++"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          ["Unsupported PLATFORM for g++", {"type": "var", "name": "PLATFORM"}]
+        }
+      }
+    }
+  , "CXXFLAGS":
+    { "type": "case"
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
+    , "case": {"arm": ["-Wno-psabi"]}
+    }
+  , "AR":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["i686-linux-gnu-ar"]
+        , "linux_x86_64": ["x86_64-linux-gnu-ar"]
+        , "linux_arm": ["arm-linux-gnueabi-ar"]
+        , "linux_arm64": ["aarch64-linux-gnu-ar"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          ["Unsupported PLATFORM for ar", {"type": "var", "name": "PLATFORM"}]
+        }
+      }
+    }
+  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  }
+, "clang":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
+  , "CC": ["clang"]
+  , "CXX": ["clang++"]
+  , "AR":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["i686-linux-gnu-ar"]
+        , "linux_x86_64": ["x86_64-linux-gnu-ar"]
+        , "linux_arm": ["arm-linux-gnueabi-ar"]
+        , "linux_arm64": ["aarch64-linux-gnu-ar"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          ["Unsupported PLATFORM for ar", {"type": "var", "name": "PLATFORM"}]
+        }
+      }
+    }
+  , "CFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["-target", "i686-linux-gnu"]
+        , "linux_x86_64": ["-target", "x86_64-linux-gnu"]
+        , "linux_arm": ["-target", "arm-linux-gnueabi"]
+        , "linux_arm64": ["-target", "aarch64-linux-gnu"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          [ "Unsupported PLATFORM for clang"
+          , {"type": "var", "name": "PLATFORM"}
+          ]
+        }
+      }
+    }
+  , "CXXFLAGS":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PLATFORM"
+        , { "type": "join"
+          , "separator": "_"
+          , "$1":
+            [ {"type": "var", "name": "OS"}
+            , { "type": "var"
+              , "name": "TARGET_ARCH"
+              , "default": {"type": "var", "name": "ARCH"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "case"
+      , "expr": {"type": "var", "name": "PLATFORM"}
+      , "case":
+        { "linux_x86": ["-target", "i686-linux-gnu"]
+        , "linux_x86_64": ["-target", "x86_64-linux-gnu"]
+        , "linux_arm": ["-target", "arm-linux-gnueabi"]
+        , "linux_arm64": ["-target", "aarch64-linux-gnu"]
+        }
+      , "default":
+        { "type": "fail"
+        , "msg":
+          [ "Unsupported PLATFORM for clang++"
+          , {"type": "var", "name": "PLATFORM"}
+          ]
+        }
+      }
+    }
+  , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
+  }
+}
