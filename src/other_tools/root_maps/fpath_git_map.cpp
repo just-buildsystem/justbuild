@@ -15,6 +15,7 @@
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -39,7 +40,7 @@ auto CreateFilePathGitMap(
             });
         // check if path is a part of a git repo
         auto repo_root = GitRepoRemote::GetRepoRootFromPath(
-            key, wrapped_logger);  // static function
+            key.fpath, wrapped_logger);  // static function
         if (not repo_root) {
             return;
         }
@@ -70,7 +71,8 @@ auto CreateFilePathGitMap(
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},
-                [fpath = key,
+                [fpath = key.fpath,
+                 ignore_special = key.ignore_special,
                  git_cas = std::move(git_cas),
                  repo_root = std::move(*repo_root),
                  setter,
@@ -108,7 +110,10 @@ auto CreateFilePathGitMap(
                     }
                     // set the workspace root
                     (*setter)(nlohmann::json::array(
-                        {"git tree", *tree_hash, repo_root}));
+                        {ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                        : FileRoot::kGitTreeMarker,
+                         *tree_hash,
+                         repo_root}));
                 },
                 [logger, target_path = *repo_root](auto const& msg,
                                                    bool fatal) {
@@ -126,7 +131,7 @@ auto CreateFilePathGitMap(
                                       "path \'{}\'.\nPlease consider using "
                                       "\'just-mr setup\' and \'just {}\' "
                                       "separately to cache the output.",
-                                      key.string(),
+                                      key.fpath.string(),
                                       *current_subcmd),
                           /*fatal=*/false);
             }
@@ -139,21 +144,22 @@ auto CreateFilePathGitMap(
             }
             // copy folder content to tmp dir
             if (not FileSystemManager::CopyDirectoryImpl(
-                    key, tmp_dir->GetPath(), /*recursively=*/true)) {
+                    key.fpath, tmp_dir->GetPath(), /*recursively=*/true)) {
                 (*logger)(
                     fmt::format("Failed to copy content from directory {}",
-                                key.string()),
+                                key.fpath.string()),
                     /*fatal=*/true);
                 return;
             }
             // do import to git
-            CommitInfo c_info{tmp_dir->GetPath(), "file", key};
+            CommitInfo c_info{tmp_dir->GetPath(), "file", key.fpath};
             import_to_git_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(c_info)},
                 // tmp_dir passed, to ensure folder is not removed until import
                 // to git is done
-                [tmp_dir, setter, logger](auto const& values) {
+                [tmp_dir, ignore_special = key.ignore_special, setter, logger](
+                    auto const& values) {
                     // check for errors
                     if (not values[0]->second) {
                         (*logger)("Importing to git failed",
@@ -164,9 +170,12 @@ auto CreateFilePathGitMap(
                     std::string tree = values[0]->first;
                     // set the workspace root
                     (*setter)(nlohmann::json::array(
-                        {"git tree", tree, StorageConfig::GitRoot()}));
+                        {ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                        : FileRoot::kGitTreeMarker,
+                         tree,
+                         StorageConfig::GitRoot()}));
                 },
-                [logger, target_path = key](auto const& msg, bool fatal) {
+                [logger, target_path = key.fpath](auto const& msg, bool fatal) {
                     (*logger)(
                         fmt::format("While importing target {} to git:\n{}",
                                     target_path.string(),
@@ -175,6 +184,5 @@ auto CreateFilePathGitMap(
                 });
         }
     };
-    return AsyncMapConsumer<std::filesystem::path, nlohmann::json>(dir_to_git,
-                                                                   jobs);
+    return AsyncMapConsumer<FpathInfo, nlohmann::json>(dir_to_git, jobs);
 }

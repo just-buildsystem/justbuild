@@ -50,6 +50,7 @@
     [ ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "path_hash"]
+    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -57,6 +58,7 @@
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "tmp_dir"]
+    , ["src/buildtool/file_system", "file_root"]
     ]
   }
 , "content_git_map":

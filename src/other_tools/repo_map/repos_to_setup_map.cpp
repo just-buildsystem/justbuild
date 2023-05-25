@@ -14,6 +14,7 @@
 
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
@@ -242,6 +243,12 @@ void FileCheckout(ExpressionPtr const& repo_desc,
     // get absolute path
     auto fpath = ToNormalPath(
         std::filesystem::absolute(repo_desc_path->get()->String()));
+    // get ignore-special entry
+    auto repo_desc_ignore_special =
+        repo_desc->Get("ignore_special", Expression::none_t{});
+    bool ignore_special = repo_desc_ignore_special->IsBool()
+                              ? repo_desc_ignore_special->Bool()
+                              : false;
     // check to_git pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
     auto pragma_to_git =
@@ -249,9 +256,10 @@ void FileCheckout(ExpressionPtr const& repo_desc,
     if (pragma_to_git and pragma_to_git->get()->IsBool() and
         pragma_to_git->get()->Bool()) {
         // get the WS root as git tree
+        FpathInfo fpath_info = {fpath, ignore_special};
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
-            {std::move(fpath)},
+            {std::move(fpath_info)},
             [repos = std::move(repos), repo_name, setter](auto const& values) {
                 auto ws_root = *values[0];
                 nlohmann::json cfg({});
@@ -272,8 +280,9 @@ void FileCheckout(ExpressionPtr const& repo_desc,
     else {
         // get the WS root as filesystem location
         nlohmann::json cfg({});
-        cfg["workspace_root"] =
-            nlohmann::json::array({"file", fpath.string()});  // explicit array
+        cfg["workspace_root"] = nlohmann::json::array(
+            {ignore_special ? FileRoot::kFileIgnoreSpecialMarker : "file",
+             fpath.string()});  // explicit array
         SetReposTakeOver(&cfg, repos, repo_name);
         (*setter)(std::move(cfg));
         // report local path
