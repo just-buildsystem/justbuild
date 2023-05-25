@@ -70,7 +70,7 @@ if not custom_remote:
 
 
     remote_cmd = [
-        "./just", "execute",
+        "./bin/just", "execute",
         "--info-file", REMOTE_INFO,
         "--local-build-root", REMOTE_LBR,
         "--log-limit", "6", "--plain-log",

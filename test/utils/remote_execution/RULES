@@ -29,7 +29,7 @@
   , "implicit":
     { "defaults": [["@", "rules", "CC", "defaults"]]
     , "runner": ["test_runner.py"]
-    , "just": [["@", "src", "", "just"]]
+    , "just": [["@", "src", "", "installed just"]]
     }
   , "field_doc":
     { "name":
@@ -168,8 +168,7 @@
       , ["location", "runner"]
       , ["runner", {"type": "CALL_EXPRESSION", "name": "stage"}]
       , ["fieldname", "just"]
-      , ["location", "just"]
-      , ["just", {"type": "CALL_EXPRESSION", "name": "stage"}]
+      , ["just", {"type": "CALL_EXPRESSION", "name": "artifacts"}]
       , [ "compatible-remote"
         , { "type": "singleton_map"
           , "key": "compatible-remote.json"

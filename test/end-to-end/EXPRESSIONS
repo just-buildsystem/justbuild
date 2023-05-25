@@ -12,6 +12,7 @@
   , "imports":
     { "artifacts_list": ["@", "rules", "", "field_artifacts_list"]
     , "runfiles_list": ["@", "rules", "", "field_runfiles_list"]
+    , "artifacts": ["@", "rules", "", "field_artifacts"]
     , "stage": ["@", "rules", "", "stage_singleton_field"]
     }
   , "expression":
@@ -21,8 +22,7 @@
       , ["location", "runner"]
       , ["runner", {"type": "CALL_EXPRESSION", "name": "stage"}]
       , ["fieldname", "just"]
-      , ["location", "just"]
-      , ["just", {"type": "CALL_EXPRESSION", "name": "stage"}]
+      , ["just", {"type": "CALL_EXPRESSION", "name": "artifacts"}]
       , ["fieldname", "deps"]
       , [ "deps"
         , { "type": "TREE"
