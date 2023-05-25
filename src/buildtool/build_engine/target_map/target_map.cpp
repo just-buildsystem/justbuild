@@ -558,6 +558,7 @@ void withDependencies(
                                                          env_exp,
                                                          may_fail,
                                                          no_cache,
+                                                         1.0,
                                                          inputs_exp);
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));

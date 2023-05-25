@@ -1044,6 +1044,7 @@ void GenericRuleWithDeps(
                                                env_val,
                                                std::nullopt,
                                                false,
+                                               1.0,
                                                inputs);
     auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;

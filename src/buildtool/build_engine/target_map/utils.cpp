@@ -194,6 +194,7 @@ auto BuildMaps::Target::Utils::createAction(
     const ExpressionPtr& env,
     std::optional<std::string> may_fail,
     bool no_cache,
+    double timeout_scale,
     const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
     auto hasher = HashFunction::Hasher();
     hasher.Update(hash_vector(output_files));
@@ -203,6 +204,7 @@ auto BuildMaps::Target::Utils::createAction(
     hasher.Update(hash_vector(may_fail ? std::vector<std::string>{*may_fail}
                                        : std::vector<std::string>{}));
     hasher.Update(no_cache ? std::string{"N"} : std::string{"Y"});
+    hasher.Update(fmt::format("{:+24a}", timeout_scale));
     hasher.Update(inputs_exp->ToHash());
 
     auto action_id = std::move(hasher).Finalize().HexString();
@@ -222,6 +224,7 @@ auto BuildMaps::Target::Utils::createAction(
                                                       std::move(command),
                                                       std::move(env_vars),
                                                       std::move(may_fail),
-                                                      no_cache},
+                                                      no_cache,
+                                                      timeout_scale},
                                                std::move(inputs));
 }

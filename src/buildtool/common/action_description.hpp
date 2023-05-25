@@ -134,10 +134,25 @@ class ActionDescription {
                 no_cache = *no_cache_it;
             }
 
+            double timeout_scale{1.0};
+            auto timeout_scale_it = desc.find("timeout scaling");
+            if (timeout_scale_it != desc.end()) {
+                if (not timeout_scale_it->is_number()) {
+                    Logger::Log(LogLevel::Error,
+                                "timeout scaling has to be a number");
+                }
+                timeout_scale = *timeout_scale_it;
+            }
+
             return std::make_shared<ActionDescription>(
                 std::move(*outputs),
                 std::move(*output_dirs),
-                Action{id, std::move(*command), env, may_fail, no_cache},
+                Action{id,
+                       std::move(*command),
+                       env,
+                       may_fail,
+                       no_cache,
+                       timeout_scale},
                 inputs);
         } catch (std::exception const& ex) {
             Logger::Log(
@@ -175,6 +190,9 @@ class ActionDescription {
         }
         if (action_.NoCache()) {
             json["no_cache"] = true;
+        }
+        if (action_.TimeoutScale() != 1.0) {
+            json["timeout scaling"] = action_.TimeoutScale();
         }
         return json;
     }

@@ -31,12 +31,14 @@ class Action {
            std::vector<std::string> command,
            std::map<std::string, std::string> env_vars,
            std::optional<std::string> may_fail,
-           bool no_cache)
+           bool no_cache,
+           double timeout_scale)
         : id_{std::move(action_id)},
           command_{std::move(command)},
           env_{std::move(env_vars)},
           may_fail_{std::move(may_fail)},
-          no_cache_{no_cache} {}
+          no_cache_{no_cache},
+          timeout_scale_{timeout_scale} {}
 
     Action(std::string action_id,
            std::vector<std::string> command,
@@ -45,7 +47,8 @@ class Action {
                  std::move(command),
                  std::move(env_vars),
                  std::nullopt,
-                 false) {}
+                 false,
+                 1.0) {}
 
     [[nodiscard]] auto Id() const noexcept -> ActionIdentifier { return id_; }
 
@@ -72,6 +75,7 @@ class Action {
         return may_fail_;
     }
     [[nodiscard]] auto NoCache() const -> bool { return no_cache_; }
+    [[nodiscard]] auto TimeoutScale() const -> double { return timeout_scale_; }
 
     [[nodiscard]] static auto CreateTreeAction(ActionIdentifier const& id)
         -> Action {
@@ -85,6 +89,7 @@ class Action {
     bool is_tree_{};
     std::optional<std::string> may_fail_{};
     bool no_cache_{};
+    double timeout_scale_{};
 
     explicit Action(ActionIdentifier id) : id_{std::move(id)}, is_tree_{true} {}
 };

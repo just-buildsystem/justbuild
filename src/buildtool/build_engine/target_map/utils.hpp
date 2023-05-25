@@ -65,6 +65,7 @@ auto createAction(const ActionDescription::outputs_t& output_files,
                   const ExpressionPtr& env,
                   std::optional<std::string> may_fail,
                   bool no_cache,
+                  double timeout_scale,
                   const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr;
 
 }  // namespace BuildMaps::Target::Utils
