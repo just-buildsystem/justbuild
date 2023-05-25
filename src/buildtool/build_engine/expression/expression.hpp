@@ -242,6 +242,7 @@ class Expression {
         Expression::FromJson("[]"_json);
     inline static ExpressionPtr const kEmptyMapExpr =
         Expression::FromJson(R"({"type": "empty_map"})"_json);
+    inline static ExpressionPtr const kOne = Expression::FromJson("1.0"_json);
 
   private:
     std::variant<none_t,

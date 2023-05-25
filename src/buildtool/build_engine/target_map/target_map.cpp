@@ -551,15 +551,25 @@ void withDependencies(
                   }
               }
               bool no_cache = not no_cache_exp->List().empty();
-              auto action =
-                  BuildMaps::Target::Utils::createAction(outputs,
-                                                         output_dirs,
-                                                         std::move(cmd),
-                                                         env_exp,
-                                                         may_fail,
-                                                         no_cache,
-                                                         1.0,
-                                                         inputs_exp);
+              auto timeout_scale_exp =
+                  eval(expr->Get("timeout scaling", Expression::kOne), env);
+              if (not(timeout_scale_exp->IsNumber() or
+                      timeout_scale_exp->IsNone())) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("timeout scaling has to be number (or null "
+                                  "for default), but found {}",
+                                  timeout_scale_exp->ToString())};
+              }
+              auto action = BuildMaps::Target::Utils::createAction(
+                  outputs,
+                  output_dirs,
+                  std::move(cmd),
+                  env_exp,
+                  may_fail,
+                  no_cache,
+                  timeout_scale_exp->IsNumber() ? timeout_scale_exp->Number()
+                                                : 1.0,
+                  inputs_exp);
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));
               for (auto const& out : outputs) {
