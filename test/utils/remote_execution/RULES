@@ -162,7 +162,7 @@
       , ["host-trans", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , ["defaults-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
-      , ["deps-fieldnames", ["private-deps"]]
+      , ["deps-fieldnames", ["private-deps", "defaults"]]
       , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , ["fieldname", "runner"]
       , ["location", "runner"]
