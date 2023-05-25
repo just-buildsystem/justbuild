@@ -7,6 +7,7 @@
     [ ["@", "json", "", "json"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -20,6 +21,7 @@
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/buildtool/file_system", "file_root"]
     ]
   }
 , "commit_git_map":

@@ -322,6 +322,12 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                   /*fatal=*/true);
         return;
     }
+    // get ignore-special entry
+    auto repo_desc_ignore_special =
+        repo_desc->Get("ignore_special", Expression::none_t{});
+    bool ignore_special = repo_desc_ignore_special->IsBool()
+                              ? repo_desc_ignore_special->Bool()
+                              : false;
     // map of distfile to content
     auto distdir_content =
         std::make_shared<std::unordered_map<std::string, std::string>>();
@@ -458,7 +464,12 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             .HexString();
     // get the WS root as git tree
     DistdirInfo distdir_info = {
-        distdir_content_id, distdir_content, dist_repos_to_fetch, repo_name};
+        distdir_content_id,  /* content_id */
+        distdir_content,     /* content_list */
+        dist_repos_to_fetch, /* repos_to_fetch */
+        repo_name,           /* origin */
+        ignore_special       /* ignore_special */
+    };
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
