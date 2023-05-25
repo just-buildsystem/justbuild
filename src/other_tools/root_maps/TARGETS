@@ -80,6 +80,7 @@
     , ["src/buildtool/storage", "config"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/buildtool/file_system", "file_root"]
     ]
   }
 , "tree_id_git_map":

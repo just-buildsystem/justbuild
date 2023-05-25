@@ -174,6 +174,8 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
     auto repo_desc_distfile = repo_desc->Get("distfile", Expression::none_t{});
     auto repo_desc_sha256 = repo_desc->Get("sha256", Expression::none_t{});
     auto repo_desc_sha512 = repo_desc->Get("sha512", Expression::none_t{});
+    auto repo_desc_ignore_special =
+        repo_desc->Get("ignore_special", Expression::none_t{});
     // populate struct
     ArchiveRepoInfo archive_repo_info = {
         {
@@ -187,12 +189,14 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                 : std::nullopt, /* sha256 */
             repo_desc_sha512->IsString()
                 ? std::make_optional(repo_desc_sha512->String())
-                : std::nullopt,                /* sha512 */
-            repo_name,                         /* origin */
-            false                              /* origin_from_distdir */
-        },                                     /* archive */
-        repo_type,                             /* repo_type */
-        subdir.empty() ? "." : subdir.string() /* subdir */
+                : std::nullopt,                 /* sha512 */
+            repo_name,                          /* origin */
+            false                               /* origin_from_distdir */
+        },                                      /* archive */
+        repo_type,                              /* repo_type */
+        subdir.empty() ? "." : subdir.string(), /* subdir */
+        repo_desc_ignore_special->IsBool() ? repo_desc_ignore_special->Bool()
+                                           : false /* ignore_special */
     };
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(

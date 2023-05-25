@@ -786,6 +786,9 @@ void DefaultReachableRepositories(
                     (*resolved_repo_desc)->Get("sha256", Expression::none_t{});
                 auto repo_desc_sha512 =
                     (*resolved_repo_desc)->Get("sha512", Expression::none_t{});
+                auto repo_desc_ignore_special =
+                    (*resolved_repo_desc)
+                        ->Get("ignore_special", Expression::none_t{});
                 ArchiveRepoInfo archive_info = {
                     {
                         repo_desc_content->get()->String(), /* content */
@@ -802,8 +805,11 @@ void DefaultReachableRepositories(
                         repo_name,          /* origin */
                         false               /* origin_from_distdir */
                     },                      /* archive */
-                    repo_type_str,
-                    subdir.empty() ? "." : subdir.string()};
+                    repo_type_str,          /* repo_type */
+                    subdir.empty() ? "." : subdir.string(), /* subdir */
+                    repo_desc_ignore_special->IsBool()
+                        ? repo_desc_ignore_special->Bool()
+                        : false /* ignore_special */};
                 // add to list
                 repos_to_fetch.emplace_back(std::move(archive_info));
             }
