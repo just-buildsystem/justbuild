@@ -38,6 +38,10 @@ The following fields are supported:
 - ~"path"~ provides the root directory containing the source files.
   This entry is mandatory.
 
+- ~"ignore_special"~ is a boolean signaling that the resulting root should
+  ignore all special (i.e., neither file, executable, nor tree) entries.
+  Defaults to ~false~ if missing or not evaluating to ~true~.
+
 *** ~"archive"~ / ~"zip"~
 
 They define as workspace root a remote archive.
@@ -66,6 +70,10 @@ The following fields are supported:
 - ~"subdir"~ specifies the subdirectory withing the unpacked archive.
   This entry is optional. If missing, the root directory of the archive is used.
 
+- ~"ignore_special"~ is a boolean signaling that the resulting root should
+  ignore all special (i.e., neither file, executable, nor tree) entries.
+  Defaults to ~false~ if missing or not evaluating to ~true~.
+
 *** ~"git"~
 
 It defines as workspace root a part of a Git repository.
@@ -85,6 +93,10 @@ The following fields are supported:
   This entry is optional. If missing, the root directory of the Git repository
   is used.
 
+- ~"ignore_special"~ is a boolean signaling that the resulting root should
+  ignore all special (i.e., neither file, executable, nor tree) entries.
+  Defaults to ~false~ if missing or not evaluating to ~true~.
+
 *** ~"git tree"~
 
 It defines as workspace root a known Git tree obtainable by a generic command.
@@ -102,6 +114,10 @@ The following fields are supported:
 
 - ~"env"~ provides a map of envariables to be set for executing the command.
 
+- ~"ignore_special"~ is a boolean signaling that the resulting root should
+  ignore all special (i.e., neither file, executable, nor tree) entries.
+  Defaults to ~false~ if missing or not evaluating to ~true~.
+
 *** ~"distdir"~
 
 It defines as workspace root a directory with the distribution archives
@@ -112,6 +128,10 @@ The following fields are supported:
 
 - ~"repositories"~ provides a list of global names of repositories.
   This entry is mandatory.
+
+- ~"ignore_special"~ is a boolean signaling that the resulting root should
+  ignore all special (i.e., neither file, executable, nor tree) entries.
+  Defaults to ~false~ if missing or not evaluating to ~true~.
 
 *** Additional keys
 
