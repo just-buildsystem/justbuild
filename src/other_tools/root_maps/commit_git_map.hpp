@@ -31,9 +31,12 @@ struct GitRepoInfo {
     std::string subdir{}; /* key */
     // name of repository for which work is done; used in progress reporting
     std::string origin{};
+    // create root that ignores symlinks
+    bool ignore_special{}; /* key */
 
     [[nodiscard]] auto operator==(const GitRepoInfo& other) const -> bool {
-        return hash == other.hash and subdir == other.subdir;
+        return hash == other.hash and subdir == other.subdir and
+               ignore_special == other.ignore_special;
     }
 };
 
@@ -45,6 +48,7 @@ struct hash<GitRepoInfo> {
         size_t seed{};
         hash_combine<std::string>(&seed, ct.hash);
         hash_combine<std::string>(&seed, ct.subdir);
+        hash_combine<bool>(&seed, ct.ignore_special);
         return seed;
     }
 };

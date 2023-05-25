@@ -91,13 +91,17 @@ void GitCheckout(ExpressionPtr const& repo_desc,
                                             ? repo_desc_subdir->String()
                                             : "")
                       .lexically_normal();
+    auto repo_desc_ignore_special =
+        repo_desc->Get("ignore_special", Expression::none_t{});
     // populate struct
     GitRepoInfo git_repo_info = {
         repo_desc_commit->get()->String(),      /* hash */
         repo_desc_repository->get()->String(),  /* repo_url */
         repo_desc_branch->get()->String(),      /* branch */
         subdir.empty() ? "." : subdir.string(), /* subdir */
-        repo_name                               /* origin */
+        repo_name,                              /* origin */
+        repo_desc_ignore_special->IsBool() ? repo_desc_ignore_special->Bool()
+                                           : false /* ignore_special */
     };
     // get the WS root as git tree
     commit_git_map->ConsumeAfterKeysReady(

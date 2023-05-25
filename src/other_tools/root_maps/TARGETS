@@ -39,6 +39,7 @@
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/buildtool/file_system", "file_root"]
     ]
   }
 , "fpath_git_map":

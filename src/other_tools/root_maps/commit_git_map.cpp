@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -150,9 +151,14 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 // set the workspace root
                 JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
-                (*ws_setter)(std::pair(
-                    nlohmann::json::array({"git tree", *subtree, repo_root}),
-                    false));
+                (*ws_setter)(
+                    std::pair(nlohmann::json::array(
+                                  {repo_info.ignore_special
+                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                       : FileRoot::kGitTreeMarker,
+                                   *subtree,
+                                   repo_root}),
+                              false));
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
@@ -178,7 +184,12 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         }
         // set the workspace root
         (*ws_setter)(std::pair(
-            nlohmann::json::array({"git tree", *subtree, repo_root}), true));
+            nlohmann::json::array({repo_info.ignore_special
+                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                       : FileRoot::kGitTreeMarker,
+                                   *subtree,
+                                   repo_root}),
+            true));
     }
 }
 
