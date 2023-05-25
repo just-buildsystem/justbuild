@@ -1,17 +1,39 @@
 { "tool-under-test":
-  { "type": "install"
-  , "files": {"bin/tool-under-test": ["@", "src", "", "just"]}
+  { "type": "generic"
+  , "cmds": ["mkdir -p bin lib", "mv bin/just bin/tool-under-test"]
+  , "outs": ["bin/tool-under-test"]
+  , "out_dirs": ["lib"]
+  , "deps": [["@", "src", "", "installed just"]]
   }
 , "mr-tool-under-test":
-  { "type": "install"
+  { "type": "generic"
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "files":
-    { "bin/mr-tool-under-test":
-      { "type": "if"
-      , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
-      , "then": ["@", "src", "", "bin/just-mr.py"]
-      , "else": ["@", "src", "", "just-mr"]
+  , "cmds":
+    [ "mkdir -p bin lib"
+    , { "type": "join_cmd"
+      , "$1":
+        [ "mv"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+          , "then": "bin/just-mr.py"
+          , "else": "bin/just-mr"
+          }
+        , "bin/mr-tool-under-test"
+        ]
       }
+    ]
+  , "outs": ["bin/mr-tool-under-test"]
+  , "out_dirs":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+    , "then": []
+    , "else": ["lib"]
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+    , "then": [["@", "src", "", "bin/just-mr.py"]]
+    , "else": [["@", "src", "", "installed just-mr"]]
     }
   }
 , "git-import-under-test":
