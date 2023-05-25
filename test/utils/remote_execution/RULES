@@ -112,13 +112,9 @@
   , "imports":
     { "artifacts": ["@", "rules", "", "field_artifacts"]
     , "runfiles": ["@", "rules", "", "field_runfiles"]
-    , "compile-deps": ["@", "rules", "CC", "compile-deps"]
-    , "compile-args-deps": ["@", "rules", "CC", "compile-args-deps"]
-    , "link-deps": ["@", "rules", "CC", "link-deps"]
-    , "link-args-deps": ["@", "rules", "CC", "link-args-deps"]
-    , "binary": ["@", "rules", "CC", "bin artifact"]
     , "host transition": ["@", "rules", "transitions", "for host"]
     , "stage": ["@", "rules", "", "stage_singleton_field"]
+    , "run_test": ["@", "rules", "CC/test", "run_test"]
     }
   , "config_transitions":
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
@@ -167,45 +163,6 @@
       , ["defaults-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps"]]
-      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
-      , [ "compile-args"
-        , { "type": "++"
-          , "$1":
-            [ { "type": "foreach"
-              , "var": "def"
-              , "range": {"type": "FIELD", "name": "private-defines"}
-              , "body":
-                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
-              }
-            , {"type": "FIELD", "name": "private-cflags"}
-            , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
-            ]
-          }
-        ]
-      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
-      , [ "link-args"
-        , { "type": "++"
-          , "$1":
-            [ {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
-            , {"type": "FIELD", "name": "private-ldflags"}
-            ]
-          }
-        ]
-      , ["binary", {"type": "CALL_EXPRESSION", "name": "binary"}]
-      , [ "staged test binary"
-        , { "type": "map_union"
-          , "$1":
-            { "type": "foreach_map"
-            , "range": {"type": "var", "name": "binary"}
-            , "var_val": "binary"
-            , "body":
-              { "type": "singleton_map"
-              , "key": "test"
-              , "value": {"type": "var", "name": "binary"}
-              }
-            }
-          }
-        ]
       , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , ["fieldname", "runner"]
       , ["location", "runner"]
@@ -213,18 +170,6 @@
       , ["fieldname", "just"]
       , ["location", "just"]
       , ["just", {"type": "CALL_EXPRESSION", "name": "stage"}]
-      , [ "test-args"
-        , { "type": "singleton_map"
-          , "key": "test-args.json"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "json_encode"
-              , "$1": {"type": "FIELD", "name": "args", "default": []}
-              }
-            }
-          }
-        ]
       , [ "compatible-remote"
         , { "type": "singleton_map"
           , "key": "compatible-remote.json"
@@ -239,20 +184,16 @@
             }
           }
         ]
-      , [ "test-launcher"
-        , { "type": "singleton_map"
-          , "key": "test-launcher.json"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "json_encode"
-              , "$1":
-                {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
-              }
-            }
+      , [ "runner-data"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "compatible-remote"}
+            , {"type": "var", "name": "just"}
+            ]
           }
         ]
-      , [ "data"
+      , ["test-args", {"type": "FIELD", "name": "args", "default": []}]
+      , [ "test-data"
         , { "type": "let*"
           , "bindings":
             [ ["fieldname", "data"]
@@ -267,69 +208,8 @@
             }
           }
         ]
-      , [ "test-name"
-        , { "type": "join"
-          , "separator": "/"
-          , "$1":
-            [{"type": "var", "name": "stage"}, {"type": "var", "name": "name"}]
-          }
-        ]
-      , [ "test-results"
-        , { "type": "ACTION"
-          , "outs":
-            [ "result"
-            , "stdout"
-            , "stderr"
-            , "time-start"
-            , "time-stop"
-            , "remotestdout"
-            , "remotestderr"
-            ]
-          , "inputs":
-            { "type": "map_union"
-            , "$1":
-              [ { "type": "to_subdir"
-                , "subdir": "work"
-                , "$1": {"type": "var", "name": "data"}
-                }
-              , {"type": "var", "name": "just"}
-              , {"type": "var", "name": "compatible-remote"}
-              , {"type": "var", "name": "runner"}
-              , {"type": "var", "name": "test-args"}
-              , {"type": "var", "name": "test-launcher"}
-              , {"type": "var", "name": "staged test binary"}
-              ]
-            }
-          , "cmd": ["./runner"]
-          , "env":
-            { "type": "var"
-            , "name": "TEST_ENV"
-            , "default": {"type": "empty_map"}
-            }
-          , "may_fail": ["test"]
-          , "fail_message":
-            { "type": "join"
-            , "$1":
-              [ "remote execution CC test "
-              , {"type": "var", "name": "test-name"}
-              , " failed"
-              ]
-            }
-          }
-        ]
-      , [ "runfiles"
-        , { "type": "singleton_map"
-          , "key": {"type": "var", "name": "name"}
-          , "value":
-            {"type": "TREE", "$1": {"type": "var", "name": "test-results"}}
-          }
-        ]
       ]
-    , "body":
-      { "type": "RESULT"
-      , "artifacts": {"type": "var", "name": "test-results"}
-      , "runfiles": {"type": "var", "name": "runfiles"}
-      }
+    , "body": {"type": "CALL_EXPRESSION", "name": "run_test"}
     }
   }
 }
