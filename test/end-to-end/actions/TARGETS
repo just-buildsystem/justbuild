@@ -5,6 +5,13 @@
   , "keep": ["graph.json"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "equality-timeout":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["equality-timeout"]
+  , "test": ["action-equality-timeout.sh"]
+  , "keep": ["graph-null.json", "graph-1.json", "graph-2.json"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "trees":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["trees"]
@@ -21,6 +28,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["equality", "trees", "conflicts"]
+  , "deps": ["equality", "equality-timeout", "trees", "conflicts"]
   }
 }
