@@ -105,15 +105,9 @@
   , "imports":
     { "artifacts": ["./", "../..", "field_artifacts"]
     , "runfiles": ["./", "../..", "field_runfiles"]
-    , "compile-deps": ["./", "..", "compile-deps"]
-    , "compile-args-deps": ["./", "..", "compile-args-deps"]
-    , "link-deps": ["./", "..", "link-deps"]
-    , "link-args-deps": ["./", "..", "link-args-deps"]
-    , "cflags-files-deps": ["./", "..", "cflags-files-deps"]
-    , "ldflags-files-deps": ["./", "..", "ldflags-files-deps"]
-    , "binary": ["./", "..", "bin artifact"]
     , "host transition": ["transitions", "for host"]
     , "stage": ["./", "../..", "stage_singleton_field"]
+    , "run_test": "run_test"
     }
   , "config_transitions":
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
@@ -160,51 +154,6 @@
       , ["defaults-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps"]]
-      , [ "cflags-files"
-        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
-        ]
-      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
-      , [ "compile-args"
-        , { "type": "++"
-          , "$1":
-            [ { "type": "foreach"
-              , "var": "def"
-              , "range": {"type": "FIELD", "name": "private-defines"}
-              , "body":
-                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
-              }
-            , {"type": "FIELD", "name": "private-cflags"}
-            , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
-            ]
-          }
-        ]
-      , [ "ldflags-files"
-        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
-        ]
-      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
-      , [ "link-args"
-        , { "type": "++"
-          , "$1":
-            [ {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
-            , {"type": "FIELD", "name": "private-ldflags"}
-            ]
-          }
-        ]
-      , ["binary", {"type": "CALL_EXPRESSION", "name": "binary"}]
-      , [ "staged test binary"
-        , { "type": "map_union"
-          , "$1":
-            { "type": "foreach_map"
-            , "range": {"type": "var", "name": "binary"}
-            , "var_val": "binary"
-            , "body":
-              { "type": "singleton_map"
-              , "key": "test"
-              , "value": {"type": "var", "name": "binary"}
-              }
-            }
-          }
-        ]
       , [ "runner"
         , { "type": "map_union"
           , "$1":
@@ -233,32 +182,8 @@
             }
           }
         ]
-      , [ "test-args"
-        , { "type": "singleton_map"
-          , "key": "test-args.json"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "json_encode"
-              , "$1": {"type": "FIELD", "name": "args", "default": []}
-              }
-            }
-          }
-        ]
-      , [ "test-launcher"
-        , { "type": "singleton_map"
-          , "key": "test-launcher.json"
-          , "value":
-            { "type": "BLOB"
-            , "data":
-              { "type": "json_encode"
-              , "$1":
-                {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
-              }
-            }
-          }
-        ]
-      , [ "data"
+      , ["test-args", {"type": "FIELD", "name": "args", "default": []}]
+      , [ "test-data"
         , { "type": "let*"
           , "bindings":
             [ ["fieldname", "data"]
@@ -273,178 +198,15 @@
             }
           }
         ]
-      , [ "test-name"
-        , { "type": "join"
-          , "separator": "/"
-          , "$1":
-            [{"type": "var", "name": "stage"}, {"type": "var", "name": "name"}]
-          }
-        ]
-      , [ "test input"
-        , { "type": "map_union"
-          , "$1":
-            [ { "type": "to_subdir"
-              , "subdir": "work"
-              , "$1": {"type": "var", "name": "data"}
-              }
-            , {"type": "var", "name": "runner"}
-            , {"type": "var", "name": "test-args"}
-            , {"type": "var", "name": "test-launcher"}
-            , {"type": "var", "name": "staged test binary"}
-            ]
+      , [ "summarizer"
+        , { "type": "let*"
+          , "bindings":
+            [["fieldname", "summarizer"], ["location", "summarizer"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
           }
         ]
       ]
-    , "body":
-      { "type": "if"
-      , "cond": {"type": "var", "name": "RUNS_PER_TEST"}
-      , "else":
-        { "type": "let*"
-        , "bindings":
-          [ [ "test-results"
-            , { "type": "ACTION"
-              , "outs":
-                ["result", "stdout", "stderr", "time-start", "time-stop"]
-              , "inputs": {"type": "var", "name": "test input"}
-              , "cmd": ["./runner"]
-              , "env":
-                { "type": "var"
-                , "name": "TEST_ENV"
-                , "default": {"type": "empty_map"}
-                }
-              , "may_fail": ["test"]
-              , "fail_message":
-                { "type": "join"
-                , "$1":
-                  ["CC test ", {"type": "var", "name": "test-name"}, " failed"]
-                }
-              }
-            ]
-          , [ "runfiles"
-            , { "type": "singleton_map"
-              , "key": {"type": "var", "name": "name"}
-              , "value":
-                {"type": "TREE", "$1": {"type": "var", "name": "test-results"}}
-              }
-            ]
-          ]
-        , "body":
-          { "type": "RESULT"
-          , "artifacts": {"type": "var", "name": "test-results"}
-          , "runfiles": {"type": "var", "name": "runfiles"}
-          }
-        }
-      , "then":
-        { "type": "let*"
-        , "bindings":
-          [ [ "attempts"
-            , { "type": "map_union"
-              , "$1":
-                { "type": "foreach"
-                , "var": "ATTEMPT"
-                , "range":
-                  { "type": "range"
-                  , "$1": {"type": "var", "name": "RUNS_PER_TEST"}
-                  }
-                , "body":
-                  { "type": "singleton_map"
-                  , "key": {"type": "var", "name": "ATTEMPT"}
-                  , "value":
-                    { "type": "TREE"
-                    , "$1":
-                      { "type": "ACTION"
-                      , "outs":
-                        [ "result"
-                        , "stdout"
-                        , "stderr"
-                        , "time-start"
-                        , "time-stop"
-                        ]
-                      , "inputs":
-                        { "type": "map_union"
-                        , "$1":
-                          [ { "type": "singleton_map"
-                            , "key": "ATTEMPT"
-                            , "value":
-                              { "type": "BLOB"
-                              , "data": {"type": "var", "name": "ATTEMPT"}
-                              }
-                            }
-                          , {"type": "var", "name": "test input"}
-                          ]
-                        }
-                      , "cmd": ["./runner"]
-                      , "env":
-                        { "type": "var"
-                        , "name": "TEST_ENV"
-                        , "default": {"type": "empty_map"}
-                        }
-                      , "may_fail": ["test"]
-                      , "no_cache": ["test"]
-                      , "fail_message":
-                        { "type": "join"
-                        , "$1":
-                          [ "CC test "
-                          , {"type": "var", "name": "test-name"}
-                          , " failed (Run"
-                          , {"type": "var", "name": "ATTEMPT"}
-                          , ")"
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            ]
-          , [ "summarizer"
-            , { "type": "let*"
-              , "bindings":
-                [["fieldname", "summarizer"], ["location", "summarizer"]]
-              , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
-              }
-            ]
-          , [ "summary"
-            , { "type": "ACTION"
-              , "inputs":
-                { "type": "map_union"
-                , "$1":
-                  [ {"type": "var", "name": "attempts"}
-                  , {"type": "var", "name": "summarizer"}
-                  ]
-                }
-              , "outs":
-                ["stdout", "stderr", "result", "time-start", "time-stop"]
-              , "cmd": ["./summarizer"]
-              }
-            ]
-          , [ "artifacts"
-            , { "type": "map_union"
-              , "$1":
-                [ {"type": "var", "name": "summary"}
-                , { "type": "singleton_map"
-                  , "key": "work"
-                  , "value":
-                    {"type": "TREE", "$1": {"type": "var", "name": "attempts"}}
-                  }
-                ]
-              }
-            ]
-          , [ "runfiles"
-            , { "type": "singleton_map"
-              , "key": {"type": "var", "name": "name"}
-              , "value":
-                {"type": "TREE", "$1": {"type": "var", "name": "artifacts"}}
-              }
-            ]
-          ]
-        , "body":
-          { "type": "RESULT"
-          , "artifacts": {"type": "var", "name": "artifacts"}
-          , "runfiles": {"type": "var", "name": "runfiles"}
-          }
-        }
-      }
+    , "body": {"type": "CALL_EXPRESSION", "name": "run_test"}
     }
   }
 }
