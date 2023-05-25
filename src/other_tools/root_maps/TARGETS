@@ -49,6 +49,7 @@
   , "deps":
     [ ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["@", "json", "", "json"]
+    , ["src/utils/cpp", "path_hash"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":

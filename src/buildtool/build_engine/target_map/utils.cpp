@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/path_hash.hpp"
 
 auto BuildMaps::Target::Utils::obtainTargetByName(
     const SubExprEvaluator& eval,
@@ -111,7 +112,7 @@ auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     struct PathHash {
         auto operator()(std::filesystem::path const& p) const noexcept
             -> std::size_t {
-            return std::filesystem::hash_value(p);
+            return std::hash<std::filesystem::path>{}(p);
         }
     };
     std::unordered_set<std::filesystem::path, PathHash> blocked{};

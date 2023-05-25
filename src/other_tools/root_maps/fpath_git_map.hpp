@@ -17,25 +17,10 @@
 
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
+#include "src/utils/cpp/path_hash.hpp"
 
 /// \brief Maps the path to a repo on the file system to its Git tree WS root.
 using FilePathGitMap = AsyncMapConsumer<std::filesystem::path, nlohmann::json>;
-
-#if (defined(__GLIBCXX__) and _GLIBCXX_RELEASE < 12) or \
-    (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION < 16000)
-// std::hash<std::filesystem::path> is missing for
-// - GNU's libstdc++ < 12
-// - LLVM's libcxx < 16 (see https://reviews.llvm.org/D125394)
-namespace std {
-template <>
-struct hash<std::filesystem::path> {
-    [[nodiscard]] auto operator()(
-        std::filesystem::path const& ct) const noexcept -> std::size_t {
-        return std::filesystem::hash_value(ct);
-    }
-};
-}  // namespace std
-#endif
 
 [[nodiscard]] auto CreateFilePathGitMap(
     std::optional<std::string> const& current_subcmd,

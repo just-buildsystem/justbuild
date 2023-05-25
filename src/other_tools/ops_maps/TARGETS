@@ -7,6 +7,7 @@
     [ ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/other_tools/git_operations", "git_operations"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "path_hash"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   }
@@ -20,6 +21,7 @@
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "path_hash"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":

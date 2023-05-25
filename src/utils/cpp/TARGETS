@@ -77,4 +77,10 @@
   , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
+, "path_hash":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["path_hash"]
+  , "hdrs": ["path_hash.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }

@@ -21,6 +21,7 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/path_hash.hpp"
 
 struct CommitInfo {
     std::filesystem::path target_path{}; /*key*/
@@ -45,9 +46,7 @@ template <>
 struct hash<CommitInfo> {
     [[nodiscard]] auto operator()(CommitInfo const& ct) const noexcept
         -> std::size_t {
-        // hash_value is used due to a bug in stdlibc++
-        // (see critical_git_op_map.hpp)
-        return std::filesystem::hash_value(ct.target_path);
+        return std::hash<std::filesystem::path>{}(ct.target_path);
     }
 };
 }  // namespace std

@@ -61,6 +61,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "path_hash"]
     , ["src/utils/cpp", "vector"]
     ]
   }

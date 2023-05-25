@@ -22,6 +22,7 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/git_operations/git_operations.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
+#include "src/utils/cpp/path_hash.hpp"
 
 using GitOpKeyMap = std::unordered_map<
     GitOpType,
@@ -66,7 +67,7 @@ class CriticalGitOpGuard {
         // making sure only one thread at a time processes this section
         std::scoped_lock<std::mutex> const lock(critical_key_mutex_);
         auto target_path_key =
-            std::filesystem::hash_value(new_key.params.target_path);
+            std::hash<std::filesystem::path>{}(new_key.params.target_path);
         if (curr_critical_key_.contains(target_path_key)) {
             GitOpKey old_key =
                 curr_critical_key_[target_path_key];  // return stored key
@@ -89,11 +90,7 @@ struct hash<GitOpParams> {
     [[nodiscard]] auto operator()(GitOpParams const& ct) const noexcept
         -> std::size_t {
         size_t seed{};
-        // hash_value is used due to a bug in stdlibc++ which makes
-        // std::hash<std::filesystem::path>{}() fail with `temporary of type
-        // '__hash_enum<std::filesystem::__cxx11::path>' has private destructor`
-        hash_combine<size_t>(&seed,
-                             std::filesystem::hash_value(ct.target_path));
+        hash_combine<std::filesystem::path>(&seed, ct.target_path);
         hash_combine<std::string>(&seed, ct.git_hash);
         hash_combine<std::string>(&seed, ct.branch);
         return seed;
