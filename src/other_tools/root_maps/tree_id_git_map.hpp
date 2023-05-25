@@ -20,6 +20,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/utils/cpp/hash_combine.hpp"
 
 struct TreeIdInfo {
     std::string hash{}; /* key */
@@ -27,9 +28,11 @@ struct TreeIdInfo {
     std::vector<std::string> command{};
     // name of repository for which work is done; used in progress reporting
     std::string origin{};
+    // create root that ignores symlinks
+    bool ignore_special{}; /* key */
 
     [[nodiscard]] auto operator==(const TreeIdInfo& other) const -> bool {
-        return hash == other.hash;
+        return hash == other.hash and ignore_special == other.ignore_special;
     }
 };
 
@@ -38,7 +41,10 @@ template <>
 struct hash<TreeIdInfo> {
     [[nodiscard]] auto operator()(const TreeIdInfo& ti) const noexcept
         -> std::size_t {
-        return std::hash<std::string>{}(ti.hash);
+        size_t seed{};
+        hash_combine<std::string>(&seed, ti.hash);
+        hash_combine<bool>(&seed, ti.ignore_special);
+        return seed;
     }
 };
 }  // namespace std

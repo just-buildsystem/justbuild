@@ -16,6 +16,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
@@ -58,11 +59,14 @@ void KeepCommitAndSetRoot(
             }
             // set the workspace root
             JustMRProgress::Instance().TaskTracker().Start(tree_id_info.origin);
-            (*ws_setter)(std::pair(
-                nlohmann::json::array({"git tree",
-                                       tree_id_info.hash,
-                                       StorageConfig::GitRoot().string()}),
-                false));
+            (*ws_setter)(
+                std::pair(nlohmann::json::array(
+                              {tree_id_info.ignore_special
+                                   ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                   : FileRoot::kGitTreeMarker,
+                               tree_id_info.hash,
+                               StorageConfig::GitRoot().string()}),
+                          false));
         },
         [logger, commit, target_path = tmp_dir->GetPath()](auto const& msg,
                                                            bool fatal) {
@@ -337,12 +341,14 @@ auto CreateTreeIdGitMap(
                 }
                 else {
                     // tree found, so return the git tree root as-is
-                    (*setter)(
-                        std::pair(nlohmann::json::array(
-                                      {"git tree",
-                                       key.hash,
-                                       StorageConfig::GitRoot().string()}),
-                                  true));
+                    (*setter)(std::pair(
+                        nlohmann::json::array(
+                            {key.ignore_special
+                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                 : FileRoot::kGitTreeMarker,
+                             key.hash,
+                             StorageConfig::GitRoot().string()}),
+                        true));
                 }
             },
             [logger, target_path = StorageConfig::GitRoot()](auto const& msg,

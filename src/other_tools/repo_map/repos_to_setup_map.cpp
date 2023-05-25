@@ -561,11 +561,19 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
             }
         }
     }
+    // get ignore-special entry
+    auto repo_desc_ignore_special =
+        repo_desc->Get("ignore_special", Expression::none_t{});
+    bool ignore_special = repo_desc_ignore_special->IsBool()
+                              ? repo_desc_ignore_special->Bool()
+                              : false;
     // populate struct
     TreeIdInfo tree_id_info = {
         repo_desc_hash->get()->String(), /* hash */
         std::move(env),                  /* env_vars */
-        std::move(cmd)                   /* command */
+        std::move(cmd),                  /* command */
+        repo_name,                       /* origin */
+        ignore_special                   /* ignore_special */
     };
     // get the WS root as git tree
     tree_id_git_map->ConsumeAfterKeysReady(
