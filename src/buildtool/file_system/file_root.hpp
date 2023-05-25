@@ -98,6 +98,9 @@ class FileRoot {
 
   public:
     static constexpr auto kGitTreeMarker = "git tree";
+    static constexpr auto kGitTreeIgnoreSpecialMarker =
+        "git tree ignore-special";
+    static constexpr auto kFileIgnoreSpecialMarker = "file ignore-special";
 
     class DirectoryEntries {
         friend class FileRoot;
