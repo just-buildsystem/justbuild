@@ -95,14 +95,14 @@ void GitCheckout(ExpressionPtr const& repo_desc,
         repo_desc->Get("ignore_special", Expression::none_t{});
     // populate struct
     GitRepoInfo git_repo_info = {
-        repo_desc_commit->get()->String(),      /* hash */
-        repo_desc_repository->get()->String(),  /* repo_url */
-        repo_desc_branch->get()->String(),      /* branch */
-        subdir.empty() ? "." : subdir.string(), /* subdir */
-        repo_name,                              /* origin */
-        repo_desc_ignore_special->IsBool() ? repo_desc_ignore_special->Bool()
-                                           : false /* ignore_special */
-    };
+        .hash = repo_desc_commit->get()->String(),
+        .repo_url = repo_desc_repository->get()->String(),
+        .branch = repo_desc_branch->get()->String(),
+        .subdir = subdir.empty() ? "." : subdir.string(),
+        .origin = repo_name,
+        .ignore_special = repo_desc_ignore_special->IsBool()
+                              ? repo_desc_ignore_special->Bool()
+                              : false};
     // get the WS root as git tree
     commit_git_map->ConsumeAfterKeysReady(
         ts,
@@ -178,26 +178,25 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
         repo_desc->Get("ignore_special", Expression::none_t{});
     // populate struct
     ArchiveRepoInfo archive_repo_info = {
-        {
-            repo_desc_content->get()->String(), /* content */
-            repo_desc_distfile->IsString()
-                ? std::make_optional(repo_desc_distfile->String())
-                : std::nullopt,               /* distfile */
-            repo_desc_fetch->get()->String(), /* fetch_url */
-            repo_desc_sha256->IsString()
-                ? std::make_optional(repo_desc_sha256->String())
-                : std::nullopt, /* sha256 */
-            repo_desc_sha512->IsString()
-                ? std::make_optional(repo_desc_sha512->String())
-                : std::nullopt,                 /* sha512 */
-            repo_name,                          /* origin */
-            false                               /* origin_from_distdir */
-        },                                      /* archive */
-        repo_type,                              /* repo_type */
-        subdir.empty() ? "." : subdir.string(), /* subdir */
-        repo_desc_ignore_special->IsBool() ? repo_desc_ignore_special->Bool()
-                                           : false /* ignore_special */
-    };
+        .archive =
+            {.content = repo_desc_content->get()->String(),
+             .distfile = repo_desc_distfile->IsString()
+                             ? std::make_optional(repo_desc_distfile->String())
+                             : std::nullopt,
+             .fetch_url = repo_desc_fetch->get()->String(),
+             .sha256 = repo_desc_sha256->IsString()
+                           ? std::make_optional(repo_desc_sha256->String())
+                           : std::nullopt,
+             .sha512 = repo_desc_sha512->IsString()
+                           ? std::make_optional(repo_desc_sha512->String())
+                           : std::nullopt,
+             .origin = repo_name,
+             .origin_from_distdir = false},
+        .repo_type = repo_type,
+        .subdir = subdir.empty() ? "." : subdir.string(),
+        .ignore_special = repo_desc_ignore_special->IsBool()
+                              ? repo_desc_ignore_special->Bool()
+                              : false};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -432,20 +431,20 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                 (*resolved_repo_desc)->Get("sha512", Expression::none_t{});
 
             ArchiveContent archive = {
-                repo_desc_content->get()->String(), /* content */
-                repo_desc_distfile->IsString()
-                    ? std::make_optional(repo_desc_distfile->String())
-                    : std::nullopt,               /* distfile */
-                repo_desc_fetch->get()->String(), /* fetch_url */
-                repo_desc_sha256->IsString()
-                    ? std::make_optional(repo_desc_sha256->String())
-                    : std::nullopt, /* sha256 */
-                repo_desc_sha512->IsString()
-                    ? std::make_optional(repo_desc_sha512->String())
-                    : std::nullopt, /* sha512 */
-                dist_repo_name,     /* origin */
-                true                /* origin_from_distdir */
-            };                      /* archive */
+                .content = repo_desc_content->get()->String(),
+                .distfile =
+                    repo_desc_distfile->IsString()
+                        ? std::make_optional(repo_desc_distfile->String())
+                        : std::nullopt,
+                .fetch_url = repo_desc_fetch->get()->String(),
+                .sha256 = repo_desc_sha256->IsString()
+                              ? std::make_optional(repo_desc_sha256->String())
+                              : std::nullopt,
+                .sha512 = repo_desc_sha512->IsString()
+                              ? std::make_optional(repo_desc_sha512->String())
+                              : std::nullopt,
+                .origin = dist_repo_name,
+                .origin_from_distdir = true};
 
             // add to distdir content map
             auto repo_distfile =
@@ -463,13 +462,11 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
         HashFunction::ComputeBlobHash(nlohmann::json(*distdir_content).dump())
             .HexString();
     // get the WS root as git tree
-    DistdirInfo distdir_info = {
-        distdir_content_id,  /* content_id */
-        distdir_content,     /* content_list */
-        dist_repos_to_fetch, /* repos_to_fetch */
-        repo_name,           /* origin */
-        ignore_special       /* ignore_special */
-    };
+    DistdirInfo distdir_info = {.content_id = distdir_content_id,
+                                .content_list = distdir_content,
+                                .repos_to_fetch = dist_repos_to_fetch,
+                                .origin = repo_name,
+                                .ignore_special = ignore_special};
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
@@ -568,13 +565,10 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                               ? repo_desc_ignore_special->Bool()
                               : false;
     // populate struct
-    TreeIdInfo tree_id_info = {
-        repo_desc_hash->get()->String(), /* hash */
-        std::move(env),                  /* env_vars */
-        std::move(cmd),                  /* command */
-        repo_name,                       /* origin */
-        ignore_special                   /* ignore_special */
-    };
+    TreeIdInfo tree_id_info = {.hash = repo_desc_hash->get()->String(),
+                               .env_vars = std::move(env),
+                               .command = std::move(cmd),
+                               .ignore_special = ignore_special};
     // get the WS root as git tree
     tree_id_git_map->ConsumeAfterKeysReady(
         ts,

@@ -1250,7 +1250,7 @@ auto GitRepo::ReadTreeData(std::string const& data,
     -> std::optional<tree_entries_t> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
-        InMemoryODBBackend b{kInMemoryODBParent};
+        InMemoryODBBackend b{.parent = kInMemoryODBParent};
         auto cas = std::make_shared<GitCAS>();
         if (auto raw_id =
                 is_hex_id ? FromHexString(id) : std::make_optional(id)) {
@@ -1285,7 +1285,7 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
     -> std::optional<std::pair<std::string, std::string>> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
-        InMemoryODBBackend b{kInMemoryODBParent, &entries};
+        InMemoryODBBackend b{.parent = kInMemoryODBParent, .entries = &entries};
         auto cas = std::make_shared<GitCAS>();
         // create a GitCAS from a special-purpose in-memory object database.
         git_odb* odb_ptr{nullptr};

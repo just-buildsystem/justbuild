@@ -576,7 +576,8 @@ void SetupHashFunction() {
         if (not entity) {
             std::exit(kExitFailure);
         }
-        return Target::ConfiguredTarget{std::move(*entity), std::move(config)};
+        return Target::ConfiguredTarget{.target = std::move(*entity),
+                                        .config = std::move(config)};
     }
     auto const target_file =
         (std::filesystem::path{current_module} / target_file_name).string();
@@ -608,9 +609,9 @@ void SetupHashFunction() {
         std::exit(kExitFailure);
     }
     return Target::ConfiguredTarget{
-        Base::EntityName{
-            Base::NamedTarget{main_repo, current_module, json.begin().key()}},
-        std::move(config)};
+        .target = Base::EntityName{Base::NamedTarget{
+            main_repo, current_module, json.begin().key()}},
+        .config = std::move(config)};
 }
 
 [[nodiscard]] auto DetermineWorkspaceRootByLookingForMarkers() noexcept

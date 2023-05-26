@@ -45,7 +45,7 @@ auto BuildMaps::Target::Utils::obtainTargetByName(
     }
     auto transition = eval(expr->Get("transition", empty_map_exp), env);
     auto it = deps_by_transition.find(BuildMaps::Target::ConfiguredTarget{
-        *target, Configuration{transition}});
+        .target = *target, .config = Configuration{transition}});
     if (it == deps_by_transition.end()) {
         throw Evaluator::EvaluationError{fmt::format(
             "Reference to undeclared dependency {} in transition {}",
@@ -70,7 +70,7 @@ auto BuildMaps::Target::Utils::obtainTarget(
     }
     auto transition = eval(expr->Get("transition", empty_map_exp), env);
     auto it = deps_by_transition.find(BuildMaps::Target::ConfiguredTarget{
-        reference->Name(), Configuration{transition}});
+        .target = reference->Name(), .config = Configuration{transition}});
     if (it == deps_by_transition.end()) {
         throw Evaluator::EvaluationError{fmt::format(
             "Reference to undeclared dependency {} in transition {}",

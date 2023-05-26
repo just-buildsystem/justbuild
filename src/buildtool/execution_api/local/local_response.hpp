@@ -76,10 +76,10 @@ class LocalResponse final : public IExecutionResponse {
             try {
                 artifacts.emplace(
                     file.path(),
-                    Artifact::ObjectInfo{ArtifactDigest{file.digest()},
-                                         file.is_executable()
-                                             ? ObjectType::Executable
-                                             : ObjectType::File});
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest{file.digest()},
+                        .type = file.is_executable() ? ObjectType::Executable
+                                                     : ObjectType::File});
             } catch (...) {
                 return {};
             }
@@ -90,8 +90,9 @@ class LocalResponse final : public IExecutionResponse {
             try {
                 artifacts.emplace(
                     dir.path(),
-                    Artifact::ObjectInfo{ArtifactDigest{dir.tree_digest()},
-                                         ObjectType::Tree});
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest{dir.tree_digest()},
+                        .type = ObjectType::Tree});
             } catch (...) {
                 return {};
             }

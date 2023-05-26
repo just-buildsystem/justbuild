@@ -59,10 +59,11 @@ class GitApi final : public IExecutionApi {
                 for (auto const& [path, entry] : *tree) {
                     if (not RetrieveToPaths(
                             {Artifact::ObjectInfo{
-                                ArtifactDigest{
-                                    entry->Hash(), /*size*/ 0, entry->IsTree()},
-                                entry->Type(),
-                                false}},
+                                .digest = ArtifactDigest{entry->Hash(),
+                                                         /*size*/ 0,
+                                                         entry->IsTree()},
+                                .type = entry->Type(),
+                                .failed = false}},
                             {output_paths[i] / path})) {
                         return false;
                     }
@@ -111,10 +112,11 @@ class GitApi final : public IExecutionApi {
                 for (auto const& [path, entry] : *tree) {
                     json[path] =
                         Artifact::ObjectInfo{
-                            ArtifactDigest{
-                                entry->Hash(), /*size*/ 0, entry->IsTree()},
-                            entry->Type(),
-                            false}
+                            .digest =
+                                ArtifactDigest{
+                                    entry->Hash(), /*size*/ 0, entry->IsTree()},
+                            .type = entry->Type(),
+                            .failed = false}
                             .ToString(/*size_unknown*/ true);
                 }
                 auto msg = json.dump(2) + "\n";

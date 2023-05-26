@@ -36,13 +36,14 @@ void KeepCommitAndSetRoot(
     TreeIdGitMap::SetterPtr const& ws_setter,
     TreeIdGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
-    GitOpKey op_key = {{
-                           StorageConfig::GitRoot(),     // target_path
-                           commit,                       // git_hash
-                           "",                           // branch
-                           "Keep referenced tree alive"  // message
-                       },
-                       GitOpType::KEEP_TAG};
+    GitOpKey op_key = {.params =
+                           {
+                               StorageConfig::GitRoot(),     // target_path
+                               commit,                       // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
@@ -95,14 +96,15 @@ auto CreateTreeIdGitMap(
         // first, check whether tree exists already in CAS
         // ensure Git cache
         // define Git operation to be done
-        GitOpKey op_key = {{
-                               StorageConfig::GitRoot(),  // target_path
-                               "",                        // git_hash
-                               "",                        // branch
-                               std::nullopt,              // message
-                               true                       // init_bare
-                           },
-                           GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {.params =
+                               {
+                                   StorageConfig::GitRoot(),  // target_path
+                                   "",                        // git_hash
+                                   "",                        // branch
+                                   std::nullopt,              // message
+                                   true                       // init_bare
+                               },
+                           .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -177,14 +179,16 @@ auto CreateTreeIdGitMap(
                     }
 
                     // do an import to git with tree check
-                    GitOpKey op_key = {{
-                                           tmp_dir->GetPath(),  // target_path
-                                           "",                  // git_hash
-                                           "",                  // branch
-                                           fmt::format("Content of tree {}",
-                                                       key.hash),  // message
-                                       },
-                                       GitOpType::INITIAL_COMMIT};
+                    GitOpKey op_key = {
+                        .params =
+                            {
+                                tmp_dir->GetPath(),  // target_path
+                                "",                  // git_hash
+                                "",                  // branch
+                                fmt::format("Content of tree {}",
+                                            key.hash),  // message
+                            },
+                        .op_type = GitOpType::INITIAL_COMMIT};
                     critical_git_op_map->ConsumeAfterKeysReady(
                         ts,
                         {std::move(op_key)},

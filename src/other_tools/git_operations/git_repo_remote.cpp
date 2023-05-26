@@ -531,7 +531,8 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                 return false;
             }
             // add backend, with max priority
-            FetchIntoODBBackend b{kFetchIntoODBParent, GetGitOdb().get()};
+            FetchIntoODBBackend b{.parent = kFetchIntoODBParent,
+                                  .target_odb = GetGitOdb().get()};
             if (git_odb_add_backend(
                     tmp_repo->GetGitOdb().get(),
                     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)

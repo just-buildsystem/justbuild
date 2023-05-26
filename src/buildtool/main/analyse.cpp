@@ -108,7 +108,9 @@ void DetectAndReportPending(std::string const& name,
 
     auto provides_exp = Expression::FromJson(provides);
     return std::make_shared<AnalysedTarget const>(
-        TargetResult{inputs_exp, provides_exp, Expression::kEmptyMap},
+        TargetResult{.artifact_stage = inputs_exp,
+                     .provides = provides_exp,
+                     .runfiles = Expression::kEmptyMap},
         std::vector<ActionDescription::Ptr>{action},
         target->Blobs(),
         target->Trees(),
@@ -249,5 +251,5 @@ void DetectAndReportPending(std::string const& name,
             }
         }
     }
-    return AnalysisResult{id, target, modified};
+    return AnalysisResult{.id = id, .target = target, .modified = modified};
 }

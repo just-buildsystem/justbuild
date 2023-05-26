@@ -62,12 +62,13 @@ auto CreateFilePathGitMap(
                 return;
             }
             // get head commit
-            GitOpKey op_key = {{
-                                   *repo_root,  // target_path
-                                   "",          // git_hash
-                                   "",          // branch
-                               },
-                               GitOpType::GET_HEAD_ID};
+            GitOpKey op_key = {.params =
+                                   {
+                                       *repo_root,  // target_path
+                                       "",          // git_hash
+                                       "",          // branch
+                                   },
+                               .op_type = GitOpType::GET_HEAD_ID};
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},

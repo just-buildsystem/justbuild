@@ -73,8 +73,10 @@ class ResultTargetMap {
         bool is_export_target = false) -> AnalysedTargetPtr {
         auto part = std::hash<BuildMaps::Base::EntityName>{}(name) % width_;
         std::unique_lock lock{m_[part]};
-        auto [entry, inserted] = targets_[part].emplace(
-            ConfiguredTarget{std::move(name), std::move(conf)}, result);
+        auto [entry, inserted] =
+            targets_[part].emplace(ConfiguredTarget{.target = std::move(name),
+                                                    .config = std::move(conf)},
+                                   result);
         if (target_cache_key) {
             cache_targets_[part].emplace(*target_cache_key, entry->second);
         }
@@ -227,20 +229,21 @@ class ResultTargetMap {
             std::for_each(target.begin(), target.end(), [&](auto const& el) {
                 auto const& actions = el.second->Actions();
                 if constexpr (kIncludeOrigins) {
-                    std::for_each(actions.begin(),
-                                  actions.end(),
-                                  [&result, &origin_map](auto const& action) {
-                                      auto origins = nlohmann::json::array();
-                                      for (auto const& [ct, count] :
-                                           origin_map[action->Id()]) {
-                                          origins.push_back(nlohmann::json{
-                                              {"target", ct.target.ToJson()},
-                                              {"subtask", count},
-                                              {"config", ct.config.ToJson()}});
-                                      }
-                                      result.actions.emplace_back(
-                                          ActionWithOrigin{action, origins});
-                                  });
+                    std::for_each(
+                        actions.begin(),
+                        actions.end(),
+                        [&result, &origin_map](auto const& action) {
+                            auto origins = nlohmann::json::array();
+                            for (auto const& [ct, count] :
+                                 origin_map[action->Id()]) {
+                                origins.push_back(nlohmann::json{
+                                    {"target", ct.target.ToJson()},
+                                    {"subtask", count},
+                                    {"config", ct.config.ToJson()}});
+                            }
+                            result.actions.emplace_back(ActionWithOrigin{
+                                .desc = action, .origin = origins});
+                        });
                 }
                 else {
                     std::for_each(actions.begin(),

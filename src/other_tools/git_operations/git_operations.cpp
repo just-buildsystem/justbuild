@@ -30,7 +30,7 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("could not initialize git repository {}",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
@@ -43,10 +43,10 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
     auto commit_hash = git_repo->StageAndCommitAllAnonymous(
         crit_op_params.message.value(), wrapped_logger);
     if (commit_hash == std::nullopt) {
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return GitOpValue({git_repo->GetGitCAS(), commit_hash.value()});
+    return {.git_cas = git_repo->GetGitCAS(), .result = commit_hash.value()};
 }
 
 auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
@@ -57,7 +57,7 @@ auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("target directory {} could not be created",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // Create and open a GitRepo at given target location
     auto git_repo = GitRepoRemote::InitAndOpen(
@@ -69,10 +69,10 @@ auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
                         crit_op_params.init_bare.value() ? "bare" : "non-bare",
                         crit_op_params.target_path.string()),
             true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return GitOpValue({git_repo->GetGitCAS(), ""});
+    return {.git_cas = git_repo->GetGitCAS(), .result = ""};
 }
 
 auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
@@ -83,7 +83,7 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("target directory {} does not exist!",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // Open a GitRepo at given location
     auto git_repo = GitRepoRemote::Open(crit_op_params.target_path);
@@ -91,7 +91,7 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("could not open git repository {}",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
@@ -103,10 +103,10 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
     if (not git_repo->KeepTag(crit_op_params.git_hash,
                               crit_op_params.message.value(),
                               wrapped_logger)) {
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return GitOpValue({git_repo->GetGitCAS(), ""});
+    return {.git_cas = git_repo->GetGitCAS(), .result = ""};
 }
 
 auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
@@ -117,7 +117,7 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("target directory {} does not exist!",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // Open a GitRepo at given location
     auto git_repo = GitRepoRemote::Open(crit_op_params.target_path);
@@ -125,7 +125,7 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
         (*logger)(fmt::format("could not open git repository {}",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
@@ -136,8 +136,8 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
     // Get head commit
     auto head_commit = git_repo->GetHeadCommit(wrapped_logger);
     if (head_commit == std::nullopt) {
-        return GitOpValue({nullptr, std::nullopt});
+        return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return GitOpValue({git_repo->GetGitCAS(), *head_commit});
+    return {.git_cas = git_repo->GetGitCAS(), .result = *head_commit};
 }

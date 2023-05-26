@@ -790,26 +790,28 @@ void DefaultReachableRepositories(
                     (*resolved_repo_desc)
                         ->Get("ignore_special", Expression::none_t{});
                 ArchiveRepoInfo archive_info = {
-                    {
-                        repo_desc_content->get()->String(), /* content */
-                        repo_desc_distfile->IsString()
-                            ? std::make_optional(repo_desc_distfile->String())
-                            : std::nullopt,               /* distfile */
-                        repo_desc_fetch->get()->String(), /* fetch_url */
-                        repo_desc_sha256->IsString()
-                            ? std::make_optional(repo_desc_sha256->String())
-                            : std::nullopt, /* sha256 */
-                        repo_desc_sha512->IsString()
-                            ? std::make_optional(repo_desc_sha512->String())
-                            : std::nullopt, /* sha512 */
-                        repo_name,          /* origin */
-                        false               /* origin_from_distdir */
-                    },                      /* archive */
-                    repo_type_str,          /* repo_type */
-                    subdir.empty() ? "." : subdir.string(), /* subdir */
-                    repo_desc_ignore_special->IsBool()
-                        ? repo_desc_ignore_special->Bool()
-                        : false /* ignore_special */};
+                    .archive = {.content = repo_desc_content->get()->String(),
+                                .distfile =
+                                    repo_desc_distfile->IsString()
+                                        ? std::make_optional(
+                                              repo_desc_distfile->String())
+                                        : std::nullopt,
+                                .fetch_url = repo_desc_fetch->get()->String(),
+                                .sha256 = repo_desc_sha256->IsString()
+                                              ? std::make_optional(
+                                                    repo_desc_sha256->String())
+                                              : std::nullopt,
+                                .sha512 = repo_desc_sha512->IsString()
+                                              ? std::make_optional(
+                                                    repo_desc_sha512->String())
+                                              : std::nullopt,
+                                .origin = repo_name,
+                                .origin_from_distdir = false},
+                    .repo_type = repo_type_str,
+                    .subdir = subdir.empty() ? "." : subdir.string(),
+                    .ignore_special = repo_desc_ignore_special->IsBool()
+                                          ? repo_desc_ignore_special->Bool()
+                                          : false};
                 // add to list
                 repos_to_fetch.emplace_back(std::move(archive_info));
             }

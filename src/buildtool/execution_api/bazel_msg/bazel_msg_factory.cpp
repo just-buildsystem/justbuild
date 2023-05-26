@@ -349,15 +349,16 @@ template <class T>
 
 [[nodiscard]] auto CreateObjectInfo(bazel_re::DirectoryNode const& node)
     -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{ArtifactDigest{node.digest()},
-                                ObjectType::Tree};
+    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
+                                .type = ObjectType::Tree};
 }
 
 [[nodiscard]] auto CreateObjectInfo(bazel_re::FileNode const& node)
     -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{
-        ArtifactDigest{node.digest()},
-        node.is_executable() ? ObjectType::Executable : ObjectType::File};
+    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
+                                .type = node.is_executable()
+                                            ? ObjectType::Executable
+                                            : ObjectType::File};
 }
 
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
@@ -445,12 +446,13 @@ auto BazelMsgFactory::ReadObjectInfosFromGitTree(
         for (auto const& [raw_id, es] : entries) {
             auto const hex_id = ToHexString(raw_id);
             for (auto const& entry : es) {
-                if (not store_info(entry.name,
-                                   Artifact::ObjectInfo{
-                                       ArtifactDigest{hex_id,
-                                                      /*size is unknown*/ 0,
-                                                      IsTreeObject(entry.type)},
-                                       entry.type})) {
+                if (not store_info(
+                        entry.name,
+                        Artifact::ObjectInfo{
+                            .digest = ArtifactDigest{hex_id,
+                                                     /*size is unknown*/ 0,
+                                                     IsTreeObject(entry.type)},
+                            .type = entry.type})) {
                     return false;
                 }
             }

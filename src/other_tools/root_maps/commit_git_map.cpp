@@ -107,13 +107,14 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             return;
         }
         // keep tag
-        GitOpKey op_key = {{
-                               repo_root,                    // target_path
-                               repo_info.hash,               // git_hash
-                               "",                           // branch
-                               "Keep referenced tree alive"  // message
-                           },
-                           GitOpType::KEEP_TAG};
+        GitOpKey op_key = {.params =
+                               {
+                                   repo_root,                    // target_path
+                                   repo_info.hash,               // git_hash
+                                   "",                           // branch
+                                   "Keep referenced tree alive"  // message
+                               },
+                           .op_type = GitOpType::KEEP_TAG};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -221,15 +222,16 @@ auto CreateCommitGitMap(
         // ensure git repo
         // define Git operation to be done
         GitOpKey op_key = {
-            {
-                repo_root,     // target_path
-                "",            // git_hash
-                "",            // branch
-                std::nullopt,  // message
-                not just_mr_paths->git_checkout_locations.contains(
-                    fetch_repo)  // init_bare
-            },
-            GitOpType::ENSURE_INIT};
+            .params =
+                {
+                    repo_root,     // target_path
+                    "",            // git_hash
+                    "",            // branch
+                    std::nullopt,  // message
+                    not just_mr_paths->git_checkout_locations.contains(
+                        fetch_repo)  // init_bare
+                },
+            .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},

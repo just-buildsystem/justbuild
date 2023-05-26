@@ -119,9 +119,9 @@ class SystemCommand {
             if (auto const err = OpenFile(stderr_file)) {
                 if (auto retval = ForkAndExecute(
                         cmd, envp, cwd, fileno(out.get()), fileno(err.get()))) {
-                    return ExecOutput{*retval,
-                                      std::move(stdout_file),
-                                      std::move(stderr_file)};
+                    return ExecOutput{.return_value = *retval,
+                                      .stdout_file = std::move(stdout_file),
+                                      .stderr_file = std::move(stderr_file)};
                 }
             }
             else {

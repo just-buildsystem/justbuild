@@ -199,7 +199,9 @@ void FileGenRuleWithDeps(
             ObjectType::File}}}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
-        TargetResult{stage, ExpressionPtr{Expression::map_t{}}, stage},
+        TargetResult{.artifact_stage = stage,
+                     .provides = ExpressionPtr{Expression::map_t{}},
+                     .runfiles = stage},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{data_val->String()},
         std::vector<Tree::Ptr>{},
@@ -372,7 +374,9 @@ void TreeRuleWithDeps(
     auto result = ExpressionPtr{Expression::map_t{result_stage}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
-        TargetResult{result, ExpressionPtr{Expression::map_t{}}, result},
+        TargetResult{.artifact_stage = result,
+                     .provides = ExpressionPtr{Expression::map_t{}},
+                     .runfiles = result},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::move(trees),
@@ -604,7 +608,8 @@ void InstallRuleWithDeps(
 
     auto const& empty_map = Expression::kEmptyMap;
     auto result = std::make_shared<AnalysedTarget const>(
-        TargetResult{stage, empty_map, stage},
+        TargetResult{
+            .artifact_stage = stage, .provides = empty_map, .runfiles = stage},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
@@ -1060,7 +1065,9 @@ void GenericRuleWithDeps(
     auto const& empty_map = Expression::kEmptyMap;
     auto result = std::make_shared<AnalysedTarget const>(
         TargetResult{
-            ExpressionPtr{Expression::map_t{artifacts}}, empty_map, empty_map},
+            .artifact_stage = ExpressionPtr{Expression::map_t{artifacts}},
+            .provides = empty_map,
+            .runfiles = empty_map},
         std::vector<ActionDescription::Ptr>{action},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},

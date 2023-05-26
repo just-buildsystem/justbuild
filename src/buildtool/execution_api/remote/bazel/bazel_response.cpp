@@ -51,11 +51,12 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
     // collect files and store them
     for (auto const& file : action_result.output_files()) {
         try {
-            artifacts.emplace(file.path(),
-                              Artifact::ObjectInfo{
-                                  ArtifactDigest{file.digest()},
-                                  file.is_executable() ? ObjectType::Executable
-                                                       : ObjectType::File});
+            artifacts.emplace(
+                file.path(),
+                Artifact::ObjectInfo{.digest = ArtifactDigest{file.digest()},
+                                     .type = file.is_executable()
+                                                 ? ObjectType::Executable
+                                                 : ObjectType::File});
         } catch (...) {
             return {};
         }
@@ -68,8 +69,9 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
             try {
                 artifacts.emplace(
                     tree.path(),
-                    Artifact::ObjectInfo{ArtifactDigest{tree.tree_digest()},
-                                         ObjectType::Tree});
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest{tree.tree_digest()},
+                        .type = ObjectType::Tree});
             } catch (...) {
                 return {};
             }
@@ -109,7 +111,8 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
                 }
                 artifacts.emplace(
                     action_result.output_directories(pos).path(),
-                    Artifact::ObjectInfo{*root_digest, ObjectType::Tree});
+                    Artifact::ObjectInfo{.digest = *root_digest,
+                                         .type = ObjectType::Tree});
             } catch (...) {
                 return {};
             }

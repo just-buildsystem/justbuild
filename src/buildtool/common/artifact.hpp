@@ -82,8 +82,9 @@ class Artifact {
                 std::size_t size = std::stoul(size_str);
                 auto const& object_type = FromChar(*type.c_str());
                 return ObjectInfo{
-                    ArtifactDigest{id, size, IsTreeObject(object_type)},
-                    object_type};
+                    .digest =
+                        ArtifactDigest{id, size, IsTreeObject(object_type)},
+                    .type = object_type};
             } catch (std::out_of_range const& e) {
                 Logger::Log(LogLevel::Debug,
                             "size raised out_of_range exception.");
@@ -100,10 +101,11 @@ class Artifact {
                 j["size"].is_number() and j["type"].is_string()) {
                 auto const& object_type =
                     FromChar(*(j["type"].get<std::string>().c_str()));
-                return ObjectInfo{ArtifactDigest{j["id"].get<std::string>(),
-                                                 j["size"].get<std::size_t>(),
-                                                 IsTreeObject(object_type)},
-                                  object_type};
+                return ObjectInfo{
+                    .digest = ArtifactDigest{j["id"].get<std::string>(),
+                                             j["size"].get<std::size_t>(),
+                                             IsTreeObject(object_type)},
+                    .type = object_type};
             }
             return std::nullopt;
         }
@@ -159,8 +161,9 @@ class Artifact {
     void SetObjectInfo(ObjectInfo const& object_info,
                        bool fail_info) const noexcept {
         if (fail_info) {
-            object_info_ =
-                ObjectInfo{object_info.digest, object_info.type, true};
+            object_info_ = ObjectInfo{.digest = object_info.digest,
+                                      .type = object_info.type,
+                                      .failed = true};
         }
         else {
             object_info_ = object_info;
@@ -170,7 +173,8 @@ class Artifact {
     void SetObjectInfo(ArtifactDigest const& digest,
                        ObjectType type,
                        bool failed) const noexcept {
-        object_info_ = ObjectInfo{digest, type, failed};
+        object_info_ =
+            ObjectInfo{.digest = digest, .type = type, .failed = failed};
     }
 
     [[nodiscard]] static auto CreateLocalArtifact(

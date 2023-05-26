@@ -138,12 +138,12 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
             rule_mapping.emplace(key, ExpressionPtr{std::move(*rule_name)});
         }
 
-        anon_defs.emplace(
-            name,
-            UserRule::AnonymousDefinition{
-                target->get<std::string>(),
-                provider->get<std::string>(),
-                ExpressionPtr{Expression::map_t{std::move(rule_mapping)}}});
+        anon_defs.emplace(name,
+                          UserRule::AnonymousDefinition{
+                              .target = target->get<std::string>(),
+                              .provider = provider->get<std::string>(),
+                              .rule_map = ExpressionPtr{
+                                  Expression::map_t{std::move(rule_mapping)}}});
     }
     return anon_defs;
 }

@@ -26,8 +26,9 @@ auto TargetCacheEntry::FromTarget(
     AnalysedTargetPtr const& target,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         replacements) noexcept -> std::optional<TargetCacheEntry> {
-    auto result = TargetResult{
-        target->Artifacts(), target->Provides(), target->RunFiles()};
+    auto result = TargetResult{.artifact_stage = target->Artifacts(),
+                               .provides = target->Provides(),
+                               .runfiles = target->RunFiles()};
     if (auto desc = result.ReplaceNonKnownAndToJson(replacements)) {
         return TargetCacheEntry{*desc};
     }

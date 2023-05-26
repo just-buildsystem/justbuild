@@ -57,7 +57,8 @@ namespace {
         size_str.empty() ? 0 : std::atol(size_str.c_str()));
     auto const& object_type = FromChar(*type.c_str());
     return Artifact::ObjectInfo{
-        ArtifactDigest{id, size, IsTreeObject(object_type)}, object_type};
+        .digest = ArtifactDigest{id, size, IsTreeObject(object_type)},
+        .type = object_type};
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL

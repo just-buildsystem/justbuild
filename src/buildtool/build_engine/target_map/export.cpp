@@ -53,7 +53,8 @@ void FinalizeExport(
     }
     auto deps_info = TargetGraphInformation{
         std::make_shared<BuildMaps::Target::ConfiguredTarget>(
-            BuildMaps::Target::ConfiguredTarget{target, effective_config}),
+            BuildMaps::Target::ConfiguredTarget{.target = target,
+                                                .config = effective_config}),
         {(*value)->GraphInformation().Node()},
         {},
         {}};
@@ -61,7 +62,9 @@ void FinalizeExport(
     std::unordered_set<std::string> vars_set{};
     vars_set.insert(vars.begin(), vars.end());
     auto analysis_result = std::make_shared<AnalysedTarget const>(
-        TargetResult{(*value)->Artifacts(), provides, (*value)->RunFiles()},
+        TargetResult{.artifact_stage = (*value)->Artifacts(),
+                     .provides = provides,
+                     .runfiles = (*value)->RunFiles()},
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
@@ -148,8 +151,8 @@ void ExportRule(
             if (auto result = entry.ToResult()) {
                 auto deps_info = TargetGraphInformation{
                     std::make_shared<BuildMaps::Target::ConfiguredTarget>(
-                        BuildMaps::Target::ConfiguredTarget{key.target,
-                                                            effective_config}),
+                        BuildMaps::Target::ConfiguredTarget{
+                            .target = key.target, .config = effective_config}),
                     {},
                     {},
                     {}};
@@ -200,8 +203,9 @@ void ExportRule(
     }
 
     (*subcaller)(
-        {BuildMaps::Target::ConfiguredTarget{std::move(*exported_target),
-                                             std::move(target_config)}},
+        {BuildMaps::Target::ConfiguredTarget{
+            .target = std::move(*exported_target),
+            .config = std::move(target_config)}},
         [setter,
          logger,
          vars = std::move(*flexible_vars),

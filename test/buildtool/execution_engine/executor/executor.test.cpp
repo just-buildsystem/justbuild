@@ -80,8 +80,8 @@ class TestResponse : public IExecutionResponse {
                 artifacts.emplace(
                     path,
                     Artifact::ObjectInfo{
-                        ArtifactDigest{path, 0, /*is_tree=*/false},
-                        ObjectType::File});
+                        .digest = ArtifactDigest{path, 0, /*is_tree=*/false},
+                        .type = ObjectType::File});
             } catch (...) {
                 return {};
             }

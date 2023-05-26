@@ -218,8 +218,10 @@ auto SerializeTargetResultWithReplacement(
                                           provided_nodes,
                                           provided_results,
                                           sofar);
-                auto result = ExpressionPtr{TargetNode{TargetNode::Abstract{
-                    node_type, string_fields, target_fields}}};
+                auto result = ExpressionPtr{TargetNode{
+                    TargetNode::Abstract{.node_type = node_type,
+                                         .string_fields = string_fields,
+                                         .target_fields = target_fields}}};
                 sofar->emplace(id, result);
                 return result;
             }
@@ -256,10 +258,11 @@ auto SerializeTargetResultWithReplacement(
                                                   provided_results,
                                                   sofar);
             if (artifact_stage and runfiles and provides) {
-                return ExpressionPtr{TargetResult{std::move(artifact_stage),
-                                                  std::move(provides),
-                                                  std::move(runfiles),
-                                                  /*is_cacheable=*/true}};
+                return ExpressionPtr{
+                    TargetResult{.artifact_stage = std::move(artifact_stage),
+                                 .provides = std::move(provides),
+                                 .runfiles = std::move(runfiles),
+                                 .is_cacheable = true}};
             }
             return ExpressionPtr{nullptr};
         }

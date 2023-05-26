@@ -47,8 +47,9 @@ class BazelExecutionClient {
         std::optional<ExecutionOutput> output{std::nullopt};
 
         static auto MakeEmptyFailed() -> ExecutionResponse {
-            return ExecutionResponse{
-                {}, ExecutionResponse::State::Failed, std::nullopt};
+            return ExecutionResponse{.execution_handle = {},
+                                     .state = ExecutionResponse::State::Failed,
+                                     .output = std::nullopt};
         }
     };
 

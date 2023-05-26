@@ -69,14 +69,15 @@ auto CreateContentGitMap(
             }
             // ensure Git cache
             // define Git operation to be done
-            GitOpKey op_key = {{
-                                   StorageConfig::GitRoot(),  // target_path
-                                   "",                        // git_hash
-                                   "",                        // branch
-                                   std::nullopt,              // message
-                                   true                       // init_bare
-                               },
-                               GitOpType::ENSURE_INIT};
+            GitOpKey op_key = {.params =
+                                   {
+                                       StorageConfig::GitRoot(),  // target_path
+                                       "",                        // git_hash
+                                       "",                        // branch
+                                       std::nullopt,              // message
+                                       true                       // init_bare
+                                   },
+                               .op_type = GitOpType::ENSURE_INIT};
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},

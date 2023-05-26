@@ -152,42 +152,47 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
             TaskSystem ts;
             crit_op_map.ConsumeAfterKeysReady(
                 &ts,
-                {GitOpKey{GitOpParams{
-                              path_init_commit,  // target_path
-                              "",                // git_hash
-                              "",                // branch
-                              "Init commit"      // message
-                          },
-                          GitOpType::INITIAL_COMMIT},
-                 GitOpKey{GitOpParams{
-                              path_init_bare,  // target_path
-                              "",              // git_hash
-                              "",              // branch
-                              std::nullopt,    // message
-                              true             // init_bare
-                          },
-                          GitOpType::ENSURE_INIT},
-                 GitOpKey{GitOpParams{
-                              path_init_non_bare,  // target_path
-                              "",                  // git_hash
-                              "",                  // branch
-                              std::nullopt,        // message
-                              false                // init_bare
-                          },
-                          GitOpType::ENSURE_INIT},
-                 GitOpKey{GitOpParams{
-                              *path_keep_tag,  // target_path
-                              kRootCommit,     // git_hash
-                              "",              // branch
-                              "keep-me"        // message
-                          },
-                          GitOpType::KEEP_TAG},
-                 GitOpKey{GitOpParams{
-                              *path_get_head_id,  // target_path
-                              "",                 // git_hash
-                              "",                 // branch
-                          },
-                          GitOpType::GET_HEAD_ID}},
+                {GitOpKey{.params =
+                              {
+                                  path_init_commit,  // target_path
+                                  "",                // git_hash
+                                  "",                // branch
+                                  "Init commit"      // message
+                              },
+                          .op_type = GitOpType::INITIAL_COMMIT},
+                 GitOpKey{.params =
+                              {
+                                  path_init_bare,  // target_path
+                                  "",              // git_hash
+                                  "",              // branch
+                                  std::nullopt,    // message
+                                  true             // init_bare
+                              },
+                          .op_type = GitOpType::ENSURE_INIT},
+                 GitOpKey{.params =
+                              {
+                                  path_init_non_bare,  // target_path
+                                  "",                  // git_hash
+                                  "",                  // branch
+                                  std::nullopt,        // message
+                                  false                // init_bare
+                              },
+                          .op_type = GitOpType::ENSURE_INIT},
+                 GitOpKey{.params =
+                              {
+                                  *path_keep_tag,  // target_path
+                                  kRootCommit,     // git_hash
+                                  "",              // branch
+                                  "keep-me"        // message
+                              },
+                          .op_type = GitOpType::KEEP_TAG},
+                 GitOpKey{.params =
+                              {
+                                  *path_get_head_id,  // target_path
+                                  "",                 // git_hash
+                                  "",                 // branch
+                              },
+                          .op_type = GitOpType::GET_HEAD_ID}},
                 [&ops_all, &ops_with_result](auto const& values) {
                     // check operations
                     for (size_t const& i : ops_all) {

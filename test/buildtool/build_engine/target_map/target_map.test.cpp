@@ -68,9 +68,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "a/b/targets_here", "c/d/foo"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "a/b/targets_here", "c/d/foo"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -93,9 +94,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "a/b/targets_here/c", "d/foo"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "a/b/targets_here/c", "d/foo"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -116,9 +118,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "rule just provides"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "rule just provides"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -141,9 +144,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "rule provides FOO"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "rule provides FOO"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -168,9 +172,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "rule provides FOO"},
-                    config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "rule provides FOO"},
+                    .config = config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -195,9 +200,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "config transition for FOO"},
-                    config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "config transition for FOO"},
+                    .config = config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -221,9 +227,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "collect dep artifacts"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "collect dep artifacts"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -253,9 +260,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "stage blob"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "stage blob"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -281,9 +289,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "use implicit"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "use implicit"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -309,9 +318,10 @@ TEST_CASE("simple targets") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "actions"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "actions"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -366,11 +376,12 @@ TEST_CASE("configuration deduplication") {
         TaskSystem ts;
         target_map.ConsumeAfterKeysReady(
             &ts,
-            {BuildMaps::Target::ConfiguredTarget{indirect_target, config},
-             BuildMaps::Target::ConfiguredTarget{indirect_target,
-                                                 alternative_config},
-             BuildMaps::Target::ConfiguredTarget{indirect_target,
-                                                 different_config}},
+            {BuildMaps::Target::ConfiguredTarget{.target = indirect_target,
+                                                 .config = config},
+             BuildMaps::Target::ConfiguredTarget{.target = indirect_target,
+                                                 .config = alternative_config},
+             BuildMaps::Target::ConfiguredTarget{.target = indirect_target,
+                                                 .config = different_config}},
             [&result](auto values) {
                 std::transform(values.begin(),
                                values.end(),
@@ -417,9 +428,10 @@ TEST_CASE("generator functions in string arguments") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "artifact names"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "artifact names"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -440,9 +452,10 @@ TEST_CASE("generator functions in string arguments") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "runfile names"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "runfile names"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -483,9 +496,10 @@ TEST_CASE("built-in rules") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "use generic"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "use generic"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -507,9 +521,10 @@ TEST_CASE("built-in rules") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "install"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "install"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -546,9 +561,10 @@ TEST_CASE("built-in rules") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "simple_targets", "generate file"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "generate file"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -576,8 +592,10 @@ TEST_CASE("built-in rules") {
             TaskSystem ts;
             target_map.ConsumeAfterKeysReady(
                 &ts,
-                {BuildMaps::Target::ConfiguredTarget{target, empty_config},
-                 BuildMaps::Target::ConfiguredTarget{target, baz_config}},
+                {BuildMaps::Target::ConfiguredTarget{.target = target,
+                                                     .config = empty_config},
+                 BuildMaps::Target::ConfiguredTarget{.target = target,
+                                                     .config = baz_config}},
                 [&bar_result, &baz_result](auto values) {
                     bar_result = *values[0];
                     baz_result = *values[1];
@@ -625,9 +643,10 @@ TEST_CASE("target reference") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "file_reference", "hello.txt"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "file_reference", "hello.txt"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -656,8 +675,9 @@ TEST_CASE("target reference") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "x/x/x", "addressing"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{"", "x/x/x", "addressing"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -702,8 +722,9 @@ TEST_CASE("trees") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "tree", "no conflict"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{"", "tree", "no conflict"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -734,8 +755,10 @@ TEST_CASE("trees") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "tree", "range conflict"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree", "range conflict"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -774,8 +797,9 @@ TEST_CASE("RESULT error reporting") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "result", "artifacts"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{"", "result", "artifacts"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -795,9 +819,10 @@ TEST_CASE("RESULT error reporting") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "result", "artifacts entry"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "result", "artifacts entry"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -818,8 +843,9 @@ TEST_CASE("RESULT error reporting") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "result", "runfiles"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{"", "result", "runfiles"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -839,8 +865,10 @@ TEST_CASE("RESULT error reporting") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "result", "runfiles entry"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "result", "runfiles entry"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -861,8 +889,9 @@ TEST_CASE("RESULT error reporting") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{"", "result", "provides"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{"", "result", "provides"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -902,9 +931,10 @@ TEST_CASE("wrong arguments") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "bad_targets", "string field"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "bad_targets", "string field"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -924,9 +954,10 @@ TEST_CASE("wrong arguments") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "bad_targets", "string field 2"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "bad_targets", "string field 2"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;
@@ -946,9 +977,10 @@ TEST_CASE("wrong arguments") {
             target_map.ConsumeAfterKeysReady(
                 &ts,
                 {BuildMaps::Target::ConfiguredTarget{
-                    BuildMaps::Base::EntityName{
-                        "", "bad_targets", "config field"},
-                    empty_config}},
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "bad_targets", "config field"},
+                    .config = empty_config}},
                 [&result](auto values) { result = *values[0]; },
                 [&error, &error_msg](std::string const& msg, bool /*unused*/) {
                     error = true;

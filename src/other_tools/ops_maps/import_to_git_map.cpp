@@ -31,13 +31,14 @@ void KeepCommitAndSetTree(
     ImportToGitMap::SetterPtr const& setter,
     ImportToGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
-    GitOpKey op_key = {{
-                           StorageConfig::GitRoot(),     // target_path
-                           commit,                       // git_hash
-                           "",                           // branch
-                           "Keep referenced tree alive"  // message
-                       },
-                       GitOpType::KEEP_TAG};
+    GitOpKey op_key = {.params =
+                           {
+                               StorageConfig::GitRoot(),     // target_path
+                               commit,                       // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
@@ -96,15 +97,16 @@ auto CreateImportToGitMap(
                              auto /*unused*/,
                              auto const& key) {
         // Perform initial commit at location: init + add . + commit
-        GitOpKey op_key = {
-            {
-                key.target_path,  // target_path
-                "",               // git_hash
-                "",               // branch
-                fmt::format(
-                    "Content of {} {}", key.repo_type, key.content),  // message
-            },
-            GitOpType::INITIAL_COMMIT};
+        GitOpKey op_key = {.params =
+                               {
+                                   key.target_path,  // target_path
+                                   "",               // git_hash
+                                   "",               // branch
+                                   fmt::format("Content of {} {}",
+                                               key.repo_type,
+                                               key.content),  // message
+                               },
+                           .op_type = GitOpType::INITIAL_COMMIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -124,14 +126,16 @@ auto CreateImportToGitMap(
                 }
                 // ensure Git cache
                 // define Git operation to be done
-                GitOpKey op_key = {{
-                                       StorageConfig::GitRoot(),  // target_path
-                                       "",                        // git_hash
-                                       "",                        // branch
-                                       std::nullopt,              // message
-                                       true                       // init_bare
-                                   },
-                                   GitOpType::ENSURE_INIT};
+                GitOpKey op_key = {
+                    .params =
+                        {
+                            StorageConfig::GitRoot(),  // target_path
+                            "",                        // git_hash
+                            "",                        // branch
+                            std::nullopt,              // message
+                            true                       // init_bare
+                        },
+                    .op_type = GitOpType::ENSURE_INIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},

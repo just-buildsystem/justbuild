@@ -136,9 +136,10 @@ class GraphTraverser {
                          artifact_nodes,
                          runfile_descriptions);
             MaybePrintToStdout(rel_paths, artifact_nodes);
-            return BuildResult{std::move(std::get<0>(*artifacts)),
-                               std::move(infos),
-                               failed_artifacts};
+            return BuildResult{
+                .output_paths = std::move(std::get<0>(*artifacts)),
+                .extra_infos = std::move(infos),
+                .failed_artifacts = failed_artifacts};
         }
 
         if (clargs_.stage->remember) {
@@ -158,7 +159,9 @@ class GraphTraverser {
 
         MaybePrintToStdout(rel_paths, artifact_nodes);
 
-        return BuildResult{*output_paths, std::move(infos), failed_artifacts};
+        return BuildResult{.output_paths = *output_paths,
+                           .extra_infos = std::move(infos),
+                           .failed_artifacts = failed_artifacts};
     }
 
     /// \brief Parses graph description into graph, traverses it and retrieves

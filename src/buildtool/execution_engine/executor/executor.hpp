@@ -399,7 +399,8 @@ class ExecutorImpl {
                                          IsExecutableObject(*object_type)}}})) {
             return std::nullopt;
         }
-        return Artifact::ObjectInfo{std::move(digest), *object_type};
+        return Artifact::ObjectInfo{.digest = std::move(digest),
+                                    .type = *object_type};
     }
 
     /// \brief Add digests and object type to artifact nodes for all outputs of
