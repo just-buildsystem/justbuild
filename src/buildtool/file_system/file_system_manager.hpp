@@ -225,6 +225,7 @@ class FileSystemManager {
                                             kSetEpochTime>(file_path,
                                                            link_path);
             case ObjectType::Tree:
+            case ObjectType::Symlink:
                 return false;
         }
     }
@@ -336,6 +337,7 @@ class FileSystemManager {
                 return CopyFileAs<ObjectType::Executable,
                                   kSetEpochTime,
                                   kSetWritable>(src, dst, fd_less, opt);
+            case ObjectType::Symlink:
             case ObjectType::Tree:
                 break;
         }
@@ -539,6 +541,10 @@ class FileSystemManager {
             if (std::filesystem::is_directory(status)) {
                 return ObjectType::Tree;
             }
+            if (std::filesystem::is_symlink(status) and
+                IsNonUpwardsSymlink(path)) {
+                return ObjectType::Symlink;
+            }
             if (std::filesystem::exists(status)) {
                 Logger::Log(LogLevel::Debug,
                             "object type for {} is not supported yet.",
@@ -633,8 +639,23 @@ class FileSystemManager {
                 else if (std::filesystem::is_directory(status)) {
                     type = ObjectType::Tree;
                 }
+                // if not file, executable, or tree, ignore every other entry
+                // type if asked to do so
                 else if (ignore_special) {
                     continue;
+                }
+                // if not already ignored, check symlinks and only add the
+                // non-upwards ones
+                else if (std::filesystem::is_symlink(status)) {
+                    if (IsNonUpwardsSymlink(entry)) {
+                        type = ObjectType::Symlink;
+                    }
+                    else {
+                        Logger::Log(LogLevel::Error,
+                                    "unsupported upwards symlink dir entry {}",
+                                    entry.path().string());
+                        return false;
+                    }
                 }
                 else {
                     Logger::Log(LogLevel::Error,
@@ -736,6 +757,7 @@ class FileSystemManager {
                 return WriteFileAs<ObjectType::Executable,
                                    kSetEpochTime,
                                    kSetWritable>(content, file, fd_less);
+            case ObjectType::Symlink:
             case ObjectType::Tree:
                 return false;
         }

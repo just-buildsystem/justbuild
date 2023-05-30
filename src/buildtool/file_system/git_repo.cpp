@@ -17,6 +17,7 @@
 #include <thread>
 #include <unordered_set>
 
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -30,7 +31,8 @@ extern "C" {
 #ifndef BOOTSTRAP_BUILD_TOOL
 namespace {
 
-std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
+/// \brief libgit2 file modes corresponding to non-special entries.
+std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     GIT_FILEMODE_BLOB,
     GIT_FILEMODE_BLOB_EXECUTABLE,
     GIT_FILEMODE_TREE};
@@ -53,9 +55,9 @@ std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
 }
 
 /// \brief Returns true if mode corresponds to a supported object type.
-[[nodiscard]] auto GitFileModeIsSupported(git_filemode_t const& mode) noexcept
+[[nodiscard]] auto GitFileModeIsNonSpecial(git_filemode_t const& mode) noexcept
     -> bool {
-    return kSupportedGitFileModes.contains(mode);
+    return kNonSpecialGitFileModes.contains(mode);
 }
 
 [[nodiscard]] auto GitFileModeToObjectType(git_filemode_t const& mode) noexcept
@@ -67,6 +69,8 @@ std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
             return ObjectType::Executable;
         case GIT_FILEMODE_TREE:
             return ObjectType::Tree;
+        case GIT_FILEMODE_LINK:
+            return ObjectType::Symlink;  // condition not tested here
         default: {
             std::ostringstream str;
             str << std::oct << static_cast<int>(mode);
@@ -86,6 +90,8 @@ std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
             return GIT_FILEMODE_BLOB_EXECUTABLE;
         case ObjectType::Tree:
             return GIT_FILEMODE_TREE;
+        case ObjectType::Symlink:
+            return GIT_FILEMODE_LINK;
     }
     return GIT_FILEMODE_UNREADABLE;  // make gcc happy
 }
@@ -132,11 +138,12 @@ std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
     std::string name = git_tree_entry_name(entry);
     auto const* oid = git_tree_entry_id(entry);
     if (auto raw_id = ToRawString(*oid)) {
-        if (not GitFileModeIsSupported(git_tree_entry_filemode(entry))) {
+        if (not GitFileModeIsNonSpecial(git_tree_entry_filemode(entry))) {
             return 0;  // allow, but not store
         }
         if (auto type =
                 GitFileModeToObjectType(git_tree_entry_filemode(entry))) {
+            // no need to test for symlinks, as no symlink entry will reach this
             (*entries)[*raw_id].emplace_back(std::move(name), *type);
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }
@@ -156,6 +163,7 @@ std::unordered_set<git_filemode_t> const kSupportedGitFileModes{
     if (auto raw_id = ToRawString(*oid)) {
         if (auto type =
                 GitFileModeToObjectType(git_tree_entry_filemode(entry))) {
+            // symlinks need to be checked in caller for non-upwardness
             (*entries)[*raw_id].emplace_back(std::move(name), *type);
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }

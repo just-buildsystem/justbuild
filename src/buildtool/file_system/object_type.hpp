@@ -22,6 +22,7 @@ enum class ObjectType : std::int8_t {
     File,
     Executable,
     Tree,
+    Symlink  // non-upwards symbolic link
 };
 
 [[nodiscard]] constexpr auto FromChar(char c) -> ObjectType {
@@ -30,6 +31,8 @@ enum class ObjectType : std::int8_t {
             return ObjectType::Executable;
         case 't':
             return ObjectType::Tree;
+        case 'l':
+            return ObjectType::Symlink;
         default:
             return ObjectType::File;
     }
@@ -44,6 +47,8 @@ enum class ObjectType : std::int8_t {
             return 'x';
         case ObjectType::Tree:
             return 't';
+        case ObjectType::Symlink:
+            return 'l';
     }
     Ensures(false);  // unreachable
 }
@@ -58,6 +63,17 @@ enum class ObjectType : std::int8_t {
 
 [[nodiscard]] constexpr auto IsTreeObject(ObjectType type) -> bool {
     return type == ObjectType::Tree;
+}
+
+/// \brief Non-upwards symlinks are designated as first-class citizens.
+[[nodiscard]] constexpr auto IsSymlinkObject(ObjectType type) -> bool {
+    return type == ObjectType::Symlink;
+}
+
+/// \brief Only regular files, executables, and trees are non-special entries.
+[[nodiscard]] constexpr auto IsNonSpecialObject(ObjectType type) -> bool {
+    return type == ObjectType::File or type == ObjectType::Executable or
+           type == ObjectType::Tree;
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_TYPE_HPP

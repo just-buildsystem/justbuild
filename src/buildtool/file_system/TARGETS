@@ -106,6 +106,7 @@
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   , "cflags": ["-pthread"]
   }

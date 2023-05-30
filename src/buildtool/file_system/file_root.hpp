@@ -182,7 +182,7 @@ class FileRoot {
                     auto const& data = std::get<tree_t>(data_);
                     auto ptr = data->LookupEntryByName(name);
                     if (static_cast<bool>(ptr)) {
-                        return ptr->IsBlob();
+                        return IsFileObject(ptr->Type());
                     }
                     return false;
                 }
@@ -250,7 +250,7 @@ class FileRoot {
             auto const& data = std::get<tree_t>(data_);
             return Iterator{FilteredIterator{
                 data->begin(), data->end(), [](auto const& x) noexcept -> bool {
-                    return x.second->IsBlob();
+                    return IsFileObject(x.second->Type());
                 }}};
         }
 
@@ -343,8 +343,8 @@ class FileRoot {
         // std::holds_alternative<fs_root_t>(root_) == true
         auto root_path = std::get<fs_root_t>(root_) / path;
         auto exists = FileSystemManager::Exists(root_path);
-        return (ignore_special_ ? exists and FileSystemManager::Type(
-                                                 root_path) != std::nullopt
+        auto type = FileSystemManager::Type(root_path);
+        return (ignore_special_ ? exists and type and IsNonSpecialObject(*type)
                                 : exists);
     }
 
@@ -354,7 +354,7 @@ class FileRoot {
             if (auto entry =
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
-                return entry->IsBlob();
+                return IsFileObject(entry->Type());
             }
             return false;
         }
@@ -385,7 +385,9 @@ class FileRoot {
             if (auto entry =
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
-                return entry->Blob();
+                if (IsFileObject(entry->Type())) {
+                    return entry->Blob();
+                }
             }
             return std::nullopt;
         }
@@ -434,7 +436,7 @@ class FileRoot {
             if (auto entry =
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
-                if (entry->IsBlob()) {
+                if (IsFileObject(entry->Type())) {
                     return entry->Type();
                 }
             }

@@ -114,7 +114,9 @@ class GitTreeEntry {
                  ObjectType type) noexcept
         : cas_{cas}, raw_id_{std::move(raw_id)}, type_{type} {}
 
-    [[nodiscard]] auto IsBlob() const noexcept { return IsFileObject(type_); }
+    [[nodiscard]] auto IsBlob() const noexcept {
+        return IsFileObject(type_) or IsSymlinkObject(type_);
+    }
     [[nodiscard]] auto IsTree() const noexcept { return IsTreeObject(type_); }
 
     [[nodiscard]] auto Blob() const noexcept -> std::optional<std::string>;
