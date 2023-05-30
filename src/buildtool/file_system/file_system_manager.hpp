@@ -35,6 +35,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace detail {
 static inline consteval auto BitWidth(int max_val) -> int {
@@ -129,6 +130,54 @@ class FileSystemManager {
     [[nodiscard]] static auto CreateFileExclusive(
         std::filesystem::path const& file) noexcept -> bool {
         return CreateFileImpl(file) == CreationStatus::Created;
+    }
+
+    /// \brief We are POSIX-compliant, therefore we only care about the string
+    /// value the symlinks points to, whether it exists or not, not the target
+    /// type. As such, we don't distinguish directory or file targets. However,
+    /// for maximum compliance, we use the directory symlink creator.
+    [[nodiscard]] static auto CreateSymlink(
+        std::filesystem::path const& to,
+        std::filesystem::path const& link,
+        LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
+        try {
+            if (not CreateDirectory(link.parent_path())) {
+                Logger::Log(log_failure_at,
+                            "can not create directory {}",
+                            link.parent_path().string());
+                return false;
+            }
+#ifdef __unix__
+            std::filesystem::create_directory_symlink(to, link);
+            return std::filesystem::is_symlink(link);
+#else
+// For non-unix systems one would have to differentiate between file and
+// directory symlinks[1], which would require filesystem access and could lead
+// to inconsistencies due to order of creation of existing symlink targets.
+// [1]https://en.cppreference.com/w/cpp/filesystem/create_symlink
+#error "Non-unix is not supported yet"
+#endif
+        } catch (std::exception const& e) {
+            Logger::Log(log_failure_at,
+                        "symlinking {} to {}\n{}",
+                        to.string(),
+                        link.string(),
+                        e.what());
+            return false;
+        }
+    }
+
+    [[nodiscard]] static auto CreateNonUpwardsSymlink(
+        std::filesystem::path const& to,
+        std::filesystem::path const& link,
+        LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
+        if (PathIsNonUpwards(to)) {
+            return CreateSymlink(to, link, log_failure_at);
+        }
+        Logger::Log(log_failure_at,
+                    "symlink failure: target {} is not non-upwards",
+                    to.string());
+        return false;
     }
 
     [[nodiscard]] static auto CreateFileHardlink(
@@ -370,11 +419,32 @@ class FileSystemManager {
         }
     }
 
+    /// \brief Returns if symlink is non-upwards, i.e., its string content path
+    /// never passes itself in the directory tree.
+    [[nodiscard]] static auto IsNonUpwardsSymlink(
+        std::filesystem::path const& link) noexcept -> bool {
+        try {
+            if (not std::filesystem::is_symlink(link)) {
+                return false;
+            }
+            auto dest = std::filesystem::read_symlink(link);
+            return PathIsNonUpwards(dest);
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error, e.what());
+            return false;
+        }
+    }
+
+    /// \brief Follow a symlink chain without existence check on resulting path
     [[nodiscard]] static auto ResolveSymlinks(
-        gsl::not_null<std::filesystem::path*> const& path) noexcept -> bool {
+        gsl::not_null<std::filesystem::path*> path) noexcept -> bool {
         try {
             while (std::filesystem::is_symlink(*path)) {
-                *path = std::filesystem::read_symlink(*path);
+                auto dest = std::filesystem::read_symlink(*path);
+                *path = dest.is_relative()
+                            ? (std::filesystem::absolute(*path).parent_path() /
+                               dest)
+                            : dest;
             }
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error, e.what());

@@ -18,25 +18,27 @@ set -e
 # ---
 # Structure of test_repo_symlinks:
 # ---
-# <root>   <--kTreeSymId: e00aa80fd1600090930c7ec0b7146028693074bf (tree)
+# <root>   <--kTreeSymId: 18770dacfe14c15d88450c21c16668e13ab0e7f9 (tree)
 # |
 # +--bar     <--kBarId: same as in test_repo.bundle (blob)
 # +--foo     <--kFooId: same as in test_repo.bundle (blob)
 # +--baz_l   <-- kBazLinkId: 3f9538666251333f5fa519e01eb267d371ca9c78 (blob)
-# +--baz     <--kBazSymId: 9df184c5a0b324f488176432724deae97adaace8 (tree)
+# +--foo_l   <-- kFooLinkId: b24736f10d3c60015386047ebc98b4ab63056041 (blob)
+# +--baz     <--kBazSymId: 1868f82682c290f0b1db3cacd092727eef1fa57f (tree)
 # |  +--bar
 # |  +--foo
 # |  +--bar_l   <-- kBazBarLinkId: 79264abecd108745abb4086427ac988c7df7b639 (blob)
-# |  +--foo_l   <-- kBazFooLinkId: 7013e0db1095e8276a6e249830d999aecb7abd3d (blob)
 # |
 # ---
+#
+# kRootCoomit: 3ecce3f5b19ad7941c6354d65d841590662f33ef (commit)
 #
 # foo is a regular file
 # bar is an executable
 #
-# foo_l is a symlink to ../foo
-# bar_l is a symlink to ../bar
-# baz_l is a symlink to ./baz
+# foo_l is a symlink to "baz/foo"
+# bar_l is a symlink to "bar" (i.e., baz/bar)
+# baz_l is a symlink to "baz"
 #
 # Bundle name: test_repo_symlinks.bundle
 #
@@ -51,8 +53,8 @@ chmod +x bar
 mkdir -p baz/
 cp foo baz/foo
 cp bar baz/bar
-ln -s ../foo baz/foo_l
-ln -s ../bar baz/bar_l
+ln -s baz/foo foo_l
+ln -s bar baz/bar_l
 ln -s baz baz_l
 
 # create the repo
@@ -70,4 +72,4 @@ git bundle create ../data/test_repo_symlinks.bundle HEAD master
 # unlink the symlinks ourselves, to avoid broken symlinks issues on cleanup
 unlink baz_l
 unlink baz/bar_l
-unlink baz/foo_l
+unlink foo_l

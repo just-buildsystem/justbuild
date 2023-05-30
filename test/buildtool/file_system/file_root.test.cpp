@@ -31,7 +31,7 @@ auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 
 auto const kBundleSymPath =
     std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
-auto const kTreeSymId = std::string{"e00aa80fd1600090930c7ec0b7146028693074bf"};
+auto const kTreeSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
@@ -105,7 +105,7 @@ void TestFileRootReadFile(FileRoot const& root) {
 
     // Check symlinks are missing
     CHECK_FALSE(root.Exists("baz_l"));
-    CHECK_FALSE(root.Exists("baz/foo_l"));
+    CHECK_FALSE(root.Exists("foo_l"));
     CHECK_FALSE(root.Exists("baz/bar_l"));
 }
 

@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
@@ -60,6 +61,104 @@ class WriteFileFixture {
     std::filesystem::path const root_dir_{"./tmp-RemoveFile"};
     std::filesystem::path const file_path_{root_dir_ / relative_path_parent_ /
                                            "file"};
+};
+
+class SymlinkTestsFixture {
+  public:
+    SymlinkTestsFixture() noexcept {
+        REQUIRE(FileSystemManager::CreateDirectory(root_dir_));
+        create_files();
+        create_symlinks();
+    }
+    SymlinkTestsFixture(SymlinkTestsFixture const&) = delete;
+    SymlinkTestsFixture(SymlinkTestsFixture&&) = delete;
+    ~SymlinkTestsFixture() noexcept {
+        CHECK(std::filesystem::remove_all(root_dir_));
+    }
+    auto operator=(SymlinkTestsFixture const&) -> SymlinkTestsFixture& = delete;
+    auto operator=(SymlinkTestsFixture&&) -> SymlinkTestsFixture& = delete;
+
+    std::filesystem::path const root_dir_{"./tmp-Symlinks"};
+
+    using filetree_t = std::unordered_map<std::string, ObjectType>;
+    filetree_t const kExpected = {{"foo", ObjectType::File},
+                                  {"baz", ObjectType::Tree},
+                                  {"baz/foo", ObjectType::File}};
+
+    struct LinkInfo {
+        std::string to;
+        std::string link;
+        bool resolvesToExisting;
+        bool isNonUpwards;
+    };
+    std::vector<LinkInfo> const kSymExpected = {
+        {.to = "baz",
+         .link = "baz_l",
+         .resolvesToExisting = true,
+         .isNonUpwards = true},
+        {.to = "../foo",
+         .link = "baz/foo_l",
+         .resolvesToExisting = true,
+         .isNonUpwards = false},
+        {.to = "baz/foo_l",
+         .link = "bar_l",
+         .resolvesToExisting = true,
+         .isNonUpwards = true},
+        {.to = "does_not_exist",
+         .link = "baz/non_existing_l",
+         .resolvesToExisting = false,
+         .isNonUpwards = true},
+        {.to = "non_existing_l",
+         .link = "baz/non_existing_indirect_l",
+         .resolvesToExisting = false,
+         .isNonUpwards = true},
+        {.to = "baz/../../does_not_exist",
+         .link = "non_existing_sneaky_l",
+         .resolvesToExisting = false,
+         .isNonUpwards = false}};
+
+    void create_files() {
+        for (auto const& [path, type] : kExpected) {
+            switch (type) {
+                case ObjectType::File: {
+                    if (not FileSystemManager::WriteFile("",
+                                                         root_dir_ / path)) {
+                        Logger::Log(LogLevel::Error,
+                                    "Could not create test file at path {}",
+                                    (root_dir_ / path).string());
+                        std::exit(1);
+                    };
+                } break;
+                case ObjectType::Tree: {
+                    if (not FileSystemManager::CreateDirectory(root_dir_ /
+                                                               path)) {
+                        Logger::Log(LogLevel::Error,
+                                    "Could not create test dir at path {}",
+                                    (root_dir_ / path).string());
+                        std::exit(1);
+                    };
+                } break;
+                default: {
+                    Logger::Log(LogLevel::Error,
+                                "File system failure in creating test dir");
+                    std::exit(1);
+                }
+            }
+        }
+    }
+
+    void create_symlinks() {
+        for (auto const& link_info : kSymExpected) {
+            if (not FileSystemManager::CreateSymlink(
+                    link_info.to, root_dir_ / link_info.link)) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "File system failure in creating symlink at path {}",
+                    (root_dir_ / link_info.link).string());
+                std::exit(1);
+            }
+        }
+    }
 };
 
 namespace {
@@ -675,5 +774,22 @@ TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
             set_perm(true);
             run_test.template operator()<true>(true);
         }
+    }
+}
+
+TEST_CASE_METHOD(SymlinkTestsFixture, "Symlinks", "[file_system]") {
+    auto i = GENERATE(range(0U, 6U /* kSymExpected.size() */));
+
+    SECTION(fmt::format("Non-upwards symlinks - entry {}", i)) {
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(root_dir_ /
+                                                     kSymExpected[i].link) ==
+              kSymExpected[i].isNonUpwards);
+    }
+
+    SECTION(fmt::format("Resolve symlinks - entry {}", i)) {
+        auto path = root_dir_ / kSymExpected[i].link;
+        REQUIRE(FileSystemManager::ResolveSymlinks(&path));
+        CHECK(FileSystemManager::Exists(path) ==
+              kSymExpected[i].resolvesToExisting);
     }
 }

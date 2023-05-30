@@ -32,3 +32,11 @@ TEST_CASE("normalization", "[path]") {
     CHECK(ToNormalPath(std::filesystem::path{"foo/.."}).string() == ".");
     CHECK(ToNormalPath(std::filesystem::path{"./foo/.."}).string() == ".");
 }
+
+TEST_CASE("non-upwards condition", "[path]") {
+    CHECK_FALSE(PathIsNonUpwards("/foo"));    // absolute path
+    CHECK(PathIsNonUpwards("foo"));           // relative non-upwards
+    CHECK_FALSE(PathIsNonUpwards("../foo"));  // relative not non-upwards
+    CHECK_FALSE(PathIsNonUpwards(
+        "foo/../bar/../../foo"));  // relative with non-upwards indirection
+}

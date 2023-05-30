@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_PATH_HPP
 
 #include <filesystem>
+#include <sstream>
 
 [[nodiscard]] static inline auto ToNormalPath(std::filesystem::path const& p)
     -> std::filesystem::path {
@@ -27,6 +28,18 @@
         return std::filesystem::path{"."};
     }
     return n;
+}
+
+/// \brief Perform a non-upwards condition check on the given path.
+/// A path is non-upwards if it is relative and it never references any other
+/// path on a higher level in the directory tree than itself.
+[[nodiscard]] static auto PathIsNonUpwards(
+    std::filesystem::path const& path) noexcept -> bool {
+    if (path.is_absolute()) {
+        return false;
+    }
+    // check non-upwards condition
+    return *path.lexically_normal().begin() != "..";
 }
 
 #endif

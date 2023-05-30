@@ -36,6 +36,7 @@
     [ "object_type"
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system"]
+    , ["src/utils/cpp", "path"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "file_system"]

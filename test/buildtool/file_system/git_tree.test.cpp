@@ -31,12 +31,11 @@ auto const kFailId = std::string{"0123456789abcdef0123456789abcdef01234567"};
 
 auto const kBundleSymPath =
     std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
-auto const kTreeSymId = std::string{"e00aa80fd1600090930c7ec0b7146028693074bf"};
+auto const kTreeSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazLinkId = std::string{"3f9538666251333f5fa519e01eb267d371ca9c78"};
 auto const kBazBarLinkId =
-    std::string{"79264abecd108745abb4086427ac988c7df7b639"};
-auto const kBazFooLinkId =
-    std::string{"7013e0db1095e8276a6e249830d999aecb7abd3d"};
+    std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
+auto const kFooLinkId = std::string{"b24736f10d3c60015386047ebc98b4ab63056041"};
 
 [[nodiscard]] auto HexToRaw(std::string const& hex) -> std::string {
     return FromHexString(hex).value_or<std::string>({});
@@ -128,8 +127,8 @@ TEST_CASE("Read Git Objects", "[git_cas]") {
         CHECK(cas->ReadObject(kBazBarLinkId, /*is_hex_id=*/true));
         CHECK(cas->ReadObject(HexToRaw(kBazBarLinkId), /*is_hex_id=*/false));
 
-        CHECK(cas->ReadObject(kBazFooLinkId, /*is_hex_id=*/true));
-        CHECK(cas->ReadObject(HexToRaw(kBazFooLinkId), /*is_hex_id=*/false));
+        CHECK(cas->ReadObject(kFooLinkId, /*is_hex_id=*/true));
+        CHECK(cas->ReadObject(HexToRaw(kFooLinkId), /*is_hex_id=*/false));
     }
 
     SECTION("invalid ids") {
@@ -168,8 +167,8 @@ TEST_CASE("Read Git Headers", "[git_cas]") {
         CHECK(cas->ReadHeader(kBazBarLinkId, /*is_hex_id=*/true));
         CHECK(cas->ReadHeader(HexToRaw(kBazBarLinkId), /*is_hex_id=*/false));
 
-        CHECK(cas->ReadHeader(kBazFooLinkId, /*is_hex_id=*/true));
-        CHECK(cas->ReadHeader(HexToRaw(kBazFooLinkId), /*is_hex_id=*/false));
+        CHECK(cas->ReadHeader(kFooLinkId, /*is_hex_id=*/true));
+        CHECK(cas->ReadHeader(HexToRaw(kFooLinkId), /*is_hex_id=*/false));
     }
 
     SECTION("invalid ids") {
