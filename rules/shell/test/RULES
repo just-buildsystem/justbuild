@@ -2,7 +2,8 @@
   { "doc": ["Shell test, given by a test script"]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
-  , "config_vars": ["ARCH", "HOST_ARCH", "RUNS_PER_TEST", "TEST_ENV"]
+  , "config_vars":
+    ["ARCH", "HOST_ARCH", "RUNS_PER_TEST", "TEST_ENV", "TIMEOUT_SCALE"]
   , "field_doc":
     { "test":
       [ "The shell script for the test, launched with sh."
@@ -33,6 +34,8 @@
       , "If set, no test action will be taken from cache."
       ]
     , "TEST_ENV": ["The environment for executing the test runner."]
+    , "TIMEOUT_SCALE":
+      ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
