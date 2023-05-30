@@ -138,14 +138,9 @@
       , ["TOOLCHAIN_DIR", "toolchain"]
       , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
       , [ "TOOLCHAIN"
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "TOOLCHAIN"}
-          , "then":
-            { "type": "to_subdir"
-            , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
-            , "$1": {"type": "var", "name": "TOOLCHAIN"}
-            }
-          , "else": {"type": "empty_map"}
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1": {"type": "var", "name": "TOOLCHAIN"}
           }
         ]
       , [ "NON_SYSTEM_TOOLS"
