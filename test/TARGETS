@@ -11,13 +11,23 @@
   }
 , "TESTS":
   { "type": "install"
+  , "arguments_config": ["DROP_LARGE_TESTS"]
   , "tainted": ["test"]
   , "dirs":
-    [ [["./", "buildtool", "TESTS"], "buildtool"]
-    , [["./", "utils", "TESTS"], "utils"]
-    , [["./", "end-to-end", "TESTS"], "end-to-end"]
-    , [["./", "other_tools", "TESTS"], "other_tools"]
-    ]
+    { "type": "++"
+    , "$1":
+      [ [ [["./", "buildtool", "TESTS"], "buildtool"]
+        , [["./", "utils", "TESTS"], "utils"]
+        , [["./", "end-to-end", "TESTS"], "end-to-end"]
+        , [["./", "other_tools", "TESTS"], "other_tools"]
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DROP_LARGE_TESTS"}
+        , "then": []
+        , "else": [["bootstrap-test", "bootstrap"]]
+        }
+      ]
+    }
   }
 , "ALL":
   { "type": "configure"
@@ -66,14 +76,14 @@
     }
   }
 , "bootstrap-test":
-  { "type": "install"
+  { "type": "configure"
   , "tainted": ["test"]
-  , "deps": [["./", "bootstrap", "TESTS"]]
-  }
-, "large-tests":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs": [["bootstrap-test", "bootstrap-test"]]
+  , "target": ["./", "bootstrap", "TESTS"]
+  , "config":
+    { "type": "let*"
+    , "bindings": [["TIMEOUT_SCALE", 20.0]]
+    , "body": {"type": "env", "vars": ["TIMEOUT_SCALE"]}
+    }
   }
 , "test-deps-headers":
   { "type": ["@", "rules", "CC", "install-with-deps"]
