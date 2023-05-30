@@ -36,6 +36,13 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
+namespace detail {
+static inline auto scale_time(std::chrono::milliseconds t, double f)
+    -> std::chrono::milliseconds {
+    return std::chrono::milliseconds(std::lround(t.count() * f));
+}
+}  // namespace detail
+
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
   public:
@@ -580,7 +587,7 @@ class Executor {
             action,
             remote_api_,
             properties_,
-            timeout_,
+            detail::scale_time(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
 
         // check response and save digests of results
@@ -633,24 +640,26 @@ class Rebuilder {
         const noexcept -> bool {
         auto const& action_id = action->Content().Id();
         Logger logger("rebuild:" + action_id);
-        auto response = Impl::ExecuteAction(logger,
-                                            action,
-                                            remote_api_,
-                                            properties_,
-                                            timeout_,
-                                            CF::PretendCached);
+        auto response = Impl::ExecuteAction(
+            logger,
+            action,
+            remote_api_,
+            properties_,
+            detail::scale_time(timeout_, action->TimeoutScale()),
+            CF::PretendCached);
 
         if (not response) {
             return true;  // action without response (e.g., tree action)
         }
 
         Logger logger_cached("cached:" + action_id);
-        auto response_cached = Impl::ExecuteAction(logger_cached,
-                                                   action,
-                                                   api_cached_,
-                                                   properties_,
-                                                   timeout_,
-                                                   CF::FromCacheOnly);
+        auto response_cached = Impl::ExecuteAction(
+            logger_cached,
+            action,
+            api_cached_,
+            properties_,
+            detail::scale_time(timeout_, action->TimeoutScale()),
+            CF::FromCacheOnly);
 
         if (not response_cached) {
             logger_cached.Emit(LogLevel::Error,

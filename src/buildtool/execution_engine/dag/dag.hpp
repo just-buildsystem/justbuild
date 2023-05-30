@@ -377,6 +377,10 @@ class DependencyGraph : DirectedAcyclicGraph {
             return Content().MayFail();
         }
 
+        [[nodiscard]] auto TimeoutScale() const -> double {
+            return Content().TimeoutScale();
+        }
+
         [[nodiscard]] auto NoCache() const -> bool {
             return Content().NoCache();
         }
