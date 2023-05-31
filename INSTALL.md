@@ -22,7 +22,7 @@ specify `arm64` as the target architecture via the `-D` flag:
 just-mr build -D '{"TARGET_ARCH":"arm64"}'
 ```
 
-The following table descries the most important supported configuration
+The following table describes the most important supported configuration
 variables. The full list can be obtained via `just-mr describe`.
 
 |Variable|Supported Values|Default Value for `just`|
@@ -34,6 +34,10 @@ variables. The full list can be obtained via `just-mr describe`.
 | COMPILER_FAMILY | gnu, clang, unknown | unknown |
 | DEBUG | true, false | false |
 | BUILD_STATIC_BINARY | true, false | false |
+
+Note that you can choose a different stack size for resulting binaries by
+adding `"-Wl,-z,stack-size=<size-in-bytes>"` to variable `"FINAL_LDFLAGS"`
+(which has to be a list of strings).
 
 ## Bootstrapping `just`
 

@@ -8,6 +8,7 @@
     , "AR"
     , "ARCH"
     , "BUILD_STATIC_BINARY"
+    , "FINAL_LDFLAGS"
     , "CC"
     , "COMPILER_FAMILY"
     , "CXX"
@@ -45,6 +46,7 @@
     , "BUILD_STATIC_BINARY":
       [ "Boolean, default false. If set, try to build a (mainly) static binary."
       ]
+    , "FINAL_LDFLAGS": ["Compiler flags for linking the final binary."]
     , "DEBUG": ["Boolean, default false. Whether to build a debug version."]
     , "OS":
       [ "Operating system to build for."
@@ -83,6 +85,7 @@
     , "AR"
     , "ENV"
     , "BUILD_STATIC_BINARY"
+    , "FINAL_LDFLAGS"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"
     , "PKG_CONFIG_ARGS"
@@ -139,6 +142,7 @@
     , "AR"
     , "ENV"
     , "BUILD_STATIC_BINARY"
+    , "FINAL_LDFLAGS"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"
     ]
