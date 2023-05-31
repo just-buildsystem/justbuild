@@ -1,6 +1,6 @@
 { "just-mr":
   { "type": ["@", "rules", "CC", "binary"]
-  , "arguments_config": ["BUILD_STATIC_BINARY"]
+  , "arguments_config": ["BUILD_STATIC_BINARY", "FINAL_LDFLAGS"]
   , "name": ["just-mr"]
   , "srcs": ["main.cpp"]
   , "private-deps":
@@ -22,9 +22,15 @@
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
-    { "type": "if"
-    , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
-    , "then": ["-static"]
+    { "type": "++"
+    , "$1":
+      [ ["-Wl,-z,stack-size=8388608"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "BUILD_STATIC_BINARY"}
+        , "then": ["-static"]
+        }
+      , {"type": "var", "name": "FINAL_LDFLAGS", "default": []}
+      ]
     }
   }
 , "utils":
