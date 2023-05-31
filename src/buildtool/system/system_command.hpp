@@ -155,6 +155,15 @@ class SystemCommand {
                                       int out_fd,
                                       int err_fd) const noexcept
         -> std::optional<int> {
+        auto const* cwd_cstr = cwd.c_str();
+
+        // some executables require an open (possibly seekable) stdin, and
+        // therefore, we use an open temporary file that does not appear on the
+        // file system and will be removed automatically once the descriptor is
+        // closed.
+        gsl::owner<FILE*> in_file = std::tmpfile();
+        auto in_fd = fileno(in_file);
+
         // fork child process
         pid_t pid = ::fork();
         if (-1 == pid) {
@@ -166,12 +175,7 @@ class SystemCommand {
 
         // dispatch child/parent process
         if (pid == 0) {
-            // some executables require an open (possibly seekable) stdin, and
-            // therefore, we use an open temporary file that does not appear
-            // on the file system and will be removed automatically once the
-            // descriptor is closed.
-            gsl::owner<FILE*> in_file = std::tmpfile();
-            auto in_fd = fileno(in_file);
+            ::chdir(cwd_cstr);
 
             // redirect and close fds
             ::dup2(in_fd, STDIN_FILENO);
@@ -181,24 +185,24 @@ class SystemCommand {
             ::close(out_fd);
             ::close(err_fd);
 
-            [[maybe_unused]] auto anchor =
-                FileSystemManager::ChangeDirectory(cwd);
-
             // execute command in child process and exit
             ::execvpe(*cmd, cmd, envp);
 
             // report error and terminate child process if ::execvp did not exit
-            std::cerr << fmt::format("Failed to execute '{}' with error: {}",
-                                     *cmd,
-                                     strerror(errno))
-                      << std::endl;
+            // NOLINTNEXTLINE
+            printf("Failed to execute '%s' with error: %s\n",
+                   *cmd,
+                   strerror(errno));
 
             System::ExitWithoutCleanup(EXIT_FAILURE);
         }
 
+        ::close(in_fd);
+
         // wait for child to finish and obtain return value
         int status{};
         ::waitpid(pid, &status, 0);
+
         // NOLINTNEXTLINE(hicpp-signed-bitwise)
         return WEXITSTATUS(status);
     }
