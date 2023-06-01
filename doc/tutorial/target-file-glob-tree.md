@@ -1,34 +1,35 @@
-* Target versus ~FILE~, ~GLOB~, and ~TREE~
+Target versus `FILE`, `GLOB`, and `TREE`
+========================================
 
-So far, we referred to defined targets as well as source files
-by their name and it just worked. When considering third-party
-software we already saw the ~TREE~ reference. In this section, we
-will highlight in more detail the ways to refer to sources, as well
-as the difference between defined and source targets. The latter
-is used, e.g., when third-party software has to be patched.
+So far, we referred to defined targets as well as source files by their
+name and it just worked. When considering third-party software we
+already saw the `TREE` reference. In this section, we will highlight in
+more detail the ways to refer to sources, as well as the difference
+between defined and source targets. The latter is used, e.g., when
+third-party software has to be patched.
 
-As example for this section we use gnu ~units~ where we want to
-patch into the standard units definition add two units of area
-popular in German news.
+As example for this section we use gnu `units` where we want to patch
+into the standard units definition add two units of area popular in
+German news.
 
-** Repository Config for ~units~ with patches
+Repository Config for `units` with patches
+------------------------------------------
 
-Before we begin, we first need to declare where the root of our workspace is
-located by creating the empty file ~ROOT~:
+Before we begin, we first need to declare where the root of our
+workspace is located by creating the empty file `ROOT`:
 
-#+BEGIN_SRC sh
+``` sh
 $ touch ROOT
-#+END_SRC
+```
 
 The sources are an archive available on the web. As upstream uses a
-different build system, we have to provide our own build description;
-we take the top-level directory as layer for this. As we also want
-to patch the definition file, we add the subdirectory ~files~ as
-logical repository for the patches. Hence we create a file ~repos.json~
-with the following content.
+different build system, we have to provide our own build description; we
+take the top-level directory as layer for this. As we also want to patch
+the definition file, we add the subdirectory `files` as logical
+repository for the patches. Hence we create a file `repos.json` with the
+following content.
 
-#+SRCNAME: repos.json
-#+BEGIN_SRC js
+``` {.jsonc srcname="repos.json"}
 { "main": "units"
 , "repositories":
   { "rules-cc":
@@ -55,31 +56,33 @@ with the following content.
     }
   }
 }
-#+END_SRC
+```
 
-The repository to set up is ~units~ and, as usual, we can use ~just-mr~ to
-fetch the archive and obtain the resulting multi-repository configuration.
+The repository to set up is `units` and, as usual, we can use `just-mr`
+to fetch the archive and obtain the resulting multi-repository
+configuration.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr setup units
-#+END_SRC
+```
 
-** Patching a file: targets versus ~FILE~
+Patching a file: targets versus `FILE`
+--------------------------------------
 
-Let's start by patching the source file ~definitions.units~. While,
-conceptionally, we want to patch a third-party source file, we do /not/
+Let's start by patching the source file `definitions.units`. While,
+conceptionally, we want to patch a third-party source file, we do *not*
 modify the sources. The workspace root is a git tree and stay like this.
-Instead, we remember that we specify /targets/ and the definition of a
+Instead, we remember that we specify *targets* and the definition of a
 target is looked up in the targets file; only if not defined there, it
 is implicitly considered a source target and taken from the target root.
-So we will define a /target/ named ~definitions.units~ to replace the
+So we will define a *target* named `definitions.units` to replace the
 original source file.
 
-Let's first generate the patch. As we're already referring to source files
-as targets, we have to provide a targets file already; we start with the
-empty object and refine it later.
+Let's first generate the patch. As we're already referring to source
+files as targets, we have to provide a targets file already; we start
+with the empty object and refine it later.
 
-#+BEGIN_SRC sh
+``` sh
 $ echo {} > TARGETS.units
 $ just-mr install -o . definitions.units
 INFO: Requested target is [["@","units","","definitions.units"],{}]
@@ -100,41 +103,39 @@ $ mkdir files
 $ echo {} > files/TARGETS
 $ diff -u definitions.units.orig definitions.units > files/definitions.units.diff
 $ rm definitions.units*
-#+END_SRC
+```
 
-Our rules conveniently contain a rule ~["patch", "file"]~ to patch
-a single file, and we already created the patch. The only other
-input missing is the source file. So far, we could refer to it as
-~"definitions.units"~ because there was no target of that name, but
-now we're about to define a target with that very name. Fortunately,
-in target files, we can use a special syntax to explicitly refer to
-a source file of the current module, even if there is a target with
-the same name: ~["FILE", null, "definition.units"]~. The syntax
-requires the explicit ~null~ value for the current module, despite
-the fact that explicit file references are only allowed for the
-current module; in this way, the name is a list of length more than
-two and cannot be confused with a top-level module called ~FILE~.
-So we add this target and obtain as ~TARGETS.units~ the following.
+Our rules conveniently contain a rule `["patch", "file"]` to patch a
+single file, and we already created the patch. The only other input
+missing is the source file. So far, we could refer to it as
+`"definitions.units"` because there was no target of that name, but now
+we're about to define a target with that very name. Fortunately, in
+target files, we can use a special syntax to explicitly refer to a
+source file of the current module, even if there is a target with the
+same name: `["FILE", null, "definition.units"]`. The syntax requires the
+explicit `null` value for the current module, despite the fact that
+explicit file references are only allowed for the current module; in
+this way, the name is a list of length more than two and cannot be
+confused with a top-level module called `FILE`. So we add this target
+and obtain as `TARGETS.units` the following.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 { "definitions.units":
   { "type": ["@", "rules", "patch", "file"]
   , "src": [["FILE", ".", "definitions.units"]]
   , "patch": [["@", "patches", "", "definitions.units.diff"]]
   }
 }
-#+END_SRC
+```
 
-Analysing ~"definitions.units"~ we find our defined target which
-contains an action output. Still, it looks like a patched source
-file; the new artifact is staged to the original location. Staging
-is also used in the action definition, to avoid magic names (like
-file names starting with ~-~), in-place operations (all actions
-must not modify their inputs) and, in fact, have a
-fixed command line.
+Analysing `"definitions.units"` we find our defined target which
+contains an action output. Still, it looks like a patched source file;
+the new artifact is staged to the original location. Staging is also
+used in the action definition, to avoid magic names (like file names
+starting with `-`), in-place operations (all actions must not modify
+their inputs) and, in fact, have a fixed command line.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse definitions.units --dump-actions -
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Result of target [["@","units","","definitions.units"],{}]: {
@@ -172,11 +173,11 @@ INFO: Actions for target [["@","units","","definitions.units"],{}]:
   }
 ]
 $
-#+END_SRC
+```
 
-Building ~"definitions.units"~ we find out patch applied correctly.
+Building `"definitions.units"` we find out patch applied correctly.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build definitions.units -P definitions.units | grep -A 5 'German units'
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
@@ -193,24 +194,24 @@ area_soccerfield 105 m * 68 m
 area_saarland 2570 km^2
 zentner                 50 kg
 $
-#+END_SRC
+```
 
-** Globbing source files: ~"GLOB"~
+Globbing source files: `"GLOB"`
+-------------------------------
 
-Next, we collect all ~.units~ files. We could simply do this by enumerating
-them in a target.
+Next, we collect all `.units` files. We could simply do this by
+enumerating them in a target.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 ...
 , "data-draft": { "type": "install", "deps": ["definitions.units", "currency.units"]}
 ...
-#+END_SRC
+```
 
-In this way, we get the desired collection of one unmodified source file and
-the output of the patch action.
+In this way, we get the desired collection of one unmodified source file
+and the output of the patch action.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse data-draft
 INFO: Requested target is [["@","units","","data-draft"],{}]
 INFO: Result of target [["@","units","","data-draft"],{}]: {
@@ -226,77 +227,76 @@ INFO: Result of target [["@","units","","data-draft"],{}]: {
         }
       }
 $
-#+END_SRC
+```
 
-The disadvantage, however, that we might miss newly added ~.units~
-files if we update and upstream added new files. So we want all
-source files that have the respective ending. The corresponding
-source reference is ~"GLOB"~. A glob expands to the /collection/
-of all /sources/ that are /files/ in the /top-level/ directory of
-the current module and that match the given pattern. It is important
-to understand this in detail and the rational behind it.
-- First of all, the artifact (and runfiles) map has an entry for
-  each file that matches. In particular, targets have the option to
-  define individual actions for each file, like ~["CC", "binary"]~
-  does for the source files. This is different from ~"TREE"~ where
-  the artifact map contains a single artifact that happens to be a
-  directory. The tree behaviour is preferable when the internals
-  of the directory only matter for the execution of actions and not
-  for analysis; then there are less entries to carry around during
-  analysis and action-key computation, and the whole directory
-  is "reserved" for that tree avoid staging conflicts when latter
-  adding entries there.
-- As a source reference, a glob expands to explicit source files;
-  targets having the same name as a source file are not taken into
-  account. In our example, ~["GLOB", null, "*.units"]~ therefore
-  contains the unpatched source file ~definitions.units~. In this
-  way, we avoid any surprises in the expansion of a glob when a new
-  source file is added with a name equal to an already existing target.
-- Only files are considered for matching the glob. Directories
-  are ignored.
-- Matches are only considered at the top-level directory. In this
-  way, only one directory has to be read during analysis; allowing
-  deeper globs would require traversal of subdirectories requiring
-  larger cost. While the explicit ~"TREE"~ reference allows recursive
-  traversal, in the typical use case of the respective workspace root
-  being a ~git~ root, it is actually cheap; we can look up the
-  ~git~ tree identifier without traversing the tree. Such a quick
-  look up would not be possible if matches had to be selected.
+The disadvantage, however, that we might miss newly added `.units` files
+if we update and upstream added new files. So we want all source files
+that have the respective ending. The corresponding source reference is
+`"GLOB"`. A glob expands to the *collection* of all *sources* that are
+*files* in the *top-level* directory of the current module and that
+match the given pattern. It is important to understand this in detail
+and the rational behind it.
 
-So, ~["GLOB", null, "*.units"]~ expands to all the relevant source
-files; but we still want to keep the patching. Most rules, like ~"install"~,
-disallow staging conflicts to avoid accidentally ignoring a file due
-to conflicting name. In our case, however, the dropping of the source
-file in favour of the patched one is deliberate. For this, there is
-the rule ~["data", "overlay"]~ taking the union of the artifacts of
+ - First of all, the artifact (and runfiles) map has an entry for each
+   file that matches. In particular, targets have the option to define
+   individual actions for each file, like `["CC", "binary"]` does for
+   the source files. This is different from `"TREE"` where the artifact
+   map contains a single artifact that happens to be a directory. The
+   tree behaviour is preferable when the internals of the directory
+   only matter for the execution of actions and not for analysis; then
+   there are less entries to carry around during analysis and
+   action-key computation, and the whole directory is "reserved" for
+   that tree avoid staging conflicts when latter adding entries there.
+ - As a source reference, a glob expands to explicit source files;
+   targets having the same name as a source file are not taken into
+   account. In our example, `["GLOB", null, "*.units"]` therefore
+   contains the unpatched source file `definitions.units`. In this way,
+   we avoid any surprises in the expansion of a glob when a new source
+   file is added with a name equal to an already existing target.
+ - Only files are considered for matching the glob. Directories are
+   ignored.
+ - Matches are only considered at the top-level directory. In this way,
+   only one directory has to be read during analysis; allowing deeper
+   globs would require traversal of subdirectories requiring larger
+   cost. While the explicit `"TREE"` reference allows recursive
+   traversal, in the typical use case of the respective workspace root
+   being a `git` root, it is actually cheap; we can look up the `git`
+   tree identifier without traversing the tree. Such a quick look up
+   would not be possible if matches had to be selected.
+
+So, `["GLOB", null, "*.units"]` expands to all the relevant source
+files; but we still want to keep the patching. Most rules, like
+`"install"`, disallow staging conflicts to avoid accidentally ignoring a
+file due to conflicting name. In our case, however, the dropping of the
+source file in favour of the patched one is deliberate. For this, there
+is the rule `["data", "overlay"]` taking the union of the artifacts of
 the specified targets, accepting conflicts and resolving them in a
-latest-wins fashion. Keep in mind, that our target fields are list,
-not sets. Looking at the definition of the rule, one finds that
-it is simply a ~"map_union"~. Hence we refine our ~"data"~ target.
+latest-wins fashion. Keep in mind, that our target fields are list, not
+sets. Looking at the definition of the rule, one finds that it is simply
+a `"map_union"`. Hence we refine our `"data"` target.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 ...
 , "data":
   { "type": ["@", "rules", "data", "overlay"]
   , "deps": [["GLOB", null, "*.units"], "definitions.units"]
   }
 ...
-#+END_SRC
+```
 
 The result of the analysis, of course, still is the same.
 
-** Finishing the example: binaries from globbed sources
+Finishing the example: binaries from globbed sources
+----------------------------------------------------
 
-The source-code organisation of units is pretty simple. All source
-and header files are in the top-level directory. As the header files
-are not in a directory of their own, we can't use a tree, so we use
-a glob, which is fine for the private headers of a binary. For the
-source files, we have to have them individually anyway. So our first
-attempt of defining the binary is as follows.
+The source-code organisation of units is pretty simple. All source and
+header files are in the top-level directory. As the header files are not
+in a directory of their own, we can't use a tree, so we use a glob,
+which is fine for the private headers of a binary. For the source files,
+we have to have them individually anyway. So our first attempt of
+defining the binary is as follows.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 ...
 , "units-draft":
   { "type": ["@", "rules", "CC", "binary"]
@@ -307,12 +307,12 @@ attempt of defining the binary is as follows.
   , "private-hdrs": [["GLOB", null, "*.h"]]
   }
 ...
-#+END_SRC
+```
 
-The result basically work and shows that we have 5 source files in total,
-giving 5 compile and one link action.
+The result basically work and shows that we have 5 source files in
+total, giving 5 compile and one link action.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build units-draft
 INFO: Requested target is [["@","units","","units-draft"],{}]
 INFO: Analysed target [["@","units","","units-draft"],{}]
@@ -328,13 +328,14 @@ INFO: Processed 6 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
 $
-#+END_SRC
+```
 
-To keep the build clean, we want to get rid of the warning. Of course, we could
-simply set an appropriate compiler flag, but let's do things properly and patch
-away the underlying reason. To do so, we first create a patch.
+To keep the build clean, we want to get rid of the warning. Of course,
+we could simply set an appropriate compiler flag, but let's do things
+properly and patch away the underlying reason. To do so, we first create
+a patch.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr install -o . strfunc.c
 INFO: Requested target is [["@","units","","strfunc.c"],{}]
 INFO: Analysed target [["@","units","","strfunc.c"],{}]
@@ -353,12 +354,11 @@ $ echo -e "109\ns|N|// N\nw\nq" | ed strfunc.c
 $ diff strfunc.c.orig strfunc.c > files/strfunc.c.diff
 $ rm strfunc.c*
 $
-#+END_SRC
+```
 
-Then we amend our ~"units"~ target.
+Then we amend our `"units"` target.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 ...
 , "units":
   { "type": ["@", "rules", "CC", "binary"]
@@ -378,14 +378,15 @@ Then we amend our ~"units"~ target.
   , "patch": [["@", "patches", "", "strfunc.c.diff"]]
   }
 ...
-#+END_SRC
+```
 
-Building the new target, 2 actions have to be executed: the patching, and
-the compiling of the patched source file. As the patched file still generates
-the same object file as the unpatched file (after all, we only wanted to get
-rid of a warning), the linking step can be taken from cache.
+Building the new target, 2 actions have to be executed: the patching,
+and the compiling of the patched source file. As the patched file still
+generates the same object file as the unpatched file (after all, we only
+wanted to get rid of a warning), the linking step can be taken from
+cache.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build units
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
@@ -396,22 +397,21 @@ INFO: Processed 7 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
         units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
 $
-#+END_SRC
+```
 
-To finish the example, we also add a default target (using that, if no target
-is specified, ~just~ builds the lexicographically first target), staging
-artifacts according to the usual conventions.
+To finish the example, we also add a default target (using that, if no
+target is specified, `just` builds the lexicographically first target),
+staging artifacts according to the usual conventions.
 
-#+SRCNAME: TARGETS.units
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS.units"}
 ...
 , "": {"type": "install", "dirs": [["units", "bin"], ["data", "share/units"]]}
 ...
-#+END_SRC
+```
 
 Then things work as expected
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr install -o /tmp/testinstall
 INFO: Requested target is [["@","units","",""],{}]
 INFO: Analysed target [["@","units","",""],{}]
@@ -427,4 +427,4 @@ $ /tmp/testinstall/bin/units 'area_saarland' 'area_soccerfield'
         * 359943.98
         / 2.7782101e-06
 $
-#+END_SRC
+```

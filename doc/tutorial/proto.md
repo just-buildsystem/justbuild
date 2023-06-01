@@ -1,27 +1,28 @@
-* Using protocol buffers
+Using protocol buffers
+======================
 
-The rules /justbuild/ uses for itself also support protocol
-buffers. This tutorial shows how to use those rules and the targets
-associated with them. It is not a tutorial on protocol buffers
-itself; rather, it is assumed that the reader has some knowledge on
-[[https://developers.google.com/protocol-buffers/][protocol buffers]].
+The rules *justbuild* uses for itself also support protocol buffers.
+This tutorial shows how to use those rules and the targets associated
+with them. It is not a tutorial on protocol buffers itself; rather, it
+is assumed that the reader has some knowledge on [protocol
+buffers](https://developers.google.com/protocol-buffers/).
 
-** Setting up the repository configuration
+Setting up the repository configuration
+---------------------------------------
 
-Before we begin, we first need to declare where the root of our workspace is
-located by creating the empty file ~ROOT~:
+Before we begin, we first need to declare where the root of our
+workspace is located by creating the empty file `ROOT`:
 
-#+BEGIN_SRC sh
+``` sh
 $ touch ROOT
-#+END_SRC
+```
 
-The ~protobuf~ repository conveniently contains an
-[[https://github.com/protocolbuffers/protobuf/tree/v3.12.4/examples][example]],
-so we can use this and just add our own target files. We create
-file ~repos.template.json~ as follows.
+The `protobuf` repository conveniently contains an
+[example](https://github.com/protocolbuffers/protobuf/tree/v3.12.4/examples),
+so we can use this and just add our own target files. We create file
+`repos.template.json` as follows.
 
-#+SRCNAME: repos.template.json
-#+BEGIN_SRC js
+``` {.jsonc srcname="repos.template.json"}
 { "repositories":
   { "":
     { "repository":
@@ -36,45 +37,45 @@ file ~repos.template.json~ as follows.
   , "tutorial": {"repository": {"type": "file", "path": "."}}
   }
 }
-#+END_SRC
+```
 
-The missing entry ~"rules-cc"~ refers to our C/C++ build rules provided
-[[https://github.com/just-buildsystem/rules-cc][online]]. These rules support
-protobuf if the dependency ~"protoc"~ is provided. To import this rule
-repository including the required transitive dependencies for protobuf, the
-~bin/just-import-git~ script with option ~--as rules-cc~ can be used to
-generate the actual ~repos.json~:
+The missing entry `"rules-cc"` refers to our C/C++ build rules provided
+[online](https://github.com/just-buildsystem/rules-cc). These rules
+support protobuf if the dependency `"protoc"` is provided. To import
+this rule repository including the required transitive dependencies for
+protobuf, the `bin/just-import-git` script with option `--as rules-cc`
+can be used to generate the actual `repos.json`:
 
-#+BEGIN_SRC sh
+``` sh
 $ just-import-git -C repos.template.json -b master --as rules-cc https://github.com/just-buildsystem/rules-cc > repos.json
-#+END_SRC
+```
 
-To build the example with ~just~, the only task is to write targets files. As
-that contains a couple of new concepts, we will do this step by step.
+To build the example with `just`, the only task is to write targets
+files. As that contains a couple of new concepts, we will do this step
+by step.
 
-** The proto library
+The proto library
+-----------------
 
 First, we have to declare the proto library. In this case, it only
-contains the file ~addressbook.proto~ and has no dependencies. To
-declare the library, create a ~TARGETS~ file with the following
-content:
+contains the file `addressbook.proto` and has no dependencies. To
+declare the library, create a `TARGETS` file with the following content:
 
-#+SRCNAME: TARGETS
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS"}
 { "address":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["addressbook"]
   , "srcs": ["addressbook.proto"]
   }
 }
-#+END_SRC
+```
 
 In general, proto libraries could also depend on other proto libraries;
-those would be added to the ~"deps"~ field.
+those would be added to the `"deps"` field.
 
 When building the library, there's very little to do.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build address
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Analysed target [["@","","","address"],{}]
@@ -84,20 +85,21 @@ INFO: Building [["@","","","address"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
 $
-#+END_SRC
+```
 
 On the other hand, what did we expect? A proto library is an abstract
 description of a protocol, so, as long as we don't specify for which
 language we want to have bindings, there is nothing to generate.
 
-Nevertheless, a proto library target is not empty. In fact, it can't be empty,
-as other targets can only access the values of a target and have no
-insights into its definitions. We already relied on this design principle
-implicitly, when we exploited target-level caching for our external dependencies
-and did not even construct the dependency graph for that target. A proto
-library simply provides the dependency structure of the ~.proto~ files.
+Nevertheless, a proto library target is not empty. In fact, it can't be
+empty, as other targets can only access the values of a target and have
+no insights into its definitions. We already relied on this design
+principle implicitly, when we exploited target-level caching for our
+external dependencies and did not even construct the dependency graph
+for that target. A proto library simply provides the dependency
+structure of the `.proto` files.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse --dump-nodes - address
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Result of target [["@","","","address"],{}]: {
@@ -146,36 +148,35 @@ INFO: Target nodes of target [["@","","","address"],{}]:
   }
 }
 $
-#+END_SRC
+```
 
-The target has one provider ~"proto"~, which is a node. Nodes are
-an abstract representation of a target graph. More precisely, there
-are two kind of nodes, and our example contains one of each.
+The target has one provider `"proto"`, which is a node. Nodes are an
+abstract representation of a target graph. More precisely, there are two
+kind of nodes, and our example contains one of each.
 
-The simple kind of nodes are the value nodes; they represent a
-target that has a fixed value, and hence are given by artifacts,
-runfiles, and provided data. In our case, we have one value node,
-the one for the ~.proto~ file.
+The simple kind of nodes are the value nodes; they represent a target
+that has a fixed value, and hence are given by artifacts, runfiles, and
+provided data. In our case, we have one value node, the one for the
+`.proto` file.
 
 The other kind of nodes are the abstract nodes. They describe the
-arguments for a target, but only have an abstract name (i.e., a
-string) for the rule. Combining such an abstract target with a
-binding for the abstract rule names gives a concrete "anonymous"
-target that, in our case, will generate the library with the bindings
-for the concrete language. In this example, the abstract name is
-~"library"~. The alternative in our proto rules would have been
-~"service library"~, for proto libraries that also contain ~rpc~
-definitions (which is used by [[https://grpc.io/][gRPC]]).
+arguments for a target, but only have an abstract name (i.e., a string)
+for the rule. Combining such an abstract target with a binding for the
+abstract rule names gives a concrete "anonymous" target that, in our
+case, will generate the library with the bindings for the concrete
+language. In this example, the abstract name is `"library"`. The
+alternative in our proto rules would have been `"service library"`, for
+proto libraries that also contain `rpc` definitions (which is used by
+[gRPC](https://grpc.io/)).
 
-** Using proto libraries
+Using proto libraries
+---------------------
 
-Using proto libraries requires, as discussed, bindings for the
-abstract names. Fortunately, our ~CC~ rules are aware of proto
-libraries, so we can simply use them. Our target file hence
-continues as follows.
+Using proto libraries requires, as discussed, bindings for the abstract
+names. Fortunately, our `CC` rules are aware of proto libraries, so we
+can simply use them. Our target file hence continues as follows.
 
-#+SRCNAME: TARGETS
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS"}
 ...
 , "add_person":
   { "type": ["@", "rules", "CC", "binary"]
@@ -190,14 +191,14 @@ continues as follows.
   , "private-proto": ["address"]
   }
 ...
-#+END_SRC
+```
 
-The first time, we build a target that requires the proto compiler
-(in that particular version, built in that particular way), it takes
-a bit of time, as the proto compiler has to be built. But in follow-up
-builds, also in different projects, the target-level cache is filled already.
+The first time, we build a target that requires the proto compiler (in
+that particular version, built in that particular way), it takes a bit
+of time, as the proto compiler has to be built. But in follow-up builds,
+also in different projects, the target-level cache is filled already.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build add_person
 ...
 $ just-mr build add_person
@@ -210,12 +211,12 @@ INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
         add_person [bcbb3deabfe0d77e6d3ea35615336a2f59a1b0aa:2285928:x]
 $
-#+END_SRC
+```
 
 If we look at the actions associated with the binary, we find that those
 are still the two actions we expect: a compile action and a link action.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse add_person --dump-actions -
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
@@ -251,17 +252,17 @@ INFO: Actions for target [["@","","","add_person"],{}]:
   }
 ]
 $
-#+END_SRC
+```
 
-As discussed, the ~libaddressbook.a~ that is conveniently available
-during the linking of the binary (as well as the ~addressbook.pb.h~
-available in the ~include~ tree for the compile action) are generated
-by an anonymous target. Using that during the build we already
-filled the target-level cache, we can have a look at all targets
-still analysed. In the one anonymous target, we find again the
-abstract node we discussed earlier.
+As discussed, the `libaddressbook.a` that is conveniently available
+during the linking of the binary (as well as the `addressbook.pb.h`
+available in the `include` tree for the compile action) are generated by
+an anonymous target. Using that during the build we already filled the
+target-level cache, we can have a look at all targets still analysed. In
+the one anonymous target, we find again the abstract node we discussed
+earlier.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse add_person --dump-targets -
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
@@ -302,25 +303,24 @@ INFO: List of analysed targets:
   }
 }
 $
-#+END_SRC
+```
 
-It should be noted, however, that this tight integration of proto
-into our ~C++~ rules is just convenience of our code base. If we had
-to cooperate with rules not aware of proto, we could have created
-a separate rule delegating the library creation to the anonymous
-target and then simply reflecting the values of that target.
-In fact, we could simply use an empty library with a public ~proto~
-dependency for this purpose.
+It should be noted, however, that this tight integration of proto into
+our `C++` rules is just convenience of our code base. If we had to
+cooperate with rules not aware of proto, we could have created a
+separate rule delegating the library creation to the anonymous target
+and then simply reflecting the values of that target. In fact, we could
+simply use an empty library with a public `proto` dependency for this
+purpose.
 
-#+SRCNAME: TARGETS
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS"}
 ...
 , "address proto library":
   {"type": ["@", "rules", "CC", "library"], "proto": ["address"]}
 ...
-#+END_SRC
+```
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse 'address proto library'
 ...
 INFO: Requested target is [["@","","","address proto library"],{}]
@@ -347,18 +347,18 @@ INFO: Result of target [["@","","","address proto library"],{}]: {
         }
       }
 $
-#+END_SRC
+```
 
-** Adding a test
+Adding a test
+-------------
 
-Finally, let's add a test. As we use the ~protobuf~ repository as
-workspace root, we add the test script ad hoc into a targets file,
-using the ~"file_gen"~ rule. For debugging a potentially failing
-test, we also keep the intermediate files the test generates.
-Create a top-level ~TARGETS~ file with the following content:
+Finally, let's add a test. As we use the `protobuf` repository as
+workspace root, we add the test script ad hoc into a targets file, using
+the `"file_gen"` rule. For debugging a potentially failing test, we also
+keep the intermediate files the test generates. Create a top-level
+`TARGETS` file with the following content:
 
-#+SRCNAME: TARGETS
-#+BEGIN_SRC js
+``` {.jsonc srcname="TARGETS"}
 ...
 , "test.sh":
   { "type": "file_gen"
@@ -382,17 +382,16 @@ Create a top-level ~TARGETS~ file with the following content:
   , "keep": ["addressbook.data", "out.txt"]
   }
 ...
-#+END_SRC
+```
 
-That example also shows why it is important that the generation
-of the language bindings is delegated to an anonymous target: we
-want to analyse only once how the ~C++~ bindings are generated.
-Nevertheless, many targets can depend (directly or indirectly) on
-the same proto library. And, indeed, analysing the test, we get
-the expected additional targets and the one anonymous target is
-reused by both binaries.
+That example also shows why it is important that the generation of the
+language bindings is delegated to an anonymous target: we want to
+analyse only once how the `C++` bindings are generated. Nevertheless,
+many targets can depend (directly or indirectly) on the same proto
+library. And, indeed, analysing the test, we get the expected additional
+targets and the one anonymous target is reused by both binaries.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr analyse test --dump-targets -
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Result of target [["@","","","test"],{}]: {
@@ -444,11 +443,11 @@ INFO: List of analysed targets:
 }
 INFO: Target tainted ["test"].
 $
-#+END_SRC
+```
 
 Finally, the test passes and the output is as expected.
 
-#+BEGIN_SRC sh
+``` sh
 $ just-mr build test -Pwork/out.txt
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Analysed target [["@","","","test"],{}]
@@ -472,4 +471,4 @@ Person ID: 12345
   Updated: 2022-12-14T18:08:36Z
 INFO: Target tainted ["test"].
 $
-#+END_SRC
+```
