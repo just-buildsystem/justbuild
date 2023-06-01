@@ -36,12 +36,13 @@ OPTIONS
 General options
 ---------------
 
-**-h**, **--help** Output a usage message and exit.
+**-h**, **--help**  
+Output a usage message and exit.
 
 **-C**, **--repository-config** PATH  
 Path to the multi-repository configuration file. See
 **just-mr-repository-config(5)** for more details. If no configuration
-file is \*specified, `just-mr` will look for one in the following
+file is specified, `just-mr` will look for one in the following
 order:
 
  - `$WORKSPACE_ROOT/repos.json` (workspace of the `just-mr` invocation)

@@ -147,7 +147,7 @@ different workspace roots might support different keys for this object;
 unsupported keys are always ignored.
 
 For a `"file"` workspace root, the pragma key `"to_git"` is supported.
-If its value is `"true"`, it indicates that the workspace root should be
+If its value is `true`, it indicates that the workspace root should be
 returned as a Git tree. If the root directory is already part of a Git
 repository, its Git tree identifier is used; otherwise, the workspace
 root will be realized as a Git tree in the Git repository in `just`'s

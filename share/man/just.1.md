@@ -277,7 +277,8 @@ OPTIONS
 Generic program information
 ---------------------------
 
-**-h**, **--help** Output a usage message and exit.  
+**-h**, **--help**  
+Output a usage message and exit.  
 Supported by: all subcommands.
 
 Compatibility options

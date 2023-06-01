@@ -38,7 +38,7 @@ within the location root.
 The value for key `"base"` is a relative path within the location root.
 This path is only relevant for locations of config files. If such a
 config file contains relative paths, those will be resolved relative to
-the specified base. If omitted, the default value `.` is used.
+the specified base. If omitted, the default value `"."` is used.
 
 The just-mrrc format
 --------------------
