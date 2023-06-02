@@ -57,6 +57,7 @@
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path"]
     , ["", "libgit2"]
     ]
   }
