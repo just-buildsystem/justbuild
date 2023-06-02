@@ -520,7 +520,17 @@ void SetupHashFunction() {
     std::filesystem::path const& workspace_root,
     FileRoot const& target_root,
     std::string const& target_file_name) -> std::string {
-    auto cwd = std::filesystem::current_path();
+    std::filesystem::path cwd{};
+    try {
+        cwd = std::filesystem::current_path();
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Warning,
+                    "Cannot determine current working directory ({}), assuming "
+                    "top-level module is requested",
+                    e.what());
+        return ".";
+    }
+
     auto subdir = std::filesystem::proximate(cwd, workspace_root);
     if (subdir.is_relative() and (*subdir.begin() != "..")) {
         // cwd is subdir of workspace_root
@@ -603,9 +613,18 @@ void SetupHashFunction() {
         std::move(config)};
 }
 
-[[nodiscard]] auto DetermineWorkspaceRootByLookingForMarkers()
+[[nodiscard]] auto DetermineWorkspaceRootByLookingForMarkers() noexcept
     -> std::filesystem::path {
-    auto cwd = std::filesystem::current_path();
+    std::filesystem::path cwd{};
+    try {
+        cwd = std::filesystem::current_path();
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Warning,
+                    "Failed to determine current working directory ({})",
+                    e.what());
+        Logger::Log(LogLevel::Error, "Could not determine workspace root.");
+        std::exit(kExitFailure);
+    }
     auto root = cwd.root_path();
     cwd = std::filesystem::relative(cwd, root);
     auto root_dir = FindRoot(cwd, FileRoot{root}, kRootMarkers);

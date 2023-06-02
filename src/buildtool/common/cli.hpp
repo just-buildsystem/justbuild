@@ -30,6 +30,7 @@
 #include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/utils/cpp/path.hpp"
 
 constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
 
@@ -168,8 +169,19 @@ static inline auto SetupCommonArguments(
     app->add_option_function<std::string>(
            "-w,--workspace-root",
            [clargs](auto const& workspace_root_raw) {
-               clargs->workspace_root = std::filesystem::canonical(
-                   std::filesystem::absolute(workspace_root_raw));
+               std::filesystem::path root = ToNormalPath(workspace_root_raw);
+               if (not root.is_absolute()) {
+                   try {
+                       root = std::filesystem::absolute(root);
+                   } catch (std::exception const& e) {
+                       Logger::Log(LogLevel::Error,
+                                   "Failed to convert workspace root {} ({})",
+                                   workspace_root_raw,
+                                   e.what());
+                       throw e;
+                   }
+               }
+               clargs->workspace_root = root;
            },
            "Path of the workspace's root directory.")
         ->type_name("PATH");
@@ -342,8 +354,20 @@ static inline auto SetupCacheArguments(
     app->add_option_function<std::string>(
            "--local-build-root",
            [clargs](auto const& build_root_raw) {
-               clargs->local_root = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(build_root_raw));
+               std::filesystem::path root = ToNormalPath(build_root_raw);
+               if (!root.is_absolute()) {
+                   try {
+                       root = std::filesystem::absolute(root);
+                   } catch (std::exception const& e) {
+                       Logger::Log(
+                           LogLevel::Error,
+                           "Failed to convert local build root {} ({}).",
+                           build_root_raw,
+                           e.what());
+                       throw e;
+                   }
+               }
+               clargs->local_root = root;
            },
            "Root for local CAS, cache, and build directories.")
         ->type_name("PATH");
@@ -420,8 +444,20 @@ static inline auto SetupStageArguments(
     app->add_option_function<std::string>(
            "-o,--output-dir",
            [clargs](auto const& output_dir_raw) {
-               clargs->output_dir = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(output_dir_raw));
+               std::filesystem::path out = ToNormalPath(output_dir_raw);
+               if (not out.is_absolute()) {
+                   try {
+                       out = std::filesystem::absolute(out);
+                   } catch (std::exception const& e) {
+                       Logger::Log(
+                           LogLevel::Error,
+                           "Failed to convert output directory {} ({}).",
+                           output_dir_raw,
+                           e.what());
+                       throw e;
+                   }
+               }
+               clargs->output_dir = out;
            },
            "Path of the directory where outputs will be copied.")
         ->type_name("PATH")
@@ -459,8 +495,19 @@ static inline auto SetupFetchArguments(
     app->add_option_function<std::string>(
            "-o,--output-path",
            [clargs](auto const& output_path_raw) {
-               clargs->output_path = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(output_path_raw));
+               std::filesystem::path out = ToNormalPath(output_path_raw);
+               if (not out.is_absolute()) {
+                   try {
+                       out = std::filesystem::absolute(out);
+                   } catch (std::exception const& e) {
+                       Logger::Log(LogLevel::Error,
+                                   "Failed to convert output path {} ({})",
+                                   output_path_raw,
+                                   e.what());
+                       throw e;
+                   }
+               }
+               clargs->output_path = out;
            },
            "Install path for the artifact. (omit to dump to stdout)")
         ->type_name("PATH");
