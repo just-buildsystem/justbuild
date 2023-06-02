@@ -1,6 +1,19 @@
-## Release `1.1.1` (UNRELEASED)
+## Release `1.1.1` (2023-06-02)
 
 Bug fixes on top of release `1.1.0`.
+
+### Fixes
+
+- Removed potential uses of `malloc` between `fork` and `exec`.
+  This removes the risk of deadlocks on certain combinations of
+  `C++` standard library and `libc`.
+- The link flags for the final linking now can be set via the
+  configuration variable `FINAL_LDFLAGS`; in particular, the stack
+  size can easily be adapted. The default stack size is now set to
+  8M, removing an overflow on systems where the default stack size
+  was significantly lower.
+- The man pages are now provided as markdown files, allowing to
+  potentially reduce the build dependencies to more standard ones.
 
 ## Release `1.1.0` (2023-05-19)
 
