@@ -113,7 +113,7 @@ in the same way. Intensionally equal artifacts create equal action
 graphs; here we can confidently say "equal" and not only isomorphic:
 due to our preliminary clean up, even the node names are equal. Making
 sure that equal actions produce bit-by-bit equal outputs is the realm of
-[reproducibe builds](https://reproducible-builds.org/). The tool can
+[reproducible builds](https://reproducible-builds.org/). The tool can
 support this by appropriate sandboxing, etc, but the rules still have to
 define actions that don't pick up non-input information like the
 current time, user id, readdir order, etc. Files that are bit-by-bit
@@ -293,7 +293,7 @@ map may now also have meaningful entries for the keys of the
 `"anonymous"` map. Each value in the map has to be itself a map,
 with entries `"target"`, `"provider"`, and `"rule_map"`.
 
-For `"target"`, a single string has to be specifed, and the
+For `"target"`, a single string has to be specified, and the
 value has to be a member of the `"target_fields"` list. For
 provider, a single string has to be specified as well. The idea
 is that the nodes are collected from that provider of the

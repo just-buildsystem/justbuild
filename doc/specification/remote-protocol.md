@@ -140,6 +140,7 @@ message as it is done in the original protocol. The remote side promises
 that each blob and subtree contained in the root tree is available in
 the remote CAS. Such blobs and trees must be accessible, using the
 streaming interface, without specifying the size (since sizes are not
-stored in a git tree). Due to the Protobuf 3 specification, which is
-used in this remote execution API, not specifying the size means the
-default value 0 is used.
+stored in a git tree). Due to the [Protobuf 3
+specification](https://protobuf.dev/reference/protobuf/proto3-spec/), which is
+used in this remote execution API, not specifying the size means the default
+value `0` is used.

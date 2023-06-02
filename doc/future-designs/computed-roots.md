@@ -4,7 +4,7 @@ Computed roots
 Status quo
 ----------
 
-As of version `1.0.0`, the `just` build tool requires a the repository
+As of version `1.0.0`, the `just` build tool requires the repository
 configuration, including all roots, to be specified ahead of time. This
 has a couple of consequences.
 

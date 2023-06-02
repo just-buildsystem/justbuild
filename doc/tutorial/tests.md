@@ -93,7 +93,7 @@ be provided. By specifying the appropriate target in this module the
 default test runner can be overwritten by a different test runner fom
 the rule's workspace root. Moreover, all test targets share runner
 infrastructure from `shell/test`, e.g., summarizing multiple runs per
-test (to detect flakyness) if the configuration variable `RUNS_PER_TEST`
+test (to detect flakiness) if the configuration variable `RUNS_PER_TEST`
 is set.
 
 However, in our case, we want to use the default runner and therefore it

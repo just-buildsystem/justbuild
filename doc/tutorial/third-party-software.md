@@ -467,6 +467,8 @@ staging mechanism the logical repository it belongs to is rooted in the
 }
 ```
 
+---
+
 [^1]: Explicit `TREE` references are always a list of length 3, to
       distinguish them from target references of length 2 (module and
       target name). Furthermore, the second list element is always `null`

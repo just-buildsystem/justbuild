@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-In order to use *justbuild*, first make sure that `just`, `just-mr`, and
+In order to use *Justbuild*, first make sure that `just`, `just-mr`, and
 `just-import-git` are available in your `PATH`.
 
 Creating a new project
@@ -101,7 +101,7 @@ this can be used for both, interactively reading a text file, as well as
 for piping the artifact to another program.
 
 ``` sh
-$ just build greeter -Pout.txt
+$ just build greeter -P out.txt
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching

@@ -21,7 +21,7 @@ optional and the default is that the repository worked on has no
 external dependencies. Typically (but not necessarily), this
 repository-configuration file is located outside the referenced
 repositories and versioned separately or generated from such a file via
-`bin/just-mr.py`. It serves as meta-data for a group of repositories
+`just-mr`. It serves as meta-data for a group of repositories
 belonging together.
 
 This file contains one JSON object. For the key `"repositories"` the

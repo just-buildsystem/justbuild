@@ -16,17 +16,18 @@ certainly not limited to)
 
 For the sake of completeness, these are the files used to compile the
 examples
-#+BEGIN_SRC bash
-$ tree latex-hello-world/
+#+BEGIN_SRC
 latex-hello-world/
-├── hello.tex
-├── repos.json
-└── TARGETS
++--hello.tex
++--repos.json
++--TARGETS
 #+END_SRC
 
 They read as follows
-#+BEGIN_SRC bash
-$ cat repos.json
+
+File ~repos.json~:
+#+SRCNAME: repos.json
+#+BEGIN_SRC js
 { "main": "tutorial"
 , "repositories":
   { "latex-rules":
@@ -45,8 +46,9 @@ $ cat repos.json
 }
 #+END_SRC
 
-#+BEGIN_SRC bash
-$ cat TARGETS
+File ~TARGETS~:
+#+SRCNAME: TARGETS
+#+BEGIN_SRC js
 { "tutorial":
   { "type": ["@", "latex-rules", "latex", "latexmk"]
   , "main": ["hello"]
@@ -55,8 +57,9 @@ $ cat TARGETS
 }
 #+END_SRC
 
-#+BEGIN_SRC bash
-$ cat hello.tex
+File ~hello.tex~:
+#+SRCNAME: hello.tex
+#+BEGIN_SRC tex
 \documentclass[a4paper]{article}
 
 \author{JustBuild developers}
@@ -76,7 +79,7 @@ In this first example, we simply call ~just execute~ and the
 environment of the caller is made available. We therefore recommend to
 have a dedicated non-priviledged ~build~ user to run the execution
 service. In the following, we will use ~%~ to indicate the prompt of
-the ~build~ user, ~$~ for a _normal_user_.
+the ~build~ user, ~$~ for a /normal/ user.
 
 To enable such a single-node execution service, it is sufficient to
 type on one shell (as ~build~ user)
@@ -85,7 +88,7 @@ type on one shell (as ~build~ user)
 #+END_SRC
 Where ~<N>~ is a port number which is supposed to be available.
 
-To use it, as a _normal_ user, on a different shell type
+To use it, as a /normal/ user, on a different shell type
 #+BEGIN_SRC bash
 $ just [...] -r localhost:<N> 
 #+END_SRC
@@ -148,7 +151,7 @@ $ cat /tmp/foo.json
 {"interface":"127.0.0.1","pid":7680,"port":44115}
 #+END_SRC
 
-Please note that the info file will _not be automatically deleted_
+Please note that the info file will /not be automatically deleted/
 when the user terminates the service. The user is responsible for
 eventually removing it from the file system.
 
@@ -171,7 +174,7 @@ $ just [...] --tls-ca-cert <path_to_CA_cert> --tls-client-cert <path_to_client_c
 
 ***** How to generate self-signed certificates
 
-This section does not pretend to be an exaustive guide to the
+This section does not pretend to be an exhaustive guide to the
 generation and management of certificates, which is well beyond the
 aim of this tutorial. We just want to provide a minimal reference for
 let users start using mTLS and having the benefits of mutual
@@ -188,7 +191,7 @@ As a first step, we need a Certification Authority certificate (~ca.crt~)
 
 If the clients will connect using the loopback device, i.e., the users
 are logged in the same machine where ~just execute~ will run, the
-_server certificates_ can be generate with the following instructions
+/server certificates/ can be generate with the following instructions
 #+BEGIN_SRC bash
 % openssl req -new -nodes -newkey rsa:4096 -keyout server.key -out server.csr -subj "/CN=localhost"
 % openssl x509 -req -days 365 -in server.csr -CA ca.crt -CAkey ca.key -set_serial 0 -out server.crt
@@ -409,7 +412,7 @@ $ docker run --network host --name execute-latex --mount type=bind,source="${HOM
 *** Compile statically
 
 Since ~just~ and ~just-mr~ must also be available in the host
-environment, the best way to have ~just~ inside the enviroment is to
+environment, the best way to have ~just~ inside the environment is to
 compile a static binary, and copy it into the chroot environment.
 
 Please refer to the [[../../INSTALL.md][installation guide]] for details.
@@ -451,10 +454,10 @@ RUN apt install -y --no-install-recommends \
                     clang \
                     python3 \
                     git \
-		    patch \
+                    patch \
                     unzip \
                     wget \
-		    ca-certificates
+                    ca-certificates
 RUN git clone https://github.com/just-buildsystem/justbuild.git
 # use a well defined commit to foster reproducibility
 RUN git checkout 246e1b7f28f319e4be5bd24466494e6b5868ca6f

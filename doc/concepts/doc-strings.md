@@ -34,16 +34,16 @@ Rules
 
 Each rule is described as a JSON object with a fixed set of keys. So
 having fixed keys for documentation does not cause conflicts. More
-precisely, the keys `doc`, `field doc`, `config_doc`, `artifacts_doc`,
-`runfiles_doc`, and `provides_doc` are reserved for documentation. Here,
-`doc` has to be a list of strings describing the rule in general.
-`field doc` has to be a map from (some of) the field names to an array
+precisely, the keys `"doc"`, `"field_doc"`, `"config_doc"`, `"artifacts_doc"`,
+`"runfiles_doc"`, and `"provides_doc"` are reserved for documentation. Here,
+`"doc"` has to be a list of strings describing the rule in general.
+`"field_doc"` has to be a map from (some of) the field names to an array
 of strings, containing additional information on that particular field.
-`config_doc` has to be a map from (some of) the config variables to an
-array of strings describing the respective variable. `artifacts_doc` is
+`"config_doc"` has to be a map from (some of) the config variables to an
+array of strings describing the respective variable. `"artifacts_doc"` is
 an array of strings describing the artifacts produced by the rule.
-`runfiles_doc` is an array of strings describing the runfiles produced
-by this rule. Finally, `provides_doc` is a map describing (some of) the
+`"runfiles_doc"` is an array of strings describing the runfiles produced
+by this rule. Finally, `"provides_doc"` is a map describing (some of) the
 providers by that rule; as opposed to fields or config variables there
 is no authoritative list of providers given elsewhere in the rule, so it
 is up to the rule author to give an accurate documentation on the
@@ -115,9 +115,9 @@ Expressions
 -----------
 
 Expressions are also described by a JSON object with a fixed set of
-keys. Here we use the keys `doc` and `vars_doc` for documentation, where
-`doc` is an array of strings describing the expression as a whole and
-`vars_doc` is a map from (some of) the `vars` to an array of strings
+keys. Here we use the keys `"doc"` and `"vars_doc"` for documentation, where
+`"doc"` is an array of strings describing the expression as a whole and
+`"vars_doc"` is a map from (some of) the `"vars"` to an array of strings
 describing this variable.
 
 Export targets
@@ -126,9 +126,9 @@ Export targets
 As export targets play the role of interfaces between repositories, it
 is important that they be documented as well. Again, export targets are
 described as a JSON object with fixed set of keys amd we use the keys
-`doc` and `config_doc` for documentation. Here `doc` is an array of
-strings describing the targeted in general and `config_doc` is a map
-from (some of) the variables of the `flexible_config` to an array of
+`"doc"` and `"config_doc"` for documentation. Here `"doc"` is an array of
+strings describing the targeted in general and `"config_doc"` is a map
+from (some of) the variables of the `"flexible_config"` to an array of
 strings describing this parameter.
 
 Presentation of the documentation
@@ -145,7 +145,7 @@ human-readable form
 
  - the documentation for the rule
  - all the fields available for that rule together with
-    - their type (`string_field`, `target_field`, etc), and
+    - their type (`"string_fields"`, `"target_fields"`, etc), and
     - their documentation,
  - all the configuration variables of the rule with their documentation
    (if given), and

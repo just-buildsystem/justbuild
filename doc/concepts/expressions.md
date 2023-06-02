@@ -44,7 +44,7 @@ mechanism; the precise evaluation is as follows.
    themselves.
  - For lists, each entry is evaluated in the order they occur in the
    list; the result of the evaluation is the list of the results.
- - For JSON objects (wich can be understood as maps, or dicts), the key
+ - For JSON objects (which can be understood as maps, or dicts), the key
    `"type"` has to be present and has to be a literal string. That
    string determines the syntactical construct (sloppily also referred
    to as "function") the object represents, and the remaining

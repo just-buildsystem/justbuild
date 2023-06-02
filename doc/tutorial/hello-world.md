@@ -115,7 +115,7 @@ command line:
 ``` sh
 $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
-INFO: Analysed target [["@","tutorial","",helloworld"],{}]
+INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","helloworld","","helloworld"],{}].
