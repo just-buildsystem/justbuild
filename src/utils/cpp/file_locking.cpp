@@ -80,15 +80,26 @@ auto LockFile::GetLockFilePath(std::filesystem::path const& fspath) noexcept
     -> std::optional<std::filesystem::path> {
     try {
         // bring to normal form
-        auto abs_fspath = ToNormalPath(std::filesystem::absolute(fspath));
-        auto filename = abs_fspath.filename();
-        auto parent = abs_fspath.parent_path();
+        auto filename = ToNormalPath(fspath);
+        if (not filename.is_absolute()) {
+            try {
+                filename = std::filesystem::absolute(fspath);
+            } catch (std::exception const& e) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to determine absolute path for lock file "
+                            "name {}: {}",
+                            fspath.string(),
+                            e.what());
+                return std::nullopt;
+            }
+        }
+        auto parent = filename.parent_path();
         // create parent folder
         if (not FileSystemManager::CreateDirectory(parent)) {
             return std::nullopt;
         }
-        // get lock file name
-        return parent / filename;
+        // return lock file name
+        return filename;
     } catch (std::exception const& ex) {
         Logger::Log(
             LogLevel::Error,
