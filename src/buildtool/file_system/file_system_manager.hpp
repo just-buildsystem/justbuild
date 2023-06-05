@@ -15,12 +15,16 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 
+#include <array>
 #include <chrono>
 #include <cstdio>  // for std::fopen
+#include <cstring>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <optional>
+
+#include <fcntl.h>
 
 #ifdef __unix__
 #include <sys/wait.h>
@@ -31,6 +35,16 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system.hpp"
+
+namespace detail {
+static inline consteval auto BitWidth(int max_val) -> int {
+    constexpr int kBitsPerByte = 8;
+    int i = sizeof(max_val) * kBitsPerByte;
+    while ((i-- > 0) and (((max_val >> i) & 0x01) == 0x00)) {  // NOLINT
+    }
+    return i + 1;
+}
+}  // namespace detail
 
 /// \brief Implements primitive file system functionality.
 /// Catches all exceptions for use with exception-free callers.
@@ -186,6 +200,11 @@ class FileSystemManager {
         }
     }
 
+    /// \brief Copy file
+    /// If argument fd_less is given, the copy will be performed in a child
+    /// process to prevent polluting the parent with open writable file
+    /// descriptors (which might be inherited by other children that keep them
+    /// open and can cause EBUSY errors).
     [[nodiscard]] static auto CopyFile(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -194,6 +213,9 @@ class FileSystemManager {
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         if (fd_less) {
+            auto const* src_cstr = src.c_str();
+            auto const* dst_cstr = dst.c_str();
+
             pid_t pid = ::fork();
             if (pid == -1) {
                 Logger::Log(
@@ -203,22 +225,27 @@ class FileSystemManager {
             }
 
             if (pid == 0) {
-                // Disable logging errors in child to avoid the use of mutexes.
-                System::ExitWithoutCleanup(
-                    CopyFileImpl</*kLogError=*/false>(src, dst, opt)
-                        ? EXIT_SUCCESS
-                        : EXIT_FAILURE);
+                // In the child process, use low-level copies to avoid mallocs,
+                // which removes the risk of deadlocks on certain combinations
+                // of C++ standard library and libc.
+                System::ExitWithoutCleanup(LowLevel::CopyFile(
+                    src_cstr,
+                    dst_cstr,
+                    opt == std::filesystem::copy_options::skip_existing));
             }
 
             int status{};
             ::waitpid(pid, &status, 0);
 
             // NOLINTNEXTLINE(hicpp-signed-bitwise)
-            if (WEXITSTATUS(status) != EXIT_SUCCESS) {
+            int retval = WEXITSTATUS(status);
+
+            if (retval != 0) {
                 Logger::Log(LogLevel::Error,
-                            "Failed copying file {} to {}",
+                            "Failed copying file {} to {} with: {}",
                             src.string(),
-                            dst.string());
+                            dst.string(),
+                            LowLevel::ErrorToString(retval));
                 return false;
             }
             return true;
@@ -557,6 +584,11 @@ class FileSystemManager {
         return true;
     }
 
+    /// \brief Write file
+    /// If argument fd_less is given, the write will be performed in a child
+    /// process to prevent polluting the parent with open writable file
+    /// descriptors (which might be inherited by other children that keep them
+    /// open and can cause EBUSY errors).
     [[nodiscard]] static auto WriteFile(std::string const& content,
                                         std::filesystem::path const& file,
                                         bool fd_less = false) noexcept -> bool {
@@ -567,6 +599,10 @@ class FileSystemManager {
             return false;
         }
         if (fd_less) {
+            auto const* file_cstr = file.c_str();
+            auto const* content_cstr = content.c_str();
+            auto content_size = content.size();
+
             pid_t pid = ::fork();
             if (pid == -1) {
                 Logger::Log(
@@ -576,20 +612,24 @@ class FileSystemManager {
             }
 
             if (pid == 0) {
-                // Disable logging errors in child to avoid the use of mutexes.
+                // In the child process, use low-level writes to avoid mallocs,
+                // which removes the risk of deadlocks on certain combinations
+                // of C++ standard library and libc.
                 System::ExitWithoutCleanup(
-                    WriteFileImpl</*kLogError=*/false>(content, file)
-                        ? EXIT_SUCCESS
-                        : EXIT_FAILURE);
+                    LowLevel::WriteFile(content_cstr, content_size, file_cstr));
             }
 
             int status{};
             ::waitpid(pid, &status, 0);
 
             // NOLINTNEXTLINE(hicpp-signed-bitwise)
-            if (WEXITSTATUS(status) != EXIT_SUCCESS) {
-                Logger::Log(
-                    LogLevel::Error, "Failed writing file {}", file.string());
+            int retval = WEXITSTATUS(status);
+
+            if (retval != 0) {
+                Logger::Log(LogLevel::Error,
+                            "Failed writing file {} with: {}",
+                            file.string(),
+                            LowLevel::ErrorToString(retval));
                 return false;
             }
             return true;
@@ -808,6 +848,160 @@ class FileSystemManager {
         }
         return false;
     }
-};  // class FileSystemManager
+
+    /// \brief Low-level copy and write operations.
+    /// Those do not perform malloc operations, which removes the risk of
+    /// deadlocks on certain combinations of C++ standard library and libc.
+    /// Non-zero return values indicate errors, which can be decoded using
+    /// \ref ErrorToString.
+    class LowLevel {
+        static constexpr ssize_t kDefaultChunkSize = 1024 * 32;
+        static constexpr int kWriteFlags =
+            O_WRONLY | O_CREAT | O_TRUNC | O_SYNC;  // NOLINT
+        static constexpr int kWritePerms =          // 644
+            S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;  // NOLINT
+
+      public:
+        template <ssize_t kChunkSize = kDefaultChunkSize>
+        [[nodiscard]] static auto CopyFile(char const* src,
+                                           char const* dst,
+                                           bool skip_existing) noexcept -> int {
+            // NOLINTNEXTLINE(hicpp-signed-bitwise)
+            auto write_flags = kWriteFlags | (skip_existing ? O_EXCL : 0);
+            auto out = FdOpener{dst, write_flags, kWritePerms};
+            if (out.fd == -1) {
+                if (skip_existing and errno == EEXIST) {
+                    return 0;
+                }
+                return PackError(ERROR_OPEN_OUTPUT, errno);
+            }
+
+            auto in = FdOpener{src, O_RDONLY};
+            if (in.fd == -1) {
+                return PackError(ERROR_OPEN_INPUT, errno);
+            }
+
+            ssize_t len{};
+            std::array<std::uint8_t, kChunkSize> buf{};
+            while ((len = read(in.fd, buf.data(), buf.size())) > 0) {
+                ssize_t wlen{};
+                ssize_t written_len{};
+                while (written_len < len &&
+                       (wlen = write(out.fd,
+                                     buf.data() + written_len,  // NOLINT
+                                     len - written_len)) > 0) {
+                    written_len += wlen;
+                }
+                if (wlen < 0) {
+                    return PackError(ERROR_WRITE_OUTPUT, errno);
+                }
+            }
+            if (len < 0) {
+                return PackError(ERROR_READ_INPUT, errno);
+            }
+            return 0;
+        }
+
+        template <ssize_t kChunkSize = kDefaultChunkSize>
+        [[nodiscard]] static auto WriteFile(char const* content,
+                                            ssize_t size,
+                                            char const* file) noexcept -> int {
+            auto out = FdOpener{file, kWriteFlags, kWritePerms};
+            if (out.fd == -1) {
+                return PackError(ERROR_OPEN_OUTPUT, errno);
+            }
+            ssize_t pos{};
+            while (pos < size) {
+                auto const write_len = std::min(kChunkSize, size - pos);
+                auto len = write(out.fd, content + pos, write_len);  // NOLINT
+                if (len < 0) {
+                    return PackError(ERROR_WRITE_OUTPUT, errno);
+                }
+                pos += len;
+            }
+            return 0;
+        }
+
+        static auto ErrorToString(int retval) -> std::string {
+            if (retval == 0) {
+                return "no error";
+            }
+            if ((retval & kSignalBit) == kSignalBit) {  // NOLINT
+                return fmt::format(
+                    "exceptional termination with return code {}", retval);
+            }
+            static auto strcode = [](int code) -> std::string {
+                switch (code) {
+                    case ERROR_OPEN_INPUT:
+                        return "open() input file";
+                    case ERROR_OPEN_OUTPUT:
+                        return "open() output file";
+                    case ERROR_READ_INPUT:
+                        return "read() input file";
+                    case ERROR_WRITE_OUTPUT:
+                        return "write() output file";
+                    default:
+                        return "unknown operation";
+                }
+            };
+            auto const [code, err] = UnpackError(retval);
+            return fmt::format("{} failed with:\n{}: {} (probably)",
+                               strcode(code),
+                               err,
+                               strerror(err));
+        }
+
+      private:
+        enum ErrorCodes {
+            ERROR_READ_INPUT,    // read() input file failed
+            ERROR_OPEN_INPUT,    // open() input file failed
+            ERROR_OPEN_OUTPUT,   // open() output file failed
+            ERROR_WRITE_OUTPUT,  // write() output file failed
+            LAST_ERROR_CODE      // marker for first unused error code
+        };
+
+        static constexpr int kSignalBit = 0x80;
+        static constexpr int kAvailableBits = 7;  // 8 bits - 1 signal bit
+        static constexpr int kCodeWidth = detail::BitWidth(LAST_ERROR_CODE - 1);
+        static constexpr int kCodeMask = (1 << kCodeWidth) - 1;  // NOLINT
+        static constexpr int kErrnoWidth = kAvailableBits - kCodeWidth;
+        static constexpr int kErrnoMask = (1 << kErrnoWidth) - 1;  // NOLINT
+
+        // Open file descriptor and close on destruction.
+        struct FdOpener {
+            int fd;
+            FdOpener(char const* path, int flags, int perms = 0)
+                : fd{open(path, flags, perms)} {}  // NOLINT
+            FdOpener(FdOpener const&) = delete;
+            FdOpener(FdOpener&&) = delete;
+            auto operator=(FdOpener const&) = delete;
+            auto operator=(FdOpener&&) = delete;
+            ~FdOpener() {
+                if (fd != -1) {
+                    close(fd);
+                }
+            }
+        };
+
+        // encode to 8 bits with format <signal-bit><errcode><errno>
+        static auto PackError(int code, int err) -> int {
+            err &= kErrnoMask;  // NOLINT
+            if (code == 0 and err == 0) {
+                err = kErrnoMask;
+            }
+            return (code << kErrnoWidth) | err;  // NOLINT
+        }
+
+        static auto UnpackError(int retval) -> std::pair<int, int> {
+            int code = (retval >> kErrnoWidth) & kCodeMask;  // NOLINT
+            int err = retval & kErrnoMask;                   // NOLINT
+            if (err == kErrnoMask) {
+                err = 0;
+            }
+            return {code, err};
+        }
+
+    };  // class LowLevel
+};      // class FileSystemManager
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
