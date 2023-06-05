@@ -4,5 +4,12 @@
   , "test": ["defaults.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["defaults"]}
+, "pwd":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["pwd"]
+  , "test": ["pwd.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["defaults", "pwd"]}
 }
