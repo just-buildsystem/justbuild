@@ -53,6 +53,8 @@ ARCHS = {
   'arm':'arm',
   'aarch64':'arm64'
 }
+if "OS" not in CONF:
+    CONF["OS"] = platform.system().lower()
 if "ARCH" not in CONF:
     MACH = platform.machine()
     if MACH in ARCHS:
@@ -80,6 +82,8 @@ ENV['PKG_CONFIG_PATH'] = ":".join(CONFIG_PATHS)
 
 CONF_STRING = json.dumps(CONF)
 
+OS=CONF["OS"]
+ARCH=CONF["ARCH"]
 AR="ar"
 CC="cc"
 CXX="c++"
@@ -202,8 +206,11 @@ def setup_deps(src_wrkdir):
             else:
                 os.symlink(os.path.normpath(include_dir),
                            os.path.join(include_location, include_name))
+            os_map = hints.get("os_map", dict())
+            arch_map = hints.get("arch_map", dict())
             if "build" in hints:
                 run(["sh", "-c", hints["build"].format(
+                    os=os_map.get(OS, OS), arch=arch_map.get(ARCH, ARCH),
                     cc=CC, cxx=CXX, ar=AR,
                     cflags=quote(CFLAGS), cxxflags=quote(CXXFLAGS),
                 )], cwd=subdir)
