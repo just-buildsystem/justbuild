@@ -748,7 +748,6 @@ class FileSystemManager {
         }
     }
 
-    template <bool kLogError = true>
     [[nodiscard]] static auto CopyFileImpl(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
@@ -758,40 +757,31 @@ class FileSystemManager {
         try {
             return std::filesystem::copy_file(src, dst, opt);
         } catch (std::exception const& e) {
-            if constexpr (kLogError) {
-                Logger::Log(LogLevel::Error,
-                            "copying file from {} to {}:\n{}",
-                            src.string(),
-                            dst.string(),
-                            e.what());
-            }
+            Logger::Log(LogLevel::Error,
+                        "copying file from {} to {}:\n{}",
+                        src.string(),
+                        dst.string(),
+                        e.what());
             return false;
         }
     }
 
-    template <bool kLogError = true>
     [[nodiscard]] static auto WriteFileImpl(
         std::string const& content,
         std::filesystem::path const& file) noexcept -> bool {
         try {
             std::ofstream writer{file};
             if (!writer.is_open()) {
-                if constexpr (kLogError) {
-                    Logger::Log(
-                        LogLevel::Error, "can not open file {}", file.string());
-                }
+                Logger::Log(
+                    LogLevel::Error, "can not open file {}", file.string());
                 return false;
             }
             writer << content;
             writer.close();
             return true;
         } catch (std::exception const& e) {
-            if constexpr (kLogError) {
-                Logger::Log(LogLevel::Error,
-                            "writing to {}:\n{}",
-                            file.string(),
-                            e.what());
-            }
+            Logger::Log(
+                LogLevel::Error, "writing to {}:\n{}", file.string(), e.what());
             return false;
         }
     }
