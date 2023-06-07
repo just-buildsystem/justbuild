@@ -147,7 +147,7 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
         std::unique_lock lock{repo_mutex};
         git_repository* repo = nullptr;
         if (git_repository_open(&repo, repo_path.c_str()) != 0) {
-            Logger::Log(LogLevel::Error,
+            Logger::Log(LogLevel::Debug,
                         "opening git repository {} failed with:\n{}",
                         repo_path.string(),
                         GitLastError());
