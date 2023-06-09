@@ -50,6 +50,15 @@ TEST_CASE("Known artifact", "[artifact_description]") {
             ArtifactFactory::FromDescription(known_desc.ToJson());
         CHECK(known == *known_from_factory);
     }
+    SECTION("Symlink object") {
+        auto known_desc = ArtifactDescription{
+            ArtifactDigest{std::string{"l_fake_hash"}, 2, /*is_tree=*/false},
+            ObjectType::Symlink};
+        auto known = known_desc.ToArtifact();
+        auto known_from_factory =
+            ArtifactFactory::FromDescription(known_desc.ToJson());
+        CHECK(known == *known_from_factory);
+    }
 }
 
 TEST_CASE("Action artifact", "[artifact_description]") {
