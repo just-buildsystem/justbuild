@@ -1,3 +1,7 @@
+## Release `1.1.2` (UNRELEASED)
+
+Bug fixes on top of release `1.1.1`.
+
 ## Release `1.1.1` (2023-06-02)
 
 Bug fixes on top of release `1.1.0`.
