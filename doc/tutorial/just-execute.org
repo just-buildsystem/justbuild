@@ -87,6 +87,14 @@ type on one shell (as ~build~ user)
 % just execute -p <N>
 #+END_SRC
 Where ~<N>~ is a port number which is supposed to be available.
+By default, the native ~git~-based protocol will be used, but it
+is also possible to use the original protocol with ~sha256~ hashes
+by providing the ~--compatible~ option.
+#+BEGIN_SRC bash
+% just execute --compatible -p <N>
+#+END_SRC
+This is particularly useful when providing the remote-execution service
+to a different build tool.
 
 To use it, as a /normal/ user, on a different shell type
 #+BEGIN_SRC bash
