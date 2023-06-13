@@ -143,6 +143,13 @@ class ActionDescription {
                 }
                 timeout_scale = *timeout_scale_it;
             }
+            auto const execution_properties =
+                optional_key_value_reader(desc, "execution properties");
+            if (not execution_properties.is_object()) {
+                Logger::Log(LogLevel::Error,
+                            "Execution properties have to a map");
+                return std::nullopt;
+            }
 
             return std::make_shared<ActionDescription>(
                 std::move(*outputs),
@@ -152,7 +159,8 @@ class ActionDescription {
                        env,
                        may_fail,
                        no_cache,
-                       timeout_scale},
+                       timeout_scale,
+                       execution_properties},
                 inputs);
         } catch (std::exception const& ex) {
             Logger::Log(
@@ -193,6 +201,9 @@ class ActionDescription {
         }
         if (action_.TimeoutScale() != 1.0) {
             json["timeout scaling"] = action_.TimeoutScale();
+        }
+        if (not action_.ExecutionProperties().empty()) {
+            json["execution properties"] = action_.ExecutionProperties();
         }
         return json;
     }

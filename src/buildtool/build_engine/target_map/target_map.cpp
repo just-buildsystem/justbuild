@@ -28,6 +28,7 @@
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
@@ -571,6 +572,7 @@ void withDependencies(
                   no_cache,
                   timeout_scale_exp->IsNumber() ? timeout_scale_exp->Number()
                                                 : 1.0,
+                  Expression::kEmptyMap,
                   inputs_exp);
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));

@@ -28,6 +28,7 @@
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/export.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
@@ -1050,6 +1051,7 @@ void GenericRuleWithDeps(
                                                std::nullopt,
                                                false,
                                                1.0,
+                                               Expression::kEmptyMap,
                                                inputs);
     auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;

@@ -196,6 +196,7 @@ auto BuildMaps::Target::Utils::createAction(
     std::optional<std::string> may_fail,
     bool no_cache,
     double timeout_scale,
+    const ExpressionPtr& execution_properties_exp,
     const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
     auto hasher = HashFunction::Hasher();
     hasher.Update(hash_vector(output_files));
@@ -206,6 +207,7 @@ auto BuildMaps::Target::Utils::createAction(
                                        : std::vector<std::string>{}));
     hasher.Update(no_cache ? std::string{"N"} : std::string{"Y"});
     hasher.Update(fmt::format("{:+24a}", timeout_scale));
+    hasher.Update(execution_properties_exp->ToHash());
     hasher.Update(inputs_exp->ToHash());
 
     auto action_id = std::move(hasher).Finalize().HexString();
@@ -213,6 +215,11 @@ auto BuildMaps::Target::Utils::createAction(
     std::map<std::string, std::string> env_vars{};
     for (auto const& [env_var, env_value] : env->Map()) {
         env_vars.emplace(env_var, env_value->String());
+    }
+    std::map<std::string, std::string> execution_properties{};
+    for (auto const& [prop_name, prop_value] :
+         execution_properties_exp->Map()) {
+        execution_properties.emplace(prop_name, prop_value->String());
     }
     ActionDescription::inputs_t inputs;
     inputs.reserve(inputs_exp->Map().size());
@@ -226,6 +233,7 @@ auto BuildMaps::Target::Utils::createAction(
                                                       std::move(env_vars),
                                                       std::move(may_fail),
                                                       no_cache,
-                                                      timeout_scale},
+                                                      timeout_scale,
+                                                      execution_properties},
                                                std::move(inputs));
 }
