@@ -12,6 +12,13 @@
   , "keep": ["graph-null.json", "graph-1.json", "graph-2.json"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "equality-properties":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["equality-properties"]
+  , "test": ["action-equality-properties.sh"]
+  , "keep": ["graph-null.json", "graph-empty.json", "graph-set.json"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "trees":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["trees"]
@@ -28,6 +35,12 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["equality", "equality-timeout", "trees", "conflicts"]
+  , "deps":
+    [ "equality"
+    , "equality-timeout"
+    , "equality-properties"
+    , "trees"
+    , "conflicts"
+    ]
   }
 }
