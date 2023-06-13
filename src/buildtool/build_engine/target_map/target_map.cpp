@@ -563,6 +563,27 @@ void withDependencies(
                                   "for default), but found {}",
                                   timeout_scale_exp->ToString())};
               }
+              auto execution_properties = eval(
+                  expr->Get("execution properties", Expression::kEmptyMapExpr),
+                  env);
+              if (execution_properties->IsNone()) {
+                  execution_properties = Expression::kEmptyMap;
+              }
+              if (not(execution_properties->IsMap())) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("execution properties has to be a map of "
+                                  "strings (or null for empty), but found {}",
+                                  execution_properties->ToString())};
+              }
+              for (auto const& [prop_name, prop_value] :
+                   execution_properties->Map()) {
+                  if (not prop_value->IsString()) {
+                      throw Evaluator::EvaluationError{fmt::format(
+                          "execution properties has to be a map of "
+                          "strings (or null for empty), but found {}",
+                          execution_properties->ToString())};
+                  }
+              }
               auto action = BuildMaps::Target::Utils::createAction(
                   outputs,
                   output_dirs,
@@ -572,7 +593,7 @@ void withDependencies(
                   no_cache,
                   timeout_scale_exp->IsNumber() ? timeout_scale_exp->Number()
                                                 : 1.0,
-                  Expression::kEmptyMap,
+                  execution_properties,
                   inputs_exp);
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));
