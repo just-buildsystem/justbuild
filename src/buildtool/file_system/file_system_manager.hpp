@@ -675,6 +675,26 @@ class FileSystemManager {
         return true;
     }
 
+    /// \brief Read the content of a symlink.
+    [[nodiscard]] static auto ReadSymlink(std::filesystem::path const& link)
+        -> std::optional<std::string> {
+        try {
+            if (std::filesystem::is_symlink(link)) {
+                return std::filesystem::read_symlink(link).string();
+            }
+            Logger::Log(LogLevel::Debug,
+                        "{} can not be read because it is not a symlink.",
+                        link.string());
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Error,
+                        "reading symlink {} failed:\n{}",
+                        link.string(),
+                        ex.what());
+        }
+
+        return std::nullopt;
+    }
+
     /// \brief Write file
     /// If argument fd_less is given, the write will be performed in a child
     /// process to prevent polluting the parent with open writable file

@@ -16,8 +16,9 @@
 
 #include <sstream>
 
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -68,11 +69,24 @@ auto GitTree::Read(std::filesystem::path const& repo_path,
 auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                    std::string const& tree_id,
                    bool ignore_special) noexcept -> std::optional<GitTree> {
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
     if (auto raw_id = FromHexString(tree_id)) {
         auto repo = GitRepo::Open(cas);
         if (repo != std::nullopt) {
-            if (auto entries = repo->ReadTree(
-                    *raw_id, /*is_hex_id=*/false, ignore_special)) {
+            if (auto entries = repo->ReadTree(*raw_id,
+                                              check_symlinks,
+                                              /*is_hex_id=*/false,
+                                              ignore_special)) {
                 // the raw_id value is NOT recomputed when ignore_special==true,
                 // so we set it to empty to signal that it should not be used!
                 return GitTree::FromEntries(cas,
@@ -133,8 +147,22 @@ auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
                 if (repo == std::nullopt) {
                     return std::nullopt;
                 }
-                if (auto entries = repo->ReadTree(
-                        raw_id_, /*is_hex_id=*/false, ignore_special)) {
+                // create symlinks checker
+                auto check_symlinks =
+                    [cas = cas_](std::vector<bazel_re::Digest> const& ids) {
+                        for (auto const& id : ids) {
+                            auto content = cas->ReadObject(
+                                ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+                            if (not content or not PathIsNonUpwards(*content)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    };
+                if (auto entries = repo->ReadTree(raw_id_,
+                                                  check_symlinks,
+                                                  /*is_hex_id=*/false,
+                                                  ignore_special)) {
                     // the raw_id value is not used when ignore_special==true
                     return GitTree::FromEntries(
                         cas_, std::move(*entries), raw_id_, ignore_special);

@@ -79,6 +79,8 @@
     [ ["", "libgit2"]
     , "file_system_manager"
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "path"]
+    , ["src/buildtool/common", "common"]
     ]
   }
 , "git_context":
@@ -98,7 +100,7 @@
   , "name": ["git_repo"]
   , "hdrs": ["git_repo.hpp"]
   , "srcs": ["git_repo.cpp"]
-  , "deps": ["git_cas"]
+  , "deps": ["git_cas", ["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
@@ -107,6 +109,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "common"]
     ]
   , "cflags": ["-pthread"]
   }

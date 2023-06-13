@@ -17,6 +17,7 @@
 
 #include <functional>
 
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 
 extern "C" {
@@ -47,6 +48,11 @@ class GitRepo {
     // internal implementation for creating trees.
     using tree_entries_t =
         std::unordered_map<std::string, std::vector<tree_entry_t>>;
+
+    // Checks whether a list of symlinks given by their hashes are non-upwards,
+    // based on content read from an actual backend.
+    using SymlinksCheckFunc =
+        std::function<bool(std::vector<bazel_re::Digest> const&)>;
 
     GitRepo() = delete;  // no default ctor
     ~GitRepo() noexcept = default;
@@ -80,9 +86,11 @@ class GitRepo {
     /// Reading a tree must be backed by an object database. Therefore, a real
     /// repository is required.
     /// \param id         The object id.
+    /// \param check_symlinks   Function to check non-upwardness condition.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
     /// \param ignore_special   If set, treat symlinks as absent.
     [[nodiscard]] auto ReadTree(std::string const& id,
+                                SymlinksCheckFunc const& check_symlinks,
                                 bool is_hex_id = false,
                                 bool ignore_special = false) const noexcept
         -> std::optional<tree_entries_t>;
@@ -100,12 +108,14 @@ class GitRepo {
     /// \brief Read entries from tree data (without object db).
     /// \param data       The tree object as plain data.
     /// \param id         The object id.
+    /// \param check_symlinks   Function to check non-upwardness condition.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
     /// \returns The tree entries.
-    [[nodiscard]] static auto ReadTreeData(std::string const& data,
-                                           std::string const& id,
-                                           bool is_hex_id = false) noexcept
-        -> std::optional<tree_entries_t>;
+    [[nodiscard]] static auto ReadTreeData(
+        std::string const& data,
+        std::string const& id,
+        SymlinksCheckFunc const& check_symlinks,
+        bool is_hex_id = false) noexcept -> std::optional<tree_entries_t>;
 
     /// \brief Create a flat shallow (without objects in db) tree and return it.
     /// Creates a tree object from the entries without access to the actual

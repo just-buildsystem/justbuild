@@ -34,6 +34,7 @@
     , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/file_system", "git_tree"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]

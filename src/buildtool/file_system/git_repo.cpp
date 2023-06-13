@@ -17,6 +17,7 @@
 #include <thread>
 #include <unordered_set>
 
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -1154,53 +1155,90 @@ auto GitRepo::IsRepoFake() const noexcept -> bool {
 }
 
 auto GitRepo::ReadTree(std::string const& id,
+                       SymlinksCheckFunc const& check_symlinks,
                        bool is_hex_id,
                        bool ignore_special) const noexcept
     -> std::optional<tree_entries_t> {
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return std::nullopt;
-#else
-    // create object id
-    auto oid = GitObjectID(id, is_hex_id);
-    if (not oid) {
-        return std::nullopt;
-    }
+#ifndef BOOTSTRAP_BUILD_TOOL
+    try {
+        // create object id
+        auto oid = GitObjectID(id, is_hex_id);
+        if (not oid) {
+            return std::nullopt;
+        }
 
-    // lookup tree
-    git_tree* tree_ptr{nullptr};
-    {
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
-        if (git_tree_lookup(&tree_ptr, repo_->Ptr(), &(*oid)) != 0) {
+        // lookup tree
+        git_tree* tree_ptr{nullptr};
+        {
+            // share the odb lock
+            std::shared_lock lock{GetGitCAS()->mutex_};
+            if (git_tree_lookup(&tree_ptr, repo_->Ptr(), &(*oid)) != 0) {
+                Logger::Log(LogLevel::Debug,
+                            "failed to lookup Git tree {}",
+                            is_hex_id ? std::string{id} : ToHexString(id));
+                return std::nullopt;
+            }
+        }
+        auto tree = std::unique_ptr<git_tree, decltype(&tree_closer)>{
+            tree_ptr, tree_closer};
+
+        // walk tree (flat) and create entries
+        tree_entries_t entries{};
+        entries.reserve(git_tree_entrycount(tree.get()));
+        if (git_tree_walk(tree.get(),
+                          GIT_TREEWALK_PRE,
+                          ignore_special ? flat_tree_walker_ignore_special
+                                         : flat_tree_walker,
+                          &entries) != 0) {
             Logger::Log(LogLevel::Debug,
-                        "failed to lookup Git tree {}",
+                        "failed to walk Git tree {}",
                         is_hex_id ? std::string{id} : ToHexString(id));
             return std::nullopt;
         }
-    }
-    auto tree = std::unique_ptr<git_tree, decltype(&tree_closer)>{tree_ptr,
-                                                                  tree_closer};
 
-    // walk tree (flat) and create entries
-    tree_entries_t entries{};
-    entries.reserve(git_tree_entrycount(tree.get()));
-    if (git_tree_walk(
-            tree.get(),
-            GIT_TREEWALK_PRE,
-            ignore_special ? flat_tree_walker_ignore_special : flat_tree_walker,
-            &entries) != 0) {
-        Logger::Log(LogLevel::Debug,
-                    "failed to walk Git tree {}",
-                    is_hex_id ? std::string{id} : ToHexString(id));
-        return std::nullopt;
-    }
+        // checking non-upwardness of symlinks can not be easily or safely done
+        // during the tree walk, so it is done here. This is only needed for
+        // ignore_special==false.
+        if (not ignore_special) {
+            // we first gather all symlink candidates
+            std::vector<bazel_re::Digest> symlinks{};
+            symlinks.reserve(entries.size());  // at most one symlink per entry
+            for (auto const& entry : entries) {
+                for (auto const& item : entry.second) {
+                    if (IsSymlinkObject(item.type)) {
+                        symlinks.emplace_back(bazel_re::Digest(
+                            ArtifactDigest(ToHexString(entry.first),
+                                           /*size=*/0,
+                                           /*is_tree=*/false)));
+                        break;  // no need to check other items with same hash
+                    }
+                }
+            }
+            // we check symlinks in bulk, optimized for network-backed repos
+            if (not check_symlinks) {
+                Logger::Log(LogLevel::Debug, "check_symlink callable is empty");
+                return std::nullopt;
+            }
+            if (not check_symlinks(symlinks)) {
+                Logger::Log(LogLevel::Error,
+                            "found upwards symlinks in Git tree {}",
+                            is_hex_id ? std::string{id} : ToHexString(id));
+                return std::nullopt;
+            }
+        }
 
 #ifndef NDEBUG
-    EnsuresAudit(ValidateEntries(entries));
+        EnsuresAudit(ValidateEntries(entries));
 #endif
 
-    return entries;
+        return entries;
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "reading tree failed with:\n{}", ex.what());
+    }
 #endif
+
+    return std::nullopt;
 }
 
 auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
@@ -1254,6 +1292,7 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
 
 auto GitRepo::ReadTreeData(std::string const& data,
                            std::string const& id,
+                           SymlinksCheckFunc const& check_symlinks,
                            bool is_hex_id) noexcept
     -> std::optional<tree_entries_t> {
 #ifndef BOOTSTRAP_BUILD_TOOL
@@ -1278,7 +1317,8 @@ auto GitRepo::ReadTreeData(std::string const& data,
                 // wrap odb in "fake" repo
                 auto repo =
                     GitRepo(std::static_pointer_cast<GitCAS const>(cas));
-                return repo.ReadTree(*raw_id, /*is_hex_id=*/false);
+                return repo.ReadTree(
+                    *raw_id, check_symlinks, /*is_hex_id=*/false);
             }
         }
     } catch (std::exception const& ex) {

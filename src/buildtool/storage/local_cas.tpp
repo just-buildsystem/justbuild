@@ -42,9 +42,26 @@ template <class T_CAS>
     -> std::optional<GitRepo::tree_entries_t> {
     if (auto const path = cas.TreePath(digest)) {
         if (auto const content = FileSystemManager::ReadFile(*path)) {
+            auto check_symlinks =
+                [&cas](std::vector<bazel_re::Digest> const& ids) {
+                    for (auto const& id : ids) {
+                        auto link_path =
+                            cas.BlobPath(id, /*is_executable=*/false);
+                        if (not link_path) {
+                            return false;
+                        }
+                        auto content =
+                            FileSystemManager::ReadSymlink(*link_path);
+                        if (not content or not PathIsNonUpwards(*content)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
             return GitRepo::ReadTreeData(
                 *content,
                 HashFunction::ComputeTreeHash(*content).Bytes(),
+                check_symlinks,
                 /*is_hex_id=*/false);
         }
     }
@@ -274,8 +291,24 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     // Determine tree entries.
     auto content = FileSystemManager::ReadFile(*tree_path);
     auto id = NativeSupport::Unprefix(digest.hash());
+    auto check_symlinks =
+        [cas = &cas_file_](std::vector<bazel_re::Digest> const& ids) {
+            for (auto const& id : ids) {
+                auto link_path = cas->BlobPath(id);
+                if (not link_path) {
+                    return false;
+                }
+                // in the local CAS we store as files
+                auto content = FileSystemManager::ReadFile(*link_path);
+                if (not content or not PathIsNonUpwards(*content)) {
+                    return false;
+                }
+            }
+            return true;
+        };
     auto tree_entries = GitRepo::ReadTreeData(*content,
                                               id,
+                                              check_symlinks,
                                               /*is_hex_id=*/true);
     if (not tree_entries) {
         return false;

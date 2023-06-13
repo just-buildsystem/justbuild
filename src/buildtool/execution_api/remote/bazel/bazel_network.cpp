@@ -42,9 +42,32 @@ namespace {
     auto blobs = network->ReadBlobs({digest}).Next();
     if (blobs.size() == 1) {
         auto const& content = blobs.at(0).data;
+        auto check_symlinks =
+            [&network](std::vector<bazel_re::Digest> const& ids) {
+                auto size = ids.size();
+                auto reader = network->ReadBlobs(ids);
+                auto blobs = reader.Next();
+                std::size_t count{};
+                while (not blobs.empty()) {
+                    if (count + blobs.size() > size) {
+                        Logger::Log(LogLevel::Debug,
+                                    "received more blobs than requested.");
+                        return false;
+                    }
+                    for (auto const& blob : blobs) {
+                        if (not PathIsNonUpwards(blob.data)) {
+                            return false;
+                        }
+                    }
+                    count += blobs.size();
+                    blobs = reader.Next();
+                }
+                return true;
+            };
         return GitRepo::ReadTreeData(
             content,
             HashFunction::ComputeTreeHash(content).Bytes(),
+            check_symlinks,
             /*is_hex_id=*/false);
     }
     Logger::Log(LogLevel::Error,

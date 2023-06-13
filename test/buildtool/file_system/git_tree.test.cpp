@@ -15,6 +15,7 @@
 #include <thread>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "test/utils/container_matchers.hpp"
@@ -193,28 +194,49 @@ TEST_CASE("Read Git Trees", "[git_cas]") {
     auto repo = GitRepo::Open(cas);
     REQUIRE(repo);
 
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     SECTION("invalid trees") {
-        CHECK_FALSE(repo->ReadTree("", /*is_hex_id=*/true));
-        CHECK_FALSE(repo->ReadTree("", /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/false));
 
-        CHECK_FALSE(repo->ReadTree(kFailId, /*is_hex_id=*/true));
-        CHECK_FALSE(repo->ReadTree(HexToRaw(kFailId), /*is_hex_id=*/false));
+        CHECK_FALSE(
+            repo->ReadTree(kFailId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kFailId), check_symlinks, /*is_hex_id=*/false));
 
-        CHECK_FALSE(repo->ReadTree(RawToHex("to_short"), /*is_hex_id=*/true));
-        CHECK_FALSE(repo->ReadTree("to_short", /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(
+            RawToHex("to_short"), check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(
+            repo->ReadTree("to_short", check_symlinks, /*is_hex_id=*/false));
 
-        CHECK_FALSE(repo->ReadTree("invalid_chars", /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            "invalid_chars", check_symlinks, /*is_hex_id=*/true));
 
-        CHECK_FALSE(repo->ReadTree(kFooId, /*is_hex_id=*/true));
-        CHECK_FALSE(repo->ReadTree(HexToRaw(kFooId), /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(kFooId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kFooId), check_symlinks, /*is_hex_id=*/false));
 
-        CHECK_FALSE(repo->ReadTree(kBarId, /*is_hex_id=*/true));
-        CHECK_FALSE(repo->ReadTree(HexToRaw(kBarId), /*is_hex_id=*/false));
+        CHECK_FALSE(repo->ReadTree(kBarId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kBarId), check_symlinks, /*is_hex_id=*/false));
     }
 
     SECTION("valid trees") {
-        auto entries0 = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
-        auto entries1 = repo->ReadTree(HexToRaw(kTreeId), /*is_hex_id=*/false);
+        auto entries0 =
+            repo->ReadTree(kTreeId, check_symlinks, /*is_hex_id=*/true);
+        auto entries1 = repo->ReadTree(
+            HexToRaw(kTreeId), check_symlinks, /*is_hex_id=*/false);
 
         REQUIRE(entries0);
         REQUIRE(entries1);
@@ -222,49 +244,141 @@ TEST_CASE("Read Git Trees", "[git_cas]") {
     }
 }
 
-TEST_CASE("Read Git Trees with symlinks", "[git_cas]") {
-    auto repo_path = CreateTestRepoSymlinks(true);
+TEST_CASE("Read Git Trees with symlinks -- ignore special", "[git_cas]") {
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
     REQUIRE(cas);
     auto repo = GitRepo::Open(cas);
     REQUIRE(repo);
 
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     SECTION("invalid trees") {
-        CHECK_FALSE(
-            repo->ReadTree("", /*is_hex_id=*/true, /*ignore_special=*/true));
-        CHECK_FALSE(
-            repo->ReadTree("", /*is_hex_id=*/false, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            "", check_symlinks, /*is_hex_id=*/true, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            "", check_symlinks, /*is_hex_id=*/false, /*ignore_special=*/true));
 
-        CHECK_FALSE(repo->ReadTree(
-            kFailId, /*is_hex_id=*/true, /*ignore_special=*/true));
-        CHECK_FALSE(repo->ReadTree(
-            HexToRaw(kFailId), /*is_hex_id=*/false, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(kFailId,
+                                   check_symlinks,
+                                   /*is_hex_id=*/true,
+                                   /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kFailId),
+                                   check_symlinks,
+                                   /*is_hex_id=*/false,
+                                   /*ignore_special=*/true));
 
-        CHECK_FALSE(repo->ReadTree(
-            RawToHex("to_short"), /*is_hex_id=*/true, /*ignore_special=*/true));
-        CHECK_FALSE(repo->ReadTree(
-            "to_short", /*is_hex_id=*/false, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(RawToHex("to_short"),
+                                   check_symlinks,
+                                   /*is_hex_id=*/true,
+                                   /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree("to_short",
+                                   check_symlinks,
+                                   /*is_hex_id=*/false,
+                                   /*ignore_special=*/true));
 
-        CHECK_FALSE(repo->ReadTree(
-            "invalid_chars", /*is_hex_id=*/true, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree("invalid_chars",
+                                   check_symlinks,
+                                   /*is_hex_id=*/true,
+                                   /*ignore_special=*/true));
 
-        CHECK_FALSE(repo->ReadTree(
-            kFooId, /*is_hex_id=*/true, /*ignore_special=*/true));
-        CHECK_FALSE(repo->ReadTree(
-            HexToRaw(kFooId), /*is_hex_id=*/false, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(kFooId,
+                                   check_symlinks,
+                                   /*is_hex_id=*/true,
+                                   /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kFooId),
+                                   check_symlinks,
+                                   /*is_hex_id=*/false,
+                                   /*ignore_special=*/true));
 
-        CHECK_FALSE(repo->ReadTree(
-            kBarId, /*is_hex_id=*/true, /*ignore_special=*/true));
-        CHECK_FALSE(repo->ReadTree(
-            HexToRaw(kBarId), /*is_hex_id=*/false, /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(kBarId,
+                                   check_symlinks,
+                                   /*is_hex_id=*/true,
+                                   /*ignore_special=*/true));
+        CHECK_FALSE(repo->ReadTree(HexToRaw(kBarId),
+                                   check_symlinks,
+                                   /*is_hex_id=*/false,
+                                   /*ignore_special=*/true));
     }
 
     SECTION("valid trees") {
-        auto entries0 = repo->ReadTree(
-            kTreeSymId, /*is_hex_id=*/true, /*ignore_special=*/true);
+        auto entries0 = repo->ReadTree(kTreeSymId,
+                                       check_symlinks,
+                                       /*is_hex_id=*/true,
+                                       /*ignore_special=*/true);
+        auto entries1 = repo->ReadTree(HexToRaw(kTreeSymId),
+                                       check_symlinks,
+                                       /*is_hex_id=*/false,
+                                       /*ignore_special=*/true);
+
+        REQUIRE(entries0);
+        REQUIRE(entries1);
+        CHECK(*entries0 == *entries1);
+    }
+}
+
+TEST_CASE("Read Git Trees with symlinks -- allow non-upwards", "[git_cas]") {
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
+
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    SECTION("invalid trees") {
+        CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/false));
+
+        CHECK_FALSE(
+            repo->ReadTree(kFailId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kFailId), check_symlinks, /*is_hex_id=*/false));
+
+        CHECK_FALSE(repo->ReadTree(
+            RawToHex("to_short"), check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(
+            repo->ReadTree("to_short", check_symlinks, /*is_hex_id=*/false));
+
+        CHECK_FALSE(repo->ReadTree(
+            "invalid_chars", check_symlinks, /*is_hex_id=*/true));
+
+        CHECK_FALSE(repo->ReadTree(kFooId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kFooId), check_symlinks, /*is_hex_id=*/false));
+
+        CHECK_FALSE(repo->ReadTree(kBarId, check_symlinks, /*is_hex_id=*/true));
+        CHECK_FALSE(repo->ReadTree(
+            HexToRaw(kBarId), check_symlinks, /*is_hex_id=*/false));
+    }
+
+    SECTION("valid trees") {
+        auto entries0 =
+            repo->ReadTree(kTreeSymId, check_symlinks, /*is_hex_id=*/true);
         auto entries1 = repo->ReadTree(
-            HexToRaw(kTreeSymId), /*is_hex_id=*/false, /*ignore_special=*/true);
+            HexToRaw(kTreeSymId), check_symlinks, /*is_hex_id=*/false);
 
         REQUIRE(entries0);
         REQUIRE(entries1);
@@ -280,6 +394,18 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     auto repo = GitRepo::Open(cas);
     REQUIRE(repo);
 
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     SECTION("empty tree") {
         auto tree_id = repo->CreateTree({});
         REQUIRE(tree_id);
@@ -288,7 +414,8 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     }
 
     SECTION("existing tree") {
-        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries =
+            repo->ReadTree(kTreeId, check_symlinks, /*is_hex_id=*/true);
         REQUIRE(entries);
 
         auto tree_id = repo->CreateTree(*entries);
@@ -313,24 +440,52 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
 
         CHECK(foo_bar_id == bar_foo_id);
     }
+}
 
-    auto repo_path_sym = CreateTestRepoSymlinks(true);
-    REQUIRE(repo_path_sym);
-    auto cas_sym = GitCAS::Open(*repo_path_sym);
-    REQUIRE(cas_sym);
-    auto repo_sym = GitRepo::Open(cas_sym);
-    REQUIRE(repo_sym);
+TEST_CASE("Create Git Trees with symlinks", "[git_cas]") {
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
 
-    SECTION("existing tree with symlinks") {
-        auto entries = repo_sym->ReadTree(
-            kTreeSymId, /*is_hex_id=*/true, /*ignore_special=*/true);
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    SECTION("existing tree with symlinks -- ignore special") {
+        auto entries = repo->ReadTree(kTreeSymId,
+                                      check_symlinks,
+                                      /*is_hex_id=*/true,
+                                      /*ignore_special=*/true);
         REQUIRE(entries);
 
-        auto tree_id = repo_sym->CreateTree(*entries);
+        auto tree_id = repo->CreateTree(*entries);
         REQUIRE(tree_id);
         // if at least one symlink exists, it gets ignored and the tree id will
         // not match as it is NOT recomputed!
         CHECK_FALSE(ToHexString(*tree_id) == kTreeSymId);
+    }
+
+    SECTION("existing tree with symlinks -- allow non-upwards") {
+        auto entries =
+            repo->ReadTree(kTreeSymId, check_symlinks, /*is_hex_id=*/true);
+        REQUIRE(entries);
+
+        auto tree_id = repo->CreateTree(*entries);
+        REQUIRE(tree_id);
+        // all the symlinks in the test repo are non-upwards, so the tree should
+        // be recreated exactly and id should thus match
+        CHECK(ToHexString(*tree_id) == kTreeSymId);
     }
 }
 
@@ -342,22 +497,83 @@ TEST_CASE("Read Git Tree Data", "[git_cas]") {
     auto repo = GitRepo::Open(cas);
     REQUIRE(repo);
 
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     SECTION("empty tree") {
-        auto entries = GitRepo::ReadTreeData(
-            "", "4b825dc642cb6eb9a060e54bf8d69288fbee4904", /*is_hex_id=*/true);
+        auto entries =
+            GitRepo::ReadTreeData("",
+                                  "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+                                  check_symlinks,
+                                  /*is_hex_id=*/true);
         REQUIRE(entries);
         CHECK(entries->empty());
     }
 
     SECTION("existing tree") {
-        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries =
+            repo->ReadTree(kTreeId, check_symlinks, /*is_hex_id=*/true);
         REQUIRE(entries);
 
         auto data = cas->ReadObject(kTreeId, /*is_hex_id=*/true);
         REQUIRE(data);
 
-        auto from_data =
-            GitRepo::ReadTreeData(*data, kTreeId, /*is_hex_id=*/true);
+        auto from_data = GitRepo::ReadTreeData(
+            *data, kTreeId, check_symlinks, /*is_hex_id=*/true);
+        REQUIRE(from_data);
+        CHECK(*from_data == *entries);
+    }
+}
+
+TEST_CASE("Read Git Tree Data with non-upwards symlinks", "[git_cas]") {
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
+    REQUIRE(repo_path);
+    auto cas = GitCAS::Open(*repo_path);
+    REQUIRE(cas);
+    auto repo = GitRepo::Open(cas);
+    REQUIRE(repo);
+
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    SECTION("empty tree") {
+        auto entries =
+            GitRepo::ReadTreeData("",
+                                  "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+                                  check_symlinks,
+                                  /*is_hex_id=*/true);
+        REQUIRE(entries);
+        CHECK(entries->empty());
+    }
+
+    SECTION("existing tree") {
+        auto entries =
+            repo->ReadTree(kTreeSymId, check_symlinks, /*is_hex_id=*/true);
+        REQUIRE(entries);
+
+        auto data = cas->ReadObject(kTreeSymId, /*is_hex_id=*/true);
+        REQUIRE(data);
+
+        auto from_data = GitRepo::ReadTreeData(
+            *data, kTreeSymId, check_symlinks, /*is_hex_id=*/true);
         REQUIRE(from_data);
         CHECK(*from_data == *entries);
     }
@@ -371,6 +587,18 @@ TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
     auto repo = GitRepo::Open(cas);
     REQUIRE(repo);
 
+    // create symlinks checker
+    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+        for (auto const& id : ids) {
+            auto content =
+                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
     SECTION("empty tree") {
         auto tree = GitRepo::CreateShallowTree({});
         REQUIRE(tree);
@@ -380,7 +608,8 @@ TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
     }
 
     SECTION("existing tree from other CAS") {
-        auto entries = repo->ReadTree(kTreeId, /*is_hex_id=*/true);
+        auto entries =
+            repo->ReadTree(kTreeId, check_symlinks, /*is_hex_id=*/true);
         REQUIRE(entries);
 
         auto tree = GitRepo::CreateShallowTree(*entries);
@@ -404,6 +633,13 @@ TEST_CASE("Read Git Tree", "[git_tree]") {
         CHECK(GitTree::Read(*repo_path, kTreeId));
         CHECK_FALSE(GitTree::Read(*repo_path, "wrong_tree_id"));
     }
+}
+
+TEST_CASE("Read Git Tree with non-upwards symlinks", "[git_tree]") {
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
+    REQUIRE(repo_path);
+    CHECK(GitTree::Read(*repo_path, kTreeSymId));
+    CHECK_FALSE(GitTree::Read(*repo_path, "wrong_tree_id"));
 }
 
 TEST_CASE("Lookup entries by name", "[git_tree]") {
@@ -458,6 +694,69 @@ TEST_CASE("Lookup entries by name", "[git_tree]") {
         REQUIRE(entry_baz_bar);
         CHECK(entry_baz_bar->IsBlob());
         CHECK(entry_baz_bar->Hash() == entry_bar->Hash());
+
+        SECTION("Lookup missing entries") {
+            CHECK_FALSE(tree_baz->LookupEntryByName("fool"));
+            CHECK_FALSE(tree_baz->LookupEntryByName("barn"));
+            CHECK_FALSE(tree_baz->LookupEntryByName("bazel"));
+        }
+    }
+}
+
+TEST_CASE("Lookup symlinks by name", "[git_tree]") {
+    auto repo_path = CreateTestRepoSymlinks(true);
+    REQUIRE(repo_path);
+    auto tree_root = GitTree::Read(*repo_path, kTreeSymId);
+    REQUIRE(tree_root);
+
+    auto entry_foo_l = tree_root->LookupEntryByName("foo_l");
+    REQUIRE(entry_foo_l);
+    CHECK(entry_foo_l->IsBlob());
+    CHECK(entry_foo_l->Type() == ObjectType::Symlink);
+
+    auto blob_foo_l = entry_foo_l->Blob();
+    REQUIRE(blob_foo_l);
+    CHECK(*blob_foo_l == "baz/foo");
+    CHECK(blob_foo_l->size() == 7);
+    CHECK(blob_foo_l->size() == *entry_foo_l->Size());
+
+    auto entry_baz_l = tree_root->LookupEntryByName("baz_l");
+    REQUIRE(entry_baz_l);
+    CHECK(entry_baz_l->IsBlob());
+    CHECK(entry_baz_l->Type() == ObjectType::Symlink);
+
+    auto blob_baz_l = entry_baz_l->Blob();
+    REQUIRE(blob_baz_l);
+    CHECK(*blob_baz_l == "baz");
+    CHECK(blob_baz_l->size() == 3);
+    CHECK(blob_baz_l->size() == *entry_baz_l->Size());
+
+    SECTION("Lookup missing entries") {
+        CHECK_FALSE(tree_root->LookupEntryByName("fool"));
+        CHECK_FALSE(tree_root->LookupEntryByName("barn"));
+        CHECK_FALSE(tree_root->LookupEntryByName("bazel"));
+    }
+
+    SECTION("Lookup symlinks in sub-tree") {
+        auto entry_baz = tree_root->LookupEntryByName("baz");
+        REQUIRE(entry_baz);
+        CHECK(entry_baz->IsTree());
+        CHECK(entry_baz->Type() == ObjectType::Tree);
+
+        auto const& tree_baz = entry_baz->Tree();
+        REQUIRE(tree_baz);
+
+        auto entry_baz_bar = tree_baz->LookupEntryByName("bar");
+        REQUIRE(entry_baz_bar);
+        CHECK(entry_baz_bar->IsBlob());
+        CHECK(entry_baz_bar->Type() == ObjectType::Executable);
+
+        auto entry_baz_bar_l = tree_baz->LookupEntryByName("bar_l");
+        REQUIRE(entry_baz_bar_l);
+        CHECK(entry_baz_bar_l->IsBlob());
+        CHECK(entry_baz_bar_l->Type() == ObjectType::Symlink);
+        // the hash of the symlink content should be the same as the file
+        CHECK(entry_baz_bar_l->Hash() == entry_baz_bar->Hash());
 
         SECTION("Lookup missing entries") {
             CHECK_FALSE(tree_baz->LookupEntryByName("fool"));
@@ -525,6 +824,61 @@ TEST_CASE("Lookup entries by path", "[git_tree]") {
     }
 }
 
+TEST_CASE("Lookup symlinks by path", "[git_tree]") {
+    auto repo_path = CreateTestRepoSymlinks(true);
+    REQUIRE(repo_path);
+    auto tree_root = GitTree::Read(*repo_path, kTreeSymId);
+    REQUIRE(tree_root);
+
+    auto entry_foo_l = tree_root->LookupEntryByPath("foo_l");
+    REQUIRE(entry_foo_l);
+    CHECK(entry_foo_l->IsBlob());
+    CHECK(entry_foo_l->Type() == ObjectType::Symlink);
+
+    auto blob_foo_l = entry_foo_l->Blob();
+    REQUIRE(blob_foo_l);
+    CHECK(*blob_foo_l == "baz/foo");
+    CHECK(blob_foo_l->size() == 7);
+    CHECK(blob_foo_l->size() == *entry_foo_l->Size());
+
+    auto entry_baz_l = tree_root->LookupEntryByPath("baz_l");
+    REQUIRE(entry_baz_l);
+    CHECK(entry_baz_l->IsBlob());
+    CHECK(entry_baz_l->Type() == ObjectType::Symlink);
+
+    auto blob_baz_l = entry_baz_l->Blob();
+    REQUIRE(blob_baz_l);
+    CHECK(*blob_baz_l == "baz");
+    CHECK(blob_baz_l->size() == 3);
+    CHECK(blob_baz_l->size() == *entry_baz_l->Size());
+
+    SECTION("Lookup missing entries") {
+        CHECK_FALSE(tree_root->LookupEntryByPath("fool"));
+        CHECK_FALSE(tree_root->LookupEntryByPath("barn"));
+        CHECK_FALSE(tree_root->LookupEntryByPath("bazel"));
+    }
+
+    SECTION("Lookup symlinks in sub-tree") {
+        auto entry_baz_bar = tree_root->LookupEntryByPath("baz/bar");
+        REQUIRE(entry_baz_bar);
+        CHECK(entry_baz_bar->IsBlob());
+        CHECK(entry_baz_bar->Type() == ObjectType::Executable);
+
+        auto entry_baz_bar_l = tree_root->LookupEntryByPath("baz/bar_l");
+        REQUIRE(entry_baz_bar_l);
+        CHECK(entry_baz_bar_l->IsBlob());
+        CHECK(entry_baz_bar_l->Type() == ObjectType::Symlink);
+        // the hash of the symlink content should be the same as the file
+        CHECK(entry_baz_bar_l->Hash() == entry_baz_bar->Hash());
+
+        SECTION("Lookup missing entries") {
+            CHECK_FALSE(tree_root->LookupEntryByPath("baz/fool"));
+            CHECK_FALSE(tree_root->LookupEntryByPath("baz/barn"));
+            CHECK_FALSE(tree_root->LookupEntryByPath("baz/bazel"));
+        }
+    }
+}
+
 TEST_CASE("Lookup entries by special names", "[git_tree]") {
     auto repo_path = CreateTestRepo(true);
     REQUIRE(repo_path);
@@ -575,6 +929,21 @@ TEST_CASE("Iterate tree entries", "[git_tree]") {
                    {"foo", "bar", "baz"}));
 }
 
+TEST_CASE("Iterate tree entries with non-upwards symlinks", "[git_tree]") {
+    auto repo_path = CreateTestRepoSymlinks(true);
+    REQUIRE(repo_path);
+    auto tree_root = GitTree::Read(*repo_path, kTreeSymId);
+    REQUIRE(tree_root);
+
+    std::vector<std::string> names{};
+    for (auto const& [name, entry] : *tree_root) {
+        names.emplace_back(name);
+    }
+    CHECK_THAT(names,
+               HasSameUniqueElementsAs<std::vector<std::string>>(
+                   {"foo", "bar", "baz", "foo_l", "baz_l"}));
+}
+
 TEST_CASE("Thread-safety", "[git_tree]") {
     constexpr auto kNumThreads = 100;
 
@@ -582,7 +951,7 @@ TEST_CASE("Thread-safety", "[git_tree]") {
     std::vector<std::thread> threads{};
     threads.reserve(kNumThreads);
 
-    auto repo_path = CreateTestRepo(true);
+    auto repo_path = CreateTestRepoSymlinks(false);  // checkout needed
     REQUIRE(repo_path);
 
     SECTION("Opening and reading from the same CAS") {
@@ -618,14 +987,27 @@ TEST_CASE("Thread-safety", "[git_tree]") {
         auto cas = GitCAS::Open(*repo_path);
         REQUIRE(cas);
 
+        // create symlinks checker
+        auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
+            for (auto const& id : ids) {
+                auto content = cas->ReadObject(ArtifactDigest(id).hash(),
+                                               /*is_hex_id=*/true);
+                if (not content or not PathIsNonUpwards(*content)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
         for (int id{}; id < kNumThreads; ++id) {
-            threads.emplace_back([&cas, &starting_signal]() {
+            threads.emplace_back([&cas, &starting_signal, check_symlinks]() {
                 starting_signal.wait(false);
 
                 auto repo = GitRepo::Open(cas);
                 REQUIRE(repo);
 
-                auto entries = repo->ReadTree(kTreeId, true);
+                auto entries = repo->ReadTree(
+                    kTreeSymId, check_symlinks, /*is_hex_id=*/true);
                 REQUIRE(entries);
             });
         }
@@ -645,7 +1027,7 @@ TEST_CASE("Thread-safety", "[git_tree]") {
                 [&repo_path, &starting_signal](int tid) {
                     starting_signal.wait(false);
 
-                    auto tree_root = GitTree::Read(*repo_path, kTreeId);
+                    auto tree_root = GitTree::Read(*repo_path, kTreeSymId);
                     REQUIRE(tree_root);
 
                     auto entry_subdir = tree_root->LookupEntryByName("baz");
@@ -676,7 +1058,7 @@ TEST_CASE("Thread-safety", "[git_tree]") {
     }
 
     SECTION("Reading from the same tree") {
-        auto tree_root = GitTree::Read(*repo_path, kTreeId);
+        auto tree_root = GitTree::Read(*repo_path, kTreeSymId);
         REQUIRE(tree_root);
 
         for (int id{}; id < kNumThreads; ++id) {
