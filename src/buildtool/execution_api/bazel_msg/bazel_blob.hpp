@@ -35,14 +35,15 @@ struct BazelBlob {
     bool is_exec{};  // optional: hint to put the blob in executable CAS
 };
 
-[[nodiscard]] static inline auto CreateBlobFromFile(
-    std::filesystem::path const& file_path) noexcept
-    -> std::optional<BazelBlob> {
-    auto const type = FileSystemManager::Type(file_path);
+/// \brief Create a blob from the content found in file or symlink pointed to by
+/// given path.
+[[nodiscard]] static inline auto CreateBlobFromPath(
+    std::filesystem::path const& fpath) noexcept -> std::optional<BazelBlob> {
+    auto const type = FileSystemManager::Type(fpath);
     if (not type) {
         return std::nullopt;
     }
-    auto const content = FileSystemManager::ReadFile(file_path, *type);
+    auto const content = FileSystemManager::ReadContentAtPath(fpath, *type);
     if (not content.has_value()) {
         return std::nullopt;
     }

@@ -309,8 +309,18 @@ class LocalApi final : public IExecutionApi {
 
         if (Compatibility::IsCompatible()) {
             BlobContainer blobs{};
+            auto const& cas = storage_->CAS();
             auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
                 *build_root,
+                [&cas](std::vector<bazel_re::Digest> const& digests,
+                       std::vector<std::string>* targets) {
+                    targets->reserve(digests.size());
+                    for (auto const& digest : digests) {
+                        auto p = cas.BlobPath(digest, /*is_executable=*/false);
+                        auto content = FileSystemManager::ReadFile(*p);
+                        targets->emplace_back(*content);
+                    }
+                },
                 [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
             if (not digest) {
                 Logger::Log(LogLevel::Debug,

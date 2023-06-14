@@ -695,6 +695,31 @@ class FileSystemManager {
         return std::nullopt;
     }
 
+    /// \brief Read the content of given file or symlink.
+    [[nodiscard]] static auto ReadContentAtPath(
+        std::filesystem::path const& fpath,
+        ObjectType type) -> std::optional<std::string> {
+        try {
+            if (IsSymlinkObject(type)) {
+                return ReadSymlink(fpath);
+            }
+            if (IsFileObject(type)) {
+                return ReadFile(fpath, type);
+            }
+            Logger::Log(
+                LogLevel::Debug,
+                "{} can not be read because it is neither a file nor symlink.",
+                fpath.string());
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Error,
+                        "reading content at path {} failed:\n{}",
+                        fpath.string(),
+                        ex.what());
+        }
+
+        return std::nullopt;
+    }
+
     /// \brief Write file
     /// If argument fd_less is given, the write will be performed in a child
     /// process to prevent polluting the parent with open writable file

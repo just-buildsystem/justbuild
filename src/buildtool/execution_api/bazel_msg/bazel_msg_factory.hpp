@@ -40,11 +40,16 @@ class BazelMsgFactory {
     using BlobStoreFunc = std::function<void(BazelBlob&&)>;
     using InfoStoreFunc = std::function<bool(std::filesystem::path const&,
                                              Artifact::ObjectInfo const&)>;
+    using LinkDigestResolveFunc =
+        std::function<void(std::vector<bazel_re::Digest> const&,
+                           std::vector<std::string>*)>;
     using FileStoreFunc = std::function<
         std::optional<bazel_re::Digest>(std::filesystem::path const&, bool)>;
     using DirStoreFunc = std::function<std::optional<bazel_re::Digest>(
         std::string const&,
         bazel_re::Directory const&)>;
+    using SymlinkStoreFunc =
+        std::function<std::optional<bazel_re::Digest>(std::string const&)>;
     using TreeStoreFunc = std::function<std::optional<bazel_re::Digest>(
         std::string const&,
         GitRepo::tree_entries_t const&)>;
@@ -63,12 +68,14 @@ class BazelMsgFactory {
 
     /// \brief Create Directory digest from artifact tree structure.
     /// Recursively traverse entire tree and create blobs for sub-directories.
-    /// \param tree         Directory tree of artifacts.
-    /// \param store_blob   Function for storing Directory blobs.
-    /// \param store_info   Function for storing object infos.
+    /// \param tree           Directory tree of artifacts.
+    /// \param resolve_links  Function for resolving symlinks.
+    /// \param store_blob     Function for storing Directory blobs.
+    /// \param store_info     Function for storing object infos.
     /// \returns Digest representing the entire tree.
     [[nodiscard]] static auto CreateDirectoryDigestFromTree(
         DirectoryTreePtr const& tree,
+        LinkDigestResolveFunc const& resolve_links,
         std::optional<BlobStoreFunc> const& store_blob = std::nullopt,
         std::optional<InfoStoreFunc> const& store_info = std::nullopt) noexcept
         -> std::optional<bazel_re::Digest>;
@@ -78,11 +85,13 @@ class BazelMsgFactory {
     /// \param root         Path to local file root.
     /// \param store_file   Function for storing local file via path.
     /// \param store_dir    Function for storing Directory blobs.
+    /// \param store_symlink  Function for storing symlink via content.
     /// \returns Digest representing the entire file root.
     [[nodiscard]] static auto CreateDirectoryDigestFromLocalTree(
         std::filesystem::path const& root,
         FileStoreFunc const& store_file,
-        DirStoreFunc const& store_dir) noexcept
+        DirStoreFunc const& store_dir,
+        SymlinkStoreFunc const& store_symlink) noexcept
         -> std::optional<bazel_re::Digest>;
 
     /// \brief Create Git tree digest from local file root.
@@ -90,11 +99,13 @@ class BazelMsgFactory {
     /// \param root         Path to local file root.
     /// \param store_file   Function for storing local file via path.
     /// \param store_tree   Function for storing git trees.
+    /// \param store_symlink  Function for storing symlink via content.
     /// \returns Digest representing the entire file root.
     [[nodiscard]] static auto CreateGitTreeDigestFromLocalTree(
         std::filesystem::path const& root,
         FileStoreFunc const& store_file,
-        TreeStoreFunc const& store_tree) noexcept
+        TreeStoreFunc const& store_tree,
+        SymlinkStoreFunc const& store_symlink) noexcept
         -> std::optional<bazel_re::Digest>;
 
     /// \brief Creates Action digest from command line.

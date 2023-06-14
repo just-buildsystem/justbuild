@@ -61,11 +61,14 @@ class BuildCleanupAnchor {
                              auto /*dir*/) -> std::optional<bazel_re::Digest> {
         return cas.StoreTree(bytes);
     };
+    auto store_symlink = [&cas](auto content) {
+        return cas.StoreBlob(content);
+    };
     return Compatibility::IsCompatible()
                ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
-                     dir_path, store_blob, store_tree)
+                     dir_path, store_blob, store_tree, store_symlink)
                : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
-                     dir_path, store_blob, store_tree);
+                     dir_path, store_blob, store_tree, store_symlink);
 }
 
 }  // namespace

@@ -72,7 +72,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         "test/buildtool/storage/data/non_executable_file"};
 
     auto const& cas = Storage::Instance().CAS();
-    auto test_blob = CreateBlobFromFile(non_exec_file);
+    auto test_blob = CreateBlobFromPath(non_exec_file);
     REQUIRE(test_blob);
 
     // check blob not in storage
@@ -121,7 +121,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         "test/buildtool/storage/data/executable_file"};
 
     auto const& cas = Storage::Instance().CAS();
-    auto test_blob = CreateBlobFromFile(exec_file);
+    auto test_blob = CreateBlobFromPath(exec_file);
     REQUIRE(test_blob);
 
     // check blob not in storage

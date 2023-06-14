@@ -312,8 +312,21 @@ auto BazelApi::CreateAction(
 
     if (Compatibility::IsCompatible()) {
         BlobContainer blobs{};
+        auto const& network = network_;
         auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
             *build_root,
+            [&network](std::vector<bazel_re::Digest> const& digests,
+                       std::vector<std::string>* targets) {
+                auto reader = network->ReadBlobs(digests);
+                auto blobs = reader.Next();
+                targets->reserve(digests.size());
+                while (not blobs.empty()) {
+                    for (auto const& blob : blobs) {
+                        targets->emplace_back(blob.data);
+                    }
+                    blobs = reader.Next();
+                }
+            },
             [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
         if (not digest) {
             Logger::Log(LogLevel::Debug,
