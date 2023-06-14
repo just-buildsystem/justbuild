@@ -105,8 +105,7 @@ class LocalResponse final : public IExecutionResponse {
                 action_result.output_file_symlinks_size()) +
             static_cast<std::size_t>(
                 action_result.output_directory_symlinks_size()) +
-            static_cast<std::size_t>(
-                action_result.output_directories().size()));
+            static_cast<std::size_t>(action_result.output_directories_size()));
 
         DirSymlinks dir_symlinks{};
         dir_symlinks_.reserve(static_cast<std::size_t>(
@@ -148,6 +147,32 @@ class LocalResponse final : public IExecutionResponse {
                             link.target()),
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
+            } catch (...) {
+                return false;
+            }
+        }
+
+        // collect all symlinks and store them
+        for (auto const& link : action_result.output_file_symlinks()) {
+            try {
+                artifacts.emplace(
+                    link.path(),
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest::Create<ObjectType::File>(
+                            link.target()),
+                        .type = ObjectType::Symlink});
+            } catch (...) {
+                return false;
+            }
+        }
+        for (auto const& link : action_result.output_directory_symlinks()) {
+            try {
+                artifacts.emplace(
+                    link.path(),
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest::Create<ObjectType::File>(
+                            link.target()),
+                        .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
             }

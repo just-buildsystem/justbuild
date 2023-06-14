@@ -27,6 +27,8 @@
 #include <fcntl.h>
 
 #ifdef __unix__
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -338,6 +340,7 @@ class FileSystemManager {
                                   kSetEpochTime,
                                   kSetWritable>(src, dst, fd_less, opt);
             case ObjectType::Symlink:
+                return CopySymlinkAs<kSetEpochTime>(src, dst);
             case ObjectType::Tree:
                 break;
         }
@@ -379,6 +382,52 @@ class FileSystemManager {
                         e.what());
             return false;
         }
+    }
+
+    /// \brief Create a symlink with option to set epoch time.
+    template <bool kSetEpochTime = false>
+    [[nodiscard]] static auto CreateSymlinkAs(
+        std::filesystem::path const& to,
+        std::filesystem::path const& link) noexcept -> bool {
+        return CreateSymlink(to, link) and
+               (not kSetEpochTime or SetEpochTime(link));
+    }
+
+    /// \brief Create symlink copy at location, with option to overwriting any
+    /// existing. Uses the content of src directly as the new target, whether
+    /// src is a regular file (CAS entry) or another symlink.
+    template <bool kSetEpochTime = false>
+    [[nodiscard]] static auto CopySymlinkAs(
+        std::filesystem::path const& src,
+        std::filesystem::path const& dst,
+        bool overwrite_existing = true) noexcept -> bool {
+        try {
+            if (overwrite_existing and Exists(dst) and
+                not std::filesystem::remove(dst)) {
+                Logger::Log(LogLevel::Debug,
+                            "could not overwrite existing path {}",
+                            dst.string());
+                return false;
+            }
+            if (std::filesystem::is_symlink(src)) {
+                if (auto content = ReadSymlink(src)) {
+                    return CreateSymlinkAs<kSetEpochTime>(*content, dst);
+                }
+            }
+            else {
+                if (auto content = ReadFile(src)) {
+                    return CreateSymlinkAs<kSetEpochTime>(*content, dst);
+                }
+            }
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "copying symlink from {} to {}:\n{}",
+                        src.string(),
+                        dst.string(),
+                        e.what());
+        }
+
+        return false;
     }
 
     [[nodiscard]] static auto RemoveFile(
@@ -946,11 +995,40 @@ class FileSystemManager {
         }
     }
 
+    /// \brief Set the last time of modification for a file (or symlink --
+    /// POSIX-only).
     static auto SetEpochTime(std::filesystem::path const& file_path) noexcept
         -> bool {
         static auto const kPosixEpochTime =
             System::GetPosixEpoch<std::chrono::file_clock>();
         try {
+            if (std::filesystem::is_symlink(file_path)) {
+                // Because std::filesystem::last_write_time follows
+                // symlinks, one has instead to manually call utimensat with
+                // the AT_SYMLINK_NOFOLLOW flag. On non-POSIX systems, we
+                // return false by default for symlinks.
+#ifdef __unix__
+                std::array<timespec, 2> times{};  // default is POSIX epoch
+                if (utimensat(AT_FDCWD,
+                              file_path.c_str(),
+                              times.data(),
+                              AT_SYMLINK_NOFOLLOW) != 0) {
+                    Logger::Log(LogLevel::Error,
+                                "Call to utimensat for symlink {} failed with "
+                                "error: {}",
+                                file_path.string(),
+                                strerror(errno));
+                    return false;
+                }
+                return true;
+#else
+                Logger::Log(
+                    LogLevel::Warning,
+                    "Setting the last modification time attribute for a "
+                    "symlink is unsupported!");
+                return false;
+#endif
+            }
             std::filesystem::last_write_time(file_path, kPosixEpochTime);
             return true;
         } catch (std::exception const& e) {

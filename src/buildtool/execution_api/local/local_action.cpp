@@ -250,45 +250,79 @@ auto LocalAction::CreateDirectoryStructure(
                        });
 }
 
-auto LocalAction::CollectOutputFile(std::filesystem::path const& exec_path,
-                                    std::string const& local_path)
-    const noexcept -> std::optional<bazel_re::OutputFile> {
+/// \brief We expect either a regular file, or a symlink.
+auto LocalAction::CollectOutputFileOrSymlink(
+    std::filesystem::path const& exec_path,
+    std::string const& local_path) const noexcept
+    -> std::optional<OutputFileOrSymlink> {
     auto file_path = exec_path / local_path;
     auto type = FileSystemManager::Type(file_path);
-    if ((not type) or (not IsFileObject(*type))) {
-        Logger::Log(LogLevel::Error, "expected file at {}", local_path);
+    if (not type) {
+        Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
-    bool is_executable = IsExecutableObject(*type);
-    auto digest =
-        storage_->CAS().StoreBlob</*kOwner=*/true>(file_path, is_executable);
-    if (digest) {
-        auto out_file = bazel_re::OutputFile{};
-        out_file.set_path(local_path);
-        out_file.set_allocated_digest(
-            gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
-        out_file.set_is_executable(is_executable);
-        return out_file;
+    if (IsSymlinkObject(*type)) {
+        auto content = FileSystemManager::ReadSymlink(file_path);
+        if (content and PathIsNonUpwards(*content) and
+            storage_->CAS().StoreBlob(*content)) {
+            auto out_symlink = bazel_re::OutputSymlink{};
+            out_symlink.set_path(local_path);
+            out_symlink.set_target(*content);
+            return out_symlink;
+        }
+    }
+    else if (IsFileObject(*type)) {
+        bool is_executable = IsExecutableObject(*type);
+        auto digest = storage_->CAS().StoreBlob</*kOwner=*/true>(file_path,
+                                                                 is_executable);
+        if (digest) {
+            auto out_file = bazel_re::OutputFile{};
+            out_file.set_path(local_path);
+            out_file.set_allocated_digest(
+                gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+            out_file.set_is_executable(is_executable);
+            return out_file;
+        }
+    }
+    else {
+        Logger::Log(
+            LogLevel::Error, "expected file or symlink at {}", local_path);
     }
     return std::nullopt;
 }
 
-auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
-                                   std::string const& local_path) const noexcept
-    -> std::optional<bazel_re::OutputDirectory> {
+auto LocalAction::CollectOutputDirOrSymlink(
+    std::filesystem::path const& exec_path,
+    std::string const& local_path) const noexcept
+    -> std::optional<OutputDirOrSymlink> {
     auto dir_path = exec_path / local_path;
     auto type = FileSystemManager::Type(dir_path);
-    if ((not type) or (not IsTreeObject(*type))) {
-        Logger::Log(LogLevel::Error, "expected directory at {}", local_path);
+    if (not type) {
+        Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
-
-    if (auto digest = CreateDigestFromLocalOwnedTree(storage_, dir_path)) {
-        auto out_dir = bazel_re::OutputDirectory{};
-        out_dir.set_path(local_path);
-        out_dir.set_allocated_tree_digest(
-            gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
-        return out_dir;
+    if (IsSymlinkObject(*type)) {
+        auto content = FileSystemManager::ReadSymlink(dir_path);
+        if (content and PathIsNonUpwards(*content) and
+            storage_->CAS().StoreBlob(*content)) {
+            auto out_symlink = bazel_re::OutputSymlink{};
+            out_symlink.set_path(local_path);
+            out_symlink.set_target(*content);
+            return out_symlink;
+        }
+    }
+    else if (IsTreeObject(*type)) {
+        if (auto digest = CreateDigestFromLocalOwnedTree(storage_, dir_path)) {
+            auto out_dir = bazel_re::OutputDirectory{};
+            out_dir.set_path(local_path);
+            out_dir.set_allocated_tree_digest(
+                gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+            return out_dir;
+        }
+    }
+    else {
+        Logger::Log(
+            LogLevel::Error, "expected directory or symlink at {}", local_path);
     }
     return std::nullopt;
 }
@@ -296,31 +330,73 @@ auto LocalAction::CollectOutputDir(std::filesystem::path const& exec_path,
 auto LocalAction::CollectAndStoreOutputs(
     bazel_re::ActionResult* result,
     std::filesystem::path const& exec_path) const noexcept -> bool {
-    logger_.Emit(LogLevel::Trace, "collecting outputs:");
-    for (auto const& path : output_files_) {
-        auto out_file = CollectOutputFile(exec_path, path);
-        if (not out_file) {
-            logger_.Emit(
-                LogLevel::Error, "could not collect output file {}", path);
-            return false;
+    try {
+        logger_.Emit(LogLevel::Trace, "collecting outputs:");
+        for (auto const& path : output_files_) {
+            auto out = CollectOutputFileOrSymlink(exec_path, path);
+            if (not out) {
+                logger_.Emit(LogLevel::Error,
+                             "could not collect output file or symlink {}",
+                             path);
+                return false;
+            }
+            if (std::holds_alternative<bazel_re::OutputSymlink>(*out)) {
+                auto out_symlink = std::get<bazel_re::OutputSymlink>(*out);
+                auto const& target = out_symlink.target();
+                if (not PathIsNonUpwards(target)) {
+                    logger_.Emit(LogLevel::Error,
+                                 "collected upwards output symlink {}",
+                                 path);
+                    return false;
+                }
+                logger_.Emit(
+                    LogLevel::Trace, " - symlink {}: {}", path, target);
+                result->mutable_output_file_symlinks()->Add(
+                    std::move(out_symlink));
+            }
+            else {
+                auto out_file = std::get<bazel_re::OutputFile>(*out);
+                auto const& digest = out_file.digest().hash();
+                logger_.Emit(LogLevel::Trace, " - file {}: {}", path, digest);
+                result->mutable_output_files()->Add(std::move(out_file));
+            }
         }
-        auto const& digest = out_file->digest().hash();
-        logger_.Emit(LogLevel::Trace, " - file {}: {}", path, digest);
-        result->mutable_output_files()->Add(std::move(*out_file));
-    }
-    for (auto const& path : output_dirs_) {
-        auto out_dir = CollectOutputDir(exec_path, path);
-        if (not out_dir) {
-            logger_.Emit(
-                LogLevel::Error, "could not collect output dir {}", path);
-            return false;
+        for (auto const& path : output_dirs_) {
+            auto out = CollectOutputDirOrSymlink(exec_path, path);
+            if (not out) {
+                logger_.Emit(LogLevel::Error,
+                             "could not collect output dir or symlink {}",
+                             path);
+                return false;
+            }
+            if (std::holds_alternative<bazel_re::OutputSymlink>(*out)) {
+                auto out_symlink = std::get<bazel_re::OutputSymlink>(*out);
+                auto const& target = out_symlink.target();
+                if (not PathIsNonUpwards(target)) {
+                    logger_.Emit(LogLevel::Error,
+                                 "collected upwards output symlink {}",
+                                 path);
+                    return false;
+                }
+                logger_.Emit(
+                    LogLevel::Trace, " - symlink {}: {}", path, target);
+                result->mutable_output_file_symlinks()->Add(
+                    std::move(out_symlink));
+            }
+            else {
+                auto out_dir = std::get<bazel_re::OutputDirectory>(*out);
+                auto const& digest = out_dir.tree_digest().hash();
+                logger_.Emit(LogLevel::Trace, " - dir {}: {}", path, digest);
+                result->mutable_output_directories()->Add(std::move(out_dir));
+            }
         }
-        auto const& digest = out_dir->tree_digest().hash();
-        logger_.Emit(LogLevel::Trace, " - dir {}: {}", path, digest);
-        result->mutable_output_directories()->Add(std::move(*out_dir));
+        return true;
+    } catch (std::exception const& ex) {
+        // should never happen, but report nonetheless
+        logger_.Emit(
+            LogLevel::Error, "collecting outputs failed:\n{}", ex.what());
+        return false;
     }
-
-    return true;
 }
 
 auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)

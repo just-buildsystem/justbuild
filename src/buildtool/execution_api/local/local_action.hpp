@@ -38,6 +38,11 @@ class LocalAction final : public IExecutionAction {
         bool is_cached{};
     };
 
+    using OutputFileOrSymlink =
+        std::variant<bazel_re::OutputFile, bazel_re::OutputSymlink>;
+    using OutputDirOrSymlink =
+        std::variant<bazel_re::OutputDirectory, bazel_re::OutputSymlink>;
+
     auto Execute(Logger const* logger) noexcept
         -> IExecutionResponse::Ptr final;
 
@@ -112,13 +117,15 @@ class LocalAction final : public IExecutionAction {
     [[nodiscard]] auto CreateDirectoryStructure(
         std::filesystem::path const& exec_path) const noexcept -> bool;
 
-    [[nodiscard]] auto CollectOutputFile(std::filesystem::path const& exec_path,
-                                         std::string const& local_path)
-        const noexcept -> std::optional<bazel_re::OutputFile>;
+    [[nodiscard]] auto CollectOutputFileOrSymlink(
+        std::filesystem::path const& exec_path,
+        std::string const& local_path) const noexcept
+        -> std::optional<OutputFileOrSymlink>;
 
-    [[nodiscard]] auto CollectOutputDir(std::filesystem::path const& exec_path,
-                                        std::string const& local_path)
-        const noexcept -> std::optional<bazel_re::OutputDirectory>;
+    [[nodiscard]] auto CollectOutputDirOrSymlink(
+        std::filesystem::path const& exec_path,
+        std::string const& local_path) const noexcept
+        -> std::optional<OutputDirOrSymlink>;
 
     [[nodiscard]] auto CollectAndStoreOutputs(
         bazel_re::ActionResult* result,

@@ -50,8 +50,8 @@ template <class T_CAS>
                         if (not link_path) {
                             return false;
                         }
-                        auto content =
-                            FileSystemManager::ReadSymlink(*link_path);
+                        // in the local CAS we store as files
+                        auto content = FileSystemManager::ReadFile(*link_path);
                         if (not content or not PathIsNonUpwards(*content)) {
                             return false;
                         }
