@@ -99,6 +99,24 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
             return false;
         }
     }
+    for (auto const& link : result->output_file_symlinks()) {
+        if (not cas_->LocalUplinkBlob(
+                *latest.cas_,
+                bazel_re::Digest(
+                    ArtifactDigest::Create<ObjectType::File>(link.target())),
+                /*is_executable=*/false)) {
+            return false;
+        }
+    }
+    for (auto const& link : result->output_directory_symlinks()) {
+        if (not cas_->LocalUplinkBlob(
+                *latest.cas_,
+                bazel_re::Digest(
+                    ArtifactDigest::Create<ObjectType::File>(link.target())),
+                /*is_executable=*/false)) {
+            return false;
+        }
+    }
     for (auto const& directory : result->output_directories()) {
         if (not cas_->LocalUplinkTree(*latest.cas_, directory.tree_digest())) {
             return false;
