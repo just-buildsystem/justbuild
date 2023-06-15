@@ -852,6 +852,7 @@ class FileSystemManager {
                                    kSetEpochTime,
                                    kSetWritable>(content, file, fd_less);
             case ObjectType::Symlink:
+                return CreateSymlinkAs<kSetEpochTime>(content, file);
             case ObjectType::Tree:
                 return false;
         }

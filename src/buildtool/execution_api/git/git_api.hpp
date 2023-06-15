@@ -112,9 +112,9 @@ class GitApi final : public IExecutionApi {
                 for (auto const& [path, entry] : *tree) {
                     json[path] =
                         Artifact::ObjectInfo{
-                            .digest =
-                                ArtifactDigest{
-                                    entry->Hash(), /*size*/ 0, entry->IsTree()},
+                            .digest = ArtifactDigest{entry->Hash(),
+                                                     /*size*/ 0,
+                                                     entry->IsTree()},
                             .type = entry->Type(),
                             .failed = false}
                             .ToString(/*size_unknown*/ true);
