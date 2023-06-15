@@ -41,6 +41,16 @@ static inline auto scale_time(std::chrono::milliseconds t, double f)
     -> std::chrono::milliseconds {
     return std::chrono::milliseconds(std::lround(t.count() * f));
 }
+
+static inline auto merge_properties(
+    const std::map<std::string, std::string>& base,
+    const std::map<std::string, std::string>& overlay) {
+    std::map<std::string, std::string> result = base;
+    for (auto const& [k, v] : overlay) {
+        result[k] = v;
+    }
+    return result;
+}
 }  // namespace detail
 
 /// \brief Implementations for executing actions and uploading artifacts.
@@ -587,7 +597,8 @@ class Executor {
             logger,
             action,
             remote_api_,
-            properties_,
+            detail::merge_properties(properties_,
+                                     action->ExecutionProperties()),
             detail::scale_time(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
 
@@ -645,7 +656,8 @@ class Rebuilder {
             logger,
             action,
             remote_api_,
-            properties_,
+            detail::merge_properties(properties_,
+                                     action->ExecutionProperties()),
             detail::scale_time(timeout_, action->TimeoutScale()),
             CF::PretendCached);
 
@@ -658,7 +670,8 @@ class Rebuilder {
             logger_cached,
             action,
             api_cached_,
-            properties_,
+            detail::merge_properties(properties_,
+                                     action->ExecutionProperties()),
             detail::scale_time(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly);
 
