@@ -113,6 +113,32 @@ auto BazelResponse::Populate() noexcept -> bool {
         }
     }
 
+    // collect all symlinks and store them
+    for (auto const& link : action_result.output_file_symlinks()) {
+        try {
+            artifacts.emplace(
+                link.path(),
+                Artifact::ObjectInfo{
+                    .digest =
+                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .type = ObjectType::Symlink});
+        } catch (...) {
+            return false;
+        }
+    }
+    for (auto const& link : action_result.output_directory_symlinks()) {
+        try {
+            artifacts.emplace(
+                link.path(),
+                Artifact::ObjectInfo{
+                    .digest =
+                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .type = ObjectType::Symlink});
+        } catch (...) {
+            return false;
+        }
+    }
+
     if (not Compatibility::IsCompatible()) {
         // in native mode: just collect and store tree digests
         for (auto const& tree : action_result.output_directories()) {
