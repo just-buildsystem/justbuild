@@ -56,6 +56,14 @@ TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
         kApiFactory, RemoteExecutionConfig::PlatformProperties(), "two_trees");
 }
 
+TEST_CASE("BazelAPI: Retrieve file and symlink with same content to path",
+          "[execution_api]") {
+    TestRetrieveFileAndSymlinkWithSameContentToPath(
+        kApiFactory,
+        RemoteExecutionConfig::PlatformProperties(),
+        "file_and_symlink");
+}
+
 TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
     TestRetrieveMixedBlobsAndTrees(kApiFactory,
                                    RemoteExecutionConfig::PlatformProperties(),

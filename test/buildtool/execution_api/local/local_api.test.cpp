@@ -58,6 +58,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
+                 "LocalAPI: Retrieve file and symlink with same content to "
+                 "path",
+                 "[execution_api]") {
+    TestRetrieveFileAndSymlinkWithSameContentToPath(
+        kApiFactory, {}, "file_and_symlink", /*is_hermetic=*/true);
+}
+
+TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalAPI: Retrieve mixed blobs and trees",
                  "[execution_api]") {
     TestRetrieveMixedBlobsAndTrees(

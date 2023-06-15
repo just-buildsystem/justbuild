@@ -405,6 +405,72 @@ using ExecProps = std::map<std::string, std::string>;
     }
 }
 
+[[nodiscard]] static inline auto
+TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
+                                                ExecProps const& props,
+                                                std::string const& test_name,
+                                                bool is_hermetic = false) {
+    auto api = api_factory();
+
+    auto foo_path = std::filesystem::path{"foo"} / "baz";  // file
+    auto bar_path = std::filesystem::path{"bar"} / "baz";  // symlink
+
+    auto make_cmd = [&](std::string const& out_dir) {
+        return fmt::format(
+            "set -e\nmkdir -p {0}/{1} {0}/{2}\n"
+            "echo -n baz > {0}/{3}\nln -s baz {0}/{4}",
+            out_dir,
+            foo_path.parent_path().string(),
+            bar_path.parent_path().string(),
+            foo_path.string(),
+            bar_path.string());
+    };
+
+    auto action = api->CreateAction(*api->UploadTree({}),
+                                    {"/bin/sh", "-c", make_cmd("root")},
+                                    {},
+                                    {"root"},
+                                    {},
+                                    props);
+
+    action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
+
+    // run execution
+    auto response = action->Execute();
+    REQUIRE(response);
+
+    // verify result
+    CHECK(response->ExitCode() == 0);
+
+    if (is_hermetic) {
+        CHECK_FALSE(response->IsCached());
+    }
+
+    auto artifacts = response->Artifacts();
+    REQUIRE_FALSE(artifacts.empty());
+
+    auto info = artifacts.begin()->second;
+
+    SECTION("retrieve via same API object") {
+        auto out_path = GetTestDir(test_name) / "out1";
+        CHECK(api->RetrieveToPaths({info}, {out_path}));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(out_path / bar_path));
+        CHECK(FileSystemManager::ReadFile(out_path / foo_path) ==
+              FileSystemManager::ReadSymlink(out_path / bar_path));
+    }
+
+    SECTION("retrive from new API object but same endpoint") {
+        auto second_api = api_factory();
+        auto out_path = GetTestDir(test_name) / "out2";
+        CHECK(second_api->RetrieveToPaths({info}, {out_path}));
+        CHECK(FileSystemManager::IsFile(out_path / foo_path));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(out_path / bar_path));
+        CHECK(FileSystemManager::ReadFile(out_path / foo_path) ==
+              FileSystemManager::ReadSymlink(out_path / bar_path));
+    }
+}
+
 [[nodiscard]] static inline auto TestRetrieveMixedBlobsAndTrees(
     ApiFactory const& api_factory,
     ExecProps const& props,
@@ -414,15 +480,17 @@ using ExecProps = std::map<std::string, std::string>;
 
     auto foo_path = std::filesystem::path{"foo"};
     auto bar_path = std::filesystem::path{"subdir"} / "bar";
+    auto link_path = std::filesystem::path{"sym"};
 
-    auto cmd = fmt::format("set -e\nmkdir -p {}\ntouch {} {}",
+    auto cmd = fmt::format("set -e\nmkdir -p {}\ntouch {} {}\nln -s dummy {}",
                            bar_path.parent_path().string(),
                            bar_path.string(),
-                           foo_path.string());
+                           foo_path.string(),
+                           link_path.string());
 
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", cmd},
-                                    {foo_path.string()},
+                                    {foo_path.string(), link_path.string()},
                                     {bar_path.parent_path().string()},
                                     {},
                                     props);
@@ -457,6 +525,7 @@ using ExecProps = std::map<std::string, std::string>;
         CHECK(api->RetrieveToPaths(infos, paths));
         CHECK(FileSystemManager::IsFile(out_path / foo_path));
         CHECK(FileSystemManager::IsFile(out_path / bar_path));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(out_path / link_path));
     }
 
     SECTION("retrieve from new API object but same endpoint") {
@@ -471,6 +540,7 @@ using ExecProps = std::map<std::string, std::string>;
         CHECK(second_api->RetrieveToPaths(infos, paths));
         CHECK(FileSystemManager::IsFile(out_path / foo_path));
         CHECK(FileSystemManager::IsFile(out_path / bar_path));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(out_path / link_path));
     }
 }
 
