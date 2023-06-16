@@ -249,9 +249,6 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
-      , [ "COMPILER_FAMILY"
-        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
-        ]
       , [ "TARGET_ARCH"
         , { "type": "var"
           , "name": "TARGET_ARCH"
