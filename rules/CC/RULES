@@ -682,7 +682,7 @@
     [ "Install target's artifacts with transitive dependencies. Depending on"
     , "the target, artifacts and dependencies will be installed to"
     , "subdirectories \"bin\", \"include\", and \"lib\". For library targets,"
-    , "a pkg-config file is generated and provided in \"share/pkgconfig\"."
+    , "a pkg-config file is generated and provided in \"lib/pkgconfig\"."
     ]
   , "config_vars": ["PREFIX"]
   , "target_fields": ["targets"]
@@ -715,7 +715,7 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ ["pc-install-dir", "share/pkgconfig"]
+      [ ["pc-install-dir", "lib/pkgconfig"]
       , ["targets", {"type": "FIELD", "name": "targets"}]
       , [ "prefix"
         , { "type": "if"
