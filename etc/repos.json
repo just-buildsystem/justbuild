@@ -468,6 +468,7 @@
       , "zlib": "zlib"
       , "ssl": "ssl"
       , "bzip2": "bzip2"
+      , "lzma": "lzma"
       }
     , "bootstrap": {"drop": true}
     }

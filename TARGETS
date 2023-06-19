@@ -224,7 +224,7 @@
     , "bindings":
       [ ["ENABLE_LIBB2", false]
       , ["ENABLE_LZ4", false]
-      , ["ENABLE_LZMA", false]
+      , ["ENABLE_LZMA", true]
       , ["ENABLE_ZSTD", false]
       , ["ENABLE_LIBXML2", false]
       , ["ENABLE_EXPAT", false]
