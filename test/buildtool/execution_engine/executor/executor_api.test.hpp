@@ -308,7 +308,7 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
 
     // define known artifacts
     auto foo_desc = ArtifactDescription{foo_digest, ObjectType::File};
-    auto bar_desc = ArtifactDescription{bar_digest, ObjectType::File};
+    auto bar_desc = ArtifactDescription{bar_digest, ObjectType::Symlink};
 
     DependencyGraph g{};
     auto foo_id = g.AddArtifact(foo_desc);
@@ -329,9 +329,9 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         CHECK(api->RetrieveToPaths({*tree_info}, {tmpdir.string()}));
         CHECK(FileSystemManager::IsDirectory(tmpdir));
         CHECK(FileSystemManager::IsFile(tmpdir / "a"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "b"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
-        CHECK(*FileSystemManager::ReadFile(tmpdir / "b") == "bar");
+        CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b") == "bar");
         REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
     }
 
@@ -346,9 +346,9 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         CHECK(FileSystemManager::IsDirectory(tmpdir));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "b"));
         CHECK(FileSystemManager::IsFile(tmpdir / "a"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "b" / "a"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
-        CHECK(*FileSystemManager::ReadFile(tmpdir / "b" / "a") == "bar");
+        CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
         REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
     }
 
@@ -367,9 +367,9 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         CHECK(FileSystemManager::IsDirectory(tmpdir));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "b"));
         CHECK(FileSystemManager::IsFile(tmpdir / "a"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "b" / "a"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
-        CHECK(*FileSystemManager::ReadFile(tmpdir / "b" / "a") == "bar");
+        CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
         REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
     }
 
@@ -398,8 +398,10 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         CHECK(FileSystemManager::IsDirectory(tmpdir));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "b"));
         CHECK(FileSystemManager::IsFile(tmpdir / "a"));
+        // echo command returns regular file instead of symlink
         CHECK(FileSystemManager::IsFile(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
+        // echo command returns regular file instead of symlink
         CHECK(*FileSystemManager::ReadFile(tmpdir / "b" / "a") == "bar");
         REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
     }
@@ -425,9 +427,12 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
     auto const make_tree_id = std::string{"make_tree"};
     auto const* make_tree_cmd =
         "mkdir -p baz/baz/\n"
-        "touch foo bar\n"
-        "touch baz/foo baz/bar\n"
-        "touch baz/baz/foo baz/baz/bar";
+        "touch foo\n"
+        "ln -s dummy bar\n"
+        "touch baz/foo\n"
+        "ln -s dummy baz/bar\n"
+        "touch baz/baz/foo\n"
+        "ln -s dummy baz/baz/bar";
 
     auto create_action = [&make_tree_id, make_tree_cmd](
                              std::vector<std::string>&& out_files,
@@ -469,13 +474,14 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         REQUIRE(api->RetrieveToPaths({*root_info}, {tmpdir}));
         CHECK(FileSystemManager::IsFile(tmpdir / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "bar"));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "baz" / "bar"));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "baz" / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "baz" / "baz" /
+                                                     "bar"));
     }
 
     SECTION("disjoint files and directories") {
@@ -509,7 +515,7 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         auto bar_info = bar->Content().Info();
         REQUIRE(bar_info);
-        CHECK(IsFileObject(bar_info->type));
+        CHECK(IsSymlinkObject(bar_info->type));
 
         auto baz_info = baz->Content().Info();
         REQUIRE(baz_info);
@@ -523,15 +529,16 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
         CHECK(FileSystemManager::IsFile(tmpdir / "foo"));
 
         REQUIRE(api->RetrieveToPaths({*bar_info}, {tmpdir / "bar"}));
-        CHECK(FileSystemManager::IsFile(tmpdir / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "bar"));
 
         REQUIRE(api->RetrieveToPaths({*baz_info}, {tmpdir / "baz"}));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "baz" / "bar"));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "baz" / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "baz" / "baz" /
+                                                     "bar"));
     }
 
     SECTION("nested files and directories") {
@@ -573,7 +580,7 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         auto bar_info = bar->Content().Info();
         REQUIRE(bar_info);
-        CHECK(IsFileObject(bar_info->type));
+        CHECK(IsSymlinkObject(bar_info->type));
 
         auto baz_info = baz->Content().Info();
         REQUIRE(baz_info);
@@ -586,26 +593,27 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
         REQUIRE(api->RetrieveToPaths({*root_info}, {tmpdir / "root"}));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "root"));
         CHECK(FileSystemManager::IsFile(tmpdir / "root" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "root" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "root" / "bar"));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "root" / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "root" / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "root" / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "root" / "baz" /
+                                                     "bar"));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "root" / "baz" / "baz"));
         CHECK(
             FileSystemManager::IsFile(tmpdir / "root" / "baz" / "baz" / "foo"));
-        CHECK(
-            FileSystemManager::IsFile(tmpdir / "root" / "baz" / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "root" / "baz" /
+                                                     "baz" / "bar"));
 
         REQUIRE(api->RetrieveToPaths({*foo_info}, {tmpdir / "foo"}));
         CHECK(FileSystemManager::IsFile(tmpdir / "foo"));
 
         REQUIRE(api->RetrieveToPaths({*bar_info}, {tmpdir / "bar"}));
-        CHECK(FileSystemManager::IsFile(tmpdir / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "bar"));
 
         REQUIRE(api->RetrieveToPaths({*baz_info}, {tmpdir / "baz"}));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "baz"));
         CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "foo"));
-        CHECK(FileSystemManager::IsFile(tmpdir / "baz" / "bar"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "baz" / "bar"));
     }
 
     SECTION("non-existing outputs") {
