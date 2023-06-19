@@ -257,4 +257,6 @@ details.
 See also
 ========
 
+**just-mr-repository-config(5)**,
+**just-repository-config(5)**,
 **just(1)**

@@ -669,3 +669,9 @@ The exit status of `just` is one of the following values:
  - 2: the command successfully parsed all the needed files (e.g.,
    TARGETS), successfully compiled the eventually required objects, but
    the generation of some artifacts failed (e.g., a test failed).
+
+See also
+========
+
+**just-repository-config(5)**,
+**just-mr(1)**
