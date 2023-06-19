@@ -36,10 +36,10 @@ OPTIONS
 General options
 ---------------
 
-**-h**, **--help**  
+**`-h`**, **`--help`**  
 Output a usage message and exit.
 
-**-C**, **--repository-config** PATH  
+**`-C`**, **`--repository-config`** PATH  
 Path to the multi-repository configuration file. See
 **just-mr-repository-config(5)** for more details. If no configuration
 file is specified, `just-mr` will look for one in the following
@@ -54,20 +54,20 @@ order:
 The default configuration lookup order can be adjusted in the just-mrrc
 file. See **just-mrrc(5)** for more details.
 
-**-D**, **--defines** JSON  
+**`-D`**, **`--defines`** JSON  
 Defines, via an in-line JSON object, an overlay configuration for
 **just(1)**; if used as a launcher for a subcommand known to support
-**--defines**, this defines value is forwarded, otherwise it is ignored.
-If **-D** is given several times, the **-D** options overlay (in the
+**`--defines`**, this defines value is forwarded, otherwise it is ignored.
+If **`-D`** is given several times, the **`-D`** options overlay (in the
 sense of `map_union`) in the order they are given on the command line.
 
-**--local-build-root** PATH  
+**`--local-build-root`** PATH  
 Root for local CAS, cache, and build directories. The path will be
 created if it does not exist already. This option overwrites any values
 set in the **just-mrrc(5)** file.  
 Default: path `".cache/just"` in user's home directory.
 
-**--checkout-locations** PATH  
+**`--checkout-locations`** PATH  
 Specification file for checkout locations. This file contains a JSON
 object, for which under the key `"<version control>"` of key
 `"checkouts"` we get pairs of repository URLs as keys and absolute paths
@@ -78,12 +78,12 @@ the respective repository. This options overwrites any values set in the
 **just-mrrc(5)** file.  
 Default: file path `".just-local.json"` in user's home directory.
 
-**-L**, **--local-launcher** JSON_ARRAY  
+**`-L`**, **`--local-launcher`** JSON_ARRAY  
 JSON array with the list of strings representing the launcher to prepend
 actions' commands before being executed locally.  
 Default: `["env", "--"]`.
 
-**--distdir** PATH  
+**`--distdir`** PATH  
 Directory to look for distfiles before fetching. If given, this will be
 the first place distfiles are looked for. This option can be given
 multiple times to specify a list of distribution directories that are
@@ -92,45 +92,45 @@ Directories specified via this option will be appended to the ones set
 in the **just-mrrc(5)** file.  
 Default: the single file path `".distfiles"` in user's home directory.
 
-**--main** NAME  
+**`--main`** NAME  
 The repository to take the target from.  
-**-f,--log-file** PATH  
+**`-f`**, **`--log-file`** PATH  
 Path to local log file. `just-mr` will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
 output has been generated.
 
-**--log-limit** NUM  
+**`--log-limit`** NUM  
 Log limit (higher is more verbose) in interval \[0,6\] (Default: 3).
 
-**--plain-log**  
+**`--plain-log`**  
 Do not use ANSI escape sequences to highlight messages.
 
-**--log-append**  
+**`--log-append`**  
 Append messages to log file instead of overwriting existing.
 
-**--no-fetch-ssl-verify**  
+**`--no-fetch-ssl-verify`**  
 Disable the default peer SSL certificate verification step when fetching
 archives (for which we verify the hash anyway) from remote.
 
-**--fetch-cacert** PATH  
+**`--fetch-cacert`** PATH  
 Path to the CA certificate bundle containing one or more certificates to
 be used to peer verify archive fetches from remote.
 
-**--just** PATH  
+**`--just`** PATH  
 Name of the just binary in `PATH` or path to the just binary.  
 Default: `"just"`.
 
-**--rc** PATH  
+**`--rc`** PATH  
 Path to the just-mrrc file to use. See **just-mrrc(5)** for more
 details.  
 Default: file path `".just-mrrc"` in the user's home directory.
 
-**--git** PATH  
+**`--git`** PATH  
 Path to the git binary in `PATH` or path to the git binary. Used in the
 rare instances when shelling out to git is needed.  
 Default: `"git"`.
 
-**--norc**  
+**`--norc`**  
 Option to prevent reading any **just-mrrc(5)** file.
 
 SUBCOMMANDS
