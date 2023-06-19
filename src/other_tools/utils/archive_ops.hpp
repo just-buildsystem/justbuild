@@ -29,7 +29,8 @@ enum class ArchiveType : size_t {
     kArchiveTypeZip,
     kArchiveTypeTar,
     kArchiveTypeTarGz,
-    kArchiveTypeTarBz2
+    kArchiveTypeTarBz2,
+    kArchiveTypeTarXz
 };
 
 /// \brief Class handling archiving and unarchiving operations via libarchive
