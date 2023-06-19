@@ -1,0 +1,5 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": ["price.h", "range_common.h", "range_encoder.h", "range_decoder.h"]
+  }
+}

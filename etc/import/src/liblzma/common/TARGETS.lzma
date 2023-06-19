@@ -1,0 +1,74 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ENABLE_THREADS", "ENCODERS", "DECODERS"]
+  , "hdrs":
+    { "type": "++"
+    , "$1":
+      [ [ "common.h"
+        , "easy_preset.h"
+        , "filter_common.h"
+        , "index.h"
+        , "memcmplen.h"
+        , "stream_flags_common.h"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+        , "then": ["outqueue.h"]
+        }
+      ]
+    }
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ { "type": "if"
+        , "cond": {"type": "var", "name": "ENCODERS"}
+        , "then": ["encoder_headers"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DECODERS"}
+        , "then": ["decoder_headers"]
+        }
+      ]
+    }
+  }
+, "encoder_headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "block_buffer_encoder.h"
+    , "block_encoder.h"
+    , "filter_encoder.h"
+    , "index_encoder.h"
+    ]
+  , "deps":
+    [ ["src/liblzma/lzma", "lzma1_headers"]
+    , ["src/liblzma/lzma", "lzma2_headers"]
+    , ["src/liblzma/delta", "headers"]
+    , ["src/liblzma/simple", "headers"]
+    ]
+  }
+, "decoder_headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["LZIP_DECODER"]
+  , "hdrs":
+    { "type": "++"
+    , "$1":
+      [ [ "alone_decoder.h"
+        , "block_decoder.h"
+        , "filter_decoder.h"
+        , "index_decoder.h"
+        , "stream_decoder.h"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "LZIP_DECODER"}
+        , "then": ["lzip_decoder.h"]
+        }
+      ]
+    }
+  , "deps":
+    [ ["src/liblzma/lzma", "lzma1_headers"]
+    , ["src/liblzma/lzma", "lzma2_headers"]
+    , ["src/liblzma/delta", "headers"]
+    , ["src/liblzma/simple", "headers"]
+    ]
+  }
+}

@@ -1,0 +1,356 @@
+{ "lzma":
+  { "type": "export"
+  , "target": "lzma_config"
+  , "doc": ["The LZMA linkable library"]
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "AR"
+    , "ENV"
+    , "ENABLE_SMALL"
+    , "ADDITIONAL_CHECK_TYPES"
+    , "ENABLE_THREADS"
+    , "ENCODERS"
+    , "DECODERS"
+    , "LZIP_DECODER"
+    ]
+  , "config_doc":
+    { "ENABLE_SMALL":
+      ["Boolean. Default value: false. Reduce code size at expense of speed."]
+    , "ADDITIONAL_CHECK_TYPES":
+      ["Boolean. Default value: true. Support additional crc64/sha256 checks."]
+    , "ENABLE_THREADS": ["Boolean. Default value: true. Support threading."]
+    , "ENCODERS": ["Boolean. Default value: true. Include encoder support."]
+    , "DECODERS": ["Boolean. Default value: true. Include decoder support."]
+    , "LZIP_DECODER": ["Boolean. Default value: true. Support lzip decoder."]
+    }
+  }
+, "lzma_config":
+  { "type": "configure"
+  , "arguments_config":
+    [ "OS"
+    , "ARCH"
+    , "TARGET_ARCH"
+    , "ENABLE_SMALL"
+    , "ENABLE_THREADS"
+    , "ENCODERS"
+    , "DECODERS"
+    , "LZIP_DECODER"
+    ]
+  , "target": "lzma_internal"
+  , "config":
+    { "type": "let*"
+    , "bindings":
+      [ [ "OS"
+        , { "type": "var"
+          , "name": "OS"
+          , "default":
+            {"type": "fail", "msg": "Required variable 'OS' is not set."}
+          }
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default":
+            { "type": "var"
+            , "name": "ARCH"
+            , "default":
+              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
+            }
+          }
+        ]
+      , [ "ENABLE_SMALL"
+        , {"type": "var", "name": "ENABLE_SMALL", "default": false}
+        ]
+      , [ "ADDITIONAL_CHECK_TYPES"
+        , {"type": "var", "name": "ADDITIONAL_CHECK_TYPES", "default": true}
+        ]
+      , [ "ENABLE_THREADS"
+        , {"type": "var", "name": "ENABLE_THREADS", "default": true}
+        ]
+      , ["ENCODERS", {"type": "var", "name": "ENCODERS", "default": true}]
+      , ["DECODERS", {"type": "var", "name": "DECODERS", "default": true}]
+      , [ "LZIP_DECODER"
+        , {"type": "var", "name": "LZIP_DECODER", "default": true}
+        ]
+      ]
+    , "body":
+      { "type": "env"
+      , "vars":
+        [ "OS"
+        , "TARGET_ARCH"
+        , "ENABLE_SMALL"
+        , "ADDITIONAL_CHECK_TYPES"
+        , "ENABLE_THREADS"
+        , "ENCODERS"
+        , "DECODERS"
+        , "LZIP_DECODER"
+        ]
+      }
+    }
+  }
+, "lzma_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config":
+    [ "OS"
+    , "TARGET_ARCH"
+    , "ENABLE_SMALL"
+    , "ADDITIONAL_CHECK_TYPES"
+    , "ENABLE_THREADS"
+    , "ENCODERS"
+    , "DECODERS"
+    , "LZIP_DECODER"
+    ]
+  , "name": ["lzma"]
+  , "pure C": ["YES"]
+  , "cflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+    , "then": ["-pthread"]
+    }
+  , "private-cflags":
+    { "type": "++"
+    , "$1":
+      [ { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_SMALL"}
+        , "then": ["-DHAVE_SMALL"]
+        }
+      , ["-DHAVE_CHECK_CRC32"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ADDITIONAL_CHECK_TYPES"}
+        , "then": ["-DHAVE_CHECK_CRC64", "-DHAVE_CHECK_SHA256"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "MATCH_FINDERS", "default": true}
+        , "then":
+          [ "-DHAVE_MF_HC3"
+          , "-DHAVE_MF_HC4"
+          , "-DHAVE_MF_BT2"
+          , "-DHAVE_MF_BT3"
+          , "-DHAVE_MF_BT4"
+          ]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+        , "then": ["-DMYTHREAD_POSIX"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENCODERS"}
+        , "then":
+          [ "-DHAVE_ENCODERS"
+          , "-DHAVE_ENCODER_LZMA1"
+          , "-DHAVE_ENCODER_LZMA2"
+          , "-DHAVE_ENCODER_X86"
+          , "-DHAVE_ENCODER_ARM"
+          , "-DHAVE_ENCODER_ARMTHUMB"
+          , "-DHAVE_ENCODER_ARM64"
+          , "-DHAVE_ENCODER_POWERPC"
+          , "-DHAVE_ENCODER_IA64"
+          , "-DHAVE_ENCODER_SPARC"
+          , "-DHAVE_ENCODER_DELTA"
+          ]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DECODERS"}
+        , "then":
+          [ "-DHAVE_DECODERS"
+          , "-DHAVE_DECODER_LZMA1"
+          , "-DHAVE_DECODER_LZMA2"
+          , "-DHAVE_DECODER_X86"
+          , "-DHAVE_DECODER_ARM"
+          , "-DHAVE_DECODER_ARMTHUMB"
+          , "-DHAVE_DECODER_ARM64"
+          , "-DHAVE_DECODER_POWERPC"
+          , "-DHAVE_DECODER_IA64"
+          , "-DHAVE_DECODER_SPARC"
+          , "-DHAVE_DECODER_DELTA"
+          ]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "LZIP_DECODER"}
+        , "then": ["-DHAVE_LZIP_DECODER"]
+        }
+      , [ "-DHAVE_CLOCK_GETTIME"
+        , "-DHAVE_DECL_CLOCK_MONOTONIC"
+        , "-DHAVE_PTHREAD_CONDATTR_SETCLOCK"
+        , "-DTUKLIB_SYMBOL_PREFIX=lzma_"
+        , "-DHAVE_FUNC_ATTRIBUTE_CONSTRUCTOR"
+        , "-DHAVE_CPUID_H"
+        , "-DHAVE_VISIBILITY=0"
+        ]
+      , { "type": "case"
+        , "expr": {"type": "var", "name": "TARGET_ARCH"}
+        , "case":
+          { "x86": ["-DHAVE_IMMINTRIN_H", "-DHAVE__MM_MOVEMASK_EPI8"]
+          , "x86_64":
+            [ "-DHAVE_IMMINTRIN_H"
+            , "-DHAVE__MM_MOVEMASK_EPI8"
+            , "-DHAVE_USABLE_CLMUL"
+            ]
+          }
+        }
+      , { "type": "case"
+        , "expr": {"type": "var", "name": "OS"}
+        , "case": {"windows": ["-DLZMA_API_STATIC"]}
+        }
+      ]
+    }
+  , "hdrs": [["src/liblzma/api", "public_headers"]]
+  , "srcs":
+    { "type": "++"
+    , "$1":
+      [ [ "src/liblzma/check/check.c"
+        , "src/liblzma/common/block_util.c"
+        , "src/liblzma/common/common.c"
+        , "src/liblzma/common/easy_preset.c"
+        , "src/liblzma/common/filter_common.c"
+        , "src/liblzma/common/hardware_physmem.c"
+        , "src/liblzma/common/index.c"
+        , "src/liblzma/common/stream_flags_common.c"
+        , "src/liblzma/common/string_conversion.c"
+        , "src/liblzma/common/vli_size.c"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_SMALL"}
+        , "then": ["src/liblzma/check/crc32_small.c"]
+        , "else":
+          ["src/liblzma/check/crc32_fast.c", "src/liblzma/check/crc32_table.c"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ADDITIONAL_CHECK_TYPES"}
+        , "then":
+          { "type": "if"
+          , "cond": {"type": "var", "name": "ENABLE_SMALL"}
+          , "then": ["src/liblzma/check/crc64_small.c"]
+          , "else":
+            [ "src/liblzma/check/crc64_fast.c"
+            , "src/liblzma/check/crc64_table.c"
+            ]
+          }
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ADDITIONAL_CHECK_TYPES"}
+        , "then": ["src/liblzma/check/sha256.c"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+        , "then":
+          [ "src/common/tuklib_cpucores.c"
+          , "src/liblzma/common/hardware_cputhreads.c"
+          , "src/liblzma/common/outqueue.c"
+          ]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENCODERS"}
+        , "then":
+          { "type": "++"
+          , "$1":
+            [ [ "src/liblzma/common/alone_encoder.c"
+              , "src/liblzma/common/block_buffer_encoder.c"
+              , "src/liblzma/common/block_encoder.c"
+              , "src/liblzma/common/block_header_encoder.c"
+              , "src/liblzma/common/easy_buffer_encoder.c"
+              , "src/liblzma/common/easy_encoder.c"
+              , "src/liblzma/common/easy_encoder_memusage.c"
+              , "src/liblzma/common/filter_buffer_encoder.c"
+              , "src/liblzma/common/filter_encoder.c"
+              , "src/liblzma/common/filter_flags_encoder.c"
+              , "src/liblzma/common/index_encoder.c"
+              , "src/liblzma/common/stream_buffer_encoder.c"
+              , "src/liblzma/common/stream_encoder.c"
+              , "src/liblzma/common/stream_flags_encoder.c"
+              , "src/liblzma/common/vli_encoder.c"
+              ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+              , "then": ["src/liblzma/common/stream_encoder_mt.c"]
+              }
+            , [ "src/liblzma/simple/simple_encoder.c"
+              , "src/liblzma/lzma/lzma_encoder.c"
+              , "src/liblzma/lzma/lzma_encoder_optimum_fast.c"
+              , "src/liblzma/lzma/lzma_encoder_optimum_normal.c"
+              , "src/liblzma/lz/lz_encoder.c"
+              , "src/liblzma/lz/lz_encoder_mf.c"
+              , "src/liblzma/rangecoder/price_table.c"
+              , "src/liblzma/lzma/lzma2_encoder.c"
+              , "src/liblzma/delta/delta_encoder.c"
+              , "extra_sources"
+              ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ENABLE_SMALL"}
+              , "then": []
+              , "else": ["src/liblzma/lzma/fastpos_table.c"]
+              }
+            ]
+          }
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DECODERS"}
+        , "then":
+          { "type": "++"
+          , "$1":
+            [ [ "src/liblzma/common/alone_decoder.c"
+              , "src/liblzma/common/auto_decoder.c"
+              , "src/liblzma/common/block_buffer_decoder.c"
+              , "src/liblzma/common/block_decoder.c"
+              , "src/liblzma/common/block_header_decoder.c"
+              , "src/liblzma/common/easy_decoder_memusage.c"
+              , "src/liblzma/common/file_info.c"
+              , "src/liblzma/common/filter_buffer_decoder.c"
+              , "src/liblzma/common/filter_decoder.c"
+              , "src/liblzma/common/filter_flags_decoder.c"
+              , "src/liblzma/common/index_decoder.c"
+              , "src/liblzma/common/index_hash.c"
+              , "src/liblzma/common/stream_buffer_decoder.c"
+              , "src/liblzma/common/stream_decoder.c"
+              , "src/liblzma/common/stream_flags_decoder.c"
+              , "src/liblzma/common/vli_decoder.c"
+              ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+              , "then": ["src/liblzma/common/stream_decoder_mt.c"]
+              }
+            , [ "src/liblzma/simple/simple_decoder.c"
+              , "src/liblzma/lzma/lzma_decoder.c"
+              , "src/liblzma/lz/lz_decoder.c"
+              , "src/liblzma/lzma/lzma2_decoder.c"
+              , "src/liblzma/delta/delta_decoder.c"
+              , "extra_sources"
+              ]
+            ]
+          }
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "LZIP_DECODER"}
+        , "then": ["src/liblzma/common/lzip_decoder.c"]
+        }
+      ]
+    }
+  , "private-deps":
+    [ ["src/common", "headers"]
+    , ["src/liblzma/check", "headers"]
+    , ["src/liblzma/common", "headers"]
+    ]
+  }
+, "extra_sources":
+  { "type": "install"
+  , "deps":
+    [ "src/liblzma/lzma/lzma_encoder_presets.c"
+    , "src/liblzma/delta/delta_common.c"
+    , "src/liblzma/simple/simple_coder.c"
+    , "src/liblzma/simple/x86.c"
+    , "src/liblzma/simple/arm.c"
+    , "src/liblzma/simple/armthumb.c"
+    , "src/liblzma/simple/arm64.c"
+    , "src/liblzma/simple/powerpc.c"
+    , "src/liblzma/simple/ia64.c"
+    , "src/liblzma/simple/sparc.c"
+    ]
+  }
+}

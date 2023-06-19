@@ -1,0 +1,10 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "simple_encoder.h"
+    , "simple_decoder.h"
+    , "simple_coder.h"
+    , "simple_private.h"
+    ]
+  }
+}

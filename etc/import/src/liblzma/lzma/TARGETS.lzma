@@ -1,0 +1,17 @@
+{ "lzma1_headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "fastpos.h"
+    , "lzma_common.h"
+    , "lzma_encoder.h"
+    , "lzma_encoder_private.h"
+    , "lzma_decoder.h"
+    ]
+  , "deps":
+    [["src/liblzma/lz", "headers"], ["src/liblzma/rangecoder", "headers"]]
+  }
+, "lzma2_headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs": ["lzma2_encoder.h", "lzma2_decoder.h"]
+  }
+}

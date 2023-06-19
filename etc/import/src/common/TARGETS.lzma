@@ -1,0 +1,22 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ENABLE_THREADS"]
+  , "hdrs":
+    { "type": "++"
+    , "$1":
+      [ [ "mythread.h"
+        , "sysdefs.h"
+        , "tuklib_common.h"
+        , "tuklib_config.h"
+        , "tuklib_integer.h"
+        , "tuklib_physmem.c"
+        , "tuklib_physmem.h"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_THREADS"}
+        , "then": ["tuklib_cpucores.h"]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["ENABLE_SMALL", "ADDITIONAL_CHECK_TYPES"]
+  , "hdrs":
+    { "type": "++"
+    , "$1":
+      [ ["check.h", "crc_macros.h"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "ENABLE_SMALL"}
+        , "then": []
+        , "else":
+          { "type": "++"
+          , "$1":
+            [ ["crc32_table_be.h", "crc32_table_le.h"]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ADDITIONAL_CHECK_TYPES"}
+              , "then": ["crc64_table_be.h", "crc64_table_le.h"]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

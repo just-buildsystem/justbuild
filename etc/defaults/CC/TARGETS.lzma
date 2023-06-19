@@ -1,0 +1,14 @@
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "base": [["@", "base", "CC", "defaults"]]
+  , "ADD_CFLAGS":
+    [ "-std=c99"
+    , "-Wall"
+    , "-Wextra"
+    , "-DHAVE_STDBOOL_H"
+    , "-DHAVE__BOOL"
+    , "-DHAVE_STDINT_H"
+    , "-DHAVE_INTTYPES_H"
+    ]
+  }
+}

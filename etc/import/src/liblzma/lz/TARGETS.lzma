@@ -1,0 +1,10 @@
+{ "headers":
+  { "type": ["@", "rules", "CC", "library"]
+  , "hdrs":
+    [ "lz_encoder.h"
+    , "lz_encoder_hash.h"
+    , "lz_encoder_hash_table.h"
+    , "lz_decoder.h"
+    ]
+  }
+}
