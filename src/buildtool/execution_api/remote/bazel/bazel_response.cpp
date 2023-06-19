@@ -41,12 +41,36 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     return blobs[0].data;
 }
 
-auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
+auto BazelResponse::Artifacts() noexcept -> ArtifactInfos {
+    return ArtifactsWithDirSymlinks().first;
+}
+
+auto BazelResponse::ArtifactsWithDirSymlinks() noexcept
+    -> std::pair<ArtifactInfos, DirSymlinks> {
+    // make sure to populate only once
+    populated_ = Populate();
+    if (not populated_) {
+        return {};
+    }
+    return std::pair(artifacts_, dir_symlinks_);
+}
+
+auto BazelResponse::Populate() noexcept -> bool {
+    if (populated_) {
+        return true;
+    }
     ArtifactInfos artifacts{};
     auto const& action_result = output_.action_result;
     artifacts.reserve(
-        static_cast<std::size_t>(action_result.output_files().size()) +
-        static_cast<std::size_t>(action_result.output_directories().size()));
+        static_cast<std::size_t>(action_result.output_files_size()) +
+        static_cast<std::size_t>(action_result.output_file_symlinks_size()) +
+        static_cast<std::size_t>(
+            action_result.output_directory_symlinks_size()) +
+        static_cast<std::size_t>(action_result.output_directories_size()));
+
+    DirSymlinks dir_symlinks{};
+    dir_symlinks.reserve(static_cast<std::size_t>(
+        action_result.output_directory_symlinks_size()));
 
     // collect files and store them
     for (auto const& file : action_result.output_files()) {
@@ -58,7 +82,34 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
                                                  ? ObjectType::Executable
                                                  : ObjectType::File});
         } catch (...) {
-            return {};
+            return false;
+        }
+    }
+
+    // collect all symlinks and store them
+    for (auto const& link : action_result.output_file_symlinks()) {
+        try {
+            artifacts.emplace(
+                link.path(),
+                Artifact::ObjectInfo{
+                    .digest =
+                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .type = ObjectType::Symlink});
+        } catch (...) {
+            return false;
+        }
+    }
+    for (auto const& link : action_result.output_directory_symlinks()) {
+        try {
+            artifacts.emplace(
+                link.path(),
+                Artifact::ObjectInfo{
+                    .digest =
+                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .type = ObjectType::Symlink});
+            dir_symlinks.emplace(link.path());  // add it to set
+        } catch (...) {
+            return false;
         }
     }
 
@@ -73,10 +124,12 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
                         .digest = ArtifactDigest{tree.tree_digest()},
                         .type = ObjectType::Tree});
             } catch (...) {
-                return {};
+                return false;
             }
         }
-        return artifacts;
+        artifacts_ = std::move(artifacts);
+        dir_symlinks_ = std::move(dir_symlinks);
+        return true;
     }
 
     // obtain tree digests for output directories
@@ -98,29 +151,31 @@ auto BazelResponse::Artifacts() const noexcept -> ArtifactInfos {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
                     tree_blob.data);
                 if (not tree) {
-                    return {};
+                    return false;
                 }
 
-                // The server does not store the Directory messages it just has
-                // sent us as part of the Tree message. If we want to be able to
-                // use the Directories as inputs for actions, we have to upload
-                // them manually.
+                // The server does not store the Directory messages it just
+                // has sent us as part of the Tree message. If we want to be
+                // able to use the Directories as inputs for actions, we
+                // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
-                    return {};
+                    return false;
                 }
                 artifacts.emplace(
                     action_result.output_directories(pos).path(),
                     Artifact::ObjectInfo{.digest = *root_digest,
                                          .type = ObjectType::Tree});
             } catch (...) {
-                return {};
+                return false;
             }
             ++pos;
         }
         tree_blobs = blob_reader.Next();
     }
-    return artifacts;
+    artifacts_ = std::move(artifacts);
+    dir_symlinks_ = std::move(dir_symlinks);
+    return true;
 }
 
 auto BazelResponse::UploadTreeMessageDirectories(

@@ -70,7 +70,7 @@ class TestResponse : public IExecutionResponse {
     [[nodiscard]] auto ActionDigest() const noexcept -> std::string final {
         return {};
     }
-    [[nodiscard]] auto Artifacts() const noexcept -> ArtifactInfos final {
+    [[nodiscard]] auto Artifacts() noexcept -> ArtifactInfos final {
         ArtifactInfos artifacts{};
         artifacts.reserve(config_.execution.outputs.size());
 
@@ -88,6 +88,10 @@ class TestResponse : public IExecutionResponse {
         }
 
         return artifacts;
+    }
+    [[nodiscard]] auto ArtifactsWithDirSymlinks() noexcept
+        -> std::pair<ArtifactInfos, DirSymlinks> final {
+        return {};
     }
 
   private:

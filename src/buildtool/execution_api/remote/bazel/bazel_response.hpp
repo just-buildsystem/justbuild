@@ -56,12 +56,18 @@ class BazelResponse final : public IExecutionResponse {
         return action_id_;
     }
 
-    auto Artifacts() const noexcept -> ArtifactInfos final;
+    auto Artifacts() noexcept -> ArtifactInfos final;
+
+    auto ArtifactsWithDirSymlinks() noexcept
+        -> std::pair<ArtifactInfos, DirSymlinks> final;
 
   private:
     std::string action_id_{};
     std::shared_ptr<BazelNetwork> const network_{};
     BazelExecutionClient::ExecutionOutput output_{};
+    ArtifactInfos artifacts_{};
+    DirSymlinks dir_symlinks_{};
+    bool populated_{false};
 
     BazelResponse(std::string action_id,
                   std::shared_ptr<BazelNetwork> network,
@@ -77,6 +83,8 @@ class BazelResponse final : public IExecutionResponse {
         -> bool {
         return id.size_bytes() != 0;
     }
+
+    [[nodiscard]] auto Populate() noexcept -> bool;
 
     [[nodiscard]] auto UploadTreeMessageDirectories(
         bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest>;

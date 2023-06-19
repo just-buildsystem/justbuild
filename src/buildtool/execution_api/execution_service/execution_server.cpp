@@ -268,11 +268,15 @@ static auto CreateTreeDigestFromDirectoryDigest(
 static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
                            IExecutionResponse::Ptr const& execution,
                            Storage const& storage) noexcept -> bool {
-    auto const& size = static_cast<int>(execution->Artifacts().size());
+    auto const& artifacts_plus = execution->ArtifactsWithDirSymlinks();
+    auto const& size = static_cast<int>(artifacts_plus.first.size());
     response->mutable_result()->mutable_output_files()->Reserve(size);
+    response->mutable_result()->mutable_output_file_symlinks()->Reserve(size);
+    response->mutable_result()->mutable_output_directory_symlinks()->Reserve(
+        size);
     response->mutable_result()->mutable_output_directories()->Reserve(size);
 
-    for (auto const& [path, info] : execution->Artifacts()) {
+    for (auto const& [path, info] : artifacts_plus.first) {
         auto dgst = static_cast<::bazel_re::Digest>(info.digest);
 
         if (info.type == ObjectType::Tree) {
@@ -294,6 +298,32 @@ static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
             }
             response->mutable_result()->mutable_output_directories()->Add(
                 std::move(out_dir));
+        }
+        else if (info.type == ObjectType::Symlink) {
+            ::bazel_re::OutputSymlink out_link;
+            *(out_link.mutable_path()) = path;
+            // recover the target of the symlink
+            auto cas_path =
+                storage.CAS().BlobPath(dgst, /*is_executable=*/false);
+            if (not cas_path) {
+                return false;
+            }
+            auto const& content = FileSystemManager::ReadFile(*cas_path);
+            if (not content) {
+                return false;
+            }
+            *(out_link.mutable_target()) = *content;
+            if (artifacts_plus.second.contains(path)) {
+                // directory symlink
+                response->mutable_result()
+                    ->mutable_output_directory_symlinks()
+                    ->Add(std::move(out_link));
+            }
+            else {
+                // file symlinks
+                response->mutable_result()->mutable_output_file_symlinks()->Add(
+                    std::move(out_link));
+            }
         }
         else {
             ::bazel_re::OutputFile out_file;

@@ -30,6 +30,8 @@ class IExecutionResponse {
   public:
     using Ptr = std::unique_ptr<IExecutionResponse>;
     using ArtifactInfos = std::unordered_map<std::string, Artifact::ObjectInfo>;
+    // set of paths found in output_directory_symlinks list of the action result
+    using DirSymlinks = std::unordered_set<std::string>;
 
     enum class StatusCode { Failed, Success };
 
@@ -56,7 +58,11 @@ class IExecutionResponse {
 
     [[nodiscard]] virtual auto ActionDigest() const noexcept -> std::string = 0;
 
-    [[nodiscard]] virtual auto Artifacts() const noexcept -> ArtifactInfos = 0;
+    [[nodiscard]] virtual auto Artifacts() noexcept -> ArtifactInfos = 0;
+
+    // Artifacts plus extra useful info
+    [[nodiscard]] virtual auto ArtifactsWithDirSymlinks() noexcept
+        -> std::pair<ArtifactInfos, DirSymlinks> = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_RESPONSE_HPP

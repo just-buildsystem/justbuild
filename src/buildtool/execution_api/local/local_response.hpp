@@ -63,13 +63,54 @@ class LocalResponse final : public IExecutionResponse {
         return action_id_;
     }
 
-    auto Artifacts() const noexcept -> ArtifactInfos final {
+    auto Artifacts() noexcept -> ArtifactInfos final {
+        return ArtifactsWithDirSymlinks().first;
+    }
+
+    auto ArtifactsWithDirSymlinks() noexcept
+        -> std::pair<ArtifactInfos, DirSymlinks> final {
+        // make sure to populate only once
+        populated_ = Populate();
+        if (not populated_) {
+            return {};
+        }
+        return std::pair(artifacts_, dir_symlinks_);
+    };
+
+  private:
+    std::string action_id_{};
+    LocalAction::Output output_{};
+    gsl::not_null<Storage const*> storage_;
+    ArtifactInfos artifacts_{};
+    DirSymlinks dir_symlinks_{};
+    bool populated_{false};
+
+    explicit LocalResponse(
+        std::string action_id,
+        LocalAction::Output output,
+        gsl::not_null<Storage const*> const& storage) noexcept
+        : action_id_{std::move(action_id)},
+          output_{std::move(output)},
+          storage_{storage} {}
+
+    [[nodiscard]] auto Populate() noexcept -> bool {
+        if (populated_) {
+            return true;
+        }
         ArtifactInfos artifacts{};
         auto const& action_result = output_.action;
         artifacts.reserve(
-            static_cast<std::size_t>(action_result.output_files().size()) +
+            static_cast<std::size_t>(action_result.output_files_size()) +
+            static_cast<std::size_t>(
+                action_result.output_file_symlinks_size()) +
+            static_cast<std::size_t>(
+                action_result.output_directory_symlinks_size()) +
             static_cast<std::size_t>(
                 action_result.output_directories().size()));
+
+        DirSymlinks dir_symlinks{};
+        dir_symlinks_.reserve(static_cast<std::size_t>(
+            action_result.output_directory_symlinks_size()));
 
         // collect files and store them
         for (auto const& file : action_result.output_files()) {
@@ -81,7 +122,34 @@ class LocalResponse final : public IExecutionResponse {
                         .type = file.is_executable() ? ObjectType::Executable
                                                      : ObjectType::File});
             } catch (...) {
-                return {};
+                return false;
+            }
+        }
+
+        // collect all symlinks and store them
+        for (auto const& link : action_result.output_file_symlinks()) {
+            try {
+                artifacts.emplace(
+                    link.path(),
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest::Create<ObjectType::File>(
+                            link.target()),
+                        .type = ObjectType::Symlink});
+            } catch (...) {
+                return false;
+            }
+        }
+        for (auto const& link : action_result.output_directory_symlinks()) {
+            try {
+                artifacts.emplace(
+                    link.path(),
+                    Artifact::ObjectInfo{
+                        .digest = ArtifactDigest::Create<ObjectType::File>(
+                            link.target()),
+                        .type = ObjectType::Symlink});
+                dir_symlinks.emplace(link.path());  // add it to set
+            } catch (...) {
+                return false;
             }
         }
 
@@ -94,25 +162,13 @@ class LocalResponse final : public IExecutionResponse {
                         .digest = ArtifactDigest{dir.tree_digest()},
                         .type = ObjectType::Tree});
             } catch (...) {
-                return {};
+                return false;
             }
         }
-
-        return artifacts;
-    };
-
-  private:
-    std::string action_id_{};
-    LocalAction::Output output_{};
-    gsl::not_null<Storage const*> storage_;
-
-    explicit LocalResponse(
-        std::string action_id,
-        LocalAction::Output output,
-        gsl::not_null<Storage const*> const& storage) noexcept
-        : action_id_{std::move(action_id)},
-          output_{std::move(output)},
-          storage_{storage} {}
+        artifacts_ = std::move(artifacts);
+        dir_symlinks_ = std::move(dir_symlinks);
+        return true;
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
