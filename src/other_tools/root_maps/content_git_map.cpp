@@ -32,7 +32,7 @@ namespace {
     -> std::optional<std::string> {
     if (repo_type == "archive") {
         return ArchiveOps::ExtractArchive(
-            ArchiveType::kArchiveTypeTarGz, archive, dst_dir);
+            ArchiveType::kArchiveTypeTar, archive, dst_dir);
     }
     if (repo_type == "zip") {
         return ArchiveOps::ExtractArchive(
