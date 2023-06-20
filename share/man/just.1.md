@@ -10,11 +10,11 @@ SYNOPSIS
 
 just version  
 just {analyse|build} \[OPTIONS\] \[\[module\] target\]  
-just install -o OUTPUT_DIR \[OPTIONS\] \[\[module\] target\]  
+just install **`-o`** OUTPUT_DIR \[OPTIONS\] \[\[module\] target\]  
 just install-cas \[OPTIONS\] OBJECT_ID  
 just describe \[OPTIONS\] \[\[module\] target\]  
 just rebuild \[OPTIONS\] \[\[module\] target\]  
-just traverse -g GRAPH_FILE -o OUT_DIR \[OPTIONS\]  
+just traverse **`-g`** GRAPH_FILE **`-o`** OUT_DIR \[OPTIONS\]  
 just gc \[OPTIONS\]  
 just execute \[OPTIONS\]
 
@@ -51,18 +51,19 @@ modules.
 The main repository is the repository containing the target specified on
 the command line. The main repository can either be read from the
 multi-repository configuration file if it contains the key `main` or
-through the option `--main`. The command-line option `--main` overrides
-what is eventually read from the multi-repository configuration file. If
-neither the multi-repository configuration file contains the `main` key
-nor the `--main` option is provided, the lexicographical first
-repository from the multi-repository configuration file is used as main.
+through the option **`--main`**. The command-line option **`--main`**
+overrides what is eventually read from the multi-repository
+configuration file. If neither the multi-repository configuration file
+contains the `main` key nor the **`--main`** option is provided, the
+lexicographical first repository from the multi-repository configuration
+file is used as main.
 
 The `workspace_root` of the main repository is then defined as follows.
-If the option `--workspace-root` is provided, then `workspace_root` is
-set accordingly. If the option is not provided, `just` checks if it is
-specified within the multi-repository configuration file. If it is, then
-it is set accordingly. If not, just starts looking for a marker in the
-current directory first, then in all the parent directories until it
+If the option **`--workspace-root`** is provided, then `workspace_root`
+is set accordingly. If the option is not provided, `just` checks if it
+is specified within the multi-repository configuration file. If it is,
+then it is set accordingly. If not, just starts looking for a marker in
+the current directory first, then in all the parent directories until it
 finds one. The supported markers are
 
  - ROOT file (can be empty, content is ignored)
@@ -167,7 +168,7 @@ artifacts.
 The `install` subcommand determines which (if any) actions need to be
 (re)done and issues the command to (re)run them. Then, it installs the
 artifacts (stored in the local or remote CAS) of the processed target
-under the given output-dir (set by option `-o`) honoring the logical
+under the given output-dir (set by option **`-o`**) honoring the logical
 path (aka, staging). If the output path does not exist, it will create
 all the necessary folders and subfolders. If files are already present,
 they will be overwritten.
@@ -268,8 +269,8 @@ execute
 This subcommand starts a single node remote execution service, honoring
 the just native remote protocol.
 
-If the flag --compatible is provided, the execution service will honor
-the original remote build execution protocol.
+If the flag **`--compatible`** is provided, the execution service will
+honor the original remote build execution protocol.
 
 OPTIONS
 =======
@@ -342,7 +343,7 @@ Supported by: analyse|build|describe|install|rebuild.
 
 **`--expression-root`** PATH  
 Path of the expression files' root directory. Default: Same as
---rule-root.  
+**`--rule-root`**.  
 Supported by: analyse|build|describe|install|rebuild.
 
 **`-L`**, **`--local-launcher`** JSON_ARRAY  
@@ -366,7 +367,8 @@ Name of the rules file.
 Supported by: analyse|build|describe|install|rebuild.
 
 **`--rule-root`** PATH  
-Path of the rule files' root directory. Default: Same as --target-root  
+Path of the rule files' root directory. Default: Same as
+**`--target-root`**  
 Supported by: analyse|build|describe|install|rebuild.
 
 **`--target-file-name`** TEXT  
@@ -375,7 +377,7 @@ Supported by: analyse|build|describe|install|rebuild.
 
 **`--target-root`** PATH  
 Path of the target files' root directory. Default: Same as
---workspace-root  
+**`--workspace-root`**  
 Supported by: analyse|build|describe|install|rebuild.
 
 **`-w`**, **`--workspace-root`** PATH  
@@ -468,7 +470,7 @@ Parallelism options
 -------------------
 
 **`-J`**, **`--build-jobs`** NUM  
-Number of jobs to run during build phase. Default: same as --jobs.  
+Number of jobs to run during build phase. Default: same as **`--jobs`**.  
 Supported by: build|install|rebuild|traverse.
 
 **`-j`**, **`--jobs`** NUM  
@@ -653,8 +655,8 @@ Path to the TLS server certificate.
 Path to the TLS server key.
 
 **`--log-operations-threshold`** INT  
-Once the number of operations stored exceeds twice 2^n, where n is
-given by the option `--log-operations-threshold`, at most 2^n operations
+Once the number of operations stored exceeds twice 2^n, where n is given
+by the option **`--log-operations-threshold`**, at most 2^n operations
 will be removed, in a FIFO scheme. If unset, defaults to 14. Must be in
 the range \[0,255\].
 

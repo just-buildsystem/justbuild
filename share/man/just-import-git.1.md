@@ -54,7 +54,7 @@ Use the specified file as the configuration to import into. The string
 `-` is treated as a request to take the config from stdin; so a file
 called `-` has to be described as `./-`, or similar. If not specified,
 for a config file is searched in the same way, as `just-mr` does, when
-invoved with `--norc`.
+invoved with **`--norc`**.
 
 **`-h`**, **`--help`**  
 Output a usage message and exit.
@@ -70,9 +70,9 @@ compatible repository already exists in the configuration.
 Use the file, specified by path relative to the repository root, as
 multi-repository specification in the imported repository. If not
 specifed, for a config file is searched in the same way as `just-mr`
-does, when invoked with `--no-rc`, however leaving out searches relative
-to global roots (`"home"` and `"system"`). In other words, `repos.json`
-and `etc/repos.json` are tried if this option is not given.
+does, when invoked with **`--no-rc`**, however leaving out searches
+relative to global roots (`"home"` and `"system"`). In other words,
+`repos.json` and `etc/repos.json` are tried if this option is not given.
 
 **`--plain`**  
 Pretend the foreign multi-repository specification is the canonical one

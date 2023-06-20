@@ -10,8 +10,8 @@ SYNOPSIS
 ========
 
 just-mr \[OPTIONS\] mrversion  
-just-mr \[OPTIONS\] {setup|setup-env} \[--all\] \[main-repo\]  
-just-mr \[OPTIONS\] fetch \[--all\] \[-o fetch-dir\] \[main-repo\]  
+just-mr \[OPTIONS\] {setup|setup-env} \[**`--all`**\] \[main-repo\]  
+just-mr \[OPTIONS\] fetch \[**`--all`**\] \[**`-o`** fetch-dir\] \[main-repo\]  
 just-mr \[OPTIONS\] update \[repo...\]  
 just-mr \[OPTIONS\] do \[JUST ARGS\]  
 just-mr \[OPTIONS\]
@@ -158,7 +158,7 @@ command line, only it and its dependencies are considered in the
 generation of the resulting multi-repository configuration file. If no
 main repository is provided, the lexicographical first repository from
 the configuration is used. To perform the setup for all repositories
-from the input configuration file, use the `--all` flag.
+from the input configuration file, use the **`--all`** flag.
 
 The behavior of the two subcommands differs only with respect to the
 main repository. In the case of `setup-env`, the workspace root of the
@@ -182,13 +182,14 @@ If a main repository is provided in the input configuration or on
 command line, only it and its dependencies are considered for fetching.
 If no main repository is provided, the lexicographical first repository
 from the configuration is used. To perform the fetch for all
-repositories from the input configuration file, use the `--all` flag.
+repositories from the input configuration file, use the **`--all`**
+flag.
 
 By default the first existing distribution directory is used as the
 output directory for writing the fetched archives on disk. If no
 existing distribution directory can be found an error is produced. To
 define an output directory that is independent of the given distribution
-directories, use the `-o` option.
+directories, use the **`-o`** option.
 
 update
 ------
@@ -221,12 +222,13 @@ provided, the lexicographical first repository from the configuration is
 used.
 
 All logging arguments given to `just-mr` are passed to `just` as early
-arguments. If log files are provided, an unconditional `--log-append`
-argument is passed as well, which ensures no log messages will get
-overwritten.
+arguments. If log files are provided, an unconditional
+**`--log-append`** argument is passed as well, which ensures no log
+messages will get overwritten.
 
-The `--local-launcher` argument is passed to `just` as early argument
-for those *known* subcommands that accept it (build, install, rebuild).
+The **`--local-launcher`** argument is passed to `just` as early
+argument for those *known* subcommands that accept it (build, install,
+rebuild).
 
 version|describe|analyse|build|install|install-cas|rebuild|gc
 --------------------------------------------------------------------

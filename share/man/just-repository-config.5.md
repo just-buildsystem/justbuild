@@ -84,7 +84,7 @@ keys:
 
  - `"main"` contains a string, which defines the repository name to
    consider by default if not explicitly specified on the command line
-   (i.e., via `--main`). This entry is optional and if omitted the
+   (i.e., via **`--main`**). This entry is optional and if omitted the
    empty string is used.
 
  - `"repositories"` contains a JSON object that defines all
