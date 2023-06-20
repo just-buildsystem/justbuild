@@ -409,6 +409,18 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
             compare_extracted(test_dir_tar_gz);
         }
 
+        SECTION("Extract tar.gz to disk via compression auto detect") {
+            REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_gz,
+                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_gz));
+            res = ArchiveOps::ExtractArchive(
+                ArchiveType::kArchiveTypeTar, filename_tar_gz, ".");
+            if (res != std::nullopt) {
+                FAIL(*res);
+            }
+            compare_extracted(test_dir_tar_gz);
+        }
+
         if (FileSystemManager::IsExecutable("/usr/bin/tar") and
             FileSystemManager::IsExecutable("/usr/bin/gzip")) {
             REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_gz,
@@ -454,6 +466,18 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
             compare_extracted(test_dir_tar_bz2);
         }
 
+        SECTION("Extract tar.bz2 to disk via compression auto detect") {
+            REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_bz2,
+                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_bz2));
+            res = ArchiveOps::ExtractArchive(
+                ArchiveType::kArchiveTypeTar, filename_tar_bz2, ".");
+            if (res != std::nullopt) {
+                FAIL(*res);
+            }
+            compare_extracted(test_dir_tar_bz2);
+        }
+
         if (FileSystemManager::IsExecutable("/usr/bin/tar") and
             FileSystemManager::IsExecutable("/usr/bin/bzip2")) {
             REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_bz2,
@@ -465,6 +489,63 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                     system(("/usr/bin/tar xjf " + filename_tar_bz2).c_str()) ==
                     0);
                 compare_extracted(test_dir_tar_bz2);
+            }
+        }
+    }
+
+    SECTION("Write tar.xz") {
+        std::string test_dir_tar_xz{"ops_test_tar_xz"};
+        std::string filename_tar_xz{"test.tar.xz"};
+
+        REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_xz,
+                                                   /*recursively=*/true));
+        REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
+
+        create_files(test_dir_tar_xz);
+
+        res = ArchiveOps::CreateArchive(ArchiveType::kArchiveTypeTarXz,
+                                        filename_tar_xz,
+                                        test_dir_tar_xz,
+                                        ".");
+        if (res != std::nullopt) {
+            FAIL(*res);
+        }
+
+        SECTION("Extract tar.xz to disk") {
+            REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_xz,
+                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
+            res = ArchiveOps::ExtractArchive(
+                ArchiveType::kArchiveTypeTarXz, filename_tar_xz, ".");
+            if (res != std::nullopt) {
+                FAIL(*res);
+            }
+            compare_extracted(test_dir_tar_xz);
+        }
+
+        SECTION("Extract tar.xz to disk via compression auto detect") {
+            REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_xz,
+                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
+            res = ArchiveOps::ExtractArchive(
+                ArchiveType::kArchiveTypeTar, filename_tar_xz, ".");
+            if (res != std::nullopt) {
+                FAIL(*res);
+            }
+            compare_extracted(test_dir_tar_xz);
+        }
+
+        if (FileSystemManager::IsExecutable("/usr/bin/tar") and
+            FileSystemManager::IsExecutable("/usr/bin/xz")) {
+            REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar_xz,
+                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
+
+            SECTION("Extract via system tar and bzip2") {
+                REQUIRE(
+                    system(("/usr/bin/tar xJf " + filename_tar_xz).c_str()) ==
+                    0);
+                compare_extracted(test_dir_tar_xz);
             }
         }
     }
