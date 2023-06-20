@@ -101,6 +101,15 @@ build (the default value, or whatever is specified on the command
 line) is multiplied by the given factor and taken as timeout for
 this action. This applies for both, local and remote builds.
 
+### Extension to the built-in `"generic"` built-in rule
+
+As the built-in `"generic"` rule basically is there to allow the
+definition of an action in an ad-hoc fashion, it will be extended
+in the same way. More precisely, the fields `"timeout scaling"` and
+`"execution properties"` will be added and are taken as additional
+arguments to the underlying action, with the same semantics as the
+respective fields of the `"ACTION"` constructor.
+
 ### `just` to support dispatching based on remote-execution properties
 
 In simple setups, like using `just execute`, the remote execution is not
