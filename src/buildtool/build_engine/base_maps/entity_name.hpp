@@ -112,11 +112,13 @@ template <typename T>
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
         bool const is_file = s0 == EntityName::kFileLocationMarker;
+        bool const is_glob = s0 == EntityName::kGlobMarker;
+        bool const is_symlink = s0 == EntityName::kSymlinkLocationMarker;
         auto const ref_type =
-            s0 == EntityName::kFileLocationMarker
-                ? ReferenceType::kFile
-                : (s0 == EntityName::kGlobMarker ? ReferenceType::kGlob
-                                                 : ReferenceType::kTree);
+            is_file ? ReferenceType::kFile
+                    : (is_glob ? ReferenceType::kGlob
+                               : (is_symlink ? ReferenceType::kSymlink
+                                             : ReferenceType::kTree));
         if (list_size == 3) {
             if (IsString(list[2])) {
                 auto const& name = GetString(list[2]);
@@ -232,7 +234,8 @@ template <typename T>
             }
             else if (s0 == EntityName::kFileLocationMarker or
                      s0 == EntityName::kTreeLocationMarker or
-                     s0 == EntityName::kGlobMarker) {
+                     s0 == EntityName::kGlobMarker or
+                     s0 == EntityName::kSymlinkLocationMarker) {
                 return ParseEntityNameFSReference(
                     s0, list, list_size, current, logger);
             }

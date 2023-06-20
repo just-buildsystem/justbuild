@@ -67,6 +67,7 @@
     , "data_targets/result/TARGETS"
     , "data_targets/simple_rules/TARGETS"
     , "data_targets/simple_targets/TARGETS"
+    , "data_targets/symlink_reference/TARGETS"
     , "data_targets/tree/TARGETS"
     , "data_targets/x/TARGETS"
     , "data_targets/x/x/TARGETS"

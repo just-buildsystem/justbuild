@@ -136,6 +136,11 @@ target files.
    second position (where normally the module would be) is necessary to
    ensure the name has length more than 2 to distinguish it from a
    reference to the module `"FILE"`.
+ - An explicit reference of a non-upwards symlink target in the same module,
+   specified as `["SYMLINK", null, name]`. The explicit `null` at the
+   second position is required for the same reason as in the explicit
+   file reference. It is the user's responsibility to ensure the symlink
+   pointed to is non-upwards.
  - A reference to an collection, given by a shell pattern, of explicit
    source files in the top-level directory of the same module,
    specified as `["GLOB", null, pattern]`. The explicit `null` at
@@ -187,6 +192,18 @@ look the same. The artifacts stage has a single entry: the path is
 the relative path of the file to the module root and the value the
 file artifact located at the specified location. The runfiles are
 the same as the artifacts and the provides map is empty.
+
+#### (Non-upwards) Symlinks
+
+To ensure self-containedness and location-independence, only
+*non-upwards* symlinks are expected and accepted. The symlinks
+must not however be necessarily resolvable, i.e., dangling symlinks
+are accepted.
+
+An explicit (non-upwards) symlink target is similar to an explicit file target,
+except that at the specified location there has to be a non-upwards symlink
+rather than a file and the corresponding symlink artifact is taken instead of a
+file artifact.
 
 #### Collection of files given by a shell pattern
 

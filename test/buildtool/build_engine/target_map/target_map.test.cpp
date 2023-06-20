@@ -28,7 +28,24 @@ namespace {
 
 using none_t = Expression::none_t;
 
+auto CreateSymlinks() -> bool {
+    auto base_src = std::filesystem::path(
+        "test/buildtool/build_engine/target_map/data_src");
+    // create the symlinks
+    REQUIRE(FileSystemManager::CreateSymlink(
+        "dummy", base_src / "a" / "b" / "targets_here" / "c" / "d" / "link"));
+    REQUIRE(FileSystemManager::CreateSymlink(
+        "dummy", base_src / "symlink_reference" / "link"));
+    REQUIRE(FileSystemManager::CreateSymlink(
+        "dummy", base_src / "simple_targets" / "link"));
+
+    return true;
+}
+
 void SetupConfig() {
+    // manually create locally test symlinks in data_src, but only once
+    [[maybe_unused]] static auto done = CreateSymlinks();
+    // create the file roots
     auto info = RepositoryConfig::RepositoryInfo{
         FileRoot{"test/buildtool/build_engine/target_map/data_src"},
         FileRoot{"test/buildtool/build_engine/target_map/data_targets"},
@@ -82,6 +99,32 @@ TEST_CASE("simple targets") {
         CHECK(error_msg == "NONE");
         auto artifacts = result->Artifacts();
         ExpressionPtr artifact = artifacts->Get("c/d/foo", none_t{});
+        CHECK(artifact->IsArtifact());
+    }
+
+    SECTION("Actual source symlink file") {
+        {
+            error_msg = "NONE";
+            error = false;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "a/b/targets_here", "c/d/link"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(!error);
+        CHECK(error_msg == "NONE");
+        auto artifacts = result->Artifacts();
+        ExpressionPtr artifact = artifacts->Get("c/d/link", none_t{});
         CHECK(artifact->IsArtifact());
     }
 
@@ -248,6 +291,7 @@ TEST_CASE("simple targets") {
               "simple_targets/bar.txt");
         CHECK(artifacts_desc["baz.txt"]["data"]["path"] ==
               "simple_targets/baz.txt");
+        CHECK(artifacts_desc["link"]["data"]["path"] == "simple_targets/link");
     }
 
     SECTION("Rule stages blob") {
@@ -441,7 +485,7 @@ TEST_CASE("generator functions in string arguments") {
         CHECK(!error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["index.txt"]["type"] == "KNOWN");
-        CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt");
+        CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt;link");
     }
 
     SECTION("runfies") {
@@ -465,7 +509,7 @@ TEST_CASE("generator functions in string arguments") {
         CHECK(!error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["index.txt"]["type"] == "KNOWN");
-        CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt");
+        CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt;link");
     }
 }
 
@@ -539,8 +583,12 @@ TEST_CASE("built-in rules") {
         CHECK(stage["foo.txt"]["data"]["path"] == "simple_targets/foo.txt");
         CHECK(stage["bar.txt"]["type"] == "LOCAL");
         CHECK(stage["bar.txt"]["data"]["path"] == "simple_targets/bar.txt");
+        CHECK(stage["bar.txt"]["type"] == "LOCAL");
+        CHECK(stage["link"]["data"]["path"] == "simple_targets/link");
         CHECK(stage["combined.txt"]["type"] == "ACTION");
         CHECK(stage["combined.txt"]["data"]["path"] == "out");
+        CHECK(stage["link_gen"]["type"] == "ACTION");
+        CHECK(stage["link_gen"]["data"]["path"] == "sym");
         CHECK(stage["subdir/restaged.txt"]["type"] == "LOCAL");
         CHECK(stage["subdir/restaged.txt"]["data"]["path"] ==
               "simple_targets/bar.txt");
@@ -550,6 +598,8 @@ TEST_CASE("built-in rules") {
               "simple_targets/bar.txt");
         CHECK(stage["mix/in/this/subdir/baz.txt"]["data"]["path"] ==
               "simple_targets/baz.txt");
+        CHECK(stage["mix/in/this/subdir/link"]["data"]["path"] ==
+              "simple_targets/link");
         CHECK(stage["mix/in/this/subdir/index.txt"]["type"] == "KNOWN");
     }
 
@@ -665,6 +715,38 @@ TEST_CASE("target reference") {
         CHECK(result->Actions()[0]
                   ->ToJson()["input"]["raw_data/hello.txt"]["data"]["path"] ==
               "file_reference/hello.txt");
+    }
+
+    SECTION("symlink vs target") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "symlink_reference", "link"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(!error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Artifacts()->ToJson()["link"]["type"] == "ACTION");
+        CHECK(result->Artifacts()->ToJson()["link"]["data"]["path"] == "link");
+
+        CHECK(result->Actions().size() == 1);
+        CHECK(
+            result->Actions()[0]->ToJson()["input"]["raw_data/link"]["type"] ==
+            "LOCAL");
+        CHECK(result->Actions()[0]
+                  ->ToJson()["input"]["raw_data/link"]["data"]["path"] ==
+              "symlink_reference/link");
     }
 
     SECTION("relative address") {

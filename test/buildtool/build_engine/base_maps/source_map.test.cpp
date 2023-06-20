@@ -28,6 +28,14 @@ namespace {
 using namespace BuildMaps::Base;  // NOLINT
 
 void SetupConfig(bool use_git) {
+    // manually create locally a test symlink in data_src; should match the
+    // git test_repo structure
+    if (not use_git) {
+        auto link_path = kBasePath / "data_src/foo/link";
+        if (not FileSystemManager::Exists(link_path)) {
+            REQUIRE(FileSystemManager::CreateSymlink("dummy", link_path));
+        }
+    }
     auto root = FileRoot{kBasePath / "data_src"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
@@ -154,5 +162,26 @@ TEST_CASE("subdir file") {
         CHECK(artifacts["bar/file"]["data"]["id"] ==
               "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
         CHECK(artifacts["bar/file"]["data"]["size"] == 0);
+    }
+}
+
+TEST_CASE("subdir symlink") {
+    nlohmann::json artifacts;
+    auto name = EntityName{"", "foo", "link"};
+    auto consumer = [&artifacts](auto values) {
+        artifacts = (*values[0])->Artifacts()->ToJson();
+    };
+
+    SECTION("via file") {
+        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/false));
+        CHECK(artifacts["link"]["type"] == "LOCAL");
+        CHECK(artifacts["link"]["data"]["path"] == "foo/link");
+    }
+
+    SECTION("via git tree") {
+        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
+        CHECK(artifacts["link"]["type"] == "KNOWN");
+        CHECK(artifacts["link"]["data"]["id"] == kSrcLinkId);
+        CHECK(artifacts["link"]["data"]["size"] == 5);  // content: dummy
     }
 }

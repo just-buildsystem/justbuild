@@ -1,0 +1,9 @@
+{ "_link":
+  {"type": "install", "files": {"raw_data/link": ["SYMLINK", null, "link"]}}
+, "link":
+  { "type": "generic"
+  , "deps": ["_link"]
+  , "outs": ["link"]
+  , "cmds": ["ln -s $(readlink raw_data/link | tr 'a-z' 'A-Z') link"]
+  }
+}

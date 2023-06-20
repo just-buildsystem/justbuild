@@ -38,7 +38,13 @@ struct AnonymousTarget {
     }
 };
 
-enum class ReferenceType : std::int8_t { kTarget, kFile, kTree, kGlob };
+enum class ReferenceType : std::int8_t {
+    kTarget,
+    kFile,
+    kTree,
+    kGlob,
+    kSymlink
+};
 
 struct NamedTarget {
     std::string repository{};
@@ -80,6 +86,7 @@ class EntityName {
     static constexpr auto kFileLocationMarker = "FILE";
     static constexpr auto kTreeLocationMarker = "TREE";
     static constexpr auto kGlobMarker = "GLOB";
+    static constexpr auto kSymlinkLocationMarker = "SYMLINK";
     static constexpr auto kRelativeLocationMarker = "./";
     static constexpr auto kAnonymousMarker = "#";
 
@@ -136,6 +143,9 @@ class EntityName {
             }
             else if (x.reference_t == ReferenceType::kGlob) {
                 j.push_back(kGlobMarker);
+            }
+            else if (x.reference_t == ReferenceType::kSymlink) {
+                j.push_back(kSymlinkLocationMarker);
             }
             j.push_back(x.module);
             j.push_back(x.name);

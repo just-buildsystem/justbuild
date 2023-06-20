@@ -1471,6 +1471,17 @@ void TreeTarget(
                     .config = Configuration{}});
             }
 
+            for (const auto& x : dir_entries.SymlinksIterator()) {
+                v.emplace_back(ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            target.repository,
+                            dir_name,
+                            x,
+                            BuildMaps::Base::ReferenceType::kSymlink},
+                    .config = Configuration{}});
+            }
+
             for (const auto& x : dir_entries.DirectoriesIterator()) {
                 v.emplace_back(ConfiguredTarget{
                     .target =
@@ -1573,6 +1584,15 @@ void GlobTargetWithDirEntry(
                 BuildMaps::Base::ReferenceType::kFile});
         }
     }
+    for (auto const& x : dir.SymlinksIterator()) {
+        if (fnmatch(pattern.c_str(), x.c_str(), 0) == 0) {
+            matches.emplace_back(BuildMaps::Base::EntityName{
+                target.repository,
+                target.module,
+                x,
+                BuildMaps::Base::ReferenceType::kSymlink});
+        }
+    }
     source_target_map->ConsumeAfterKeysReady(
         ts,
         matches,
@@ -1639,6 +1659,23 @@ auto CreateTargetMap(
                 [logger, target = key.target](auto const& msg, auto fatal) {
                     (*logger)(fmt::format("While analysing target {} as "
                                           "explicit source target:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+        }
+        else if (key.target.GetNamedTarget().reference_t ==
+                 BuildMaps::Base::ReferenceType::kSymlink) {
+            // Not a defined target, treat as source target
+            source_target_map->ConsumeAfterKeysReady(
+                ts,
+                {key.target},
+                [setter](auto values) {
+                    (*setter)(AnalysedTargetPtr{*values[0]});
+                },
+                [logger, target = key.target](auto const& msg, auto fatal) {
+                    (*logger)(fmt::format("While analysing target {} as "
+                                          "symlink:\n{}",
                                           target.ToString(),
                                           msg),
                               fatal);
