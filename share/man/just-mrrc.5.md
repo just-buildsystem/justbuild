@@ -17,77 +17,77 @@ same key are treated.
 Location objects
 ----------------
 
-A *location* is a JSON object with the keys `"root"`, `"path"`, and
-`"base"`.
+A *location* is a JSON object with the keys *`"root"`*, *`"path"`*, and
+*`"base"`*.
 
-The value for key `"root"` is either `"workspace"`, `"home"`, or
-`"system"`, which have the following meanings:
+The value for key *`"root"`* is either *`"workspace"`*, *`"home"`*, or
+*`"system"`*, which have the following meanings:
 
- - `"workspace"` refers to the root of the workspace in which the
+ - *`"workspace"`* refers to the root of the workspace in which the
    `just-mr` invocation was issued (not the workspace of the requested
    main repository). This location root is ignored if `just-mr` was not
    invoked from inside a workspace.
 
- - `"home"` refers to the user's home directory.
+ - *`"home"`* refers to the user's home directory.
 
- - `"system"` refers to the system root `/`.
+ - *`"system"`* refers to the system root *`/`*.
 
-The value for key `"path"` is the relative path of the item to locate
+The value for key *`"path"`* is the relative path of the item to locate
 within the location root.
 
-The value for key `"base"` is a relative path within the location root.
-This path is only relevant for locations of config files. If such a
-config file contains relative paths, those will be resolved relative to
-the specified base. If omitted, the default value `"."` is used.
+The value for key *`"base"`* is a relative path within the location
+root. This path is only relevant for locations of config files. If such
+a config file contains relative paths, those will be resolved relative
+to the specified base. If omitted, the default value *`"."`* is used.
 
 The just-mrrc format
 --------------------
 
 The just-mrrc is given by a JSON object.
 
- - The value for the key `"config lookup order"` is a JSON list of
+ - The value for the key *`"config lookup order"`* is a JSON list of
    location objects, specifying where to look for multi-repository
    configurations (see **just-mr-repository-config(5)** for more
    detail). The lookup is performed in the same order the location
    objects appear in the list.
 
- - The value for the key `"local build root"` is a single location
+ - The value for the key *`"local build root"`* is a single location
    object, specifying the path to use as the local build root. For more
    details, see **just-mr(1)**.
 
- - The value for the key `"checkout locations"` is a single location
+ - The value for the key *`"checkout locations"`* is a single location
    object, specifying the path to the file for checkout locations. For
    more details, see **just-mr(1)**.
 
- - The value for the key `"distdirs"` is a JSON list of location
+ - The value for the key *`"distdirs"`* is a JSON list of location
    objects, specifying where to look for distribution files (usually
    collected via the subcommand `fetch`). The lookup is performed in
    the same order the location objects appear in the list. For more
    details, see **just-mr(1)**.
 
- - The value for the key `"just"` is a single location object,
+ - The value for the key *`"just"`* is a single location object,
    specifying the path to the `just` binary to use for execution, if
    `just-mr` is used as a launcher.
 
- - The value for the key `"git"` is a single location object,
+ - The value for the key *`"git"`* is a single location object,
    specifying the path to the git binary to use in the instances when
    `just-mr` needs to shell out.
 
- - The value for the key `"local launcher"`, if given, is list of
+ - The value for the key *`"local launcher"`*, if given, is list of
    strings setting the default for local launcher for `just-mr`;
    command-line arguments take precedence over the value in the
-   configuration file. If the key `"local launcher"` is absent, the
-   default `["env", "--"]` is assumed.
+   configuration file. If the key *`"local launcher"`* is absent, the
+   default *`["env", "--"]`* is assumed.
 
- - The value for the key `"log limit"`, if given, sets the default
+ - The value for the key *`"log limit"`*, if given, sets the default
    value for the log limit, that can be overridden by the command-line
    options.
 
- - The value `"log files"`, if given, has to be a list of location
+ - The value *`"log files"`*, if given, has to be a list of location
    objects, specifying additional log files, on top of those specified
    on the command line.
 
- - The value for the key `"just args"` is a JSON object. Its keys are
+ - The value for the key *`"just args"`* is a JSON object. Its keys are
    `just` subcommands and its value is a JSON list of strings. For the
    corresponding subcommand, these strings are prefixed to the `just`
    argument vector, if `just-mr` is used as a launcher.
