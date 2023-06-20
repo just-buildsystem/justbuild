@@ -43,6 +43,7 @@ auto const kGenericRuleFields =
                                     "deps",
                                     "env",
                                     "tainted",
+                                    "timeout scaling",
                                     "type",
                                     "out_dirs",
                                     "outs"};
@@ -1034,6 +1035,27 @@ void GenericRuleWithDeps(
         }
     }
 
+    auto scale_exp =
+        desc->ReadOptionalExpression("timeout scaling", Expression::kOne);
+    if (not scale_exp) {
+        return;
+    }
+    auto scale_val = scale_exp.Evaluate(
+        param_config, string_fields_fcts, [&logger](auto const& msg) {
+            (*logger)(fmt::format("While evaluating timeout scaling:\n{}", msg),
+                      true);
+        });
+    if (not scale_val) {
+        return;
+    }
+    if (not(scale_val->IsNumber() or scale_val->IsNone())) {
+        (*logger)(fmt::format("timeout scaling has evaluate to a number (or "
+                              "null for default), but found {}",
+                              scale_val->ToString()),
+                  true);
+        return;
+    }
+
     // Construct inputs; in case of conflicts, artifacts take precedence
     // over runfiles.
     auto inputs = ExpressionPtr{Expression::map_t{}};
@@ -1045,16 +1067,16 @@ void GenericRuleWithDeps(
     }
 
     // Construct our single action, and its artifacts
-    auto action =
-        BuildMaps::Target::Utils::createAction(outs,
-                                               out_dirs,
-                                               {"sh", "-c", cmd_ss.str()},
-                                               env_val,
-                                               std::nullopt,
-                                               false,
-                                               1.0,
-                                               Expression::kEmptyMap,
-                                               inputs);
+    auto action = BuildMaps::Target::Utils::createAction(
+        outs,
+        out_dirs,
+        {"sh", "-c", cmd_ss.str()},
+        env_val,
+        std::nullopt,
+        false,
+        scale_val->IsNumber() ? scale_val->Number() : 1.0,
+        Expression::kEmptyMap,
+        inputs);
     auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;
     for (const auto& container : {outs, out_dirs}) {
