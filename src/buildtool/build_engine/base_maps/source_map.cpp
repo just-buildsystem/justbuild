@@ -89,14 +89,14 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
 
         if (ws_root != nullptr and ws_root->HasFastDirectoryLookup()) {
             // by-pass directory map and directly attempt to read from ws_root
-            src_file_reader(ws_root->IsFile(path(target.module) / name));
+            src_file_reader(ws_root->IsBlob(path(target.module) / name));
             return;
         }
         dirs->ConsumeAfterKeysReady(
             ts,
             {ModuleName{target.repository, dir.string()}},
             [key, src_file_reader](auto values) {
-                src_file_reader(values[0]->ContainsFile(
+                src_file_reader(values[0]->ContainsBlob(
                     path(key.GetNamedTarget().name).filename().string()));
             },
             [logger, dir](auto msg, auto fatal) {

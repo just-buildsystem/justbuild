@@ -63,8 +63,8 @@ TEST_CASE("simple usage") {
     bool as_expected{false};
     auto name = ModuleName{"", "."};
     auto consumer = [&as_expected](auto values) {
-        if (values[0]->ContainsFile("file") &&
-            not values[0]->ContainsFile("does_not_exist")) {
+        if (values[0]->ContainsBlob("file") &&
+            not values[0]->ContainsBlob("does_not_exist")) {
             as_expected = true;
         };
     };

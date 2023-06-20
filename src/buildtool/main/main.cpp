@@ -581,7 +581,11 @@ void SetupHashFunction() {
     }
     auto const target_file =
         (std::filesystem::path{current_module} / target_file_name).string();
-    auto file_content = target_root->ReadFile(target_file);
+    if (not target_root->IsFile(target_file)) {
+        Logger::Log(LogLevel::Error, "Expected file at {}.", target_file);
+        std::exit(kExitFailure);
+    }
+    auto file_content = target_root->ReadContent(target_file);
     if (not file_content) {
         Logger::Log(LogLevel::Error, "Cannot read file {}.", target_file);
         std::exit(kExitFailure);

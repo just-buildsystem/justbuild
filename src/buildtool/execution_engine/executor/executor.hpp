@@ -394,11 +394,11 @@ class ExecutorImpl {
         if (ws_root == nullptr) {
             return std::nullopt;
         }
-        auto const object_type = ws_root->FileType(file_path);
+        auto const object_type = ws_root->BlobType(file_path);
         if (not object_type) {
             return std::nullopt;
         }
-        auto content = ws_root->ReadFile(file_path);
+        auto content = ws_root->ReadContent(file_path);
         if (not content.has_value()) {
             return std::nullopt;
         }

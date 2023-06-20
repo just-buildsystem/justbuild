@@ -20,23 +20,24 @@ set -e
 # ---
 # <root>
 # |
-# +--src                <--kSrcTreeId
+# +--src                <--kSrcTreeId (6d57ba31821f69286e280334e4fd5f9dbd141721)
 # |  +--file
 # |  +--foo
+# |  |  +--link         <--kSrcLinkId (2995a4d0e74917fd3e1383c577d0fc301fff1b04)
 # |  |  +--bar
 # |  |  |  +--file
 # |
-# +--expr               <--kExprTreeId
+# +--expr               <--kExprTreeId (4946bd21d0a5b3e0c82d6944f3d47adaf1bb66f7)
 # |  +--EXRESSIONS
 # |  +--readers
 # |  |  +--EXPRESSIONS
 # |
-# +--rule               <--kRuleTreeId
+# +--rule               <--kRuleTreeId (c6dd902c9d4e7afa8b20eb04e58503e63ecab84d)
 # |  +--RULES
 # |  +--composers
 # |  |  +--EXPRESSIONS
 # |
-# +--json               <--kJsonTreeId
+# +--json               <--kJsonTreeId (6982563dfc4dcdd1362792dbbc9d8243968d1ec9)
 # |  +--data_json
 # |  |  +--bad.json
 # |  |  +--foo.json
@@ -61,6 +62,7 @@ git config user.email "nobody@example.org"
 mkdir -p src/foo/bar
 touch src/file
 touch src/foo/bar/file
+ln -s dummy src/foo/link
 
 # create src commit
 git add .

@@ -70,6 +70,12 @@ enum class ObjectType : std::int8_t {
     return type == ObjectType::Symlink;
 }
 
+/// \brief Valid blob sources can be files, executables, or symlinks.
+[[nodiscard]] constexpr auto IsBlobObject(ObjectType type) -> bool {
+    return type == ObjectType::Executable or type == ObjectType::File or
+           type == ObjectType::Symlink;
+}
+
 /// \brief Only regular files, executables, and trees are non-special entries.
 [[nodiscard]] constexpr auto IsNonSpecialObject(ObjectType type) -> bool {
     return type == ObjectType::File or type == ObjectType::Executable or

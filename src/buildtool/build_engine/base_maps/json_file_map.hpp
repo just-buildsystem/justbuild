@@ -77,7 +77,7 @@ auto CreateJsonFileMap(std::size_t jobs) -> JsonFileMap {
             return;
         }
 
-        auto const file_content = root->ReadFile(json_file_path);
+        auto const file_content = root->ReadContent(json_file_path);
         if (not file_content) {
             (*logger)(fmt::format("cannot read JSON file {}.",
                                   json_file_path.string()),

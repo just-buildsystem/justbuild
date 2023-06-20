@@ -84,10 +84,10 @@ TEST_CASE("Get entries of a directory", "[directory_entries]") {
 
     auto fs_root = FileRoot();
     auto dir_entries = fs_root.ReadDirectory(dir);
-    CHECK(dir_entries.ContainsFile("test_repo.bundle"));
-    CHECK(dir_entries.ContainsFile("test_repo_symlinks.bundle"));
-    CHECK(dir_entries.ContainsFile("empty_executable"));
-    CHECK(dir_entries.ContainsFile("example_file"));
+    CHECK(dir_entries.ContainsBlob("test_repo.bundle"));
+    CHECK(dir_entries.ContainsBlob("test_repo_symlinks.bundle"));
+    CHECK(dir_entries.ContainsBlob("empty_executable"));
+    CHECK(dir_entries.ContainsBlob("example_file"));
     {
         // all the entries returned by FilesIterator are files,
         // are contained in reference_entries,
@@ -95,7 +95,7 @@ TEST_CASE("Get entries of a directory", "[directory_entries]") {
         auto counter = 0;
         for (const auto& x : dir_entries.FilesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK(dir_entries.ContainsFile(x));
+            CHECK(dir_entries.ContainsBlob(x));
             ++counter;
         }
 
@@ -110,7 +110,7 @@ TEST_CASE("Get entries of a directory", "[directory_entries]") {
         auto counter = 0;
         for (const auto& x : dir_entries.DirectoriesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK_FALSE(dir_entries.ContainsFile(x));
+            CHECK_FALSE(dir_entries.ContainsBlob(x));
             ++counter;
         }
 
@@ -124,9 +124,9 @@ TEST_CASE("Get entries of a git tree", "[directory_entries]") {
     auto repo = *CreateTestRepo(true);
     auto fs_root = FileRoot();
     auto dir_entries = fs_root.ReadDirectory(repo);
-    CHECK(dir_entries.ContainsFile("bar"));
-    CHECK(dir_entries.ContainsFile("foo"));
-    CHECK_FALSE(dir_entries.ContainsFile("baz"));
+    CHECK(dir_entries.ContainsBlob("bar"));
+    CHECK(dir_entries.ContainsBlob("foo"));
+    CHECK_FALSE(dir_entries.ContainsBlob("baz"));
     {
         // all the entries returned by FilesIterator are files,
         // are contained in reference_entries,
@@ -134,7 +134,7 @@ TEST_CASE("Get entries of a git tree", "[directory_entries]") {
         auto counter = 0;
         for (const auto& x : dir_entries.FilesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK(dir_entries.ContainsFile(x));
+            CHECK(dir_entries.ContainsBlob(x));
             ++counter;
         }
 
@@ -148,7 +148,7 @@ TEST_CASE("Get entries of a git tree", "[directory_entries]") {
         auto counter = 0;
         for (const auto& x : dir_entries.DirectoriesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK_FALSE(dir_entries.ContainsFile(x));
+            CHECK_FALSE(dir_entries.ContainsBlob(x));
             ++counter;
         }
 
@@ -164,12 +164,12 @@ TEST_CASE("Get entries of an empty directory", "[directory_entries]") {
     auto dir_entries =
         FileRoot::DirectoryEntries{FileRoot::DirectoryEntries::pairs_t{}};
     // of course, no files should be there
-    CHECK_FALSE(dir_entries.ContainsFile("test_repo.bundle"));
+    CHECK_FALSE(dir_entries.ContainsBlob("test_repo.bundle"));
     {
         // FilesIterator should be an empty range
         auto counter = 0;
         for (const auto& x : dir_entries.FilesIterator()) {
-            CHECK_FALSE(dir_entries.ContainsFile(x));  // should never be called
+            CHECK_FALSE(dir_entries.ContainsBlob(x));  // should never be called
             ++counter;
         }
 
@@ -179,7 +179,7 @@ TEST_CASE("Get entries of an empty directory", "[directory_entries]") {
         // DirectoriesIterator should be an empty range
         auto counter = 0;
         for (const auto& x : dir_entries.DirectoriesIterator()) {
-            CHECK(dir_entries.ContainsFile(x));  // should never be called
+            CHECK(dir_entries.ContainsBlob(x));  // should never be called
             ++counter;
         }
 
@@ -194,9 +194,9 @@ TEST_CASE("Get ignore-special entries of a git tree with symlinks",
     auto repo = *CreateTestRepoSymlinks(true);
     auto fs_root = FileRoot(/*ignore_special=*/true);
     auto dir_entries = fs_root.ReadDirectory(repo);
-    CHECK(dir_entries.ContainsFile("bar"));
-    CHECK(dir_entries.ContainsFile("foo"));
-    CHECK_FALSE(dir_entries.ContainsFile("baz"));
+    CHECK(dir_entries.ContainsBlob("bar"));
+    CHECK(dir_entries.ContainsBlob("foo"));
+    CHECK_FALSE(dir_entries.ContainsBlob("baz"));
     {
         // all the entries returned by FilesIterator are files,
         // are contained in reference_entries,
@@ -204,7 +204,7 @@ TEST_CASE("Get ignore-special entries of a git tree with symlinks",
         auto counter = 0;
         for (const auto& x : dir_entries.FilesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK(dir_entries.ContainsFile(x));
+            CHECK(dir_entries.ContainsBlob(x));
             ++counter;
         }
 
@@ -218,7 +218,60 @@ TEST_CASE("Get ignore-special entries of a git tree with symlinks",
         auto counter = 0;
         for (const auto& x : dir_entries.DirectoriesIterator()) {
             REQUIRE(reference_entries.contains(x));
-            CHECK_FALSE(dir_entries.ContainsFile(x));
+            CHECK_FALSE(dir_entries.ContainsBlob(x));
+            ++counter;
+        }
+
+        CHECK(counter == 2);
+    }
+}
+
+TEST_CASE("Get entries of a git tree with symlinks", "[directory_entries]") {
+    auto reference_entries = std::unordered_set<std::string>{
+        "foo", "bar", "baz", "foo_l", "baz_l", ".git"};
+    auto repo = *CreateTestRepoSymlinks(true);
+    auto fs_root = FileRoot(/*ignore_special=*/false);
+    auto dir_entries = fs_root.ReadDirectory(repo);
+    CHECK(dir_entries.ContainsBlob("bar"));
+    CHECK(dir_entries.ContainsBlob("foo"));
+    CHECK_FALSE(dir_entries.ContainsBlob("baz"));
+    CHECK(dir_entries.ContainsBlob("foo_l"));
+    CHECK(dir_entries.ContainsBlob("baz_l"));
+    {
+        // all the entries returned by FilesIterator are files,
+        // are contained in reference_entries,
+        // and are 2 (foo, and bar)
+        auto counter = 0;
+        for (const auto& x : dir_entries.FilesIterator()) {
+            REQUIRE(reference_entries.contains(x));
+            CHECK(dir_entries.ContainsBlob(x));
+            ++counter;
+        }
+
+        CHECK(counter == 2);
+    }
+    {
+        // all the entries returned by SymlinksIterator are symlinks,
+        // are contained in reference_entries,
+        // and are 2 (foo_l, and baz_l)
+        auto counter = 0;
+        for (const auto& x : dir_entries.SymlinksIterator()) {
+            REQUIRE(reference_entries.contains(x));
+            CHECK(dir_entries.ContainsBlob(x));
+            ++counter;
+        }
+
+        CHECK(counter == 2);
+    }
+    {
+        // all the entries returned by DirectoriesIterator are not files (e.g.,
+        // trees),
+        // are contained in reference_entries,
+        // and are 2 (baz, and .git)
+        auto counter = 0;
+        for (const auto& x : dir_entries.DirectoriesIterator()) {
+            REQUIRE(reference_entries.contains(x));
+            CHECK_FALSE(dir_entries.ContainsBlob(x));
             ++counter;
         }
 

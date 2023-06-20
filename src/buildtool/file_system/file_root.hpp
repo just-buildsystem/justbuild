@@ -175,21 +175,21 @@ class FileRoot {
         explicit DirectoryEntries(tree_t const& git_tree) noexcept
             : data_{git_tree} {}
 
-        [[nodiscard]] auto ContainsFile(std::string const& name) const noexcept
+        [[nodiscard]] auto ContainsBlob(std::string const& name) const noexcept
             -> bool {
             try {
                 if (std::holds_alternative<tree_t>(data_)) {
                     auto const& data = std::get<tree_t>(data_);
                     auto ptr = data->LookupEntryByName(name);
                     if (static_cast<bool>(ptr)) {
-                        return IsFileObject(ptr->Type());
+                        return IsBlobObject(ptr->Type());
                     }
                     return false;
                 }
                 if (std::holds_alternative<pairs_t>(data_)) {
                     auto const& data = std::get<pairs_t>(data_);
                     auto it = data.find(name);
-                    return (it != data.end() and IsFileObject(it->second));
+                    return (it != data.end() and IsBlobObject(it->second));
                 }
             } catch (...) {
             }
@@ -251,6 +251,22 @@ class FileRoot {
             return Iterator{FilteredIterator{
                 data->begin(), data->end(), [](auto const& x) noexcept -> bool {
                     return IsFileObject(x.second->Type());
+                }}};
+        }
+
+        [[nodiscard]] auto SymlinksIterator() const -> Iterator {
+            if (std::holds_alternative<pairs_t>(data_)) {
+                auto const& data = std::get<pairs_t>(data_);
+                return Iterator{FilteredIterator{
+                    data.begin(), data.end(), [](auto const& x) {
+                        return IsSymlinkObject(x.second);
+                    }}};
+            }
+            // std::holds_alternative<tree_t>(data_) == true
+            auto const& data = std::get<tree_t>(data_);
+            return Iterator{FilteredIterator{
+                data->begin(), data->end(), [](auto const& x) noexcept -> bool {
+                    return IsSymlinkObject(x.second->Type());
                 }}};
         }
 
@@ -325,7 +341,7 @@ class FileRoot {
     }
 
     // Indicates that subsequent calls to `Exists()`, `IsFile()`,
-    // `IsDirectory()`, and `FileType()` on contents of the same directory will
+    // `IsDirectory()`, and `BlobType()` on contents of the same directory will
     // be served without any additional file system lookups.
     [[nodiscard]] auto HasFastDirectoryLookup() const noexcept -> bool {
         return std::holds_alternative<git_root_t>(root_);
@@ -362,6 +378,25 @@ class FileRoot {
                                          file_path);
     }
 
+    [[nodiscard]] auto IsSymlink(
+        std::filesystem::path const& file_path) const noexcept -> bool {
+        if (std::holds_alternative<git_root_t>(root_)) {
+            if (auto entry =
+                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
+                        file_path)) {
+                return IsSymlinkObject(entry->Type());
+            }
+            return false;
+        }
+        return FileSystemManager::IsNonUpwardsSymlink(
+            std::get<fs_root_t>(root_) / file_path);
+    }
+
+    [[nodiscard]] auto IsBlob(
+        std::filesystem::path const& file_path) const noexcept -> bool {
+        return IsFile(file_path) or IsSymlink(file_path);
+    }
+
     [[nodiscard]] auto IsDirectory(
         std::filesystem::path const& dir_path) const noexcept -> bool {
         if (std::holds_alternative<git_root_t>(root_)) {
@@ -379,20 +414,26 @@ class FileRoot {
                                               dir_path);
     }
 
-    [[nodiscard]] auto ReadFile(std::filesystem::path const& file_path)
+    /// \brief Read content of file or symlink.
+    [[nodiscard]] auto ReadContent(std::filesystem::path const& file_path)
         const noexcept -> std::optional<std::string> {
         if (std::holds_alternative<git_root_t>(root_)) {
             if (auto entry =
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
-                if (IsFileObject(entry->Type())) {
+                if (IsBlobObject(entry->Type())) {
                     return entry->Blob();
                 }
             }
             return std::nullopt;
         }
-        return FileSystemManager::ReadFile(std::get<fs_root_t>(root_) /
-                                           file_path);
+        auto full_path = std::get<fs_root_t>(root_) / file_path;
+        if (auto type = FileSystemManager::Type(full_path)) {
+            return IsSymlinkObject(*type)
+                       ? FileSystemManager::ReadSymlink(full_path)
+                       : FileSystemManager::ReadFile(full_path);
+        }
+        return std::nullopt;
     }
 
     [[nodiscard]] auto ReadDirectory(std::filesystem::path const& dir_path)
@@ -430,13 +471,13 @@ class FileRoot {
         return DirectoryEntries{DirectoryEntries::pairs_t{}};
     }
 
-    [[nodiscard]] auto FileType(std::filesystem::path const& file_path)
+    [[nodiscard]] auto BlobType(std::filesystem::path const& file_path)
         const noexcept -> std::optional<ObjectType> {
         if (std::holds_alternative<git_root_t>(root_)) {
             if (auto entry =
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
-                if (IsFileObject(entry->Type())) {
+                if (IsBlobObject(entry->Type())) {
                     return entry->Type();
                 }
             }
@@ -444,7 +485,7 @@ class FileRoot {
         }
         auto type =
             FileSystemManager::Type(std::get<fs_root_t>(root_) / file_path);
-        if (type and IsFileObject(*type)) {
+        if (type and IsBlobObject(*type)) {
             return type;
         }
         return std::nullopt;

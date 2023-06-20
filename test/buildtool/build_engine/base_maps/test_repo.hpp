@@ -25,7 +25,9 @@ static auto const kBasePath =
     std::filesystem::path{"test/buildtool/build_engine/base_maps"};
 static auto const kBundlePath = kBasePath / "data/test_repo.bundle";
 static auto const kSrcTreeId =
-    std::string{"a35c324c6cf79354f6fd8a3c962f9ce7db801915"};
+    std::string{"6d57ba31821f69286e280334e4fd5f9dbd141721"};
+static auto const kSrcLinkId =
+    std::string{"2995a4d0e74917fd3e1383c577d0fc301fff1b04"};
 static auto const kRuleTreeId =
     std::string{"c6dd902c9d4e7afa8b20eb04e58503e63ecab84d"};
 static auto const kExprTreeId =
