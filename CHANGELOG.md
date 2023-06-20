@@ -9,6 +9,8 @@ A feature release on top of `1.1.0`, backwards compatible.
 - Minor changes to the layout of the local build root; in particular,
   left-over execution directories will eventually get cleaned up
   by garbage collection.
+- `just-mr` now supports unpacking tar archives compressed with
+  bzip2 and xz.
 
 ### Fixes
 
