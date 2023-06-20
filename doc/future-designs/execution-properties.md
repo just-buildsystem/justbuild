@@ -79,7 +79,8 @@ proposed changes are backwards compatible.
 
 #### `"execution properties"`
 
-This value has to evaluate to a map of strings; if not given, the
+This value has to evaluate to a map of strings or `null`;
+if not given or evaluating to `null`, the
 empty map is taken as default. This map is taken as a union with any
 remote-execution properties specified at the invocation of the build
 (if keys are defined both, for the entire build and in
@@ -93,8 +94,9 @@ default.
 
 #### `"timeout scaling"`
 
-If given, the value has to be a number greater or equal than `1.0`,
-with `1.0` taken as default. The action timeout specified for this
+If given, the value has to evaluate to a number greater or equal than
+`1.0`, or `null`. If not given, or evaluating to `null`, the value
+`1.0` is taken as default. The action timeout specified for this
 build (the default value, or whatever is specified on the command
 line) is multiplied by the given factor and taken as timeout for
 this action. This applies for both, local and remote builds.
