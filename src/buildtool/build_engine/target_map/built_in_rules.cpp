@@ -42,6 +42,7 @@ auto const kGenericRuleFields =
                                     "cmds",
                                     "deps",
                                     "env",
+                                    "execution properties",
                                     "tainted",
                                     "timeout scaling",
                                     "type",
@@ -1056,6 +1057,42 @@ void GenericRuleWithDeps(
         return;
     }
 
+    auto props_exp = desc->ReadOptionalExpression("execution properties",
+                                                  Expression::kEmptyMapExpr);
+    if (not props_exp) {
+        return;
+    }
+    auto props_val = props_exp.Evaluate(
+        param_config, string_fields_fcts, [&logger](auto const& msg) {
+            (*logger)(
+                fmt::format("While evaluating execution properties:\n{}", msg),
+                true);
+        });
+    if (not props_val) {
+        return;
+    }
+    if (props_val->IsNone()) {
+        props_val = Expression::kEmptyMap;
+    }
+    if (not props_val->IsMap()) {
+        (*logger)(fmt::format("execution properties has to evaluate to a map "
+                              "(or null for default), but found {}",
+                              props_val->ToString()),
+                  true);
+        return;
+    }
+    for (auto const& [prop_name, prop_val] : props_val->Map()) {
+        if (not prop_val->IsString()) {
+            (*logger)(
+                fmt::format("execution properties has to evaluate to a map (or "
+                            "null for default), but found {} for key {}",
+                            nlohmann::json(prop_name).dump(),
+                            prop_val->ToString()),
+                true);
+            return;
+        }
+    }
+
     // Construct inputs; in case of conflicts, artifacts take precedence
     // over runfiles.
     auto inputs = ExpressionPtr{Expression::map_t{}};
@@ -1075,7 +1112,7 @@ void GenericRuleWithDeps(
         std::nullopt,
         false,
         scale_val->IsNumber() ? scale_val->Number() : 1.0,
-        Expression::kEmptyMap,
+        props_val,
         inputs);
     auto action_identifier = action->Id();
     Expression::map_t::underlying_map_t artifacts;
