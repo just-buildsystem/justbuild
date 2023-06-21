@@ -2,6 +2,13 @@
 
 A feature release on top of `1.1.0`, backwards compatible.
 
+### Major new features
+
+- Actions can now define additional execution properties and in
+  that way chose a specific remote execution image, as well as a
+  factor to scale the time out. This also applies to the built-in
+  `generic` rule.
+
 ### Other changes
 
 - `just-import-git` now supports an option `--plain` to import a
