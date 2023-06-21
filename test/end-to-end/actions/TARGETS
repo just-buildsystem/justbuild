@@ -9,7 +9,14 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["equality-timeout"]
   , "test": ["action-equality-timeout.sh"]
-  , "keep": ["graph-null.json", "graph-1.json", "graph-2.json"]
+  , "keep":
+    [ "rules/graph-null.json"
+    , "rules/graph-1.json"
+    , "rules/graph-2.json"
+    , "generic/graph-null.json"
+    , "generic/graph-1.json"
+    , "generic/graph-2.json"
+    ]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "equality-properties":

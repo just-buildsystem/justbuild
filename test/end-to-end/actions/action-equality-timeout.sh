@@ -15,9 +15,12 @@
 
 set -e
 
+readonly ROOT="$(pwd)"
 readonly LBRDIR="$TMPDIR/local-build-root"
-readonly JUST="bin/tool-under-test"
+readonly JUST="${ROOT}/bin/tool-under-test"
 
+mkdir -p "${ROOT}/rules"
+cd "${ROOT}/rules"
 touch ROOT
 cat > RULES <<'EOI'
 { "":
@@ -27,7 +30,7 @@ cat > RULES <<'EOI'
     , "artifacts":
       { "type": "ACTION"
       , "outs": ["out.txt"]
-      , "cmd": ["sh", "-c", "echo Hello > out.txt"]
+      , "cmd": ["sh", "-c", "echo Hello > out.txt\n"]
       , "timeout scaling": {"type": "var", "name": "TIMEOUT"}
       }
     }
@@ -53,6 +56,41 @@ cat > TARGETS <<'EOI'
 }
 EOI
 
+mkdir -p "${ROOT}/generic"
+cd "${ROOT}/generic"
+touch ROOT
+cat > TARGETS <<'EOI'
+{ "flexible":
+  { "type": "generic"
+  , "arguments_config": ["TIMEOUT"]
+  , "outs": ["out.txt"]
+  , "cmds": ["echo Hello > out.txt"]
+  , "timeout scaling": {"type": "var", "name": "TIMEOUT"}
+  }
+, "fixed":
+  { "type": "configure"
+  , "target": "flexible"
+  , "config": {"type": "singleton_map", "key": "TIMEOUT", "value": 1.0}
+  }
+, "unset":
+  { "type": "configure"
+  , "target": "flexible"
+  , "config": {"type": "singleton_map", "key": "TIMEOUT", "value": null}
+  }
+, "":
+  { "type": "install"
+  , "files": {"flexible": "flexible", "fixed": "fixed", "unset": "unset"}
+  }
+}
+EOI
+
+
+for variant in rules generic
+do
+echo "Testing variant ${variant}"
+echo
+cd "${ROOT}/${variant}"
+
 "${JUST}" analyse --local-build-root "${LBRDIR}" --dump-graph graph-null.json 2>&1
 action_configs=$(cat graph-null.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort')
 echo "${action_configs}"
@@ -70,5 +108,15 @@ cat graph-2.json
 action_configs=$(cat graph-2.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort')
 echo "${action_configs}"
 [ "${action_configs}" = '[[1,null],[2]]' ]
+
+echo "variant ${variant} OK"
+echo
+done
+
+# also verify the consistency of the generated actions
+for graph in graph-null.json graph-1.json graph-2.json
+do
+    diff -u "${ROOT}/rules/${graph}" "${ROOT}/generic/${graph}"
+done
 
 echo OK
