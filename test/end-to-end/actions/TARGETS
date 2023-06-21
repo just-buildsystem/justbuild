@@ -23,7 +23,14 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["equality-properties"]
   , "test": ["action-equality-properties.sh"]
-  , "keep": ["graph-null.json", "graph-empty.json", "graph-set.json"]
+  , "keep":
+    [ "rules/graph-null.json"
+    , "rules/graph-empty.json"
+    , "rules/graph-set.json"
+    , "generic/graph-null.json"
+    , "generic/graph-empty.json"
+    , "generic/graph-set.json"
+    ]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
 , "trees":
