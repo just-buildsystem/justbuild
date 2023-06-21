@@ -1022,6 +1022,7 @@ void GenericRuleWithDeps(
             fmt::format("env has to evaluate to map of strings, but found {}",
                         env_val->ToString()),
             true);
+        return;
     }
     for (auto const& [var_name, x] : env_val->Map()) {
         if (not x->IsString()) {
@@ -1029,6 +1030,7 @@ void GenericRuleWithDeps(
                                   "found entry {}",
                                   x->ToString()),
                       true);
+            return;
         }
     }
 
