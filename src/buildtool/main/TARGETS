@@ -22,6 +22,7 @@
       ]
     , ["src/buildtool/execution_api/execution_service", "operation_cache"]
     , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , "common"
     , "version"
     , "analyse"
