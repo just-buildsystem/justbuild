@@ -7,7 +7,9 @@ A feature release on top of `1.1.0`, backwards compatible.
 - Actions can now define additional execution properties and in
   that way chose a specific remote execution image, as well as a
   factor to scale the time out. This also applies to the built-in
-  `generic` rule.
+  `generic` rule. Additionally, the remote-execution endpoint can
+  be dispatched based on the remote-execution properties using
+  the `--endpoint-configuration` argument.
 - Relative non-upwards symbolic links are now treated as first-class
   objects. This introduces a new artifact type and allows the free use
   of such symbolic links throughout the build process.

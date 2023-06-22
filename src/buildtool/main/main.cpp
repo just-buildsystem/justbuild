@@ -330,6 +330,15 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
             std::exit(kExitFailure);
         }
     }
+    if (eargs.remote_execution_dispatch_file) {
+        if (not RemoteConfig::SetRemoteExecutionDispatch(
+                *eargs.remote_execution_dispatch_file)) {
+            Logger::Log(LogLevel::Error,
+                        "setting remote execution dispatch based on file '{}'",
+                        eargs.remote_execution_dispatch_file->string());
+            std::exit(kExitFailure);
+        }
+    }
     if (rargs.cache_endpoint) {
         if (not(RemoteConfig::SetCacheAddress(*rargs.cache_endpoint) ==
                 (*rargs.cache_endpoint != "local"))) {

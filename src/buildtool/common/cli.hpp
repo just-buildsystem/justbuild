@@ -90,6 +90,7 @@ struct EndpointArguments {
     std::optional<std::filesystem::path> local_root{};
     std::optional<std::string> remote_execution_address;
     std::vector<std::string> platform_properties;
+    std::optional<std::filesystem::path> remote_execution_dispatch_file{};
 };
 
 /// \brief Arguments required for building.
@@ -378,8 +379,13 @@ static inline auto SetupEndpointArguments(
     gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option("-r,--remote-execution-address",
                     clargs->remote_execution_address,
-                    "Address of the remote execution service.")
+                    "Address of the remote-execution service.")
         ->type_name("NAME:PORT");
+    app->add_option("--endpoint-configuration",
+                    clargs->remote_execution_dispatch_file,
+                    "File with dispatch instructions to use different "
+                    "remote-execution services, depending on the properties")
+        ->type_name("PATH");
     app->add_option(
            "--remote-execution-property",
            clargs->platform_properties,
