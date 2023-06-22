@@ -70,7 +70,9 @@
   , "deps":
     [ ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   }

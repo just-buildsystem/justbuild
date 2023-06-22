@@ -23,6 +23,9 @@
 #include <string>
 #include <utility>
 
+#include <fmt/core.h>
+#include <nlohmann/json.hpp>
+
 #include "gsl/gsl"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
@@ -61,6 +64,10 @@ class RemoteExecutionConfig {
     struct ServerAddress {
         std::string host{};
         Port port{};
+
+        [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
+            return nlohmann::json{fmt::format("{}:{}", host, port)};
+        }
     };
 
     // Obtain global instance
