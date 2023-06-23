@@ -25,7 +25,7 @@ Just is a generic multi-repository build system; language-specific
 knowledge is described in separate rule files. For every build action,
 the relative location of the inputs is independent of their physical
 location. This staging allows taking sources from different locations
-(logical repositories), including bare git repositories. Targets are
+(logical repositories), including bare Git repositories. Targets are
 defined using JSON format, in proper files (by default, named
 *`TARGETS`*). Targets are uniquely identified by their name, the
 repository, and the module they belong to. A module is the relative path
@@ -618,7 +618,7 @@ Path of the file containing the description of the actions. See
 **`just-graph-file`**(5) for more details.
 
 **`--git-cas`** *`TEXT`*  
-Path to a git repository, containing blobs of potentially missing
+Path to a Git repository, containing blobs of potentially missing
 *`KNOWN`* artifacts.
 
 **`describe`** specific options

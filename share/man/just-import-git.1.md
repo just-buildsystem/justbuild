@@ -3,7 +3,7 @@
 NAME
 ====
 
-just-import-git - import one git repository to a multi-repository
+just-import-git - import one Git repository to a multi-repository
 configuration
 
 SYNOPSIS
@@ -14,7 +14,7 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-Extend an existing **`just-mr-repository-config`**(5) by adding one git
+Extend an existing **`just-mr-repository-config`**(5) by adding one Git
 repository. In doing so, the dependencies declared in the imported
 repository are added as well and *`"file"`* repositories are transformed
 to *`"subdir"`* parts of the imported repository. This solves the

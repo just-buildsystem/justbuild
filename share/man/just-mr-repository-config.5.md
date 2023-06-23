@@ -54,7 +54,7 @@ in the case of *`"archive"`*, or a compressed zip file in the case of
 
 The following fields are supported:
 
- - *`"content"`* provides the git blob hash of the archive file. This
+ - *`"content"`* provides the Git blob hash of the archive file. This
    has to be specified in hex encoding. This entry is mandatory.
 
  - *`"fetch"`* specifies the URL to the remote archive. This entry is
