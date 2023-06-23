@@ -3,7 +3,7 @@
 NAME
 ====
 
-just repository config -- The format of the repository config used by
+just repository config - The format of the repository config used by
 **`just`**(1)
 
 DESCRIPTION

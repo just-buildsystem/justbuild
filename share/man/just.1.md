@@ -3,7 +3,7 @@
 NAME
 ====
 
-just - a generic build tool.
+just - a generic build tool
 
 SYNOPSIS
 ========
@@ -433,7 +433,7 @@ analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 In error messages, truncate the entries in the enumeration of the active
 environment, as well as the expression to be evaluated, to the specified
 number of characters (default: 320).  
-Supported by: analyse|build|install
+Supported by: analyse|build|install.
 
 **`-P`**, **`--print-to-stdout`** *`LOGICAL_PATH`*  
 After building, print the specified artifact to stdout.
@@ -454,17 +454,17 @@ Required by: install|traverse.
 **`-o`**, **`--output-path`** *`PATH`*  
 Install path for the artifact. Refer to **`install-cas`** section for more
 details.  
-Supported by: install-cas
+Supported by: install-cas.
 
 **`--raw-tree`**  
 When installing a tree to stdout, i.e., when no option **`-o`** is given,
-dump the raw tree rather than a pretty-printed version. Supported by:
-install-cas
+dump the raw tree rather than a pretty-printed version.  
+Supported by: install-cas.
 
 **`--remember`**  
 Ensure that all installed artifacts are available in local CAS as well,
-even when using remote execution. Supported by:
-install|traverse|install-cas
+even when using remote execution.  
+Supported by: install|traverse|install-cas.
 
 Parallelism options
 -------------------
@@ -502,18 +502,18 @@ Only TLS and mutual TLS (mTLS) are supported.
 
 **`--tls-ca-cert`** *`PATH`*  
 Path to a TLS CA certificate that is trusted to sign the server
-certificate. Supported by:
-build|install-cas|install|rebuild|traverse|execute.
+certificate.  
+Supported by: build|install-cas|install|rebuild|traverse|execute.
 
 **`--tls-client-cert`** *`PATH`*  
 Path to a TLS client certificate to enable mTLS. It must be passed in
-conjunction with **`--tls-client-key`** and **`--tls-ca-cert`**. Supported
-by: build|install-cas|install|rebuild|traverse.
+conjunction with **`--tls-client-key`** and **`--tls-ca-cert`**.  
+Supported by: build|install-cas|install|rebuild|traverse.
 
 **`--tls-client-key`** *`PATH`*  
 Path to a TLS client key to enable mTLS. It must be passed in
-conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**. Supported
-by: build|install-cas|install|rebuild|traverse.
+conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**.  
+Supported by: build|install-cas|install|rebuild|traverse.
 
 **`analyse`** specific options
 ------------------------------

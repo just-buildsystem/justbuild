@@ -1,4 +1,4 @@
-% JUST-import-git(1) | General Commands Manual
+% JUST-IMPORT-GIT(1) | General Commands Manual
 
 NAME
 ====
