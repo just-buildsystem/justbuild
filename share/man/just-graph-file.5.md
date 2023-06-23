@@ -3,7 +3,7 @@
 NAME
 ====
 
-just graph file -- The format of the action graph used by **just(1)**
+just graph file -- The format of the action graph used by **`just`**(1)
 
 DESCRIPTION
 ===========
@@ -124,7 +124,7 @@ ignore those. Implementations writing action-graph files should be aware
 that a future version of this file format might give a specific meaning
 to those extra keys.
 
-Graphs written by **just(1)** have the additional key *`"origins"`* in
+Graphs written by **`just`**(1) have the additional key *`"origins"`* in
 each action. The value is a list of all places where this action was
 requested (so often, but not always, the list has length 1). Each such
 place is described by a JSON object with the following keys.
@@ -143,4 +143,4 @@ place is described by a JSON object with the following keys.
 See also
 ========
 
-**just(1)**
+**`just`**(1)

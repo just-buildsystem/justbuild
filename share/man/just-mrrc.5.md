@@ -4,7 +4,7 @@ NAME
 ====
 
 just-mr configuration -- The format of the configuration used by
-**just-mr(1)**
+**`just-mr`**(1)
 
 DESCRIPTION
 ===========
@@ -47,23 +47,23 @@ The just-mrrc is given by a JSON object.
 
  - The value for the key *`"config lookup order"`* is a JSON list of
    location objects, specifying where to look for multi-repository
-   configurations (see **just-mr-repository-config(5)** for more
+   configurations (see **`just-mr-repository-config`**(5) for more
    detail). The lookup is performed in the same order the location
    objects appear in the list.
 
  - The value for the key *`"local build root"`* is a single location
    object, specifying the path to use as the local build root. For more
-   details, see **just-mr(1)**.
+   details, see **`just-mr`**(1).
 
  - The value for the key *`"checkout locations"`* is a single location
    object, specifying the path to the file for checkout locations. For
-   more details, see **just-mr(1)**.
+   more details, see **`just-mr`**(1).
 
  - The value for the key *`"distdirs"`* is a JSON list of location
    objects, specifying where to look for distribution files (usually
    collected via the subcommand **`fetch`**). The lookup is performed in
    the same order the location objects appear in the list. For more
-   details, see **just-mr(1)**.
+   details, see **`just-mr`**(1).
 
  - The value for the key *`"just"`* is a single location object,
    specifying the path to the **`just`** binary to use for execution, if
@@ -124,4 +124,5 @@ An example just-mrrc file could look like the following:
 See also
 ========
 
-**just-mr(1)**, **just-mr-repository-config(5)**
+**`just-mr`**(1),
+**`just-mr-repository-config`**(5)

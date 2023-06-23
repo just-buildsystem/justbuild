@@ -4,13 +4,13 @@ NAME
 ====
 
 just-mr repository config -- The format of the repository config used by
-**just-mr(1)**
+**`just-mr`**(1)
 
 DESCRIPTION
 ===========
 
-In order for the **just-mr(1)** tool to generate a repository
-configuration file usable by the **just(1)** multi-repository build
+In order for the **`just-mr`**(1) tool to generate a repository
+configuration file usable by the **`just`**(1) multi-repository build
 system, it requires a configuration file describing repositories and
 their dependencies.
 
@@ -210,11 +210,13 @@ Additional keys
 ---------------
 
 Any JSON object described in this format might have additional keys
-besides the ones mentioned. The current strategy of **just-mr(1)** is to
-accept and ignore them. Users should be aware that future versions of
+besides the ones mentioned. The current strategy of **`just-mr`**(1) is
+to accept and ignore them. Users should be aware that future versions of
 this format might give specific meanings to these extra keys.
 
 See also
 ========
 
-**just(1)**, **just-mr(1)**, **just-repository-config(5)**
+**`just`**(1),
+**`just-mr`**(1),
+**`just-repository-config`**(5)

@@ -251,7 +251,7 @@ description.
 --------------
 
 It allows for the building and staging of requested artifacts from a
-well-defined *`GRAPH_FILE`*. See **just-graph-file(5)** for more
+well-defined *`GRAPH_FILE`*. See **`just-graph-file`**(5) for more
 details.
 
 **`gc`**
@@ -307,7 +307,7 @@ Supported by: analyse|build|describe|install|rebuild.
 
 **`-C`**, **`--repository-config`** *`PATH`*  
 Path to configuration file for multi-repository builds. See
-**just-repository-config(5)** for more details.  
+**`just-repository-config`**(5) for more details.  
 Supported by: analyse|build|describe|install|rebuild|traverse.
 
 **`-D`**, **`--defines`** *`JSON`*  
@@ -356,8 +356,7 @@ Supported by: build|install|rebuild|traverse|execute.
 **`--local-build-root`** *`PATH`*  
 Root for local CAS, cache, and build directories. The path will be
 created if it does not exist already.  
-Supported by:
-build|install-cas|install|rebuild|traverse|gc|execute.
+Supported by: build|install-cas|install|rebuild|traverse|gc|execute.
 
 **`--main`** *`NAME`*  
 The repository to take the target from.  
@@ -405,7 +404,7 @@ Supported by: build|install|rebuild|traverse.
 
 **`--dump-graph`** *`PATH`*  
 File path for writing the action graph description to. See
-**just-graph-file(5)** for more details.  
+**`just-graph-file`**(5) for more details.  
 Supported by: analyse|build|install|rebuild.
 
 **`-f`**, **`--log-file`** *`PATH`*  
@@ -616,7 +615,7 @@ description (as JSON object as well).
 
 **`-g`**, **`--graph-file`** *`TEXT`* *`[[REQUIRED]]`*  
 Path of the file containing the description of the actions. See
-**just-graph-file(5)** for more details.
+**`just-graph-file`**(5) for more details.
 
 **`--git-cas`** *`TEXT`*  
 Path to a git repository, containing blobs of potentially missing
@@ -676,5 +675,5 @@ The exit status of **`just`** is one of the following values:
 See also
 ========
 
-**just-repository-config(5)**,
-**just-mr(1)**
+**`just-repository-config`**(5),
+**`just-mr`**(1)

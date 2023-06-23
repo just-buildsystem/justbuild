@@ -14,7 +14,7 @@ SYNOPSIS
 DESCRIPTION
 ===========
 
-Extend an existing **just-mr-repository-config(5)** by adding one git
+Extend an existing **`just-mr-repository-config`**(5) by adding one git
 repository. In doing so, the dependencies declared in the imported
 repository are added as well and *`"file"`* repositories are transformed
 to *`"subdir"`* parts of the imported repository. This solves the
@@ -85,4 +85,5 @@ dependencies.
 See also
 ========
 
-**just-mr-repository-config(5)**, **just-mr(1)**
+**`just-mr-repository-config`**(5),
+**`just-mr`**(1)

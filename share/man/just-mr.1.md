@@ -4,7 +4,7 @@ NAME
 ====
 
 just-mr - multi-repository configuration tool and launcher for
-**just(1)**.
+**`just`**(1)
 
 SYNOPSIS
 ========
@@ -26,7 +26,7 @@ system. It can be used both standalone and as a launcher for
 The tool performs specific operations, based on the invoked subcommand,
 on repositories described in a configuration file. All subcommands
 operate at the level of *workspace roots* deduced from the given
-repository descriptions. See **just-mr-repository-config(5)** for more
+repository descriptions. See **`just-mr-repository-config`**(5) for more
 details on the input format.
 
 OPTIONS
@@ -40,7 +40,7 @@ Output a usage message and exit.
 
 **`-C`**, **`--repository-config`** *`PATH`*  
 Path to the multi-repository configuration file. See
-**just-mr-repository-config(5)** for more details. If no configuration
+**`just-mr-repository-config`**(5) for more details. If no configuration
 file is specified, **`just-mr`** will look for one in the following
 order:
 
@@ -51,11 +51,11 @@ order:
  - *`/etc/just-repos.json`*
 
 The default configuration lookup order can be adjusted in the just-mrrc
-file. See **just-mrrc(5)** for more details.
+file. See **`just-mrrc`**(5) for more details.
 
 **`-D`**, **`--defines`** *`JSON`*  
 Defines, via an in-line JSON object, an overlay configuration for
-**just(1)**; if used as a launcher for a subcommand known to support
+**`just`**(1); if used as a launcher for a subcommand known to support
 **`--defines`**, this defines value is forwarded, otherwise it is
 ignored. If **`-D`** is given several times, the **`-D`** options
 overlay (in the sense of *`map_union`*) in the order they are given on
@@ -64,7 +64,7 @@ the command line.
 **`--local-build-root`** *`PATH`*  
 Root for local CAS, cache, and build directories. The path will be
 created if it does not exist already. This option overwrites any values
-set in the **just-mrrc(5)** file.  
+set in the **`just-mrrc`**(5) file.  
 Default: path *`".cache/just"`* in user's home directory.
 
 **`--checkout-locations`** *`PATH`*  
@@ -75,7 +75,7 @@ paths as values. Currently supported version control is Git, therefore
 the respective key is *`"git"`*. The paths contained for each repository
 URL point to existing locations on the filesystem containing the
 checkout of the respective repository. This options overwrites any
-values set in the **just-mrrc(5)** file.  
+values set in the **`just-mrrc`**(5) file.  
 Default: file path *`".just-local.json"`* in user's home directory.
 
 **`-L`**, **`--local-launcher`** *`JSON_ARRAY`*  
@@ -89,7 +89,7 @@ the first place distfiles are looked for. This option can be given
 multiple times to specify a list of distribution directories that are
 used for lookup in the order they appear on the command line.
 Directories specified via this option will be appended to the ones set
-in the **just-mrrc(5)** file.  
+in the **`just-mrrc`**(5) file.  
 Default: the single file path *`".distfiles"`* in user's home directory.
 
 **`--main`** *`NAME`*  
@@ -121,7 +121,7 @@ Name of the just binary in *`PATH`* or path to the just binary.
 Default: *`"just"`*.
 
 **`--rc`** *`PATH`*  
-Path to the just-mrrc file to use. See **just-mrrc(5)** for more
+Path to the just-mrrc file to use. See **`just-mrrc`**(5) for more
 details.  
 Default: file path *`".just-mrrc"`* in the user's home directory.
 
@@ -131,7 +131,7 @@ the rare instances when shelling out to git is needed.
 Default: *`"git"`*.
 
 **`--norc`**  
-Option to prevent reading any **just-mrrc(5)** file.
+Option to prevent reading any **`just-mrrc`**(5) file.
 
 SUBCOMMANDS
 ===========
@@ -150,7 +150,7 @@ also **`just`** uses.
 These subcommands fetch all required repositories and generate an
 appropriate multi-repository **`just`** configuration file. The resulting
 file is stored in CAS and its path is printed to stdout. See
-**just-repository-config(5)** for more details on the resulting
+**`just-repository-config`**(5) for more details on the resulting
 configuration file format.
 
 If a main repository is provided in the input configuration or on
@@ -211,7 +211,7 @@ do
 --
 
 This subcommand is used as the canonical way of specifying just
-arguments and calling **`just`** via **execvp(2)**. Any subsequent argument
+arguments and calling **`just`** via **`execvp`**(2). Any subsequent argument
 is unconditionally forwarded to **`just`**. For *known* subcommands
 (**`version`**, **`describe`**, **`analyse`**, **`build`**, **`install`**, **`install-cas`**, **`rebuild`**), the
 **`just-mr setup`** step is performed first for those commands accepting a
@@ -234,7 +234,7 @@ rebuild).
 -------------------------------------------------------------------------------------------------------------
 
 This subcommand is the explicit way of specifying *known* just
-subcommands and calling **`just`** via **execvp(2)**. The same description
+subcommands and calling **`just`** via **`execvp`**(2). The same description
 as for the **`do`** subcommand applies.
 
 EXIT STATUS
@@ -253,12 +253,12 @@ The exit status of **`just-mr`** is one of the following values:
  - 71: error during setup
 
 Any other exit code that does not have bit 64 set is a status value from
-**`just`**, if **`just-mr`** is used as a launcher. See **just(1)** for more
+**`just`**, if **`just-mr`** is used as a launcher. See **`just`**(1) for more
 details.
 
 See also
 ========
 
-**just-mr-repository-config(5)**,
-**just-repository-config(5)**,
-**just(1)**
+**`just-mr-repository-config`**(5),
+**`just-repository-config`**(5),
+**`just`**(1)
