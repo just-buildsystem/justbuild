@@ -8,15 +8,15 @@ just - a generic build tool.
 SYNOPSIS
 ========
 
-just version  
-just {analyse|build} \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
-just install \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* \[\[*`module`*\] *`target`*\]  
-just install-cas \[*`OPTION`*\]... *`OBJECT_ID`*  
-just describe \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
-just rebuild \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
-just traverse \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* **`-g`** *`GRAPH_FILE`*  
-just gc \[*`OPTION`*\]...  
-just execute \[*`OPTION`*\]...
+**`just`** **`version`**  
+**`just`** {**`analyse`**|**`build`**} \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
+**`just`** **`install`** \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* \[\[*`module`*\] *`target`*\]  
+**`just`** **`install-cas`** \[*`OPTION`*\]... *`OBJECT_ID`*  
+**`just`** **`describe`** \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
+**`just`** **`rebuild`** \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
+**`just`** **`traverse`** \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* **`-g`** *`GRAPH_FILE`*  
+**`just`** **`gc`** \[*`OPTION`*\]...  
+**`just`** **`execute`** \[*`OPTION`*\]...
 
 DESCRIPTION
 ===========
@@ -37,7 +37,7 @@ the empty string. Specifying the correct repository, target root,
 module, and target name allows to process that target independently of
 the current working directory.
 
-If the module is not specified on the command line, `just` sets the
+If the module is not specified on the command line, **`just`** sets the
 module corresponding to the current working directory.
 
 If a target is not specified, the lexicographically-first target,
@@ -45,7 +45,7 @@ according to native byte order, is used. So, a target named with an
 empty string will always be the default target for that module.
 
 If a target depends on other targets defined in other modules or
-repositories, `just` will recursively visit all and only the required
+repositories, **`just`** will recursively visit all and only the required
 modules.
 
 The main repository is the repository containing the target specified on
@@ -61,8 +61,8 @@ file is used as main.
 The *`workspace_root`* of the main repository is then defined as
 follows. If the option **`--workspace-root`** is provided, then
 *`workspace_root`* is set accordingly. If the option is not provided,
-`just` checks if it is specified within the multi-repository
-configuration file. If it is, then it is set accordingly. If not, just
+**`just`** checks if it is specified within the multi-repository
+configuration file. If it is, then it is set accordingly. If not, **`just`**
 starts looking for a marker in the current directory first, then in all
 the parent directories until it finds one. The supported markers are
 
@@ -71,7 +71,7 @@ the parent directories until it finds one. The supported markers are
  - *`.git`* (can be either a file - empty or not, content is ignored -
    or the famous directory)
 
-If it fails, `just` errors out.
+If it fails, **`just`** errors out.
 
 For non-main repositories, the *`workspace_root`* entry must be declared
 in the multi-repository configuration file.
@@ -84,7 +84,7 @@ file. If it is not specified there, the default value is used. The
 default value of *`target_root`* is *`workspace_root`*, of *`rule_root`*
 is *`target_root`*, and of *`expression_root`* is *`rule_root`*.
 
-Finally, the file names where `targets`, `rules`, and `expressions` are
+Finally, the file names where *targets*, *rules*, and *expressions* are
 defined for the main repository. If the corresponding key is present in
 the multi-repository configuration file, it is set accordingly. If the
 user gives the corresponding command-line option, it overwrites what is
@@ -102,8 +102,8 @@ the multi-repository configuration file.
 SUBCOMMANDS
 ===========
 
-version
--------
+**`version`**
+-------------
 
 Print on stdout a JSON object providing version information about the
 version of the tool used. This JSON object will contain at least the
@@ -120,52 +120,52 @@ following keys.
    commit that went into this binary. It is *`null`* if that time is not
    known (e.g., in development builds).
 
-analyse|build|install
------------------------
+**`analyse`**|**`build`**|**`install`**
+---------------------------------------
 
-The subcommands `analyse`, `build`, and `install` are strictly related.
-In fact, from left to right, one is a subset of the other. `build`
-performs work on top of `analyse`, and `install` on top of `build`. When
-a user issues `build`, the `analyse` is called underneath. In
-particular, there is no need to run these three subcommands
-sequentially.
+The subcommands **`analyse`**, **`build`**, and **`install`** are
+strictly related. In fact, from left to right, one is a subset of the
+other. **`build`** performs work on top of **`analyse`**, and
+**`install`** on top of **`build`**. When a user issues **`build`**, the
+**`analyse`** is called underneath. In particular, there is no need to
+run these three subcommands sequentially.
 
-### analyse
+### **`analyse`**
 
 analyse reads the target graph from *`TARGETS`* files for the given
-target, computes the action graph (required by e.g., build, install,
-traverse), and reports the artifacts, provides, and runfiles of the
+target, computes the action graph (required by e.g., **`build`**, **`install`**,
+**`traverse`**), and reports the artifacts, provides, and runfiles of the
 analysed target.
 
-In short, the `analyse` subcommand identifies all the steps required to
-build a given target without actually performing those steps.
+In short, the **`analyse`** subcommand identifies all the steps required
+to **`build`** a given target without actually performing those steps.
 
 This subcommand, issued with proper flags, can dump in JSON format
 artifacts, action graph, nodes, actions, (transitive) targets (both
 named and anonymous), and trees.
 
-### build
+### **`build`**
 
 This subcommand performs the actions contained in the action graph
-computed through the `analyse` phase.
+computed through the **`analyse`** phase.
 
 If building locally, the building process is performed in temporary
 separate directories to allow for staging according to the logical path
 described in the *`TARGETS`* file. Since artifacts are only stored in
-the CAS, the user has to use either the install or install-cas
+the CAS, the user has to use either the **`install`** or **`install-cas`**
 subcommand to get them.
 
-`just` allows for both local (i.e., on the same machine where `just` is
+**`just`** allows for both local (i.e., on the same machine where **`just`** is
 used) and remote compilation (i.e., by sending requests over a TCP
 connection, e.g., to a different machine, cluster or cloud
 infrastructure). In case of a remote compilation, artifacts are compiled
-remotely and stored in the remote CAS. `install` and `install-cas`
+remotely and stored in the remote CAS. **`install`** and **`install-cas`**
 subcommands can be used to locally fetch and stage the desired
 artifacts.
 
-### install
+### **`install`**
 
-The `install` subcommand determines which (if any) actions need to be
+The **`install`** subcommand determines which (if any) actions need to be
 (re)done and issues the command to (re)run them. Then, it installs the
 artifacts (stored in the local or remote CAS) of the processed target
 under the given *`OUTPUT_DIR`* (set by option **`-o`**) honoring the
@@ -173,8 +173,8 @@ logical path (aka, staging). If the output path does not exist, it will
 create all the necessary folders and subfolders. If files are already
 present, they will be overwritten.
 
-rebuild
--------
+**`rebuild`**
+-------------
 
 This subcommand inspects if builds are fully reproducible or not (e.g.,
 time stamps are used). It simply rebuilds and compares artifacts to the
@@ -182,24 +182,24 @@ cached build reporting actions with different output. To do so in a
 meaningful way, it requires that previous build is already in the cache
 (local or remote).
 
-describe
---------
+**`describe`**
+--------------
 
-The `describe` subcommand allows for describing the rule generating a
+The **`describe`** subcommand allows for describing the rule generating a
 target. The rule is resolved in precisely the same way as during the
 analysis. The doc-strings (if any) from the rule definition (if
 user-defined) are reported, together with a summary of the declared
 fields and their types. The multi-repository configuration is honored in
-the same way as during `analyse` and `build`; in particular, the rule
+the same way as during **`analyse`** and **`build`**; in particular, the rule
 definition can also reside in a git-tree root.
 
-install-cas
------------
+**`install-cas`**
+-----------------
 
-install-cas fetches artifacts from CAS (Content Addressable Storage) by
+**`install-cas`** fetches artifacts from CAS (Content Addressable Storage) by
 means of their *`OBJECT_ID`* (object identifier). The canonical format
 of an object identifier is *`[<hash>:<size>:<type>]`*; however, when
-parsing an object identifier, install-cas uses the following default
+parsing an object identifier, **`install-cas`** uses the following default
 rules, to make usage simpler.
 
  - The square brackets are optional.
@@ -247,25 +247,25 @@ description.
    If the artifact is a file, it will replace the existing file. If the
    artifact is a tree, it will cause an error.
 
-traverse
---------
+**`traverse`**
+--------------
 
 It allows for the building and staging of requested artifacts from a
 well-defined *`GRAPH_FILE`*. See **just-graph-file(5)** for more
 details.
 
-gc
---
+**`gc`**
+--------
 
-The **gc** subcommand triggers garbage collection of the local cache.
+The **`gc`** subcommand triggers garbage collection of the local cache.
 More precisely, it rotates the cache and CAS generations. During a
 build, upon cache hit, everything related to that cache hit is uplinked
-to the youngest generation; therefore, upon a call to `gc` everything
-not referenced since the last call to `gc` is purged and the
+to the youngest generation; therefore, upon a call to **`gc`** everything
+not referenced since the last call to **`gc`** is purged and the
 corresponding disk space reclaimed.
 
-execute
--------
+**`execute`**
+-------------
 
 This subcommand starts a single node remote execution service, honoring
 the just native remote protocol.
@@ -400,7 +400,7 @@ interpreted as stdout. Note that, passing *`.`*/*`-`* will instead
 create a file named *`-`* in the current directory. Output format is
 JSON map with staging path as key, and object id description (hash,
 type, size) as value. Each artifact is guaranteed to be *`KNOWN`* in
-CAS. Therefore, this option cannot be used with analyse.  
+CAS. Therefore, this option cannot be used with **`analyse`**.  
 Supported by: build|install|rebuild|traverse.
 
 **`--dump-graph`** *`PATH`*  
@@ -409,7 +409,7 @@ File path for writing the action graph description to. See
 Supported by: analyse|build|install|rebuild.
 
 **`-f`**, **`--log-file`** *`PATH`*  
-Path to local log file. `just` will store the information printed on
+Path to local log file. **`just`** will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
 output has been generated.  
 Supported by:
@@ -453,7 +453,7 @@ If the artifacts have been already staged, they will be overwritten.
 Required by: install|traverse.
 
 **`-o`**, **`--output-path`** *`PATH`*  
-Install path for the artifact. Refer to **install-cas** section for more
+Install path for the artifact. Refer to **`install-cas`** section for more
 details.  
 Supported by: install-cas
 
@@ -516,8 +516,8 @@ Path to a TLS client key to enable mTLS. It must be passed in
 conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**. Supported
 by: build|install-cas|install|rebuild|traverse.
 
-**analyse** specific options
-----------------------------
+**`analyse`** specific options
+------------------------------
 
 **`--dump-actions`** *`PATH`*  
 Dump actions to file. *`-`* is treated as stdout. Output is a list of
@@ -598,8 +598,8 @@ treated as stdout. Output is a JSON map between tree ids and the
 corresponding artifact map, which maps the path to the artifact
 description.
 
-**rebuild** specific options
-----------------------------
+**`rebuild`** specific options
+------------------------------
 
 **`--vs`** *`NAME`*:*`PORT`*|*`"local"`*  
 Cache endpoint to compare against (use *`"local"`* for local cache).
@@ -607,8 +607,8 @@ Cache endpoint to compare against (use *`"local"`* for local cache).
 **`--dump-flaky`** *`PATH`*  
 Dump flaky actions to file.
 
-**traverse** specific options
------------------------------
+**`traverse`** specific options
+-------------------------------
 
 **`-a`**, **`--artifacts`** *`TEXT`*  
 JSON maps between relative path where to copy the artifact and its
@@ -622,8 +622,8 @@ Path of the file containing the description of the actions. See
 Path to a git repository, containing blobs of potentially missing
 *`KNOWN`* artifacts.
 
-**describe** specific options
------------------------------
+**`describe`** specific options
+-------------------------------
 
 **`--json`**  
 Omit pretty-printing and describe rule in JSON format.
@@ -631,8 +631,8 @@ Omit pretty-printing and describe rule in JSON format.
 **`--rule`**  
 Module and target arguments refer to a rule instead of a target.
 
-**execute** specific options
-----------------------------
+**`execute`** specific options
+------------------------------
 
 **`-p`**, **`--port`** *`INT`*  
 Execution service will listen to this port. If unset, the service will
@@ -664,7 +664,7 @@ operations will be removed, in a FIFO scheme. If unset, defaults to
 EXIT STATUS
 ===========
 
-The exit status of `just` is one of the following values:
+The exit status of **`just`** is one of the following values:
 
  - 0: the command completed successfully
  - 1: the command could not complete due to some errors (e.g.,

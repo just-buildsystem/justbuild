@@ -9,7 +9,7 @@ just repository config -- The format of the repository config used by
 DESCRIPTION
 ===========
 
-`just`'s repository configuration is read as JSON. Any other
+**`just`**'s repository configuration is read as JSON. Any other
 serialization describing the same JSON object is equivalent. We assume,
 that in JSON objects, each key occurs at most once; it is implementation
 defined how repetitions of the same key are treated.
@@ -43,7 +43,7 @@ contains *`file roots`*, file names, and bindings to other repositories.
 Specifically the following fields are supported:
 
  - *`"workspace_root"`* contains the *`file root`* where source files
-   are located. If this entry is missing for the main repository, `just`
+   are located. If this entry is missing for the main repository, **`just`**
    will perform the normal workspace root resolution starting from the
    current working directory.
 

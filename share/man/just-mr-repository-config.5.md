@@ -132,7 +132,7 @@ The following fields are supported:
 
 It defines as workspace root a directory with the distribution archives
 of the specified repositories. Usually this root is realized as a Git
-tree in the Git repository in `just`'s local build root.
+tree in the Git repository in **`just`**'s local build root.
 
 The following fields are supported:
 
@@ -156,7 +156,7 @@ supported. If its value is *`true`*, it indicates that the workspace
 root should be returned as a Git tree. If the root directory is already
 part of a Git repository, its Git tree identifier is used; otherwise,
 the workspace root will be realized as a Git tree in the Git repository
-in `just`'s local build root.
+in **`just`**'s local build root.
 
 Repository description
 ----------------------

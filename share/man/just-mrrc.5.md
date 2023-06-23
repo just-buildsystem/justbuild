@@ -25,7 +25,7 @@ The value for key *`"root"`* is either *`"workspace"`*, *`"home"`*, or
 
  - *`"workspace"`* refers to the root of the workspace in which the
    `just-mr` invocation was issued (not the workspace of the requested
-   main repository). This location root is ignored if `just-mr` was not
+   main repository). This location root is ignored if **`just-mr`** was not
    invoked from inside a workspace.
 
  - *`"home"`* refers to the user's home directory.
@@ -61,20 +61,20 @@ The just-mrrc is given by a JSON object.
 
  - The value for the key *`"distdirs"`* is a JSON list of location
    objects, specifying where to look for distribution files (usually
-   collected via the subcommand `fetch`). The lookup is performed in
+   collected via the subcommand **`fetch`**). The lookup is performed in
    the same order the location objects appear in the list. For more
    details, see **just-mr(1)**.
 
  - The value for the key *`"just"`* is a single location object,
-   specifying the path to the `just` binary to use for execution, if
-   `just-mr` is used as a launcher.
+   specifying the path to the **`just`** binary to use for execution, if
+   **`just-mr`** is used as a launcher.
 
  - The value for the key *`"git"`* is a single location object,
    specifying the path to the git binary to use in the instances when
-   `just-mr` needs to shell out.
+   **`just-mr`** needs to shell out.
 
  - The value for the key *`"local launcher"`*, if given, is list of
-   strings setting the default for local launcher for `just-mr`;
+   strings setting the default for local launcher for **`just-mr`**;
    command-line arguments take precedence over the value in the
    configuration file. If the key *`"local launcher"`* is absent, the
    default *`["env", "--"]`* is assumed.
@@ -88,9 +88,9 @@ The just-mrrc is given by a JSON object.
    on the command line.
 
  - The value for the key *`"just args"`* is a JSON object. Its keys are
-   `just` subcommands and its value is a JSON list of strings. For the
-   corresponding subcommand, these strings are prefixed to the `just`
-   argument vector, if `just-mr` is used as a launcher.
+   **`just`** subcommands and its value is a JSON list of strings. For the
+   corresponding subcommand, these strings are prefixed to the **`just`**
+   argument vector, if **`just-mr`** is used as a launcher.
 
 EXAMPLE
 =======

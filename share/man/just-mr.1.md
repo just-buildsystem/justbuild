@@ -9,18 +9,19 @@ just-mr - multi-repository configuration tool and launcher for
 SYNOPSIS
 ========
 
-just-mr \[*`OPTION`*\]... mrversion  
-just-mr \[*`OPTION`*\]... {setup|setup-env} \[**`--all`**\] \[*`main-repo`*\]  
-just-mr \[*`OPTION`*\]... fetch \[**`--all`**\] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
-just-mr \[*`OPTION`*\]... update \[*`repo`*\]...  
-just-mr \[*`OPTION`*\]... do \[*`JUST_ARG`*\]...  
-just-mr \[*`OPTION`*\]... {version|analyse|build|install|install-cas|describe|rebuild} \[*`JUST_ARG`*\]...  
+**`just-mr`** \[*`OPTION`*\]... **`mrversion`**  
+**`just-mr`** \[*`OPTION`*\]... {**`setup`**|**`setup-env`**} \[**`--all`**\] \[*`main-repo`*\]  
+**`just-mr`** \[*`OPTION`*\]... **`fetch`** \[**`--all`**\] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
+**`just-mr`** \[*`OPTION`*\]... **`update`** \[*`repo`*\]...  
+**`just-mr`** \[*`OPTION`*\]... **`do`** \[*`JUST_ARG`*\]...  
+**`just-mr`** \[*`OPTION`*\]... {**`version`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`describe`**|**`rebuild`**} \[*`JUST_ARG`*\]...  
 
 DESCRIPTION
 ===========
 
 Just-MR is a configuration tool for the multi-repository Just build
-system. It can be used both standalone and as a launcher for `just`.
+system. It can be used both standalone and as a launcher for
+**`just`**(1).
 
 The tool performs specific operations, based on the invoked subcommand,
 on repositories described in a configuration file. All subcommands
@@ -40,11 +41,11 @@ Output a usage message and exit.
 **`-C`**, **`--repository-config`** *`PATH`*  
 Path to the multi-repository configuration file. See
 **just-mr-repository-config(5)** for more details. If no configuration
-file is specified, `just-mr` will look for one in the following
+file is specified, **`just-mr`** will look for one in the following
 order:
 
- - *`$WORKSPACE_ROOT/repos.json`* (workspace of the `just-mr` invocation)
- - *`$WORKSPACE_ROOT/etc/repos.json`* (workspace of the `just-mr`
+ - *`$WORKSPACE_ROOT/repos.json`* (workspace of the **`just-mr`** invocation)
+ - *`$WORKSPACE_ROOT/etc/repos.json`* (workspace of the **`just-mr`**
    invocation)
  - *`$HOME/.just-repos.json`*
  - *`/etc/just-repos.json`*
@@ -94,7 +95,7 @@ Default: the single file path *`".distfiles"`* in user's home directory.
 **`--main`** *`NAME`*  
 The repository to take the target from.  
 **`-f`**, **`--log-file`** *`PATH`*  
-Path to local log file. `just-mr` will store the information printed on
+Path to local log file. **`just-mr`** will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
 output has been generated.
 
@@ -135,19 +136,19 @@ Option to prevent reading any **just-mrrc(5)** file.
 SUBCOMMANDS
 ===========
 
-mrversion
----------
+**`mrversion`**
+---------------
 
 Print on stdout a JSON object providing version information for this
-tool itself; the `version` subcommand calls the `version` subcommand of
+tool itself; the **`version`** subcommand calls the **`version`** subcommand of
 just. The version information for just-mr is in the same format that
-also `just` uses.
+also **`just`** uses.
 
-setup|setup-env
-----------------
+**`setup`**|**`setup-env`**
+---------------------------
 
 These subcommands fetch all required repositories and generate an
-appropriate multi-repository `just` configuration file. The resulting
+appropriate multi-repository **`just`** configuration file. The resulting
 file is stored in CAS and its path is printed to stdout. See
 **just-repository-config(5)** for more details on the resulting
 configuration file format.
@@ -160,11 +161,11 @@ the configuration is used. To perform the setup for all repositories
 from the input configuration file, use the **`--all`** flag.
 
 The behavior of the two subcommands differs only with respect to the
-main repository. In the case of `setup-env`, the workspace root of the
+main repository. In the case of **`setup-env`**, the workspace root of the
 main repository is left out, such that it can be deduced from the
-working directory when `just` is invoked. In this way, working on a
+working directory when **`just`** is invoked. In this way, working on a
 checkout of that repository is possible, while having all of its
-dependencies properly set up. In the case of `setup`, the workspace root
+dependencies properly set up. In the case of **`setup`**, the workspace root
 of the main repository is taken as-is into the output configuration
 file.
 
@@ -174,7 +175,7 @@ fetch
 This subcommand prepares all archive-type workspace roots for an offline
 build by fetching all their required source files from the specified
 locations given in the input configuration file. Any subsequent
-`just-mr` or `just` invocations containing fetched archive workspace
+**`just-mr`** or **`just`** invocations containing fetched archive workspace
 roots will thus need no further network connections.
 
 If a main repository is provided in the input configuration or on
@@ -196,7 +197,7 @@ update
 This subcommand updates the specified repositories (possibly none) and
 prints the resulting updated configuration file to stdout.
 
-Currently, `just-mr` can only update Git repositories and it will fail
+Currently, **`just-mr`** can only update Git repositories and it will fail
 if a different repository type is given. The tool also fails if any of
 the given repository names are not found in the configuration file.
 
@@ -210,36 +211,36 @@ do
 --
 
 This subcommand is used as the canonical way of specifying just
-arguments and calling `just` via **execvp(2)**. Any subsequent argument
-is unconditionally forwarded to `just`. For *known* subcommands
-(version, describe, analyse, build, install, install-cas, rebuild), the
-`just-mr setup` step is performed first for those commands accepting a
+arguments and calling **`just`** via **execvp(2)**. Any subsequent argument
+is unconditionally forwarded to **`just`**. For *known* subcommands
+(**`version`**, **`describe`**, **`analyse`**, **`build`**, **`install`**, **`install-cas`**, **`rebuild`**), the
+**`just-mr setup`** step is performed first for those commands accepting a
 configuration and the produced configuration is prefixed to the provided
-arguments. The main repository for the `setup` step can be provided in
+arguments. The main repository for the **`setup`** step can be provided in
 the configuration or on the command line. If no main repository is
 provided, the lexicographical first repository from the configuration is
 used.
 
-All logging arguments given to `just-mr` are passed to `just` as early
+All logging arguments given to **`just-mr`** are passed to **`just`** as early
 arguments. If log files are provided, an unconditional
 **`--log-append`** argument is passed as well, which ensures no log
 messages will get overwritten.
 
-The **`--local-launcher`** argument is passed to `just` as early
+The **`--local-launcher`** argument is passed to **`just`** as early
 argument for those *known* subcommands that accept it (build, install,
 rebuild).
 
-version|describe|analyse|build|install|install-cas|rebuild|gc
---------------------------------------------------------------------
+**`version`**|**`describe`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`rebuild`**|**`gc`**
+-------------------------------------------------------------------------------------------------------------
 
 This subcommand is the explicit way of specifying *known* just
-subcommands and calling `just` via **execvp(2)**. The same description
-as for the `do` subcommand applies.
+subcommands and calling **`just`** via **execvp(2)**. The same description
+as for the **`do`** subcommand applies.
 
 EXIT STATUS
 ===========
 
-The exit status of `just-mr` is one of the following values:
+The exit status of **`just-mr`** is one of the following values:
 
  - 0: the command completed successfully
  - 64: setup succeeded, but exec failed
@@ -252,7 +253,7 @@ The exit status of `just-mr` is one of the following values:
  - 71: error during setup
 
 Any other exit code that does not have bit 64 set is a status value from
-`just`, if `just-mr` is used as a launcher. See **just(1)** for more
+**`just`**, if **`just-mr`** is used as a launcher. See **just(1)** for more
 details.
 
 See also
