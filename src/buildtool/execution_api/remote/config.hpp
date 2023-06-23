@@ -16,12 +16,14 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP
 
 #include <cstdint>
+#include <filesystem>
 #include <map>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
@@ -84,6 +86,10 @@ class RemoteExecutionConfig {
                                      ParseAddress(address));
     }
 
+    // Set remote-execution dispatch property list
+    [[nodiscard]] static auto SetRemoteExecutionDispatch(
+        const std::filesystem::path& filename) noexcept -> bool;
+
     // Set specific cache address, unsets if parsing `address` fails
     [[nodiscard]] static auto SetCacheAddress(
         std::string const& address) noexcept -> bool {
@@ -114,6 +120,12 @@ class RemoteExecutionConfig {
         return Instance().cache_address_;
     }
 
+    // Instance dispatch list
+    [[nodiscard]] static auto DispatchList() noexcept -> std::vector<
+        std::pair<std::map<std::string, std::string>, ServerAddress>> {
+        return Instance().dispatch_;
+    }
+
     [[nodiscard]] static auto PlatformProperties() noexcept
         -> std::map<std::string, std::string> {
         return Instance().platform_properties_;
@@ -122,6 +134,10 @@ class RemoteExecutionConfig {
   private:
     // Server address of remote execution.
     std::optional<ServerAddress> remote_address_{};
+
+    // Server dispatch data
+    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
+        dispatch_{};
 
     // Server address of cache endpoint for rebuild.
     std::optional<ServerAddress> cache_address_{};
