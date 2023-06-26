@@ -13,41 +13,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
+from typing import Any, Dict, List, Optional, cast
 
 from argparse import ArgumentParser
 
-def log(*args, **kwargs):
+# generic JSON type that avoids getter issues; proper use is being enforced by
+# return types of methods and typing vars holding return values of json getter
+Json = Dict[str, Any]
+
+
+def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
-def fail(s):
+
+def fail(s: str) -> None:
     log(s)
     sys.exit(1)
 
-def git_hash(content):
-  header = "blob {}\0".format(len(content)).encode('utf-8')
-  h = hashlib.sha1()
-  h.update(header)
-  h.update(content)
-  return h.hexdigest()
 
-def create_blobs(blobs, *, root):
+def git_hash(content: bytes) -> str:
+    header = "blob {}\0".format(len(content)).encode('utf-8')
+    h = hashlib.sha1()
+    h.update(header)
+    h.update(content)
+    return h.hexdigest()
+
+
+def create_blobs(blobs: List[str], *, root: str) -> None:
     os.makedirs(os.path.join(root, "KNOWN"))
     for blob in blobs:
         blob_bin = blob.encode('utf-8')
         with open(os.path.join(root, "KNOWN", git_hash(blob_bin)), "wb") as f:
             f.write(blob_bin)
 
-def build_known(desc, *, root):
+
+def build_known(desc: Json, *, root: str) -> str:
     return os.path.join(root, "KNOWN", desc["data"]["id"])
 
-def link(src, dest):
+
+def link(src: str, dest: str) -> None:
     dest = os.path.normpath(dest)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     try:
@@ -55,51 +64,58 @@ def link(src, dest):
     except:
         os.symlink(src, dest)
 
-def build_local(desc, *, root, config):
+
+def build_local(desc: Json, *, root: str, config: Json) -> Optional[str]:
     repo_name = desc["data"]["repository"]
-    repo = config["repositories"][repo_name]["workspace_root"]
+    repo: List[str] = config["repositories"][repo_name]["workspace_root"]
     rel_path = desc["data"]["path"]
     if repo[0] == "file":
         return os.path.join(repo[1], rel_path)
-    fail("Unsupported repository root %r" % (repo,))
+    fail("Unsupported repository root %r" % (repo, ))
 
-def build_tree(desc, *, config, root, graph):
+
+def build_tree(desc: Json, *, config: Json, root: str, graph: Json) -> str:
     tree_id = desc["data"]["id"]
     tree_dir = os.path.normpath(os.path.join(root, "TREE", tree_id))
     if os.path.isdir(tree_dir):
         return tree_dir
     tree_desc = graph["trees"][tree_id]
     for location, desc in tree_desc.items():
-        link(build(desc, config=config, root=root, graph=graph),
+        link(cast(str, build(desc, config=config, root=root, graph=graph)),
              os.path.join(tree_dir, location))
     # correctly handle the empty tree
     os.makedirs(tree_dir, exist_ok=True)
     return tree_dir
 
-def run_action(action_id, *, config, root, graph):
+
+def run_action(action_id: str, *, config: Json, root: str, graph: Json) -> str:
     action_dir = os.path.normpath(os.path.join(root, "ACTION", action_id))
     if os.path.isdir(action_dir):
         return action_dir
     os.makedirs(action_dir)
     action_desc = graph["actions"][action_id]
     for location, desc in action_desc.get("input", {}).items():
-        link(build(desc, config=config, root=root, graph=graph),
+        link(cast(str, build(desc, config=config, root=root, graph=graph)),
              os.path.join(action_dir, location))
     cmd = action_desc["command"]
     env = action_desc.get("env")
-    log("Running %r with env %r for action %r"
-        % (cmd, env, action_id))
+    log("Running %r with env %r for action %r" % (cmd, env, action_id))
     for out in action_desc["output"]:
         os.makedirs(os.path.join(action_dir, os.path.dirname(out)),
                     exist_ok=True)
     subprocess.run(cmd, env=env, cwd=action_dir, check=True)
     return action_dir
 
-def build_action(desc, *, config, root, graph):
-    action_dir = run_action(desc["data"]["id"], config=config, root=root, graph=graph)
+
+def build_action(desc: Json, *, config: Json, root: str, graph: Json) -> str:
+    action_dir = run_action(desc["data"]["id"],
+                            config=config,
+                            root=root,
+                            graph=graph)
     return os.path.join(action_dir, desc["data"]["path"])
 
-def build(desc, *, config, root, graph):
+
+def build(desc: Json, *, config: Json, root: str, graph: Json) -> Optional[str]:
     if desc["type"] == "TREE":
         return build_tree(desc, config=config, root=root, graph=graph)
     if desc["type"] == "ACTION":
@@ -108,15 +124,18 @@ def build(desc, *, config, root, graph):
         return build_known(desc, root=root)
     if desc["type"] == "LOCAL":
         return build_local(desc, root=root, config=config)
-    fail("Don't know how to build artifact %r" % (desc,))
+    fail("Don't know how to build artifact %r" % (desc, ))
 
-def traverse(*, graph, to_build, out, root, config):
+
+def traverse(*, graph: Json, to_build: Json, out: str, root: str,
+             config: Json) -> None:
     os.makedirs(out, exist_ok=True)
     os.makedirs(root, exist_ok=True)
     create_blobs(graph["blobs"], root=root)
     for location, artifact in to_build.items():
-        link(build(artifact, config=config, root=root, graph=graph),
+        link(cast(str, build(artifact, config=config, root=root, graph=graph)),
              os.path.join(out, location))
+
 
 def main():
     parser = ArgumentParser()
@@ -138,14 +157,13 @@ def main():
 
     (options, args) = parser.parse_known_args()
     if len(args) != 2:
-        fail("usage: %r <graph> <targets_to_build>"
-             % (sys.argv[0],))
+        fail("usage: %r <graph> <targets_to_build>" % (sys.argv[0], ))
     with open(args[0]) as f:
         graph = json.load(f)
     with open(args[1]) as f:
         to_build = json.load(f)
-    out = os.path.abspath(options.output_directory or "out-boot")
-    root = os.path.abspath(options.local_build_root or ".just-boot")
+    out = os.path.abspath(cast(str, options.output_directory or "out-boot"))
+    root = os.path.abspath(cast(str, options.local_build_root or ".just-boot"))
     with open(options.repository_config or "repo-conf.json") as f:
         config = json.load(f)
     if options.default_workspace:
@@ -153,7 +171,9 @@ def main():
         repos = config.get("repositories", {}).keys()
         for repo in repos:
             if not "workspace_root" in config["repositories"][repo]:
-                config["repositories"][repo]["workspace_root"] = ["file", ws_root]
+                config["repositories"][repo]["workspace_root"] = [
+                    "file", ws_root
+                ]
     traverse(graph=graph, to_build=to_build, out=out, root=root, config=config)
 
 
