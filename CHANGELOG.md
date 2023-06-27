@@ -8,6 +8,9 @@ A feature release on top of `1.1.0`, backwards compatible.
   that way chose a specific remote execution image, as well as a
   factor to scale the time out. This also applies to the built-in
   `generic` rule.
+- Relative non-upwards symbolic links are now treated as first-class
+  objects. This introduces a new artifact type and allows the free use
+  of such symbolic links throughout the build process.
 
 ### Other changes
 
