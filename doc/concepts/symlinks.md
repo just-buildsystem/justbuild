@@ -64,10 +64,10 @@ symbolic links, e.g., shared libraries pointing to the specific version
 (like `libfoo.so.3` as a symlink pointing to `libfoo.so.3.1.4`) or
 detours through `/etc/alternatives`.
 
-Implemented stop-gap: "shopping list" for bootstrapping
+Bootstrapping "shopping list" option
 ---------------------------------------------------------
 
-As a stop-gap measure to support building the tool itself against
+In order to more easily support building the tool itself against
 pre-installed dependencies with the respective directories containing
 symbolic links, or tools (like `protoc`) being symbolic links (e.g., to
 the specific version), repositories can specify, in the `"copy"`
@@ -76,15 +76,15 @@ directories to be copied as part of the bootstrapping process to a fresh
 clean directory serving as root; during this copying, symlinks are
 followed.
 
-Proposed treatment of symbolic links
+Our treatment of symbolic links
 ------------------------------------
 
 ### "Ignore-special" roots
 
-To allow working with source trees containing symbolic links, we extend
-the existing roots by "ignore-special" versions thereof. In such a
-root (regardless whether file based, or `git`-tree based), everything
-not a file or a directory will be pretended to be absent. For any
+To allow working with source trees containing symbolic links, all the existing
+roots have "ignore-special" versions thereof. In such a root
+(regardless whether file based, or `git`-tree based), everything
+not a file or a directory is pretended to be absent. For any
 compile-like tasks, the effect of symlinks can be modeled by appropriate
 staging.
 
@@ -95,15 +95,15 @@ Nevertheless, for `git`-tree roots, the effective tree is a function of
 the `git`-tree of the root, so `git`-tree-based ignore-special roots are
 content fixed and hence eligible for target-level caching.
 
-### Accepting non-upwards relative symlinks as first-class objects
+### Non-upwards relative symlinks as first-class objects
 
-Finally, a restricted form of symlinks, more precisely relative
-non-upwards symbolic links, will be added as first-class object. That
-is, a new artifact type (besides blobs and trees) for relative
-non-upwards symbolic links is added. Like any other artifact they can be
-freely placed into the inputs of an action, as well as in artifacts,
+Finally, a restricted form of symlinks, more precisely *relative*
+*non-upwards symbolic links*, exist as first-class objects.
+That is, a new artifact type (besides blobs and trees) for relative
+non-upwards symbolic links has been introduced. Like any other artifact,
+they can be freely placed into the inputs of an action, as well as in artifacts,
 runfiles, or provides map of a target. Artifacts of this new type can be
-defined as
+defined as:
 
  - source-symlink reference, as well as implicitly as part of a source
    tree,
@@ -111,3 +111,9 @@ defined as
    tree output of an action, and
  - explicitly in the rule language from a string through a new
    `SYMLINK` constructor function.
+
+While existing as separate artifacts in order to properly stage them, (relative
+non-upwards) symbolic links are, in many aspects, simple files with elevated
+permissions. As such, they locally use the existing file CAS. Remotely, the
+existing execution protocol already allows the handling of symbolic links via
+corresponding Protobuf messages, therefore no extensions are needed.

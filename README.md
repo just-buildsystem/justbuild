@@ -37,3 +37,4 @@ taken from user-defined rules described by functional expressions.
 - [Anonymous Targets](doc/concepts/anonymous-targets.md)
 - [Target-Level Caching](doc/concepts/target-cache.md)
 - [Garbage Collection](doc/concepts/garbage.md)
+- [Symbolic links](doc/concepts/symlinks.md)
