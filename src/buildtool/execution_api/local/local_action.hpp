@@ -91,7 +91,6 @@ class LocalAction final : public IExecutionAction {
             exec_dir,
             output_files_,
             output_dirs_,
-            {} /*FIXME output node properties*/,
             BazelMsgFactory::CreateMessageVectorFromMap<
                 bazel_re::Command_EnvironmentVariable>(env_vars_),
             properties_,

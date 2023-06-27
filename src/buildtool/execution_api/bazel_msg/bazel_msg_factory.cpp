@@ -211,9 +211,10 @@ template <class T>
     copy_nodes(dir.mutable_directories(), dirs);
     copy_nodes(dir.mutable_symlinks(), links);
 
-    std::copy(props.cbegin(),
-              props.cend(),
-              pb::back_inserter(dir.mutable_node_properties()));
+    std::copy(
+        props.cbegin(),
+        props.cend(),
+        pb::back_inserter(dir.mutable_node_properties()->mutable_properties()));
 
     return dir;
 }
@@ -229,7 +230,8 @@ template <class T>
     node.set_is_executable(IsExecutableObject(type));
     std::copy(props.cbegin(),
               props.cend(),
-              pb::back_inserter(node.mutable_node_properties()));
+              pb::back_inserter(
+                  node.mutable_node_properties()->mutable_properties()));
     return node;
 }
 
@@ -252,7 +254,8 @@ template <class T>
     node.set_target(target);
     std::copy(props.cbegin(),
               props.cend(),
-              pb::back_inserter(node.mutable_node_properties()));
+              pb::back_inserter(
+                  node.mutable_node_properties()->mutable_properties()));
     return node;
 }
 
@@ -322,6 +325,10 @@ template <class T>
     std::vector<bazel_re::Platform_Property> const& platform_properties)
     -> CommandBundle::Ptr {
     bazel_re::Command msg;
+    // DEPRECATED as of v2.2: platform properties are now specified
+    // directly in the action. See documentation note in the
+    // [Action][build.bazel.remote.execution.v2.Action] for migration.
+    // (https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L646)
     msg.set_allocated_platform(CreatePlatform(platform_properties).release());
     std::copy(std::cbegin(args),
               std::cend(args),
@@ -349,7 +356,7 @@ template <class T>
 [[nodiscard]] auto CreateActionBundle(
     bazel_re::Digest const& command,
     bazel_re::Digest const& root_dir,
-    std::vector<std::string> const& output_node_properties,
+    std::vector<bazel_re::Platform_Property> const& platform_properties,
     bool do_not_cache,
     std::chrono::milliseconds const& timeout) -> ActionBundle::Ptr {
     using seconds = std::chrono::seconds;
@@ -368,9 +375,12 @@ template <class T>
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{command}});
     msg.set_allocated_input_root_digest(
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{root_dir}});
-    std::copy(output_node_properties.cbegin(),
-              output_node_properties.cend(),
-              pb::back_inserter(msg.mutable_output_node_properties()));
+    // New in version 2.2: clients SHOULD set these platform properties
+    // as well as those in the
+    // [Command][build.bazel.remote.execution.v2.Command]. Servers
+    // SHOULD prefer those set here.
+    // (https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L516)
+    msg.set_allocated_platform(CreatePlatform(platform_properties).release());
 
     auto content_creator = [&msg] { return SerializeMessage(msg); };
 
@@ -728,7 +738,6 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
     bazel_re::Digest const& exec_dir,
     std::vector<std::string> const& output_files,
     std::vector<std::string> const& output_dirs,
-    std::vector<std::string> const& output_node_properties,
     std::vector<bazel_re::Command_EnvironmentVariable> const& env_vars,
     std::vector<bazel_re::Platform_Property> const& properties,
     bool do_not_cache,
@@ -740,7 +749,7 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
 
     // create action
     auto action = CreateActionBundle(
-        cmd->Digest(), exec_dir, output_node_properties, do_not_cache, timeout);
+        cmd->Digest(), exec_dir, properties, do_not_cache, timeout);
 
     if (store_blob) {
         (*store_blob)(cmd->MakeBlob(/*is_exec=*/false));

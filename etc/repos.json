@@ -268,11 +268,11 @@
   , "bazel_remote_apis":
     { "repository":
       { "type": "archive"
-      , "content": "b5deb95d544f03f1918cc9d611c7904b8173befa"
-      , "fetch": "https://github.com/bazelbuild/remote-apis/archive/v2.0.0.tar.gz"
-      , "sha256": "79204ed1fa385c03b5235f65b25ced6ac51cf4b00e45e1157beca6a28bdb8043"
-      , "sha512": "7465f4726a9cc263352f6f0ec5b065c53e2ad787611740e1a458331858bdf28d53d69ba3db3d83fbf4a578229a413ac230886b5fcd33ab76425c61b1f08ef3b3"
-      , "subdir": "remote-apis-2.0.0"
+      , "content": "da6d7d589ccd1924ba9840a4e329e438dfa27f86"
+      , "fetch": "https://github.com/bazelbuild/remote-apis/archive/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0.tar.gz"
+      , "sha256": "7421abd5352ccf927c2050453a4dbfa1f7b1c7170ec3e8702b6fe2d39b8805fe"
+      , "sha512": "3042690ee4b17a27db92ca867b4225c25f3f16344dce5fe86695d72ddda531e1593a5f0f70a291283451ce1e9f606c2285d222df3787815cd8f4054e1113bc9d"
+      , "subdir": "remote-apis-e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.bazel_remote_apis"

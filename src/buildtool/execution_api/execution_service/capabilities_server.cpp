@@ -30,7 +30,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     ::bazel_re::CacheCapabilities cache;
     ::bazel_re::ExecutionCapabilities exec;
 
-    cache.add_digest_function(
+    cache.add_digest_functions(
         ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
     static constexpr std::size_t kMaxBatchTransferSize = 1024 * 1024;

@@ -127,7 +127,6 @@ class BazelMsgFactory {
         bazel_re::Digest const& exec_dir,
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
-        std::vector<std::string> const& output_node_properties,
         std::vector<bazel_re::Command_EnvironmentVariable> const& env_vars,
         std::vector<bazel_re::Platform_Property> const& properties,
         bool do_not_cache,
