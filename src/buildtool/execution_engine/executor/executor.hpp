@@ -30,6 +30,8 @@
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -50,6 +52,32 @@ static inline auto merge_properties(
         result[k] = v;
     }
     return result;
+}
+
+static inline auto get_alternative_endpoint(
+    const std::map<std::string, std::string>& properties)
+    -> std::unique_ptr<BazelApi> {
+    for (auto const& [pred, endpoint] : RemoteExecutionConfig::DispatchList()) {
+        bool match = true;
+        for (auto const& [k, v] : pred) {
+            auto v_it = properties.find(k);
+            if (not(v_it != properties.end() and v_it->second == v)) {
+                match = false;
+            }
+        }
+        if (match) {
+            Logger::Log(LogLevel::Debug, [endpoint = endpoint] {
+                return fmt::format("Dispatching action to endpoint {}",
+                                   endpoint.ToJson().dump());
+            });
+            ExecutionConfiguration config;
+            return std::make_unique<BazelApi>("alternative remote execution",
+                                              endpoint.host,
+                                              endpoint.port,
+                                              config);
+        }
+    }
+    return nullptr;
 }
 }  // namespace detail
 
@@ -109,12 +137,26 @@ class ExecutorImpl {
             Statistics::Instance().IncrementActionsQueuedCounter();
         }
 
-        auto remote_action = api->CreateAction(*root_digest,
-                                               action->Command(),
-                                               action->OutputFilePaths(),
-                                               action->OutputDirPaths(),
-                                               action->Env(),
-                                               properties);
+        auto alternative_api = detail::get_alternative_endpoint(properties);
+        if (alternative_api) {
+            if (not api->RetrieveToCas(
+                    std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
+                        *root_digest, ObjectType::Tree, false}},
+                    &(*alternative_api))) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to sync tree {} to dispatch endpoint",
+                            root_digest->hash());
+                return nullptr;
+            }
+        }
+
+        auto remote_action = (alternative_api ? &(*alternative_api) : api)
+                                 ->CreateAction(*root_digest,
+                                                action->Command(),
+                                                action->OutputFilePaths(),
+                                                action->OutputDirPaths(),
+                                                action->Env(),
+                                                properties);
 
         if (remote_action == nullptr) {
             logger.Emit(LogLevel::Error,
@@ -125,7 +167,23 @@ class ExecutorImpl {
         // set action options
         remote_action->SetCacheFlag(cache_flag);
         remote_action->SetTimeout(timeout);
-        return remote_action->Execute(&logger);
+        auto result = remote_action->Execute(&logger);
+        if (alternative_api) {
+            if (result) {
+                auto const& artifacts = result->Artifacts();
+                std::vector<Artifact::ObjectInfo> object_infos{};
+                object_infos.reserve(artifacts.size());
+                for (auto const& [path, info] : artifacts) {
+                    object_infos.emplace_back(info);
+                }
+                if (not alternative_api->RetrieveToCas(object_infos, api)) {
+                    Logger::Log(LogLevel::Warning,
+                                "Failed to retrieve back artifacts from "
+                                "dispatch endpoint");
+                }
+            }
+        }
+        return result;
     }
 
     /// \brief Ensures the artifact is available to the CAS, either checking
