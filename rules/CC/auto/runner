@@ -24,7 +24,6 @@ param_file = argv[2]
 magic_string = argv[3]
 at_only = argv[4] == "true"
 
-
 with open(param_file) as f:
     param = json.loads(f.read())
 
@@ -41,8 +40,8 @@ with open(input_file) as i:
     with open("out", "w") as o:
         for line in i.readlines():
             if x := re.search(
-                r"#(.*)(" + magic_string + r" )([ \t]*)([a-zA-Z0-9_]+)", line
-            ):
+                    r"#(.*)(" + magic_string + r" )([ \t]*)([a-zA-Z0-9_]+)",
+                    line):
                 # get the VAR
                 key = x.groups()[-1]
                 if key in param:
@@ -52,16 +51,16 @@ with open(input_file) as i:
                         line,
                     )
                 else:
-                    line = f"/* #undef {x.groups()[-1]} */\n" 
+                    line = f"/* #undef {x.groups()[-1]} */\n"
             if x := re.search(
-                r"#(.*)(" + magic_string + "01 )([ \t]*)([a-zA-Z0-9_]+)", line
-            ):
+                    r"#(.*)(" + magic_string + "01 )([ \t]*)([a-zA-Z0-9_]+)",
+                    line):
                 # get the VAR
                 key = x.groups()[-1]
                 line = sub(
                     f"{x.group()[1:]}",
-                    f"{x.groups()[0]}define {x.groups()[2]}{key} "
-                    + str(1 if key in param else 0),
+                    f"{x.groups()[0]}define {x.groups()[2]}{key} " +
+                    str(1 if key in param else 0),
                     line,
                 )
             if match("#[ \t]*define", line):
@@ -71,6 +70,7 @@ with open(input_file) as i:
                 if not at_only:
                     if x := re.search(r"\${([a-zA-Z0-9-_]+)}", line):
                         key = x.groups()[0]
-                        line = sub(r"\${" + key + r"}", param.get(key, ""), line)
+                        line = sub(r"\${" + key + r"}", param.get(key, ""),
+                                   line)
 
             print(line, end="", file=o)

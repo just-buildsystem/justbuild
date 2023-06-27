@@ -13,20 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import os
 import time
 
-RESULTS = {}
+from typing import Any, Dict, List
 
-time_start = time.time()
-time_stop = 0
+g_RESULTS: Dict[str, List[Any]] = {}
+
+time_start: float = time.time()
+time_stop: float = 0
 
 for attempt in os.listdir("."):
     if os.path.isdir(attempt):
         with open(os.path.join(attempt, "result")) as f:
             result = f.read().strip()
-        RESULTS[result] = RESULTS.get(result, []) + [int(attempt)]
+        g_RESULTS[result] = g_RESULTS.get(result, []) + [int(attempt)]
         try:
             with open(os.path.join(attempt, "time-start")) as f:
                 time_start = min(time_start, float(f.read().strip()))
@@ -38,30 +39,30 @@ for attempt in os.listdir("."):
         except:
             pass
 
-result = "UNKNOWN"
-if set(RESULTS.keys()) <= set(["PASS", "FAIL"]):
-    if not RESULTS.get("FAIL"):
+result: str = "UNKNOWN"
+if set(g_RESULTS.keys()) <= set(["PASS", "FAIL"]):
+    if not g_RESULTS.get("FAIL"):
         result = "PASS"
-    elif not RESULTS.get("PASS"):
+    elif not g_RESULTS.get("PASS"):
         result = "FAIL"
     else:
         result = "FLAKY"
 with open("result", "w") as f:
-    f.write("%s\n" % (result,))
+    f.write("%s\n" % (result, ))
 
 with open("time-start", "w") as f:
-    f.write("%d\n" % (time_start,))
+    f.write("%d\n" % (time_start, ))
 with open("time-stop", "w") as f:
-    f.write("%d\n" % (time_stop,))
+    f.write("%d\n" % (time_stop, ))
 
 with open("stdout", "w") as f:
-    f.write("Summary: %s\n\n" % (result,))
-    f.write("PASS: %s\n" % (sorted(RESULTS.get("PASS", [])),))
-    f.write("FAIL: %s\n" % (sorted(RESULTS.get("FAIL", [])),))
-    RESULTS.pop("PASS", None)
-    RESULTS.pop("FAIL", None)
-    if RESULTS:
-        f.write("\nother results: %r\n" % (RESULTS,))
+    f.write("Summary: %s\n\n" % (result, ))
+    f.write("PASS: %s\n" % (sorted(g_RESULTS.get("PASS", [])), ))
+    f.write("FAIL: %s\n" % (sorted(g_RESULTS.get("FAIL", [])), ))
+    g_RESULTS.pop("PASS", None)
+    g_RESULTS.pop("FAIL", None)
+    if g_RESULTS:
+        f.write("\nother results: %r\n" % (g_RESULTS, ))
 
 with open("stderr", "w") as f:
     pass
