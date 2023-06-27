@@ -18,11 +18,13 @@ import signal
 from http.server import SimpleHTTPRequestHandler as HTTPHandler
 from http.server import HTTPServer as HTTPServer
 
+from typing import Any
+
 httpd = None
 
 
 # handle interrupts gracefully, i.e., shutdown the server and exit
-def RecvSig(*_) -> None:
+def RecvSig(*_: Any) -> None:
     if not httpd is None:
         # cleanup
         httpd.server_close()

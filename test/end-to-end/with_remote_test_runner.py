@@ -19,14 +19,18 @@ import sys
 import subprocess
 import time
 
-time_start = time.time()
-time_stop = 0
-result = "UNKNOWN"
-stderr = ""
-stdout = ""
+from typing import Any, Dict
+
+Json = Dict[str, Any]
+
+time_start: float = time.time()
+time_stop: float = 0
+result: str = "UNKNOWN"
+stderr: str = ""
+stdout: str = ""
 
 
-def dump_results():
+def dump_results() -> None:
     with open("result", "w") as f:
         f.write("%s\n" % (result, ))
     with open("time-start", "w") as f:
@@ -38,7 +42,8 @@ def dump_results():
     with open("stderr", "w") as f:
         f.write("%s\n" % (stderr, ))
 
-def get_remote_execution_address(d):
+
+def get_remote_execution_address(d: Json) -> str:
     return "%s:%d" % (d["interface"], int(d["port"]))
 
 
@@ -54,12 +59,13 @@ REMOTE_DIR = os.path.realpath("remote")
 os.makedirs(REMOTE_DIR, exist_ok=True)
 REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
 
-REMOTE_EXECUTION_ADDRESS = ""
+g_REMOTE_EXECUTION_ADDRESS: str = ""
 
 compatible = json.loads(sys.argv[1])
 
 custom_remote = json.loads(sys.argv[2])
 
+remote_proc = None
 if not custom_remote:
     # start just execute as remote service
     REMOTE_INFO = os.path.join(REMOTE_DIR, "info.json")
@@ -68,12 +74,16 @@ if not custom_remote:
         print(f"Warning: removing unexpected info file {REMOTE_INFO}")
         os.remove(REMOTE_INFO)
 
-
     remote_cmd = [
-        "./bin/just", "execute",
-        "--info-file", REMOTE_INFO,
-        "--local-build-root", REMOTE_LBR,
-        "--log-limit", "6", "--plain-log",
+        "./bin/just",
+        "execute",
+        "--info-file",
+        REMOTE_INFO,
+        "--local-build-root",
+        REMOTE_LBR,
+        "--log-limit",
+        "6",
+        "--plain-log",
     ]
 
     if compatible:
@@ -93,7 +103,7 @@ if not custom_remote:
     with open(REMOTE_INFO) as f:
         info = json.load(f)
 
-    REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
+    g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 else:
     msg = "\nA custom remote service is used, please look at logs there.\n"
     with open("remotestdout", "w") as f:
@@ -101,12 +111,14 @@ else:
     with open("remotestderr", "w") as f:
         print(msg, file=f)
 
-    args = custom_remote.get("args",[])
-    REMOTE_EXECUTION_ADDRESS = " ".join((get_remote_execution_address(custom_remote), *args))
+    args = custom_remote.get("args", [])
+    g_REMOTE_EXECUTION_ADDRESS = " ".join(
+        (get_remote_execution_address(custom_remote), *args))
 
 ENV = dict(os.environ,
-           TEST_TMPDIR=TEMP_DIR, TMPDIR=TEMP_DIR,
-           REMOTE_EXECUTION_ADDRESS=REMOTE_EXECUTION_ADDRESS)
+           TEST_TMPDIR=TEMP_DIR,
+           TMPDIR=TEMP_DIR,
+           REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS)
 
 if compatible:
     ENV["COMPATIBLE"] = "YES"
@@ -129,6 +141,7 @@ stdout = ret.stdout.decode("utf-8")
 stderr = ret.stderr.decode("utf-8")
 
 if not custom_remote:
+    assert remote_proc
     remote_proc.terminate()
     rout, rerr = remote_proc.communicate()
 
@@ -138,6 +151,5 @@ for f in sys.argv[2:]:
     keep_file = os.path.join(WORK_DIR, f)
     if not os.path.exists(keep_file):
         open(keep_file, "a").close()
-
 
 if result != "PASS": exit(1)

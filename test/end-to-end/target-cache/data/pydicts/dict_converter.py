@@ -16,24 +16,26 @@
 import sys
 import ast
 import json
-import yaml
+import yaml  # this package has lax type hints
+
+from typing import Any
 
 if len(sys.argv) < 4:
     print(f"usage: {sys.argv[0]} [py|json|yaml] [py|json|yaml] <file>")
     sys.exit(1)
 
 with open(sys.argv[3]) as f:
-    data = {}
+    data: Any = {}
     if sys.argv[1] == "py":
         data = ast.literal_eval(f.read())
     elif sys.argv[1] == "json":
         data = json.load(f)
     elif sys.argv[1] == "yaml":
-        data = yaml.load(f)
+        data = yaml.load(f, Loader=yaml.Loader)  # type: ignore
 
     if (sys.argv[2] == "py"):
         print(data)
     elif sys.argv[2] == "json":
         print(json.dumps(data, indent=2))
     elif sys.argv[2] == "yaml":
-        print(yaml.dump(data, indent=2))
+        print(yaml.dump(data, indent=2))  # type: ignore

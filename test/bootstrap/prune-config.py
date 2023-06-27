@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import json
-import os
 import sys
 
-src = sys.argv[1]
-dest = sys.argv[2]
-empty_dir = sys.argv[3]
+src: str = sys.argv[1]
+dest: str = sys.argv[2]
+empty_dir: str = sys.argv[3]
 
 with open(src) as f:
     repos = json.load(f)

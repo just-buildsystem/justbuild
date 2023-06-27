@@ -18,14 +18,14 @@ import os
 import subprocess
 import time
 
-time_start = time.time()
-time_stop = 0
-result = "UNKNOWN"
-stderr = ""
-stdout = ""
+time_start: float = time.time()
+time_stop: float = 0
+result: str = "UNKNOWN"
+stderr: str = ""
+stdout: str = ""
 
 
-def dump_results():
+def dump_results() -> None:
     with open("result", "w") as f:
         f.write("%s\n" % (result, ))
     with open("time-start", "w") as f:
@@ -57,10 +57,15 @@ if os.path.exists(REMOTE_INFO):
     os.remove(REMOTE_INFO)
 
 remote_cmd = [
-    "./bin/just", "execute",
-    "--info-file", REMOTE_INFO,
-    "--local-build-root", REMOTE_LBR,
-    "--log-limit", "6", "--plain-log",
+    "./bin/just",
+    "execute",
+    "--info-file",
+    REMOTE_INFO,
+    "--local-build-root",
+    REMOTE_LBR,
+    "--log-limit",
+    "6",
+    "--plain-log",
 ]
 
 with open("compatible-remote.json") as f:
