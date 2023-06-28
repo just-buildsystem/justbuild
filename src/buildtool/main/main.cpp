@@ -664,7 +664,7 @@ auto ParseRoot(std::string const& repo,
                         repo);
             std::exit(kExitFailure);
         }
-        auto path = std::filesystem::path{root[1]};
+        auto path = std::filesystem::path{root[1].get<std::string>()};
         return {FileRoot{path}, std::move(path)};
     }
     if (root[0] == FileRoot::kGitTreeMarker) {
@@ -699,7 +699,7 @@ auto ParseRoot(std::string const& repo,
                 repo);
             std::exit(kExitFailure);
         }
-        auto path = std::filesystem::path{root[1]};
+        auto path = std::filesystem::path{root[1].get<std::string>()};
         return {FileRoot{path, /*ignore_special=*/true}, std::move(path)};
     }
     if (root[0] == FileRoot::kGitTreeIgnoreSpecialMarker) {
