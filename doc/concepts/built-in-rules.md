@@ -94,8 +94,8 @@ order of the targets in the evaluated `"deps"` argument.
 The fields `"cmds"`, `"out_dirs"`, `"outs"`, and `"env"` are evaluated
 fields where `"cmds"`, `"out_dirs"`, and `"outs"` have to evaluate to a
 list of strings, and `"env"` has to evaluate to a map of strings. During
-their evaluation, the functions `"out_dirs"`, `"outs"` and `"runfiles"`
-can be used to access the logical paths of the directories, artifacts
+their evaluation, the functions `"outs"` and `"runfiles"`
+can be used to access the logical paths of the artifacts
 and runfiles, respectively, of a target specified in `"deps"`. Here,
 `"env"` specifies the environment in which the action is carried out.
 `"out_dirs"` and `"outs"` define the output directories and files,
