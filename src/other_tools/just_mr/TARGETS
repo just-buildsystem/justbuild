@@ -19,6 +19,7 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":

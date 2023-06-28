@@ -24,6 +24,7 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/main/version.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -1276,9 +1277,14 @@ void DefaultReachableRepositories(
     bool supports_defines{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
+    std::optional<LockFile> lock{};
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
         // Read the config file if needed
         if (kKnownJustSubcommands.at(*subcommand).config) {
+            lock = GarbageCollector::SharedLock();
+            if (not lock) {
+                return kExitGenericFailure;
+            }
             auto config = ReadConfiguration(config_file);
 
             use_config = true;
@@ -1501,6 +1507,10 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
             return CallJust(config_file, arguments, forward_build_root);
+        }
+        auto lock = GarbageCollector::SharedLock();
+        if (not lock) {
+            return kExitGenericFailure;
         }
 
         // The remaining options all need the config file
