@@ -38,7 +38,8 @@ auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
 
 auto CreateTypedTmpDir(std::string const& type) noexcept -> TmpDirPtr {
     // try to create parent dir
-    auto parent_path = StorageConfig::BuildRoot() / "tmp-workspaces" / type;
+    auto parent_path =
+        StorageConfig::GenerationCacheRoot(0) / "tmp-workspaces" / type;
     return TmpDir::Create(parent_path);
 }
 
