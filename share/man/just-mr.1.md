@@ -93,7 +93,8 @@ in the **`just-mrrc`**(5) file.
 Default: the single file path *`".distfiles"`* in user's home directory.
 
 **`--main`** *`NAME`*  
-The repository to take the target from.  
+The repository to take the target from.
+
 **`-f`**, **`--log-file`** *`PATH`*  
 Path to local log file. **`just-mr`** will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
