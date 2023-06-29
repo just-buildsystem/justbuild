@@ -207,8 +207,7 @@ class LocalApi final : public IExecutionApi {
             }
 
             // Read artifact content (file or symlink).
-            auto const& content =
-                FileSystemManager::ReadContentAtPath(*path, info.type);
+            auto const& content = FileSystemManager::ReadFile(*path);
             if (not content) {
                 return false;
             }
