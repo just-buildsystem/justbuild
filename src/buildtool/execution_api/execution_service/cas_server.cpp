@@ -89,6 +89,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
     }
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
+        logger_.Emit(LogLevel::Trace, "BatchUpdateBlobs: {}", hash);
         if (!IsValidHash(hash)) {
             auto const& str =
                 fmt::format("BatchUpdateBlobs: unsupported digest {}", hash);
