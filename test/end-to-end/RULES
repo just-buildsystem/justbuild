@@ -57,6 +57,8 @@
     , "        generating test reports."
     , "stdout/stderr: Any output the invocation of the test binary produced on"
     , "        the respective file descriptor"
+    , "remotestdout/remotestderr: Any output of the remote-execution server"
+    , "        implicit to that test"
     , "work:   In this directory, all the files specified to \"keep\" are staged"
     , "time-start/time-stop: The time (decimally coded) in seconds since the"
     , "        epoch when the test invocation started and ended."
