@@ -23,6 +23,12 @@
   , "test": ["install.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "dispatch":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["dispatch"]
+  , "test": ["dispatch.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
