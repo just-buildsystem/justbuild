@@ -6,18 +6,19 @@
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   }
 , "artifacts-sync":
-  { "type": ["end-to-end", "with remote"]
+  { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["artifacts-sync"]
   , "test": ["artifacts-sync.sh"]
   , "deps":
     [ ["end-to-end", "tool-under-test"]
-    , ["./", "test-data-artifacts-sync", "greetlib"]
-    , ["./", "test-data-artifacts-sync", "pydicts"]
+    , ["end-to-end", "mr-tool-under-test"]
+    , ["./", "data", "greetlib"]
+    , ["./", "data", "pydicts"]
     , "bootstrap-src-staged"
     ]
   }
 , "bootstrap-src-staged":
-  {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "foo"]]}
+  {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]}
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]

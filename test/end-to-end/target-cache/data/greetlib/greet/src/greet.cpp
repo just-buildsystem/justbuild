@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#define RANDOM_STRING_1 ""
-void greet(std::string const& str);
+#include "greet/greet.hpp"
+
+#include <iostream>
+void greet(std::string const& str) {
+    std::cout << ": " << str << std::endl;
+}

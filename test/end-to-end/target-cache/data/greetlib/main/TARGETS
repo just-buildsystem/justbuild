@@ -1,9 +1,4 @@
 { "main":
-  { "type": "export"
-  , "target": "main_binary"
-  , "flexible_config": ["CXX", "CXXFLAGS", "AR", "ENV"]
-  }
-, "main_binary":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["main"]
   , "srcs": ["main.cpp"]

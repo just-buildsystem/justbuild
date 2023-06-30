@@ -1,7 +1,7 @@
-{ "repositories":
+{ "main": "main"
+, "repositories":
   { "main":
-    { "repository":
-      {"type": "file", "path": "./main", "pragma": {"to_git": true}}
+    { "repository": {"type": "file", "path": "./main"}
     , "bindings": {"rules": "rules", "greet": "greet"}
     }
   , "greet":
