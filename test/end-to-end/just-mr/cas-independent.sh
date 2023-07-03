@@ -23,6 +23,7 @@ readonly LBR="${TEST_TMPDIR}/local-build-root"
 mkdir -p "${DISTDIR}"
 mkdir -p foo/bar/baz
 echo "test data" > foo/bar/baz/data.txt
+echo "/baz/" > foo/bar/.gitignore  # add a .gitignore
 tar cf "${DISTDIR}/foo-1.2.3.tar" foo 2>&1
 foocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
 echo "Foo archive has content ${foocontent}"
@@ -32,7 +33,7 @@ cd foo
 git init
 git config user.name 'N.O.Body'
 git config user.email 'nobody@example.org'
-git add .
+git add -f .  # add everything, including any .gitignore
 git commit -m 'Just care about the tree' 2>&1
 tree_id=$(git log -n 1 --format='%T')
 cd ..
