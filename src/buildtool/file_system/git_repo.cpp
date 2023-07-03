@@ -397,9 +397,15 @@ GitRepo::GitRepo(std::filesystem::path const& repo_path) noexcept {
         }
         cas->odb_.reset(odb_ptr);  // retain odb pointer
         is_repo_fake_ = false;
-        // save root path
-        cas->git_path_ = ToNormalPath(std::filesystem::absolute(
-            std::filesystem::path(git_repository_path(repo_->Ptr()))));
+        // save root path; this differs if repository is bare or not
+        if (git_repository_is_bare(repo_->Ptr()) != 0) {
+            cas->git_path_ = std::filesystem::absolute(
+                ToNormalPath(git_repository_path(repo_->Ptr())));
+        }
+        else {
+            cas->git_path_ = std::filesystem::absolute(
+                ToNormalPath(git_repository_workdir(repo_->Ptr())));
+        }
         // retain the pointer
         git_cas_ = std::static_pointer_cast<GitCAS const>(cas);
     } catch (std::exception const& ex) {
@@ -521,19 +527,32 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
         // share the odb lock
         std::shared_lock lock{GetGitCAS()->mutex_};
 
+        // cannot perform this operation on a bare repository; this has to be
+        // checked because git_index_add_bypath will not do it for us!
+        if (not FileSystemManager::Exists(GetGitCAS()->git_path_ / ".git")) {
+            (*logger)("cannot stage and commit files in a bare repository!",
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+
         // add all files to be staged
         git_index* index_ptr{nullptr};
         git_repository_index(&index_ptr, repo_->Ptr());
         auto index = std::unique_ptr<git_index, decltype(&index_closer)>(
             index_ptr, index_closer);
 
-        git_strarray array_obj{};
-        PopulateStrarray(&array_obj, {"."});
-        auto array = std::unique_ptr<git_strarray, decltype(&strarray_deleter)>(
-            &array_obj, strarray_deleter);
-
-        if (git_index_add_all(index.get(), array.get(), 0, nullptr, nullptr) !=
-            0) {
+        // due to mismanagement of .gitignore rules by libgit2 when doing a
+        // forced add all, we resort to using git_index_add_bypath manually for
+        // all entries, instead of git_index_add_all with GIT_INDEX_ADD_FORCE.
+        auto use_entry = [&index](std::filesystem::path const& name,
+                                  bool is_tree) {
+            return is_tree or
+                   git_index_add_bypath(index.get(), name.c_str()) == 0;
+        };
+        if (not FileSystemManager::ReadDirectoryEntriesRecursive(
+                GetGitCAS()->git_path_,
+                use_entry,
+                /*ignored_subdirs=*/{".git"})) {
             (*logger)(fmt::format(
                           "staging files in git repository {} failed with:\n{}",
                           GetGitCAS()->git_path_.string(),
@@ -541,8 +560,6 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
                       true /*fatal*/);
             return std::nullopt;
         }
-        // release unused resources
-        array.reset(nullptr);
         // build tree from staged files
         git_oid tree_oid;
         if (git_index_write_tree(&tree_oid, index.get()) != 0) {

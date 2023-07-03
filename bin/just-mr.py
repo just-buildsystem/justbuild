@@ -474,7 +474,7 @@ def import_to_git(target, repo_type, content_id):
         env=dict(os.environ, **GIT_NOBODY_ENV),
     )
     run_cmd(
-        ["git", "add", "."],
+        ["git", "add", "-f", "."],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
     )
@@ -582,7 +582,9 @@ def distdir_checkout(desc, repos):
             content[get_distfile(repo_desc)] = content_id
 
     # Hash the map as unique id for the distdir repo entry
-    distdir_content_id = git_hash(json.dumps(content, sort_keys=True, separators=(',', ':')).encode('utf-8'))
+    distdir_content_id = git_hash(
+        json.dumps(content, sort_keys=True,
+                   separators=(',', ':')).encode('utf-8'))
     target_distdir_dir = distdir_repo_dir(distdir_content_id)
 
     # Check if content already exists
