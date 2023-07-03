@@ -23,6 +23,7 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <unordered_set>
 
 #include <fcntl.h>
 
@@ -55,6 +56,9 @@ class FileSystemManager {
   public:
     using ReadDirEntryFunc =
         std::function<bool(std::filesystem::path const&, ObjectType type)>;
+
+    using UseDirEntryFunc =
+        std::function<bool(std::filesystem::path const&, bool /*is_tree*/)>;
 
     class DirectoryAnchor {
         friend class FileSystemManager;
@@ -719,6 +723,43 @@ class FileSystemManager {
         } catch (std::exception const& ex) {
             Logger::Log(
                 LogLevel::Error, "reading directory {} failed", dir.string());
+            return false;
+        }
+        return true;
+    }
+
+    /// \brief Read all entries recursively in a filesystem directory tree.
+    /// \param dir root directory to traverse
+    /// \param use_entry callback to call with found valid entries
+    /// \param ignored_subdirs directory names to be ignored wherever found in
+    ///                        the directory tree of dir.
+    [[nodiscard]] static auto ReadDirectoryEntriesRecursive(
+        std::filesystem::path const& dir,
+        UseDirEntryFunc const& use_entry,
+        std::unordered_set<std::string> const& ignored_subdirs = {}) noexcept
+        -> bool {
+        try {
+            // constructor of this iterator points to end by default;
+            for (auto it = std::filesystem::recursive_directory_iterator(dir);
+                 it != std::filesystem::recursive_directory_iterator();
+                 ++it) {
+                // check for ignored subdirs
+                if (std::filesystem::is_directory(it->symlink_status()) and
+                    ignored_subdirs.contains(*--it->path().end())) {
+                    it.disable_recursion_pending();
+                    continue;
+                }
+                // use the entry
+                if (not use_entry(
+                        it->path().lexically_relative(dir),
+                        std::filesystem::is_directory(it->symlink_status()))) {
+                    return false;
+                }
+            }
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Error,
+                        "reading directory {} recursively failed",
+                        dir.string());
             return false;
         }
         return true;

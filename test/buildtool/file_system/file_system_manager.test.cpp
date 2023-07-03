@@ -83,7 +83,10 @@ class SymlinkTestsFixture {
     using filetree_t = std::unordered_map<std::string, ObjectType>;
     filetree_t const kExpected = {{"foo", ObjectType::File},
                                   {"baz", ObjectType::Tree},
-                                  {"baz/foo", ObjectType::File}};
+                                  {"baz/foo", ObjectType::File},
+                                  {"bazz", ObjectType::Tree},
+                                  {"bazz/baz", ObjectType::Tree},
+                                  {"bazz/baz/foo", ObjectType::File}};
 
     struct LinkInfo {
         std::string to;
@@ -116,6 +119,11 @@ class SymlinkTestsFixture {
          .link = "non_existing_sneaky_l",
          .resolvesToExisting = false,
          .isNonUpwards = false}};
+
+    // distinct dir entries
+    size_t const num_entries_{12U};
+    // distinct dir entries after removing all subdirs named "baz"
+    size_t const num_root_file_entries_{5U};
 
     void create_files() {
         for (auto const& [path, type] : kExpected) {
@@ -778,6 +786,11 @@ TEST_CASE_METHOD(CopyFileFixture, "CreateFileHardlinkAs", "[file_system]") {
 }
 
 TEST_CASE_METHOD(SymlinkTestsFixture, "Symlinks", "[file_system]") {
+    CHECK(std::filesystem::is_directory(root_dir_ / "baz"));
+    CHECK(std::filesystem::is_symlink(root_dir_ / "baz_l"));
+    CHECK_FALSE(std::filesystem::is_directory(
+        std::filesystem::symlink_status(root_dir_ / "baz_l")));
+
     auto i = GENERATE(range(0U, 6U /* kSymExpected.size() */));
 
     SECTION(fmt::format("Non-upwards symlinks - entry {}", i)) {
@@ -791,5 +804,31 @@ TEST_CASE_METHOD(SymlinkTestsFixture, "Symlinks", "[file_system]") {
         REQUIRE(FileSystemManager::ResolveSymlinks(&path));
         CHECK(FileSystemManager::Exists(path) ==
               kSymExpected[i].resolvesToExisting);
+    }
+}
+
+TEST_CASE_METHOD(SymlinkTestsFixture,
+                 "ReadDirectoryEntriesRecursive",
+                 "[file_system]") {
+    size_t count{};
+    auto use_entry = [&count](std::filesystem::path const& /*name*/,
+                              bool /*is_tree*/) {
+        ++count;
+        return true;
+    };
+
+    SECTION("Check directory is complete") {
+        REQUIRE(FileSystemManager::ReadDirectoryEntriesRecursive(root_dir_,
+                                                                 use_entry));
+        CHECK(count == num_entries_);
+    }
+
+    SECTION("Check directory with missing paths") {
+        REQUIRE(FileSystemManager::ReadDirectoryEntriesRecursive(
+            root_dir_,
+            use_entry,
+            /*ignored_subdirs=*/
+            {"baz"}));
+        CHECK(count == num_root_file_entries_);
     }
 }
