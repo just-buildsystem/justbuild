@@ -149,7 +149,9 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }
     }
-    Logger::Log(LogLevel::Error, "failed walk for git tree entry: {}", name);
+    Logger::Log(LogLevel::Error,
+                "failed ignore_special walk for git tree entry: {}",
+                name);
     return -1;  // fail
 }
 

@@ -213,8 +213,7 @@ class FileRoot {
         }
 
         /// \brief Retrieve a root tree as a KNOWN artifact.
-        /// User should know whether this root tree is symlink free and only
-        /// call this function accordingly.
+        /// Only succeeds if no entries have to be ignored.
         [[nodiscard]] auto AsKnownTree(std::string const& repository)
             const noexcept -> std::optional<ArtifactDescription> {
             if (Compatibility::IsCompatible()) {
@@ -223,6 +222,10 @@ class FileRoot {
             if (std::holds_alternative<tree_t>(data_)) {
                 try {
                     auto const& data = std::get<tree_t>(data_);
+                    // check if tree is ignore_special
+                    if (data->RawHash().empty()) {
+                        return std::nullopt;
+                    }
                     auto const& id = data->Hash();
                     auto const& size = data->Size();
                     if (size) {
@@ -502,11 +505,10 @@ class FileRoot {
     }
 
     /// \brief Read a root tree based on its ID.
-    /// User should know whether the desired tree is symlink free and only call
-    /// this function accordingly.
+    /// This should include all valid entry types.
     [[nodiscard]] auto ReadTree(std::string const& tree_id) const noexcept
         -> std::optional<GitTree> {
-        if (std::holds_alternative<git_root_t>(root_) and not ignore_special_) {
+        if (std::holds_alternative<git_root_t>(root_)) {
             try {
                 auto const& cas = std::get<git_root_t>(root_).cas;
                 return GitTree::Read(cas, tree_id);
