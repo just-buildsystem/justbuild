@@ -23,10 +23,17 @@ readonly REMOTE_CACHE="${TMPDIR}/remote_cache"
 readonly INFOFILE="${TMPDIR}/info.json"
 readonly PIDFILE="${TMPDIR}/pid.txt"
 
-ARGS=""
 if [ "${COMPATIBLE:-}" = "YES" ]; then
   ARGS="--compatible"
+  HASH_TYPE="compatible-sha256"
+  TREE_TAG="f"
+else
+  ARGS=""
+  HASH_TYPE="git-sha1"
+  TREE_TAG="t"
 fi
+readonly FIRST_GEN="${LOCAL_CACHE}/protocol-dependent/generation-0/$HASH_TYPE"
+readonly TCDIR="$FIRST_GEN/tc"
 
 # ------------------------------------------------------------------------------
 # Start local remote execution server
@@ -53,27 +60,65 @@ cleanup() {
 }
 trap cleanup EXIT
 
+check_main_blobs() {
+  for entry in "${TCDIR}"/*
+  do
+    for sbdir in "${entry}"/*
+    do
+      for f in "${sbdir}"/*
+      do
+        hash=$(cat $f)
+        TC_ENTRY=$("$JUST" install-cas --local-build-root "${LOCAL_CACHE}" $ARGS ${hash})
+        FILE_HASH=${FILE_HASH:-$(echo $TC_ENTRY | jq -r '.artifacts."libgreet.a".data.id // ""')}
+        TREE_HASH=${TREE_HASH:-$(echo $TC_ENTRY | jq -r '.runfiles.greet.data.id // ""')}
+        "$JUST" install-cas --local-build-root "${LOCAL_CACHE}" ${ARGS} ${FILE_HASH}::f > /dev/null
+        "$JUST" install-cas --local-build-root "${LOCAL_CACHE}" ${ARGS} ${TREE_HASH}::${TREE_TAG} > /dev/null
+      done
+    done
+  done
+}
+
 # ------------------------------------------------------------------------------
 # Test synchronization of artifacts in the 'artifacts' and 'runfiles' maps
 # ------------------------------------------------------------------------------
 cd greetlib
 sed -i "s|<RULES_PATH>|${RULES_DIR}|" repos.json
 
+
 # Build greetlib remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
-  build ${ARGS} -r localhost:${PORT} main 2>&1
+  build ${ARGS} -r localhost:${PORT} --dump-graph graph.json main 2>&1
+
+# Count actions without tc
+EXPECTED=4
+readonly ACTIONS_NO_TC=$(cat graph.json | jq '.actions | length' )
+
+test ${ACTIONS_NO_TC} -eq ${EXPECTED} || printf "Wrong number of actions. %d were expected but found %d\n" ${EXPECTED} ${ACTIONS_NO_TC} > /dev/stderr
+
+# Check the existence of target-cache dir
+test -d ${TCDIR}
+
+check_main_blobs
 
 # Clear remote cache
 rm -rf "${REMOTE_CACHE}"
 
 # Build greetlib remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
-  build ${ARGS} -r localhost:${PORT} main 2>&1
+  build ${ARGS} -r localhost:${PORT} --dump-graph graph-tc.json main 2>&1
+
+# Count actions with tc
+readonly ACTIONS_TC=$(cat graph-tc.json | jq '.actions | length' )
+
+EXPECTED=2
+test ${ACTIONS_TC} -eq ${EXPECTED} || printf "Wrong number of actions. %d were expected but found %d\n" ${EXPECTED} ${ACTIONS_TC} > /dev/stderr
 
 # ------------------------------------------------------------------------------
 # Test synchronization of artifacts in the 'provides' map
 # ------------------------------------------------------------------------------
 cd ../pydicts
+
+rm -rf "${REMOTE_CACHE}"
 
 # Build pydicts remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
