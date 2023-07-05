@@ -50,6 +50,7 @@ mkdir -p tree/foo/bar
 mkdir -p tree/baz
 echo content frist file > tree/foo/bar/data.txt
 echo content second file > tree/baz/data.txt
+ln -s dummy tree/foo/link
 
 cat > TARGETS <<'EOF'
 {"": {"type": "install", "dirs": [[["TREE", null, "tree"], "."]]}}
@@ -69,6 +70,10 @@ for f in $(cd "${SRCDIR_A}/tree" && find . -type f)
 do
     cmp "${SRCDIR_A}/tree/$f" "${OUTDIR_B}/first/$f"
 done
+for l in $(cd "${SRCDIR_A}/tree" && find . -type L)
+do
+    cmp $(readlink "${SRCDIR_A}/tree/$l") $(readlink "${OUTDIR_B}/first/$l")
+done
 
 ## ... and to remember
 
@@ -78,9 +83,14 @@ done
 
 "${JUST}" install-cas --local-build-root "${LBRDIR_B}" \
           -o "${OUTDIR_B}/first-from-local" ${LOCAL_ARGS} "${TREE_ID}" 2>&1
+
 for f in $(cd "${SRCDIR_A}/tree" && find . -type f)
 do
     cmp "${SRCDIR_A}/tree/$f" "${OUTDIR_B}/first-from-local/$f"
+done
+for l in $(cd "${SRCDIR_A}/tree" && find . -type L)
+do
+    cmp $(readlink "${SRCDIR_A}/tree/$l") $(readlink "${OUTDIR_B}/first-from-local/$l")
 done
 
 
@@ -95,8 +105,10 @@ touch ROOT
 
 mkdir -p tree/different/foobar
 mkdir -p tree/bar/other_dir
+mkdir -p tree/another_dir
 echo some other content > tree/different/foobar/file.txt
 echo yet another content > tree/bar/other_dir/file.txt
+ln -s dummy tree/another_dir/link
 
 cat > TARGETS <<'EOF'
 {"": {"type": "install", "dirs": [[["TREE", null, "tree"], "."]]}}
@@ -116,6 +128,10 @@ for f in $(cd "${SRCDIR_B}/tree" && find . -type f)
 do
     cmp "${SRCDIR_B}/tree/$f" "${OUTDIR_B}/second/$f"
 done
+for l in $(cd "${SRCDIR_B}/tree" && find . -type L)
+do
+    cmp $(readlink "${SRCDIR_B}/tree/$l") $(readlink "${OUTDIR_B}/second/$l")
+done
 
 # install --remember
 
@@ -134,6 +150,7 @@ cat > TARGETS <<'EOF'
     , "echo some file content > out/foo/data.txt"
     , "echo more file content > out/bar/file.txt"
     , "echo even more file content > out/bar/another_file.txt"
+    , "ln -s dummy out/baz/link"
     ]
   }
 }
@@ -153,6 +170,10 @@ TREE_ID=$(jq -r ".\"${OUTDIR_C}/remote/out\".id" "${WRKDIR}/tree.json")"::t"
 for f in $(cd "${OUTDIR_C}/remote/out" && find . -type f)
 do
     cmp "${OUTDIR_C}/remote/out/$f" "${OUTDIR_C}/local/$f"
+done
+for l in $(cd "${OUTDIR_C}/remote/out" && find . -type L)
+do
+    cmp $(readlink "${OUTDIR_C}/remote/out/$l") $(readlink "${OUTDIR_C}/local/$l")
 done
 
 echo OK
