@@ -37,6 +37,10 @@ A feature release on top of `1.1.0`, backwards compatible.
   was significantly lower.
 - The man pages are now provided as markdown files, allowing to
   potentially reduce the build dependencies to more standard ones.
+- `just-mr` now correctly performs a forced add in order to stage
+  all entries in a Git repository. Previously it was possible for
+  entries to be skipped inadvertently in, e.g., imported archives
+  if `gitignore` files were present.
 
 ## Release `1.1.0` (2023-05-19)
 
