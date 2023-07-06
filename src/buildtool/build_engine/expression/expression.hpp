@@ -145,7 +145,7 @@ class Expression {
         const& -> std::optional<std::reference_wrapper<ExpressionPtr const>> {
         auto value = Map().Find(key);
         if (value) {
-            return value;
+            return std::reference_wrapper{**value};
         }
         return std::nullopt;
     }

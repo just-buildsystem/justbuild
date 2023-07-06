@@ -155,10 +155,8 @@ struct TargetData {
                     /*fatal=*/true);
                 return nullptr;
             }
-            auto const& config_expr =
-                string_fields.Find(field_name)
-                    .value_or(std::reference_wrapper{Expression::kEmptyList})
-                    .get();
+            auto const& config_expr = *(string_fields.Find(field_name)
+                                            .value_or(&Expression::kEmptyList));
             config_exprs.emplace(field_name, config_expr);
         }
 
@@ -173,10 +171,8 @@ struct TargetData {
                     /*fatal=*/true);
                 return nullptr;
             }
-            auto const& string_expr =
-                string_fields.Find(field_name)
-                    .value_or(std::reference_wrapper{Expression::kEmptyList})
-                    .get();
+            auto const& string_expr = *(string_fields.Find(field_name)
+                                            .value_or(&Expression::kEmptyList));
             string_exprs.emplace(field_name, string_expr);
         }
 
@@ -191,10 +187,8 @@ struct TargetData {
                     /*fatal=*/true);
                 return nullptr;
             }
-            auto const& target_expr =
-                target_fields.Find(field_name)
-                    .value_or(std::reference_wrapper{Expression::kEmptyList})
-                    .get();
+            auto const& target_expr = *(target_fields.Find(field_name)
+                                            .value_or(&Expression::kEmptyList));
             auto const& nodes = target_expr->List();
             Expression::list_t targets{};
             targets.reserve(nodes.size());
@@ -1132,7 +1126,7 @@ void withRuleDefinition(
                             true);
                         return;
                     }
-                    auto const& exprs = provider_value->get();
+                    auto const& exprs = **provider_value;
                     if (not exprs->IsList()) {
                         (*logger)(fmt::format("Provider {} in {} must be list "
                                               "of target nodes but found: {}",
@@ -1363,14 +1357,9 @@ void withTargetNode(
         }
         rule_map->ConsumeAfterKeysReady(
             ts,
-            {rule_name->get()->Name()},
-            [abs,
-             subcaller,
-             setter,
-             logger,
-             key,
-             result_map,
-             rn = rule_name->get()](auto values) {
+            {(**rule_name)->Name()},
+            [abs, subcaller, setter, logger, key, result_map, rn = **rule_name](
+                auto values) {
                 auto data = TargetData::FromTargetNode(
                     *values[0],
                     abs,

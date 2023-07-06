@@ -661,11 +661,10 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
                 }
                 std::string msg;
                 try {
-                    auto msg_val = eval(msg_expr->get(), env);
+                    auto msg_val = eval(**msg_expr, env);
                     msg = msg_val->ToString();
                 } catch (std::exception const&) {
-                    msg =
-                        "[non evaluating term] " + msg_expr->get()->ToString();
+                    msg = "[non evaluating term] " + (**msg_expr)->ToString();
                 }
                 std::stringstream ss{};
                 ss << msg << std::endl;
@@ -693,11 +692,10 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
                 }
                 std::string msg;
                 try {
-                    auto msg_val = eval(msg_expr->get(), env);
+                    auto msg_val = eval(**msg_expr, env);
                     msg = msg_val->ToString();
                 } catch (std::exception const&) {
-                    msg =
-                        "[non evaluating term] " + msg_expr->get()->ToString();
+                    msg = "[non evaluating term] " + (**msg_expr)->ToString();
                 }
                 std::stringstream ss{};
                 ss << msg << std::endl;
@@ -899,10 +897,10 @@ auto DisjointUnionExpr(SubExprEvaluator&& eval,
         }
         std::string msg;
         try {
-            auto msg_val = eval(msg_expr->get(), env);
+            auto msg_val = eval(**msg_expr, env);
             msg = msg_val->ToString();
         } catch (std::exception const&) {
-            msg = "[non evaluating term] " + msg_expr->get()->ToString();
+            msg = "[non evaluating term] " + (**msg_expr)->ToString();
         }
         std::stringstream ss{};
         ss << msg << std::endl;
@@ -1098,7 +1096,7 @@ auto Evaluator::Evaluate(ExpressionPtr const& expr,
         auto const& type = expr["type"]->String();
         auto func = functions->Find(type);
         if (func) {
-            return func->get()(
+            return (**func)(
                 [&functions](auto const& subexpr, auto const& subenv) {
                     return Evaluator::Evaluate(subexpr, subenv, functions);
                 },

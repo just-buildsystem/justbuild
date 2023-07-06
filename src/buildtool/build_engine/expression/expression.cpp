@@ -31,7 +31,7 @@ auto Expression::operator[](
     std::string const& key) const& -> ExpressionPtr const& {
     auto value = Map().Find(key);
     if (value) {
-        return value->get();
+        return **value;
     }
     throw ExpressionTypeError{
         fmt::format("Map does not contain key '{}'.", key)};

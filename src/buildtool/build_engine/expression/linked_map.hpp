@@ -139,7 +139,7 @@ class LinkedMap {
     [[nodiscard]] auto at(K const& key) const& -> V const& {
         auto value = Find(key);
         if (value) {
-            return value->get();
+            return **value;
         }
         throw std::out_of_range{fmt::format("Missing key {}", key)};
     }
@@ -163,7 +163,7 @@ class LinkedMap {
     }
 
     [[nodiscard]] auto Find(K const& key) const& noexcept
-        -> std::optional<std::reference_wrapper<V const>> {
+        -> std::optional<V const*> {
         if (content_.IsNotNull()) {
             auto val = content_.Map().Find(key);
             if (val) {
@@ -173,7 +173,7 @@ class LinkedMap {
         else {
             auto it = map_.find(key);
             if (it != map_.end()) {
-                return it->second;
+                return &it->second;
             }
         }
         if (next_.IsNotNull()) {
@@ -189,7 +189,7 @@ class LinkedMap {
         if (content_.IsNotNull()) {
             auto val = content_.Map().Find(key);
             if (val) {
-                return val->get();
+                return **val;
             }
         }
         else {
@@ -201,7 +201,7 @@ class LinkedMap {
         if (next_.IsNotNull()) {
             auto val = next_.Map().Find(key);
             if (val) {
-                return val->get();
+                return **val;
             }
         }
         return std::nullopt;

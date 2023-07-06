@@ -97,7 +97,7 @@ class Configuration {
             auto const& map = expr_->Map();
             auto v = map.Find(k);
             if (v) {
-                subset.emplace(k, v->get());
+                subset.emplace(k, **v);
             }
             else {
                 subset.emplace(k, Expression::kNone);
@@ -114,7 +114,7 @@ class Configuration {
             auto const key = k->String();
             auto v = map.Find(key);
             if (v) {
-                subset.emplace(key, v->get());
+                subset.emplace(key, **v);
             }
             else {
                 subset.emplace(key, ExpressionPtr{Expression::none_t{}});
