@@ -1,12 +1,20 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["COMPILER_FAMILY", "OS"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG", "OS"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CFLAGS":
     { "type": "let*"
     , "bindings":
       [ [ "COMPILER_FAMILY"
-        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        , { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          , "default": "unknown"
+          }
         ]
       , [ "OS"
         , { "type": "var"

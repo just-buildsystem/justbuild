@@ -29,6 +29,10 @@ A feature release on top of `1.1.0`, backwards compatible.
   inspect parts of a tree.
 - `just-mr` now supports unpacking 7zip archives (with default
   compression) when provided as `"zip"` type repositories.
+- The configuration variable `COMPILER_FAMILY` is replaced by the more
+  flexible `TOOLCHAIN_CONFIG`, an object which may contain the field
+  `FAMILY`. From now on, this object is used to set the compiler family
+  (e.g., for GNU, set `{"TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}`).
 
 ### Fixes
 

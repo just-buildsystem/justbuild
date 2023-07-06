@@ -91,11 +91,11 @@ CFLAGS = []
 CXXFLAGS = []
 FINAL_LDFLAGS = ["-Wl,-z,stack-size=8388608"]
 
-if "COMPILER_FAMILY" in CONF:
-    if CONF["COMPILER_FAMILY"] == "gnu":
+if "TOOLCHAIN_CONFIG" in CONF and "FAMILY" in CONF["TOOLCHAIN_CONFIG"]:
+    if CONF["TOOLCHAIN_CONFIG"]["FAMILY"] == "gnu":
         CC="gcc"
         CXX="g++"
-    elif CONF["COMPILER_FAMILY"] == "clang":
+    elif CONF["TOOLCHAIN_CONFIG"]["FAMILY"] == "clang":
         CC="clang"
         CXX="clang++"
 

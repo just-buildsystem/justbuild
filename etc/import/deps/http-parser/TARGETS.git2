@@ -1,13 +1,22 @@
 { "git2_http_parser":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["COMPILER_FAMILY"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG"]
   , "name": ["git2_http_parser"]
   , "pure C": ["yes"]
   , "srcs": ["http_parser.c"]
   , "hdrs": ["http_parser.h"]
   , "private-cflags":
     { "type": "case"
-    , "expr": {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+    , "expr":
+      { "type": "lookup"
+      , "map":
+        { "type": "var"
+        , "name": "TOOLCHAIN_CONFIG"
+        , "default": {"type": "empty_map"}
+        }
+      , "key": "FAMILY"
+      , "default": "unknown"
+      }
     , "case": {"gnu": ["-Wimplicit-fallthrough=1"]}
     }
   }

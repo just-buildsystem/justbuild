@@ -520,13 +520,21 @@
   }
 , "archive_hidden_symbols":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["COMPILER_FAMILY", "HIDE_SYMBOLS"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG", "HIDE_SYMBOLS"]
   , "name": ["archive_hidden_symbols"]
   , "private-ldflags":
     { "type": "if"
     , "cond":
       { "type": "=="
-      , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+      , "$1":
+        { "type": "lookup"
+        , "map":
+          { "type": "var"
+          , "name": "TOOLCHAIN_CONFIG"
+          , "default": {"type": "empty_map"}
+          }
+        , "key": "FAMILY"
+        }
       , "$2": "msvc"
       }
     , "then": []
@@ -535,7 +543,15 @@
       , "cond": {"type": "var", "name": "HIDE_SYMBOLS"}
       , "then":
         { "type": "case*"
-        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "expr":
+          { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          }
         , "case":
           [ ["clang", ["-fvisibility=hidden"]]
           , ["gnu", ["-fvisibility=hidden"]]

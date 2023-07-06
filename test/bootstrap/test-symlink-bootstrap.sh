@@ -50,7 +50,7 @@ ln -s ${UNRELATED_FILE} ${LOCALBASE}/lib/libfoo.so
 
 env LOCALBASE=${LOCALBASE} \
     PACKAGE=YES \
-    JUST_BUILD_CONF='{"COMPILER_FAMILY":"clang", "PKG_CONFIG_ARGS":["--define-prefix"]}' \
+    JUST_BUILD_CONF='{"TOOLCHAIN_CONFIG":{"FAMILY":"clang"}, "PKG_CONFIG_ARGS":["--define-prefix"]}' \
     python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR} 2>&1
 
 # Do some sanity checks with the binary

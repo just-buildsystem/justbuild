@@ -8,7 +8,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -16,6 +15,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     , "USE_SYSTEM_LIBS"
     ]
   }
@@ -43,7 +43,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -51,6 +50,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     , "USE_SYSTEM_LIBS"
     ]
   }
@@ -328,7 +328,6 @@
 , "internal_randen_hwaes":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_randen_hwaes"]
-  , "arguments_config": ["TARGET_ARCH", "COMPILER_FAMILY"]
   , "stage": ["absl", "random"]
   , "hdrs": ["internal/randen_detect.h", "internal/randen_hwaes.h"]
   , "srcs": ["internal/randen_detect.cc"]
@@ -355,7 +354,7 @@
 , "internal_randen_hwaes_impl":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_randen_hwaes_impl"]
-  , "arguments_config": ["TARGET_ARCH", "COMPILER_FAMILY"]
+  , "arguments_config": ["TARGET_ARCH", "TOOLCHAIN_CONFIG"]
   , "stage": ["absl", "random"]
   , "private-hdrs": ["internal/randen_hwaes.h"]
   , "srcs": ["internal/randen_hwaes.cc"]
@@ -367,7 +366,15 @@
       , ["arm64", ["-march=armv8-a+crypto"]]
       , [ "x86_64"
         , { "type": "case*"
-          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "expr":
+            { "type": "lookup"
+            , "map":
+              { "type": "var"
+              , "name": "TOOLCHAIN_CONFIG"
+              , "default": {"type": "empty_map"}
+              }
+            , "key": "FAMILY"
+            }
           , "case": [["msvc", []]]
           , "default": ["-maes", "-msse4.1"]
           }

@@ -8,7 +8,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -16,6 +15,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "inlined_vector_internal_":
@@ -103,7 +103,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -111,6 +110,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "flat_hash_map_internal":
@@ -237,7 +237,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -245,6 +244,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "flat_hash_set_internal":
@@ -271,7 +271,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -279,6 +278,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "btree_internal":

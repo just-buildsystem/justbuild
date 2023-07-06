@@ -8,7 +8,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -16,6 +15,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "optional_internal":
@@ -51,7 +51,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -59,6 +58,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "variant_internal":
@@ -93,7 +93,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -101,6 +100,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "span_internal":

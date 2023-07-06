@@ -15,7 +15,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -23,6 +22,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "container_internal":

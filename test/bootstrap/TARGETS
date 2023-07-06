@@ -36,7 +36,7 @@
       , [ "TEST_ENV"
         , { "type": "singleton_map"
           , "key": "JUST_BUILD_CONF"
-          , "value": "{\"COMPILER_FAMILY\": \"gnu\", \"CC\": \"gcc\", \"CXX\": \"g++\"}"
+          , "value": "{\"TOOLCHAIN_CONFIG\":{\"FAMILY\": \"gnu\"}, \"CC\": \"gcc\", \"CXX\": \"g++\"}"
           }
         ]
       ]

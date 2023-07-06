@@ -1,6 +1,6 @@
 { "symbolize":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["COMPILER_FAMILY", "ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG", "ARCH", "TARGET_ARCH"]
   , "name": ["symbolize"]
   , "stage": ["absl", "debugging"]
   , "hdrs": ["internal/symbolize.h", "symbolize.h"]
@@ -30,7 +30,15 @@
     { "type": "++"
     , "$1":
       [ { "type": "case*"
-        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "expr":
+          { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          }
         , "case": [["mingw", ["-ladvapi32"]]]
         }
       , { "type": "case"

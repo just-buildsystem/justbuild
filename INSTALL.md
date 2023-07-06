@@ -31,7 +31,7 @@ variables. The full list can be obtained via `just-mr describe`.
 | ARCH | x86, x86_64, arm, arm64 | x86_64 |
 | HOST_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
 | TARGET_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
-| COMPILER_FAMILY | gnu, clang, unknown | unknown |
+| TOOLCHAIN_CONFIG["FAMILY"] | gnu, clang, unknown | unknown |
 | DEBUG | true, false | false |
 | BUILD_STATIC_BINARY | true, false | false |
 
@@ -92,7 +92,7 @@ Additionally, if `SOURCE_DATE_EPOCH` is set in the build environment, it
 is forwarded to the build configuration as well. If, on the other hand,
 `CC` or `CXX` are set in the build configuration, those are also used
 for the initial steps of the bootstrap procedure. Remember that setting
-one of those variables also requires the `COMPILER_FAMILY` to
+one of those variables also requires the `TOOLCHAIN_CONFIG["FAMILY"]` to
 ensure the proper flags are used (if in doubt, set to `"unknown"`).
 
 In any case, the resulting binary is self contained and can be moved

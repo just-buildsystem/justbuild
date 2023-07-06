@@ -8,7 +8,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -16,11 +15,12 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "base_internal_":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["OS", "COMPILER_FAMILY", "ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["OS", "TOOLCHAIN_CONFIG", "ARCH", "TARGET_ARCH"]
   , "name": ["base"]
   , "stage": ["absl", "base"]
   , "hdrs":
@@ -49,7 +49,15 @@
     , "$1":
       [ ["-pthread"]
       , { "type": "case*"
-        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "expr":
+          { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          }
         , "case": [["mingw", ["-ladvapi32"]]]
         }
       , { "type": "case*"
@@ -135,7 +143,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -143,6 +150,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "core_headers_internal":
@@ -178,7 +186,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -186,6 +193,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "dynamic_annotations_internal":
@@ -205,7 +213,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -213,6 +220,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "log_severity_internal":
@@ -233,7 +241,6 @@
     , "ARCH"
     , "CC"
     , "CFLAGS"
-    , "COMPILER_FAMILY"
     , "CXX"
     , "CXXFLAGS"
     , "DEBUG"
@@ -241,6 +248,7 @@
     , "HOST_ARCH"
     , "OS"
     , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
     ]
   }
 , "raw_logging_internal (unexported)":

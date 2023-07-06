@@ -6,7 +6,7 @@
     [ "OS"
     , "ARCH"
     , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
+    , "TOOLCHAIN_CONFIG"
     , "DEBUG"
     , "CC"
     , "CFLAGS"

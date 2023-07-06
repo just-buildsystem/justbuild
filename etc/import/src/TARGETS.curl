@@ -429,13 +429,21 @@
   }
 , "curl_hidden_symbols":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["COMPILER_FAMILY", "CURL_HIDDEN_SYMBOLS"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG", "CURL_HIDDEN_SYMBOLS"]
   , "name": ["curl_hidden_symbols"]
   , "private-ldflags":
     { "type": "if"
     , "cond":
       { "type": "=="
-      , "$1": {"type": "var", "name": "COMPILER_FAMILY"}
+      , "$1":
+        { "type": "lookup"
+        , "map":
+          { "type": "var"
+          , "name": "TOOLCHAIN_CONFIG"
+          , "default": {"type": "empty_map"}
+          }
+        , "key": "FAMILY"
+        }
       , "$2": "msvc"
       }
     , "then": []
@@ -444,7 +452,15 @@
       , "cond": {"type": "var", "name": "CURL_HIDDEN_SYMBOLS"}
       , "then":
         { "type": "case*"
-        , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+        , "expr":
+          { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          }
         , "case":
           [ ["clang", ["-fvisibility=hidden"]]
           , ["gnu", ["-fvisibility=hidden"]]

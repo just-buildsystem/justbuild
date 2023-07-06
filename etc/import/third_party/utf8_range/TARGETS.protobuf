@@ -6,7 +6,7 @@
     , "ARCH"
     , "HOST_ARCH"
     , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
+    , "TOOLCHAIN_CONFIG"
     , "DEBUG"
     , "CXX"
     , "CXXFLAGS"

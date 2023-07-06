@@ -6,7 +6,7 @@
     [ "OS"
     , "ARCH"
     , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
+    , "TOOLCHAIN_CONFIG"
     , "USE_SYSTEM_LIBS"
     , "DEBUG"
     , "CC"
@@ -109,7 +109,8 @@
     , "HIDE_SYMBOLS":
       [ "Boolean. Default value: true."
       , "Hide all symbols not officially external."
-      , "Has effect if ~COMPILER_FAMILY~==\"clang\"|\"gnu\"|\"intel\"."
+      , "Has effect if"
+      , "TOOLCHAIN_CONFIG[\"FAMILY\"] == \"clang\"|\"gnu\"|\"intel\"."
       ]
     }
   }
@@ -119,7 +120,7 @@
     [ "OS"
     , "ARCH"
     , "TARGET_ARCH"
-    , "COMPILER_FAMILY"
+    , "TOOLCHAIN_CONFIG"
     , "USE_SYSTEM_LIBS"
     , "DEBUG"
     , "HIDE_SYMBOLS"
@@ -160,7 +161,15 @@
           }
         ]
       , [ "COMPILER_FAMILY"
-        , {"type": "var", "name": "COMPILER_FAMILY", "default": "unknown"}
+        , { "type": "lookup"
+          , "map":
+            { "type": "var"
+            , "name": "TOOLCHAIN_CONFIG"
+            , "default": {"type": "empty_map"}
+            }
+          , "key": "FAMILY"
+          , "default": "unknown"
+          }
         ]
       , [ "TARGET_ARCH"
         , { "type": "var"
