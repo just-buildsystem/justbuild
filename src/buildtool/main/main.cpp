@@ -479,7 +479,7 @@ void SetupHashFunction() {
     -> Configuration {
     Configuration config{};
     if (not clargs.config_file.empty()) {
-        if (not std::filesystem::exists(clargs.config_file)) {
+        if (not FileSystemManager::Exists(clargs.config_file)) {
             Logger::Log(LogLevel::Error,
                         "Config file {} does not exist.",
                         clargs.config_file.string());

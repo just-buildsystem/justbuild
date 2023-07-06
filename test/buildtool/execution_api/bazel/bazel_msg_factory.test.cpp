@@ -97,7 +97,8 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
             for (auto const& digest : digests) {
                 REQUIRE(fake_cas.contains(digest));
                 auto fpath = fake_cas[digest];
-                if (std::filesystem::is_symlink(fpath)) {
+                if (FileSystemManager::IsNonUpwardsSymlink(
+                        fpath, /*non_strict=*/true)) {
                     auto content = FileSystemManager::ReadSymlink(fpath);
                     REQUIRE(content);
                     targets->emplace_back(*content);

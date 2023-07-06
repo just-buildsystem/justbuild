@@ -437,10 +437,11 @@ class FileSystemManager {
     [[nodiscard]] static auto RemoveFile(
         std::filesystem::path const& file) noexcept -> bool {
         try {
-            if (!std::filesystem::exists(file)) {
+            auto status = std::filesystem::symlink_status(file);
+            if (!std::filesystem::exists(status)) {
                 return true;
             }
-            if (!IsFile(file)) {
+            if (!std::filesystem::is_regular_file(status)) {
                 return false;
             }
             return std::filesystem::remove(file);
@@ -457,8 +458,12 @@ class FileSystemManager {
                                               bool recursively = false) noexcept
         -> bool {
         try {
-            if (!std::filesystem::exists(dir)) {
+            auto status = std::filesystem::symlink_status(dir);
+            if (!std::filesystem::exists(status)) {
                 return true;
+            }
+            if (!std::filesystem::is_directory(status)) {
+                return false;
             }
             if (recursively) {
                 return (std::filesystem::remove_all(dir) !=
@@ -476,14 +481,16 @@ class FileSystemManager {
 
     /// \brief Returns if symlink is non-upwards, i.e., its string content path
     /// never passes itself in the directory tree.
+    /// \param non_strict if set, do not check non-upwardness. Use with care!
     [[nodiscard]] static auto IsNonUpwardsSymlink(
-        std::filesystem::path const& link) noexcept -> bool {
+        std::filesystem::path const& link,
+        bool non_strict = false) noexcept -> bool {
         try {
             if (not std::filesystem::is_symlink(link)) {
                 return false;
             }
-            auto dest = std::filesystem::read_symlink(link);
-            return PathIsNonUpwards(dest);
+            return non_strict or
+                   PathIsNonUpwards(std::filesystem::read_symlink(link));
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error, e.what());
             return false;
@@ -929,7 +936,8 @@ class FileSystemManager {
     [[nodiscard]] static auto CreateDirectoryImpl(
         std::filesystem::path const& dir) noexcept -> CreationStatus {
         try {
-            if (std::filesystem::is_directory(dir)) {
+            if (std::filesystem::is_directory(
+                    std::filesystem::symlink_status(dir))) {
                 return CreationStatus::Exists;
             }
             if (std::filesystem::create_directories(dir)) {
@@ -939,7 +947,8 @@ class FileSystemManager {
             // after the current thread checked if it existed. For that reason,
             // we try to create it and check if it exists if create_directories
             // was not successful.
-            if (std::filesystem::is_directory(dir)) {
+            if (std::filesystem::is_directory(
+                    std::filesystem::symlink_status(dir))) {
                 return CreationStatus::Exists;
             }
 
@@ -955,7 +964,8 @@ class FileSystemManager {
     [[nodiscard]] static auto CreateFileImpl(
         std::filesystem::path const& file) noexcept -> CreationStatus {
         try {
-            if (std::filesystem::is_regular_file(file)) {
+            if (std::filesystem::is_regular_file(
+                    std::filesystem::symlink_status(file))) {
                 return CreationStatus::Exists;
             }
             if (gsl::owner<FILE*> fp = std::fopen(file.c_str(), "wx")) {
@@ -966,7 +976,8 @@ class FileSystemManager {
             // the current thread checked if it existed. For that reason, we try
             // to create it and check if it exists if fopen() with exclusive bit
             // was not successful.
-            if (std::filesystem::is_regular_file(file)) {
+            if (std::filesystem::is_regular_file(
+                    std::filesystem::symlink_status(file))) {
                 return CreationStatus::Exists;
             }
             return CreationStatus::Failed;
@@ -983,6 +994,11 @@ class FileSystemManager {
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         try {
+            // src and dst should be actual files
+            if (std::filesystem::is_symlink(src) or
+                std::filesystem::is_symlink(dst)) {
+                return false;
+            }
             return std::filesystem::copy_file(src, dst, opt);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,

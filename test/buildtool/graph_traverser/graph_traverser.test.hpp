@@ -107,7 +107,7 @@ class TestProject {
         clargs.artifacts = entry_points;
         auto const comp_graph = root_dir_ / "graph_description_compatible";
         if (Compatibility::IsCompatible() and
-            std::filesystem::exists(comp_graph)) {
+            FileSystemManager::Exists(comp_graph)) {
             clargs.graph_description = comp_graph;
         }
         else {
