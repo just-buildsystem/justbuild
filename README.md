@@ -38,3 +38,4 @@ taken from user-defined rules described by functional expressions.
 - [Target-Level Caching](doc/concepts/target-cache.md)
 - [Garbage Collection](doc/concepts/garbage.md)
 - [Symbolic links](doc/concepts/symlinks.md)
+- [Execution properties](doc/concepts/execution-properties.md)

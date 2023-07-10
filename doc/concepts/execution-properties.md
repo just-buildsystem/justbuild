@@ -28,12 +28,11 @@ requires a single build executing actions on two (or more) platforms.
 #### Calls to foreign build systems
 
 Often, third-party dependencies that natively build with a different
-build system and don't change to often (yet often enough to not
+build system and don't change too often (yet often enough to not
 have them part of the build image) are simply put in a single
 action, so that they get built only once, and then stay in cache for
 everyone. This is precisely, what our `rules-cc` rules like
-`["CC/foreign/make",
-"library"]` and `["CC/foreign/cmake", "library"]` do.
+`["CC/foreign/make", "library"]` and `["CC/foreign/cmake", "library"]` do.
 
 For those compound actions, we of course expect them to run longer
 than normal actions that only consist of a single compiler or linker
@@ -52,30 +51,13 @@ require a lengthy sequence of interactions to get into the situation
 that is to be tested, or to verify the absence of degrading of the
 service under high load or extended usage.
 
-Status Quo
-----------
+Interfaces related to action-controlled execution properties
+------------------------------------------------------------
 
-Action can at the moment specify
+### Properties of the `"ACTION"` function
 
- - the actual action, i.e., inputs, outputs, and the command vector,
- - the environment variables,
- - a property that the action can fail (e.g., for test actions), and
- - a property that the action is not to be taken from cache (e.g.,
-   testing for flakiness).
-
-No other properties can be set by the action itself. In particular,
-remote-execution properties and timeout are equal for all actions of a
-build.
-
-Proposed changes
-----------------
-
-### Extension of the `"ACTION"` function
-
-We propose to extend the `"ACTION"` function available in the rule
-definition by the following attributes. All of the new attributes are
-optional, and the default is taken to reflect the status quo. Hence, the
-proposed changes are backwards compatible.
+The `"ACTION"` function available in the rule definition also has
+the following attributes. All of those attributes are optional.
 
 #### `"execution properties"`
 
@@ -88,7 +70,7 @@ remote-execution properties specified at the invocation of the build
 precedence).
 
 Local execution continues to any execution properties specified.
-However, with the auxiliary change to `just` described later, such
+However, with the dispatch functionality of `just` described later, such
 execution properties can also influence a build that is local by
 default.
 
@@ -101,23 +83,23 @@ build (the default value, or whatever is specified on the command
 line) is multiplied by the given factor and taken as timeout for
 this action. This applies for both, local and remote builds.
 
-### Extension to the built-in `"generic"` built-in rule
+### Execution properties of the the built-in `"generic"` rule
 
 As the built-in `"generic"` rule basically is there to allow the
-definition of an action in an ad-hoc fashion, it will be extended
-in the same way. More precisely, the fields `"timeout scaling"` and
-`"execution properties"` will be added and are taken as additional
-arguments to the underlying action, with the same semantics as the
-respective fields of the `"ACTION"` constructor.
+definition of an action in an ad-hoc fashion, it also provides the
+same attributes. More precisely, the fields `"timeout scaling"`
+and `"execution properties"` are taken as additional arguments to
+the underlying action, with the same semantics as the respective
+fields of the `"ACTION"` constructor.
 
-### `just` to support dispatching based on remote-execution properties
+### `just` dispatching based on remote-execution properties
 
 In simple setups, like using `just execute`, the remote execution is not
 capable of dispatching to different workers based on remote-execution
 properties. To nevertheless have the benefits of using different
-execution environments, `just` will allow an optional configuration file
+execution environments, `just` allows an optional configuration file
 to be passed on the command line via a new option
-`--endpoint-configuration`. This configuration file will contain a list
+`--endpoint-configuration`. This configuration file contains a list
 of pairs of remote-execution properties and remote-execution endpoints.
 The first matching entry (i.e., the first entry where the
 remote-execution property map coincides with the given map when
@@ -130,7 +112,3 @@ When connecting a non-standard remote-execution endpoint, `just` will
 ensure that the applicable CAS of that endpoint will have all the needed
 artifacts for that action. It will also transfer all result artifacts
 back to the CAS of the default remote-execution endpoint.
-
-`just serve` (once implemented) will also support this new option. As
-with the default execution endpoint, there is the understanding that the
-client uses the same configuration as the `just serve` endpoint.

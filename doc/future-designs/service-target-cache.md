@@ -50,6 +50,11 @@ The associated remote-execution endpoint can well be the same process
 simultaneously acting as `just execute`. In fact, this is the default if
 no remote-execution endpoint is specified.
 
+`just serve` will also support the `--endpoint-configuration`
+option. As with the default execution endpoint, there is the
+understanding that the client uses the same configuration as the
+`just serve` endpoint.
+
 ### Protocol
 
 Communication is handled via `grpc` exchanging `proto` buffers
