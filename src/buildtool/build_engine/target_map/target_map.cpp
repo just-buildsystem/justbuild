@@ -1358,6 +1358,7 @@ void withTargetNode(
                           target_node.ToString(),
                           key.target.GetAnonymousTarget().rule_map->ToString()),
                       /*fatal=*/true);
+            return;
         }
         rule_map->ConsumeAfterKeysReady(
             ts,
