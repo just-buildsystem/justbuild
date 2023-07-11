@@ -8,6 +8,8 @@
   , "vars":
     [ "ARCH"
     , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "ARCH_DISPATCH"
     , "CC"
     , "CXX"
     , "CFLAGS"
@@ -46,6 +48,7 @@
     , "ldflags-files-deps": ["./", "..", "ldflags-files-deps"]
     , "binary": ["./", "..", "bin artifact"]
     , "host transition": ["transitions", "for host"]
+    , "target properties": ["transitions", "target properties"]
     , "stage": ["./", "../..", "stage_singleton_field"]
     }
   , "expression":
@@ -147,6 +150,9 @@
             ]
           }
         ]
+      , [ "target properties"
+        , {"type": "CALL_EXPRESSION", "name": "target properties"}
+        ]
       ]
     , "body":
       { "type": "if"
@@ -171,6 +177,8 @@
                 , "$1":
                   ["CC test ", {"type": "var", "name": "test-name"}, " failed"]
                 }
+              , "execution properties":
+                {"type": "var", "name": "target properties"}
               }
             ]
           , [ "runfiles"
@@ -244,6 +252,8 @@
                           , ")"
                           ]
                         }
+                      , "execution properties":
+                        {"type": "var", "name": "target properties"}
                       }
                     }
                   }

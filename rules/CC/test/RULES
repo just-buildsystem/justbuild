@@ -14,6 +14,7 @@
   , "config_vars":
     [ "ARCH"
     , "HOST_ARCH"
+    , "TARGET_ARCH"
     , "CC"
     , "CXX"
     , "CFLAGS"
@@ -24,6 +25,7 @@
     , "TEST_ENV"
     , "CC_TEST_LAUNCHER"
     , "RUNS_PER_TEST"
+    , "ARCH_DISPATCH"
     ]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
@@ -87,6 +89,19 @@
       [ "The number of times the test should be run in order to detect flakyness."
       , "If set, no test action will be taken from cache."
       ]
+    , "TARGET_ARCH":
+      [ "The architecture to build the test for."
+      , ""
+      , "Will only be honored, if that architecture is available in the"
+      , "ARCH_DISPATCH map. Otherwise, the test will be built for and run"
+      , "on the host architecture."
+      ]
+    , "ARCH_DISPATCH":
+      [ "Map of architectures to execution properties that ensure execution"
+      , "on that architecture. Only the actual test binary will be run with"
+      , "the specified execution properties (i.e., on the target architecture);"
+      , "all building will be done on the host architecture."
+      ]
     }
   , "artifacts_doc":
     [ "result: the result of this test (\"PASS\" or \"FAIL\"); useful for"
@@ -105,7 +120,7 @@
   , "imports":
     { "artifacts": ["./", "../..", "field_artifacts"]
     , "runfiles": ["./", "../..", "field_runfiles"]
-    , "host transition": ["transitions", "for host"]
+    , "host transition": ["transitions", "maybe for host"]
     , "stage": ["./", "../..", "stage_singleton_field"]
     , "run_test": "run_test"
     }
@@ -113,6 +128,7 @@
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "private-deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "data": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "runner": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     }
   , "expression":
     { "type": "let*"
@@ -170,6 +186,7 @@
                   , "$1":
                     { "type": "DEP_ARTIFACTS"
                     , "dep": {"type": "var", "name": "runner"}
+                    , "transition": {"type": "var", "name": "host-trans"}
                     }
                   }
                 , "body":
