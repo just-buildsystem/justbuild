@@ -81,7 +81,7 @@ Our treatment of symbolic links
 
 ### "Ignore-special" roots
 
-To allow working with source trees containing symbolic links, all the existing
+For cases where we simply have no need for special entries, all the existing
 roots have "ignore-special" versions thereof. In such a root
 (regardless whether file based, or `git`-tree based), everything
 not a file or a directory is pretended to be absent. For any
@@ -97,7 +97,7 @@ content fixed and hence eligible for target-level caching.
 
 ### Non-upwards relative symlinks as first-class objects
 
-Finally, a restricted form of symlinks, more precisely *relative*
+A restricted form of symlinks, more precisely *relative*
 *non-upwards symbolic links*, exist as first-class objects.
 That is, a new artifact type (besides blobs and trees) for relative
 non-upwards symbolic links has been introduced. Like any other artifact,
@@ -117,3 +117,25 @@ non-upwards) symbolic links are, in many aspects, simple files with elevated
 permissions. As such, they locally use the existing file CAS. Remotely, the
 existing execution protocol already allows the handling of symbolic links via
 corresponding Protobuf messages, therefore no extensions are needed.
+
+### Import resolved `git`-trees
+
+Finally, to be as flexible as possible in handling external repositories with
+(possibly) upwards symbolic links, we allow filesystem directories and archives
+to be imported also as partially or completely resolved `git`-trees.
+
+In a *partially resolved tree*, all relative upwards symbolic links confined to
+the tree get resolved, i.e., replaced by a copy of the entry they point to, if
+existing, or removed otherwise. This of course leaves relative non-upwards
+symbolic links in the `git`-tree, as they are supported objects.
+
+Alternatively, in a *completely resolved tree*, all relative symbolic links
+confined to the tree (whether upwards or not) get resolved, resulting in a
+`git`-tree free of all symbolic links.
+
+For reasons already described, absolute symbolic are never supported.
+
+As this process acts directly at the repository level, the resulting roots
+remain cacheable and their trees accessible in constant time. Moreover, to
+increase the chances of cache hits in `just-mr`, not only the resulting
+resolved trees are stored, but also the original, unresolved ones.
