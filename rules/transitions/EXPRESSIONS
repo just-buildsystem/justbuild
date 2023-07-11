@@ -10,4 +10,48 @@
       }
     }
   }
+, "target properties":
+  { "vars": ["ARCH", "TARGET_ARCH", "ARCH_DISPATCH"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "if"
+      , "cond":
+        { "type": "=="
+        , "$1": {"type": "var", "name": "TARGET_ARCH"}
+        , "$2": null
+        }
+      , "then": {"type": "empty_map"}
+      , "else":
+        { "type": "lookup"
+        , "map":
+          { "type": "var"
+          , "name": "ARCH_DISPATCH"
+          , "default": {"type": "empty_map"}
+          }
+        , "key": {"type": "var", "name": "TARGET_ARCH"}
+        , "default": {"type": "empty_map"}
+        }
+      }
+    }
+  }
+, "maybe for host":
+  { "vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH", "ARCH_DISPATCH"]
+  , "imports":
+    {"target properties": "target properties", "for host": "for host"}
+  , "expression":
+    { "type": "if"
+    , "cond": {"type": "CALL_EXPRESSION", "name": "target properties"}
+    , "then": {"type": "empty_map"}
+    , "else": {"type": "CALL_EXPRESSION", "name": "for host"}
+    }
+  }
 }
