@@ -97,8 +97,10 @@ void GitCheckout(ExpressionPtr const& repo_desc,
                               ? repo_desc_pragma->get()->At("special")
                               : std::nullopt;
     auto pragma_special_value =
-        pragma_special and pragma_special->get()->IsString()
-            ? std::make_optional(pragma_special->get()->String())
+        pragma_special and pragma_special->get()->IsString() and
+                kPragmaSpecialMap.contains(pragma_special->get()->String())
+            ? std::make_optional(
+                  kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
     // populate struct
     GitRepoInfo git_repo_info = {
@@ -107,7 +109,7 @@ void GitCheckout(ExpressionPtr const& repo_desc,
         .branch = repo_desc_branch->get()->String(),
         .subdir = subdir.empty() ? "." : subdir.string(),
         .origin = repo_name,
-        .ignore_special = pragma_special_value == "ignore"};
+        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
     // get the WS root as git tree
     commit_git_map->ConsumeAfterKeysReady(
         ts,
@@ -185,8 +187,10 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                               ? repo_desc_pragma->get()->At("special")
                               : std::nullopt;
     auto pragma_special_value =
-        pragma_special and pragma_special->get()->IsString()
-            ? std::make_optional(pragma_special->get()->String())
+        pragma_special and pragma_special->get()->IsString() and
+                kPragmaSpecialMap.contains(pragma_special->get()->String())
+            ? std::make_optional(
+                  kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
     // populate struct
     ArchiveRepoInfo archive_repo_info = {
@@ -206,7 +210,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
              .origin_from_distdir = false},
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
-        .ignore_special = pragma_special_value == "ignore"};
+        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -266,8 +270,10 @@ void FileCheckout(ExpressionPtr const& repo_desc,
                               ? repo_desc_pragma->get()->At("special")
                               : std::nullopt;
     auto pragma_special_value =
-        pragma_special and pragma_special->get()->IsString()
-            ? std::make_optional(pragma_special->get()->String())
+        pragma_special and pragma_special->get()->IsString() and
+                kPragmaSpecialMap.contains(pragma_special->get()->String())
+            ? std::make_optional(
+                  kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
     // check "to_git" pragma
     auto pragma_to_git =
@@ -276,7 +282,8 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         pragma_to_git->get()->Bool()) {
         // get the WS root as git tree
         FpathInfo fpath_info = {
-            .fpath = fpath, .ignore_special = pragma_special_value == "ignore"};
+            .fpath = fpath,
+            .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
             {std::move(fpath_info)},
@@ -301,7 +308,7 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         // get the WS root as filesystem location
         nlohmann::json cfg({});
         cfg["workspace_root"] =
-            nlohmann::json::array({pragma_special_value == "ignore"
+            nlohmann::json::array({pragma_special_value == PragmaSpecial::Ignore
                                        ? FileRoot::kFileIgnoreSpecialMarker
                                        : "file",
                                    fpath.string()});  // explicit array
@@ -572,15 +579,17 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                               ? repo_desc_pragma->get()->At("special")
                               : std::nullopt;
     auto pragma_special_value =
-        pragma_special and pragma_special->get()->IsString()
-            ? std::make_optional(pragma_special->get()->String())
+        pragma_special and pragma_special->get()->IsString() and
+                kPragmaSpecialMap.contains(pragma_special->get()->String())
+            ? std::make_optional(
+                  kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
     // populate struct
     TreeIdInfo tree_id_info = {
         .hash = repo_desc_hash->get()->String(),
         .env_vars = std::move(env),
         .command = std::move(cmd),
-        .ignore_special = pragma_special_value == "ignore"};
+        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
     // get the WS root as git tree
     tree_id_git_map->ConsumeAfterKeysReady(
         ts,

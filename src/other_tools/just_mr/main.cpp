@@ -793,8 +793,11 @@ void DefaultReachableRepositories(
                     repo_desc_pragma ? repo_desc_pragma->get()->At("special")
                                      : std::nullopt;
                 auto pragma_special_value =
-                    pragma_special and pragma_special->get()->IsString()
-                        ? std::make_optional(pragma_special->get()->String())
+                    pragma_special and pragma_special->get()->IsString() and
+                            kPragmaSpecialMap.contains(
+                                pragma_special->get()->String())
+                        ? std::make_optional(kPragmaSpecialMap.at(
+                              pragma_special->get()->String()))
                         : std::nullopt;
 
                 ArchiveRepoInfo archive_info = {
@@ -817,7 +820,8 @@ void DefaultReachableRepositories(
                                 .origin_from_distdir = false},
                     .repo_type = repo_type_str,
                     .subdir = subdir.empty() ? "." : subdir.string(),
-                    .ignore_special = pragma_special_value == "ignore"};
+                    .ignore_special =
+                        pragma_special_value == PragmaSpecial::Ignore};
                 // add to list
                 repos_to_fetch.emplace_back(std::move(archive_info));
             }

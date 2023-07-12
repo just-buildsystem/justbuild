@@ -89,6 +89,19 @@ std::unordered_map<std::string, CheckoutType> const kCheckoutTypeMap = {
     {"distdir", CheckoutType::Distdir},
     {"git tree", CheckoutType::GitTree}};
 
+/// \brief Pragma "special" value enum
+enum class PragmaSpecial : std::uint8_t {
+    Ignore,
+    ResolvePartially,
+    ResolveCompletely
+};
+
+/// \brief Pragma "special" value map
+std::unordered_map<std::string, PragmaSpecial> const kPragmaSpecialMap = {
+    {"ignore", PragmaSpecial::Ignore},
+    {"resolve-partially", PragmaSpecial::ResolvePartially},
+    {"resolve-completely", PragmaSpecial::ResolveCompletely}};
+
 namespace JustMR {
 
 struct Paths {
