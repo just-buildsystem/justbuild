@@ -787,9 +787,16 @@ void DefaultReachableRepositories(
                     (*resolved_repo_desc)->Get("sha256", Expression::none_t{});
                 auto repo_desc_sha512 =
                     (*resolved_repo_desc)->Get("sha512", Expression::none_t{});
-                auto repo_desc_ignore_special =
-                    (*resolved_repo_desc)
-                        ->Get("ignore_special", Expression::none_t{});
+                // check "special" pragma
+                auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
+                auto pragma_special =
+                    repo_desc_pragma ? repo_desc_pragma->get()->At("special")
+                                     : std::nullopt;
+                auto pragma_special_value =
+                    pragma_special and pragma_special->get()->IsString()
+                        ? std::make_optional(pragma_special->get()->String())
+                        : std::nullopt;
+
                 ArchiveRepoInfo archive_info = {
                     .archive = {.content = repo_desc_content->get()->String(),
                                 .distfile =
@@ -810,9 +817,7 @@ void DefaultReachableRepositories(
                                 .origin_from_distdir = false},
                     .repo_type = repo_type_str,
                     .subdir = subdir.empty() ? "." : subdir.string(),
-                    .ignore_special = repo_desc_ignore_special->IsBool()
-                                          ? repo_desc_ignore_special->Bool()
-                                          : false};
+                    .ignore_special = pragma_special_value == "ignore"};
                 // add to list
                 repos_to_fetch.emplace_back(std::move(archive_info));
             }

@@ -54,10 +54,10 @@ cat > repos.json <<EOF
   , "foo_ignore_special":
     { "repository":
       { "type": "archive"
-      , "ignore_special": true
       , "content": "${foocontent}"
       , "fetch": "http://non-existent.example.org/foo-1.2.3.tar"
       , "subdir": "foo"
+      , "pragma": {"special": "ignore"}
       }
     }
   , "":

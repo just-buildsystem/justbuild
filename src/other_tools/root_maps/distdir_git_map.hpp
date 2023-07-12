@@ -20,7 +20,6 @@
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
-#include "src/utils/cpp/hash_combine.hpp"
 
 struct DistdirInfo {
     std::string content_id; /* key */
@@ -28,13 +27,10 @@ struct DistdirInfo {
     std::shared_ptr<std::vector<ArchiveContent>> repos_to_fetch;
     // name of repository for which work is done; used in progress reporting
     std::string origin;
-    // create root that ignores symlinks
-    bool ignore_special; /* key */
 
     [[nodiscard]] auto operator==(const DistdirInfo& other) const noexcept
         -> bool {
-        return content_id == other.content_id and
-               ignore_special == other.ignore_special;
+        return content_id == other.content_id;
     }
 };
 
@@ -55,10 +51,7 @@ template <>
 struct hash<DistdirInfo> {
     [[nodiscard]] auto operator()(const DistdirInfo& dd) const noexcept
         -> std::size_t {
-        size_t seed{};
-        hash_combine<std::string>(&seed, dd.content_id);
-        hash_combine<bool>(&seed, dd.ignore_special);
-        return seed;
+        return std::hash<std::string>{}(dd.content_id);
     }
 };
 }  // namespace std
