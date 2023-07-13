@@ -2,6 +2,15 @@
 
 Bug fixes on top of release `1.1.2`.
 
+### Fixes
+
+- `just` no longer unnecessarily errors out on absence of
+  a working directory.
+- `just-mr` now correctly performs a forced add in order to stage
+  all entries in a Git repository. Previously it was possible for
+  entries to be skipped inadvertently in, e.g., imported archives
+  if `gitignore` files were present.
+
 ## Release `1.1.2` (2023-06-09)
 
 Bug fixes on top of release `1.1.1`.
