@@ -3,7 +3,14 @@
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
   , "config_vars":
-    ["ARCH", "HOST_ARCH", "RUNS_PER_TEST", "TEST_ENV", "TIMEOUT_SCALE"]
+    [ "ARCH"
+    , "HOST_ARCH"
+    , "RUNS_PER_TEST"
+    , "TEST_ENV"
+    , "TIMEOUT_SCALE"
+    , "TARGET_ARCH"
+    , "ARCH_DISPATCH"
+    ]
   , "field_doc":
     { "test":
       [ "The shell script for the test, launched with sh."
@@ -36,6 +43,19 @@
     , "TEST_ENV": ["The environment for executing the test runner."]
     , "TIMEOUT_SCALE":
       ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
+    , "TARGET_ARCH":
+      [ "The architecture to build the test for."
+      , ""
+      , "Will only be honored, if that architecture is available in the"
+      , "ARCH_DISPATCH map. Otherwise, the test will be built for and run"
+      , "on the host architecture."
+      ]
+    , "ARCH_DISPATCH":
+      [ "Map of architectures to execution properties that ensure execution"
+      , "on that architecture. Only the actual test binary will be run with"
+      , "the specified execution properties (i.e., on the target architecture);"
+      , "all building will be done on the host architecture."
+      ]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
@@ -58,10 +78,13 @@
     { "test-result": "test-result"
     , "action": "test-action"
     , "stage": ["./", "../..", "stage_singleton_field"]
-    , "host transition": ["transitions", "for host"]
+    , "host transition": ["transitions", "maybe for host"]
+    , "target properties": ["transitions", "target properties"]
     }
   , "config_transitions":
-    {"deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]}
+    { "deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "test": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -70,7 +93,13 @@
           , "msg": "Expecting 'test' to specify precisely one file containing a shell script"
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "test"], ["location", "test.sh"]]
+            , "bindings":
+              [ ["fieldname", "test"]
+              , ["location", "test.sh"]
+              , [ "transition"
+                , {"type": "CALL_EXPRESSION", "name": "host transition"}
+                ]
+              ]
             , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
             }
           }
@@ -86,6 +115,9 @@
       , ["deps-fieldname", "deps"]
       , [ "deps-transition"
         , {"type": "CALL_EXPRESSION", "name": "host transition"}
+        ]
+      , [ "target properties"
+        , {"type": "CALL_EXPRESSION", "name": "target properties"}
         ]
       ]
     , "body":
