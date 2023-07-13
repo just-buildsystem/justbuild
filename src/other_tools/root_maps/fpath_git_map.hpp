@@ -16,18 +16,19 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FPATH_GIT_MAP_HPP
 
 #include "nlohmann/json.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 
 struct FpathInfo {
     std::filesystem::path fpath{}; /* key */
-    // create root that ignores symlinks
-    bool ignore_special{}; /* key */
+    // create root based on "special" pragma value
+    std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
 
     [[nodiscard]] auto operator==(const FpathInfo& other) const noexcept
         -> bool {
-        return fpath == other.fpath and ignore_special == other.ignore_special;
+        return fpath == other.fpath and pragma_special == other.pragma_special;
     }
 };
 
@@ -47,7 +48,7 @@ struct hash<FpathInfo> {
         -> std::size_t {
         size_t seed{};
         hash_combine<std::filesystem::path>(&seed, ct.fpath);
-        hash_combine<bool>(&seed, ct.ignore_special);
+        hash_combine<std::optional<PragmaSpecial>>(&seed, ct.pragma_special);
         return seed;
     }
 };

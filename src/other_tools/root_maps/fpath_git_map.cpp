@@ -17,7 +17,6 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 auto CreateFilePathGitMap(
@@ -73,7 +72,7 @@ auto CreateFilePathGitMap(
                 ts,
                 {std::move(op_key)},
                 [fpath = key.fpath,
-                 ignore_special = key.ignore_special,
+                 pragma_special = key.pragma_special,
                  git_cas = std::move(git_cas),
                  repo_root = std::move(*repo_root),
                  setter,
@@ -111,8 +110,9 @@ auto CreateFilePathGitMap(
                     }
                     // set the workspace root
                     (*setter)(nlohmann::json::array(
-                        {ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                        : FileRoot::kGitTreeMarker,
+                        {pragma_special == PragmaSpecial::Ignore
+                             ? FileRoot::kGitTreeIgnoreSpecialMarker
+                             : FileRoot::kGitTreeMarker,
                          *tree_hash,
                          repo_root}));
                 },
@@ -159,7 +159,7 @@ auto CreateFilePathGitMap(
                 {std::move(c_info)},
                 // tmp_dir passed, to ensure folder is not removed until import
                 // to git is done
-                [tmp_dir, ignore_special = key.ignore_special, setter, logger](
+                [tmp_dir, pragma_special = key.pragma_special, setter, logger](
                     auto const& values) {
                     // check for errors
                     if (not values[0]->second) {
@@ -171,8 +171,9 @@ auto CreateFilePathGitMap(
                     std::string tree = values[0]->first;
                     // set the workspace root
                     (*setter)(nlohmann::json::array(
-                        {ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                        : FileRoot::kGitTreeMarker,
+                        {pragma_special == PragmaSpecial::Ignore
+                             ? FileRoot::kGitTreeIgnoreSpecialMarker
+                             : FileRoot::kGitTreeMarker,
                          tree,
                          StorageConfig::GitRoot()}));
                 },

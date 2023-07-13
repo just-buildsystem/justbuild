@@ -43,13 +43,13 @@ struct ArchiveRepoInfo {
     ArchiveContent archive; /* key */
     std::string repo_type;  /* key */
     std::string subdir;     /* key */
-    // create root that ignores symlinks
-    bool ignore_special; /* key */
+    // create root based on "special" pragma value
+    std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
 
     [[nodiscard]] auto operator==(const ArchiveRepoInfo& other) const -> bool {
         return archive == other.archive and repo_type == other.repo_type and
                subdir == other.subdir and
-               ignore_special == other.ignore_special;
+               pragma_special == other.pragma_special;
     }
 };
 
@@ -78,7 +78,7 @@ struct hash<ArchiveRepoInfo> {
         hash_combine<ArchiveContent>(&seed, ct.archive);
         hash_combine<std::string>(&seed, ct.repo_type);
         hash_combine<std::string>(&seed, ct.subdir);
-        hash_combine<bool>(&seed, ct.ignore_special);
+        hash_combine<std::optional<PragmaSpecial>>(&seed, ct.pragma_special);
         return seed;
     }
 };

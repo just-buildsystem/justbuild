@@ -83,7 +83,7 @@ auto CreateContentGitMap(
                 {std::move(op_key)},
                 [archive_tree_id = *archive_tree_id,
                  subdir = key.subdir,
-                 ignore_special = key.ignore_special,
+                 pragma_special = key.pragma_special,
                  setter,
                  logger](auto const& values) {
                     GitOpValue op_result = *values[0];
@@ -119,7 +119,7 @@ auto CreateContentGitMap(
                     // set the workspace root
                     (*setter)(std::pair(
                         nlohmann::json::array(
-                            {ignore_special
+                            {pragma_special == PragmaSpecial::Ignore
                                  ? FileRoot::kGitTreeIgnoreSpecialMarker
                                  : FileRoot::kGitTreeMarker,
                              *subtree_hash,
@@ -145,7 +145,7 @@ auto CreateContentGitMap(
                  repo_type = key.repo_type,
                  content_id = key.archive.content,
                  subdir = key.subdir,
-                 ignore_special = key.ignore_special,
+                 pragma_special = key.pragma_special,
                  import_to_git_map,
                  ts,
                  setter,
@@ -186,7 +186,7 @@ auto CreateContentGitMap(
                         [tmp_dir,  // keep tmp_dir alive
                          archive_tree_id_file,
                          subdir,
-                         ignore_special,
+                         pragma_special,
                          setter,
                          logger](auto const& values) {
                             // check for errors
@@ -246,7 +246,7 @@ auto CreateContentGitMap(
                             // set the workspace root
                             (*setter)(std::pair(
                                 nlohmann::json::array(
-                                    {ignore_special
+                                    {pragma_special == PragmaSpecial::Ignore
                                          ? FileRoot::kGitTreeIgnoreSpecialMarker
                                          : FileRoot::kGitTreeMarker,
                                      *subtree_hash,

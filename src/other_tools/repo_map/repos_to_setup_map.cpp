@@ -210,7 +210,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
              .origin_from_distdir = false},
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
-        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
+        .pragma_special = pragma_special_value};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -278,12 +278,14 @@ void FileCheckout(ExpressionPtr const& repo_desc,
     // check "to_git" pragma
     auto pragma_to_git =
         repo_desc_pragma ? repo_desc_pragma->get()->At("to_git") : std::nullopt;
-    if (pragma_to_git and pragma_to_git->get()->IsBool() and
-        pragma_to_git->get()->Bool()) {
+    // resolving symlinks implies also to_git
+    if (pragma_special_value == PragmaSpecial::ResolvePartially or
+        pragma_special_value == PragmaSpecial::ResolveCompletely or
+        (pragma_to_git and pragma_to_git->get()->IsBool() and
+         pragma_to_git->get()->Bool())) {
         // get the WS root as git tree
-        FpathInfo fpath_info = {
-            .fpath = fpath,
-            .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
+        FpathInfo fpath_info = {.fpath = fpath,
+                                .pragma_special = pragma_special_value};
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
             {std::move(fpath_info)},
