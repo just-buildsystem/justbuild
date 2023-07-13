@@ -49,6 +49,33 @@ void archive_read_closer(archive* a_in) {
     }
 }
 
+auto enable_write_filter(archive* aw, ArchiveType type) -> bool {
+    switch (type) {
+        case ArchiveType::kArchiveTypeTar:
+            return true;  // no compression filter
+        case ArchiveType::kArchiveTypeTarGz:
+            return (archive_write_add_filter_gzip(aw) == ARCHIVE_OK);
+        case ArchiveType::kArchiveTypeTarBz2:
+            return (archive_write_add_filter_bzip2(aw) == ARCHIVE_OK);
+        default:
+            return false;
+    }
+}
+
+auto enable_read_filter(archive* ar, ArchiveType type) -> bool {
+    switch (type) {
+        case ArchiveType::kArchiveTypeTar:
+            return (archive_read_support_filter_gzip(ar) == ARCHIVE_OK) and
+                   (archive_read_support_filter_bzip2(ar) == ARCHIVE_OK);
+        case ArchiveType::kArchiveTypeTarGz:
+            return (archive_read_support_filter_gzip(ar) == ARCHIVE_OK);
+        case ArchiveType::kArchiveTypeTarBz2:
+            return (archive_read_support_filter_bzip2(ar) == ARCHIVE_OK);
+        default:
+            return false;
+    }
+}
+
 }  // namespace
 
 auto ArchiveOps::WriteEntry(archive_entry* entry, archive* aw)
@@ -102,22 +129,11 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
                        std::string(archive_error_string(aw));
             }
         } break;
-        case ArchiveType::kArchiveTypeTar: {
-            if (archive_write_set_format_pax_restricted(aw) != ARCHIVE_OK) {
-                return std::string("ArchiveOps: ") +
-                       std::string(archive_error_string(aw));
-            }
-        } break;
-        case ArchiveType::kArchiveTypeTarGz: {
-            if ((archive_write_set_format_pax_restricted(aw) != ARCHIVE_OK) or
-                (archive_write_add_filter_gzip(aw) != ARCHIVE_OK)) {
-                return std::string("ArchiveOps: ") +
-                       std::string(archive_error_string(aw));
-            }
-        } break;
+        case ArchiveType::kArchiveTypeTar:
+        case ArchiveType::kArchiveTypeTarGz:
         case ArchiveType::kArchiveTypeTarBz2: {
             if ((archive_write_set_format_pax_restricted(aw) != ARCHIVE_OK) or
-                (archive_write_add_filter_bzip2(aw) != ARCHIVE_OK)) {
+                not enable_write_filter(aw, type)) {
                 return std::string("ArchiveOps: ") +
                        std::string(archive_error_string(aw));
             }
@@ -135,22 +151,11 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
                        std::string(archive_error_string(ar));
             }
         } break;
-        case ArchiveType::kArchiveTypeTar: {
-            if (archive_read_support_format_tar(ar) != ARCHIVE_OK) {
-                return std::string("ArchiveOps: ") +
-                       std::string(archive_error_string(ar));
-            }
-        } break;
-        case ArchiveType::kArchiveTypeTarGz: {
-            if ((archive_read_support_format_tar(ar) != ARCHIVE_OK) or
-                (archive_read_support_filter_gzip(ar) != ARCHIVE_OK)) {
-                return std::string("ArchiveOps: ") +
-                       std::string(archive_error_string(ar));
-            }
-        } break;
+        case ArchiveType::kArchiveTypeTar:
+        case ArchiveType::kArchiveTypeTarGz:
         case ArchiveType::kArchiveTypeTarBz2: {
             if ((archive_read_support_format_tar(ar) != ARCHIVE_OK) or
-                (archive_read_support_filter_bzip2(ar) != ARCHIVE_OK)) {
+                not enable_read_filter(ar, type)) {
                 return std::string("ArchiveOps: ") +
                        std::string(archive_error_string(ar));
             }
