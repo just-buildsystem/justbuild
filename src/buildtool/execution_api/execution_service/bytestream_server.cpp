@@ -113,7 +113,14 @@ auto BytestreamServiceImpl::Write(
                  *hash,
                  request.write_offset(),
                  request.finish_write());
-    auto tmp_dir = TmpDir::Create("execution-service");
+    auto lock = GarbageCollector::SharedLock();
+    if (!lock) {
+        auto str = fmt::format("Could not acquire SharedLock");
+        logger_.Emit(LogLevel::Error, str);
+        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+    }
+    auto tmp_dir = TmpDir::Create(StorageConfig::GenerationCacheRoot(0) /
+                                  "execution-service");
     if (!tmp_dir) {
         return ::grpc::Status{::grpc::StatusCode::INTERNAL,
                               "could not create TmpDir"};
@@ -129,21 +136,16 @@ auto BytestreamServiceImpl::Write(
         of.write(request.data().data(),
                  static_cast<std::streamsize>(request.data().size()));
     }
-    auto lock = GarbageCollector::SharedLock();
-    if (!lock) {
-        auto str = fmt::format("Could not acquire SharedLock");
-        logger_.Emit(LogLevel::Error, str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
-    }
     if (NativeSupport::IsTree(*hash)) {
-        if (not storage_->CAS().StoreTree(tmp)) {
+        if (not storage_->CAS().StoreTree</*kOwner=*/true>(tmp)) {
             auto str = fmt::format("could not store tree {}", *hash);
             logger_.Emit(LogLevel::Error, str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
         }
     }
     else {
-        if (not storage_->CAS().StoreBlob(tmp, /*is_executable=*/false)) {
+        if (not storage_->CAS().StoreBlob</*kOwner=*/true>(
+                tmp, /*is_executable=*/false)) {
             auto str = fmt::format("could not store blob {}", *hash);
             logger_.Emit(LogLevel::Error, str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
