@@ -70,11 +70,13 @@ class LocalCAS {
     }
 
     /// \brief Store tree from file path.
+    /// \tparam kOwner          Indicates ownership for optimization (hardlink).
     /// \param file_path    The path of the file to store as tree.
     /// \returns Digest of the stored tree or nullopt otherwise.
+    template <bool kOwner = false>
     [[nodiscard]] auto StoreTree(std::filesystem::path const& file_path)
         const noexcept -> std::optional<bazel_re::Digest> {
-        return cas_tree_.StoreBlobFromFile(file_path);
+        return cas_tree_.StoreBlobFromFile(file_path, kOwner);
     }
 
     /// \brief Store tree from bytes.
