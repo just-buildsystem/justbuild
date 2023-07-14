@@ -18,8 +18,8 @@
 #include <filesystem>
 #include <sstream>
 
-[[nodiscard]] static inline auto ToNormalPath(std::filesystem::path const& p)
-    -> std::filesystem::path {
+[[nodiscard]] static inline auto ToNormalPath(
+    std::filesystem::path const& p) noexcept -> std::filesystem::path {
     auto n = p.lexically_normal();
     if (not n.has_filename()) {
         n = n.parent_path();
