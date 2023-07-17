@@ -42,4 +42,21 @@
     return *path.lexically_normal().begin() != "..";
 }
 
+/// \brief Perform a confined condition check on a path with respect to
+/// another path. A path is confined wrt another if it is relative and results
+/// in a non-upwards path when applied from the directory of the other path.
+/// This models the situation when a symlink is being resolved inside a tree.
+/// NOTE: No explicit check is done whether applied_to is actually a relative
+/// path, as this is implicit by the non-upwardness condition.
+[[nodiscard]] static auto PathIsConfined(
+    std::filesystem::path const& path,
+    std::filesystem::path const& applied_to) noexcept -> bool {
+    if (path.is_absolute()) {
+        return false;
+    }
+    // check confined upwards condition; this call also handles the case when
+    // applied_to is an absolute path
+    return PathIsNonUpwards(applied_to.parent_path() / path);
+}
+
 #endif

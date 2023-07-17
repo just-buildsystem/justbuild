@@ -40,3 +40,11 @@ TEST_CASE("non-upwards condition", "[path]") {
     CHECK_FALSE(PathIsNonUpwards(
         "foo/../bar/../../foo"));  // relative with non-upwards indirection
 }
+
+TEST_CASE("confined upwards condition", "[path]") {
+    CHECK_FALSE(PathIsConfined("/foo", "dummy"));  // absolute path
+    CHECK(PathIsConfined("foo", "dummy"));         // relative non-upwards
+    CHECK(PathIsConfined("../foo", "dummy/bar"));  // upwards, but confined
+    CHECK_FALSE(PathIsConfined("foo/../bar/../../../foo",
+                               "dummy"));  // upwards, not confined
+}
