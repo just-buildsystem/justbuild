@@ -2,6 +2,10 @@
 
 Bug fixes on top of release `1.1.3`.
 
+### Fixes
+
+- Added missing `#include` statements.
+
 ## Release `1.1.3` (2023-07-14)
 
 Bug fixes on top of release `1.1.2`.
