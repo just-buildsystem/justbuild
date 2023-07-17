@@ -23,6 +23,7 @@ taken from user-defined rules described by functional expressions.
   - [Ensuring reproducibility](doc/tutorial/rebuild.md)
   - [Using protobuf](doc/tutorial/proto.md)
   - [How to create a single-node remote execution service](doc/tutorial/just-execute.org)
+  - [Cross compiling and testing cross-compiled targets](doc/tutorial/cross-compiling.org)
 
 ## Documentation
 
