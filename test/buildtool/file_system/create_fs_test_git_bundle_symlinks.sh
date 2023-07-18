@@ -27,7 +27,7 @@ set -e
 # +--baz     <--kBazSymId: 1868f82682c290f0b1db3cacd092727eef1fa57f (tree)
 # |  +--bar
 # |  +--foo
-# |  +--bar_l   <-- kBazBarLinkId: 79264abecd108745abb4086427ac988c7df7b639 (blob)
+# |  +--bar_l   <-- kBazBarLinkId: same as kBarId [same content] (blob)
 # |
 # ---
 #
