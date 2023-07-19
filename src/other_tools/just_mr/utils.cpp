@@ -55,6 +55,13 @@ auto GetDistdirTreeIDFile(std::string const& content) noexcept
     return StorageConfig::BuildRoot() / "distfiles-tree-map" / content;
 }
 
+auto GetResolvedTreeIDFile(std::string const& tree_hash,
+                           PragmaSpecial const& pragma_special) noexcept
+    -> std::filesystem::path {
+    return StorageConfig::BuildRoot() / "special-tree-map" /
+           kPragmaSpecialInverseMap.at(pragma_special) / tree_hash;
+}
+
 auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
                      std::string const& tree_id) noexcept -> bool {
     // needs to be done safely, so use the rename trick
