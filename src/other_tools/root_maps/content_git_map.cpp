@@ -146,7 +146,6 @@ auto CreateContentGitMap(
                  content_id = key.archive.content,
                  subdir = key.subdir,
                  ignore_special = key.ignore_special,
-                 origin = key.archive.origin,
                  import_to_git_map,
                  ts,
                  setter,
@@ -188,7 +187,6 @@ auto CreateContentGitMap(
                          archive_tree_id_file,
                          subdir,
                          ignore_special,
-                         origin,
                          setter,
                          logger](auto const& values) {
                             // check for errors

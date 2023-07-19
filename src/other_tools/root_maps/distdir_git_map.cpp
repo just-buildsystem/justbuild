@@ -130,7 +130,6 @@ auto CreateDistdirGitMap(
                 [distdir_tree_id_file,
                  content_id = key.content_id,
                  content_list = key.content_list,
-                 origin = key.origin,
                  ignore_special = key.ignore_special,
                  import_to_git_map,
                  ts,
@@ -162,7 +161,6 @@ auto CreateDistdirGitMap(
                         {std::move(c_info)},
                         [tmp_dir,  // keep tmp_dir alive
                          distdir_tree_id_file,
-                         origin,
                          ignore_special,
                          setter,
                          logger](auto const& values) {

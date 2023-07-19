@@ -47,7 +47,6 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                 [fetch_dir,
                  content = key.archive.content,
                  distfile,
-                 origin = key.archive.origin,
                  setter,
                  logger]([[maybe_unused]] auto const& values) {
                     // content is now in CAS, so copy content into fetch_dir
