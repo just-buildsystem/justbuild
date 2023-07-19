@@ -1155,6 +1155,7 @@ void DefaultReachableRepositories(
                            arguments.common.jobs);
     auto content_git_map = CreateContentGitMap(&content_cas_map,
                                                &import_to_git_map,
+                                               &resolve_symlinks_map,
                                                &critical_git_op_map,
                                                arguments.common.jobs);
     auto fpath_git_map = CreateFilePathGitMap(arguments.just_cmd.subcmd_name,

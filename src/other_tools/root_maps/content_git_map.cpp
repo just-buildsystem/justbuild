@@ -41,15 +41,117 @@ namespace {
     return "unrecognized repository type";
 }
 
+void ResolveContentTree(
+    std::string const& content,
+    std::string const& tree_hash,
+    bool is_cache_hit,
+    std::optional<PragmaSpecial> const& pragma_special,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& ws_setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    if (pragma_special) {
+        // get the resolved tree
+        auto tree_id_file =
+            JustMR::Utils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
+        if (FileSystemManager::Exists(tree_id_file)) {
+            // read resolved tree id
+            auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
+            if (not resolved_tree_id) {
+                (*logger)(fmt::format("Failed to read resolved "
+                                      "tree id from file {}",
+                                      tree_id_file.string()),
+                          /*fatal=*/true);
+                return;
+            }
+            // set the workspace root
+            (*ws_setter)(std::pair(
+                nlohmann::json::array({FileRoot::kGitTreeMarker,
+                                       *resolved_tree_id,
+                                       StorageConfig::GitRoot().string()}),
+                true  // it is definitely a cache hit
+                ));
+        }
+        else {
+            // resolve tree
+            resolve_symlinks_map->ConsumeAfterKeysReady(
+                ts,
+                {GitObjectToResolve(tree_hash,
+                                    ".",
+                                    *pragma_special,
+                                    /*known_info=*/std::nullopt)},
+                [resolve_symlinks_map,
+                 tree_hash,
+                 tree_id_file,
+                 is_cache_hit,
+                 ws_setter,
+                 logger](auto const& hashes) {
+                    if (not hashes[0]) {
+                        // check for cycles
+                        auto error = DetectAndReportCycle(*resolve_symlinks_map,
+                                                          tree_hash);
+                        if (error) {
+                            (*logger)(fmt::format("Failed to resolve symlinks "
+                                                  "in tree {}:\n{}",
+                                                  tree_hash,
+                                                  *error),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        (*logger)(fmt::format("Unknown error in resolving "
+                                              "symlinks in tree {}",
+                                              tree_hash),
+                                  /*fatal=*/true);
+                        return;
+                    }
+                    auto const& resolved_tree = *hashes[0];
+                    // cache the resolved tree in the CAS map
+                    if (not JustMR::Utils::WriteTreeIDFile(tree_id_file,
+                                                           resolved_tree.id)) {
+                        (*logger)(fmt::format("Failed to write resolved tree "
+                                              "id to file {}",
+                                              tree_id_file.string()),
+                                  /*fatal=*/true);
+                        return;
+                    }
+                    // set the workspace root
+                    (*ws_setter)(
+                        std::pair(nlohmann::json::array(
+                                      {FileRoot::kGitTreeMarker,
+                                       resolved_tree.id,
+                                       StorageConfig::GitRoot().string()}),
+                                  is_cache_hit));
+                },
+                [logger, content](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While resolving symlinks for "
+                                          "content {}:\n{}",
+                                          content,
+                                          msg),
+                              fatal);
+                });
+        }
+    }
+    else {
+        // set the workspace root as-is
+        (*ws_setter)(std::pair(
+            nlohmann::json::array({FileRoot::kGitTreeMarker,
+                                   tree_hash,
+                                   StorageConfig::GitRoot().string()}),
+            is_cache_hit));
+    }
+}
+
 }  // namespace
 
 auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> ContentGitMap {
     auto gitify_content = [content_cas_map,
                            import_to_git_map,
+                           resolve_symlinks_map,
                            critical_git_op_map](auto ts,
                                                 auto setter,
                                                 auto logger,
@@ -83,7 +185,10 @@ auto CreateContentGitMap(
                 {std::move(op_key)},
                 [archive_tree_id = *archive_tree_id,
                  subdir = key.subdir,
+                 content = key.archive.content,
                  pragma_special = key.pragma_special,
+                 resolve_symlinks_map,
+                 ts,
                  setter,
                  logger](auto const& values) {
                     GitOpValue op_result = *values[0];
@@ -110,21 +215,21 @@ auto CreateContentGitMap(
                                                 msg),
                                     fatal);
                             });
-                    // get subtree id and return workspace root
+                    // get subtree id
                     auto subtree_hash = just_git_repo->GetSubtreeFromTree(
                         archive_tree_id, subdir, wrapped_logger);
                     if (not subtree_hash) {
                         return;
                     }
-                    // set the workspace root
-                    (*setter)(std::pair(
-                        nlohmann::json::array(
-                            {pragma_special == PragmaSpecial::Ignore
-                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                 : FileRoot::kGitTreeMarker,
-                             *subtree_hash,
-                             StorageConfig::GitRoot().string()}),
-                        true));
+                    // resolve tree and set workspace root
+                    ResolveContentTree(content,
+                                       *subtree_hash,
+                                       true, /*is_cache_hit*/
+                                       pragma_special,
+                                       resolve_symlinks_map,
+                                       ts,
+                                       setter,
+                                       logger);
                 },
                 [logger, target_path = StorageConfig::GitRoot()](
                     auto const& msg, bool fatal) {
@@ -147,6 +252,7 @@ auto CreateContentGitMap(
                  subdir = key.subdir,
                  pragma_special = key.pragma_special,
                  import_to_git_map,
+                 resolve_symlinks_map,
                  ts,
                  setter,
                  logger]([[maybe_unused]] auto const& values) {
@@ -185,8 +291,11 @@ auto CreateContentGitMap(
                         {std::move(c_info)},
                         [tmp_dir,  // keep tmp_dir alive
                          archive_tree_id_file,
+                         content_id,
                          subdir,
                          pragma_special,
+                         resolve_symlinks_map,
+                         ts,
                          setter,
                          logger](auto const& values) {
                             // check for errors
@@ -216,14 +325,12 @@ auto CreateContentGitMap(
                                     /*fatal=*/true);
                                 return;
                             }
-                            // fetch all into Git cache
                             auto just_git_repo =
                                 GitRepoRemote::Open(just_git_cas);
                             if (not just_git_repo) {
                                 (*logger)(
                                     "Could not open Git cache repository!",
                                     /*fatal=*/true);
-
                                 return;
                             }
                             // setup wrapped logger
@@ -236,22 +343,22 @@ auto CreateContentGitMap(
                                                         msg),
                                             fatal);
                                     });
-                            // get subtree id and return workspace root
+                            // get subtree id
                             auto subtree_hash =
                                 just_git_repo->GetSubtreeFromTree(
                                     archive_tree_id, subdir, wrapped_logger);
                             if (not subtree_hash) {
                                 return;
                             }
-                            // set the workspace root
-                            (*setter)(std::pair(
-                                nlohmann::json::array(
-                                    {pragma_special == PragmaSpecial::Ignore
-                                         ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                         : FileRoot::kGitTreeMarker,
-                                     *subtree_hash,
-                                     StorageConfig::GitRoot().string()}),
-                                false));
+                            // resolve tree and set workspace root
+                            ResolveContentTree(content_id,
+                                               *subtree_hash,
+                                               false, /*is_cache_hit*/
+                                               pragma_special,
+                                               resolve_symlinks_map,
+                                               ts,
+                                               setter,
+                                               logger);
                         },
                         [logger, target_path = tmp_dir->GetPath()](
                             auto const& msg, bool fatal) {

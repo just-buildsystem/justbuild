@@ -19,15 +19,17 @@
 
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
+#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 
 /// \brief Maps the content of an archive to the resulting Git tree WS root,
-/// togehter with the information whether it was a cache hit.
+/// together with the information whether it was a cache hit.
 using ContentGitMap =
     AsyncMapConsumer<ArchiveRepoInfo, std::pair<nlohmann::json, bool>>;
 
 [[nodiscard]] auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::size_t jobs) -> ContentGitMap;
 

@@ -74,6 +74,7 @@
   , "deps":
     [ ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -85,6 +86,8 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     ]
   }
 , "tree_id_git_map":
