@@ -18,6 +18,7 @@
 #include "nlohmann/json.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
+#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 
@@ -39,6 +40,7 @@ using FilePathGitMap = AsyncMapConsumer<FpathInfo, nlohmann::json>;
     std::optional<std::string> const& current_subcmd,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     std::size_t jobs) -> FilePathGitMap;
 
 namespace std {

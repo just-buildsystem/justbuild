@@ -33,6 +33,7 @@
 #include "src/other_tools/ops_maps/git_update_map.hpp"
 #include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
+#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 
 namespace {
 
@@ -1144,6 +1145,7 @@ void DefaultReachableRepositories(
                              arguments.common.git_path->string(),
                              *arguments.common.local_launcher,
                              arguments.common.jobs);
+    auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
     auto commit_git_map =
         CreateCommitGitMap(&critical_git_op_map,
@@ -1158,6 +1160,7 @@ void DefaultReachableRepositories(
     auto fpath_git_map = CreateFilePathGitMap(arguments.just_cmd.subcmd_name,
                                               &critical_git_op_map,
                                               &import_to_git_map,
+                                              &resolve_symlinks_map,
                                               arguments.common.jobs);
     auto distdir_git_map = CreateDistdirGitMap(&content_cas_map,
                                                &import_to_git_map,
