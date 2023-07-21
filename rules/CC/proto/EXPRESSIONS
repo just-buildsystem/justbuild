@@ -51,6 +51,19 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
     }
   }
+, "default-PATH":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "PATH"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
 , "default-TOOLCHAIN":
   { "vars": ["defaults-transition"]
   , "imports": {"map_provider": ["./", "../..", "field_map_provider"]}
@@ -118,6 +131,7 @@
     , "default-LDFLAGS": "default-LDFLAGS"
     , "default-GRPC_PLUGIN": "default-GRPC_PLUGIN"
     , "default-ENV": "default-ENV"
+    , "default-PATH": "default-PATH"
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     }
@@ -172,11 +186,41 @@
             }
           }
         ]
-      , [ "protoc-ENV"
+      , [ "ENV"
         , { "type": "map_union"
           , "$1":
             [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
             , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
+          }
+        ]
+      , [ "ENV_PATH"
+        , { "type": "lookup"
+          , "map": {"type": "var", "name": "ENV"}
+          , "key": "PATH"
+          }
+        ]
+      , [ "protoc-ENV"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "ENV"}
+            , { "type": "singleton_map"
+              , "key": "PATH"
+              , "value":
+                { "type": "join"
+                , "separator": ":"
+                , "$1":
+                  { "type": "++"
+                  , "$1":
+                    [ {"type": "CALL_EXPRESSION", "name": "default-PATH"}
+                    , { "type": "if"
+                      , "cond": {"type": "var", "name": "ENV_PATH"}
+                      , "then": [{"type": "var", "name": "ENV_PATH"}]
+                      }
+                    ]
+                  }
+                }
+              }
             ]
           }
         ]

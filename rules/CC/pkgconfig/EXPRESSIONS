@@ -1,6 +1,9 @@
 { "pkgconfig result":
   { "vars": ["ENV", "name", "args", "stage"]
-  , "imports": {"default-ENV": ["./", "..", "default-ENV"]}
+  , "imports":
+    { "default-ENV": ["./", "..", "default-ENV"]
+    , "default-PATH": ["./", "..", "default-PATH"]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -9,6 +12,36 @@
           , "$1":
             [ {"type": "CALL_EXPRESSION", "name": "default-ENV"}
             , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
+            ]
+          }
+        ]
+      , [ "ENV_PATH"
+        , { "type": "lookup"
+          , "map": {"type": "var", "name": "ENV"}
+          , "key": "PATH"
+          }
+        ]
+      , [ "ENV"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "ENV"}
+            , { "type": "singleton_map"
+              , "key": "PATH"
+              , "value":
+                { "type": "join"
+                , "separator": ":"
+                , "$1":
+                  { "type": "++"
+                  , "$1":
+                    [ {"type": "CALL_EXPRESSION", "name": "default-PATH"}
+                    , { "type": "if"
+                      , "cond": {"type": "var", "name": "ENV_PATH"}
+                      , "then": [{"type": "var", "name": "ENV_PATH"}]
+                      }
+                    ]
+                  }
+                }
+              }
             ]
           }
         ]

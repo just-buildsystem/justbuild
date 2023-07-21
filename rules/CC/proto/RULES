@@ -51,13 +51,14 @@
       ]
     , "PATH":
       [ "Path for looking up the proto compiler. Individual paths are joined"
-      , "with \":\"."
+      , "with \":\". Specifying this field extends values from \"base\"."
       ]
     }
   , "imports":
     { "base-provides": ["./", "..", "defaults-base-provides"]
     , "base-provides-list": ["./", "..", "defaults-base-provides-list"]
     , "artifacts_list": ["", "field_artifacts_list"]
+    , "nub_left": ["", "nub_left"]
     , "compile-deps": ["CC", "compile-deps"]
     , "compile-args-deps": ["CC", "compile-args-deps"]
     , "link-deps": ["CC", "link-deps"]
@@ -99,23 +100,26 @@
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
-      , ["provider", "ENV"]
-      , ["default", {"type": "empty_map"}]
-      , [ "ENV"
-        , { "type": "if"
-          , "cond": {"type": "var", "name": "PATH"}
-          , "then":
-            { "type": "singleton_map"
-            , "key": "PATH"
-            , "value":
-              { "type": "join"
-              , "separator": ":"
-              , "$1": {"type": "var", "name": "PATH"}
+      , ["provider", "PATH"]
+      , [ "PATH"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "PATH"}
+            , { "type": "++"
+              , "$1": {"type": "CALL_EXPRESSION", "name": "base-provides-list"}
               }
-            }
-          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+            ]
           }
         ]
+      , [ "PATH"
+        , { "type": "let*"
+          , "bindings": [["list", {"type": "var", "name": "PATH"}]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "nub_left"}
+          }
+        ]
+      , ["provider", "ENV"]
+      , ["default", {"type": "empty_map"}]
+      , ["ENV", {"type": "CALL_EXPRESSION", "name": "base-provides"}]
       , ["provider", "NON_SYSTEM_TOOLS"]
       , ["default", {"type": "empty_map"}]
       , [ "NON_SYSTEM_TOOLS"
@@ -214,6 +218,7 @@
           [ "PROTOC"
           , "LDFLAGS"
           , "GRPC_PLUGIN"
+          , "PATH"
           , "ENV"
           , "TOOLCHAIN"
           , "NON_SYSTEM_TOOLS"
