@@ -18,7 +18,7 @@
     , "ENV"
     , "USE_SYSTEM_LIBS"
     , "DEBUG_POOL"
-    , "THREADSAFE"
+    , "USE_THREADS"
     , "REGEX_BACKEND"
     , "WINHTTP"
     , "USE_ICONV"
@@ -88,7 +88,7 @@
     , "TARGET_ARCH"
     , "USE_SYSTEM_LIBS"
     , "DEBUG_POOL"
-    , "THREADSAFE"
+    , "USE_THREADS"
     , "REGEX_BACKEND"
     , "WINHTTP"
     , "USE_ICONV"
@@ -124,7 +124,9 @@
             {"type": "fail", "msg": "Required variable 'OS' is not set."}
           }
         ]
-      , ["THREADSAFE", {"type": "var", "name": "THREADSAFE", "default": true}]
+      , [ "USE_THREADS"
+        , {"type": "var", "name": "USE_THREADS", "default": true}
+        ]
       , ["USE_SSH", {"type": "var", "name": "USE_SSH", "default": true}]
       , ["USE_GSSAPI", {"type": "var", "name": "USE_GSSAPI", "default": true}]
       , ["USE_SHA1", {"type": "var", "name": "USE_SHA1", "default": true}]
@@ -226,7 +228,7 @@
       , "vars":
         [ "USE_SYSTEM_LIBS"
         , "DEBUG_POOL"
-        , "THREADSAFE"
+        , "USE_THREADS"
         , "REGEX_BACKEND"
         , "USE_ICONV"
         , "USE_NSEC"

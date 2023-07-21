@@ -1,0 +1,11 @@
+{ "srcs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "stage": ["streams"]
+  , "srcs": [["GLOB", null, "*.c"]]
+  }
+, "hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "stage": ["streams"]
+  , "srcs": [["GLOB", null, "*.h"]]
+  }
+}
