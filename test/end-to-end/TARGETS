@@ -58,6 +58,7 @@
     , [["./", "git-import", "TESTS"], "git-import"]
     , [["./", "gc", "TESTS"], "gc"]
     , [["./", "execution-service", "TESTS"], "execution-service"]
+    , [["./", "symlinks", "TESTS"], "symlinks"]
     ]
   }
 }

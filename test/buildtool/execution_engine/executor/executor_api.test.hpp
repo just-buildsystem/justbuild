@@ -398,11 +398,9 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
         CHECK(FileSystemManager::IsDirectory(tmpdir));
         CHECK(FileSystemManager::IsDirectory(tmpdir / "b"));
         CHECK(FileSystemManager::IsFile(tmpdir / "a"));
-        // echo command returns regular file instead of symlink
-        CHECK(FileSystemManager::IsFile(tmpdir / "b" / "a"));
+        CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
-        // echo command returns regular file instead of symlink
-        CHECK(*FileSystemManager::ReadFile(tmpdir / "b" / "a") == "bar");
+        CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
         REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
     }
 

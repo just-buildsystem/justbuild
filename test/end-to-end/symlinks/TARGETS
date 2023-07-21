@@ -1,0 +1,8 @@
+{ "stage-links":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["stage-links"]
+  , "test": ["stage-links.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["stage-links"]}
+}

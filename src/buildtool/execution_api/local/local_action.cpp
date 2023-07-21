@@ -185,6 +185,18 @@ auto LocalAction::StageFile(std::filesystem::path const& target_path,
         return false;
     }
 
+    if (info.type == ObjectType::Symlink) {
+        auto to =
+            FileSystemManager::ReadContentAtPath(*blob_path, ObjectType::File);
+        if (not to) {
+            logger_.Emit(LogLevel::Error,
+                         "could not read content of symlink {}",
+                         (*blob_path).string());
+            return false;
+        }
+        return FileSystemManager::CreateSymlink(*to, target_path);
+    }
+
     return FileSystemManager::CreateDirectory(target_path.parent_path()) and
            FileSystemManager::CreateFileHardlink(*blob_path, target_path);
 }
