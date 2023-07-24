@@ -40,11 +40,6 @@ The following fields are supported:
  - *`"path"`* provides the root directory containing the source files.
    This entry is mandatory.
 
- - *`"ignore_special"`* is a boolean signaling that the resulting root
-   should ignore all special (i.e., neither file, executable, nor tree)
-   entries. Defaults to *`false`* if missing or not evaluating to
-   *`true`*.
-
 ### *`"archive"`* / *`"zip"`*
 
 They define as workspace root a remote archive. The only difference
@@ -76,11 +71,6 @@ The following fields are supported:
    This entry is optional. If missing, the root directory of the archive
    is used.
 
- - *`"ignore_special"`* is a boolean signaling that the resulting root
-   should ignore all special (i.e., neither file, executable, nor tree)
-   entries. Defaults to *`false`* if missing or not evaluating to
-   *`true`*.
-
 ### *`"git"`*
 
 It defines as workspace root a part of a Git repository.
@@ -100,11 +90,6 @@ The following fields are supported:
    files. This entry is optional. If missing, the root directory of the
    Git repository is used.
 
- - *`"ignore_special"`* is a boolean signaling that the resulting root
-   should ignore all special (i.e., neither file, executable, nor tree)
-   entries. Defaults to *`false`* if missing or not evaluating to
-   *`true`*.
-
 ### *`"git tree"`*
 
 It defines as workspace root a known Git tree obtainable by a generic
@@ -123,11 +108,6 @@ The following fields are supported:
  - *`"env"`* provides a map of envariables to be set for executing the
    command.
 
- - *`"ignore_special"`* is a boolean signaling that the resulting root
-   should ignore all special (i.e., neither file, executable, nor tree)
-   entries. Defaults to *`false`* if missing or not evaluating to
-   *`true`*.
-
 ### *`"distdir"`*
 
 It defines as workspace root a directory with the distribution archives
@@ -139,11 +119,6 @@ The following fields are supported:
  - *`"repositories"`* provides a list of global names of repositories.
    This entry is mandatory.
 
- - *`"ignore_special"`* is a boolean signaling that the resulting root
-   should ignore all special (i.e., neither file, executable, nor tree)
-   entries. Defaults to *`false`* if missing or not evaluating to
-   *`true`*.
-
 ### Additional keys
 
 The key *`"pragma"`* is reserved for type-specific repository directives
@@ -151,12 +126,22 @@ which alter the workspace root. It is given as a JSON object. The
 different workspace roots might support different keys for this object;
 unsupported keys are always ignored.
 
-For a *`"file"`* workspace root, the pragma key *`"to_git"`* is
-supported. If its value is *`true`*, it indicates that the workspace
+For a *`"file"`* workspace root the pragma key *`"to_git"`* is
+supported. If its value is *`true`* then it indicates that the workspace
 root should be returned as a Git tree. If the root directory is already
 part of a Git repository, its Git tree identifier is used; otherwise,
 the workspace root will be realized as a Git tree in the Git repository
 in **`just`**'s local build root.
+
+For all workspace roots except *`"distdir"`* the pragma key *`"special"`* is
+supported. If its value is *`"ignore"`* then it indicates that the workspace
+root should ignore all special (i.e., neither file, executable, nor tree)
+entries. For a *`"file"`* workspace root or for an *`"archive"`* workspace root
+a value of *`"resolve-completely"`* indicates that the workspace root should
+resolve all confined relative symbolic links, while a value of
+*`"resolve-partially"`* indicates that the workspace root should resolve only
+the confined relative upwards symbolic links; for a *`"file"`* workspace root
+these two values imply *`"to_git"`* is *`true`*.
 
 Repository description
 ----------------------
