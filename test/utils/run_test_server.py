@@ -41,6 +41,7 @@ if __name__ == "__main__":
     with HTTPServer((hostname, 0), HTTPHandler) as httpd:
         # print port number
         socket_info = httpd.socket.getsockname()
-        print(socket_info[1])
+        with open(sys.argv[1], "w") as f:
+            f.write("%d" % (socket_info[1],))
         # run server
         httpd.serve_forever()

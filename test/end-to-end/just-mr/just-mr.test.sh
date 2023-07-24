@@ -88,10 +88,14 @@ readonly GIT_TREE_ID="$(cd "${GIT_ROOT}" && git ls-tree "${GIT_REPO_COMMIT}" foo
 echo "Publish remote repos to HTTP server"
 # start Python server as remote repos location
 port_file="$(mktemp -t port_XXXXXX -p "${TEST_TMPDIR}")"
-python3 -u "${ROOT}/utils/run_test_server.py" >${port_file} & server_pid=$!
-sleep 1s  # give some time to set up properly
+python3 -u "${ROOT}/utils/run_test_server.py" "${port_file}" & server_pid=$!
 # set up cleanup of http server
 trap "server_cleanup ${server_pid}" INT TERM EXIT
+# wait for the server to be available
+while  [ -z "$(cat "${port_file}")" ]
+do
+    sleep 1s
+done
 # get port number as variable
 port_num="$(cat ${port_file})"
 
