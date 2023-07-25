@@ -35,16 +35,27 @@ Structure of content tree:
 +--root
     +--bar
     +--foo
+    +--foo_l
+    +--baz_l
     +--baz
         +--bar
         +--foo
+        +--foo_l
+
+foo_l is symlink "baz/foo_l"        [non-upwards, pointing to file]
+baz_l is symlink "baz"              [non-upwards, pointing to tree]
+baz/foo_l is symlink "../foo_l"     [upwards & confined, pointing to symlink]
 */
-auto const kExpected = filetree_t{{"root", {"", ObjectType::Tree}},
-                                  {"root/foo", {"foo", ObjectType::File}},
-                                  {"root/bar", {"bar", ObjectType::File}},
-                                  {"root/baz", {"", ObjectType::Tree}},
-                                  {"root/baz/foo", {"foo", ObjectType::File}},
-                                  {"root/baz/bar", {"bar", ObjectType::File}}};
+auto const kExpected =
+    filetree_t{{"root", {"", ObjectType::Tree}},
+               {"root/foo", {"foo", ObjectType::File}},
+               {"root/bar", {"bar", ObjectType::File}},
+               {"root/baz", {"", ObjectType::Tree}},
+               {"root/baz_l", {"baz", ObjectType::Symlink}},
+               {"root/foo_l", {"foo", ObjectType::Symlink}},
+               {"root/baz/foo", {"foo", ObjectType::File}},
+               {"root/baz/bar", {"bar", ObjectType::File}},
+               {"root/baz/foo_l", {"../foo_l", ObjectType::Symlink}}};
 
 void create_files(std::filesystem::path const& destDir = ".") {
     for (auto const& [path, file] : kExpected) {
@@ -62,6 +73,15 @@ void create_files(std::filesystem::path const& destDir = ".") {
                 if (not FileSystemManager::CreateDirectory(destDir / path)) {
                     Logger::Log(LogLevel::Error,
                                 "Could not create test dir at path {}",
+                                (destDir / path).string());
+                    std::exit(1);
+                };
+            } break;
+            case ObjectType::Symlink: {
+                if (not FileSystemManager::CreateSymlink(content,
+                                                         destDir / path)) {
+                    Logger::Log(LogLevel::Error,
+                                "Could not create test symlink at path {}",
                                 (destDir / path).string());
                     std::exit(1);
                 };

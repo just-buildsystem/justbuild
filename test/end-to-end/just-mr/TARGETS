@@ -60,6 +60,13 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "install-roots-symlinks":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["install-roots-symlinks"]
+  , "test": ["install-roots-symlinks.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -71,7 +78,12 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["just_mr_mp", "git-tree-verbosity", "defaults"]
+        , "else":
+          [ "install-roots-symlinks"
+          , "just_mr_mp"
+          , "git-tree-verbosity"
+          , "defaults"
+          ]
         }
       ]
     }

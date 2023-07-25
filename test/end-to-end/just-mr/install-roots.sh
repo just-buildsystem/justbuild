@@ -20,8 +20,7 @@ readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly DISTDIR="${TEST_TMPDIR}/distfiles"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
-readonly INSTALL_DIR_1="${TEST_TMPDIR}/installation-target-1"
-readonly INSTALL_DIR_2="${TEST_TMPDIR}/installation-target-2"
+readonly INSTALL_DIR="${TEST_TMPDIR}/installation-target"
 
 readonly TEST_DATA="The content of the data file in foo"
 readonly TEST_PATH="bar/baz"
@@ -51,18 +50,9 @@ cat > repos.json <<EOF
       , "subdir": "foo"
       }
     }
-  , "foo_ignore_special":
-    { "repository":
-      { "type": "archive"
-      , "content": "${foocontent}"
-      , "fetch": "http://non-existent.example.org/foo-1.2.3.tar"
-      , "subdir": "foo"
-      , "pragma": {"special": "ignore"}
-      }
-    }
   , "":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"foo": "foo", "foo_ignore_special": "foo_ignore_special"}
+    , "bindings": {"foo": "foo"}
     }
   }
 }
@@ -73,30 +63,15 @@ CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" --distdir "${DISTDIR}" se
 cat "${CONF}"
 echo
 
-echo === regular root ===
-
 #  Read tree from repository configuration
 TREE=$(jq -r '.repositories.foo.workspace_root[1]' "${CONF}")
 echo Tree is "${TREE}"
 
 # As the tree is known to just (in the git CAS), we should be able to install
 # it with install-cas
-"${JUST}" install-cas --local-build-root "${LBR}" -o "${INSTALL_DIR_1}" \
+"${JUST}" install-cas --local-build-root "${LBR}" -o "${INSTALL_DIR}" \
           "${TREE}::t" 2>&1
-test "$(cat "${INSTALL_DIR_1}/${TEST_PATH}/data.txt")" = "${TEST_DATA}"
-test "$(readlink "${INSTALL_DIR_1}/${TEST_PATH}/link")" = "${LINK_TARGET}"
-
-echo === ignore_special root ===
-
-#  Read tree from repository configuration
-TREE=$(jq -r '.repositories.foo_ignore_special.workspace_root[1]' "${CONF}")
-echo Tree is "${TREE}"
-
-# As the tree is known to just (in the git CAS), we should be able to install
-# it with install-cas
-"${JUST}" install-cas --local-build-root "${LBR}" -o "${INSTALL_DIR_2}" \
-          "${TREE}::t" 2>&1
-test "$(cat "${INSTALL_DIR_2}/${TEST_PATH}/data.txt")" = "${TEST_DATA}"
-[ ! -e "${INSTALL_DIR_2}/${TEST_PATH}/link" ]  # symlink should be missing
+test "$(cat "${INSTALL_DIR}/${TEST_PATH}/data.txt")" = "${TEST_DATA}"
+test "$(readlink "${INSTALL_DIR}/${TEST_PATH}/link")" = "${LINK_TARGET}"
 
 echo OK
