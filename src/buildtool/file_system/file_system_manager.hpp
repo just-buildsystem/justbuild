@@ -588,7 +588,9 @@ class FileSystemManager {
     }
 
     /// \brief Gets type of object in path according to file system
-    [[nodiscard]] static auto Type(std::filesystem::path const& path) noexcept
+    /// \param allow_upwards Do not enforce non-upwardness in symlinks.
+    [[nodiscard]] static auto Type(std::filesystem::path const& path,
+                                   bool allow_upwards = false) noexcept
         -> std::optional<ObjectType> {
         try {
             auto const status = std::filesystem::symlink_status(path);
@@ -602,7 +604,7 @@ class FileSystemManager {
                 return ObjectType::Tree;
             }
             if (std::filesystem::is_symlink(status) and
-                IsNonUpwardsSymlink(path)) {
+                (allow_upwards or IsNonUpwardsSymlink(path))) {
                 return ObjectType::Symlink;
             }
             if (std::filesystem::exists(status)) {
@@ -680,9 +682,11 @@ class FileSystemManager {
     /// \brief Read a filesystem directory tree.
     /// \param ignore_special If true, do not error out when encountering
     /// symlinks.
+    /// \param allow_upwards If true, do not enforce non-upwardness of symlinks.
     [[nodiscard]] static auto ReadDirectory(
         std::filesystem::path const& dir,
         ReadDirEntryFunc const& read_entry,
+        bool allow_upwards = false,
         bool ignore_special = false) noexcept -> bool {
         try {
             for (auto const& entry : std::filesystem::directory_iterator{dir}) {
@@ -707,14 +711,20 @@ class FileSystemManager {
                 // if not already ignored, check symlinks and only add the
                 // non-upwards ones
                 else if (std::filesystem::is_symlink(status)) {
-                    if (IsNonUpwardsSymlink(entry)) {
-                        type = ObjectType::Symlink;
+                    if (not allow_upwards) {
+                        if (IsNonUpwardsSymlink(entry)) {
+                            type = ObjectType::Symlink;
+                        }
+                        else {
+                            Logger::Log(
+                                LogLevel::Error,
+                                "unsupported upwards symlink dir entry {}",
+                                entry.path().string());
+                            return false;
+                        }
                     }
                     else {
-                        Logger::Log(LogLevel::Error,
-                                    "unsupported upwards symlink dir entry {}",
-                                    entry.path().string());
-                        return false;
+                        type = ObjectType::Symlink;
                     }
                 }
                 else {

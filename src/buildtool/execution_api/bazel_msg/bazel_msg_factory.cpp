@@ -600,8 +600,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
             if (IsSymlinkObject(type)) {
                 // create and store symlink
                 auto content = FileSystemManager::ReadSymlink(full_name);
-                if (content and PathIsNonUpwards(*content) and
-                    store_symlink(*content)) {
+                if (content and store_symlink(*content)) {
                     symlinks.emplace_back(
                         CreateSymlinkNode(name.string(), *content, {}));
                     return true;
@@ -628,7 +627,8 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
         return false;
     };
 
-    if (FileSystemManager::ReadDirectory(root, dir_reader)) {
+    if (FileSystemManager::ReadDirectory(
+            root, dir_reader, /*allow_upwards=*/true)) {
         auto dir = CreateDirectory(files, dirs, symlinks, {});
         if (auto bytes = SerializeMessage(dir)) {
             try {
@@ -678,7 +678,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
         try {
             if (IsSymlinkObject(type)) {
                 auto content = FileSystemManager::ReadSymlink(full_name);
-                if (content and PathIsNonUpwards(*content)) {
+                if (content) {
                     if (auto digest = store_symlink(*content)) {
                         if (auto raw_id = FromHexString(
                                 NativeSupport::Unprefix(digest->hash()))) {
@@ -716,7 +716,8 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
         return false;
     };
 
-    if (FileSystemManager::ReadDirectory(root, dir_reader)) {
+    if (FileSystemManager::ReadDirectory(
+            root, dir_reader, /*allow_upwards=*/true)) {
         if (auto tree = GitRepo::CreateShallowTree(entries)) {
             try {
                 if (auto digest = store_tree(tree->second, entries)) {

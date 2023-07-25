@@ -362,7 +362,7 @@ class FileRoot {
         // std::holds_alternative<fs_root_t>(root_) == true
         auto root_path = std::get<fs_root_t>(root_) / path;
         auto exists = FileSystemManager::Exists(root_path);
-        auto type = FileSystemManager::Type(root_path);
+        auto type = FileSystemManager::Type(root_path, /*allow_upwards=*/true);
         return (ignore_special_ ? exists and type and IsNonSpecialObject(*type)
                                 : exists);
     }
@@ -431,7 +431,8 @@ class FileRoot {
             return std::nullopt;
         }
         auto full_path = std::get<fs_root_t>(root_) / file_path;
-        if (auto type = FileSystemManager::Type(full_path)) {
+        if (auto type =
+                FileSystemManager::Type(full_path, /*allow_upwards=*/true)) {
             return IsSymlinkObject(*type)
                        ? FileSystemManager::ReadSymlink(full_path)
                        : FileSystemManager::ReadFile(full_path);
@@ -461,6 +462,7 @@ class FileRoot {
                             map.emplace(name.string(), type);
                             return true;
                         },
+                        /*allow_upwards=*/false,
                         ignore_special_)) {
                     return DirectoryEntries{std::move(map)};
                 }
@@ -486,8 +488,8 @@ class FileRoot {
             }
             return std::nullopt;
         }
-        auto type =
-            FileSystemManager::Type(std::get<fs_root_t>(root_) / file_path);
+        auto type = FileSystemManager::Type(
+            std::get<fs_root_t>(root_) / file_path, /*allow_upwards=*/true);
         if (type and IsBlobObject(*type)) {
             return type;
         }

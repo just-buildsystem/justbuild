@@ -39,7 +39,7 @@ struct BazelBlob {
 /// given path.
 [[nodiscard]] static inline auto CreateBlobFromPath(
     std::filesystem::path const& fpath) noexcept -> std::optional<BazelBlob> {
-    auto const type = FileSystemManager::Type(fpath);
+    auto const type = FileSystemManager::Type(fpath, /*allow_upwards=*/true);
     if (not type) {
         return std::nullopt;
     }

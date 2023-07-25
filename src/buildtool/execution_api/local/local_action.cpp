@@ -268,15 +268,14 @@ auto LocalAction::CollectOutputFileOrSymlink(
     std::string const& local_path) const noexcept
     -> std::optional<OutputFileOrSymlink> {
     auto file_path = exec_path / local_path;
-    auto type = FileSystemManager::Type(file_path);
+    auto type = FileSystemManager::Type(file_path, /*allow_upwards=*/true);
     if (not type) {
         Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(file_path);
-        if (content and PathIsNonUpwards(*content) and
-            storage_->CAS().StoreBlob(*content)) {
+        if (content and storage_->CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -308,15 +307,14 @@ auto LocalAction::CollectOutputDirOrSymlink(
     std::string const& local_path) const noexcept
     -> std::optional<OutputDirOrSymlink> {
     auto dir_path = exec_path / local_path;
-    auto type = FileSystemManager::Type(dir_path);
+    auto type = FileSystemManager::Type(dir_path, /*allow_upwards=*/true);
     if (not type) {
         Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(dir_path);
-        if (content and PathIsNonUpwards(*content) and
-            storage_->CAS().StoreBlob(*content)) {
+        if (content and storage_->CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -354,15 +352,10 @@ auto LocalAction::CollectAndStoreOutputs(
             }
             if (std::holds_alternative<bazel_re::OutputSymlink>(*out)) {
                 auto out_symlink = std::get<bazel_re::OutputSymlink>(*out);
-                auto const& target = out_symlink.target();
-                if (not PathIsNonUpwards(target)) {
-                    logger_.Emit(LogLevel::Error,
-                                 "collected upwards output symlink {}",
-                                 path);
-                    return false;
-                }
-                logger_.Emit(
-                    LogLevel::Trace, " - symlink {}: {}", path, target);
+                logger_.Emit(LogLevel::Trace,
+                             " - symlink {}: {}",
+                             path,
+                             out_symlink.target());
                 result->mutable_output_file_symlinks()->Add(
                     std::move(out_symlink));
             }
@@ -383,15 +376,10 @@ auto LocalAction::CollectAndStoreOutputs(
             }
             if (std::holds_alternative<bazel_re::OutputSymlink>(*out)) {
                 auto out_symlink = std::get<bazel_re::OutputSymlink>(*out);
-                auto const& target = out_symlink.target();
-                if (not PathIsNonUpwards(target)) {
-                    logger_.Emit(LogLevel::Error,
-                                 "collected upwards output symlink {}",
-                                 path);
-                    return false;
-                }
-                logger_.Emit(
-                    LogLevel::Trace, " - symlink {}: {}", path, target);
+                logger_.Emit(LogLevel::Trace,
+                             " - symlink {}: {}",
+                             path,
+                             out_symlink.target());
                 result->mutable_output_file_symlinks()->Add(
                     std::move(out_symlink));
             }
