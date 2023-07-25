@@ -461,6 +461,11 @@ When installing a tree to stdout, i.e., when no option **`-o`** is given,
 dump the raw tree rather than a pretty-printed version.  
 Supported by: install-cas.
 
+**`-P`**, **`--sub-object-path`** *`PATH`*  
+Instead of the specified tree object take the object at the specified
+logical path inside.  
+Supported by: install-cas.
+
 **`--remember`**  
 Ensure that all installed artifacts are available in local CAS as well,
 even when using remote execution.  

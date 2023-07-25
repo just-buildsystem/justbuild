@@ -119,6 +119,7 @@ struct RebuildArguments {
 struct FetchArguments {
     std::string object_id{};
     std::optional<std::filesystem::path> output_path{};
+    std::optional<std::filesystem::path> sub_path{};
     bool remember{false};
     bool raw_tree{};
 };
@@ -516,6 +517,15 @@ static inline auto SetupFetchArguments(
                clargs->output_path = out;
            },
            "Install path for the artifact. (omit to dump to stdout)")
+        ->type_name("PATH");
+
+    app->add_option_function<std::string>(
+           "-P,--sub-object-path",
+           [clargs](auto const& rel_path) {
+               clargs->sub_path = ToNormalPath(rel_path).relative_path();
+           },
+           "Select the sub-object at the specified path (if artifact is a "
+           "tree).")
         ->type_name("PATH");
 
     app->add_flag("--raw-tree",

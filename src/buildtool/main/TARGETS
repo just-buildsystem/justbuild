@@ -83,6 +83,7 @@
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "logging"]
     ]
