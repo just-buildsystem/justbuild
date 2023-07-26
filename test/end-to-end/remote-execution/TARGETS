@@ -23,6 +23,18 @@
   , "test": ["install.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "install-cas":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["install-cas"]
+  , "test": ["install-cas.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  , "keep":
+    [ "out/stdout/remote"
+    , "out/stdout/remote-raw"
+    , "out/stdout/local"
+    , "out/stdout/local-raw"
+    ]
+  }
 , "dispatch":
   { "type": ["end-to-end", "with remote"]
   , "name": ["dispatch"]
