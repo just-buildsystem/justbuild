@@ -19,6 +19,7 @@
           , "case":
             { "msvc":
               [ "/wd4065"
+              , "/wd4146"
               , "/wd4244"
               , "/wd4251"
               , "/wd4267"
@@ -38,6 +39,7 @@
               , "-Wno-sign-conversion"
               , "-Wno-unused-function"
               , "-Wno-deprecated-declarations"
+              , "-Wno-nonnull"
               ]
             }
           , "default":
@@ -48,6 +50,7 @@
             , "-Wno-unused-function"
             , "-Wno-deprecated-declarations"
             , "-Wno-deprecated-enum-enum-conversion"
+            , "-Wno-nonnull"
             ]
           }
         ]

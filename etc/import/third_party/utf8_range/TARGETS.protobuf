@@ -1,0 +1,29 @@
+{ "utf8_validity":
+  { "type": "export"
+  , "target": "utf8_validity_internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "COMPILER_FAMILY"
+    , "DEBUG"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "PKG_CONFIG_ARGS"
+    ]
+  }
+, "utf8_validity_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utf8_validity"]
+  , "hdrs": ["utf8_validity.h"]
+  , "srcs": ["utf8_validity.cc"]
+  , "deps": [["@", "absl", "absl/strings", "strings"]]
+  }
+}
