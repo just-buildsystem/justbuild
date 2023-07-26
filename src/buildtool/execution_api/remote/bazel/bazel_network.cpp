@@ -79,7 +79,20 @@ namespace {
 [[nodiscard]] auto TreeToStream(
     gsl::not_null<BazelNetwork const*> const& network,
     bazel_re::Digest const& tree_digest,
-    gsl::not_null<FILE*> const& stream) noexcept -> bool {
+    gsl::not_null<FILE*> const& stream,
+    bool raw_tree) noexcept -> bool {
+    if (raw_tree) {
+        auto blobs = network->ReadBlobs({tree_digest}).Next();
+        if (blobs.size() != 1) {
+            Logger::Log(LogLevel::Error,
+                        "Object {} not found in CAS",
+                        NativeSupport::Unprefix(tree_digest.hash()));
+            return false;
+        }
+        auto const& str = blobs.at(0).data;
+        std::fwrite(str.data(), 1, str.size(), stream);
+        return true;
+    }
     if (Compatibility::IsCompatible()) {
         if (auto dir = ReadDirectory(network, tree_digest)) {
             if (auto data = BazelMsgFactory::DirectoryToString(*dir)) {
@@ -423,9 +436,10 @@ auto BazelNetwork::ReadObjectInfosRecursively(
     return false;
 }
 
-auto BazelNetwork::DumpToStream(
-    Artifact::ObjectInfo const& info,
-    gsl::not_null<FILE*> const& stream) const noexcept -> bool {
-    return IsTreeObject(info.type) ? TreeToStream(this, info.digest, stream)
-                                   : BlobToStream(this, info.digest, stream);
+auto BazelNetwork::DumpToStream(Artifact::ObjectInfo const& info,
+                                gsl::not_null<FILE*> const& stream,
+                                bool raw_tree) const noexcept -> bool {
+    return IsTreeObject(info.type)
+               ? TreeToStream(this, info.digest, stream, raw_tree)
+               : BlobToStream(this, info.digest, stream);
 }

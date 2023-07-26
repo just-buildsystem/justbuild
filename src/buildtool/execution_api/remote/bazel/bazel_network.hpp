@@ -119,9 +119,9 @@ class BazelNetwork {
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
 
-    [[nodiscard]] auto DumpToStream(
-        Artifact::ObjectInfo const& info,
-        gsl::not_null<FILE*> const& stream) const noexcept -> bool;
+    [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
+                                    gsl::not_null<FILE*> const& stream,
+                                    bool raw_tree) const noexcept -> bool;
 
   private:
     using DirectoryMap =

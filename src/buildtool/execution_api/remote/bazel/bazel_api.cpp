@@ -142,7 +142,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
-    bool /*raw_tree*/) noexcept -> bool {
+    bool raw_tree) noexcept -> bool {
     if (artifacts_info.size() != fds.size()) {
         Logger::Log(LogLevel::Error,
                     "different number of digests and file descriptors.");
@@ -154,7 +154,7 @@ auto BazelApi::CreateAction(
         auto const& info = artifacts_info[i];
 
         if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
-            auto const success = network_->DumpToStream(info, out);
+            auto const success = network_->DumpToStream(info, out, raw_tree);
             std::fclose(out);
             if (not success) {
                 Logger::Log(LogLevel::Error,
