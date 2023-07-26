@@ -60,6 +60,20 @@
     , ["absl/strings", "strings"]
     ]
   }
+, "examine_stack":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_message"]
+  , "stage": ["absl", "debugging"]
+  , "srcs": ["internal/examine_stack.cc"]
+  , "hdrs": ["internal/examine_stack.h"]
+  , "deps":
+    [ "stacktrace"
+    , "symbolize"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    ]
+  }
 , "stacktrace":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["stacktrace"]

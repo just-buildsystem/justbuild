@@ -1,0 +1,204 @@
+{ "check_impl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["check_impl"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["check_impl.h"]
+  , "deps":
+    [ "check_op"
+    , "conditions"
+    , "log_message"
+    , "strip"
+    , ["absl/base", "core_headers"]
+    ]
+  }
+, "check_op":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["check_op"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["check_op.cc"]
+  , "hdrs": ["check_op.h"]
+  , "deps":
+    [ "nullguard"
+    , "nullstream"
+    , "strip"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "conditions":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["conditions"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["conditions.cc"]
+  , "hdrs": ["conditions.h"]
+  , "deps":
+    [ "voidify"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    ]
+  }
+, "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["config.h"]
+  , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
+  }
+, "format":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["format"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["log_format.cc"]
+  , "hdrs": ["log_format.h"]
+  , "deps":
+    [ "append_truncated"
+    , "config"
+    , "globals"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    , ["absl/strings", "strings"]
+    , ["absl/strings", "str_format"]
+    , ["absl/time", "time"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "globals":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["globals"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["globals.cc"]
+  , "hdrs": ["globals.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/strings", "strings"]
+    , ["absl/time", "time"]
+    ]
+  }
+, "log_impl":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_impl"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["log_impl.h"]
+  , "deps": ["conditions", "log_message", "strip"]
+  }
+, "log_message":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_message"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["log_message.cc"]
+  , "hdrs": ["log_message.h"]
+  , "deps":
+    [ "append_truncated"
+    , "format"
+    , "globals"
+    , "log_sink_set"
+    , "nullguard"
+    , "proto"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "errno_saver"]
+    , ["absl/base", "log_severity"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/base", "strerror"]
+    , ["absl/container", "inlined_vector"]
+    , ["absl/debugging", "examine_stack"]
+    , ["absl/log", "globals"]
+    , ["absl/log", "log_entry"]
+    , ["absl/log", "log_sink"]
+    , ["absl/log", "log_sink_registry"]
+    , ["absl/memory", "memory"]
+    , ["absl/strings", "strings"]
+    , ["absl/time", "time"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "append_truncated":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["append_truncated"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["append_truncated.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "log_sink_set":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["log_sink_set"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["log_sink_set.cc"]
+  , "hdrs": ["log_sink_set.h"]
+  , "deps":
+    [ "config"
+    , "globals"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/cleanup", "cleanup"]
+    , ["absl/log", "globals"]
+    , ["absl/log", "log_entry"]
+    , ["absl/log", "log_sink"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/types", "span"]
+    ]
+  }
+, "nullguard":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["nullguard"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["nullguard.cc"]
+  , "hdrs": ["nullguard.h"]
+  , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
+  }
+, "nullstream":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["nullstream"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["nullstream.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "strip":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["strip"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["strip.h"]
+  , "deps": ["log_message", "nullstream", ["absl/base", "log_severity"]]
+  }
+, "voidify":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["voidify"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["voidify.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "proto":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["proto"]
+  , "stage": ["absl", "log", "internal"]
+  , "srcs": ["proto.cc"]
+  , "hdrs": ["proto.h"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "span"]
+    ]
+  }
+}

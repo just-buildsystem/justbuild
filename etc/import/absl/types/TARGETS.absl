@@ -115,4 +115,11 @@
     , ["absl/meta", "type_traits"]
     ]
   }
+, "compare":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["compare"]
+  , "stage": ["absl", "types"]
+  , "hdrs": ["compare.h"]
+  , "deps": [["absl/base", "core_headers"], ["absl/meta", "type_traits"]]
+  }
 }

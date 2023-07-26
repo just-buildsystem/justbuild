@@ -80,6 +80,26 @@
     ]
   }
 , "internal":
+  { "type": "export"
+  , "target": "internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal"]
   , "stage": ["absl", "strings"]

@@ -1,0 +1,164 @@
+{ "path_util":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["path_util"]
+  , "stage": ["absl", "flags"]
+  , "hdrs": ["internal/path_util.h"]
+  , "deps": [["absl/base", "config"], ["absl/strings", "strings"]]
+  }
+, "program_name":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["program_name"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["internal/program_name.cc"]
+  , "hdrs": ["internal/program_name.h"]
+  , "deps":
+    [ "path_util"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    ]
+  }
+, "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["usage_config.cc"]
+  , "hdrs": ["config.h", "usage_config.h"]
+  , "deps":
+    [ "path_util"
+    , "program_name"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    ]
+  }
+, "marshalling":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["marshalling"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["marshalling.cc"]
+  , "hdrs": ["marshalling.h"]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    , ["absl/strings", "strings"]
+    , ["absl/strings", "str_format"]
+    , ["absl/types", "optional"]
+    ]
+  }
+, "commandlineflag_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["commandlineflag_internal"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["internal/commandlineflag.cc"]
+  , "hdrs": ["internal/commandlineflag.h"]
+  , "deps": [["absl/base", "config"], ["absl/base", "fast_type_id"]]
+  }
+, "commandlineflag":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["commandlineflag"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["commandlineflag.cc"]
+  , "hdrs": ["commandlineflag.h"]
+  , "deps":
+    [ "commandlineflag_internal"
+    , ["absl/base", "config"]
+    , ["absl/base", "fast_type_id"]
+    , ["absl/strings", "strings"]
+    , ["absl/types", "optional"]
+    ]
+  }
+, "private_handle_accessor":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["private_handle_accessor"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["internal/private_handle_accessor.cc"]
+  , "hdrs": ["internal/private_handle_accessor.h"]
+  , "deps":
+    [ "commandlineflag"
+    , "commandlineflag_internal"
+    , ["absl/base", "config"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+, "reflection":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["reflection"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["reflection.cc"]
+  , "hdrs": ["internal/registry.h", "reflection.h"]
+  , "deps":
+    [ "commandlineflag"
+    , "commandlineflag_internal"
+    , "config"
+    , "private_handle_accessor"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/container", "flat_hash_map"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    ]
+  }
+, "flag_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["flag_internal"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["internal/flag.cc"]
+  , "hdrs": ["internal/flag.h", "internal/sequence_lock.h"]
+  , "deps":
+    [ "commandlineflag"
+    , "commandlineflag_internal"
+    , "config"
+    , "marshalling"
+    , "reflection"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/utility", "utility"]
+    ]
+  }
+, "flag":
+  { "type": "export"
+  , "target": "flag_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "flag_":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["flag"]
+  , "stage": ["absl", "flags"]
+  , "srcs": ["flag.cc"]
+  , "hdrs": ["declare.h", "flag.h", "internal/flag_msvc.inc"]
+  , "deps":
+    [ "config"
+    , "flag_internal"
+    , "reflection"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/strings", "strings"]
+    ]
+  }
+}

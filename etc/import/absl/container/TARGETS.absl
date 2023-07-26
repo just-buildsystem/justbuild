@@ -261,4 +261,51 @@
     , ["absl/memory", "memory"]
     ]
   }
+, "btree":
+  { "type": "export"
+  , "target": "btree_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "btree_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["btree"]
+  , "stage": ["absl", "container"]
+  , "hdrs":
+    [ "btree_map.h"
+    , "btree_set.h"
+    , "internal/btree.h"
+    , "internal/btree_container.h"
+    ]
+  , "deps":
+    [ "common"
+    , "common_policy_traits"
+    , "compressed_tuple"
+    , "container_memory"
+    , "layout"
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "raw_logging_internal"]
+    , ["absl/base", "throw_delegate"]
+    , ["absl/memory", "memory"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/strings", "strings"]
+    , ["absl/strings", "cord"]
+    , ["absl/types", "compare"]
+    , ["absl/utility", "utility"]
+    ]
+  }
 }

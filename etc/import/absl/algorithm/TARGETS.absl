@@ -6,6 +6,26 @@
   , "deps": [["absl/base", "config"]]
   }
 , "container":
+  { "type": "export"
+  , "target": "container_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "container_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["container"]
   , "stage": ["absl", "algorithm"]
