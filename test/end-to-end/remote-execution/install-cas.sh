@@ -24,7 +24,7 @@ LOCAL_ARGS="--local-build-root ${LBRDIR}"
 REMOTE_ARGS="${LOCAL_ARGS} -r ${REMOTE_EXECUTION_ADDRESS}"
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]
 then
-   REMOTE_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+   REMOTE_ARGS="${REMOTE_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
 if [ -n "${COMPATIBLE:-}" ]
 then
