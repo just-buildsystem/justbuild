@@ -1,4 +1,24 @@
 { "function_ref":
+  { "type": "export"
+  , "target": "function_ref_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "function_ref_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["function_ref"]
   , "stage": ["absl", "functional"]
@@ -10,6 +30,26 @@
     ]
   }
 , "any_invocable":
+  { "type": "export"
+  , "target": "any_invocable_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "any_invocable_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["any_invocable"]
   , "stage": ["absl", "functional"]
@@ -23,6 +63,26 @@
     ]
   }
 , "bind_front":
+  { "type": "export"
+  , "target": "bind_front_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "bind_front_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bind_front"]
   , "stage": ["absl", "functional"]

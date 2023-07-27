@@ -122,7 +122,7 @@
     [ "container_memory"
     , "hash_function_defaults"
     , "raw_hash_map"
-    , ["absl/algorithm", "algorithm_container"]
+    , ["absl/algorithm", "container"]
     , ["absl/base", "core_headers"]
     , ["absl/memory", "memory"]
     ]
@@ -256,7 +256,7 @@
     [ "container_memory"
     , "hash_function_defaults"
     , "raw_hash_set"
-    , ["absl/algorithm", "algorithm_container"]
+    , ["absl/algorithm", "container"]
     , ["absl/base", "core_headers"]
     , ["absl/memory", "memory"]
     ]

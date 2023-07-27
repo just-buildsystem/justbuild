@@ -1,6 +1,6 @@
 { "strings":
   { "type": "export"
-  , "target": "strings_internal_"
+  , "target": "strings_internal"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TARGET_ARCH"
     ]
   }
-, "strings_internal_":
+, "strings_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strings"]
   , "stage": ["absl", "strings"]
@@ -66,7 +66,7 @@
     , "internal/memutil.h"
     ]
   , "deps":
-    [ "strings_internal"
+    [ "internal"
     , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
@@ -79,9 +79,9 @@
     , ["absl/numeric", "int128"]
     ]
   }
-, "strings_internal":
+, "internal":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["strings_internal"]
+  , "name": ["internal"]
   , "stage": ["absl", "strings"]
   , "hdrs":
     [ "internal/char_map.h"
@@ -133,7 +133,7 @@
     , "cordz_statistics"
     , "cordz_update_scope"
     , "cordz_update_tracker"
-    , "strings_internal"
+    , "internal"
     , "str_format"
     , "strings"
     , ["absl/base", "base"]

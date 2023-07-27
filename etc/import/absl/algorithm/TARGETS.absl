@@ -5,9 +5,9 @@
   , "hdrs": ["algorithm.h"]
   , "deps": [["absl/base", "config"]]
   }
-, "algorithm_container":
+, "container":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["algorithm_container"]
+  , "name": ["container"]
   , "stage": ["absl", "algorithm"]
   , "hdrs": ["container.h"]
   , "deps":

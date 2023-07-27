@@ -126,6 +126,26 @@
   , "hdrs": ["config.h", "options.h", "policy_checks.h"]
   }
 , "core_headers":
+  { "type": "export"
+  , "target": "core_headers_internal"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "COMPILER_FAMILY"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    ]
+  }
+, "core_headers_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["core_headers"]
   , "stage": ["absl", "base"]
