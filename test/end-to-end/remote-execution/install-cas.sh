@@ -66,4 +66,17 @@ mkdir -p "${OUTDIR}/stdout"
 cmp "${OUTDIR}/stdout/local-raw" "${OUTDIR}/stdout/remote-raw"
 cmp "${OUTDIR}/stdout/local" "${OUTDIR}/stdout/remote"
 
+# verify the -P option
+"${JUST}" install-cas ${REMOTE_ARGS} -P deep/inside/path/hello.txt \
+          -o "${OUTDIR}/path/remote" "${OUT}" 2>&1
+"${JUST}" install-cas ${LOCAL_ARGS} -P deep/inside/path/hello.txt \
+          -o "${OUTDIR}/path/local" "${OUT}" 2>&1
+echo
+ls -alR "${OUTDIR}/path"
+[ -f "${OUTDIR}/path/remote" ]
+grep World "${OUTDIR}/path/remote"
+[ -f "${OUTDIR}/path/local" ]
+grep World "${OUTDIR}/path/local"
+
+
 echo OK
