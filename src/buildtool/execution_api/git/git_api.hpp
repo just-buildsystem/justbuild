@@ -168,6 +168,13 @@ class GitApi final : public IExecutionApi {
         return false;
     }
 
+    [[nodiscard]] auto RetrieveToMemory(
+        Artifact::ObjectInfo const& artifact_info)
+        -> std::optional<std::string> override {
+        return RepositoryConfig::Instance().ReadBlobFromGitCAS(
+            artifact_info.digest.hash());
+    }
+
     /// NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto Upload(BlobContainer const& /*blobs*/,
                               bool /*skip_find_missing*/ = false) noexcept

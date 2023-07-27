@@ -43,6 +43,7 @@
     , "config"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }
 }

@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
@@ -235,6 +236,27 @@ class LocalApi final : public IExecutionApi {
 
         // Upload blobs to remote CAS.
         return api->Upload(container, /*skip_find_missing=*/true);
+    }
+
+    [[nodiscard]] auto RetrieveToMemory(
+        Artifact::ObjectInfo const& artifact_info)
+        -> std::optional<std::string> override {
+        std::optional<std::filesystem::path> location{};
+        if (IsTreeObject(artifact_info.type)) {
+            location = storage_->CAS().TreePath(artifact_info.digest);
+        }
+        else {
+            location = storage_->CAS().BlobPath(
+                artifact_info.digest, IsExecutableObject(artifact_info.type));
+        }
+        if (not location) {
+            return std::nullopt;
+        }
+        auto const content = FileSystemManager::ReadFile(*location);
+        if (not content) {
+            return std::nullopt;
+        }
+        return *content;
     }
 
     [[nodiscard]] auto Upload(BlobContainer const& blobs,

@@ -251,6 +251,15 @@ auto BazelApi::CreateAction(
     return api->Upload(container, /*skip_find_missing=*/true);
 }
 
+[[nodiscard]] auto BazelApi::RetrieveToMemory(
+    Artifact::ObjectInfo const& artifact_info) -> std::optional<std::string> {
+    auto blobs = network_->ReadBlobs({artifact_info.digest}).Next();
+    if (blobs.size() == 1) {
+        return blobs.at(0).data;
+    }
+    return std::nullopt;
+}
+
 [[nodiscard]] auto BazelApi::Upload(BlobContainer const& blobs,
                                     bool skip_find_missing) noexcept -> bool {
     return network_->UploadBlobs(blobs, skip_find_missing);

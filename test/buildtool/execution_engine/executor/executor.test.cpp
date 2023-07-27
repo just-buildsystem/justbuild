@@ -157,6 +157,10 @@ class TestApi : public IExecutionApi {
         // irrelevant for testing though.
         return unused.empty();  // not needed by Executor
     }
+    auto RetrieveToMemory(Artifact::ObjectInfo const& /*artifact_info*/)
+        -> std::optional<std::string> override {
+        return std::nullopt;  // not needed by Executor
+    }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
         return std::all_of(

@@ -81,6 +81,10 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
         const noexcept -> std::vector<ArtifactDigest> final;
 
+    [[nodiscard]] auto RetrieveToMemory(
+        Artifact::ObjectInfo const& artifact_info)
+        -> std::optional<std::string> final;
+
   private:
     std::shared_ptr<BazelNetwork> network_;
 

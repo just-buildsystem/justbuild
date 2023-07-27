@@ -17,6 +17,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -85,6 +86,12 @@ class IExecutionApi {
     [[nodiscard]] virtual auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api) noexcept -> bool = 0;
+
+    /// \brief Retrieve one artifact from CAS and make it available for
+    /// furter in-memory processing
+    [[nodiscard]] virtual auto RetrieveToMemory(
+        Artifact::ObjectInfo const& artifact_info)
+        -> std::optional<std::string> = 0;
 
     /// \brief Upload blobs to CAS. Uploads only the blobs that are not yet
     /// available in CAS, unless `skip_find_missing` is specified.
