@@ -49,8 +49,16 @@ class GitRepo {
     using tree_entries_t =
         std::unordered_map<std::string, std::vector<tree_entry_t>>;
 
-    // Checks whether a list of symlinks given by their hashes are non-upwards,
-    // based on content read from an actual backend.
+    // Stores the info of an object read by its path.
+    struct TreeEntryInfo {
+        std::string id{};
+        ObjectType type;
+        // if type is symlink, read it in advance
+        std::optional<std::string> symlink_content{std::nullopt};
+    };
+
+    // Checks whether a list of symlinks given by their hashes are
+    // non-upwards, based on content read from an actual backend.
     using SymlinksCheckFunc =
         std::function<bool(std::vector<bazel_re::Digest> const&)>;
 
@@ -210,6 +218,14 @@ class GitRepo {
     [[nodiscard]] auto CheckTreeExists(std::string const& tree_id,
                                        anon_logger_ptr const& logger) noexcept
         -> std::optional<bool>;
+
+    /// \brief Get the object info related to a given path inside a Git tree.
+    /// Unlike GetSubtreeFromTree, we here ignore errors and only return a value
+    /// when all is successful.
+    /// Calling it from a fake repository allows thread-safe use.
+    [[nodiscard]] auto GetObjectByPathFromTree(
+        std::string const& tree_id,
+        std::string const& rel_path) noexcept -> std::optional<TreeEntryInfo>;
 
   private:
     /// \brief Wrapped git_repository with guarded destructor.

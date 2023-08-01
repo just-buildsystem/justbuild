@@ -1169,6 +1169,119 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
+                                      std::string const& rel_path) noexcept
+    -> std::optional<TreeEntryInfo> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        std::string entry_id{tree_id};
+        ObjectType entry_type{ObjectType::Tree};
+
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            Logger::Log(LogLevel::Debug,
+                        "Subtree id retrieval from tree called on a real "
+                        "repository");
+        }
+        // check if path is not trivial
+        if (rel_path != ".") {
+            // share the odb lock
+            std::shared_lock lock{GetGitCAS()->mutex_};
+
+            // get tree object from tree id
+            git_oid tree_oid;
+            if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
+                Logger::Log(LogLevel::Trace,
+                            "tree ID parsing in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError());
+                return std::nullopt;
+            }
+
+            git_tree* tree_ptr{nullptr};
+            if (git_tree_lookup(&tree_ptr, repo_->Ptr(), &tree_oid) != 0) {
+                Logger::Log(LogLevel::Trace,
+                            "retrieving tree {} in git repository {} "
+                            "failed with:\n{}",
+                            tree_id,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError());
+                // cleanup resources
+                git_tree_free(tree_ptr);
+                return std::nullopt;
+            }
+            auto tree = std::unique_ptr<git_tree, decltype(&tree_closer)>(
+                tree_ptr, tree_closer);
+
+            // get hash for actual entry
+            git_tree_entry* entry_ptr{nullptr};
+            if (git_tree_entry_bypath(
+                    &entry_ptr, tree.get(), rel_path.c_str()) != 0) {
+                Logger::Log(LogLevel::Trace,
+                            "retrieving entry at {} in git repository {} "
+                            "failed with:\n{}",
+                            rel_path,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError());
+                // cleanup resources
+                git_tree_entry_free(entry_ptr);
+                return std::nullopt;
+            }
+
+            auto entry =
+                std::unique_ptr<git_tree_entry, decltype(&tree_entry_closer)>(
+                    entry_ptr, tree_entry_closer);
+
+            // get id
+            entry_id =
+                std::string(git_oid_tostr_s(git_tree_entry_id(entry.get())));
+
+            // get type
+            if (auto e_type = GitFileModeToObjectType(
+                    git_tree_entry_filemode(entry.get()))) {
+                entry_type = *e_type;
+            }
+            else {
+                Logger::Log(LogLevel::Trace,
+                            "retrieving type of entry {} in git repository "
+                            "{} failed with:\n{}",
+                            entry_id,
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError());
+                return std::nullopt;
+            }
+        }
+
+        // if symlink, also read target
+        if (IsSymlinkObject(entry_type)) {
+            if (auto target =
+                    GetGitCAS()->ReadObject(entry_id, /*is_hex_id=*/true)) {
+                return TreeEntryInfo{.id = entry_id,
+                                     .type = entry_type,
+                                     .symlink_content = *target};
+            }
+            Logger::Log(
+                LogLevel::Trace,
+                "failed to read target for symlink {} in git repository {}",
+                entry_id,
+                GetGitCAS()->git_path_.string());
+            return std::nullopt;
+        }
+        return TreeEntryInfo{.id = entry_id,
+                             .type = entry_type,
+                             .symlink_content = std::nullopt};
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Debug,
+                    "get entry by path from tree failed with:\n{}",
+                    ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }
