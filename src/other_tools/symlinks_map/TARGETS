@@ -1,0 +1,18 @@
+{ "resolve_symlinks_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["resolve_symlinks_map"]
+  , "hdrs": ["resolve_symlinks_map.hpp"]
+  , "srcs": ["resolve_symlinks_map.cpp"]
+  , "deps":
+    [ ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/other_tools/just_mr", "utils"]
+    , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "path_hash"]
+    ]
+  , "stage": ["src", "other_tools", "symlinks_map"]
+  , "private-deps":
+    [["@", "fmt", "", "fmt"], ["src/buildtool/storage", "config"]]
+  }
+}
