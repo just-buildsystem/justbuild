@@ -29,6 +29,8 @@ auto const kRootCommit =
     std::string{"3ecce3f5b19ad7941c6354d65d841590662f33ef"};
 auto const kRootId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
+auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
+auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
 
 }  // namespace
 
@@ -335,6 +337,36 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             auto result_non_bare =
                 repo_non_bare->CheckCommitExists(kRootCommit, logger);
             CHECK_FALSE(*result_non_bare);
+        }
+    }
+
+    SECTION("Read object from tree by relative path") {
+        SECTION("Non-existing") {
+            auto obj_info =
+                repo->GetObjectByPathFromTree(kRootId, "does_not_exist");
+            CHECK_FALSE(obj_info);
+        }
+        SECTION("File") {
+            auto obj_info = repo->GetObjectByPathFromTree(kRootId, "foo");
+            REQUIRE(obj_info);
+            CHECK(obj_info->id == kFooId);
+            CHECK(obj_info->type == ObjectType::File);
+            CHECK_FALSE(obj_info->symlink_content);
+        }
+        SECTION("Tree") {
+            auto obj_info = repo->GetObjectByPathFromTree(kRootId, "baz");
+            REQUIRE(obj_info);
+            CHECK(obj_info->id == kBazId);
+            CHECK(obj_info->type == ObjectType::Tree);
+            CHECK_FALSE(obj_info->symlink_content);
+        }
+        SECTION("Symlink") {
+            auto obj_info = repo->GetObjectByPathFromTree(kRootId, "baz/bar_l");
+            REQUIRE(obj_info);
+            CHECK(obj_info->id == kBarId);
+            CHECK(obj_info->type == ObjectType::Symlink);
+            CHECK(obj_info->symlink_content);
+            CHECK(*obj_info->symlink_content == "bar");
         }
     }
 }
