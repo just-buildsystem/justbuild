@@ -1,0 +1,15 @@
+{ "address_sorting":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["address_sorting"]
+  , "srcs":
+    [ "address_sorting.c"
+    , "address_sorting_posix.c"
+    , "address_sorting_windows.c"
+    ]
+  , "hdrs":
+    [ "address_sorting_internal.h"
+    , ["./", "include/address_sorting", "address_sorting_headers"]
+    ]
+  , "pure C": ["YES"]
+  }
+}

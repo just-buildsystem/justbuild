@@ -1,0 +1,8 @@
+{ "":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utf8_range"]
+  , "srcs": ["naive.c", "range2-neon.c", "range2-sse.c"]
+  , "hdrs": ["utf8_range.h"]
+  , "pure C": ["YES"]
+  }
+}

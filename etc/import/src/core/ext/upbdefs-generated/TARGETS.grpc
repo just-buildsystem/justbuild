@@ -306,7 +306,8 @@
     ]
   , "deps":
     [ ["src/core/ext/upb-generated", "upb-generated-lib"]
-    , ["third_party/upb", "upb_reflection"]
+    , ["third_party/upb", "reflection"]
+    , ["third_party/upb", "reflection_internal"]
     ]
   }
 }

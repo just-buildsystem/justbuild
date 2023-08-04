@@ -38,6 +38,7 @@
     , "impl/status.h"
     , "impl/sync.h"
     , "resource_quota.h"
+    , "security/audit_logging.h"
     , "security/auth_context.h"
     , "security/auth_metadata_processor.h"
     , "security/credentials.h"

@@ -5,7 +5,9 @@
     , "support/atm_gcc_atomic.h"
     , "support/atm_gcc_sync.h"
     , "support/atm_windows.h"
+    , "support/atm.h"
     , "support/cpu.h"
+    , "support/json.h"
     , "support/log.h"
     , "support/log_windows.h"
     , "support/port_platform.h"
@@ -38,7 +40,8 @@
 , "grpc_public_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    [ "byte_buffer.h"
+    [ "grpc_audit_logging.h"
+    , "byte_buffer.h"
     , "byte_buffer_reader.h"
     , "compression.h"
     , "fork.h"
