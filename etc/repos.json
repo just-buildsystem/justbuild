@@ -364,11 +364,11 @@
   , "com_github_cares_cares":
     { "repository":
       { "type": "archive"
-      , "content": "998c90eda4410f965ca086ce59811e2cf16c8d6b"
-      , "fetch": "https://github.com/c-ares/c-ares/archive/refs/tags/cares-1_17_2.tar.gz"
-      , "sha256": "444b7dbf33cb6e8a764d069e3485cbaaa28386d60eace6988275c3cb9534d300"
-      , "sha512": "1111f1e7eeb0e5d9e70d1a7c8566145d0a5e6e71b020f3fcaa02ecdf1931553ddeff83fdc152a1f9c5a780078e8afe3670164b631df56eecd2b638210cc59bb3"
-      , "subdir": "c-ares-cares-1_17_2"
+      , "content": "4237a53f7a5dc1cfb4d04a6b6374f8674c32e271"
+      , "fetch": "https://github.com/c-ares/c-ares/releases/download/cares-1_19_1/c-ares-1.19.1.tar.gz"
+      , "sha256": "321700399b72ed0e037d0074c629e7741f6b2ec2dda92956abe3e9671d3e268e"
+      , "sha512": "466a94efda626e815a6ef7a890637056339f883d549ea6055e289fd8cd2391130e5682c905c0fb3bd7e955af7f6deb793562c170eb0ee066a4a62085a82ba470"
+      , "subdir": "c-ares-1.19.1"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.cares"
