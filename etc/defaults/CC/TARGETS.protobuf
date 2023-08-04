@@ -13,7 +13,7 @@
     , "body":
       { "type": "++"
       , "$1":
-        [ ["-std=c++20", "-DHAVE_PTHREAD=1", "-DHAVE_ZLIB=1"]
+        [ ["-std=c++17", "-DHAVE_PTHREAD=1", "-DHAVE_ZLIB=1"]
         , { "type": "case"
           , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
           , "case":
