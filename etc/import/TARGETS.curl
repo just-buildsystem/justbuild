@@ -56,6 +56,7 @@
     , "USE_GNU_STRERROR_R"
     , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
+    , "HAVE_AWSLC"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
     , "HAVE_ZSTD_CREATEDSTREAM"
@@ -173,6 +174,10 @@
       [ "Boolean. OpenSSL is BoringSSL."
       , "If true, corresponding symbol detection logic is skipped."
       ]
+    , "HAVE_AWSLC":
+      [ "Boolean. OpenSSL is AWSLC."
+      , "If true, corresponding symbol detection logic is skipped."
+      ]
     , "HAVE_SSL_CTX_SET_QUIC_METHOD":
       [ "Boolean. `SSL_CTX_set_quic_method` present in OpenSSL."
       , "If true, corresponding symbol detection logic is skipped."
@@ -234,6 +239,7 @@
     , "USE_GNU_STRERROR_R"
     , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
+    , "HAVE_AWSLC"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
     , "HAVE_ZSTD_CREATEDSTREAM"
@@ -402,6 +408,7 @@
       , [ "HAVE_BORINGSSL"
         , {"type": "var", "name": "HAVE_BORINGSSL", "default": false}
         ]
+      , ["HAVE_AWSLC", {"type": "var", "name": "HAVE_AWSLC", "default": false}]
       , [ "HAVE_SSL_CTX_SET_QUIC_METHOD"
         , { "type": "var"
           , "name": "HAVE_SSL_CTX_SET_QUIC_METHOD"
@@ -459,6 +466,7 @@
         , "USE_GNU_STRERROR_R"
         , "HAVE_RAND_EGD"
         , "HAVE_BORINGSSL"
+        , "HAVE_AWSLC"
         , "HAVE_SSL_CTX_SET_QUIC_METHOD"
         , "HAVE_QUICHE_CONN_SET_QLOG_FD"
         , "HAVE_ZSTD_CREATEDSTREAM"

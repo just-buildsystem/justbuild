@@ -42,6 +42,7 @@
     , "USE_GNU_STRERROR_R"
     , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
+    , "HAVE_AWSLC"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
     , "HAVE_ZSTD_CREATEDSTREAM"
@@ -126,6 +127,7 @@
               , ["HAVE_VARIADIC_MACROS_GCC", 1]
               , ["HAVE_RAND_EGD", {"type": "var", "name": "HAVE_RAND_EGD"}]
               , ["HAVE_BORINGSSL", {"type": "var", "name": "HAVE_BORINGSSL"}]
+              , ["HAVE_AWSLC", {"type": "var", "name": "HAVE_AWSLC"}]
               , ["HAVE_LIBZ", {"type": "var", "name": "USE_ZLIB"}]
               ]
             , { "type": "if"
@@ -436,6 +438,16 @@
                     , ["OPENSSL_IS_BORINGSSL", ["openssl/base.h"]]
                     ]
                   ]
+                }
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
+              , "then":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "HAVE_AWSLC"}
+                , "then": []
+                , "else":
+                  [["HAVE_AWSLC", ["OPENSSL_IS_AWSLC", ["openssl/base.h"]]]]
                 }
               }
             , { "type": "if"
@@ -921,6 +933,7 @@
                 }
               }
             , [["SIZEOF_CURL_OFF_T", "8"]]
+            , [["SIZEOF_CURL_SOCKET_T", "8"]]
             ]
           }
         ]
