@@ -26,7 +26,10 @@
       [ "Optional toolchain directory. A collection of artifacts that provide"
       , "the tools CC, CXX, and AR (if needed). Note that only artifacts of"
       , "the specified targets are considered (no runfiles etc.). Specifying"
-      , "this field extends artifacts from \"base\"."
+      , "this field extends artifacts from \"base\". If the toolchain"
+      , "supports cross-compilation, it should perform a dispatch on the"
+      , "configuration variable \"BUILD_ARCH\" to determine for which"
+      , "architecture to generate code for."
       ]
     , "deps":
       [ "Optional CC libraries any CC library and CC binary implicitly depend"
@@ -69,7 +72,7 @@
       , "with \":\". Specifying this field extends values from \"base\"."
       ]
     }
-  , "config_vars": ["ARCH", "HOST_ARCH"]
+  , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
   , "imports":
     { "base-provides": "defaults-base-provides"
     , "base-provides-list": "defaults-base-provides-list"

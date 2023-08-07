@@ -1,13 +1,22 @@
 { "for host":
-  { "vars": ["ARCH", "HOST_ARCH"]
+  { "vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
   , "expression":
-    { "type": "singleton_map"
-    , "key": "TARGET_ARCH"
-    , "value":
-      { "type": "var"
-      , "name": "HOST_ARCH"
-      , "default": {"type": "var", "name": "ARCH"}
-      }
+    { "type": "let*"
+    , "bindings":
+      [ [ "BUILD_ARCH"
+        , { "type": "var"
+          , "name": "TARGET_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      , [ "TARGET_ARCH"
+        , { "type": "var"
+          , "name": "HOST_ARCH"
+          , "default": {"type": "var", "name": "ARCH"}
+          }
+        ]
+      ]
+    , "body": {"type": "env", "vars": ["BUILD_ARCH", "TARGET_ARCH"]}
     }
   }
 , "target properties":
