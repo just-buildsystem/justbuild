@@ -45,6 +45,8 @@ A feature release on top of `1.1.0`, backwards compatible.
   the local build root.
 - `just install-cas` now correctly handles `--raw-tree` also for
   remote-execution endpoints.
+- `just install-cas` now, like `just install`, removes an existing
+  destination file before installing instead of overwriting.
 
 ## Release `1.1.0` (2023-05-19)
 

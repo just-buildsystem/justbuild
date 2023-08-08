@@ -180,8 +180,21 @@ auto FetchAndInstallArtifacts(
             output_path /= object_info.digest.hash();
         }
 
-        if (not FileSystemManager::CreateDirectory(output_path.parent_path()) or
-            not api->RetrieveToPaths(
+        if (not FileSystemManager::CreateDirectory(output_path.parent_path())) {
+            Logger::Log(LogLevel::Error,
+                        "failed to create parent directory {}.",
+                        output_path.parent_path().string());
+            return false;
+        }
+        if (FileSystemManager::Exists(output_path)) {
+            if (not FileSystemManager::RemoveFile(output_path)) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to remote target location {}.",
+                            output_path.string());
+                return false;
+            }
+        }
+        if (not api->RetrieveToPaths(
                 {object_info}, {output_path}, alternative_api)) {
             Logger::Log(LogLevel::Error, "failed to retrieve artifact.");
             return false;
