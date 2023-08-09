@@ -68,7 +68,8 @@ class RemoteExecutionConfig {
         Port port{};
 
         [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
-            return nlohmann::json{fmt::format("{}:{}", host, port)};
+            return nlohmann::json{
+                fmt::format("{}:{}", host, static_cast<std::uint16_t>(port))};
         }
     };
 
