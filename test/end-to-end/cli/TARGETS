@@ -16,9 +16,15 @@
   , "test": ["install.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "build -P":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["build-P"]
+  , "test": ["build-p.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["defaults", "pwd", "install"]
+  , "deps": ["defaults", "pwd", "install", "build -P"]
   }
 }
