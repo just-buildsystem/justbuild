@@ -1,0 +1,77 @@
+{ "default-PATCH":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "patch-defaults"]
+      , ["provider", "PATCH"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
+, "default-ENV":
+  { "vars": ["defaults-transition"]
+  , "imports": {"map_provider": ["./", "..", "field_map_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "patch-defaults"]
+      , ["provider", "ENV"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+    }
+  }
+, "default-PATH":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "patch-defaults"]
+      , ["provider", "PATH"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
+, "default-TOOLCHAIN":
+  { "vars": ["defaults-transition"]
+  , "imports": {"map_provider": ["./", "..", "field_map_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "patch-defaults"]
+      , ["provider", "TOOLCHAIN"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["default", {"type": "empty_map"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+    }
+  }
+, "default-NON_SYSTEM_TOOLS":
+  { "vars": ["defaults-transition"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range": {"type": "FIELD", "name": "patch-defaults"}
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "dep": {"type": "var", "name": "x"}
+        , "provider": "NON_SYSTEM_TOOLS"
+        , "transition":
+          { "type": "var"
+          , "name": "defaults-transition"
+          , "default": {"type": "empty_map"}
+          }
+        , "default": {"type": "empty_map"}
+        }
+      }
+    }
+  }
+}
