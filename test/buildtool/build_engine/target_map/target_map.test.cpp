@@ -629,6 +629,32 @@ TEST_CASE("built-in rules") {
         CHECK(result->Blobs()[0] == "Hello World!");
     }
 
+    SECTION("symlink") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "generate symlink"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(!error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Artifacts()->ToJson()["generated_link"]["type"] ==
+              "KNOWN");
+        CHECK(result->Blobs().size() == 1);
+        CHECK(result->Blobs()[0] == "dummy_link_target");
+    }
+
     SECTION("configure") {
         auto target =
             BuildMaps::Base::EntityName{"", "config_targets", "bar in foo"};

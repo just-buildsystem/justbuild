@@ -70,4 +70,6 @@
   }
 , "generate file":
   {"type": "file_gen", "name": "generated.txt", "data": "Hello World!"}
+, "generate symlink":
+  {"type": "symlink", "name": "generated_link", "data": "dummy_link_target"}
 }
