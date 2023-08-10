@@ -120,8 +120,8 @@ auto main() -> int {
         auto anchor = FileSystemManager::ChangeDirectory(tmp_dir->GetPath());
         // 2. create the archives wrt to current directory
         std::optional<std::string> res{std::nullopt};
-        res = ArchiveOps::CreateArchive(
-            ArchiveType::kArchiveTypeZip, "zip_repo.zip", "root");
+        res =
+            ArchiveOps::CreateArchive(ArchiveType::Zip, "zip_repo.zip", "root");
         if (res) {
             Logger::Log(LogLevel::Error,
                         "Creating test zip archive failed with:\n{}",
@@ -129,7 +129,7 @@ auto main() -> int {
             return 1;
         }
         res = ArchiveOps::CreateArchive(
-            ArchiveType::kArchiveTypeTarGz, "tgz_repo.tar.gz", "root");
+            ArchiveType::TarGz, "tgz_repo.tar.gz", "root");
         if (res) {
             Logger::Log(LogLevel::Error,
                         "Creating test tar.gz archive failed with:\n{}",

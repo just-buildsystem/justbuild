@@ -25,13 +25,7 @@ using archive = struct archive;
 using archive_entry = struct archive_entry;
 }
 
-enum class ArchiveType : size_t {
-    kArchiveTypeZip,
-    kArchiveTypeTar,
-    kArchiveTypeTarGz,
-    kArchiveTypeTarBz2,
-    kArchiveTypeTarXz
-};
+enum class ArchiveType : size_t { Zip, Tar, TarGz, TarBz2, TarXz };
 
 /// \brief Class handling archiving and unarchiving operations via libarchive
 class ArchiveOps {

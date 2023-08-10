@@ -348,7 +348,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
         create_files(test_dir_tar);
 
         res = ArchiveOps::CreateArchive(
-            ArchiveType::kArchiveTypeTar, filename_tar, test_dir_tar, ".");
+            ArchiveType::Tar, filename_tar, test_dir_tar, ".");
         if (res != std::nullopt) {
             FAIL(*res);
         }
@@ -357,8 +357,8 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
             REQUIRE(FileSystemManager::RemoveDirectory(test_dir_tar,
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar));
-            res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTar, filename_tar, ".");
+            res =
+                ArchiveOps::ExtractArchive(ArchiveType::Tar, filename_tar, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -389,10 +389,8 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
 
         create_files(test_dir_tar_gz);
 
-        res = ArchiveOps::CreateArchive(ArchiveType::kArchiveTypeTarGz,
-                                        filename_tar_gz,
-                                        test_dir_tar_gz,
-                                        ".");
+        res = ArchiveOps::CreateArchive(
+            ArchiveType::TarGz, filename_tar_gz, test_dir_tar_gz, ".");
         if (res != std::nullopt) {
             FAIL(*res);
         }
@@ -402,7 +400,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_gz));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTarGz, filename_tar_gz, ".");
+                ArchiveType::TarGz, filename_tar_gz, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -414,7 +412,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_gz));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTar, filename_tar_gz, ".");
+                ArchiveType::Tar, filename_tar_gz, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -446,10 +444,8 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
 
         create_files(test_dir_tar_bz2);
 
-        res = ArchiveOps::CreateArchive(ArchiveType::kArchiveTypeTarBz2,
-                                        filename_tar_bz2,
-                                        test_dir_tar_bz2,
-                                        ".");
+        res = ArchiveOps::CreateArchive(
+            ArchiveType::TarBz2, filename_tar_bz2, test_dir_tar_bz2, ".");
         if (res != std::nullopt) {
             FAIL(*res);
         }
@@ -459,7 +455,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_bz2));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTarBz2, filename_tar_bz2, ".");
+                ArchiveType::TarBz2, filename_tar_bz2, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -471,7 +467,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_bz2));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTar, filename_tar_bz2, ".");
+                ArchiveType::Tar, filename_tar_bz2, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -503,10 +499,8 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
 
         create_files(test_dir_tar_xz);
 
-        res = ArchiveOps::CreateArchive(ArchiveType::kArchiveTypeTarXz,
-                                        filename_tar_xz,
-                                        test_dir_tar_xz,
-                                        ".");
+        res = ArchiveOps::CreateArchive(
+            ArchiveType::TarXz, filename_tar_xz, test_dir_tar_xz, ".");
         if (res != std::nullopt) {
             FAIL(*res);
         }
@@ -516,7 +510,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTarXz, filename_tar_xz, ".");
+                ArchiveType::TarXz, filename_tar_xz, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -528,7 +522,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_tar_xz));
             res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeTar, filename_tar_xz, ".");
+                ArchiveType::Tar, filename_tar_xz, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }
@@ -561,7 +555,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
         create_files(test_dir_zip);
 
         res = ArchiveOps::CreateArchive(
-            ArchiveType::kArchiveTypeZip, filename_zip, test_dir_zip, ".");
+            ArchiveType::Zip, filename_zip, test_dir_zip, ".");
         if (res != std::nullopt) {
             FAIL(*res);
         }
@@ -570,8 +564,8 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
             REQUIRE(FileSystemManager::RemoveDirectory(test_dir_zip,
                                                        /*recursively=*/true));
             REQUIRE(FileSystemManager::CreateDirectory(test_dir_zip));
-            res = ArchiveOps::ExtractArchive(
-                ArchiveType::kArchiveTypeZip, filename_zip, ".");
+            res =
+                ArchiveOps::ExtractArchive(ArchiveType::Zip, filename_zip, ".");
             if (res != std::nullopt) {
                 FAIL(*res);
             }

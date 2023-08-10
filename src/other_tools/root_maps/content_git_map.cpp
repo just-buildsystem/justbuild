@@ -31,12 +31,10 @@ namespace {
                                   std::filesystem::path const& dst_dir) noexcept
     -> std::optional<std::string> {
     if (repo_type == "archive") {
-        return ArchiveOps::ExtractArchive(
-            ArchiveType::kArchiveTypeTar, archive, dst_dir);
+        return ArchiveOps::ExtractArchive(ArchiveType::Tar, archive, dst_dir);
     }
     if (repo_type == "zip") {
-        return ArchiveOps::ExtractArchive(
-            ArchiveType::kArchiveTypeZip, archive, dst_dir);
+        return ArchiveOps::ExtractArchive(ArchiveType::Zip, archive, dst_dir);
     }
     return "unrecognized repository type";
 }
