@@ -49,7 +49,7 @@ auto const kGenericRuleFields =
                                     "out_dirs",
                                     "outs"};
 
-auto const kFileGenRuleFields =
+auto const kBlobGenRuleFields =
     std::unordered_set<std::string>{"arguments_config",
                                     "data",
                                     "deps",
@@ -78,14 +78,15 @@ auto const kConfigureRuleFields =
                                     "target",
                                     "type"};
 
-void FileGenRuleWithDeps(
+void BlobGenRuleWithDeps(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
+    const ObjectType& blob_type) {
     // Associate keys and values
     std::unordered_map<BuildMaps::Target::ConfiguredTarget, AnalysedTargetPtr>
         deps_by_transition;
@@ -159,21 +160,21 @@ void FileGenRuleWithDeps(
         }
     }
 
-    auto file_name_exp = desc->ReadOptionalExpression(
+    auto name_exp = desc->ReadOptionalExpression(
         "name", ExpressionPtr{std::string{"out.txt"}});
-    if (not file_name_exp) {
+    if (not name_exp) {
         return;
     }
-    auto file_name_val = file_name_exp.Evaluate(
+    auto name_val = name_exp.Evaluate(
         param_config, string_fields_fcts, [logger](auto const& msg) {
             (*logger)(fmt::format("While evaluating name:\n{}", msg), true);
         });
-    if (not file_name_val) {
+    if (not name_val) {
         return;
     }
-    if (not file_name_val->IsString()) {
+    if (not name_val->IsString()) {
         (*logger)(fmt::format("name should evaluate to a string, but got {}",
-                              file_name_val->ToString()),
+                              name_val->ToString()),
                   true);
         return;
     }
@@ -195,11 +196,22 @@ void FileGenRuleWithDeps(
                   true);
         return;
     }
+
+    // if symlink target, we only accept non-upwards
+    if (IsSymlinkObject(blob_type) and
+        not PathIsNonUpwards(data_val->String())) {
+        (*logger)(fmt::format("data string {} does not constitute a "
+                              "non-upwards symlink target path",
+                              data_val->String()),
+                  true);
+        return;
+    }
+
     auto stage = ExpressionPtr{Expression::map_t{
-        file_name_val->String(),
+        name_val->String(),
         ExpressionPtr{ArtifactDescription{
             ArtifactDigest::Create<ObjectType::File>(data_val->String()),
-            ObjectType::File}}}};
+            blob_type}}}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{.artifact_stage = stage,
@@ -216,16 +228,21 @@ void FileGenRuleWithDeps(
     (*setter)(std::move(analysis_result));
 }
 
-void FileGenRule(
+void BlobGenRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
+    const ObjectType& blob_type) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
-        desc_json, key.target, "file-generation target", logger);
-    desc->ExpectFields(kFileGenRuleFields);
+        desc_json,
+        key.target,
+        IsSymlinkObject(blob_type) ? "symlink target"
+                                   : "file-generation target",
+        logger);
+    desc->ExpectFields(kBlobGenRuleFields);
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
         return;
@@ -282,11 +299,50 @@ void FileGenRule(
          setter,
          logger,
          key,
-         result_map](auto const& values) {
-            FileGenRuleWithDeps(
-                transition_keys, values, desc, key, setter, logger, result_map);
+         result_map,
+         blob_type](auto const& values) {
+            BlobGenRuleWithDeps(transition_keys,
+                                values,
+                                desc,
+                                key,
+                                setter,
+                                logger,
+                                result_map,
+                                blob_type);
         },
         logger);
+}
+
+void FileGenRule(
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    BlobGenRule(desc_json,
+                key,
+                subcaller,
+                setter,
+                logger,
+                result_map,
+                ObjectType::File);
+}
+
+void SymlinkRule(
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    BlobGenRule(desc_json,
+                key,
+                subcaller,
+                setter,
+                logger,
+                result_map,
+                ObjectType::Symlink);
 }
 
 void TreeRuleWithDeps(
@@ -1357,6 +1413,7 @@ auto const kBuiltIns = std::unordered_map<
     {"export", ExportRule},
     {"file_gen", FileGenRule},
     {"tree", TreeRule},
+    {"symlink", SymlinkRule},
     {"generic", GenericRule},
     {"install", InstallRule},
     {"configure", ConfigureRule}};
