@@ -17,7 +17,7 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/utils/subobject.hpp"
 #endif
 #include "src/buildtool/execution_api/remote/config.hpp"
 
@@ -81,96 +81,13 @@ auto FetchAndInstallArtifacts(
 
     if (clargs.sub_path) {
         std::filesystem::path sofar{};
-        for (auto const& segment : *clargs.sub_path) {
-            if (object_info.type != ObjectType::Tree) {
-                Logger::Log(
-                    LogLevel::Warning,
-                    "Non-tree found at path '{}', cannot follow to '{}'",
-                    sofar.string(),
-                    segment.string());
-                break;
-            }
-            auto data = api->RetrieveToMemory(object_info);
-            if (not data) {
-                Logger::Log(LogLevel::Error,
-                            "Failed to retrieve artifact {} at path '{}'",
-                            object_info.ToString(),
-                            sofar.string());
-                return false;
-            }
-            if (Compatibility::IsCompatible()) {
-                auto directory =
-                    BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-                        *data);
-                if (not directory) {
-                    Logger::Log(
-                        LogLevel::Warning,
-                        "Failed to parse directory message at path '{}'",
-                        sofar.string());
-                    break;
-                }
-                std::optional<Artifact::ObjectInfo> new_object_info{};
-                if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                        *directory,
-                        [&new_object_info, &segment](auto path, auto info) {
-                            if (path == segment) {
-                                new_object_info = info;
-                            }
-                            return true;
-                        })) {
-                    Logger::Log(
-                        LogLevel::Warning,
-                        "Failed to process directory message at path '{}'",
-                        sofar.string());
-                    break;
-                }
-                if (not new_object_info) {
-                    Logger::Log(LogLevel::Warning,
-                                "Entry {} not found at path '{}'",
-                                segment.string(),
-                                sofar.string());
-                    break;
-                }
-                object_info = *new_object_info;
-            }
-            else {
-                auto entries = GitRepo::ReadTreeData(
-                    *data,
-                    HashFunction::ComputeTreeHash(*data).Bytes(),
-                    [](auto const& /*unused*/) { return true; },
-                    /*is_hex_id=*/false);
-                if (not entries) {
-                    Logger::Log(LogLevel::Warning,
-                                "Failed to parse tree {} at path '{}'",
-                                object_info.ToString(),
-                                sofar.string());
-                    break;
-                }
-                std::optional<Artifact::ObjectInfo> new_object_info{};
-                if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
-                        *entries,
-                        [&new_object_info, &segment](auto path, auto info) {
-                            if (path == segment) {
-                                new_object_info = info;
-                            }
-                            return true;
-                        })) {
-                    Logger::Log(LogLevel::Warning,
-                                "Failed to process tree entries at path '{}'",
-                                sofar.string());
-                    break;
-                }
-
-                if (not new_object_info) {
-                    Logger::Log(LogLevel::Warning,
-                                "Entry {} not found at path '{}'",
-                                segment.string(),
-                                sofar.string());
-                    break;
-                }
-                object_info = *new_object_info;
-            }
-            sofar /= segment;
+        auto new_object_info =
+            RetrieveSubPathId(object_info, api, *clargs.sub_path);
+        if (new_object_info) {
+            object_info = *new_object_info;
+        }
+        else {
+            return false;
         }
     }
 

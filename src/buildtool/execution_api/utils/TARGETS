@@ -1,0 +1,18 @@
+{ "subobject":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["subobject"]
+  , "hdrs": ["subobject.hpp"]
+  , "srcs": ["subobject.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["@", "gsl", "", "gsl"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "utils"]
+  }
+}
