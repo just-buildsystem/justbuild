@@ -19,7 +19,7 @@
       [ "Optional toolchain directory. A collection of artifacts that provide"
       , "the protobuf compiler and the GRPC plugin (if needed). Note that only"
       , "artifacts of the specified targets are considered (no runfiles etc.)."
-      , "Specifying this field overlays artifacts from \"base\"."
+      , "Specifying this field extends artifacts from \"base\"."
       ]
     , "deps":
       [ "Optional CC libraries the resulting CC proto libraries implicitly"
@@ -56,7 +56,8 @@
     }
   , "imports":
     { "base-provides": ["./", "..", "defaults-base-provides"]
-    , "artifacts": ["", "field_artifacts"]
+    , "base-provides-list": ["./", "..", "defaults-base-provides-list"]
+    , "artifacts_list": ["", "field_artifacts_list"]
     , "compile-deps": ["CC", "compile-deps"]
     , "compile-args-deps": ["CC", "compile-args-deps"]
     , "link-deps": ["CC", "link-deps"]
@@ -158,24 +159,28 @@
       , ["provider", "TOOLCHAIN"]
       , ["default", {"type": "empty_map"}]
       , [ "TOOLCHAIN"
-        , { "type": "map_union"
+        , { "type": "disjoint_map_union"
+          , "msg": "toolchain artifacts may not overlap"
           , "$1":
-            [ {"type": "CALL_EXPRESSION", "name": "base-provides"}
-            , { "type": "if"
-              , "cond": {"type": "FIELD", "name": "toolchain"}
-              , "then":
-                { "type": "let*"
-                , "bindings":
-                  [ ["fieldname", "toolchain"]
-                  , [ "transition"
-                    , {"type": "CALL_EXPRESSION", "name": "for host"}
+            { "type": "++"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "base-provides-list"}
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "toolchain"}
+                , "then":
+                  { "type": "let*"
+                  , "bindings":
+                    [ ["fieldname", "toolchain"]
+                    , [ "transition"
+                      , {"type": "CALL_EXPRESSION", "name": "for host"}
+                      ]
                     ]
-                  ]
-                , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+                  , "body":
+                    {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
+                  }
                 }
-              , "else": {"type": "empty_map"}
-              }
-            ]
+              ]
+            }
           }
         ]
       , [ "LDFLAGS"
