@@ -90,7 +90,13 @@ std::vector<archive_test_info_t> const kTestScenarios = {
      .test_dir = "test_zip",
      .filename = "test.zip",
      .tools = {"unzip"},
-     .cmd = "/usr/bin/unzip"}};
+     .cmd = "/usr/bin/unzip"},
+    {.test_name = "7zip",
+     .type = ArchiveType::_7Zip,
+     .test_dir = "test_7zip",
+     .filename = "test.7z",
+     .tools = {"7z"},  // 7z comes with its own lzma-type compression
+     .cmd = "/usr/bin/7z x"}};
 
 [[nodiscard]] auto read_archive(archive* a, std::string const& path)
     -> filetree_t {
@@ -147,6 +153,7 @@ void extract_archive(std::string const& path) {
     REQUIRE(a != nullptr);
     REQUIRE(archive_read_support_format_tar(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_format_zip(a) == ARCHIVE_OK);
+    REQUIRE(archive_read_support_format_7zip(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_filter_gzip(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_filter_bzip2(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_filter_xz(a) == ARCHIVE_OK);
@@ -223,6 +230,9 @@ void enable_write_format_and_filter(archive* aw, ArchiveType type) {
         case ArchiveType::Zip: {
             REQUIRE(archive_write_set_format_zip(aw) == ARCHIVE_OK);
         } break;
+        case ArchiveType::_7Zip: {
+            REQUIRE(archive_write_set_format_7zip(aw) == ARCHIVE_OK);
+        } break;
         case ArchiveType::Tar: {
             REQUIRE(archive_write_set_format_pax_restricted(aw) == ARCHIVE_OK);
         } break;
@@ -255,6 +265,9 @@ void enable_read_format_and_filter(archive* ar, ArchiveType type) {
     switch (type) {
         case ArchiveType::Zip: {
             REQUIRE(archive_read_support_format_zip(ar) == ARCHIVE_OK);
+        } break;
+        case ArchiveType::_7Zip: {
+            REQUIRE(archive_read_support_format_7zip(ar) == ARCHIVE_OK);
         } break;
         case ArchiveType::Tar: {
             REQUIRE(archive_read_support_format_tar(ar) == ARCHIVE_OK);

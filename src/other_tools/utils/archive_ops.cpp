@@ -71,7 +71,7 @@ auto enable_write_filter(archive* aw, ArchiveType type) -> bool {
 auto enable_read_filter(archive* ar, ArchiveType type) -> bool {
     switch (type) {
         case ArchiveType::Tar:
-            return true;  // no compression filter
+            return true;  // no outside compression filter
         case ArchiveType::TarGz:
             return (archive_read_support_filter_gzip(ar) == ARCHIVE_OK);
         case ArchiveType::TarBz2:
@@ -142,6 +142,12 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
                        std::string(archive_error_string(aw));
             }
         } break;
+        case ArchiveType::_7Zip: {
+            if (archive_write_set_format_7zip(aw) != ARCHIVE_OK) {
+                return std::string("ArchiveOps: ") +
+                       std::string(archive_error_string(aw));
+            }
+        } break;
         case ArchiveType::Tar:
         case ArchiveType::TarGz:
         case ArchiveType::TarBz2:
@@ -166,6 +172,12 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
     switch (type) {
         case ArchiveType::Zip: {
             if (archive_read_support_format_zip(ar) != ARCHIVE_OK) {
+                return std::string("ArchiveOps: ") +
+                       std::string(archive_error_string(ar));
+            }
+        } break;
+        case ArchiveType::_7Zip: {
+            if (archive_read_support_format_7zip(ar) != ARCHIVE_OK) {
                 return std::string("ArchiveOps: ") +
                        std::string(archive_error_string(ar));
             }
