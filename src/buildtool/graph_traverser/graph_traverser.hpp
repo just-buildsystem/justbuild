@@ -36,6 +36,7 @@
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/utils/subobject.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/execution_engine/traverser/traverser.hpp"
@@ -664,6 +665,50 @@ class GraphTraverser {
                             Logger::Log(LogLevel::Error,
                                         "Failed to retrieve {}",
                                         *(clargs_.build.print_to_stdout));
+                        }
+                    }
+                    else {
+                        Logger::Log(
+                            LogLevel::Error,
+                            "Failed to obtain object information for {}",
+                            *(clargs_.build.print_to_stdout));
+                    }
+                    return;
+                }
+            }
+            // Not directly an artifact, hence check if the path is contained in
+            // some artifact
+            auto target_path = ToNormalPath(std::filesystem::path{
+                                                *clargs_.build.print_to_stdout})
+                                   .relative_path();
+            auto remote = GetRemoteApi();
+            for (size_t i = 0; i < paths.size(); i++) {
+                auto const& path = paths[i];
+                auto relpath = target_path.lexically_relative(path);
+                if ((not relpath.empty()) and *relpath.begin() != "..") {
+                    Logger::Log(
+                        LogLevel::Info,
+                        "'{}' not a direct logical path of the specified "
+                        "target; will take subobject '{}' of '{}'",
+                        *(clargs_.build.print_to_stdout),
+                        relpath.string(),
+                        path.string());
+                    auto info = artifacts[i]->Content().Info();
+                    if (info) {
+                        auto new_info =
+                            RetrieveSubPathId(*info, remote, relpath);
+                        if (new_info) {
+                            if (not remote_api_->RetrieveToFds(
+                                    {*new_info},
+                                    {dup(fileno(stdout))},
+                                    /*raw_tree=*/false)) {
+                                Logger::Log(LogLevel::Error,
+                                            "Failed to retrieve artifact {} at "
+                                            "path '{}' of '{}'",
+                                            new_info->ToString(),
+                                            relpath.string(),
+                                            path.string());
+                            }
                         }
                     }
                     else {

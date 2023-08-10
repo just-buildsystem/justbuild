@@ -11,6 +11,7 @@
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_api/utils", "subobject"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/file_system", "jsonfs"]
