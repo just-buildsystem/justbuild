@@ -273,4 +273,35 @@
       }
     }
   }
+, "reverse_list":
+  { "doc": ["Returns the list in reverse order."]
+  , "vars": ["list"]
+  , "vars_doc": {"list": ["The list to reverse."]}
+  , "expression":
+    { "type": "foldl"
+    , "var": "item"
+    , "start": []
+    , "accum_var": "out"
+    , "range": {"type": "var", "name": "list"}
+    , "body":
+      { "type": "++"
+      , "$1":
+        [[{"type": "var", "name": "item"}], {"type": "var", "name": "out"}]
+      }
+    }
+  }
+, "nub_left":
+  { "doc": ["Removes all but the leftmost duplicate from the list."]
+  , "vars": ["list"]
+  , "vars_doc": {"list": ["The list to remove duplicates from."]}
+  , "imports": {"reverse": "reverse_list"}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["list", {"type": "CALL_EXPRESSION", "name": "reverse"}]
+      , ["list", {"type": "nub_right", "$1": {"type": "var", "name": "list"}}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "reverse"}
+    }
+  }
 }
