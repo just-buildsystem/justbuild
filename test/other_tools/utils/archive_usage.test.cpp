@@ -73,6 +73,18 @@ std::vector<archive_test_info_t> const kTestScenarios = {
      .filename = "test.tar.xz",
      .tools = {"tar", "xz"},
      .cmd = "/usr/bin/tar xJf"},
+    {.test_name = "tar.lz",
+     .type = ArchiveType::TarLz,
+     .test_dir = "test_tar_lz",
+     .filename = "test.tar.lz",
+     .tools = {"tar", "lzip"},
+     .cmd = "/usr/bin/tar --lzip -x -f"},
+    {.test_name = "tar.lzma",
+     .type = ArchiveType::TarLzma,
+     .test_dir = "test_tar_lzma",
+     .filename = "test.tar.lzma",
+     .tools = {"tar", "lzma"},
+     .cmd = "/usr/bin/tar --lzma -x -f"},
     {.test_name = "zip",
      .type = ArchiveType::Zip,
      .test_dir = "test_zip",
@@ -138,6 +150,8 @@ void extract_archive(std::string const& path) {
     REQUIRE(archive_read_support_filter_gzip(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_filter_bzip2(a) == ARCHIVE_OK);
     REQUIRE(archive_read_support_filter_xz(a) == ARCHIVE_OK);
+    REQUIRE(archive_read_support_filter_lzip(a) == ARCHIVE_OK);
+    REQUIRE(archive_read_support_filter_lzma(a) == ARCHIVE_OK);
     REQUIRE(archive_read_open_filename(a, path.c_str(), kBlockSize) ==
             ARCHIVE_OK);
 
@@ -224,6 +238,14 @@ void enable_write_format_and_filter(archive* aw, ArchiveType type) {
             REQUIRE(archive_write_set_format_pax_restricted(aw) == ARCHIVE_OK);
             REQUIRE(archive_write_add_filter_xz(aw) == ARCHIVE_OK);
         } break;
+        case ArchiveType::TarLz: {
+            REQUIRE(archive_write_set_format_pax_restricted(aw) == ARCHIVE_OK);
+            REQUIRE(archive_write_add_filter_lzip(aw) == ARCHIVE_OK);
+        } break;
+        case ArchiveType::TarLzma: {
+            REQUIRE(archive_write_set_format_pax_restricted(aw) == ARCHIVE_OK);
+            REQUIRE(archive_write_add_filter_lzma(aw) == ARCHIVE_OK);
+        } break;
         case ArchiveType::TarAuto:
             return;  // unused
     }
@@ -248,6 +270,14 @@ void enable_read_format_and_filter(archive* ar, ArchiveType type) {
         case ArchiveType::TarXz: {
             REQUIRE(archive_read_support_format_tar(ar) == ARCHIVE_OK);
             REQUIRE(archive_read_support_filter_xz(ar) == ARCHIVE_OK);
+        } break;
+        case ArchiveType::TarLz: {
+            REQUIRE(archive_read_support_format_tar(ar) == ARCHIVE_OK);
+            REQUIRE(archive_read_support_filter_lzip(ar) == ARCHIVE_OK);
+        } break;
+        case ArchiveType::TarLzma: {
+            REQUIRE(archive_read_support_format_tar(ar) == ARCHIVE_OK);
+            REQUIRE(archive_read_support_filter_lzma(ar) == ARCHIVE_OK);
         } break;
         case ArchiveType::TarAuto:
             return;  // unused
@@ -311,6 +341,7 @@ TEST_CASE("Read-write archives", "[archive_read_write]") {
             tools_exist &= FileSystemManager::IsExecutable(
                 std::string("/usr/bin/") + tool);
         }
+
         if (tools_exist) {
             SECTION("Extract via system tools") {
                 REQUIRE(
