@@ -59,6 +59,10 @@ auto enable_write_filter(archive* aw, ArchiveType type) -> bool {
             return (archive_write_add_filter_bzip2(aw) == ARCHIVE_OK);
         case ArchiveType::TarXz:
             return (archive_write_add_filter_xz(aw) == ARCHIVE_OK);
+        case ArchiveType::TarLz:
+            return (archive_write_add_filter_lzip(aw) == ARCHIVE_OK);
+        case ArchiveType::TarLzma:
+            return (archive_write_add_filter_lzma(aw) == ARCHIVE_OK);
         default:
             return false;
     }
@@ -74,6 +78,10 @@ auto enable_read_filter(archive* ar, ArchiveType type) -> bool {
             return (archive_read_support_filter_bzip2(ar) == ARCHIVE_OK);
         case ArchiveType::TarXz:
             return (archive_read_support_filter_xz(ar) == ARCHIVE_OK);
+        case ArchiveType::TarLz:
+            return (archive_read_support_filter_lzip(ar) == ARCHIVE_OK);
+        case ArchiveType::TarLzma:
+            return (archive_read_support_filter_lzma(ar) == ARCHIVE_OK);
         case ArchiveType::TarAuto:
             return (archive_read_support_filter_all(ar) == ARCHIVE_OK);
         default:
@@ -137,7 +145,9 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
         case ArchiveType::Tar:
         case ArchiveType::TarGz:
         case ArchiveType::TarBz2:
-        case ArchiveType::TarXz: {
+        case ArchiveType::TarXz:
+        case ArchiveType::TarLz:
+        case ArchiveType::TarLzma: {
             if ((archive_write_set_format_pax_restricted(aw) != ARCHIVE_OK) or
                 not enable_write_filter(aw, type)) {
                 return std::string("ArchiveOps: ") +
@@ -164,7 +174,9 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
         case ArchiveType::Tar:
         case ArchiveType::TarGz:
         case ArchiveType::TarBz2:
-        case ArchiveType::TarXz: {
+        case ArchiveType::TarXz:
+        case ArchiveType::TarLz:
+        case ArchiveType::TarLzma: {
             if ((archive_read_support_format_tar(ar) != ARCHIVE_OK) or
                 not enable_read_filter(ar, type)) {
                 return std::string("ArchiveOps: ") +

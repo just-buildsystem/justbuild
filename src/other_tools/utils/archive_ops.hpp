@@ -31,6 +31,8 @@ enum class ArchiveType : size_t {
     TarGz,
     TarBz2,
     TarXz,
+    TarLz,
+    TarLzma,
     TarAuto,  // autodetect tarball-type archives
 };
 
