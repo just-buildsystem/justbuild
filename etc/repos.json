@@ -456,11 +456,11 @@
   , "com_github_libarchive_libarchive":
     { "repository":
       { "type": "archive"
-      , "content": "2dafab016d6338086925fd04dbaa6a18bd24cb31"
-      , "fetch": "https://github.com/libarchive/libarchive/releases/download/v3.6.2/libarchive-3.6.2.tar.gz"
-      , "sha256": "ba6d02f15ba04aba9c23fd5f236bb234eab9d5209e95d1c4df85c44d5f19b9b3"
-      , "sha512": "24e476465054a29a2d48adf3c197a171b5361fa5038729a1f14d578c6701424de4e5dd6a2b20a6b697969ab43bdd8afc1585f8de0465c266f455d7eaa19e5048"
-      , "subdir": "libarchive-3.6.2"
+      , "content": "922b6c729d391c010ffa6228134c164886bac0f1"
+      , "fetch": "https://github.com/libarchive/libarchive/releases/download/v3.7.1/libarchive-3.7.1.tar.gz"
+      , "sha256": "5d24e40819768f74daf846b99837fc53a3a9dcdf3ce1c2003fe0596db850f0f0"
+      , "sha512": "ccd36fc5e24e5feaad15b08496c4f6373f1bbb6ba657af5dc633b9d1454c98aba9a59ccffc48b41afc1219119d46c15d4db09c5855950422946e4dc058f17b88"
+      , "subdir": "libarchive-3.7.1"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.archive"

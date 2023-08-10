@@ -58,6 +58,7 @@
           , "errno.h"
           , "ext2fs/ext2_fs.h"
           , "fcntl.h"
+          , "fnmatch.h"
           , "grp.h"
           , "inttypes.h"
           , "io.h"
@@ -92,6 +93,7 @@
           , "sys/mount.h"
           , "sys/param.h"
           , "sys/poll.h"
+          , "sys/queue.h"
           , "sys/richacl.h"
           , "sys/select.h"
           , "sys/stat.h"
@@ -112,7 +114,7 @@
           , "windows.h"
           , "wincrypt.h"
           , "winioctl.h"
-          , "Bcrypt.h"
+          , "bcrypt.h"
           , "mbedtls/aes.h"
           , "mbedtls/md.h"
           , "mbedtls/pkcs5.h"
@@ -141,6 +143,7 @@
           , "libxml/xmlwriter.h"
           , "assert.h"
           , "sys/richacl.h"
+          , "getopt.h"
           ]
         ]
       , [ "defines1"
@@ -259,6 +262,7 @@
               , ["HAVE_ERRNO_H", "errno.h"]
               , ["HAVE_EXT2FS_EXT2_FS_H", "ext2fs/ext2_fs.h"]
               , ["HAVE_FCNTL_H", "fcntl.h"]
+              , ["HAVE_FNMATCH_H", "fnmatch.h"]
               , ["HAVE_GRP_H", "grp.h"]
               , ["HAVE_INTTYPES_H", "inttypes.h"]
               , ["HAVE_IO_H", "io.h"]
@@ -293,6 +297,7 @@
               , ["HAVE_SYS_MOUNT_H", "sys/mount.h"]
               , ["HAVE_SYS_PARAM_H", "sys/param.h"]
               , ["HAVE_SYS_POLL_H", "sys/poll.h"]
+              , ["HAVE_SYS_QUEUE_H", "sys/queue.h"]
               , ["HAVE_SYS_RICHACL_H", "sys/richacl.h"]
               , ["HAVE_SYS_SELECT_H", "sys/select.h"]
               , ["HAVE_SYS_STAT_H", "sys/stat.h"]
@@ -317,6 +322,10 @@
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_ZLIB"}
               , "then": [["HAVE_ZLIB_H", "zlib.h"]]
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ENABLE_OPENSSL"}
+              , "then": [["HAVE_OPENSSL_EVP_H", "openssl/evp.h"]]
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_BZip2"}
@@ -347,7 +356,7 @@
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_CNG"}
-              , "then": [["HAVE_BCRYPT_H", "Bcrypt.h"]]
+              , "then": [["HAVE_BCRYPT_H", "bcrypt.h"]]
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_MBEDTLS"}
@@ -475,6 +484,9 @@
               , [ "HAVE_FDOPENDIR"
                 , ["fdopendir", {"type": "var", "name": "sys_hdrs"}]
                 ]
+              , [ "HAVE_FNMATCH"
+                , ["fnmatch", {"type": "var", "name": "sys_hdrs"}]
+                ]
               , ["HAVE_FORK", ["fork", {"type": "var", "name": "sys_hdrs"}]]
               , ["HAVE_FSTAT", ["fstat", {"type": "var", "name": "sys_hdrs"}]]
               , [ "HAVE_FSTATAT"
@@ -503,6 +515,9 @@
                 ]
               , [ "HAVE_GETGRGID_R"
                 , ["getgrgid_r", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , [ "HAVE_GETGRNAM_R"
+                , ["getgrnam_r", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_GETGRNAM_R"
                 , ["getgrnam_r", {"type": "var", "name": "sys_hdrs"}]
@@ -654,15 +669,10 @@
               , [ "HAVE__GET_TIMEZONE"
                 , ["_get_timezone", {"type": "var", "name": "sys_hdrs"}]
                 ]
-              , [ "HAVE__GMTIME64_S"
-                , ["_gmtime64_s", {"type": "var", "name": "sys_hdrs"}]
-                ]
-              , [ "HAVE__LOCALTIME64_S"
-                , ["_localtime64_s", {"type": "var", "name": "sys_hdrs"}]
-                ]
-              , [ "HAVE__MKGMTIME64"
-                , ["_mkgmtime64", {"type": "var", "name": "sys_hdrs"}]
-                ]
+              , ["HAVE_CTIME_S", ["ctime_s", ["time.h"]]]
+              , ["HAVE_GMTIME_S", ["gmtime_s", ["time.h"]]]
+              , ["HAVE_LOCALTIME_S", ["localtime_s", ["time.h"]]]
+              , ["HAVE__MKGMTIME", ["_mkgmtime", ["time.h"]]]
               ]
             , { "type": "if"
               , "cond":
@@ -717,6 +727,7 @@
               , ["HAVE_READDIR_R", ["readdir_r", ["dirent.h"]]]
               , ["HAVE_DIRFD", ["dirfd", ["dirent.h"]]]
               , ["HAVE_READLINKAT", ["readlinkat", ["fcntl.h", "unistd.h"]]]
+              , ["HAVE_GETOPT_OPTRESET", ["optreset", ["getopt.h"]]]
               , ["MAJOR_IN_MKDEV", ["major", ["sys/mkdev.h"]]]
               , ["MAJOR_IN_SYSMACROS", ["major", ["sys/sysmacros.h"]]]
               ]
@@ -825,12 +836,22 @@
                   , {"type": "var", "name": "sys_hdrs"}
                   ]
                 ]
-              , [ "TIME_WITH_SYS_TIME"
+              , [ "HAVE_SYS_TIME_H"
                 , [ "((struct tm*)NULL)->tm_sec"
                   , {"type": "var", "name": "sys_hdrs"}
                   ]
                 ]
               ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "ENABLE_OPENSSL"}
+              , "then":
+                [ [ "HAVE_PKCS5_PBKDF2_HMAC_SHA1"
+                  , [ "PKCS5_PBKDF2_HMAC_SHA1"
+                    , {"type": "var", "name": "sys_hdrs"}
+                    ]
+                  ]
+                ]
+              }
             , { "type": "if"
               , "cond": {"type": "var", "name": "ENABLE_LZMA"}
               , "then":
