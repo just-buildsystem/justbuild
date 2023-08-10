@@ -126,29 +126,39 @@
       }
     }
   }
-, "defaults-base-provides":
-  { "doc": ["Query list-provider from 'base' targets (last wins)"]
+, "defaults-base-provides-list":
+  { "doc": ["Query list of providers from 'base' targets"]
   , "vars": ["provider", "default"]
   , "vars_doc":
-    { "provider": ["The name of the list-provider in the provides map."]
+    { "provider": ["The name of the provider in the provides map."]
     , "default": ["The default if provider is missing (default: [])."]
     }
   , "imports": {"provider_list": ["./", "..", "field_provider_list"]}
   , "expression":
     { "type": "let*"
     , "bindings": [["fieldname", "base"]]
+    , "body": {"type": "CALL_EXPRESSION", "name": "provider_list"}
+    }
+  }
+, "defaults-base-provides":
+  { "doc": ["Query provider from 'base' targets (last wins)"]
+  , "vars": ["provider", "default"]
+  , "vars_doc":
+    { "provider": ["The name of the provider in the provides map."]
+    , "default": ["The default if provider is missing (default: [])."]
+    }
+  , "imports": {"base-provides-list": "defaults-base-provides-list"}
+  , "expression":
+    { "type": "foldl"
+    , "var": "next"
+    , "start": {"type": "var", "name": "default", "default": []}
+    , "accum_var": "curr"
+    , "range": {"type": "CALL_EXPRESSION", "name": "base-provides-list"}
     , "body":
-      { "type": "foldl"
-      , "var": "next"
-      , "start": {"type": "var", "name": "default", "default": []}
-      , "accum_var": "curr"
-      , "range": {"type": "CALL_EXPRESSION", "name": "provider_list"}
-      , "body":
-        { "type": "if"
-        , "cond": {"type": "var", "name": "next"}
-        , "then": {"type": "var", "name": "next"}
-        , "else": {"type": "var", "name": "curr"}
-        }
+      { "type": "if"
+      , "cond": {"type": "var", "name": "next"}
+      , "then": {"type": "var", "name": "next"}
+      , "else": {"type": "var", "name": "curr"}
       }
     }
   }
