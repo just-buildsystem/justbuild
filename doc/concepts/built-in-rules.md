@@ -140,6 +140,23 @@ of the `"tree"` target are a singleton map with the key the result of
 evaluating `"name"` (which has to evaluate to a single string) and value
 that tree.
 
+`"symlink"`
+------------
+
+The `"symlink"` rule allows to specify a non-upwards symbolic link with a
+given link target. To be able to accurately report about file names of
+artifacts or runfiles of other targets, they can be specified in the field
+`"deps"` which has to evaluate to a list of targets. The names of the
+artifacts and runfiles of a target specified in `"deps"` can be accessed
+through the functions `"outs"` and `"runfiles"`, respectively, during the
+evaluation of the arguments `"name"` and `"data"` which have to evaluate to
+a single string.
+
+Artifacts and runfiles of a `"symlink"` target are a singleton map with
+key the result of evaluating `"name"` and value a non-upwards symbolic link
+with target path the result of evaluating `"data"` (which must evaluate to
+a non-upwards path). The provides map is empty.
+
 `"configure"`
 -------------
 

@@ -118,6 +118,9 @@ permissions. As such, they locally use the existing file CAS. Remotely, the
 existing execution protocol already allows the handling of symbolic links via
 corresponding Protobuf messages, therefore no extensions are needed.
 
+Additionally, the built-in rules are extended with a `"symlink"` target,
+allowing the generation of a symlink with given non-upwards target path.
+
 ### Import resolved `git`-trees
 
 Finally, to be as flexible as possible in handling external repositories with
