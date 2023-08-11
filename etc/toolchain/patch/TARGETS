@@ -1,0 +1,6 @@
+{ "defaults":
+  { "type": ["patch", "defaults"]
+  , "PATCH": ["patch"]
+  , "PATH": ["/bin", "/usr/bin"]
+  }
+}

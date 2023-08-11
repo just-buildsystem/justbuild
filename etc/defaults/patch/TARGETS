@@ -1,0 +1,5 @@
+{ "defaults":
+  { "type": ["patch", "defaults"]
+  , "base": [["@", "toolchain", "patch", "defaults"]]
+  }
+}
