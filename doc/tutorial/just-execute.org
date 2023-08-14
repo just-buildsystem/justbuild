@@ -77,7 +77,7 @@ Hello from \LaTeX!
 
 In this first example, we simply call ~just execute~ and the
 environment of the caller is made available. We therefore recommend to
-have a dedicated non-priviledged ~build~ user to run the execution
+have a dedicated non-privileged ~build~ user to run the execution
 service. In the following, we will use ~%~ to indicate the prompt of
 the ~build~ user, ~$~ for a /normal/ user.
 
@@ -98,7 +98,7 @@ to a different build tool.
 
 To use it, as a /normal/ user, on a different shell type
 #+BEGIN_SRC bash
-$ just [...] -r localhost:<N> 
+$ just [...] -r localhost:<N>
 #+END_SRC
 Let's run these commands to understand the output.
 
@@ -155,7 +155,7 @@ INFO: execution service started: {"interface":"127.0.0.1","pid":7680,"port":4411
 #+END_SRC
 
 #+BEGIN_SRC bash
-$ cat /tmp/foo.json 
+$ cat /tmp/foo.json
 {"interface":"127.0.0.1","pid":7680,"port":44115}
 #+END_SRC
 
@@ -210,7 +210,7 @@ On the other hand, if the clients will connect from a different
 machine, and ~just execute~ will use a different interface (see [[Expose
 a particular interface]] below), the steps are a bit more involved. We
 need an additional configuration file where we state the ip address of
-the used interface. For example, if the interface ip address is 
+the used interface. For example, if the interface ip address is
 ~192.168.1.14~, we will write
 #+BEGIN_SRC bash
 % cat << EOF > ssl-ext-x509.cnf
@@ -275,7 +275,7 @@ scenarios.
 
 This short tutorial will use ~debootstrap~ and ~schroot~ to create and
 enter the chroot environment. Of course, different strategies/programs
-can be used. 
+can be used.
 
 ***** Prepare the root file system
 Install debian bullseye in directory ~/chroot/bullseye-latex~
@@ -343,7 +343,7 @@ which should report
 #+BEGIN_SRC bash
 INFO: Performing repositories setup
 INFO: Found 2 repositories to set up
-INFO: Setup finished, exec ["just","install","-C","/home/alberto/.cache/just/protocol-dependent/generation-0/git-sha1/casf/c0/086f5dc35e084224781becfedb11baee8e9e24","-o",".","-r","localhost:8080"]
+INFO: Setup finished, exec ["just","install","-C","...","-o",".","-r","localhost:8080"]
 INFO: Requested target is [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
 INFO: Analysed target [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching

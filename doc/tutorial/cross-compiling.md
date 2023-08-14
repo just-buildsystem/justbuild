@@ -1,4 +1,4 @@
-Cros compiling and testing cross-compiled targets
+Cross compiling and testing cross-compiled targets
 ==================================================
 
 So far, we were always building for the platform on which we were
@@ -31,7 +31,7 @@ Let's start a new project.
 $ touch ROOT
 ```
 
-We create a file `reposs.template.json` specifying the one local repository.
+We create a file `repos.template.json` specifying the one local repository.
 ``` {.jsonc srcname="repos.template.json"}
 { "repositories":
   { "":
@@ -90,7 +90,7 @@ To cross compile, we simply add `TARGET_ARCH`.
 $ just-mr build -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}'
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","/home/aehlig/.cache/just/protocol-dependent/generation-0/git-sha1/casf/8c/c5d925c6d230e233f0e89107c8edb22d699063","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}"]
+INFO: Setup finished, exec ["just","build","-C","...","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}"]
 INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
 INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
@@ -185,14 +185,14 @@ $
 ```
 
 The reason is that a test actually has to run the created binary
-and that requires a build enviroment of the target architecture.
-So, if not being told how to obtain such an environemt, they carry
-out the test in the best mannor they can, i.e., by transitioning
+and that requires a build environment of the target architecture.
+So, if not being told how to obtain such an environment, they carry
+out the test in the best manner they can, i.e., by transitioning
 everything to host. So, in order to properly test the cross-compiled
 binary, we need to do two things.
 
 - We need to setup remote execution on the correct architecture,
-  either by buying the apropriate hardware, or by running an emulator.
+  either by buying the appropriate hardware, or by running an emulator.
 - We need to tell `justbuild` on how to reach that endpoint.
 
 To continue the example, let's say we set up an `arm64` machine,
@@ -220,7 +220,7 @@ map have the same value in the remote-execution properties of the
 action (in particular, `{}` matches everything); so more specific
 dispatches have to be specified earlier in the list. In our case,
 we have a single endpoint in our private network that we should
-use whenever the propterty `"runnner"` has value `"arm64-worker"`.
+use whenever the property `"runner"` has value `"arm64-worker"`.
 The IP/port specification might differ in your setup. The path to
 this file is passed by the `--endpoint-configuration` option.
 
@@ -267,7 +267,7 @@ $
 
 The resulting command line might look complicated, but the
 authentication-related options, as well as the dispatch-related
-otpions (including setting `ARGUMENTS_DISPATCH` via `-D`) can simply
+options (including setting `ARGUMENTS_DISPATCH` via `-D`) can simply
 be set in the `"just args"` entry of the `.just-mrrc` file.
 
 When inspecting the result, we can use `just install-cas` as usual,
