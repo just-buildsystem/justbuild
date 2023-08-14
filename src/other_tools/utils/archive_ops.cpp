@@ -66,16 +66,16 @@ auto enable_write_filter(archive* aw, ArchiveType type) -> bool {
 
 auto enable_read_filter(archive* ar, ArchiveType type) -> bool {
     switch (type) {
-        case ArchiveType::Tar:  // autodetect from supported compression filters
-            return (archive_read_support_filter_xz(ar) == ARCHIVE_OK) and
-                   (archive_read_support_filter_gzip(ar) == ARCHIVE_OK) and
-                   (archive_read_support_filter_bzip2(ar) == ARCHIVE_OK);
+        case ArchiveType::Tar:
+            return true;  // no compression filter
         case ArchiveType::TarGz:
             return (archive_read_support_filter_gzip(ar) == ARCHIVE_OK);
         case ArchiveType::TarBz2:
             return (archive_read_support_filter_bzip2(ar) == ARCHIVE_OK);
         case ArchiveType::TarXz:
             return (archive_read_support_filter_xz(ar) == ARCHIVE_OK);
+        case ArchiveType::TarAuto:
+            return (archive_read_support_filter_all(ar) == ARCHIVE_OK);
         default:
             return false;
     }
@@ -144,6 +144,9 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
                        std::string(archive_error_string(aw));
             }
         } break;
+        case ArchiveType::TarAuto:
+            return std::string(
+                "ArchiveOps: Writing a tarball-type archive must be explicit!");
     }
     return std::nullopt;  // success!
 }
@@ -157,6 +160,7 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
                        std::string(archive_error_string(ar));
             }
         } break;
+        case ArchiveType::TarAuto:
         case ArchiveType::Tar:
         case ArchiveType::TarGz:
         case ArchiveType::TarBz2:

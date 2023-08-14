@@ -25,7 +25,14 @@ using archive = struct archive;
 using archive_entry = struct archive_entry;
 }
 
-enum class ArchiveType : size_t { Zip, Tar, TarGz, TarBz2, TarXz };
+enum class ArchiveType : size_t {
+    Zip,
+    Tar,  // uncompressed
+    TarGz,
+    TarBz2,
+    TarXz,
+    TarAuto,  // autodetect tarball-type archives
+};
 
 /// \brief Class handling archiving and unarchiving operations via libarchive
 class ArchiveOps {
