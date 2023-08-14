@@ -35,7 +35,8 @@ namespace {
             ArchiveType::TarAuto, archive, dst_dir);
     }
     if (repo_type == "zip") {
-        return ArchiveOps::ExtractArchive(ArchiveType::Zip, archive, dst_dir);
+        return ArchiveOps::ExtractArchive(
+            ArchiveType::ZipAuto, archive, dst_dir);
     }
     return "unrecognized repository type";
 }

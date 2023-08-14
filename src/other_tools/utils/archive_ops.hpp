@@ -28,7 +28,8 @@ using archive_entry = struct archive_entry;
 enum class ArchiveType : size_t {
     Zip,
     _7Zip,
-    Tar,  // uncompressed
+    ZipAuto,  // autodetect zip-like archives
+    Tar,      // uncompressed
     TarGz,
     TarBz2,
     TarXz,

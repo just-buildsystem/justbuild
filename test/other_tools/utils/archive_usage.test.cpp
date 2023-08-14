@@ -256,6 +256,7 @@ void enable_write_format_and_filter(archive* aw, ArchiveType type) {
             REQUIRE(archive_write_set_format_pax_restricted(aw) == ARCHIVE_OK);
             REQUIRE(archive_write_add_filter_lzma(aw) == ARCHIVE_OK);
         } break;
+        case ArchiveType::ZipAuto:
         case ArchiveType::TarAuto:
             return;  // unused
     }
@@ -292,6 +293,7 @@ void enable_read_format_and_filter(archive* ar, ArchiveType type) {
             REQUIRE(archive_read_support_format_tar(ar) == ARCHIVE_OK);
             REQUIRE(archive_read_support_filter_lzma(ar) == ARCHIVE_OK);
         } break;
+        case ArchiveType::ZipAuto:
         case ArchiveType::TarAuto:
             return;  // unused
     }

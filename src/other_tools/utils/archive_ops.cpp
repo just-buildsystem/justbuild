@@ -148,6 +148,10 @@ auto ArchiveOps::EnableWriteFormats(archive* aw, ArchiveType type)
                        std::string(archive_error_string(aw));
             }
         } break;
+        case ArchiveType::ZipAuto: {
+            return std::string(
+                "ArchiveOps: Writing a zip-like archive must be explicit");
+        }
         case ArchiveType::Tar:
         case ArchiveType::TarGz:
         case ArchiveType::TarBz2:
@@ -178,6 +182,16 @@ auto ArchiveOps::EnableReadFormats(archive* ar, ArchiveType type)
         } break;
         case ArchiveType::_7Zip: {
             if (archive_read_support_format_7zip(ar) != ARCHIVE_OK) {
+                return std::string("ArchiveOps: ") +
+                       std::string(archive_error_string(ar));
+            }
+        } break;
+        case ArchiveType::ZipAuto: {
+            if (archive_read_support_format_7zip(ar) != ARCHIVE_OK) {
+                return std::string("ArchiveOps: ") +
+                       std::string(archive_error_string(ar));
+            }
+            if (archive_read_support_format_zip(ar) != ARCHIVE_OK) {
                 return std::string("ArchiveOps: ") +
                        std::string(archive_error_string(ar));
             }
