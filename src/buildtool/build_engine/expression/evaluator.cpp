@@ -167,6 +167,24 @@ auto Enumerate(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{Expression::map_t{result}};
 }
 
+auto Set(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{
+            fmt::format("set expects list of strings but instead got: {}.",
+                        expr->ToString())};
+    }
+    auto result = Expression::map_t::underlying_map_t{};
+    for (auto const& entry : expr->List()) {
+        if (not entry->IsString()) {
+            throw Evaluator::EvaluationError{
+                fmt::format("set expects list of strings found entry: {}.",
+                            entry->ToString())};
+        }
+        result[entry->String()] = Expression::kTrue;
+    }
+    return ExpressionPtr{Expression::map_t{result}};
+}
+
 auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
     if (not expr->IsList()) {
         throw Evaluator::EvaluationError{fmt::format(
@@ -938,6 +956,7 @@ auto const kBuiltInFunctions =
                           {"escape_chars", EscapeCharsExpr},
                           {"keys", UnaryExpr(Keys)},
                           {"enumerate", UnaryExpr(Enumerate)},
+                          {"set", UnaryExpr(Set)},
                           {"values", UnaryExpr(Values)},
                           {"lookup", LookupExpr},
                           {"empty_map", EmptyMapExpr},

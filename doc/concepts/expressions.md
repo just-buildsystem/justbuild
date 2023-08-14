@@ -249,6 +249,10 @@ those) argument(s) to obtain the final result.
    same iteration order as the list for all lists indexable by
    32-bit integers.
 
+- `"set"` The argument has to be a list of strings. The result is
+  a map with the members of the list as keys, and all values being
+  `true`.
+
  - `"++"` The argument has to be a list of lists. The result is
    the concatenation of those lists.
 
