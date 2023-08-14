@@ -13,6 +13,7 @@ A feature release on top of `1.1.0`, backwards compatible.
 - Relative non-upwards symbolic links are now treated as first-class
   objects. This introduces a new artifact type and allows the free use
   of such symbolic links throughout the build process.
+- `just-mr` can now optionally resolve symlinks contained in archives.
 
 ### Other changes
 
@@ -24,6 +25,8 @@ A feature release on top of `1.1.0`, backwards compatible.
   garbage collection.
 - `just-mr` now supports unpacking tar archives compressed with
   bzip2 and xz.
+- The option `-P` of `build` and `install-cas` can be used to
+  inspect parts of a tree.
 
 ### Fixes
 
