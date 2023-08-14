@@ -357,6 +357,13 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     // read distdirs; user can append, but does not overwrite
     auto distdirs = rc_config["distdirs"];
     if (distdirs.IsNotNull()) {
+        if (not distdirs->IsList()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-file provided distdirs has to be a list "
+                        "of strings, but found {}",
+                        distdirs->ToString());
+            std::exit(kExitConfigError);
+        }
         auto const& distdirs_list = distdirs->List();
         for (auto const& l : distdirs_list) {
             auto paths =
@@ -393,9 +400,25 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     // read additional just args; user can append, but does not overwrite
     auto just_args = rc_config["just args"];
     if (just_args.IsNotNull()) {
+        if (not just_args->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-file provided 'just' arguments has to "
+                        "be a map, but found {}",
+                        just_args->ToString());
+            std::exit(kExitConfigError);
+        }
         for (auto const& [cmd_name, cmd_args] : just_args->Map()) {
             // get list of string args for current command
             std::vector<std::string> args{};
+            if (not cmd_args->IsList()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Configuration-file provided 'just' argument key {} has to "
+                    "have as value a list of strings, but found {}",
+                    cmd_name,
+                    cmd_args->ToString());
+                std::exit(kExitConfigError);
+            }
             auto const& args_list = cmd_args->List();
             args.reserve(args_list.size());
             for (auto const& arg : args_list) {
@@ -410,8 +433,8 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
         if (launcher.IsNotNull()) {
             if (not launcher->IsList()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-file provided launcher {} is not a "
-                            "list of strings",
+                            "Configuration-file provided launcher has to be a "
+                            "list of strings, but found {}",
                             launcher->ToString());
                 std::exit(kExitConfigError);
             }
