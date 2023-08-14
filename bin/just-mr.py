@@ -449,9 +449,21 @@ def archive_checkout(desc, repo_type="archive"):
         try_rmtree(target_tmp)
     os.makedirs(target_tmp)
     if repo_type == "zip":
-        run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target_tmp)
+        try:
+            run_cmd(["unzip", "-d", ".", cas_path(content_id)], cwd=target_tmp)
+        except:
+            try:
+                run_cmd(["7z", "x", cas_path(content_id)], cwd=target_tmp)
+            except:
+                print("Failed to extract zip-like archive %s" %
+                      (cas_path(content_id), ))
+                sys.exit(1)
     else:
-        run_cmd(["tar", "xf", cas_path(content_id)], cwd=target_tmp)
+        try:
+            run_cmd(["tar", "xf", cas_path(content_id)], cwd=target_tmp)
+        except:
+            print("Failed to extract tarball %s" % (cas_path(content_id), ))
+            sys.exit(1)
     if ALWAYS_FILE:
         move_to_place(target_tmp, target)
         return ["file", subdir_path(target, desc)]
