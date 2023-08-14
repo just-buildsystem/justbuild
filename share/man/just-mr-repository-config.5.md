@@ -43,9 +43,9 @@ The following fields are supported:
 ### *`"archive"`* / *`"zip"`*
 
 They define as workspace root a remote archive. The only difference
-between the two types is the nature of the archive: a compressed tarball
-in the case of *`"archive"`*, or a compressed zip file in the case of
-*`"zip"`*.
+between the two types is the nature of the archive: a tarball (preferably
+compressed) in the case of *`"archive"`*, or a compressed zip or 7zip file
+in the case of *`"zip"`*.
 
 The following fields are supported:
 
