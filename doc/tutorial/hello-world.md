@@ -92,8 +92,10 @@ strings or a list of targets, we have to specify the name as a list
 (this rule will simply concatenate all strings given in this field).
 Furthermore, at least one input to the binary is required, which can be
 specified via the target fields `"srcs"` or `"deps"`. In our case, the
-former is used, which contains our single source file (files are
-considered targets).
+former is used, which contains our single source file. Source files are
+also targets, but, as seen in the "Getting Started" section, not the only
+ones; instead of naming a source file, we could also have specified a
+`"generic"` target generating one (or many) of the sources of our binary.
 
 Now, the last file that is missing is the actual source file `main.cpp`:
 
