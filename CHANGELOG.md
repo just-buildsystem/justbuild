@@ -24,9 +24,11 @@ A feature release on top of `1.1.0`, backwards compatible.
   directories of `just-mr`, will eventually get cleaned up by
   garbage collection.
 - `just-mr` now supports unpacking tar archives compressed with
-  bzip2 and xz.
+  bzip2, xz, lzip, and lzma.
 - The option `-P` of `build` and `install-cas` can be used to
   inspect parts of a tree.
+- `just-mr` now supports unpacking 7zip archives (with default
+  compression) when provided as `"zip"` type repositories.
 
 ### Fixes
 
