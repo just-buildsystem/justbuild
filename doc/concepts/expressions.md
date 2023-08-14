@@ -253,6 +253,9 @@ those) argument(s) to obtain the final result.
   a map with the members of the list as keys, and all values being
   `true`.
 
+- `"reverse"` The argument has to be a list. The result is a new list
+  with the entries in reverse order.
+
  - `"++"` The argument has to be a list of lists. The result is
    the concatenation of those lists.
 

@@ -185,6 +185,16 @@ auto Set(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{Expression::map_t{result}};
 }
 
+auto Reverse(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "reverse expects list but instead got: {}.", expr->ToString())};
+    }
+    auto reverse_result = Expression::list_t(expr->List());
+    std::reverse(reverse_result.begin(), reverse_result.end());
+    return ExpressionPtr{reverse_result};
+}
+
 auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
     if (not expr->IsList()) {
         throw Evaluator::EvaluationError{fmt::format(
@@ -957,6 +967,7 @@ auto const kBuiltInFunctions =
                           {"keys", UnaryExpr(Keys)},
                           {"enumerate", UnaryExpr(Enumerate)},
                           {"set", UnaryExpr(Set)},
+                          {"reverse", UnaryExpr(Reverse)},
                           {"values", UnaryExpr(Values)},
                           {"lookup", LookupExpr},
                           {"empty_map", EmptyMapExpr},
