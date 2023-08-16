@@ -506,7 +506,7 @@ remote-execution endpoints based on the the execution properties.
 The format is a JSON list of pairs (lists of length two) of an object
 of strings and a string. The first entry describes a condition (the
 remote-execution properties have to agree on the domain of this
-object), the is remote-exeuction address in the NAME:PORT format as
+object), the is remote-execution address in the NAME:PORT format as
 for the **`-r`** option. The first matching entry (if any) is taken;
 in none matches the default execution endpoint is taken (either
 as specified by **`-r`**, or local execution if no endpoint is
