@@ -57,6 +57,11 @@ A feature release on top of `1.1.0`, backwards compatible.
 - `just install-cas` now, like `just install`, removes an existing
   destination file before installing instead of overwriting.
 
+## Release `1.2.0~beta1` (2023-08-16)
+
+First beta release for the upcoming `1.2.0` release; see release
+notes there.
+
 ## Release `1.1.0` (2023-05-19)
 
 A feature release on top of `1.0.0`, backwards compatible.
