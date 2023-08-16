@@ -6,9 +6,7 @@
     , "bindings":
       [ ["fieldname", "proto-defaults"]
       , ["provider", "PROTOC"]
-      , [ "transition"
-        , {"type": "var", "name": "defaults-transition", "default": null}
-        ]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
@@ -21,9 +19,7 @@
     , "bindings":
       [ ["fieldname", "proto-defaults"]
       , ["provider", "LDFLAGS"]
-      , [ "transition"
-        , {"type": "var", "name": "defaults-transition", "default": null}
-        ]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
@@ -36,9 +32,7 @@
     , "bindings":
       [ ["fieldname", "proto-defaults"]
       , ["provider", "GRPC_PLUGIN"]
-      , [ "transition"
-        , {"type": "var", "name": "defaults-transition", "default": null}
-        ]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
@@ -51,9 +45,7 @@
     , "bindings":
       [ ["fieldname", "proto-defaults"]
       , ["provider", "ENV"]
-      , [ "transition"
-        , {"type": "var", "name": "defaults-transition", "default": null}
-        ]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
       , ["default", {"type": "empty_map"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
@@ -67,9 +59,7 @@
     , "bindings":
       [ ["fieldname", "proto-defaults"]
       , ["provider", "TOOLCHAIN"]
-      , [ "transition"
-        , {"type": "var", "name": "defaults-transition", "default": null}
-        ]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
       , ["default", {"type": "empty_map"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
