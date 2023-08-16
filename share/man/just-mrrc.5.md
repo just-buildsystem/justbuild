@@ -87,6 +87,26 @@ The just-mrrc is given by a JSON object.
    objects, specifying additional log files, on top of those specified
    on the command line.
 
+ - The value for the key *`remote execution`* is a JSON object specifying the
+   remote execution options for **`just-mr`**.  
+   For subkey *`"address"`* the value is a string specifying the remote
+   execution address in a NAME:PORT format.  
+   For subkey *`compatible`* the value is a flag which specifies whether the
+   remote endpoint uses the original remote execution protocol.  
+   Each subkey value can be overwritten by its corresponding command-line
+   argument.
+
+ - The value for the key *`authentication`* is a JSON object specifying
+   client-side authentication options for **`just-mr`**.  
+   For subkey *`ca cert`* the value is a string specifying the path to a TLS CA
+   certificate.  
+   For subkey *`client cert`* the value is a string specifying the path to a
+   TLS client certificate.  
+   For subkey *`client key`* the value is a string specifying the path to a TLS
+   client key.  
+   Each subkey value can be overwritten by its corresponding command-line
+   argument.
+
  - The value for the key *`"just args"`* is a JSON object. Its keys are
    **`just`** subcommands and its value is a JSON list of strings. For the
    corresponding subcommand, these strings are prefixed to the **`just`**

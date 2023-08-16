@@ -117,6 +117,15 @@ archives (for which we verify the hash anyway) from remote.
 Path to the CA certificate bundle containing one or more certificates to
 be used to peer verify archive fetches from remote.
 
+**`-r`**, **`--remote-execution-address`** *`NAME`*:*`PORT`*  
+Address of a remote execution service. This is used as an intermediary fetch
+location for archives, between local CAS (or distdirs) and the network.
+
+**`--compatible`**  
+At increased computational effort, be compatible with the original remote build
+execution protocol. If a remote execution service address is provided, this 
+option can be used to match the artifacts expected by the remote endpoint.
+
 **`--just`** *`PATH`*  
 Name of the just binary in *`PATH`* or path to the just binary.  
 Default: *`"just"`*.
@@ -133,6 +142,24 @@ Default: *`"git"`*.
 
 **`--norc`**  
 Option to prevent reading any **`just-mrrc`**(5) file.
+
+Authentication options
+----------------------
+
+Only TLS and mutual TLS (mTLS) are supported.
+They mirror the **`just`**(1) options.
+
+**`--tls-ca-cert`** *`PATH`*  
+Path to a TLS CA certificate that is trusted to sign the server
+certificate.
+
+**`--tls-client-cert`** *`PATH`*  
+Path to a TLS client certificate to enable mTLS. It must be passed in
+conjunction with **`--tls-client-key`** and **`--tls-ca-cert`**.
+
+**`--tls-client-key`** *`PATH`*  
+Path to a TLS client key to enable mTLS. It must be passed in
+conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**.
 
 SUBCOMMANDS
 ===========
@@ -214,7 +241,8 @@ do
 This subcommand is used as the canonical way of specifying just
 arguments and calling **`just`** via **`execvp`**(2). Any subsequent argument
 is unconditionally forwarded to **`just`**. For *known* subcommands
-(**`version`**, **`describe`**, **`analyse`**, **`build`**, **`install`**, **`install-cas`**, **`rebuild`**), the
+(**`version`**, **`describe`**, **`analyse`**, **`build`**, **`install`**, 
+**`install-cas`**, **`rebuild`**, **`gc`**), the
 **`just-mr setup`** step is performed first for those commands accepting a
 configuration and the produced configuration is prefixed to the provided
 arguments. The main repository for the **`setup`** step can be provided in
@@ -230,6 +258,14 @@ messages will get overwritten.
 The **`--local-launcher`** argument is passed to **`just`** as early
 argument for those *known* subcommands that accept it (build, install,
 rebuild).
+
+The **`--remote-execution-address`** and **`--compatible`** arguments are passed
+to **`just`** as early arguments for those *known* subcommands that accept them
+(analyse, build, install-cas, install, rebuild, traverse).
+
+The *authentication options* given to **`just-mr`** are passed to **`just`** as
+early arguments for those *known* subcommands that accept them, according to
+**`just`**(1).
 
 **`version`**|**`describe`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`rebuild`**|**`gc`**
 -------------------------------------------------------------------------------------------------------------
