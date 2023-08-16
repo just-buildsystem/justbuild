@@ -86,7 +86,7 @@ $
 ```
 
 To cross compile, we simply add `TARGET_ARCH`.
-```
+``` sh
 $ just-mr build -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}'
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
