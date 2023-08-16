@@ -278,13 +278,13 @@ INFO: List of analysed targets:
 {
   "#": {
     "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}]
       }
     },
@@ -295,8 +295,8 @@ INFO: List of analysed targets:
     },
     "rules-cc/just/protobuf": {
       "": {
-        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "well_known_protos": [{}]
       }
     }
@@ -414,16 +414,16 @@ INFO: List of analysed targets:
 {
   "#": {
     "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}]
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}],
-        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TEST_ENV":null}],
+        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TEST_ENV":null,"TOOLCHAIN_CONFIG":null}],
         "test.sh": [{}]
       }
     },
@@ -434,8 +434,8 @@ INFO: List of analysed targets:
     },
     "rules-cc/just/protobuf": {
       "": {
-        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
-        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null}],
+        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "well_known_protos": [{}]
       }
     }

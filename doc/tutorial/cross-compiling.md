@@ -67,18 +67,18 @@ Then, our `TARGETS` file describe a simple binary, as usual.
 }
 ```
 
-As mentioned in the introduction, we need to specify `COMPILER_FAMILY`,
+As mentioned in the introduction, we need to specify `TOOLCHAIN_CONFIG`,
 `OS`, and `ARCH`. So the canonical building for host looks something like
 the following.
 ``` sh
-$ just-mr build -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64"}'
+$ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64"}'
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","...","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\"}"]
-INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux"}]
-INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux"}]
+INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\"}"]
+INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
-INFO: Building [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux"}].
+INFO: Building [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [0d5754a83c7c787b1c4dd717c8588ecef203fb72:16992:x]
@@ -87,14 +87,14 @@ $
 
 To cross compile, we simply add `TARGET_ARCH`.
 ``` sh
-$ just-mr build -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}'
+$ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}'
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","...","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}"]
-INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
-INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
+INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}"]
+INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
-INFO: Building [["@","","","helloworld"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}].
+INFO: Building [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [b45459ea3dd36c7531756a4de9aaefd6af30e417:9856:x]
@@ -104,10 +104,10 @@ $
 To inspect the different command lines for native and cross compilation,
 we can use `just analyse`.
 ``` sh
-$ just-mr analyse -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64"}' --dump-actions -
-$ just-mr analyse -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' --dump-actions -
-$ just-mr analyse -D '{"COMPILER_FAMILY": "clang", "OS": "linux", "ARCH": "x86_64"}' --dump-actions -
-$ just-mr analyse -D '{"COMPILER_FAMILY": "clang", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' --dump-actions -
+$ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64"}' --dump-actions -
+$ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' --dump-actions -
+$ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "clang"}, "OS": "linux", "ARCH": "x86_64"}' --dump-actions -
+$ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "clang"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' --dump-actions -
 ```
 
 
@@ -135,12 +135,12 @@ a file `test/TARGETS`.
 Now, if we try to run the test by simply specifying the target architecture,
 we find that the binary to be tested is still only built for host.
 ``` sh
-$ just-mr analyse --dump-targets - -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' test basic
+$ just-mr analyse --dump-targets - -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' test basic
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
-INFO: Setup finished, exec ["just","analyse","-C","...","--dump-targets","-","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}","test","basic"]
-INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
-INFO: Result of target [["@","","test","basic"],{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]: {
+INFO: Setup finished, exec ["just","analyse","-C","...","--dump-targets","-","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}","test","basic"]
+INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+INFO: Result of target [["@","","test","basic"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]: {
         "artifacts": {
           "result": {"data":{"id":"33eb2ebd2ea0d6d335dfc1f948d14d506a19f693","path":"result"},"type":"ACTION"},
           "stderr": {"data":{"id":"33eb2ebd2ea0d6d335dfc1f948d14d506a19f693","path":"stderr"},"type":"ACTION"},
@@ -159,23 +159,23 @@ INFO: List of analysed targets:
   "@": {
     "": {
       "": {
-        "helloworld": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"ARCH":"x86_64","BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":"gnu","CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":"linux","TARGET_ARCH":"x86_64"}]
+        "helloworld": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"ARCH":"x86_64","BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
       },
       "test": {
-        "basic": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"ARCH":"x86_64","ARCH_DISPATCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"COMPILER_FAMILY":"gnu","CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":"linux","RUNS_PER_TEST":null,"TARGET_ARCH":"arm64","TEST_ENV":null,"TIMEOUT_SCALE":null}],
+        "basic": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"ARCH":"x86_64","ARCH_DISPATCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":"linux","RUNS_PER_TEST":null,"TARGET_ARCH":"arm64","TEST_ENV":null,"TIMEOUT_SCALE":null,"TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}],
         "basic.sh": [{}]
       }
     },
     "rules-cc": {
       "CC": {
-        "defaults": [{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}]
+        "defaults": [{"ARCH":"x86_64","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
       }
     },
     "rules-cc/just/rules": {
       "CC": {
-        "defaults": [{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}],
+        "defaults": [{"ARCH":"x86_64","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}],
         "gcc": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}],
-        "toolchain": [{"ARCH":"x86_64","COMPILER_FAMILY":"gnu","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}]
+        "toolchain": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
       }
     }
   }
@@ -244,15 +244,15 @@ itself) which does not require any credentials; nevertheless, it
 still accepts any credentials provided.
 
 ``` sh
-$ just-mr build -D '{"COMPILER_FAMILY": "gnu", "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64", "ARCH_DISPATCH": {"arm64": {"runner": "arm64-worker"}}}' --endpoint-configuration dispatch.json --tls-ca-cert ca.crt --tls-client-cert client.crt --tls-client-key client.key test basic
+$ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64", "ARCH_DISPATCH": {"arm64": {"runner": "arm64-worker"}}}' --endpoint-configuration dispatch.json --tls-ca-cert ca.crt --tls-client-cert client.crt --tls-client-key client.key test basic
 INFO: Performing repositories setup
 INFO: Found 21 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","...","-D","{\"COMPILER_FAMILY\": \"gnu\", \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\", \"ARCH_DISPATCH\": {\"arm64\": {\"runner\": \"arm64-worker\"}}}","--endpoint-configuration","dispatch.json","--tls-ca-cert","ca.crt","--tls-client-cert","client.crt","--tls-client-key","client.key","test","basic"]
-INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
-INFO: Analysed target [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}]
+INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\", \"ARCH_DISPATCH\": {\"arm64\": {\"runner\": \"arm64-worker\"}}}","--endpoint-configuration","dispatch.json","--tls-ca-cert","ca.crt","--tls-client-cert","client.crt","--tls-client-key","client.key","test","basic"]
+INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+INFO: Analysed target [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Target tainted ["test"].
 INFO: Discovered 3 actions, 3 trees, 1 blobs
-INFO: Building [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"COMPILER_FAMILY":"gnu","OS":"linux","TARGET_ARCH":"arm64"}].
+INFO: Building [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}].
 INFO: Processed 3 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
