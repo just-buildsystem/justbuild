@@ -1,6 +1,6 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["TOOLCHAIN_CONFIG", "OS", "ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["TOOLCHAIN_CONFIG"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CXXFLAGS":
     { "type": "let*"
@@ -14,24 +14,6 @@
             }
           , "key": "FAMILY"
           , "default": "unknown"
-          }
-        ]
-      , [ "OS"
-        , { "type": "var"
-          , "name": "OS"
-          , "default":
-            {"type": "fail", "msg": "Required variable 'OS' is not set."}
-          }
-        ]
-      , [ "TARGET_ARCH"
-        , { "type": "var"
-          , "name": "TARGET_ARCH"
-          , "default":
-            { "type": "var"
-            , "name": "ARCH"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-            }
           }
         ]
       ]
