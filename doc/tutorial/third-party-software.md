@@ -3,11 +3,16 @@ Building Third-party Software
 
 Third-party projects usually ship with their own build description,
 which often happens to be not compatible with justbuild. Nevertheless,
-it is highly desireable to include external projects via their source
+it often is desireable to include external projects via their source
 code base, instead of relying on the integration of out-of-band binary
 distributions. justbuild offers a flexible approach to provide the
 required build description via an overlay layer without the need to
-touch the original code base.
+touch the original code base. This mechanism is independent of the
+actual justbuild description eventually used and the latter might
+well be a
+[rule calling the foreign buildsystem](https://github.com/just-buildsystem/rules-cc#rule-ccforeigncmake-library).
+In this section, however, we describe the cleaner approach of providing
+a native build description.
 
 For the remainder of this section, we expect to have the project files
 available resulting from successfully completing the tutorial section on
