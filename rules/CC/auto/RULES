@@ -1015,6 +1015,11 @@
     , "target configuration. In the usual case, a target using this rule is"
     , "configured by depending on it from a target that uses the built-in"
     , "\"configure\" rule."
+    , ""
+    , "The actual generation of the header file from the template"
+    , "is done by the implicit dependency on the \"runner\" target which"
+    , "can be changed globally by setting this target in the"
+    , "target layer of this repository."
     ]
   , "field_doc":
     { "output":
@@ -1045,7 +1050,7 @@
     , "last": "last_list_entry"
     , "stage_singleton_field": ["", "stage_singleton_field"]
     }
-  , "implicit": {"runner": ["config_runner.py"]}
+  , "implicit": {"runner": ["runner"]}
   , "expression":
     { "type": "let*"
     , "bindings":
