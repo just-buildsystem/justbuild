@@ -30,7 +30,7 @@
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
     , "runner": ["test_runner.py"]
-    , "summarizer": [["./", "../../shell/test", "test_summary.py"]]
+    , "summarizer": [["./", "../../shell/test", "summarizer"]]
     }
   , "field_doc":
     { "name":
@@ -88,6 +88,9 @@
     , "RUNS_PER_TEST":
       [ "The number of times the test should be run in order to detect flakyness."
       , "If set, no test action will be taken from cache."
+      , ""
+      , "Test runs are summarized by the [\"shell/test\", \"summarizer\"] that"
+      , "is also used by shell tests."
       ]
     , "TARGET_ARCH":
       [ "The architecture to build the test for."

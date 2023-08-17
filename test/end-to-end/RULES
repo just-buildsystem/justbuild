@@ -70,7 +70,7 @@
     ]
   , "implicit":
     { "runner": ["with_remote_test_runner.py"]
-    , "summarizer": [["@", "rules", "shell/test", "test_summary.py"]]
+    , "summarizer": [["@", "rules", "shell/test", "summarizer"]]
     , "just": [["@", "src", "", "installed just"]]
     }
   , "imports":

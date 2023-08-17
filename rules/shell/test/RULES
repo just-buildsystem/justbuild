@@ -20,6 +20,11 @@
       , "TEST_TMPDIR. The test should not assume write permissions"
       , "outside the working directory and the TEST_TMPDIR."
       , "For convenience, the environment variable TMPDIR is also set to TEST_TMPDIR."
+      , ""
+      , "This running of the test is carried out by the implicit dependency"
+      , "on the target \"runner\". By setting this target in the target layer"
+      , "of this rues repository (instead of letting it default to the"
+      , "respective file), the shell test environment can be modified globally."
       ]
     , "name":
       [ "A name for the test, used in reporting, as well as for staging"
@@ -39,6 +44,12 @@
     { "RUNS_PER_TEST":
       [ "The number of times the test should be run in order to detect flakyness."
       , "If set, no test action will be taken from cache."
+      , ""
+      , "The individual test runs will be summarized by the implict dependency"
+      , "on the target \"summarizer\". By setting this target in the target"
+      , "in the target layer of this rues repository (instead of letting it"
+      , "default to the respective file) the layout of the summary can be"
+      , "changed globally."
       ]
     , "TEST_ENV": ["The environment for executing the test runner."]
     , "TIMEOUT_SCALE":
@@ -72,8 +83,7 @@
     , "As the built-in \"install\" rule only takes the runfiles of its \"deps\""
     , "argument, this gives an easy way of defining test suites."
     ]
-  , "implicit":
-    {"runner": ["test_runner.sh"], "summarizer": ["test_summary.py"]}
+  , "implicit": {"runner": ["runner"], "summarizer": ["summarizer"]}
   , "imports":
     { "test-result": "test-result"
     , "action": "test-action"
