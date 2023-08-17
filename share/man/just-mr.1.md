@@ -11,7 +11,7 @@ SYNOPSIS
 
 **`just-mr`** \[*`OPTION`*\]... **`mrversion`**  
 **`just-mr`** \[*`OPTION`*\]... {**`setup`**|**`setup-env`**} \[**`--all`**\] \[*`main-repo`*\]  
-**`just-mr`** \[*`OPTION`*\]... **`fetch`** \[**`--all`**\] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
+**`just-mr`** \[*`OPTION`*\]... **`fetch`** \[**`--all`**\] \[**`--backup-to-remote`**] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
 **`just-mr`** \[*`OPTION`*\]... **`update`** \[*`repo`*\]...  
 **`just-mr`** \[*`OPTION`*\]... **`do`** \[*`JUST_ARG`*\]...  
 **`just-mr`** \[*`OPTION`*\]... {**`version`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`describe`**|**`rebuild`**} \[*`JUST_ARG`*\]...  
@@ -218,6 +218,10 @@ output directory for writing the fetched archives on disk. If no
 existing distribution directory can be found an error is produced. To
 define an output directory that is independent of the given distribution
 directories, use the **`-o`** option.
+
+Additionally, and only in *native mode*, the **`--backup-to-remote`** option can
+be used in combination with the **`--remote-execution-address`** argument to
+synchronize the locally fetched archives with a remote endpoint.
 
 update
 ------
