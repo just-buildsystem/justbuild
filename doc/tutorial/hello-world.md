@@ -182,8 +182,9 @@ your project, you need to create a separate file root for providing
 required `TARGETS` file, which contains the `"defaults"` target that
 should be used by the rules. This file root is then used as the *target
 root* for the rules, i.e., the search path for `TARGETS` files. In this
-way, the description of the `"defaults"` target is provided in a
-separate file root, to keep the rules repository independent of these
+way, the description of the `"defaults"` target, while logically part
+of the rules repository is physically located in a separate directory
+to keep the rules repository independent of these project-specific
 definitions.
 
 We will call the new file root `tutorial-defaults` and need to create a
@@ -247,7 +248,11 @@ without specifying any external repository (e.g.,
 full-fledged repository but merely a file root that is considered local
 to the `"rules-cc"` repository. In fact, the `"rules-cc"` repository
 cannot refer to any external repository as it does not have any defined
-bindings.
+bindings. The naming for rules follows the same scheme we've already
+seen for targets, so a single string refers to an entity in the same
+directory. As our `"defaults"` target is in the directory `"CC"` of
+the rules repository we could also have written the rule `"type"`
+simply as `"defaults"`.
 
 To rebuild the project, we need to rerun `just-mr` (note that due to
 configuration changes, rerunning only `just` would not suffice):
@@ -266,6 +271,28 @@ $
 ```
 
 Note that the output binary may have changed due to different defaults.
+
+In this tutorial we simply set the correct parameters of the defaults target.
+It is, however, not necessary to remember all the fields of a rule; we can
+always ask `just` to present us the available field names and configuration
+variables together with any documentation the rule author provided. For
+this, we use the `describe` subcommand; as we're interested in a target of
+the `rules-cc` repository, which is not the default repository, we also
+have to specify the repository name.
+
+``` sh
+$ just-mr --main rules-cc describe CC defaults
+```
+
+Of course, the `describe` subcommand works generically on all
+targets. For example, by asking to describe our `helloworld` target,
+we will get reminded about all the various fields and relevant
+configuration variables of a C++ binary.
+
+``` sh
+$ just-mr describe helloworld
+```
+
 
 Modeling target dependencies
 ----------------------------
