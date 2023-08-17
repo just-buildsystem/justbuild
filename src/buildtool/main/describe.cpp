@@ -52,7 +52,8 @@ void PrintFields(nlohmann::json const& fields,
     }
 }
 
-void PrettyPrintRule(nlohmann::json const& rdesc) {
+void PrettyPrintRule(nlohmann::json const& rdesc,
+                     BuildMaps::Base::EntityName const& rule_name) {
     auto doc = rdesc.find("doc");
     if (doc != rdesc.end()) {
         PrintDoc(*doc, " | ");
@@ -71,6 +72,31 @@ void PrettyPrintRule(nlohmann::json const& rdesc) {
     if (target_fields != rdesc.end() and (not target_fields->empty())) {
         std::cout << " Target fields\n";
         PrintFields(*target_fields, field_doc, " - ", "   | ");
+    }
+    auto implicit_targets = rdesc.find("implicit");
+    if (implicit_targets != rdesc.end()) {
+        for (auto const& [key, value] : implicit_targets->items()) {
+            std::cout << " - implict dependency\n";  //
+            auto doc = field_doc.find(key);
+            if (doc != field_doc.end()) {
+                PrintDoc(*doc, "   | ");
+            }
+            for (auto const& entry : value) {
+                auto resolved_entry = BuildMaps::Base::ParseEntityNameFromJson(
+                    entry,
+                    rule_name,
+                    [&entry, &rule_name](std::string const& parse_err) {
+                        Logger::Log(LogLevel::Warning,
+                                    "Failed to resolve {} relative to {}:\n{}",
+                                    entry.dump(),
+                                    rule_name.ToString(),
+                                    parse_err);
+                    });
+                if (resolved_entry) {
+                    std::cout << "   - " << resolved_entry->ToString() << "\n";
+                }
+            }
+        }
     }
     auto config_fields = rdesc.find("config_fields");
     if (config_fields != rdesc.end() and (not config_fields->empty())) {
@@ -224,7 +250,7 @@ auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
         PrintRuleAsOrderedJson(*ruledesc_it, rule_name.ToJson());
         return kExitSuccess;
     }
-    PrettyPrintRule(*ruledesc_it);
+    PrettyPrintRule(*ruledesc_it, rule_name);
     return kExitSuccess;
 }
 
