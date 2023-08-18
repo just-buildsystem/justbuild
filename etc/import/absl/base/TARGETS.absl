@@ -60,22 +60,17 @@
           }
         , "case": [["mingw", ["-ladvapi32"]]]
         }
-      , { "type": "case*"
-        , "expr": {"type": "var", "name": "OS"}
-        , "case": [["linux", ["-lrt"]]]
+      , { "type": "case"
+        , "expr": {"type": "var", "name": "OS", "default": "linux"}
+        , "case": {"linux": ["-lrt"]}
         }
       , { "type": "case"
         , "expr":
           { "type": "var"
           , "name": "TARGET_ARCH"
-          , "default":
-            { "type": "var"
-            , "name": "ARCH"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-            }
+          , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
           }
-        , "case": {"arm": ["-latomic"]}
+        , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
         }
       ]
     }
@@ -103,14 +98,9 @@
     , "expr":
       { "type": "var"
       , "name": "TARGET_ARCH"
-      , "default":
-        { "type": "var"
-        , "name": "ARCH"
-        , "default":
-          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-        }
+      , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
       }
-    , "case": {"arm": ["-latomic"]}
+    , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
     }
   , "deps": ["config", "core_headers"]
   }
@@ -263,14 +253,9 @@
     , "expr":
       { "type": "var"
       , "name": "TARGET_ARCH"
-      , "default":
-        { "type": "var"
-        , "name": "ARCH"
-        , "default":
-          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-        }
+      , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
       }
-    , "case": {"arm": ["-latomic"]}
+    , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
     }
   , "deps":
     ["atomic_hook", "config", "core_headers", "errno_saver", "log_severity"]
@@ -341,14 +326,9 @@
         , "expr":
           { "type": "var"
           , "name": "TARGET_ARCH"
-          , "default":
-            { "type": "var"
-            , "name": "ARCH"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-            }
+          , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
           }
-        , "case": {"arm": ["-latomic"]}
+        , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
         }
       ]
     }

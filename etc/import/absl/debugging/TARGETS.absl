@@ -12,20 +12,6 @@
     , "symbolize_unimplemented.inc"
     , "symbolize_win32.inc"
     ]
-  , "private-cflags":
-    { "type": "case"
-    , "expr":
-      { "type": "var"
-      , "name": "TARGET_ARCH"
-      , "default":
-        { "type": "var"
-        , "name": "ARCH"
-        , "default":
-          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-        }
-      }
-    , "case": {"arm": ["-Wno-sign-conversion"]}
-    }
   , "private-ldflags":
     { "type": "++"
     , "$1":
@@ -45,14 +31,9 @@
         , "expr":
           { "type": "var"
           , "name": "TARGET_ARCH"
-          , "default":
-            { "type": "var"
-            , "name": "ARCH"
-            , "default":
-              {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-            }
+          , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
           }
-        , "case": {"arm": ["-latomic"]}
+        , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
         }
       ]
     }

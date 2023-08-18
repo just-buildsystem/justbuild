@@ -354,13 +354,17 @@
 , "internal_randen_hwaes_impl":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_randen_hwaes_impl"]
-  , "arguments_config": ["TARGET_ARCH", "TOOLCHAIN_CONFIG"]
+  , "arguments_config": ["ARCH", "TARGET_ARCH", "TOOLCHAIN_CONFIG"]
   , "stage": ["absl", "random"]
   , "private-hdrs": ["internal/randen_hwaes.h"]
   , "srcs": ["internal/randen_hwaes.cc"]
   , "private-cflags":
     { "type": "case*"
-    , "expr": {"type": "var", "name": "TARGET_ARCH"}
+    , "expr":
+      { "type": "var"
+      , "name": "TARGET_ARCH"
+      , "default": {"type": "var", "name": "ARCH"}
+      }
     , "case":
       [ ["arm", ["-mfpu=neon"]]
       , ["arm64", ["-march=armv8-a+crypto"]]

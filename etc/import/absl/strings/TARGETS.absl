@@ -239,14 +239,9 @@
     , "expr":
       { "type": "var"
       , "name": "TARGET_ARCH"
-      , "default":
-        { "type": "var"
-        , "name": "ARCH"
-        , "default":
-          {"type": "fail", "msg": "Required variable 'ARCH' is not set."}
-        }
+      , "default": {"type": "var", "name": "ARCH", "default": "unknown"}
       }
-    , "case": {"arm": ["-latomic"]}
+    , "case": {"arm": ["-latomic"], "unknown": ["-latomic"]}
     }
   , "deps":
     [ "cord_internal"
