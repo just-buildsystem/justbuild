@@ -67,10 +67,16 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "fetch-remote":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["fetch-remote"]
+  , "test": ["fetch-remote.sh"]
+  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
   , "deps":
     { "type": "++"
     , "$1":
@@ -79,11 +85,20 @@
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
         , "else":
-          [ "install-roots-symlinks"
-          , "just_mr_mp"
-          , "git-tree-verbosity"
-          , "defaults"
-          ]
+          { "type": "++"
+          , "$1":
+            [ [ "install-roots-symlinks"
+              , "just_mr_mp"
+              , "git-tree-verbosity"
+              , "defaults"
+              ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+              , "then": []
+              , "else": ["fetch-remote"]
+              }
+            ]
+          }
         }
       ]
     }
