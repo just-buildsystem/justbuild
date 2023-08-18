@@ -94,7 +94,12 @@ default test runner can be overwritten by a different test runner fom
 the rule's workspace root. Moreover, all test targets share runner
 infrastructure from `shell/test`, e.g., summarizing multiple runs per
 test (to detect flakiness) if the configuration variable `RUNS_PER_TEST`
-is set.
+is set. The precise location of those implicit dependencies can be
+seen via `just describe`.
+
+``` sh
+$ just-mr describe tests greet
+```
 
 However, in our case, we want to use the default runner and therefore it
 is sufficient to create an empty module. To do so, create the file
