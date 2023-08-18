@@ -430,8 +430,8 @@ different build configuration (production, debug, instrumented for
 performance analysis; cross-compiling for a different target
 architecture), there are also legitimate reasons to use pre-built
 dependencies. The most prominent one is if your project is packaged as
-part of a larger distribution. For that reason, just also has (in
-`etc/import.prebuilt`) target files for all its dependencies assuming
+part of a larger distribution. For that reason, just also has target files
+for all its dependencies assuming
 they are pre-installed. The reason why target files are used at all for
 this situation is twofold.
 
@@ -456,7 +456,7 @@ this situation is twofold.
       description maintainable, as each target still only declares its
       direct dependencies.
 
-The target description for a pre-built version of the format library
+A target description for a pre-built version of the format library
 that was used as an example in this section is shown next; with our
 staging mechanism the logical repository it belongs to is rooted in the
 `fmt` subdirectory of the `include` directory of the ambient system.
@@ -472,7 +472,19 @@ staging mechanism the logical repository it belongs to is rooted in the
 }
 ```
 
----
+However, even specifying all the include locations and headers can
+be tedious and in the end, it is information that `pkg-config` can
+provide as well. So there is a rule to import libraries that way
+and the actual packaging-build version of `libfmt`, as provided in
+`etc/import.pkgconfig`, looks as follows.
+
+``` {.jsonc srcname="etc/import.pkgconfig/TARGETS.fmt}
+{ "fmt":
+  {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["fmt"]}
+}
+```
+
+
 
 [^1]: Explicit `TREE` references are always a list of length 3, to
       distinguish them from target references of length 2 (module and
