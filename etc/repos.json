@@ -310,11 +310,11 @@
   , "zlib":
     { "repository":
       { "type": "archive"
-      , "content": "d115fc690fa59d3be51b3442158876536140b6c2"
-      , "fetch": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz"
-      , "sha256": "b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30"
-      , "sha512": "99f0e843f52290e6950cc328820c0f322a4d934a504f66c7caa76bd0cc17ece4bf0546424fc95135de85a2656fed5115abb835fd8d8a390d60ffaf946c8887ad"
-      , "subdir": "zlib-1.2.13"
+      , "content": "88faf0fca21e0d82de44366fdd52aaadbab2e6b6"
+      , "fetch": "https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz"
+      , "sha256": "ff0ba4c292013dbc27530b3a81e1f9a813cd39de01ca5e0f8bf355702efa593e"
+      , "sha512": "185795044461cd78a5545250e06f6efdb0556e8d1bfe44e657b509dd6f00ba8892c8eb3febe65f79ee0b192d6af857f0e0055326d33a881449f3833f92e5f8fb"
+      , "subdir": "zlib-1.3"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.zlib"
