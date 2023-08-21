@@ -151,6 +151,7 @@
       [ "The single source file to patch, typically an explicit file reference."
       ]
     , "patch": ["The patch to apply."]
+    , "patch-defaults": ["The patch binary (and toolchain) to use"]
     }
   , "artifacts_doc":
     ["The patched file, staged to the position the of the original file"]

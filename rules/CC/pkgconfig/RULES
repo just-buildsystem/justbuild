@@ -10,6 +10,7 @@
       , "\"--static\"), appended to the config variable \"PKG_CONFIG_ARGS\"."
       ]
     , "stage": ["The stage of the internally created flag files."]
+    , "defaults": ["The C/C++ toolchain to use"]
     }
   , "config_doc":
     { "PKG_CONFIG_ARGS":

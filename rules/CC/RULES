@@ -397,6 +397,7 @@
       [ "Name to use for pkg-config files. If this field is empty, the field"
       , "\"name\" is used instead."
       ]
+    , "defaults": ["The C/C++ toolchain to use"]
     }
   , "config_doc":
     { "CC":
@@ -596,6 +597,7 @@
       , "duplicate work will be carried out, even if the same proto library"
       , "is used at various places)."
       ]
+    , "defaults": ["The C/C++ toolchain to use"]
     }
   , "config_doc":
     { "CC":

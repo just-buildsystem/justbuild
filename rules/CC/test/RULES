@@ -70,6 +70,16 @@
       , "Individual directory components are joined with \"/\"."
       ]
     , "data": ["Any files the test binary needs access to when running"]
+    , "defaults": ["The C/C++ toolchain to use"]
+    , "runner":
+      [ "The test runner which starts the actual test binrary after providing"
+      , "the respective environment. The runner also takes care of capturing"
+      , "stdout/stderr and timing information."
+      ]
+    , "summarizer":
+      [ "Tool to aggregate the results of individual test runs (for flakyness"
+      , "detection) to an overall test result."
+      ]
     }
   , "config_doc":
     { "CC": ["The name of the C compiler to be used."]

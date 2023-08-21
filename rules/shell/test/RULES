@@ -39,6 +39,16 @@
       [ "Any targets that should be staged (with artifacts and runfiles) into"
       , "the tests working directory"
       ]
+    , "runner":
+      [ "The test runner which starts the actual test script after providing"
+      , "the respective environment. The runner also takes care of capturing"
+      , "stdout/stderr, timing information, and ensure the presence of the"
+      , "files to keep even if the script failed to produce them."
+      ]
+    , "summarizer":
+      [ "Tool to aggregate the results of individual test runs (for flakyness"
+      , "detection) to an overall test result."
+      ]
     }
   , "config_doc":
     { "RUNS_PER_TEST":

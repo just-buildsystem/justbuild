@@ -22,6 +22,7 @@
       , "include path. Useful for providing additional header files to values"
       , "given in \"have_{cfile,cxxfile,ctype,cxxtype,csymbol,cxxsymbol}\"."
       ]
+    , "defaults": ["The C/C++ toolchain to use"]
     }
   , "config_doc":
     { "CC":
@@ -1032,6 +1033,7 @@
       , "defined in the config field \"defines\"."
       ]
     , "@only": ["If set, only replace @VAR@ and not ${VAR}"]
+    , "runner": ["The program generating the header file from the template."]
     }
   , "config_doc":
     { "defines":
