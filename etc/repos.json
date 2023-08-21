@@ -305,7 +305,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.absl"
-    , "bindings": {"rules": "rules-absl"}
+    , "bindings": {"rules": "rules-absl", "patches": "patches"}
     }
   , "zlib":
     { "repository":
