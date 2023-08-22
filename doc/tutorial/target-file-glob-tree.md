@@ -36,7 +36,7 @@ following content.
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -87,12 +87,11 @@ $ echo {} > TARGETS.units
 $ just-mr install -o . definitions.units
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 0 actions, 0 trees, 0 blobs
 INFO: Building [["@","units","","definitions.units"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/work-2022-08-22/definitions.units [0f24a321694aab5c1d3676e22d01fc73492bee42:342718:f]
+        /tmp/work/./definitions.units [0f24a321694aab5c1d3676e22d01fc73492bee42:342718:f]
 $ cp definitions.units definitions.units.orig
 $ # interactively edit definitions.units
 $ echo -e "/German units\n+2a\narea_soccerfield 105 m * 68 m\narea_saarland 2570 km^2\n.\nw\nq" | ed definitions.units
@@ -140,18 +139,21 @@ $ just-mr analyse definitions.units --dump-actions -
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Result of target [["@","units","","definitions.units"],{}]: {
         "artifacts": {
-          "definitions.units": {"data":{"id":"98e3c7758f5dd433c6aa7b327040be676faf6f34","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
-          "definitions.units": {"data":{"id":"98e3c7758f5dd433c6aa7b327040be676faf6f34","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
         }
       }
 INFO: Actions for target [["@","units","","definitions.units"],{}]:
 [
   {
-    "command": ["patch","-s","--read-only=ignore","--follow-symlinks","-o","patched","orig","patch"],
+    "command": ["sh","./run_patch.sh"],
+    "env": {
+      "PATH": "/bin:/usr/bin"
+    },
     "input": {
       "orig": {
         "data": {
@@ -167,6 +169,14 @@ INFO: Actions for target [["@","units","","definitions.units"],{}]:
           "repository": "patches"
         },
         "type": "LOCAL"
+      },
+      "run_patch.sh": {
+        "data": {
+          "file_type": "f",
+          "id": "85786bc8f6aeac0db3be48f8ce336f906e1d78a0",
+          "size": 93
+        },
+        "type": "KNOWN"
       }
     },
     "output": ["patched"]
@@ -181,7 +191,6 @@ Building `"definitions.units"` we find out patch applied correctly.
 $ just-mr build definitions.units -P definitions.units | grep -A 5 'German units'
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 1 blobs
 INFO: Building [["@","units","","definitions.units"],{}].
 INFO: Processed 1 actions, 0 cache hits.
@@ -217,13 +226,13 @@ INFO: Requested target is [["@","units","","data-draft"],{}]
 INFO: Result of target [["@","units","","data-draft"],{}]: {
         "artifacts": {
           "currency.units": {"data":{"file_type":"f","id":"ac6da8afaac0f34e114e123e4ab3a41e59121b10","size":14707},"type":"KNOWN"},
-          "definitions.units": {"data":{"id":"98e3c7758f5dd433c6aa7b327040be676faf6f34","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
           "currency.units": {"data":{"file_type":"f","id":"ac6da8afaac0f34e114e123e4ab3a41e59121b10","size":14707},"type":"KNOWN"},
-          "definitions.units": {"data":{"id":"98e3c7758f5dd433c6aa7b327040be676faf6f34","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
         }
       }
 $
@@ -316,17 +325,16 @@ total, giving 5 compile and one link action.
 $ just-mr build units-draft
 INFO: Requested target is [["@","units","","units-draft"],{}]
 INFO: Analysed target [["@","units","","units-draft"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 6 actions, 1 trees, 0 blobs
 INFO: Building [["@","units","","units-draft"],{}].
-INFO (action:12af248ce5737be492f7f5909284d4e3b6488807):
+INFO (action:f9426e7a0c3525618ead3787872e843c86f12dd2):
      Stderr of command: ["cc","-I","work","-isystem","include","-c","work/strfunc.c","-o","work/strfunc.o"]
      work/strfunc.c:109:8: warning: extra tokens at end of #endif directive [-Wendif-labels]
        109 | #endif NO_STRSPN
            |        ^~~~~~~~~
 INFO: Processed 6 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
+        units [40cdc2a9fa6f06004bbf290014519ba21f122e7d:124488:x]
 $
 ```
 
@@ -339,12 +347,11 @@ a patch.
 $ just-mr install -o . strfunc.c
 INFO: Requested target is [["@","units","","strfunc.c"],{}]
 INFO: Analysed target [["@","units","","strfunc.c"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 0 actions, 0 trees, 0 blobs
 INFO: Building [["@","units","","strfunc.c"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/work-2022-08-22/strfunc.c [e2aab4b825fa2822ccf33746d467a4944212abb9:2201:f]
+        /tmp/work/./strfunc.c [e2aab4b825fa2822ccf33746d467a4944212abb9:2201:f]
 $ cp strfunc.c strfunc.c.orig
 $ echo -e "109\ns|N|// N\nw\nq" | ed strfunc.c
 2201
@@ -390,12 +397,11 @@ cache.
 $ just-mr build units
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 7 actions, 1 trees, 1 blobs
 INFO: Building [["@","units","","units"],{}].
 INFO: Processed 7 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
-        units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
+        units [40cdc2a9fa6f06004bbf290014519ba21f122e7d:124488:x]
 $
 ```
 
@@ -415,12 +421,11 @@ Then things work as expected
 $ just-mr install -o /tmp/testinstall
 INFO: Requested target is [["@","units","",""],{}]
 INFO: Analysed target [["@","units","",""],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 8 actions, 1 trees, 1 blobs
 INFO: Building [["@","units","",""],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/testinstall/bin/units [718cb1489bd006082f966ea73e3fba3dd072d084:124488:x]
+        /tmp/testinstall/bin/units [40cdc2a9fa6f06004bbf290014519ba21f122e7d:124488:x]
         /tmp/testinstall/share/units/currency.units [ac6da8afaac0f34e114e123e4ab3a41e59121b10:14707:f]
         /tmp/testinstall/share/units/definitions.units [763f3289422c296057e142f61be190ee6bef049a:342772:f]
 $ /tmp/testinstall/bin/units 'area_saarland' 'area_soccerfield'

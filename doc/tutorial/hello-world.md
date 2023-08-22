@@ -30,7 +30,7 @@ Second, we also need to create the multi-repository configuration
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -46,7 +46,7 @@ Second, we also need to create the multi-repository configuration
 In that configuration, two repositories are defined:
 
 1. The `"rules-cc"` repository located in the subdirectory `rules` of
-   [just-buildsystem/rules-cc:123d8b03bf2440052626151c14c54abce2726e6f](https://github.com/just-buildsystem/rules-cc/tree/123d8b03bf2440052626151c14c54abce2726e6f),
+   [just-buildsystem/rules-cc:307c96681e6626286804c45273082dff94127878](https://github.com/just-buildsystem/rules-cc/tree/307c96681e6626286804c45273082dff94127878),
    which contains the high-level concepts for building C/C++ binaries
    and libraries.
 
@@ -118,12 +118,11 @@ command line:
 $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
-INFO: Building [["@","helloworld","","helloworld"],{}].
+INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [b5cfca8b810adc4686f5cac00258a137c5d4a3ba:17088:x]
+        helloworld [bd36255e856ddb72c844c2010a785ab70ee75d56:17088:x]
 $
 ```
 
@@ -165,12 +164,11 @@ object that sets `"CXX"` to `"clang++"`:
 $ just-mr build helloworld -D'{"CXX":"clang++"}'
 INFO: Requested target is [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{"CXX":"clang++"}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [b8cf7b8579d9dc7172b61660139e2c14521cedae:16944:x]
+        helloworld [a1e0dc77ec6f171e118a3e6992859f68617a2c6f:16944:x]
 $
 ```
 
@@ -224,7 +222,7 @@ the following content:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -261,12 +259,11 @@ configuration changes, rerunning only `just` would not suffice):
 $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [487dc9e47b978877ed2f7d80b3395ce84b23be92:16992:x]
+        helloworld [0d5754a83c7c787b1c4dd717c8588ecef203fb72:16992:x]
 $
 ```
 
@@ -381,12 +378,11 @@ binary can be built with the same command as before (no need to rerun
 $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 4 actions, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [2b81e3177afc382452a2df9f294d3df90a9ccaf0:17664:x]
+        helloworld [a0e593e4d52e8b3e14863b3cf1f80809143829ca:17664:x]
 $
 ```
 
@@ -397,7 +393,6 @@ run the following command:
 $ just-mr build greet greet
 INFO: Requested target is [["@","tutorial","greet","greet"],{}]
 INFO: Analysed target [["@","tutorial","greet","greet"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 1 trees, 0 blobs
 INFO: Building [["@","tutorial","greet","greet"],{}].
 INFO: Processed 2 actions, 2 cache hits.

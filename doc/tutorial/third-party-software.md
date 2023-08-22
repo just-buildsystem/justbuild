@@ -140,7 +140,7 @@ additional binding `"format"` for it:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -210,7 +210,7 @@ INFO: Discovered 7 actions, 3 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 7 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
+        helloworld [18d25e828a0176cef6fb029bfd83e1862712ec87:132736:x]
 $
 ```
 
@@ -261,7 +261,7 @@ be set for them in `repos.json`:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -312,7 +312,7 @@ INFO: Discovered 7 actions, 3 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 7 actions, 7 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
+        helloworld [18d25e828a0176cef6fb029bfd83e1862712ec87:132736:x]
 $
 $ just-mr build helloworld
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
@@ -322,7 +322,7 @@ INFO: Discovered 4 actions, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
-        helloworld [0ec4e36cfb5f2c3efa0fff789349a46694a6d303:132736:x]
+        helloworld [18d25e828a0176cef6fb029bfd83e1862712ec87:132736:x]
 $
 ```
 
@@ -370,7 +370,7 @@ example, the following `repos.json` defines the overlay
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "123d8b03bf2440052626151c14c54abce2726e6f"
+      , "commit": "307c96681e6626286804c45273082dff94127878"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
