@@ -57,6 +57,16 @@ A feature release on top of `1.1.0`, backwards compatible.
 - `just install-cas` now, like `just install`, removes an existing
   destination file before installing instead of overwriting.
 
+## Release `1.2.0~beta3` (2023-08-22)
+
+Third beta release for the upcoming `1.2.0` release; see release
+notes there.
+
+### Changes since `1.2.0~beta2`
+
+- Update and clean up of bundled dependency descriptions
+- Improvement of documentation
+
 ## Release `1.2.0~beta2` (2023-08-18)
 
 Second beta release for the upcoming `1.2.0` release; see release
@@ -65,8 +75,8 @@ notes there.
 ### Changes since `1.2.0~beta1`
 
 - Clean up of the internal build description of bundled dependencies.
-- Clean up of the the internal rules, in particular renaming of
-  implict dependency targets.
+- Clean up of the internal rules, in particular renaming of
+  implicit dependency targets.
 - Various documentation improvements.
 
 ## Release `1.2.0~beta1` (2023-08-16)
