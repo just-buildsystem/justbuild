@@ -4,8 +4,7 @@
   , "name": ["just"]
   , "srcs": ["main.cpp"]
   , "private-deps":
-    [ ["src/buildtool/common", "cli"]
-    , ["src/buildtool/common", "config"]
+    [ ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
@@ -24,10 +23,12 @@
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/remote", "config"]
     , "common"
+    , "cli"
     , "version"
     , "analyse"
     , "install_cas"
     , "describe"
+    , "diagnose"
     , "constants"
     ]
   , "stage": ["src", "buildtool", "main"]
@@ -67,6 +68,15 @@
   , "name": ["common"]
   , "hdrs": ["exit_codes.hpp"]
   , "stage": ["src", "buildtool", "main"]
+  }
+, "cli":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cli"]
+  , "hdrs": ["cli.hpp"]
+  , "srcs": ["cli.cpp"]
+  , "stage": ["src", "buildtool", "main"]
+  , "deps": [["src/buildtool/common", "cli"]]
+  , "private-deps": [["@", "gsl", "", "gsl"], "common"]
   }
 , "install_cas":
   { "type": ["@", "rules", "CC", "library"]
@@ -109,6 +119,19 @@
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
     ]
+  }
+, "diagnose":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["diagnose"]
+  , "hdrs": ["diagnose.hpp"]
+  , "srcs": ["diagnose.cpp"]
+  , "stage": ["src", "buildtool", "main"]
+  , "deps":
+    [ "analyse"
+    , ["src/buildtool/common", "cli"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
+    ]
+  , "private-deps": [["src/utils/cpp", "json"], ["@", "json", "", "json"]]
   }
 , "version":
   { "type": ["@", "rules", "CC", "library"]
