@@ -54,7 +54,10 @@
           }
         , { "type": "case"
           , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
-          , "case": {"gnu": ["-Wno-clobbered"]}
+          , "case":
+            { "gnu": ["-Wno-clobbered", "-Wno-type-limits"]
+            , "clang": ["-Wno-atomic-alignment"]
+            }
           }
         , { "type": "if"
           , "cond": {"type": "var", "name": "DEBUG"}
@@ -139,6 +142,17 @@
           , "cond": {"type": "var", "name": "DEBUG"}
           , "then": ["-D_DEBUG", "-DDEBUG"]
           , "else": ["-Wframe-larger-than=16384"]
+          }
+        , { "type": "case"
+          , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+          , "case":
+            { "gnu":
+              [ "-Wno-array-bounds"
+              , "-Wno-unused-variable"
+              , "-Wno-dangling-pointer"
+              , "-Wno-type-limits"
+              ]
+            }
           }
         , { "type": "case"
           , "expr": {"type": "var", "name": "OS"}

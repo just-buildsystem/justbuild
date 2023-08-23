@@ -63,10 +63,19 @@
             }
           , { "type": "case"
             , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
-            , "case": {"clang": ["-Wdocumentation"]}
+            , "case":
+              { "clang":
+                [ "-Wdocumentation"
+                , "-Wno-documentation-deprecated-sync"
+                , "-Wno-unused-but-set-variable"
+                , "-Wno-unused-but-set-parameter"
+                , "-Wno-single-bit-bitfield-constant-conversion"
+                , "-Wno-unknown-warning-option"
+                ]
+              , "gnu": ["-Wno-dangling-pointer"]
+              }
             }
-          , [ "-Wno-documentation-deprecated-sync"
-            , "-Wno-missing-field-initializers"
+          , [ "-Wno-missing-field-initializers"
             , "-Wstrict-aliasing"
             , "-Wstrict-prototypes"
             , "-Wdeclaration-after-statement"
@@ -81,6 +90,7 @@
             , "-Wno-sign-compare"
             , "-Wno-unused-parameter"
             , "-Wno-uninitialized"
+            , "-Wno-array-parameter"
             ]
           ]
         }

@@ -85,7 +85,6 @@
               , "-Wself-assign"
               , "-Wshadow-all"
               , "-Wshorten-64-to-32"
-              , "-Wsign-conversion"
               , "-Wstring-conversion"
               , "-Wtautological-overlap-compare"
               , "-Wtautological-unsigned-zero-compare"
@@ -100,6 +99,7 @@
               , "-Wno-float-conversion"
               , "-Wno-implicit-float-conversion"
               , "-Wno-implicit-int-float-conversion"
+              , "-Wno-sign-conversion"
               , "-Wno-unknown-warning-option"
               , "-DNOMINMAX"
               ]

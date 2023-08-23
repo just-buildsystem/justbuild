@@ -40,26 +40,28 @@
               , "/wd4800"
               , "/wd4996"
               ]
-            , "gnu":
-              [ "-Wall"
-              , "-Woverloaded-virtual"
-              , "-Wno-sign-compare"
-              , "-Wno-sign-conversion"
-              , "-Wno-unused-function"
-              , "-Wno-deprecated-declarations"
-              , "-Wno-nonnull"
-              ]
             }
           , "default":
-            [ "-Wall"
-            , "-Woverloaded-virtual"
-            , "-Wno-sign-compare"
-            , "-Wno-sign-conversion"
-            , "-Wno-unused-function"
-            , "-Wno-deprecated-declarations"
-            , "-Wno-deprecated-enum-enum-conversion"
-            , "-Wno-nonnull"
-            ]
+            { "type": "++"
+            , "$1":
+              [ [ "-Wall"
+                , "-Woverloaded-virtual"
+                , "-Wno-sign-compare"
+                , "-Wno-sign-conversion"
+                , "-Wno-unused-function"
+                , "-Wno-deprecated-declarations"
+                , "-Wno-nonnull"
+                ]
+              , { "type": "case"
+                , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
+                , "case":
+                  { "gnu": ["-Wno-attributes"]
+                  , "clang": ["-Wno-atomic-alignment"]
+                  }
+                , "default": ["-Wno-deprecated-enum-enum-conversion"]
+                }
+              ]
+            }
           }
         ]
       }
