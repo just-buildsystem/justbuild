@@ -33,7 +33,7 @@
 /// \brief Perform a non-upwards condition check on the given path.
 /// A path is non-upwards if it is relative and it never references any other
 /// path on a higher level in the directory tree than itself.
-[[nodiscard]] static auto PathIsNonUpwards(
+[[nodiscard]] static inline auto PathIsNonUpwards(
     std::filesystem::path const& path) noexcept -> bool {
     if (path.is_absolute()) {
         return false;
@@ -48,7 +48,7 @@
 /// This models the situation when a symlink is being resolved inside a tree.
 /// NOTE: No explicit check is done whether applied_to is actually a relative
 /// path, as this is implicit by the non-upwardness condition.
-[[nodiscard]] static auto PathIsConfined(
+[[nodiscard]] static inline auto PathIsConfined(
     std::filesystem::path const& path,
     std::filesystem::path const& applied_to) noexcept -> bool {
     if (path.is_absolute()) {
