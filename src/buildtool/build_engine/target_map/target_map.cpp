@@ -231,6 +231,7 @@ void withDependencies(
     std::unordered_map<BuildMaps::Target::ConfiguredTarget, AnalysedTargetPtr>
         deps_by_transition;
     deps_by_transition.reserve(transition_keys.size());
+    ExpectsAudit(transition_keys.size() == dependency_values.size());
     for (size_t i = 0; i < transition_keys.size(); ++i) {
         deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
@@ -257,8 +258,8 @@ void withDependencies(
     auto fill_target_graph = [&dependency_values](
                                  size_t const a, size_t const b, auto* deps) {
         std::transform(
-            &dependency_values[a],
-            &dependency_values[b],
+            dependency_values.begin() + a,
+            dependency_values.begin() + b,
             std::back_inserter(*deps),
             [](auto dep) { return (*(dep))->GraphInformation().Node(); });
     };
