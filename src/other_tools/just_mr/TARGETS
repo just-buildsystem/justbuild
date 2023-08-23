@@ -10,17 +10,15 @@
     , ["src/buildtool/main", "version"]
     , "cli"
     , "exit_codes"
-    , ["src/other_tools/ops_maps", "repo_fetch_map"]
-    , ["src/other_tools/ops_maps", "git_update_map"]
-    , ["src/other_tools/repo_map", "repos_to_setup_map"]
-    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
-    , ["src/buildtool/progress_reporting", "progress"]
+    , ["@", "cli11", "", "cli11"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/other_tools/just_mr/progress_reporting", "progress"]
-    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
-    , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system", "git_context"]
+    , "fetch"
+    , "update"
+    , "setup"
+    , "launch"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
@@ -51,6 +49,7 @@
     [ ["src/utils/cpp", "path"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , "exit_codes"
     ]
   }
 , "exit_codes":
@@ -75,5 +74,87 @@
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps": [["src/buildtool/logging", "logging"]]
+  }
+, "fetch":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fetch"]
+  , "hdrs": ["fetch.hpp"]
+  , "srcs": ["fetch.cpp"]
+  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , "exit_codes"
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , "utils"
+    , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "repo_fetch_map"]
+    ]
+  }
+, "update":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["update"]
+  , "hdrs": ["update.hpp"]
+  , "srcs": ["update.cpp"]
+  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
+    , "exit_codes"
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , "utils"
+    , ["src/other_tools/ops_maps", "git_update_map"]
+    ]
+  }
+, "setup":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["setup"]
+  , "hdrs": ["setup.hpp"]
+  , "srcs": ["setup.cpp"]
+  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , "exit_codes"
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , "utils"
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/repo_map", "repos_to_setup_map"]
+    , ["src/other_tools/root_maps", "commit_git_map"]
+    , ["src/other_tools/root_maps", "content_git_map"]
+    , ["src/other_tools/root_maps", "distdir_git_map"]
+    , ["src/other_tools/root_maps", "fpath_git_map"]
+    , ["src/other_tools/root_maps", "tree_id_git_map"]
+    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    ]
+  }
+, "launch":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["launch"]
+  , "hdrs": ["launch.hpp"]
+  , "srcs": ["launch.cpp"]
+  , "deps": ["cli"]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "storage"]
+    , "exit_codes"
+    , "setup"
+    , "utils"
+    , ["src/utils/cpp", "file_locking"]
+    ]
   }
 }
