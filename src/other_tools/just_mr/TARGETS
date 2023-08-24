@@ -15,6 +15,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/file_system", "git_context"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , "fetch"
     , "update"
     , "setup"

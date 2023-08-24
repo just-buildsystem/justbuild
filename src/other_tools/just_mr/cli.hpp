@@ -45,6 +45,8 @@ struct MultiRepoCommonArguments {
     bool norc{false};
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
     std::vector<std::string> defines{};
+    std::optional<std::string> remote_execution_address;
+    std::optional<bool> compatible{std::nullopt};
 };
 
 struct MultiRepoLogArguments {
@@ -71,6 +73,13 @@ struct MultiRepoJustSubCmdsArguments {
     std::optional<std::string> subcmd_name{std::nullopt};
     std::vector<std::string> additional_just_args{};
     std::unordered_map<std::string, std::vector<std::string>> just_args{};
+};
+
+// corresponding to the similarly-named arguments in 'just'
+struct MultiRepoRemoteAuthArguments {
+    std::optional<std::filesystem::path> tls_ca_cert{std::nullopt};
+    std::optional<std::filesystem::path> tls_client_cert{std::nullopt};
+    std::optional<std::filesystem::path> tls_client_key{std::nullopt};
 };
 
 static inline void SetupMultiRepoCommonArguments(
@@ -167,6 +176,16 @@ static inline void SetupMultiRepoCommonArguments(
         ->type_name("JSON")
         ->trigger_on_parse();  // run callback on all instances while parsing,
                                // not after all parsing is done
+    app->add_option("-r,--remote-execution-address",
+                    clargs->remote_execution_address,
+                    "Address of a remote-execution service.")
+        ->type_name("NAME:PORT");
+    app->add_flag(
+        "--compatible",
+        clargs->compatible,
+        "At increased computational effort, be compatible with the original "
+        "remote build execution protocol. As the change affects identifiers, "
+        "the flag must be used consistently for all related invocations.");
 }
 
 static inline auto SetupMultiRepoLogArguments(
@@ -232,6 +251,21 @@ static inline void SetupMultiRepoUpdateArguments(
     // take all remaining args as positional
     app->add_option("repo", clargs->repos_to_update, "Repository to update.")
         ->type_name("");
+}
+
+static inline auto SetupMultiRepoRemoteAuthArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<MultiRepoRemoteAuthArguments*> const& authargs) {
+    app->add_option("--tls-ca-cert",
+                    authargs->tls_ca_cert,
+                    "Path to a TLS CA certificate that is trusted to sign the "
+                    "server certificate.");
+    app->add_option("--tls-client-cert",
+                    authargs->tls_client_cert,
+                    "Path to the TLS client certificate.");
+    app->add_option("--tls-client-key",
+                    authargs->tls_client_key,
+                    "Path to the TLS client key.");
 }
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP

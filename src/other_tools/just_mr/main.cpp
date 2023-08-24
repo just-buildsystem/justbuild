@@ -21,6 +21,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -57,6 +58,7 @@ struct CommandLineArguments {
     MultiRepoFetchArguments fetch;
     MultiRepoUpdateArguments update;
     MultiRepoJustSubCmdsArguments just_cmd;
+    MultiRepoRemoteAuthArguments auth;
 };
 
 /// \brief Setup arguments for just-mr itself, common to all subcommands.
@@ -65,6 +67,7 @@ void SetupCommonCommandArguments(
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupMultiRepoCommonArguments(app, &clargs->common);
     SetupMultiRepoLogArguments(app, &clargs->log);
+    SetupMultiRepoRemoteAuthArguments(app, &clargs->auth);
 }
 
 /// \brief Setup arguments for subcommand "just-mr fetch".
@@ -490,6 +493,77 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             }
         }
     }
+    // read remote exec args; overwritten if user provided it already
+    auto remote = rc_config["remote execution"];
+    if (remote.IsNotNull()) {
+        if (not remote->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-provided remote execution arguments has "
+                        "to be a map, but found {}",
+                        remote->ToString());
+            std::exit(kExitConfigError);
+        }
+        auto const& remote_map = remote->Map();
+        if (not clargs->common.remote_execution_address) {
+            auto addr = remote_map.at("address");
+            if (addr.IsNotNull()) {
+                if (not addr->IsString()) {
+                    Logger::Log(LogLevel::Error,
+                                "Configuration-provided remote execution "
+                                "address has to be a string, but found {}",
+                                addr->ToString());
+                    std::exit(kExitConfigError);
+                }
+                clargs->common.remote_execution_address = addr->String();
+            }
+        }
+        if (not clargs->common.compatible) {
+            auto compat = remote_map.at("compatible");
+            if (compat.IsNotNull()) {
+                if (not compat->IsBool()) {
+                    Logger::Log(LogLevel::Error,
+                                "Configuration-provided remote execution "
+                                "compatibility has to be a flag, but found {}",
+                                compat->ToString());
+                    std::exit(kExitConfigError);
+                }
+                clargs->common.compatible = compat->Bool();
+            }
+        }
+    }
+    // read authentication args; overwritten if user provided it already
+    auto auth_args = rc_config["authentication"];
+    if (auth_args.IsNotNull()) {
+        if (not auth_args->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-provided authentication arguments has "
+                        "to be a map, but found {}",
+                        auth_args->ToString());
+            std::exit(kExitConfigError);
+        }
+        auto const& auth_map = auth_args->Map();
+        if (not clargs->auth.tls_ca_cert) {
+            auto v = ReadLocation(auth_map.at("ca cert"),
+                                  clargs->common.just_mr_paths->workspace_root);
+            if (v) {
+                clargs->auth.tls_ca_cert = v->first;
+            }
+        }
+        if (not clargs->auth.tls_client_cert) {
+            auto v = ReadLocation(auth_map.at("client cert"),
+                                  clargs->common.just_mr_paths->workspace_root);
+            if (v) {
+                clargs->auth.tls_client_cert = v->first;
+            }
+        }
+        if (not clargs->auth.tls_client_key) {
+            auto v = ReadLocation(auth_map.at("client key"),
+                                  clargs->common.just_mr_paths->workspace_root);
+            if (v) {
+                clargs->auth.tls_client_key = v->first;
+            }
+        }
+    }
     // read config lookup order
     auto config_lookup_order = rc_config["config lookup order"];
     if (config_lookup_order.IsNotNull()) {
@@ -614,6 +688,11 @@ auto main(int argc, char* argv[]) -> int {
             return kExitGenericFailure;
         }
 
+        // set remote execution protocol compatibility
+        if (arguments.common.compatible == true) {
+            Compatibility::SetCompatible();
+        }
+
         /**
          * The current implementation of libgit2 uses pthread_key_t incorrectly
          * on POSIX systems to handle thread-specific data, which requires us to
@@ -630,6 +709,7 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.setup,
                             arguments.just_cmd,
                             arguments.log,
+                            arguments.auth,
                             forward_build_root);
         }
         auto lock = GarbageCollector::SharedLock();

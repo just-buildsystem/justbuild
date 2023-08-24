@@ -26,6 +26,7 @@
     MultiRepoSetupArguments const& setup_args,
     MultiRepoJustSubCmdsArguments const& just_cmd_args,
     MultiRepoLogArguments const& log_args,
+    MultiRepoRemoteAuthArguments const& auth_args,
     bool forward_build_root) -> int;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_LAUNCH_HPP

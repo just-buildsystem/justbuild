@@ -33,6 +33,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
               MultiRepoSetupArguments const& setup_args,
               MultiRepoJustSubCmdsArguments const& just_cmd_args,
               MultiRepoLogArguments const& log_args,
+              MultiRepoRemoteAuthArguments const& auth_args,
               bool forward_build_root) -> int {
     // check if subcmd_name can be taken from additional args
     auto additional_args_offset = 0U;
@@ -46,6 +47,9 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool use_build_root{false};
     bool use_launcher{false};
     bool supports_defines{false};
+    bool supports_remote{false};
+    bool supports_cacert{false};
+    bool supports_client_auth{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
     std::optional<LockFile> lock{};
@@ -74,6 +78,10 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         use_build_root = kKnownJustSubcommands.at(*subcommand).build_root;
         use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
         supports_defines = kKnownJustSubcommands.at(*subcommand).defines;
+        supports_remote = kKnownJustSubcommands.at(*subcommand).remote;
+        supports_cacert = kKnownJustSubcommands.at(*subcommand).cacert;
+        supports_client_auth =
+            kKnownJustSubcommands.at(*subcommand).client_auth;
     }
     // build just command
     std::vector<std::string> cmd = {common_args.just_path->string()};
@@ -133,6 +141,29 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         if (not overlay_config.Expr()->Map().empty()) {
             cmd.emplace_back("-D");
             cmd.emplace_back(overlay_config.ToString());
+        }
+    }
+    // forward remote execution arguments
+    if (supports_remote and (common_args.compatible == true)) {
+        cmd.emplace_back("--compatible");
+    }
+    if (supports_remote and common_args.remote_execution_address) {
+        cmd.emplace_back("-r");
+        cmd.emplace_back(*common_args.remote_execution_address);
+    }
+    // forward mutual TLS arguments
+    if (supports_cacert and auth_args.tls_ca_cert) {
+        cmd.emplace_back("--tls-ca-cert");
+        cmd.emplace_back(auth_args.tls_ca_cert->string());
+    }
+    if (supports_client_auth) {
+        if (auth_args.tls_client_cert) {
+            cmd.emplace_back("--tls-client-cert");
+            cmd.emplace_back(auth_args.tls_client_cert->string());
+        }
+        if (auth_args.tls_client_key) {
+            cmd.emplace_back("--tls-client-key");
+            cmd.emplace_back(auth_args.tls_client_key->string());
         }
     }
     // add args read from just-mrrc

@@ -46,30 +46,81 @@ std::vector<std::string> const kTakeOver = {"bindings",
                                             "expression_file_name"};
 
 struct JustSubCmdFlags {
-    bool config;
-    bool build_root;
-    bool launch;
-    bool defines;
+    bool config;       // requires setup
+    bool build_root;   // supports the local build root arg
+    bool launch;       // supports the local launcher arg
+    bool defines;      // supports defines arg
+    bool remote;       // supports remote exec args
+    bool cacert;       // supports CA cert arg
+    bool client_auth;  // supports client auth args
 };
 
 // ordered, so that we have replicability
 std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
     {"version",
-     {.config = false, .build_root = false, .launch = false, .defines = false}},
+     {.config = false,
+      .build_root = false,
+      .launch = false,
+      .defines = false,
+      .remote = false,
+      .cacert = false,
+      .client_auth = false}},
     {"describe",
-     {.config = true, .build_root = false, .launch = false, .defines = true}},
+     {.config = true,
+      .build_root = false,
+      .launch = false,
+      .defines = true,
+      .remote = false,
+      .cacert = false,
+      .client_auth = false}},
     {"analyse",
-     {.config = true, .build_root = true, .launch = false, .defines = true}},
+     {.config = true,
+      .build_root = true,
+      .launch = false,
+      .defines = true,
+      .remote = true,
+      .cacert = false,
+      .client_auth = false}},
     {"build",
-     {.config = true, .build_root = true, .launch = true, .defines = true}},
+     {.config = true,
+      .build_root = true,
+      .launch = true,
+      .defines = true,
+      .remote = true,
+      .cacert = true,
+      .client_auth = true}},
     {"install",
-     {.config = true, .build_root = true, .launch = true, .defines = true}},
+     {.config = true,
+      .build_root = true,
+      .launch = true,
+      .defines = true,
+      .remote = true,
+      .cacert = true,
+      .client_auth = true}},
     {"rebuild",
-     {.config = true, .build_root = true, .launch = true, .defines = true}},
+     {.config = true,
+      .build_root = true,
+      .launch = true,
+      .defines = true,
+      .remote = true,
+      .cacert = true,
+      .client_auth = true}},
     {"install-cas",
-     {.config = false, .build_root = true, .launch = false, .defines = false}},
+     {.config = false,
+      .build_root = true,
+      .launch = false,
+      .defines = false,
+      .remote = true,
+      .cacert = true,
+      .client_auth = true}},
     {"gc",
-     {.config = false, .build_root = true, .launch = false, .defines = false}}};
+     {.config = false,
+      .build_root = true,
+      .launch = false,
+      .defines = false,
+      .remote = false,
+      .cacert = false,
+      .client_auth = false}}};
 
 nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
     {{{"root", "workspace"}, {"path", "repos.json"}},
