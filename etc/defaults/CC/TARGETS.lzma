@@ -9,6 +9,12 @@
     , "-DHAVE__BOOL"
     , "-DHAVE_STDINT_H"
     , "-DHAVE_INTTYPES_H"
+    , "-DHAVE_CHECK_CRC32"
+    , "-D_GNU_SOURCE"
+    , "-D__EXTENSIONS__"
+    , "-D_POSIX_PTHREAD_SEMANTICS"
+    , "-D_TANDEM_SOURCE"
+    , "-D_ALL_SOURCE"
     ]
   }
 }

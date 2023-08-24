@@ -121,7 +121,6 @@
         , "cond": {"type": "var", "name": "ENABLE_SMALL"}
         , "then": ["-DHAVE_SMALL"]
         }
-      , ["-DHAVE_CHECK_CRC32"]
       , { "type": "if"
         , "cond": {"type": "var", "name": "ADDITIONAL_CHECK_TYPES"}
         , "then": ["-DHAVE_CHECK_CRC64", "-DHAVE_CHECK_SHA256"]
