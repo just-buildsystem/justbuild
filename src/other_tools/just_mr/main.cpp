@@ -749,6 +749,15 @@ auto main(int argc, char* argv[]) -> int {
 
         // Run subcommand `fetch`
         if (arguments.cmd == SubCommand::kFetch) {
+            // check fetch configuration arguments for validity
+            if (arguments.common.remote_execution_address and
+                arguments.fetch.backup_to_remote and
+                Compatibility::IsCompatible()) {
+                Logger::Log(LogLevel::Error,
+                            "Remote backup for fetched archives only available "
+                            "in native mode!");
+                return kExitConfigError;
+            }
             return MultiRepoFetch(config,
                                   arguments.common,
                                   arguments.setup,

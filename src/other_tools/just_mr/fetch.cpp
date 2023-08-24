@@ -264,8 +264,12 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.jobs);
-    auto repo_fetch_map =
-        CreateRepoFetchMap(&content_cas_map, *fetch_dir, common_args.jobs);
+    auto repo_fetch_map = CreateRepoFetchMap(
+        &content_cas_map,
+        *fetch_dir,
+        (fetch_args.backup_to_remote and local_api) ? &(*local_api) : nullptr,
+        (fetch_args.backup_to_remote and remote_api) ? &(*remote_api) : nullptr,
+        common_args.jobs);
 
     // set up progress observer
     JustMRProgress::Instance().SetTotal(repos_to_fetch.size());

@@ -63,6 +63,7 @@ struct MultiRepoSetupArguments {
 
 struct MultiRepoFetchArguments {
     std::optional<std::filesystem::path> fetch_dir{std::nullopt};
+    bool backup_to_remote{false};
 };
 
 struct MultiRepoUpdateArguments {
@@ -243,6 +244,10 @@ static inline void SetupMultiRepoFetchArguments(
            },
            "Directory to write distfiles when fetching.")
         ->type_name("PATH");
+    app->add_flag("--backup-to-remote",
+                  clargs->backup_to_remote,
+                  "Backup fetched archives to a remote CAS, if a "
+                  "remote-execution service is provided.");
 }
 
 static inline void SetupMultiRepoUpdateArguments(
