@@ -46,6 +46,12 @@
   , "test": ["conflicts.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "incomplete-retry":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["incompete-retry"]
+  , "test": ["incomplete-retry.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -55,6 +61,7 @@
     , "equality-properties"
     , "trees"
     , "conflicts"
+    , "incomplete-retry"
     ]
   }
 }
