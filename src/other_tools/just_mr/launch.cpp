@@ -25,7 +25,7 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/setup.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/other_tools/just_mr/setup_utils.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 
 auto CallJust(std::optional<std::filesystem::path> const& config_file,

@@ -36,10 +36,6 @@ auto const kDefaultCheckoutLocationsFile =
     StorageConfig::GetUserHome() / ".just-local.json";
 auto const kDefaultDistdirs = StorageConfig::GetUserHome() / ".distfiles";
 
-std::vector<std::string> const kAltDirs = {"target_root",
-                                           "rule_root",
-                                           "expression_root"};
-
 std::vector<std::string> const kTakeOver = {"bindings",
                                             "target_file_name",
                                             "rule_file_name",
@@ -202,11 +198,6 @@ struct CAInfo {
 using PathsPtr = std::shared_ptr<JustMR::Paths>;
 using CAInfoPtr = std::shared_ptr<JustMR::CAInfo>;
 
-struct SetupRepos {
-    std::vector<std::string> to_setup;
-    std::vector<std::string> to_include;
-};
-
 namespace Utils {
 
 /// \brief Get location of Git repository. Defaults to the Git cache root when
@@ -263,22 +254,6 @@ auto ResolveRepo(ExpressionPtr const& repo_desc,
 auto ResolveRepo(ExpressionPtr const& repo_desc,
                  ExpressionPtr const& repos) noexcept
     -> std::optional<ExpressionPtr>;
-
-/// \brief Get the repo dependency closure for a given main repository.
-void ReachableRepositories(
-    ExpressionPtr const& repos,
-    std::string const& main,
-    std::shared_ptr<JustMR::SetupRepos> const& setup_repos);
-
-/// \brief By default, we set up and include the full repo dependency closure.
-void DefaultReachableRepositories(
-    ExpressionPtr const& repos,
-    std::shared_ptr<JustMR::SetupRepos> const& setup_repos);
-
-/// \brief Read in a just-mr configuration file.
-[[nodiscard]] auto ReadConfiguration(
-    std::optional<std::filesystem::path> const& config_file_opt) noexcept
-    -> std::shared_ptr<Configuration>;
 
 }  // namespace Utils
 

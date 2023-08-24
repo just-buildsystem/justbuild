@@ -20,6 +20,7 @@
     , "update"
     , "setup"
     , "launch"
+    , "setup_utils"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
@@ -50,7 +51,6 @@
     [ ["src/utils/cpp", "path"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
-    , "exit_codes"
     ]
   }
 , "exit_codes":
@@ -76,6 +76,23 @@
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps": [["src/buildtool/logging", "logging"]]
   }
+, "setup_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["setup_utils"]
+  , "hdrs": ["setup_utils.hpp"]
+  , "srcs": ["setup_utils.cpp"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    , "exit_codes"
+    ]
+  }
 , "fetch":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["fetch"]
@@ -93,6 +110,7 @@
     , "utils"
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "repo_fetch_map"]
+    , "setup_utils"
     ]
   }
 , "update":
@@ -137,6 +155,7 @@
     , ["src/other_tools/root_maps", "fpath_git_map"]
     , ["src/other_tools/root_maps", "tree_id_git_map"]
     , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    , "setup_utils"
     ]
   }
 , "launch":
@@ -156,6 +175,7 @@
     , "setup"
     , "utils"
     , ["src/utils/cpp", "file_locking"]
+    , "setup_utils"
     ]
   }
 }

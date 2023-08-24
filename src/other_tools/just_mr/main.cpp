@@ -35,6 +35,7 @@
 #include "src/other_tools/just_mr/fetch.hpp"
 #include "src/other_tools/just_mr/launch.hpp"
 #include "src/other_tools/just_mr/setup.hpp"
+#include "src/other_tools/just_mr/setup_utils.hpp"
 #include "src/other_tools/just_mr/update.hpp"
 
 namespace {
