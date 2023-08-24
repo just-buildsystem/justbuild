@@ -49,12 +49,15 @@ template <Hasher::HashType type>
 
 auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                          JustMR::CAInfoPtr const& ca_info,
+                         IExecutionApi* local_api,
+                         IExecutionApi* remote_api,
                          std::size_t jobs) -> ContentCASMap {
-    auto ensure_in_cas = [just_mr_paths, ca_info](auto /*unused*/,
-                                                  auto setter,
-                                                  auto logger,
-                                                  auto /*unused*/,
-                                                  auto const& key) {
+    auto ensure_in_cas = [just_mr_paths, ca_info, local_api, remote_api](
+                             auto /*unused*/,
+                             auto setter,
+                             auto logger,
+                             auto /*unused*/,
+                             auto const& key) {
         // check if content already in CAS
         auto const& cas = Storage::Instance().CAS();
         auto digest = ArtifactDigest(key.content, 0, false);
@@ -63,6 +66,16 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             return;
         }
         JustMRProgress::Instance().TaskTracker().Start(key.origin);
+        // check if content is in remote CAS, if a remote is given
+        if (remote_api and local_api and remote_api->IsAvailable({digest}) and
+            remote_api->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::File}},
+                local_api)) {
+            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+            (*setter)(true);
+            return;
+        }
         // add distfile to CAS
         auto repo_distfile =
             (key.distfile

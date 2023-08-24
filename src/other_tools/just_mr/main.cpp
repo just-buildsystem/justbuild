@@ -729,6 +729,7 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.common,
                 arguments.setup,
                 arguments.just_cmd,
+                arguments.auth,
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv));
             // dump resulting config to stdout
             if (not mr_config_path) {
@@ -748,8 +749,11 @@ auto main(int argc, char* argv[]) -> int {
 
         // Run subcommand `fetch`
         if (arguments.cmd == SubCommand::kFetch) {
-            return MultiRepoFetch(
-                config, arguments.common, arguments.setup, arguments.fetch);
+            return MultiRepoFetch(config,
+                                  arguments.common,
+                                  arguments.setup,
+                                  arguments.fetch,
+                                  arguments.auth);
         }
 
         // Unknown subcommand should fail

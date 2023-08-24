@@ -26,6 +26,7 @@
     MultiRepoCommonArguments const& common_args,
     MultiRepoSetupArguments const& setup_args,
     MultiRepoJustSubCmdsArguments const& just_cmd_args,
+    MultiRepoRemoteAuthArguments const& auth_args,
     bool interactive) -> std::optional<std::filesystem::path>;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_SETUP_HPP

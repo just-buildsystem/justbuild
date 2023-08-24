@@ -18,6 +18,7 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -58,6 +59,8 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
 
 [[nodiscard]] auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
                                        JustMR::CAInfoPtr const& ca_info,
+                                       IExecutionApi* local_api,
+                                       IExecutionApi* remote_api,
                                        std::size_t jobs) -> ContentCASMap;
 
 namespace std {

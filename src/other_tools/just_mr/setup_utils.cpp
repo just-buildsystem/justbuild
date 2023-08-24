@@ -18,10 +18,54 @@
 #include <unordered_set>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+
+namespace {
+
+void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) {
+    bool use_tls{false};
+    if (authargs.tls_ca_cert) {
+        use_tls = true;
+        if (not Auth::TLS::SetCACertificate(*authargs.tls_ca_cert)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' certificate.",
+                        authargs.tls_ca_cert->string());
+            std::exit(kExitConfigError);
+        }
+    }
+    if (authargs.tls_client_cert) {
+        use_tls = true;
+        if (not Auth::TLS::SetClientCertificate(*authargs.tls_client_cert)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' certificate.",
+                        authargs.tls_client_cert->string());
+            std::exit(kExitConfigError);
+        }
+    }
+    if (authargs.tls_client_key) {
+        use_tls = true;
+        if (not Auth::TLS::SetClientKey(*authargs.tls_client_key)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' key.",
+                        authargs.tls_client_key->string());
+            std::exit(kExitConfigError);
+        }
+    }
+
+    if (use_tls) {
+        if (not Auth::TLS::Validate()) {
+            std::exit(kExitConfigError);
+        }
+    }
+}
+
+}  // namespace
 
 namespace JustMR::Utils {
 
@@ -133,6 +177,29 @@ auto ReadConfiguration(
         std::exit(kExitConfigError);
     }
     return config;
+}
+
+auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
+                    MultiRepoRemoteAuthArguments const& auth)
+    -> IExecutionApi::Ptr {
+    // we only allow remotes in native mode
+    if (remote_exec_addr and not Compatibility::IsCompatible()) {
+        // setup authentication
+        SetupAuthConfig(auth);
+        // setup remote
+        if (not RemoteExecutionConfig::SetRemoteAddress(*remote_exec_addr)) {
+            Logger::Log(LogLevel::Error,
+                        "setting remote execution address '{}' failed.",
+                        *remote_exec_addr);
+            std::exit(kExitConfigError);
+        }
+        auto address = RemoteExecutionConfig::RemoteAddress();
+        ExecutionConfiguration config;
+        config.skip_cache_lookup = false;
+        return std::make_unique<BazelApi>(
+            "remote-execution", address->host, address->port, config);
+    }
+    return nullptr;
 }
 
 }  // namespace JustMR::Utils

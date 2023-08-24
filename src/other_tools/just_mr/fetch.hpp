@@ -22,7 +22,8 @@
 [[nodiscard]] auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                   MultiRepoCommonArguments const& common_args,
                                   MultiRepoSetupArguments const& setup_args,
-                                  MultiRepoFetchArguments const& fetch_args)
+                                  MultiRepoFetchArguments const& fetch_args,
+                                  MultiRepoRemoteAuthArguments const& auth_args)
     -> int;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_FETCH_HPP

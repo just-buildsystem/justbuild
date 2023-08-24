@@ -23,6 +23,8 @@
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/other_tools/just_mr/cli.hpp"
 
 /* Setup-related constants and utilities for just-mr */
 
@@ -54,6 +56,11 @@ void DefaultReachableRepositories(
 [[nodiscard]] auto ReadConfiguration(
     std::optional<std::filesystem::path> const& config_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
+
+/// \brief Setup of a remote API based on just-mr arguments.
+auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
+                    MultiRepoRemoteAuthArguments const& auth)
+    -> IExecutionApi::Ptr;
 
 }  // namespace Utils
 

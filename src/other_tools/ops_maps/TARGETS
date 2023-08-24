@@ -57,6 +57,7 @@
   , "srcs": ["content_cas_map.cpp"]
   , "deps":
     [ ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "json", "", "json"]

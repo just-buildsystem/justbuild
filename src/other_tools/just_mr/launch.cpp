@@ -67,6 +67,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                                             common_args,
                                             setup_args,
                                             just_cmd_args,
+                                            auth_args,
                                             /*interactive=*/false);
             if (not mr_config_path) {
                 Logger::Log(LogLevel::Error,

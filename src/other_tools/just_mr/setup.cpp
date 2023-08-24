@@ -17,6 +17,8 @@
 #include <filesystem>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -38,6 +40,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoJustSubCmdsArguments const& just_cmd_args,
+                    MultiRepoRemoteAuthArguments const& auth_args,
                     bool interactive) -> std::optional<std::filesystem::path> {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories setup");
@@ -85,11 +88,21 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         JustMR::Utils::ReachableRepositories(repos, *main, setup_repos);
     }
 
+    // setup the APIs for archive fetches
+    auto remote_api = JustMR::Utils::SetupRemoteApi(
+        common_args.remote_execution_address, auth_args);
+    IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
+                                            : nullptr};
+
     // setup the required async maps
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
-    auto content_cas_map = CreateContentCASMap(
-        common_args.just_mr_paths, common_args.ca_info, common_args.jobs);
+    auto content_cas_map =
+        CreateContentCASMap(common_args.just_mr_paths,
+                            common_args.ca_info,
+                            local_api ? &(*local_api) : nullptr,
+                            remote_api ? &(*remote_api) : nullptr,
+                            common_args.jobs);
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map,
                              common_args.git_path->string(),
