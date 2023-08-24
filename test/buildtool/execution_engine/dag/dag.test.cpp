@@ -143,7 +143,7 @@ TEST_CASE("AddAction({single action, single output, no inputs, env_variables})",
     DependencyGraph g;
     std::vector<std::string> const command{
         "/bin/sh", "-c", "set -e\necho 'Hello, ${NAME}' > greeting"};
-    nlohmann::json const env_vars{{"NAME", name}};
+    std::map<std::string, std::string> const env_vars{{"NAME", name}};
     auto const action_description = ActionDescription{
         {"greeting"}, {}, Action{action_id, command, env_vars}, {}};
 
