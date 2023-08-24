@@ -91,20 +91,23 @@ precedence to the artifacts over the runfiles; conflicts within
 artifacts or runfiles are resolved in a latest-wins fashion using the
 order of the targets in the evaluated `"deps"` argument.
 
-The fields `"cmds"`, `"out_dirs"`, `"outs"`, and `"env"` are evaluated
-fields where `"cmds"`, `"out_dirs"`, and `"outs"` have to evaluate to a
-list of strings, and `"env"` has to evaluate to a map of strings. During
-their evaluation, the functions `"outs"` and `"runfiles"`
-can be used to access the logical paths of the artifacts
+The fields `"cmds"`, `"sh -c"`, `"out_dirs"`, `"outs"`, and `"env"`
+are evaluated fields where `"cmds"`, `"out_dirs"`, and `"outs"`
+have to evaluate to a list of strings, `"sh -c"` has to evalute to
+a list of strings or `null`, and `"env"` has to evaluate to a map
+of strings. During their evaluation, the functions `"outs"` and
+`"runfiles"` can be used to access the logical paths of the artifacts
 and runfiles, respectively, of a target specified in `"deps"`. Here,
-`"env"` specifies the environment in which the action is carried out.
-`"out_dirs"` and `"outs"` define the output directories and files,
-respectively, the action has to produce. Since some artifacts are to be
-produced, at least one of `"out_dirs"` or `"outs"` must be a non-empty
-list of strings. It is an error if one or more paths are present in both
-the `"out_dirs"` and `"outs"`. Finally, the strings in `"cmds"` are
-extended by a newline character and joined, and command of the action is
-interpreting this string by `sh`.
+`"env"` specifies the environment in which the action is carried
+out. `"out_dirs"` and `"outs"` define the output directories and
+files, respectively, the action has to produce. Since some artifacts
+are to be produced, at least one of `"out_dirs"` or `"outs"` must
+be a non-empty list of strings. It is an error if one or more paths
+are present in both the `"out_dirs"` and `"outs"`. Finally, the
+strings in `"cmds"` are extended by a newline character and joined,
+and command of the action is the result of evaluating the field
+`"sh -c"` (or `["sh", "-c"]` if `"sh -c"` evaluates to `null` or
+`[]`) extended by this string.
 
 The artifacts of this target are the outputs (as declared by
 `"out_dirs"` and `"outs"`) of this action. Runfiles and provider map are
