@@ -15,6 +15,11 @@
 
 set -e
 
+if ! command -v git >/dev/null; then
+  echo "git is required to run this script."
+  exit 1
+fi
+
 # ---
 # Structure of test_repo:
 # ---
