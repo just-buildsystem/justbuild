@@ -22,6 +22,7 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
+#include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -89,7 +90,9 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 
     if (do_cache) {
         if (auto result = storage_->ActionCache().CachedResult(action)) {
-            if (result->exit_code() == 0) {
+            if (result->exit_code() == 0 and
+                ActionResultContainsExpectedOutputs(
+                    *result, output_files_, output_dirs_)) {
                 return IExecutionResponse::Ptr{
                     new LocalResponse{action.hash(),
                                       {std::move(*result), /*is_cached=*/true},

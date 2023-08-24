@@ -17,6 +17,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
+#include "src/buildtool/execution_api/utils/outputscheck.hpp"
 
 BazelAction::BazelAction(
     std::shared_ptr<BazelNetwork> network,
@@ -57,7 +58,11 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     if (do_cache) {
         if (auto result =
                 network_->GetCachedActionResult(action, output_files_)) {
-            if (result->exit_code() == 0) {
+            if (result->exit_code() == 0 and
+                ActionResultContainsExpectedOutputs(
+                    *result, output_files_, output_dirs_)
+
+            ) {
                 return IExecutionResponse::Ptr{new BazelResponse{
                     action.hash(), network_, {*result, true}}};
             }

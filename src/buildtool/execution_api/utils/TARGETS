@@ -15,4 +15,11 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
   }
+, "outputscheck":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["outputscheck"]
+  , "hdrs": ["outputscheck.hpp"]
+  , "deps": [["src/buildtool/common", "common"]]
+  , "stage": ["src", "buildtool", "execution_api", "utils"]
+  }
 }
