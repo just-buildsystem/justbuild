@@ -1,4 +1,4 @@
-## Release `1.2.0` (UNRELEASED)
+## Release `1.2.0` (2023-08-25)
 
 A feature release on top of `1.1.0`, backwards compatible.
 
@@ -56,6 +56,21 @@ A feature release on top of `1.1.0`, backwards compatible.
   remote-execution endpoints.
 - `just install-cas` now, like `just install`, removes an existing
   destination file before installing instead of overwriting.
+- Only actions with exit code 0 that generated all required outputs
+  are taken from cache, instead of all actions with exit code 0.
+  This only affects remote execution, as purely local build didn't
+  cache actions with incomplete outputs.
+
+### Changes since `1.2.0~beta3`
+
+- Only actions with exit code 0 that generated all required outputs
+  are taken from cache, instead of all actions with exit code 0.
+  This only affects remote execution, as purely local build didn't
+  cache actions with incomplete outputs.
+- Splitting off libraries from the main binary targets to simplify
+  cherry-picking future fixes from the head development branch.
+- Improvements of the bundled dependency descriptions.
+- Update of documentation.
 
 ## Release `1.2.0~beta3` (2023-08-22)
 
