@@ -2,7 +2,7 @@
   { "doc":
     [ "A rule to provide defaults."
     , "All targets take their defaults for PATCH from the target"
-    , "[\"\", \"defaults\"]. This is probably the only sensible"
+    , "[\"patch\", \"defaults\"]. This is probably the only sensible"
     , "use of this rule. As targets form a different root, the defaults"
     , "can be provided without changing this directory."
     ]
