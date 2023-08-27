@@ -366,6 +366,11 @@
     , "raw_logging_internal"
     ]
   }
+, "internal/direct_mmap.h":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "internal/direct_mmap.h"]]
+  , "patch": [["@", "patches", "", "direct_mmap.h.diff"]]
+  }
 , "prefetch":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["prefetch"]
