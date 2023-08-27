@@ -16,7 +16,12 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["json"]
   , "hdrs": ["json.hpp"]
-  , "deps": ["gsl", ["@", "json", "", "json"], ["@", "gsl", "", "gsl"]]
+  , "deps":
+    [ "gsl"
+    , ["@", "json", "", "json"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "fmt", "", "fmt"]
+    ]
   , "stage": ["src", "utils", "cpp"]
   }
 , "concepts":
