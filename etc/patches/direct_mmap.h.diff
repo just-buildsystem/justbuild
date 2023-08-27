@@ -1,0 +1,11 @@
+--- direct_mmap.h.orig	2023-08-27 16:22:17.101255129 +0200
++++ direct_mmap.h	2023-08-27 16:23:26.048355108 +0200
+@@ -72,7 +72,7 @@
+ // Platform specific logic extracted from
+ // https://chromium.googlesource.com/linux-syscall-support/+/master/linux_syscall_support.h
+ inline void* DirectMmap(void* start, size_t length, int prot, int flags, int fd,
+-                        off64_t offset) noexcept {
++                        int64_t offset) noexcept {
+ #if defined(__i386__) || defined(__ARM_ARCH_3__) || defined(__ARM_EABI__) || \
+     defined(__m68k__) || defined(__sh__) ||                                  \
+     (defined(__hppa__) && !defined(__LP64__)) ||                             \
