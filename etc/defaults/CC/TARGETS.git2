@@ -70,7 +70,6 @@
                 , "-Wno-unused-but-set-variable"
                 , "-Wno-unused-but-set-parameter"
                 , "-Wno-single-bit-bitfield-constant-conversion"
-                , "-Wno-unknown-warning-option"
                 ]
               , "gnu": ["-Wno-dangling-pointer"]
               }
@@ -91,6 +90,7 @@
             , "-Wno-unused-parameter"
             , "-Wno-uninitialized"
             , "-Wno-array-parameter"
+            , "-Wno-unknown-warning-option"
             ]
           ]
         }
