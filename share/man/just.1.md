@@ -50,11 +50,11 @@ modules.
 
 The main repository is the repository containing the target specified on
 the command line. The main repository can either be read from the
-multi-repository configuration file if it contains the key *`main`* or
+multi-repository configuration file if it contains the key *`"main"`* or
 through the option **`--main`**. The command-line option **`--main`**
 overrides what is eventually read from the multi-repository
 configuration file. If neither the multi-repository configuration file
-contains the *`main`* key nor the **`--main`** option is provided, the
+contains the *`"main"`* key nor the **`--main`** option is provided, the
 lexicographical first repository from the multi-repository configuration
 file is used as main.
 
