@@ -1,3 +1,7 @@
+## Release `1.2.1` (UNRELEASED)
+
+Bug fixes on top of release `1.2.0`.
+
 ## Release `1.2.0` (2023-08-25)
 
 A feature release on top of `1.1.0`, backwards compatible.
