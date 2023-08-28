@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "fmt/core.h"
 #include "fmt/ostream.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
@@ -213,10 +214,12 @@ namespace detail {
     return old_abbrev;
 }
 
+#if defined(FMT_VERSION) and FMT_VERSION >= 100000
 // Use nlohmann::basic_json::operator<<() for formatting via libfmt.
 // This explicit template specialization seems to be required starting with
 // libfmt 10.x.
 template <>
 struct fmt::formatter<nlohmann::basic_json<>> : ostream_formatter {};
+#endif
 
 #endif  // INCLUDED_SRC_UTILS_CPP_JSON_HPP
