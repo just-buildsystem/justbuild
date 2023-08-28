@@ -4,6 +4,13 @@
   , "test": ["generic_out_dirs.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "generic_sh":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["generic_sh"]
+  , "test": ["generic_sh.sh"]
+  , "keep": ["null.json", "empty.json", "custom.json"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "filegen_config":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["filegen_config"]
@@ -25,6 +32,12 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["generic_out_dirs", "filegen_config", "tree", "symlink_config"]
+  , "deps":
+    [ "generic_out_dirs"
+    , "generic_sh"
+    , "filegen_config"
+    , "tree"
+    , "symlink_config"
+    ]
   }
 }
