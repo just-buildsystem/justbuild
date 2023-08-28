@@ -401,6 +401,8 @@ def bootstrap() -> None:
             dirs.remove('test')
         if 'execution_api' in dirs:
             dirs.remove('execution_api')
+        if 'serve_api' in dirs:
+            dirs.remove('serve_api')
         if 'other_tools' in dirs:
             dirs.remove('other_tools')
         for f in files:

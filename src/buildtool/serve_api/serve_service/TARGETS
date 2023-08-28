@@ -1,0 +1,41 @@
+{ "just_serve_proto":
+  { "type": ["@", "rules", "proto", "library"]
+  , "name": ["just_serve_proto"]
+  , "service": ["yes"]
+  , "srcs": ["just_serve.proto"]
+  , "deps": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "stage": ["justbuild", "just_serve"]
+  }
+, "target_level_cache_server":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_level_cache_server"]
+  , "hdrs": ["target_level_cache_server.hpp"]
+  , "srcs": ["target_level_cache_server.cpp"]
+  , "proto": ["just_serve_proto"]
+  , "deps": [["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "buildtool", "serve_api", "serve_service"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/storage", "config"]
+    ]
+  }
+, "serve_server_implementation":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["serve_server_implementation"]
+  , "hdrs": ["serve_server_implementation.hpp"]
+  , "srcs": ["serve_server_implementation.cpp"]
+  , "deps": [["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "buildtool", "serve_api", "serve_service"]
+  , "private-deps":
+    [ "target_level_cache_server"
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    ]
+  }
+}

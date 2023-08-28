@@ -49,6 +49,8 @@
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/serve.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/logging/log_config.hpp"
@@ -129,6 +131,16 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
                         *rargs.cache_endpoint);
             std::exit(kExitFailure);
         }
+    }
+}
+
+void SetupServeConfig(ServeArguments const& srvargs) {
+    using RemoteConfig = RemoteServeConfig;
+    if (not srvargs.repositories.empty() and
+        not RemoteConfig::SetKnownRepositories(srvargs.repositories)) {
+        Logger::Log(LogLevel::Error,
+                    "setting serve service repositories failed.");
+        std::exit(kExitFailure);
     }
 }
 
@@ -225,6 +237,39 @@ void SetupExecutionServiceConfig(ServiceArguments const& args) {
     }
     if (args.op_exponent) {
         OperationCache::SetExponent(*args.op_exponent);
+    }
+}
+
+void SetupServeServiceConfig(ServiceArguments const& args) {
+    if (args.port) {
+        if (!ServeServerImpl::SetPort(*args.port)) {
+            Logger::Log(LogLevel::Error, "Invalid port '{}'", *args.port);
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.info_file) {
+        if (!ServeServerImpl::SetInfoFile(*args.info_file)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid info-file '{}'",
+                        args.info_file->string());
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.interface) {
+        if (!ServeServerImpl::SetInterface(*args.interface)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid interface '{}'",
+                        args.info_file->string());
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.pid_file) {
+        if (!ServeServerImpl::SetPidFile(*args.pid_file)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid pid-file '{}'",
+                        args.info_file->string());
+            std::exit(kExitFailure);
+        }
     }
 }
 
@@ -851,6 +896,7 @@ auto main(int argc, char* argv[]) -> int {
         SetupHashFunction();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
+        SetupServeConfig(arguments.serve);
         SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {
@@ -863,6 +909,14 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
             if (!ServerImpl::Instance().Run()) {
+                return kExitFailure;
+            }
+            return kExitSuccess;
+        }
+
+        if (arguments.cmd == SubCommand::kServe) {
+            SetupServeServiceConfig(arguments.service);
+            if (!ServeServerImpl::Instance().Run()) {
                 return kExitFailure;
             }
             return kExitSuccess;

@@ -6,6 +6,7 @@
     , ["@", "googleapis", "", "google_api_httpbody_proto"]
     , ["@", "googleapis", "", "google_api_expr_v1alpha1_checked_proto"]
     , ["@", "googleapis", "", "google_api_expr_v1alpha1_syntax_proto"]
+    , ["src/buildtool/serve_api/serve_service", "just_serve_proto"]
     ]
   }
 , "just-ext-hdrs":

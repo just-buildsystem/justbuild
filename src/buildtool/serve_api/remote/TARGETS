@@ -1,0 +1,8 @@
+{ "config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["config"]
+  , "hdrs": ["config.hpp"]
+  , "deps": [["src/buildtool/execution_api/remote", "config"]]
+  , "stage": ["src", "buildtool", "serve_api", "remote"]
+  }
+}
