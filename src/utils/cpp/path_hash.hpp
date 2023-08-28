@@ -17,10 +17,12 @@
 
 #include <filesystem>
 
-#if (defined(__GLIBCXX__) and _GLIBCXX_RELEASE < 12) or \
+auto constexpr kGLIBCXX_11_4 = 20230528;  // gcc/DATESTAMP of version 11.4
+#if (defined(__GLIBCXX__) and _GLIBCXX_RELEASE < 12 and \
+     __GLIBCXX__ != kGLIBCXX_11_4) or                   \
     (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION < 16000)
 // std::hash<std::filesystem::path> is missing for
-// - GNU's libstdc++ < 12
+// - GNU's libstdc++ < 12 (except 11.4)
 // - LLVM's libcxx < 16 (see https://reviews.llvm.org/D125394)
 namespace std {
 template <>
