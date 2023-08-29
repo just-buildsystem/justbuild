@@ -1,6 +1,13 @@
-## Release `1.2.1` (UNRELEASED)
+## Release `1.2.1` (2023-08-29)
 
 Bug fixes on top of release `1.2.0`.
+
+### Fixes
+
+- Portability improvements to support a wider range of
+  system dependencies.
+- Portability improvement of the bundled absl version.
+- Typos in man pages fixed.
 
 ## Release `1.2.0` (2023-08-25)
 
