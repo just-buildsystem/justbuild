@@ -85,5 +85,7 @@ dependencies.
 See also
 ========
 
+**`git`**(1),
+**`just-deduplicate-repos`**(1),
 **`just-mr-repository-config`**(5),
 **`just-mr`**(1)
