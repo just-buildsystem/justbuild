@@ -58,7 +58,7 @@
   }
 , "server_implementation":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["sever_implemenation"]
+  , "name": ["server_implementation"]
   , "hdrs": ["server_implementation.hpp"]
   , "srcs": ["server_implementation.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
@@ -75,6 +75,8 @@
     , ["src/buildtool/execution_api/local", "local"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/compatibility", "compatibility"]
     ]
   }
 , "bytestream_server":
