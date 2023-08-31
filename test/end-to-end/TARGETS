@@ -41,6 +41,13 @@
   , "files":
     {"bin/git-import-under-test": ["@", "src", "", "bin/just-import-git.py"]}
   }
+, "deduplicate-tool-under-test":
+  { "type": "install"
+  , "files":
+    { "bin/deduplicate-tool-under-test":
+      ["@", "src", "", "bin/just-deduplicate-repos.py"]
+    }
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
