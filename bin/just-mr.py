@@ -194,7 +194,7 @@ def read_config(configfile: str) -> Json:
 
 
 def git_root(*, upstream: Optional[str]) -> str:
-    if upstream and upstream in g_GIT_CHECKOUT_LOCATIONS:
+    if upstream is not None and upstream in g_GIT_CHECKOUT_LOCATIONS:
         return g_GIT_CHECKOUT_LOCATIONS[upstream]
     elif upstream and os.path.isabs(upstream) and os.path.isdir(upstream):
         return upstream
