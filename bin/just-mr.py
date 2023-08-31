@@ -717,19 +717,19 @@ def setup(*,
     repos_to_include = repos.keys()
     mr_config: Json = {}
 
-    if main == None:
+    if main is None:
         main = config.setdefault("main", None)
-        if not isinstance(main, str) and main != None:
+        if not isinstance(main, str) and main is not None:
             fail("Unsupported value for field 'main' in configuration.")
 
-    if main != None:
+    if main is not None:
         # pass on main that was explicitly set via command line or config
         mr_config["main"] = main
 
-    if main == None and len(repos_to_setup) > 0:
+    if main is None and len(repos_to_setup) > 0:
         main = sorted(list(repos_to_setup))[0]
 
-    if main != None and not setup_all:
+    if main is not None and not setup_all:
         repos_to_include, repos_to_setup = reachable_repositories(main,
                                                                   repos=repos)
 
@@ -835,9 +835,9 @@ def fetch(*,
     repos_to_fetch = repos.keys()
 
     if not fetch_all:
-        if main == None and len(repos_to_fetch) > 0:
+        if main is None and len(repos_to_fetch) > 0:
             main = sorted(list(repos_to_fetch))[0]
-        if main != None:
+        if main is not None:
             repos_to_fetch = reachable_repositories(main, repos=repos)[0]
 
         def is_subpath(path: str, base: str) -> bool:
@@ -848,7 +848,7 @@ def fetch(*,
                                            g_WORKSPACE_ROOT):
             repo = repos.get(main, {}).get("repository", {})
             repo_path = repo.get("path", None)
-            if repo_path != None and repo.get("type", None) == "file":
+            if repo_path is not None and repo.get("type", None) == "file":
                 if not os.path.isabs(repo_path):
                     repo_path = os.path.realpath(
                         os.path.join(cast(str, g_SETUP_ROOT), repo_path))
