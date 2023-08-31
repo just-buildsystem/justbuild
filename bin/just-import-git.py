@@ -145,7 +145,7 @@ def clone(url: str, branch: str) -> Tuple[str, Dict[str, str], str]:
     return srcdir, repo, workdir
 
 
-def get_repo_to_import(config: Json) -> Optional[str]:
+def get_repo_to_import(config: Json) -> str:
     """From a given repository config, take the main repository."""
     if config.get("main") is not None:
         return cast(str, config.get("main"))
@@ -280,7 +280,6 @@ def handle_import(args: Namespace) -> Json:
         else:
             fail('Could not get repository config file')
     foreign_repos: Json = foreign_config.get("repositories", {})
-    foreign_name: Optional[str] = None
     if args.foreign_repository_name:
         foreign_name = args.foreign_repository_name
     else:
@@ -288,15 +287,12 @@ def handle_import(args: Namespace) -> Json:
     import_map: Json = {}
     for theirs, ours in args.import_map:
         import_map[theirs] = ours
-    main_repos: List[str] = []
-    if (foreign_name):
-        main_repos = repos_to_import(foreign_repos, foreign_name,
-                                     import_map.keys())
+    main_repos = repos_to_import(foreign_repos, foreign_name,
+                                 import_map.keys())
     extra_repos = sorted([x for x in main_repos if x != foreign_name])
     extra_imports = sorted(extra_layers_to_import(foreign_repos, main_repos))
-    ordered_imports: List[str] = [cast(str, foreign_name)
-                                  ] + extra_repos + extra_imports
-    import_name = cast(str, foreign_name)
+    ordered_imports: List[str] = [foreign_name] + extra_repos + extra_imports
+    import_name = foreign_name
     if args.import_as is not None:
         import_name = args.import_as
     assign: Dict[str, str] = name_imports(
