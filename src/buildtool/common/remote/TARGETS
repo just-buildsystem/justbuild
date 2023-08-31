@@ -1,0 +1,14 @@
+{ "client_common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["client_common"]
+  , "hdrs": ["client_common.hpp"]
+  , "deps":
+    [ ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "common", "remote"]
+  }
+}

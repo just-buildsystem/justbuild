@@ -3,7 +3,6 @@
   , "name": ["bazel_network"]
   , "hdrs":
     [ "bazel/bytestream_client.hpp"
-    , "bazel/bazel_client_common.hpp"
     , "bazel/bazel_action.hpp"
     , "bazel/bazel_response.hpp"
     , "bazel/bazel_network.hpp"
@@ -29,6 +28,7 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/execution_api/common", "bytestream-common"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/buildtool/common/remote", "client_common"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -42,6 +42,7 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
+    , ["@", "grpc", "", "grpc++"]
     ]
   }
 , "bazel":

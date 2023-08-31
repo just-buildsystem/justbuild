@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CLIENT_COMMON_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CLIENT_COMMON_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_CLIENT_COMMON_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_CLIENT_COMMON_HPP
 
-/// \file bazel_client_common.hpp
+/// \file client_common.hpp
 /// \brief Common types and functions required by client implementations.
 
 #include <sstream>
@@ -24,7 +24,6 @@
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -75,4 +74,4 @@
     }
 }
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CLIENT_COMMON_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLIENT_COMMON_HPP

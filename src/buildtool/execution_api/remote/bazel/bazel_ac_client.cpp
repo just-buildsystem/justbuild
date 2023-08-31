@@ -16,7 +16,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_client_common.hpp"
+#include "src/buildtool/common/remote/client_common.hpp"
 
 BazelAcClient::BazelAcClient(std::string const& server, Port port) noexcept {
     stub_ = bazel_re::ActionCache::NewStub(
