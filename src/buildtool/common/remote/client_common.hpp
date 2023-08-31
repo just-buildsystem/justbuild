@@ -24,7 +24,7 @@
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 [[maybe_unused]] [[nodiscard]] static inline auto CreateChannelWithCredentials(

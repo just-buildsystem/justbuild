@@ -29,6 +29,7 @@
     , ["src/buildtool/execution_api/common", "bytestream-common"]
     , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/common/remote", "client_common"]
+    , ["src/buildtool/common/remote", "port"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -57,6 +58,7 @@
     , ["src/buildtool/execution_api/bazel_msg", "blob_tree"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "port"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
@@ -71,11 +73,9 @@
   , "hdrs": ["config.hpp"]
   , "srcs": ["config.cpp"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "type_safe_arithmetic"]
-    , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common/remote", "port"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   }

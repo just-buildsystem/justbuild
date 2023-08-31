@@ -28,38 +28,7 @@
 #include <fmt/core.h>
 #include <nlohmann/json.hpp>
 
-#include "gsl/gsl"
-#include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/type_safe_arithmetic.hpp"
-
-// Port
-struct PortTag : type_safe_arithmetic_tag<std::uint16_t> {};
-using Port = type_safe_arithmetic<PortTag>;
-
-[[nodiscard]] static auto ParsePort(int const port_num) noexcept
-    -> std::optional<Port> {
-    try {
-        static constexpr int kMaxPortNumber{
-            std::numeric_limits<uint16_t>::max()};
-        if (port_num >= 0 and port_num <= kMaxPortNumber) {
-            return gsl::narrow_cast<Port::value_t>(port_num);
-        }
-    } catch (std::out_of_range const& e) {
-        Logger::Log(LogLevel::Error, "Port raised out_of_range exception.");
-    }
-    return std::nullopt;
-}
-
-[[nodiscard]] static auto ParsePort(std::string const& port) noexcept
-    -> std::optional<Port> {
-    try {
-        auto port_num = std::stoi(port);
-        return ParsePort(port_num);
-    } catch (std::invalid_argument const& e) {
-        Logger::Log(LogLevel::Error, "Port raised invalid_argument exception.");
-    }
-    return std::nullopt;
-}
+#include "src/buildtool/common/remote/port.hpp"
 
 class RemoteExecutionConfig {
   public:

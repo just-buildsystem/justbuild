@@ -24,6 +24,7 @@
 
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"

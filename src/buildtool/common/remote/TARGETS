@@ -6,8 +6,19 @@
     [ ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , "port"
     , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "common", "remote"]
+  }
+, "port":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["port"]
+  , "hdrs": ["port.hpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
