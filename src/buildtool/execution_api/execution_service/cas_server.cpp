@@ -14,7 +14,7 @@
 
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 
-#include "fmt/format.h"
+#include "fmt/core.h"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 

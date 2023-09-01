@@ -22,7 +22,7 @@
 
 #include <fnmatch.h>
 
-#include "fmt/format.h"
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"

@@ -24,7 +24,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <fmt/format.h>
+#include <fmt/core.h>
 #include <nlohmann/json.hpp>
 
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"

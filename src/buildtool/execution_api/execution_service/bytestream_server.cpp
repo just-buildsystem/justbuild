@@ -18,7 +18,7 @@
 #include <sstream>
 #include <utility>
 
-#include "fmt/format.h"
+#include "fmt/core.h"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"

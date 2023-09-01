@@ -19,7 +19,7 @@
 
 #include <sys/types.h>
 
-#include "fmt/format.h"
+#include "fmt/core.h"
 #include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
