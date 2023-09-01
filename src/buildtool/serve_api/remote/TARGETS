@@ -5,4 +5,17 @@
   , "deps": [["src/buildtool/execution_api/remote", "config"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
+, "serve_target_level_cache_client":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["serve_target_level_cache_client"]
+  , "hdrs": ["serve_target_level_cache_client.hpp"]
+  , "srcs": ["serve_target_level_cache_client.cpp"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
+  , "stage": ["src", "buildtool", "serve_api", "remote"]
+  , "private-deps": [["src/buildtool/common/remote", "client_common"]]
+  }
 }
