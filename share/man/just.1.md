@@ -436,7 +436,8 @@ number of characters (default: 320).
 Supported by: analyse|build|install.
 
 **`-P`**, **`--print-to-stdout`** *`LOGICAL_PATH`*  
-After building, print the specified artifact to stdout.
+After building, print the specified artifact to stdout.  
+Supported by: build|install|rebuild|traverse.
 
 **`-s`**, **`--show-runfiles`**  
 Do not omit runfiles in build report.  
