@@ -61,6 +61,23 @@
     ]
   , "stage": ["test", "utils"]
   }
+, "catch-main-serve":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["catch-main-serve"]
+  , "srcs": ["serve_service/main-serve.cpp"]
+  , "deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
+    , ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
+    , "shell_quoting"
+    , "log_config"
+    , "test_env"
+    ]
+  , "stage": ["test", "utils"]
+  }
 , "test_utils_install":
   { "type": "install"
   , "tainted": ["test"]

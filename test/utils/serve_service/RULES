@@ -1,0 +1,215 @@
+{ "CC test":
+  { "doc":
+    ["A test written in C++, depending on serve service and remote execution"]
+  , "tainted": ["test"]
+  , "target_fields": ["srcs", "private-hdrs", "private-deps", "data"]
+  , "string_fields":
+    [ "name"
+    , "args"
+    , "stage"
+    , "pure C"
+    , "private-defines"
+    , "private-cflags"
+    , "private-ldflags"
+    , "compatible remote"
+    ]
+  , "config_vars":
+    [ "ARCH"
+    , "HOST_ARCH"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "TEST_ENV"
+    , "CC_TEST_LAUNCHER"
+    , "TEST_COMPATIBLE_REMOTE"
+    ]
+  , "implicit":
+    { "defaults": [["@", "rules", "CC", "defaults"]]
+    , "runner": ["test_runner.py"]
+    , "just": [["@", "src", "", "installed just"]]
+    }
+  , "field_doc":
+    { "name":
+      [ "The name of the test"
+      , ""
+      , "Used to name the test binary as well as for staging the test result"
+      ]
+    , "args": ["Command line arguments for the test binary"]
+    , "srcs": ["The sources of the test binary"]
+    , "private-hdrs":
+      [ "Any additional header files that need to be present when compiling"
+      , "the test binary."
+      ]
+    , "private-defines":
+      [ "List of defines set for source files local to this target."
+      , "Each list entry will be prepended by \"-D\"."
+      ]
+    , "private-cflags":
+      ["List of compile flags set for source files local to this target."]
+    , "private-ldflags":
+      [ "Additional linker flags for linking external libraries (not built"
+      , "by this tool, typically system libraries)."
+      ]
+    , "stage":
+      [ "The logical location of all header and source files."
+      , "Individual directory components are joined with \"/\"."
+      ]
+    , "pure C":
+      [ "If non-empty, compile as C sources rathter than C++ sources."
+      , "In particular, CC is used to compile rather than CXX (or their"
+      , "respective defaults)."
+      ]
+    , "data": ["Any files the test binary needs access to when running"]
+    }
+  , "config_doc":
+    { "CC": ["The name of the C compiler to be used."]
+    , "CXX": ["The name of the C++ compiler to be used."]
+    , "CFLAGS":
+      [ "The flags for CC to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "CXXFLAGS":
+      [ "The flags for CXX to be used instead of the default ones"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CFLAGS":
+      [ "The flags to add to the default ones for CC"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ADD_CXXFLAGS":
+      [ "The flags to add to the default ones for CXX"
+      , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "ENV": ["The environment for any action generated."]
+    , "TEST_ENV": ["The environment for executing the test runner."]
+    , "CC_TEST_LAUNCHER":
+      [ "List of strings representing the launcher that is prepend to the"
+      , "command line for running the test binary."
+      ]
+    , "TEST_COMPATIBLE_REMOTE":
+      [ "If true, provide compatible remote execution and set COMPATIBLE in the"
+      , " test environment; otherwise, provide a native remote execution"
+      , "do not modify the environment"
+      ]
+    }
+  , "artifacts_doc":
+    [ "result: the result of this test (\"PASS\" or \"FAIL\"); useful for"
+    , "        generating test reports."
+    , "stdout/stderr: Any output the invocation of the test binary produced on"
+    , "        the respective file descriptor"
+    , "time-start/time-stop: The time (decimally coded) in seconds since the"
+    , "        epoch when the test invocation started and ended."
+    ]
+  , "runfiles_doc":
+    [ "A tree consisting of the artifacts staged at the name of the test."
+    , "As the built-in \"install\" rule only takes the runfiles of its"
+    , "\"private-deps\" argument, this gives an easy way of defining test"
+    , "suites."
+    ]
+  , "imports":
+    { "artifacts": ["@", "rules", "", "field_artifacts"]
+    , "runfiles": ["@", "rules", "", "field_runfiles"]
+    , "host transition": ["@", "rules", "transitions", "for host"]
+    , "stage": ["@", "rules", "", "stage_singleton_field"]
+    , "run_test": ["@", "rules", "CC/test", "run_test"]
+    }
+  , "config_transitions":
+    { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "private-deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "data": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "just": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "runner": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "name"
+        , { "type": "assert_non_empty"
+          , "msg": "A non-empty name has to be provided for binaries"
+          , "$1": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+          }
+        ]
+      , ["pure C", {"type": "FIELD", "name": "pure C"}]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "srcs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , [ "private-hdrs"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1":
+            { "type": "let*"
+            , "bindings": [["fieldname", "private-hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+            }
+          }
+        ]
+      , ["host-trans", {"type": "CALL_EXPRESSION", "name": "host transition"}]
+      , ["defaults-transition", {"type": "var", "name": "host-trans"}]
+      , ["deps-transition", {"type": "var", "name": "host-trans"}]
+      , ["deps-fieldnames", ["private-deps", "defaults"]]
+      , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
+      , ["fieldname", "runner"]
+      , ["location", "runner"]
+      , ["runner", {"type": "CALL_EXPRESSION", "name": "stage"}]
+      , ["fieldname", "just"]
+      , ["just", {"type": "CALL_EXPRESSION", "name": "artifacts"}]
+      , [ "compatible-remote"
+        , { "type": "singleton_map"
+          , "key": "compatible-remote.json"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "if"
+              , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+              , "then": "true"
+              , "else": "false"
+              }
+            }
+          }
+        ]
+      , [ "runner-data"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "compatible-remote"}
+            , {"type": "var", "name": "just"}
+            ]
+          }
+        ]
+      , ["test-args", {"type": "FIELD", "name": "args", "default": []}]
+      , [ "test-data"
+        , { "type": "let*"
+          , "bindings":
+            [ ["fieldname", "data"]
+            , ["transition", {"type": "var", "name": "deps-transition"}]
+            ]
+          , "body":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "CALL_EXPRESSION", "name": "runfiles"}
+              , {"type": "CALL_EXPRESSION", "name": "artifacts"}
+              ]
+            }
+          }
+        ]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "run_test"}
+    }
+  }
+}

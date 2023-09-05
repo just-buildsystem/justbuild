@@ -54,6 +54,14 @@ static inline void ReadCompatibilityFromEnv() {
                : std::make_optional(std::string{execution_address});
 }
 
+[[nodiscard]] static inline auto ReadRemoteServeAddressFromEnv()
+    -> std::optional<std::string> {
+    auto* serve_address = std::getenv("REMOTE_SERVE_ADDRESS");
+    return serve_address == nullptr
+               ? std::nullopt
+               : std::make_optional(std::string{serve_address});
+}
+
 [[nodiscard]] static inline auto ReadTLSAuthArgsFromEnv() -> bool {
     auto* ca_cert = std::getenv("TLS_CA_CERT");
     auto* client_cert = std::getenv("TLS_CLIENT_CERT");
@@ -79,6 +87,20 @@ static inline void ReadCompatibilityFromEnv() {
         }
     }
     return true;
+}
+
+[[nodiscard]] static inline auto ReadRemoteServeReposFromEnv()
+    -> std::vector<std::filesystem::path> {
+    std::vector<std::filesystem::path> repos{};
+    auto* serve_repos = std::getenv("SERVE_REPOSITORIES");
+    if (serve_repos not_eq nullptr) {
+        std::istringstream pss(std::string{serve_repos});
+        std::string path;
+        while (std::getline(pss, path, ';')) {
+            repos.emplace_back(path);
+        }
+    }
+    return repos;
 }
 
 #endif  // INCLUDED_SRC_TEST_UTILS_TEST_ENV_HPP
