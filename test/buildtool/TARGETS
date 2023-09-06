@@ -12,6 +12,7 @@
     , [["./", "logging", "TESTS"], "logging"]
     , [["./", "main", "TESTS"], "main"]
     , [["./", "multithreading", "TESTS"], "multithreading"]
+    , [["./", "serve_api", "TESTS"], "serve_api"]
     , [["./", "storage", "TESTS"], "storage"]
     , [["./", "system", "TESTS"], "system"]
     ]
