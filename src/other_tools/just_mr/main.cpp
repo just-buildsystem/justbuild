@@ -504,9 +504,8 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
                         remote->ToString());
             std::exit(kExitConfigError);
         }
-        auto const& remote_map = remote->Map();
         if (not clargs->common.remote_execution_address) {
-            auto addr = remote_map.at("address");
+            auto addr = remote->Get("address", Expression::none_t{});
             if (addr.IsNotNull()) {
                 if (not addr->IsString()) {
                     Logger::Log(LogLevel::Error,
@@ -519,7 +518,7 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             }
         }
         if (not clargs->common.compatible) {
-            auto compat = remote_map.at("compatible");
+            auto compat = remote->Get("compatible", Expression::none_t{});
             if (compat.IsNotNull()) {
                 if (not compat->IsBool()) {
                     Logger::Log(LogLevel::Error,
@@ -542,24 +541,26 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
                         auth_args->ToString());
             std::exit(kExitConfigError);
         }
-        auto const& auth_map = auth_args->Map();
         if (not clargs->auth.tls_ca_cert) {
-            auto v = ReadLocation(auth_map.at("ca cert"),
-                                  clargs->common.just_mr_paths->workspace_root);
+            auto v =
+                ReadLocation(auth_args->Get("ca cert", Expression::none_t{}),
+                             clargs->common.just_mr_paths->workspace_root);
             if (v) {
                 clargs->auth.tls_ca_cert = v->first;
             }
         }
         if (not clargs->auth.tls_client_cert) {
-            auto v = ReadLocation(auth_map.at("client cert"),
-                                  clargs->common.just_mr_paths->workspace_root);
+            auto v = ReadLocation(
+                auth_args->Get("client cert", Expression::none_t{}),
+                clargs->common.just_mr_paths->workspace_root);
             if (v) {
                 clargs->auth.tls_client_cert = v->first;
             }
         }
         if (not clargs->auth.tls_client_key) {
-            auto v = ReadLocation(auth_map.at("client key"),
-                                  clargs->common.just_mr_paths->workspace_root);
+            auto v =
+                ReadLocation(auth_args->Get("client key", Expression::none_t{}),
+                             clargs->common.just_mr_paths->workspace_root);
             if (v) {
                 clargs->auth.tls_client_key = v->first;
             }
