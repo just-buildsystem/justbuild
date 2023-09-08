@@ -18,4 +18,15 @@
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps": [["src/buildtool/common/remote", "client_common"]]
   }
+, "serve_api":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["serve_api"]
+  , "hdrs": ["serve_api.hpp"]
+  , "srcs": ["serve_api.cpp"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "port"]
+    , "serve_target_level_cache_client"
+    ]
+  , "stage": ["src", "buildtool", "serve_api", "remote"]
+  }
 }
