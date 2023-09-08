@@ -47,11 +47,14 @@ struct ArchiveRepoInfo {
     std::string subdir;     /* key */
     // create root based on "special" pragma value
     std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
+    // create an absent root
+    bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const ArchiveRepoInfo& other) const -> bool {
         return archive == other.archive and repo_type == other.repo_type and
                subdir == other.subdir and
-               pragma_special == other.pragma_special;
+               pragma_special == other.pragma_special and
+               absent == other.absent;
     }
 };
 
@@ -83,6 +86,7 @@ struct hash<ArchiveRepoInfo> {
         hash_combine<std::string>(&seed, ct.repo_type);
         hash_combine<std::string>(&seed, ct.subdir);
         hash_combine<std::optional<PragmaSpecial>>(&seed, ct.pragma_special);
+        hash_combine<bool>(&seed, ct.absent);
         return seed;
     }
 };

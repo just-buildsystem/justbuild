@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -33,10 +34,13 @@ struct GitRepoInfo {
     std::string origin{};
     // create root that ignores symlinks
     bool ignore_special{}; /* key */
+    // create an absent root
+    bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const GitRepoInfo& other) const -> bool {
         return hash == other.hash and subdir == other.subdir and
-               ignore_special == other.ignore_special;
+               ignore_special == other.ignore_special and
+               absent == other.absent;
     }
 };
 
@@ -49,6 +53,7 @@ struct hash<GitRepoInfo> {
         hash_combine<std::string>(&seed, ct.hash);
         hash_combine<std::string>(&seed, ct.subdir);
         hash_combine<bool>(&seed, ct.ignore_special);
+        hash_combine<bool>(&seed, ct.absent);
         return seed;
     }
 };
@@ -64,6 +69,7 @@ using CommitGitMap =
     JustMR::PathsPtr const& just_mr_paths,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    ServeApi* serve_api,
     std::size_t jobs) -> CommitGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_COMMIT_GIT_MAP_HPP

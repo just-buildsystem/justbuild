@@ -94,6 +94,10 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
                                             : nullptr};
 
+    // setup the API for serving tree of known commit
+    auto serve_api = JustMR::Utils::SetupServeApi(
+        common_args.remote_serve_address, auth_args);
+
     // setup the required async maps
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
@@ -110,11 +114,13 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                              common_args.jobs);
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
-    auto commit_git_map = CreateCommitGitMap(&critical_git_op_map,
-                                             common_args.just_mr_paths,
-                                             common_args.git_path->string(),
-                                             *common_args.local_launcher,
-                                             common_args.jobs);
+    auto commit_git_map =
+        CreateCommitGitMap(&critical_git_op_map,
+                           common_args.just_mr_paths,
+                           common_args.git_path->string(),
+                           *common_args.local_launcher,
+                           serve_api ? &(*serve_api) : nullptr,
+                           common_args.jobs);
     auto content_git_map = CreateContentGitMap(&content_cas_map,
                                                &import_to_git_map,
                                                &resolve_symlinks_map,

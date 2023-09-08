@@ -102,6 +102,12 @@ void GitCheckout(ExpressionPtr const& repo_desc,
             ? std::make_optional(
                   kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
+    // check "absent" pragma
+    auto pragma_absent =
+        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+    auto pragma_absent_value = pragma_absent and
+                               pragma_absent->get()->IsBool() and
+                               pragma_absent->get()->Bool();
     // populate struct
     GitRepoInfo git_repo_info = {
         .hash = repo_desc_commit->get()->String(),
@@ -109,7 +115,8 @@ void GitCheckout(ExpressionPtr const& repo_desc,
         .branch = repo_desc_branch->get()->String(),
         .subdir = subdir.empty() ? "." : subdir.string(),
         .origin = repo_name,
-        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
+        .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
+        .absent = pragma_absent_value};
     // get the WS root as git tree
     commit_git_map->ConsumeAfterKeysReady(
         ts,
@@ -192,6 +199,12 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
             ? std::make_optional(
                   kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
+    // check "absent" pragma
+    auto pragma_absent =
+        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+    auto pragma_absent_value = pragma_absent and
+                               pragma_absent->get()->IsBool() and
+                               pragma_absent->get()->Bool();
     // populate struct
     ArchiveRepoInfo archive_repo_info = {
         .archive =
@@ -210,7 +223,8 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
              .origin_from_distdir = false},
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
-        .pragma_special = pragma_special_value};
+        .pragma_special = pragma_special_value,
+        .absent = pragma_absent_value};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -283,9 +297,17 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         pragma_special_value == PragmaSpecial::ResolveCompletely or
         (pragma_to_git and pragma_to_git->get()->IsBool() and
          pragma_to_git->get()->Bool())) {
+        // check "absent" pragma
+        auto pragma_absent = repo_desc_pragma
+                                 ? repo_desc_pragma->get()->At("absent")
+                                 : std::nullopt;
+        auto pragma_absent_value = pragma_absent and
+                                   pragma_absent->get()->IsBool() and
+                                   pragma_absent->get()->Bool();
         // get the WS root as git tree
         FpathInfo fpath_info = {.fpath = fpath,
-                                .pragma_special = pragma_special_value};
+                                .pragma_special = pragma_special_value,
+                                .absent = pragma_absent_value};
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
             {std::move(fpath_info)},
@@ -345,6 +367,13 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                   /*fatal=*/true);
         return;
     }
+    // check "absent" pragma
+    auto repo_desc_pragma = repo_desc->At("pragma");
+    auto pragma_absent =
+        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+    auto pragma_absent_value = pragma_absent and
+                               pragma_absent->get()->IsBool() and
+                               pragma_absent->get()->Bool();
     // map of distfile to content
     auto distdir_content =
         std::make_shared<std::unordered_map<std::string, std::string>>();
@@ -483,7 +512,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     DistdirInfo distdir_info = {.content_id = distdir_content_id,
                                 .content_list = distdir_content,
                                 .repos_to_fetch = dist_repos_to_fetch,
-                                .origin = repo_name};
+                                .origin = repo_name,
+                                .absent = pragma_absent_value};
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
@@ -586,12 +616,19 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
             ? std::make_optional(
                   kPragmaSpecialMap.at(pragma_special->get()->String()))
             : std::nullopt;
+    // check "absent" pragma
+    auto pragma_absent =
+        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+    auto pragma_absent_value = pragma_absent and
+                               pragma_absent->get()->IsBool() and
+                               pragma_absent->get()->Bool();
     // populate struct
     TreeIdInfo tree_id_info = {
         .hash = repo_desc_hash->get()->String(),
         .env_vars = std::move(env),
         .command = std::move(cmd),
-        .ignore_special = pragma_special_value == PragmaSpecial::Ignore};
+        .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
+        .absent = pragma_absent_value};
     // get the WS root as git tree
     tree_id_git_map->ConsumeAfterKeysReady(
         ts,

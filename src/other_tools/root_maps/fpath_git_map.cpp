@@ -24,11 +24,11 @@
 namespace {
 
 void ResolveFilePathTree(
-
     std::string const& repo_root,
     std::string const& target_path,
     std::string const& tree_hash,
     std::optional<PragmaSpecial> const& pragma_special,
+    bool absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     FilePathGitMap::SetterPtr const& ws_setter,
@@ -48,8 +48,12 @@ void ResolveFilePathTree(
                 return;
             }
             // set the workspace root
-            (*ws_setter)(nlohmann::json::array(
-                {FileRoot::kGitTreeMarker, *resolved_tree_id, repo_root}));
+            auto root = nlohmann::json::array(
+                {FileRoot::kGitTreeMarker, *resolved_tree_id});
+            if (not absent) {
+                root.emplace_back(repo_root);
+            }
+            (*ws_setter)(std::move(root));
         }
         else {
             // resolve tree
@@ -63,6 +67,7 @@ void ResolveFilePathTree(
                  tree_hash,
                  repo_root,
                  tree_id_file,
+                 absent,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -94,10 +99,12 @@ void ResolveFilePathTree(
                         return;
                     }
                     // set the workspace root
-                    (*ws_setter)(
-                        nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                               resolved_tree.id,
-                                               repo_root}));
+                    auto root = nlohmann::json::array(
+                        {FileRoot::kGitTreeMarker, resolved_tree.id});
+                    if (not absent) {
+                        root.emplace_back(repo_root);
+                    }
+                    (*ws_setter)(std::move(root));
                 },
                 [logger, target_path](auto const& msg, bool fatal) {
                     (*logger)(fmt::format(
@@ -110,8 +117,12 @@ void ResolveFilePathTree(
     }
     else {
         // set the workspace root as-is
-        (*ws_setter)(nlohmann::json::array(
-            {FileRoot::kGitTreeMarker, tree_hash, repo_root}));
+        auto root =
+            nlohmann::json::array({FileRoot::kGitTreeMarker, tree_hash});
+        if (not absent) {
+            root.emplace_back(repo_root);
+        }
+        (*ws_setter)(std::move(root));
     }
 }
 
@@ -174,6 +185,7 @@ auto CreateFilePathGitMap(
                 {std::move(op_key)},
                 [fpath = key.fpath,
                  pragma_special = key.pragma_special,
+                 absent = key.absent,
                  git_cas = std::move(git_cas),
                  repo_root = std::move(*repo_root),
                  resolve_symlinks_map,
@@ -216,6 +228,7 @@ auto CreateFilePathGitMap(
                                         fpath.string(),
                                         *tree_hash,
                                         pragma_special,
+                                        absent,
                                         resolve_symlinks_map,
                                         ts,
                                         setter,
@@ -267,6 +280,7 @@ auto CreateFilePathGitMap(
                 [tmp_dir,
                  fpath = key.fpath,
                  pragma_special = key.pragma_special,
+                 absent = key.absent,
                  resolve_symlinks_map,
                  ts,
                  setter,
@@ -284,6 +298,7 @@ auto CreateFilePathGitMap(
                                         fpath.string(),
                                         tree,
                                         pragma_special,
+                                        absent,
                                         resolve_symlinks_map,
                                         ts,
                                         setter,

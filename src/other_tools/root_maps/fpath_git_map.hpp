@@ -26,10 +26,14 @@ struct FpathInfo {
     std::filesystem::path fpath{}; /* key */
     // create root based on "special" pragma value
     std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
+    // create an absent root
+    bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const FpathInfo& other) const noexcept
         -> bool {
-        return fpath == other.fpath and pragma_special == other.pragma_special;
+        return fpath == other.fpath and
+               pragma_special == other.pragma_special and
+               absent == other.absent;
     }
 };
 
@@ -51,6 +55,7 @@ struct hash<FpathInfo> {
         size_t seed{};
         hash_combine<std::filesystem::path>(&seed, ct.fpath);
         hash_combine<std::optional<PragmaSpecial>>(&seed, ct.pragma_special);
+        hash_combine<bool>(&seed, ct.absent);
         return seed;
     }
 };

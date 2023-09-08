@@ -24,6 +24,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
 /* Setup-related constants and utilities for just-mr */
@@ -58,9 +59,14 @@ void DefaultReachableRepositories(
     -> std::shared_ptr<Configuration>;
 
 /// \brief Setup of a remote API based on just-mr arguments.
-auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
-                    MultiRepoRemoteAuthArguments const& auth)
-    -> IExecutionApi::Ptr;
+[[nodiscard]] auto SetupRemoteApi(
+    std::optional<std::string> const& remote_exec_addr,
+    MultiRepoRemoteAuthArguments const& auth) -> IExecutionApi::Ptr;
+
+/// \brief Setup of a 'just serve' remote API based on just-mr arguments.
+[[nodiscard]] auto SetupServeApi(
+    std::optional<std::string> const& remote_serve_addr,
+    MultiRepoRemoteAuthArguments const& auth) -> ServeApi::Ptr;
 
 }  // namespace Utils
 

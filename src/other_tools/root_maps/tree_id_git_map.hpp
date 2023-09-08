@@ -30,9 +30,12 @@ struct TreeIdInfo {
     std::string origin{};
     // create root that ignores symlinks
     bool ignore_special{}; /* key */
+    // create an absent root
+    bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const TreeIdInfo& other) const -> bool {
-        return hash == other.hash and ignore_special == other.ignore_special;
+        return hash == other.hash and ignore_special == other.ignore_special and
+               absent == other.absent;
     }
 };
 
@@ -44,6 +47,7 @@ struct hash<TreeIdInfo> {
         size_t seed{};
         hash_combine<std::string>(&seed, ti.hash);
         hash_combine<bool>(&seed, ti.ignore_special);
+        hash_combine<bool>(&seed, ti.absent);
         return seed;
     }
 };

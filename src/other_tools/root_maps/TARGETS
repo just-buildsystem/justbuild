@@ -29,7 +29,8 @@
   , "hdrs": ["commit_git_map.hpp"]
   , "srcs": ["commit_git_map.cpp"]
   , "deps":
-    [ ["src/other_tools/just_mr", "utils"]
+    [ ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/other_tools/just_mr", "utils"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "json", "", "json"]

@@ -46,6 +46,7 @@ void ResolveContentTree(
     std::string const& tree_hash,
     bool is_cache_hit,
     std::optional<PragmaSpecial> const& pragma_special,
+    bool absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& ws_setter,
@@ -65,12 +66,12 @@ void ResolveContentTree(
                 return;
             }
             // set the workspace root
-            (*ws_setter)(std::pair(
-                nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                       *resolved_tree_id,
-                                       StorageConfig::GitRoot().string()}),
-                true  // it is definitely a cache hit
-                ));
+            auto root = nlohmann::json::array(
+                {FileRoot::kGitTreeMarker, *resolved_tree_id});
+            if (not absent) {
+                root.emplace_back(StorageConfig::GitRoot().string());
+            }
+            (*ws_setter)(std::pair(std::move(root), true));
         }
         else {
             // resolve tree
@@ -84,6 +85,7 @@ void ResolveContentTree(
                  tree_hash,
                  tree_id_file,
                  is_cache_hit,
+                 absent,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -115,12 +117,12 @@ void ResolveContentTree(
                         return;
                     }
                     // set the workspace root
-                    (*ws_setter)(
-                        std::pair(nlohmann::json::array(
-                                      {FileRoot::kGitTreeMarker,
-                                       resolved_tree.id,
-                                       StorageConfig::GitRoot().string()}),
-                                  is_cache_hit));
+                    auto root = nlohmann::json::array(
+                        {FileRoot::kGitTreeMarker, resolved_tree.id});
+                    if (not absent) {
+                        root.emplace_back(StorageConfig::GitRoot().string());
+                    }
+                    (*ws_setter)(std::pair(std::move(root), is_cache_hit));
                 },
                 [logger, content](auto const& msg, bool fatal) {
                     (*logger)(fmt::format("While resolving symlinks for "
@@ -133,11 +135,12 @@ void ResolveContentTree(
     }
     else {
         // set the workspace root as-is
-        (*ws_setter)(std::pair(
-            nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                   tree_hash,
-                                   StorageConfig::GitRoot().string()}),
-            is_cache_hit));
+        auto root =
+            nlohmann::json::array({FileRoot::kGitTreeMarker, tree_hash});
+        if (not absent) {
+            root.emplace_back(StorageConfig::GitRoot().string());
+        }
+        (*ws_setter)(std::pair(std::move(root), is_cache_hit));
     }
 }
 
@@ -187,6 +190,7 @@ auto CreateContentGitMap(
                  subdir = key.subdir,
                  content = key.archive.content,
                  pragma_special = key.pragma_special,
+                 absent = key.absent,
                  resolve_symlinks_map,
                  ts,
                  setter,
@@ -226,6 +230,7 @@ auto CreateContentGitMap(
                                        *subtree_hash,
                                        true, /*is_cache_hit*/
                                        pragma_special,
+                                       absent,
                                        resolve_symlinks_map,
                                        ts,
                                        setter,
@@ -251,6 +256,7 @@ auto CreateContentGitMap(
                  content_id = key.archive.content,
                  subdir = key.subdir,
                  pragma_special = key.pragma_special,
+                 absent = key.absent,
                  import_to_git_map,
                  resolve_symlinks_map,
                  ts,
@@ -294,6 +300,7 @@ auto CreateContentGitMap(
                          content_id,
                          subdir,
                          pragma_special,
+                         absent,
                          resolve_symlinks_map,
                          ts,
                          setter,
@@ -355,6 +362,7 @@ auto CreateContentGitMap(
                                                *subtree_hash,
                                                false, /*is_cache_hit*/
                                                pragma_special,
+                                               absent,
                                                resolve_symlinks_map,
                                                ts,
                                                setter,

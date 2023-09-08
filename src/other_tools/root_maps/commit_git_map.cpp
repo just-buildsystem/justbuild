@@ -39,6 +39,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
                   std::string const& git_bin,
                   std::vector<std::string> const& launcher,
+                  ServeApi* serve_api,
                   gsl::not_null<TaskSystem*> const& ts,
                   CommitGitMap::SetterPtr const& ws_setter,
                   CommitGitMap::LoggerPtr const& logger) {
@@ -63,7 +64,39 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     }
     if (not is_commit_present.value()) {
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
-        // if commit not there, fetch it
+        // check if commit is known to remote serve service, if asked for an
+        // absent root
+        if (repo_info.absent) {
+            if (serve_api != nullptr) {
+                if (auto tree_id = serve_api->RetrieveTreeFromCommit(
+                        repo_info.hash, repo_info.subdir)) {
+                    // set the workspace root as absent
+                    JustMRProgress::Instance().TaskTracker().Stop(
+                        repo_info.origin);
+                    (*ws_setter)(std::pair(
+                        nlohmann::json::array(
+                            {repo_info.ignore_special
+                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                 : FileRoot::kGitTreeMarker,
+                             *tree_id}),
+                        false));
+                    return;
+                }
+                // give warning
+                (*logger)(fmt::format("Tree at subdir {} for commit {} could "
+                                      "not be served",
+                                      repo_info.subdir,
+                                      repo_info.hash),
+                          /*fatal=*/false);
+            }
+            else {
+                // give warning
+                (*logger)(
+                    "Absent root requested, but no serve endpoint provided",
+                    /*fatal=*/false);
+            }
+        }
+        // default to fetching it from network
         auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create fetch tmp directory!",
@@ -152,14 +185,15 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 }
                 // set the workspace root
                 JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
-                (*ws_setter)(
-                    std::pair(nlohmann::json::array(
-                                  {repo_info.ignore_special
-                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                       : FileRoot::kGitTreeMarker,
-                                   *subtree,
-                                   repo_root}),
-                              false));
+                auto root = nlohmann::json::array(
+                    {repo_info.ignore_special
+                         ? FileRoot::kGitTreeIgnoreSpecialMarker
+                         : FileRoot::kGitTreeMarker,
+                     *subtree});
+                if (not repo_info.absent) {
+                    root.emplace_back(repo_root);
+                }
+                (*ws_setter)(std::pair(std::move(root), false));
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
@@ -184,13 +218,14 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             return;
         }
         // set the workspace root
-        (*ws_setter)(std::pair(
-            nlohmann::json::array({repo_info.ignore_special
-                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                       : FileRoot::kGitTreeMarker,
-                                   *subtree,
-                                   repo_root}),
-            true));
+        auto root = nlohmann::json::array(
+            {repo_info.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                      : FileRoot::kGitTreeMarker,
+             *subtree});
+        if (not repo_info.absent) {
+            root.emplace_back(repo_root);
+        }
+        (*ws_setter)(std::pair(std::move(root), true));
     }
 }
 
@@ -202,15 +237,17 @@ auto CreateCommitGitMap(
     JustMR::PathsPtr const& just_mr_paths,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    ServeApi* serve_api,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,
                           just_mr_paths,
                           git_bin,
-                          launcher](auto ts,
-                                    auto setter,
-                                    auto logger,
-                                    auto /* unused */,
-                                    auto const& key) {
+                          launcher,
+                          serve_api](auto ts,
+                                     auto setter,
+                                     auto logger,
+                                     auto /* unused */,
+                                     auto const& key) {
         // get root for repo (making sure that if repo is a path, it is
         // absolute)
         std::string fetch_repo = key.repo_url;
@@ -240,6 +277,7 @@ auto CreateCommitGitMap(
              critical_git_op_map,
              git_bin,
              launcher,
+             serve_api,
              ts,
              setter,
              logger](auto const& values) {
@@ -266,6 +304,7 @@ auto CreateCommitGitMap(
                              critical_git_op_map,
                              git_bin,
                              launcher,
+                             serve_api,
                              ts,
                              setter,
                              wrapped_logger);

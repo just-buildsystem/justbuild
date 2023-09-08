@@ -15,6 +15,9 @@
 #include "src/other_tools/just_mr/setup_utils.hpp"
 
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <string>
 #include <unordered_set>
 
 #include "nlohmann/json.hpp"
@@ -24,6 +27,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 
 namespace {
@@ -198,6 +202,24 @@ auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
         config.skip_cache_lookup = false;
         return std::make_unique<BazelApi>(
             "remote-execution", address->host, address->port, config);
+    }
+    return nullptr;
+}
+
+auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
+                   MultiRepoRemoteAuthArguments const& auth) -> ServeApi::Ptr {
+    if (remote_serve_addr) {
+        // setup authentication
+        SetupAuthConfig(auth);
+        // setup remote
+        if (not RemoteServeConfig::SetRemoteAddress(*remote_serve_addr)) {
+            Logger::Log(LogLevel::Error,
+                        "setting remote serve service address '{}' failed.",
+                        *remote_serve_addr);
+            std::exit(kExitConfigError);
+        }
+        auto address = RemoteServeConfig::RemoteAddress();
+        return std::make_unique<ServeApi>(address->host, address->port);
     }
     return nullptr;
 }

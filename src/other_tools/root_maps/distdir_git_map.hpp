@@ -27,10 +27,12 @@ struct DistdirInfo {
     std::shared_ptr<std::vector<ArchiveContent>> repos_to_fetch;
     // name of repository for which work is done; used in progress reporting
     std::string origin;
+    // create an absent root
+    bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const DistdirInfo& other) const noexcept
         -> bool {
-        return content_id == other.content_id;
+        return content_id == other.content_id and absent == other.absent;
     }
 };
 
@@ -51,7 +53,10 @@ template <>
 struct hash<DistdirInfo> {
     [[nodiscard]] auto operator()(const DistdirInfo& dd) const noexcept
         -> std::size_t {
-        return std::hash<std::string>{}(dd.content_id);
+        size_t seed{};
+        hash_combine<std::string>(&seed, dd.content_id);
+        hash_combine<bool>(&seed, dd.absent);
+        return seed;
     }
 };
 }  // namespace std
