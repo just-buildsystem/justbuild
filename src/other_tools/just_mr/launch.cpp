@@ -152,6 +152,10 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         cmd.emplace_back("-r");
         cmd.emplace_back(*common_args.remote_execution_address);
     }
+    if (supports_remote and common_args.remote_serve_address) {
+        cmd.emplace_back("--remote-serve-address");
+        cmd.emplace_back(*common_args.remote_serve_address);
+    }
     // forward mutual TLS arguments
     if (supports_cacert and auth_args.tls_ca_cert) {
         cmd.emplace_back("--tls-ca-cert");

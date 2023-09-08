@@ -531,6 +531,30 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             }
         }
     }
+    // read remote exec args; overwritten if user provided it already
+    auto serve = rc_config["remote serve"];
+    if (serve.IsNotNull()) {
+        if (not serve->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-provided remote serve service arguments "
+                        "has to be a map, but found {}",
+                        serve->ToString());
+            std::exit(kExitConfigError);
+        }
+        if (not clargs->common.remote_execution_address) {
+            auto addr = serve->Get("address", Expression::none_t{});
+            if (addr.IsNotNull()) {
+                if (not addr->IsString()) {
+                    Logger::Log(LogLevel::Error,
+                                "Configuration-provided remote serve service "
+                                "address has to be a string, but found {}",
+                                addr->ToString());
+                    std::exit(kExitConfigError);
+                }
+                clargs->common.remote_execution_address = addr->String();
+            }
+        }
+    }
     // read authentication args; overwritten if user provided it already
     auto auth_args = rc_config["authentication"];
     if (auth_args.IsNotNull()) {

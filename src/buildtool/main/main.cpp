@@ -136,6 +136,14 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
 
 void SetupServeConfig(ServeArguments const& srvargs) {
     using RemoteConfig = RemoteServeConfig;
+    if (srvargs.remote_serve_address) {
+        if (not RemoteConfig::SetRemoteAddress(*srvargs.remote_serve_address)) {
+            Logger::Log(LogLevel::Error,
+                        "setting serve service address '{}' failed.",
+                        *srvargs.remote_serve_address);
+            std::exit(kExitFailure);
+        }
+    }
     if (not srvargs.repositories.empty() and
         not RemoteConfig::SetKnownRepositories(srvargs.repositories)) {
         Logger::Log(LogLevel::Error,

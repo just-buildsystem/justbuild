@@ -160,6 +160,7 @@ struct ServiceArguments {
 
 struct ServeArguments {
     std::filesystem::path config{};
+    std::optional<std::string> remote_serve_address{};
     // repositories populated from just-serve config file
     std::vector<std::filesystem::path> repositories{};
 };
@@ -401,6 +402,15 @@ static inline auto SetupEndpointArguments(
         ->type_name("KEY:VAL")
         ->allow_extra_args(false)
         ->expected(1, 1);
+}
+
+static inline auto SetupServeEndpointArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ServeArguments*> const& clargs) {
+    app->add_option("--remote-serve-address",
+                    clargs->remote_serve_address,
+                    "Address of the serve service.")
+        ->type_name("NAME:PORT");
 }
 
 static inline auto SetupCommonBuildArguments(

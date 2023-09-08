@@ -47,6 +47,7 @@ struct MultiRepoCommonArguments {
     std::vector<std::string> defines{};
     std::optional<std::string> remote_execution_address;
     std::optional<bool> compatible{std::nullopt};
+    std::optional<std::string> remote_serve_address;
 };
 
 struct MultiRepoLogArguments {
@@ -187,6 +188,10 @@ static inline void SetupMultiRepoCommonArguments(
         "At increased computational effort, be compatible with the original "
         "remote build execution protocol. As the change affects identifiers, "
         "the flag must be used consistently for all related invocations.");
+    app->add_option("--remote-serve-address",
+                    clargs->remote_serve_address,
+                    "Address of a remote 'just serve' service.")
+        ->type_name("NAME:PORT");
 }
 
 static inline auto SetupMultiRepoLogArguments(

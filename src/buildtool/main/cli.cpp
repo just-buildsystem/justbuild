@@ -39,6 +39,7 @@ auto SetupAnalyseCommandArguments(
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
+    SetupServeEndpointArguments(app, &clargs->serve);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupCompatibilityArguments(app);
 }
@@ -52,6 +53,7 @@ auto SetupBuildCommandArguments(
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
+    SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupCommonBuildArguments(app, &clargs->build);
@@ -82,6 +84,7 @@ auto SetupInstallCasCommandArguments(
     SetupCompatibilityArguments(app);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
+    SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupFetchArguments(app, &clargs->fetch);
@@ -96,6 +99,7 @@ auto SetupTraverseCommandArguments(
     SetupLogArguments(app, &clargs->log);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupEndpointArguments(app, &clargs->endpoint);
+    SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis
