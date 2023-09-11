@@ -121,6 +121,10 @@ be used to peer verify archive fetches from remote.
 Address of a remote execution service. This is used as an intermediary fetch
 location for archives, between local CAS (or distdirs) and the network.
 
+**`--remote-serve-address`** *`NAME`*:*`PORT`*  
+Address of a **`just`** **`serve`** service. This is used as intermediary fetch
+location for Git commits, between local CAS and the network.
+
 **`--compatible`**  
 At increased computational effort, be compatible with the original remote build
 execution protocol. If a remote execution service address is provided, this 

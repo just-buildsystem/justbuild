@@ -273,6 +273,14 @@ the just native remote protocol.
 If the flag **`--compatible`** is provided, the execution service will
 honor the original remote build execution protocol.
 
+**`serve`**
+-----------
+
+This subcommand starts a service that provides target dependencies needed for a
+remote execution build. It expects as its only and mandatory argument the path
+to a configuration file, following the format described in
+**`just-serve-config`**(5).
+
 OPTIONS
 =======
 
@@ -503,7 +511,7 @@ Supported by: analyse|build|install-cas|install|rebuild|traverse.
 
 **`--endpoint-configuration`** FILE  
 File containing a description on how to dispatch to different
-remote-execution endpoints based on the the execution properties.
+remote-execution endpoints based on the execution properties.
 The format is a JSON list of pairs (lists of length two) of an object
 of strings and a string. The first entry describes a condition (the
 remote-execution properties have to agree on the domain of this
@@ -513,7 +521,6 @@ if none matches, the default execution endpoint is taken (either
 as specified by **`-r`**, or local execution if no endpoint is
 specified).  
 Supported by: analyse|build|install-cas|install|rebuild|traverse.
-
 
 Authentication options
 ----------------------
@@ -696,4 +703,5 @@ See also
 ========
 
 **`just-repository-config`**(5),
+**`just-serve-config`**(5),
 **`just-mr`**(1)
