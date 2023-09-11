@@ -47,9 +47,10 @@
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
+#include "src/buildtool/main/serve.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
@@ -191,7 +192,7 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     }
 }
 
-void SetupExecutionServiceConfig(ExecutionServiceArguments const& args) {
+void SetupExecutionServiceConfig(ServiceArguments const& args) {
     if (args.port) {
         if (!ServerImpl::SetPort(*args.port)) {
             Logger::Log(LogLevel::Error, "Invalid port '{}'", *args.port);
@@ -233,7 +234,7 @@ void SetupHashFunction() {
                                   : HashFunction::JustHash::Native);
 }
 
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 // returns path relative to `root`.
 [[nodiscard]] auto FindRoot(std::filesystem::path const& subdir,
@@ -809,7 +810,8 @@ void WriteTargetCacheEntries(
             });
     }
 }
-#endif
+
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 }  // namespace
 
@@ -822,6 +824,14 @@ auto main(int argc, char* argv[]) -> int {
             std::cout << version() << std::endl;
             return kExitSuccess;
         }
+
+        // just serve configures all from its config file, so parse that before
+        // doing further setup steps
+#ifndef BOOTSTRAP_BUILD_TOOL
+        if (arguments.cmd == SubCommand::kServe) {
+            ReadJustServeConfig(&arguments);
+        }
+#endif  // BOOTSTRAP_BUILD_TOOL
 
         SetupLogging(arguments.log);
         if (arguments.analysis.expression_log_limit) {
@@ -851,13 +861,13 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
-            SetupExecutionServiceConfig(arguments.es);
+            SetupExecutionServiceConfig(arguments.service);
             if (!ServerImpl::Instance().Run()) {
                 return kExitFailure;
             }
             return kExitSuccess;
         }
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
                                                    : arguments.common.jobs;
@@ -893,7 +903,7 @@ auto main(int argc, char* argv[]) -> int {
                        ? kExitSuccess
                        : kExitFailure;
         }
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
         auto [main_repo, main_ws_root] =
             DetermineRoots(arguments.common, arguments.analysis);
@@ -942,7 +952,7 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         else {
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
             BuildMaps::Target::ResultTargetMap result_map{
                 arguments.common.jobs};
             auto id = ReadConfiguredTarget(
@@ -1039,7 +1049,7 @@ auto main(int argc, char* argv[]) -> int {
                                : kExitSuccess;
                 }
             }
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
         }
     } catch (std::exception const& ex) {
         Logger::Log(

@@ -30,6 +30,7 @@
     , "describe"
     , "diagnose"
     , "constants"
+    , "serve"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-ldflags":
@@ -178,5 +179,21 @@
   , "name": ["constants"]
   , "hdrs": ["constants.hpp"]
   , "stage": ["src", "buildtool", "main"]
+  }
+, "serve":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["serve"]
+  , "hdrs": ["serve.hpp"]
+  , "srcs": ["serve.cpp"]
+  , "deps": [["@", "gsl", "", "gsl"], "cli"]
+  , "stage": ["src", "buildtool", "main"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , "common"
+    ]
   }
 }

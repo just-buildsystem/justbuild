@@ -150,12 +150,18 @@ struct ServerAuthArguments {
     std::optional<std::filesystem::path> tls_server_key{std::nullopt};
 };
 
-struct ExecutionServiceArguments {
+struct ServiceArguments {
     std::optional<int> port{std::nullopt};
     std::optional<std::filesystem::path> info_file{std::nullopt};
     std::optional<std::string> interface{std::nullopt};
     std::optional<std::string> pid_file{std::nullopt};
     std::optional<uint8_t> op_exponent;
+};
+
+struct ServeArguments {
+    std::filesystem::path config{};
+    // repositories populated from just-serve config file
+    std::vector<std::filesystem::path> repositories{};
 };
 
 static inline auto SetupCommonArguments(
@@ -601,33 +607,43 @@ static inline auto SetupServerAuthArguments(
                     "Path to the TLS server key.");
 }
 
-static inline auto SetupExecutionServiceArguments(
+static inline auto SetupServiceArguments(
     gsl::not_null<CLI::App*> const& app,
-    gsl::not_null<ExecutionServiceArguments*> const& es_args) {
+    gsl::not_null<ServiceArguments*> const& service_args) {
     app->add_option("-p,--port",
-                    es_args->port,
-                    "Execution service will listen to this port. If unset, the "
+                    service_args->port,
+                    "The service will listen to this port. If unset, the "
                     "service will listen to the first available one.");
     app->add_option("--info-file",
-                    es_args->info_file,
+                    service_args->info_file,
                     "Write the used port, interface, and pid to this file in "
                     "JSON format. If the file exists, it "
                     "will be overwritten.");
     app->add_option("-i,--interface",
-                    es_args->interface,
+                    service_args->interface,
                     "Interface to use. If unset, the loopback device is used.");
     app->add_option(
         "--pid-file",
-        es_args->pid_file,
+        service_args->pid_file,
         "Write pid to this file in plain txt. If the file exists, it "
         "will be overwritten.");
 
     app->add_option(
         "--log-operations-threshold",
-        es_args->op_exponent,
+        service_args->op_exponent,
         "Once the number of operations stored exceeds twice 2^n, where n is "
         "given by the option --log-operations-threshold, at most 2^n "
         "operations will be removed, in a FIFO scheme. If unset, defaults to "
         "14. Must be in the range [0,255]");
 }
+
+static inline auto SetupServeArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ServeArguments*> const& serve_args) {
+    app->add_option("config",
+                    serve_args->config,
+                    "Configuration file for the subcommand.")
+        ->required();
+}
+
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP

@@ -120,11 +120,20 @@ auto SetupExecutionServiceCommandArguments(
     SetupCompatibilityArguments(app);
     SetupCommonBuildArguments(app, &clargs->build);
     SetupCacheArguments(app, &clargs->endpoint);
-    SetupExecutionServiceArguments(app, &clargs->es);
+    SetupServiceArguments(app, &clargs->service);
     SetupLogArguments(app, &clargs->log);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupServerAuthArguments(app, &clargs->sauth);
 }
+
+/// \brief Setup arguments for sub command "just serve".
+auto SetupServeServiceCommandArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<CommandLineArguments*> const& clargs) {
+    // all other arguments will be read from config file
+    SetupServeArguments(app, &clargs->serve);
+}
+
 }  // namespace
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
@@ -149,6 +158,8 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
         app.add_subcommand("gc", "Trigger garbage collection of local cache.");
     auto* cmd_execution = app.add_subcommand(
         "execute", "Start single node execution service on this machine.");
+    auto* cmd_serve =
+        app.add_subcommand("serve", "Provide target dependencies for a build.");
     auto* cmd_traverse =
         app.group("")  // group for creating hidden options
             ->add_subcommand("traverse",
@@ -165,6 +176,7 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     SetupTraverseCommandArguments(cmd_traverse, &clargs);
     SetupGcCommandArguments(cmd_gc, &clargs);
     SetupExecutionServiceCommandArguments(cmd_execution, &clargs);
+    SetupServeServiceCommandArguments(cmd_serve, &clargs);
     try {
         app.parse(argc, argv);
     } catch (CLI::Error& e) {
@@ -203,6 +215,9 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     }
     else if (*cmd_execution) {
         clargs.cmd = SubCommand::kExecute;
+    }
+    else if (*cmd_serve) {
+        clargs.cmd = SubCommand::kServe;
     }
 
     return clargs;

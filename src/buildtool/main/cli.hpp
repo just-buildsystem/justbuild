@@ -28,7 +28,8 @@ enum class SubCommand {
     kInstallCas,
     kTraverse,
     kGc,
-    kExecute
+    kExecute,
+    kServe
 };
 
 struct CommandLineArguments {
@@ -47,7 +48,8 @@ struct CommandLineArguments {
     CommonAuthArguments auth;
     ClientAuthArguments cauth;
     ServerAuthArguments sauth;
-    ExecutionServiceArguments es;
+    ServiceArguments service;
+    ServeArguments serve;
 };
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
