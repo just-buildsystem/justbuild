@@ -67,7 +67,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
         }
         JustMRProgress::Instance().TaskTracker().Start(key.origin);
         // check if content is in remote CAS, if a remote is given
-        if (remote_api and local_api and remote_api->IsAvailable({digest}) and
+        if (remote_api and local_api and remote_api->IsAvailable(digest) and
             remote_api->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::File}},
