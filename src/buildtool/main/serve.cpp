@@ -57,6 +57,18 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                     clargs->serve.config.string());
         std::exit(kExitFailure);
     }
+    // read local build root
+    auto local_root = serve_config["local build root"];
+    if (local_root.IsNotNull()) {
+        if (not local_root->IsString()) {
+            Logger::Log(LogLevel::Error,
+                        "just serve: configuration-file provided local root "
+                        "has to be a string, but found {}",
+                        local_root->ToString());
+            std::exit(kExitFailure);
+        }
+        clargs->endpoint.local_root = local_root->String();
+    }
     // read paths of additional lookup repositories
     auto repositories = serve_config["repositories"];
     if (repositories.IsNotNull()) {
@@ -176,6 +188,30 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->auth.tls_ca_cert = cacert->String();
         }
+        // read the TLS client certificate
+        auto client_cert = auth_args->Get("client cert", Expression::none_t{});
+        if (client_cert.IsNotNull()) {
+            if (not client_cert->IsString()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-provided TLS client certificate has "
+                            "to be a string, but found {}",
+                            client_cert->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->cauth.tls_client_cert = client_cert->String();
+        }
+        // read the TLS client key
+        auto client_key = auth_args->Get("client key", Expression::none_t{});
+        if (client_key.IsNotNull()) {
+            if (not client_key->IsString()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-provided TLS client key has to be a "
+                            "string, but found {}",
+                            client_key->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->cauth.tls_client_key = client_key->String();
+        }
     }
     // read remote service arguments
     auto remote_service = serve_config["remote service"];
@@ -269,6 +305,45 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                 std::exit(kExitFailure);
             }
             clargs->sauth.tls_server_key = server_key->String();
+        }
+    }
+    // read execution endpoint arguments
+    auto exec_endpoint = serve_config["execution endpoint"];
+    if (exec_endpoint.IsNotNull()) {
+        if (not exec_endpoint->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "just-serve: configuration-file provided execution "
+                        "endpoint has to be a map, but found {}",
+                        exec_endpoint->ToString());
+            std::exit(kExitFailure);
+        }
+        // read the compatible flag
+        auto compatible =
+            exec_endpoint->Get("compatible", Expression::none_t{});
+        if (compatible.IsNotNull()) {
+            if (not compatible->IsBool()) {
+                Logger::Log(LogLevel::Error,
+                            "just-serve: expected execution endpoint "
+                            "compatible to be a flag, but found {}",
+                            compatible->ToString());
+                std::exit(kExitFailure);
+            }
+            // compatibility is set immediately if flag is true
+            if (compatible->Bool()) {
+                Compatibility::SetCompatible();
+            }
+        }
+        // read the address
+        auto address = exec_endpoint->Get("address", Expression::none_t{});
+        if (address.IsNotNull()) {
+            if (not address->IsString()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-provided execution endpoint address "
+                            "has to be a string, but found {}",
+                            address->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->endpoint.remote_execution_address = address->String();
         }
     }
 }

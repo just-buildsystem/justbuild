@@ -37,9 +37,13 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   std::filesystem::path const& repo_root,
                   GitCASPtr const& git_cas,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+                  gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                   std::string const& git_bin,
                   std::vector<std::string> const& launcher,
                   ServeApi* serve_api,
+                  IExecutionApi* local_api,
+                  IExecutionApi* remote_api,
+                  bool fetch_absent,
                   gsl::not_null<TaskSystem*> const& ts,
                   CommitGitMap::SetterPtr const& ws_setter,
                   CommitGitMap::LoggerPtr const& logger) {
@@ -69,31 +73,146 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         if (repo_info.absent) {
             if (serve_api != nullptr) {
                 if (auto tree_id = serve_api->RetrieveTreeFromCommit(
-                        repo_info.hash, repo_info.subdir)) {
-                    // set the workspace root as absent
-                    JustMRProgress::Instance().TaskTracker().Stop(
-                        repo_info.origin);
-                    (*ws_setter)(std::pair(
-                        nlohmann::json::array(
-                            {repo_info.ignore_special
-                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                 : FileRoot::kGitTreeMarker,
-                             *tree_id}),
-                        false));
-                    return;
+                        repo_info.hash, repo_info.subdir, fetch_absent)) {
+                    if (not fetch_absent) {
+                        // set the workspace root as absent
+                        JustMRProgress::Instance().TaskTracker().Stop(
+                            repo_info.origin);
+                        (*ws_setter)(std::pair(
+                            nlohmann::json::array(
+                                {repo_info.ignore_special
+                                     ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                     : FileRoot::kGitTreeMarker,
+                                 *tree_id}),
+                            false));
+                        return;
+                    }
+                    // verify if we know the tree already locally
+                    auto wrapped_logger =
+                        std::make_shared<AsyncMapConsumerLogger>(
+                            [logger, tree = *tree_id](auto const& msg,
+                                                      bool fatal) {
+                                (*logger)(
+                                    fmt::format("While verifying presence of "
+                                                "tree {}:\n{}",
+                                                tree,
+                                                msg),
+                                    fatal);
+                            });
+                    auto tree_present =
+                        git_repo->CheckTreeExists(*tree_id, wrapped_logger);
+                    if (not tree_present) {
+                        return;
+                    }
+                    if (*tree_present) {
+                        JustMRProgress::Instance().TaskTracker().Stop(
+                            repo_info.origin);
+                        (*ws_setter)(std::pair(
+                            nlohmann::json::array(
+                                {repo_info.ignore_special
+                                     ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                     : FileRoot::kGitTreeMarker,
+                                 *tree_id,
+                                 StorageConfig::GitRoot().string()}),
+                            false));
+                        return;
+                    }
+                    // try to get the tree from remote execution endpoint
+                    auto digest = ArtifactDigest{*tree_id, 0, /*is_tree=*/true};
+                    if (remote_api != nullptr and local_api != nullptr and
+                        remote_api->RetrieveToCas(
+                            {Artifact::ObjectInfo{.digest = digest,
+                                                  .type = ObjectType::Tree}},
+                            local_api)) {
+                        JustMRProgress::Instance().TaskTracker().Stop(
+                            repo_info.origin);
+                        // Move tree from CAS to local git storage
+                        auto tmp_dir = JustMR::Utils::CreateTypedTmpDir(
+                            "fetch-absent-root");
+                        if (not tmp_dir) {
+                            (*logger)(
+                                fmt::format(
+                                    "Failed to create tmp directory after "
+                                    "fetching tree {} for absent commit {}",
+                                    repo_info.hash,
+                                    *tree_id),
+                                true);
+                            return;
+                        }
+                        if (not local_api->RetrieveToPaths(
+                                {Artifact::ObjectInfo{
+                                    .digest = digest,
+                                    .type = ObjectType::Tree}},
+                                {tmp_dir->GetPath()})) {
+                            (*logger)(fmt::format("Failed to copy fetchted "
+                                                  "tree {} to {}",
+                                                  *tree_id,
+                                                  tmp_dir->GetPath().string()),
+                                      true);
+                            return;
+                        }
+                        CommitInfo c_info{tmp_dir->GetPath(), "tree", *tree_id};
+                        import_to_git_map->ConsumeAfterKeysReady(
+                            ts,
+                            {std::move(c_info)},
+                            [tmp_dir,  // keep tmp_dir alive
+                             repo_info,
+                             tree_id,
+                             logger,
+                             ws_setter](auto const& values) {
+                                if (not values[0]->second) {
+                                    (*logger)("Importing to git failed",
+                                              /*fatal=*/true);
+                                    return;
+                                }
+                                // set the workspace root as present
+                                (*ws_setter)(std::pair(
+                                    nlohmann::json::array(
+                                        {repo_info.ignore_special
+                                             ? FileRoot::
+                                                   kGitTreeIgnoreSpecialMarker
+                                             : FileRoot::kGitTreeMarker,
+                                         *tree_id,
+                                         StorageConfig::GitRoot().string()}),
+                                    false));
+                            },
+                            [logger, tmp_dir, tree_id](auto const& msg,
+                                                       bool fatal) {
+                                (*logger)(
+                                    fmt::format("While moving tree {} from {} "
+                                                "to local git:\n{}",
+                                                *tree_id,
+                                                tmp_dir->GetPath().string(),
+                                                msg),
+                                    fatal);
+                            });
+
+                        return;
+                    }
+                    // just serve should have made the tree available in the
+                    // remote CAS, so log this attempt and revert to network
+                    (*logger)(fmt::format("Tree {} marked as served, but not "
+                                          "found on remote",
+                                          *tree_id),
+                              /*fatal=*/false);
                 }
-                // give warning
-                (*logger)(fmt::format("Tree at subdir {} for commit {} could "
-                                      "not be served",
-                                      repo_info.subdir,
-                                      repo_info.hash),
-                          /*fatal=*/false);
+                else {
+                    // give warning
+                    (*logger)(
+                        fmt::format("Tree at subdir {} for commit {} could "
+                                    "not be served",
+                                    repo_info.subdir,
+                                    repo_info.hash),
+                        /*fatal=*/false);
+                }
             }
             else {
-                // give warning
-                (*logger)(
-                    "Absent root requested, but no serve endpoint provided",
-                    /*fatal=*/false);
+                if (not fetch_absent) {
+                    // give warning
+                    (*logger)(
+                        "Absent root requested, but no serve endpoint provided",
+                        /*fatal=*/false);
+                }
             }
         }
         // default to fetching it from network
@@ -151,7 +270,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [git_cas, repo_info, repo_root, ws_setter, logger](
+            [git_cas, repo_info, repo_root, fetch_absent, ws_setter, logger](
                 auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
@@ -190,7 +309,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                          ? FileRoot::kGitTreeIgnoreSpecialMarker
                          : FileRoot::kGitTreeMarker,
                      *subtree});
-                if (not repo_info.absent) {
+                if (fetch_absent or not repo_info.absent) {
                     root.emplace_back(repo_root);
                 }
                 (*ws_setter)(std::pair(std::move(root), false));
@@ -222,7 +341,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             {repo_info.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
                                       : FileRoot::kGitTreeMarker,
              *subtree});
-        if (not repo_info.absent) {
+        if (fetch_absent or not repo_info.absent) {
             root.emplace_back(repo_root);
         }
         (*ws_setter)(std::pair(std::move(root), true));
@@ -234,20 +353,28 @@ void EnsureCommit(GitRepoInfo const& repo_info,
 /// \brief Create a CommitGitMap object
 auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     JustMR::PathsPtr const& just_mr_paths,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi* serve_api,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
+    bool fetch_absent,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,
+                          import_to_git_map,
                           just_mr_paths,
                           git_bin,
                           launcher,
-                          serve_api](auto ts,
-                                     auto setter,
-                                     auto logger,
-                                     auto /* unused */,
-                                     auto const& key) {
+                          serve_api,
+                          local_api,
+                          remote_api,
+                          fetch_absent](auto ts,
+                                        auto setter,
+                                        auto logger,
+                                        auto /* unused */,
+                                        auto const& key) {
         // get root for repo (making sure that if repo is a path, it is
         // absolute)
         std::string fetch_repo = key.repo_url;
@@ -275,9 +402,13 @@ auto CreateCommitGitMap(
             [key,
              repo_root,
              critical_git_op_map,
+             import_to_git_map,
              git_bin,
              launcher,
              serve_api,
+             local_api,
+             remote_api,
+             fetch_absent,
              ts,
              setter,
              logger](auto const& values) {
@@ -302,9 +433,13 @@ auto CreateCommitGitMap(
                              repo_root,
                              op_result.git_cas,
                              critical_git_op_map,
+                             import_to_git_map,
                              git_bin,
                              launcher,
                              serve_api,
+                             local_api,
+                             remote_api,
+                             fetch_absent,
                              ts,
                              setter,
                              wrapped_logger);

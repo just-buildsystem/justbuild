@@ -19,6 +19,10 @@ The just-serve configuration format
 
 The configuration file is given by a JSON object.
 
+ - The value for the key *`"local build root"`* is a string specifying the path
+   to use as the root for local CAS, cache, and build directories. The path will
+   be created if it does not exist already. 
+
  - The value for the key *`"repositories"`* is a list of strings specifying
    paths to Git repositories for **`just`** **`serve`** to use as additional
    object lookup locations. The paths are to be used in the order given and
@@ -58,6 +62,15 @@ The configuration file is given by a JSON object.
    TLS server certificate.  
    For subkey *`"server key"`* the value is a string specifying the path to a
    TLS server key.  
+
+ - The value for the key *`"execution endpoint"`* is a JSON object specifying
+   the arguments of a remote execution endpoint to be used by **`just`**
+   **`serve`**.  
+   For subkey *`"address"`* the value is a string specifying the remote
+   execution address in a NAME:PORT format.  
+   For subkey *`"compatible"`* the value is a flag which specifies whether
+   the remote endpoint uses the original remote execution protocol.
+
 
 See also
 ========

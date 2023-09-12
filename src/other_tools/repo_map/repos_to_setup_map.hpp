@@ -34,6 +34,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                            gsl::not_null<FilePathGitMap*> const& fpath_git_map,
                            gsl::not_null<DistdirGitMap*> const& distdir_git_map,
                            gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+                           bool fetch_absent,
                            std::size_t jobs) -> ReposToSetupMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP

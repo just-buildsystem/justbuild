@@ -48,6 +48,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::string> remote_execution_address;
     std::optional<bool> compatible{std::nullopt};
     std::optional<std::string> remote_serve_address;
+    bool fetch_absent{false};
 };
 
 struct MultiRepoLogArguments {
@@ -192,6 +193,11 @@ static inline void SetupMultiRepoCommonArguments(
                     clargs->remote_serve_address,
                     "Address of a remote 'just serve' service.")
         ->type_name("NAME:PORT");
+    app->add_flag("--fetch-absent",
+                  clargs->fetch_absent,
+                  "Do not produce absent roots. For Git repositories, try to "
+                  "fetch served commit trees from the remote execution "
+                  "endpoint before reverting to the network.");
 }
 
 static inline auto SetupMultiRepoLogArguments(

@@ -31,9 +31,11 @@ class ServeTargetLevelCacheClient {
     /// \brief Retrieve the Git tree of a given commit, if known by the remote.
     /// \param[in] commit_id Hash of the Git commit to look up.
     /// \param[in] subdir Relative path of the tree inside commit.
+    /// \param[in] sync_tree Sync tree to the remote-execution end point
     /// \returns The hash of the tree if commit found, nullopt otherwise.
     [[nodiscard]] auto ServeCommitTree(std::string const& commit_id,
-                                       std::string const& subdir)
+                                       std::string const& subdir,
+                                       bool sync_tree)
         -> std::optional<std::string>;
 
   private:

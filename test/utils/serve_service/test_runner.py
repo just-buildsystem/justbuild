@@ -62,6 +62,7 @@ if os.path.exists(TEST_SERVE_REPO_2):
 SERVE_REPOSITORIES = ";".join([TEST_SERVE_REPO_1, TEST_SERVE_REPO_2])
 
 REMOTE_SERVE_INFO = os.path.join(REMOTE_DIR, "info_serve.json")
+SERVE_LBR = os.path.join(REMOTE_DIR, "serve-build-root")
 
 if os.path.exists(REMOTE_SERVE_INFO):
     print(f"Warning: removing unexpected info file {REMOTE_SERVE_INFO}")
@@ -79,7 +80,8 @@ with open(SERVE_CONFIG_FILE, "w") as f:
             },
             "remote service": {
                 "info file": REMOTE_SERVE_INFO
-            }
+            },
+            "local build root": SERVE_LBR
         }))
 
 serve_cmd = ["./bin/just", "serve", SERVE_CONFIG_FILE]

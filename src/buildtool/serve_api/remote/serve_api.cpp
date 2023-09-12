@@ -24,7 +24,8 @@ ServeApi::ServeApi(ServeApi&& other) noexcept = default;
 ServeApi::~ServeApi() = default;
 
 auto ServeApi::RetrieveTreeFromCommit(std::string const& commit,
-                                      std::string const& subdir)
+                                      std::string const& subdir,
+                                      bool sync_tree)
     -> std::optional<std::string> {
-    return tlc_->ServeCommitTree(commit, subdir);
+    return tlc_->ServeCommitTree(commit, subdir, sync_tree);
 }

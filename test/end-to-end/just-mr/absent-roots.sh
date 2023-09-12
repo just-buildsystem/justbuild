@@ -67,6 +67,7 @@ cat repos.json
 cat > .just-servec <<EOF
 { "repositories": ["${REPO_ROOT}"]
 , "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
+, "local build root": "${LBR}"
 }
 EOF
 echo "Serve service configuration:"

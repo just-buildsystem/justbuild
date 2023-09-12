@@ -15,9 +15,27 @@
 #include "src/buildtool/serve_api/serve_service/target_level_cache_server.hpp"
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
+
+auto TargetLevelCacheService::CreateExecutionApi(
+    std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+    -> gsl::not_null<IExecutionApi::Ptr> {
+    if (address) {
+        ExecutionConfiguration config;
+        config.skip_cache_lookup = false;
+
+        return std::make_unique<BazelApi>(
+            "remote-execution", address->host, address->port, config);
+    }
+    return std::make_unique<LocalApi>();
+}
 
 auto TargetLevelCacheService::GetTreeFromCommit(
     std::filesystem::path const& repo_path,
@@ -53,26 +71,74 @@ auto TargetLevelCacheService::ServeCommitTree(
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ::justbuild::just_serve::ServeCommitTreeResponse* response)
     -> ::grpc::Status {
+    using ServeCommitTreeStatus =
+        ::justbuild::just_serve::ServeCommitTreeStatus;
     auto const& commit{request->commit()};
     auto const& subdir{request->subdir()};
     // try in local build root Git cache
     if (auto tree_id = GetTreeFromCommit(
             StorageConfig::GitRoot(), commit, subdir, logger_)) {
+        if (request->sync_tree()) {
+            // sync tree with remote CAS
+            auto digest = ArtifactDigest{*tree_id, 0, /*is_tree=*/true};
+            auto repo = RepositoryConfig{};
+            if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
+                auto str = fmt::format("Failed to SetGitCAS at {}",
+                                       StorageConfig::GitRoot().string());
+                logger_->Emit(LogLevel::Debug, str);
+                response->set_status(ServeCommitTreeStatus::INTERNAL_ERROR);
+                return ::grpc::Status::OK;
+            }
+            auto git_api = GitApi{&repo};
+            if (not git_api.RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = digest,
+                                          .type = ObjectType::Tree}},
+                    &(*remote_api_))) {
+                auto str = fmt::format("Failed to sync tree {}", *tree_id);
+                logger_->Emit(LogLevel::Debug, str);
+                *(response->mutable_tree()) = std::move(*tree_id);
+                response->set_status(ServeCommitTreeStatus::SYNC_ERROR);
+                return ::grpc::Status::OK;
+            }
+        }
+        // set response
         *(response->mutable_tree()) = std::move(*tree_id);
-        response->mutable_status()->CopyFrom(google::rpc::Status{});
+        response->set_status(ServeCommitTreeStatus::OK);
         return ::grpc::Status::OK;
     }
     // try given extra repositories, in order
     for (auto const& path : RemoteServeConfig::KnownRepositories()) {
         if (auto tree_id = GetTreeFromCommit(path, commit, subdir, logger_)) {
+
+            if (request->sync_tree()) {
+                // sync tree with remote CAS
+                auto digest = ArtifactDigest{*tree_id, 0, /*is_tree=*/true};
+                auto repo = RepositoryConfig{};
+                if (not repo.SetGitCAS(path)) {
+                    auto str =
+                        fmt::format("Failed to SetGitCAS at {}", path.string());
+                    logger_->Emit(LogLevel::Debug, str);
+                    response->set_status(ServeCommitTreeStatus::INTERNAL_ERROR);
+                    return ::grpc::Status::OK;
+                }
+                auto git_api = GitApi{&repo};
+                if (not git_api.RetrieveToCas(
+                        {Artifact::ObjectInfo{.digest = digest,
+                                              .type = ObjectType::Tree}},
+                        &(*remote_api_))) {
+                    auto str = fmt::format("Failed to sync tree {}", *tree_id);
+                    logger_->Emit(LogLevel::Debug, str);
+                    *(response->mutable_tree()) = std::move(*tree_id);
+                    response->set_status(ServeCommitTreeStatus::SYNC_ERROR);
+                }
+            }
+            // set response
             *(response->mutable_tree()) = std::move(*tree_id);
-            response->mutable_status()->CopyFrom(google::rpc::Status{});
+            response->set_status(ServeCommitTreeStatus::OK);
             return ::grpc::Status::OK;
         }
     }
     // commit not found
-    google::rpc::Status status;
-    status.set_code(grpc::StatusCode::NOT_FOUND);
-    response->mutable_status()->CopyFrom(status);
+    response->set_status(ServeCommitTreeStatus::NOT_FOUND);
     return ::grpc::Status::OK;
 }

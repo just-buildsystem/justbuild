@@ -21,7 +21,10 @@
 #include <string>
 #include <vector>
 
+#include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 class TargetLevelCacheService final
@@ -45,6 +48,17 @@ class TargetLevelCacheService final
 
   private:
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
+
+    // remote execution endpoint
+    gsl::not_null<IExecutionApi::Ptr> const remote_api_{
+        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())};
+    // local api
+    gsl::not_null<IExecutionApi::Ptr> const local_api_{
+        CreateExecutionApi(std::nullopt)};
+
+    [[nodiscard]] static auto CreateExecutionApi(
+        std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+        -> gsl::not_null<IExecutionApi::Ptr>;
 
     [[nodiscard]] static auto GetTreeFromCommit(
         std::filesystem::path const& repo_path,

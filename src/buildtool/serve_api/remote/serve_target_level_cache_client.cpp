@@ -24,11 +24,13 @@ ServeTargetLevelCacheClient::ServeTargetLevelCacheClient(
 }
 
 auto ServeTargetLevelCacheClient::ServeCommitTree(std::string const& commit_id,
-                                                  std::string const& subdir)
+                                                  std::string const& subdir,
+                                                  bool sync_tree)
     -> std::optional<std::string> {
     justbuild::just_serve::ServeCommitTreeRequest request{};
     request.set_commit(commit_id);
     request.set_subdir(subdir);
+    request.set_sync_tree(sync_tree);
 
     grpc::ClientContext context;
     justbuild::just_serve::ServeCommitTreeResponse response;
@@ -38,8 +40,11 @@ auto ServeTargetLevelCacheClient::ServeCommitTree(std::string const& commit_id,
         LogStatus(&logger_, LogLevel::Debug, status);
         return std::nullopt;
     }
-    if (response.status().code() != grpc::StatusCode::OK) {
-        LogStatus(&logger_, LogLevel::Debug, response.status());
+    if (response.status() !=
+        ::justbuild::just_serve::ServeCommitTreeStatus::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ServeCommitTree response returned with {}",
+                     static_cast<int>(response.status()));
         return std::nullopt;
     }
     return response.tree();

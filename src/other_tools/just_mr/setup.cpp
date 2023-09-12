@@ -116,10 +116,14 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
 
     auto commit_git_map =
         CreateCommitGitMap(&critical_git_op_map,
+                           &import_to_git_map,
                            common_args.just_mr_paths,
                            common_args.git_path->string(),
                            *common_args.local_launcher,
                            serve_api ? &(*serve_api) : nullptr,
+                           local_api ? &(*local_api) : nullptr,
+                           remote_api ? &(*remote_api) : nullptr,
+                           common_args.fetch_absent,
                            common_args.jobs);
     auto content_git_map = CreateContentGitMap(&content_cas_map,
                                                &import_to_git_map,
@@ -147,6 +151,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                                     &fpath_git_map,
                                                     &distdir_git_map,
                                                     &tree_id_git_map,
+                                                    common_args.fetch_absent,
                                                     common_args.jobs);
 
     // set up progress observer

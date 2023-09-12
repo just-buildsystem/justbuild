@@ -16,8 +16,6 @@ syntax = "proto3";
 
 package justbuild.just_serve;
 
-import "google/rpc/status.proto";
-
 // A request message for
 // [TargetLevelCache.ServeCommitTree][justbuild.just_serve.TargetLevelCache.ServeCommitTree].
 message ServeCommitTreeRequest {
@@ -26,7 +24,26 @@ message ServeCommitTreeRequest {
 
   // Relative path of requested tree with respect to the commit root.
   string subdir = 2;
+
+  // If set to true and the tree is found, it will be uploaded to the
+  // remote-execution end point.
+  bool sync_tree = 3;
 }
+
+enum ServeCommitTreeStatus{
+  // All good
+  OK = 0;
+
+  // Failed to upload tree remotely
+  SYNC_ERROR = 1;
+
+  // Tree not found
+  NOT_FOUND = 2;
+
+  // Internaly, something is very broken
+  INTERNAL_ERROR = 3;
+}
+
 
 // A response message for
 // [TargetLevelCache.ServeCommitTree][justbuild.just_serve.TargetLevelCache.ServeCommitTree].
@@ -34,13 +51,9 @@ message ServeCommitTreeResponse {
   // The requested Git tree hash.
   string tree = 1;
 
-  // If the status has a code other than `OK`, it indicates that the tree hash
-  // could not be computed. In this case, the `tree` field is optional.
-  //
-  // If the status code is `NOT_FOUND`, it indicates that either the commit was
-  // not found, or the commit root tree does not contain the given relative
-  // path.
-  google.rpc.Status status = 2;
+  // If the status has a code `OK` or `SYNC_ERROR`, the tree is correct.
+  // For any other value, the `tree` field is not set.
+  ServeCommitTreeStatus status = 2;
 }
 
 // Services for improved interaction with the target-level cache.

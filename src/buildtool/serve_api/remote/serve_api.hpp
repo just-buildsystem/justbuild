@@ -37,7 +37,8 @@ class ServeApi final {
     ~ServeApi();
 
     [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
-                                              std::string const& subdir = ".")
+                                              std::string const& subdir = ".",
+                                              bool sync_tree = false)
         -> std::optional<std::string>;
 
   private:

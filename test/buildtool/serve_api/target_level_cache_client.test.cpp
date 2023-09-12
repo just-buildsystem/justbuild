@@ -35,34 +35,34 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
     ServeTargetLevelCacheClient tlc_client(info->host, info->port);
 
     SECTION("Commit in bare checkout") {
-        auto root_id = tlc_client.ServeCommitTree(kRootCommit, ".");
+        auto root_id = tlc_client.ServeCommitTree(kRootCommit, ".", false);
         REQUIRE(root_id);
         CHECK(root_id.value() == kRootId);
 
-        auto baz_id = tlc_client.ServeCommitTree(kRootCommit, "baz");
+        auto baz_id = tlc_client.ServeCommitTree(kRootCommit, "baz", false);
         REQUIRE(baz_id);
         CHECK(baz_id.value() == kBazId);
     }
 
     SECTION("Commit in non-bare checkout") {
-        auto root_id = tlc_client.ServeCommitTree(kRootSymCommit, ".");
+        auto root_id = tlc_client.ServeCommitTree(kRootSymCommit, ".", false);
         REQUIRE(root_id);
         CHECK(root_id.value() == kRootSymId);
 
-        auto baz_id = tlc_client.ServeCommitTree(kRootSymCommit, "baz");
+        auto baz_id = tlc_client.ServeCommitTree(kRootSymCommit, "baz", false);
         REQUIRE(baz_id);
         CHECK(baz_id.value() == kBazSymId);
     }
 
     SECTION("Subdir not found") {
         auto root_id =
-            tlc_client.ServeCommitTree(kRootCommit, "does_not_exist");
+            tlc_client.ServeCommitTree(kRootCommit, "does_not_exist", false);
         CHECK_FALSE(root_id);
     }
 
     SECTION("Commit not known") {
         auto root_id = tlc_client.ServeCommitTree(
-            "0123456789abcdef0123456789abcdef01234567", ".");
+            "0123456789abcdef0123456789abcdef01234567", ".", false);
         CHECK_FALSE(root_id);
     }
 }

@@ -150,6 +150,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                      std::string const& repo_name,
                      std::string const& repo_type,
                      gsl::not_null<ContentGitMap*> const& content_git_map,
+                     bool fetch_absent,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
@@ -224,7 +225,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
         .pragma_special = pragma_special_value,
-        .absent = pragma_absent_value};
+        .absent = not fetch_absent and pragma_absent_value};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -258,6 +259,7 @@ void FileCheckout(ExpressionPtr const& repo_desc,
                   ExpressionPtr&& repos,
                   std::string const& repo_name,
                   gsl::not_null<FilePathGitMap*> const& fpath_git_map,
+                  bool fetch_absent,
                   gsl::not_null<TaskSystem*> const& ts,
                   ReposToSetupMap::SetterPtr const& setter,
                   ReposToSetupMap::LoggerPtr const& logger) {
@@ -305,9 +307,10 @@ void FileCheckout(ExpressionPtr const& repo_desc,
                                    pragma_absent->get()->IsBool() and
                                    pragma_absent->get()->Bool();
         // get the WS root as git tree
-        FpathInfo fpath_info = {.fpath = fpath,
-                                .pragma_special = pragma_special_value,
-                                .absent = pragma_absent_value};
+        FpathInfo fpath_info = {
+            .fpath = fpath,
+            .pragma_special = pragma_special_value,
+            .absent = not fetch_absent and pragma_absent_value};
         fpath_git_map->ConsumeAfterKeysReady(
             ts,
             {std::move(fpath_info)},
@@ -349,6 +352,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                      ExpressionPtr&& repos,
                      std::string const& repo_name,
                      gsl::not_null<DistdirGitMap*> const& distdir_git_map,
+                     bool fetch_absent,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
@@ -509,11 +513,12 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
         HashFunction::ComputeBlobHash(nlohmann::json(*distdir_content).dump())
             .HexString();
     // get the WS root as git tree
-    DistdirInfo distdir_info = {.content_id = distdir_content_id,
-                                .content_list = distdir_content,
-                                .repos_to_fetch = dist_repos_to_fetch,
-                                .origin = repo_name,
-                                .absent = pragma_absent_value};
+    DistdirInfo distdir_info = {
+        .content_id = distdir_content_id,
+        .content_list = distdir_content,
+        .repos_to_fetch = dist_repos_to_fetch,
+        .origin = repo_name,
+        .absent = not fetch_absent and pragma_absent_value};
     distdir_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(distdir_info)},
@@ -545,6 +550,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                      ExpressionPtr&& repos,
                      std::string const& repo_name,
                      gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+                     bool fetch_absent,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
@@ -628,7 +634,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
         .env_vars = std::move(env),
         .command = std::move(cmd),
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
-        .absent = pragma_absent_value};
+        .absent = not fetch_absent and pragma_absent_value};
     // get the WS root as git tree
     tree_id_git_map->ConsumeAfterKeysReady(
         ts,
@@ -665,6 +671,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                            gsl::not_null<FilePathGitMap*> const& fpath_git_map,
                            gsl::not_null<DistdirGitMap*> const& distdir_git_map,
                            gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+                           bool fetch_absent,
                            std::size_t jobs) -> ReposToSetupMap {
     auto setup_repo = [config,
                        main,
@@ -673,11 +680,12 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                        content_git_map,
                        fpath_git_map,
                        distdir_git_map,
-                       tree_id_git_map](auto ts,
-                                        auto setter,
-                                        auto logger,
-                                        auto /* unused */,
-                                        auto const& key) {
+                       tree_id_git_map,
+                       fetch_absent](auto ts,
+                                     auto setter,
+                                     auto logger,
+                                     auto /* unused */,
+                                     auto const& key) {
         auto repos = (*config)["repositories"];
         if (main && (key == *main) && interactive) {
             // no repository checkout required
@@ -765,6 +773,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     key,
                                     repo_type_str,
                                     content_git_map,
+                                    fetch_absent,
                                     ts,
                                     setter,
                                     wrapped_logger);
@@ -775,6 +784,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                  std::move(repos),
                                  key,
                                  fpath_git_map,
+                                 fetch_absent,
                                  ts,
                                  setter,
                                  wrapped_logger);
@@ -785,6 +795,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     std::move(repos),
                                     key,
                                     distdir_git_map,
+                                    fetch_absent,
                                     ts,
                                     setter,
                                     wrapped_logger);
@@ -795,6 +806,7 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     std::move(repos),
                                     key,
                                     tree_id_git_map,
+                                    fetch_absent,
                                     ts,
                                     setter,
                                     wrapped_logger);

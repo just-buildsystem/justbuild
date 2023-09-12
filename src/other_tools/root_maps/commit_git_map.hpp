@@ -19,9 +19,11 @@
 #include <utility>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct GitRepoInfo {
@@ -66,10 +68,14 @@ using CommitGitMap =
 
 [[nodiscard]] auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     JustMR::PathsPtr const& just_mr_paths,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi* serve_api,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
+    bool fetch_absent,
     std::size_t jobs) -> CommitGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_COMMIT_GIT_MAP_HPP
