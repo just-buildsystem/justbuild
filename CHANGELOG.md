@@ -2,6 +2,31 @@
 
 A feature release on top of `1.2.0`, backwards compatible.
 
+### Major new features
+
+- New subcommand `just serve` to start server answering queries
+  about the tree of a given commit, if known. The functionality
+  of this subcommand will be extended over time to eventually
+  provide a target-level caching service as described in the
+  corresponding design document.
+- `just-mr` is able to back up and retrieve distribution files
+  from a remote execution endpoint. This simplifies usage in an
+  environment with restricted internet access.
+
+### Other changes
+
+- New script `just-deduplicate-repos` to avoid blow up of the
+  `repos.json` in the case of chained imports with common dependencies.
+- The built-in `"generic"` rule now supports an argument `"sh -c"`,
+  allowing to specify the invocation of the shell (defaulting to
+  `["sh", "-c"]`).
+- `just describe` also shows the values of the implicit dependencies.
+
+### Fixes
+
+- Improved protability and update of the bundled dependencies.
+- Various minor improvements and typo fixes in the documentation.
+
 ## Release `1.2.0` (2023-08-25)
 
 A feature release on top of `1.1.0`, backwards compatible.
