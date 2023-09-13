@@ -65,16 +65,16 @@ containing the information described in the rest of this section.
 A request is given by
 
  - the map of remote-execution properties for the designated
-    remote-execution endpoint; together with the knowledge on the
-    fixed endpoint, the `just serve` instance can compute the
-    target-level cache shard, and
+   remote-execution endpoint; together with the knowledge on the
+   fixed endpoint, the `just serve` instance can compute the
+   target-level cache shard, and
  - the identifier of the target-level cache key; it is the
-    client's responsibility to ensure that the referred blob (i.e.,
-    the JSON object with appropriate values for the keys
-    `"repo_key"`, `"target_name"`, and `"effective_config"`) as well
-    as the indirectly referred repository description (the JSON
-    object the `"repo_key"` in the cache key refers to) are uploaded
-    to CAS (of the designated remote-execution endpoint) beforehand.
+   client's responsibility to ensure that the referred blob (i.e.,
+   the JSON object with appropriate values for the keys
+   `"repo_key"`, `"target_name"`, and `"effective_config"`) as well
+   as the indirectly referred repository description (the JSON
+   object the `"repo_key"` in the cache key refers to) are uploaded
+   to CAS (of the designated remote-execution endpoint) beforehand.
 
 The answer to that request is the identifier of the corresponding
 target-level cache value (in the same format as for local
@@ -83,6 +83,15 @@ the actual value, as well as any directly or indirectly referenced
 artifacts are available in the respective remote-execution CAS.
 Alternatively, the answer can indicate the kind of error (unknown
 root, not an export target, build failure, etc).
+
+#### Auxiliary request: flexible variables of an `export` target
+
+To allow `just` to compute the target-level cache key without
+knowledge of an absent tree, `just serve` will also answer questions
+about the flexible variables of an `export` target. Such an `export`
+target can be specified by the tree of its target-level root, and
+the name of the targets file. The answer is a list of strings,
+naming the flexible variables.
 
 #### Auxiliary request: tree of a commit
 
@@ -100,6 +109,31 @@ request, where the client request consists of a `git` commit
 identifier and the server answers with the tree identifier for that
 commit if it is aware of that commit, or indicates that it is not
 aware of that commit.
+
+Optionally, the client can request that `just serve` back up this
+tree in the CAS of the associated remote-execution endpoint.
+
+#### Auxiliary request: tree of an archive
+
+Also for archives typically, the `git` blob identifier is given, rather
+than the tree. In order to allow `just-mr` to set up a repository
+description without fetching the respective archive, `just serve`
+will support a similar request to, given the blob identifier of an
+archive, answer with the respective tree identifier of the unpacked
+archive. Here, if `just serve` needs the archive, it can look it
+up in its CAS, any of the supplied `git` repsoitories (where one
+might be for archiving of the third-party distribution archives),
+and the specified remote-execution end point.
+
+The (functional!) association of archive blob identifier to tree
+identifier of the unpacked archive is stored in the local build
+root and the respective tree is fixed in the `git` repository of
+the local build root in the same way as `just-mr` does it. When
+answering such a request, that tree map is consulted first (so that
+those requests as well are typically served from cache).
+
+Optionally, the client can request that `just serve` back up this
+tree in the CAS of the associated remote-execution endpoint.
 
 #### Auxiliary request: describe
 
