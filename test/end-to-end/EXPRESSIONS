@@ -3,7 +3,10 @@
     [ "TEST_ENV"
     , "ATTEMPT"
     , "name"
+    , "test type name"
     , "test.sh"
+    , "data"
+    , "extra_infra"
     , "keep"
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
@@ -66,6 +69,7 @@
               , "remotestdout"
               , "remotestderr"
               ]
+            , {"type": "var", "name": "extra_infra"}
             , { "type": "foreach"
               , "var": "filename"
               , "range": {"type": "var", "name": "keep"}
@@ -87,6 +91,7 @@
             , {"type": "var", "name": "just"}
             , {"type": "var", "name": "runner"}
             , {"type": "var", "name": "test.sh"}
+            , {"type": "var", "name": "data"}
             , {"type": "var", "name": "attempt marker"}
             ]
           }
@@ -132,7 +137,9 @@
               , "then": "compatible"
               , "else": "native"
               }
-            , " remote execution "
+            , " "
+            , {"type": "var", "name": "test type name"}
+            , " "
             , {"type": "var", "name": "name"}
             , " failed"
             ]
@@ -149,7 +156,9 @@
         , "fail_message":
           { "type": "join"
           , "$1":
-            [ "shell test with remote execution"
+            [ "shell test with "
+            , {"type": "var", "name": "test type name"}
+            , " "
             , {"type": "var", "name": "name"}
             , " failed (Run "
             , {"type": "var", "name": "ATTEMPT"}
@@ -164,10 +173,11 @@
   { "vars":
     [ "TEST_ENV"
     , "name"
+    , "test type name"
     , "test.sh"
+    , "data"
+    , "extra_infra"
     , "keep"
-    , "runner"
-    , "deps-fieldname"
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
