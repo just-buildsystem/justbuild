@@ -80,6 +80,19 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "fetch-absent":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["fetch-absent"]
+  , "test": ["fetch-absent.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "repos": ["fetch-absent (data)"]
+  }
+, "fetch-absent (data)":
+  { "type": "generic"
+  , "out_dirs": ["src"]
+  , "cmds": ["for i in `seq 1 10` ; do echo $i > src/$i.txt ; done"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -99,6 +112,7 @@
               , "git-tree-verbosity"
               , "defaults"
               , "absent-roots"
+              , "fetch-absent"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}

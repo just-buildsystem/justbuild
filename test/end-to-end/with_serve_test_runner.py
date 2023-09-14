@@ -44,6 +44,14 @@ def dump_results() -> None:
         f.write("%s\n" % (stderr, ))
 
 
+def run_cmd(cmd: List[str],
+            *,
+            env: Any = None,
+            stdout: Any = subprocess.DEVNULL,
+            stderr: Any = None,
+            cwd: str):
+    subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stderr=stderr)
+
 def get_remote_execution_address(d: Json) -> str:
     return "%s:%d" % (d["interface"], int(d["port"]))
 
@@ -106,7 +114,7 @@ g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 SERVE_INFO = os.path.join(REMOTE_DIR, "serve-info.json")
 SERVE_CONFIG_FILE = os.path.join(REMOTE_DIR, "serve.json")
 
-serve_config = {
+serve_config : Json = {
     "local build root": SERVE_DIR,
     "logging": {"limit": 6, "plain": True},
     "execution endpoint": {"address": g_REMOTE_EXECUTION_ADDRESS},
@@ -139,21 +147,21 @@ for repo in os.listdir("data"):
         os.path.join(DATA_DIR, repo),
         target,
     )
-    subprocess.run(
+    run_cmd(
         ["git", "init"],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
         stdout = subprocess.DEVNULL,
         stderr = subprocess.DEVNULL,
     )
-    subprocess.run(
+    run_cmd(
         ["git", "add", "-f", "."],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
         stdout = subprocess.DEVNULL,
         stderr = subprocess.DEVNULL,
     )
-    subprocess.run(
+    run_cmd(
         ["git", "commit", "-m",
          "Content of %s" % (target,)],
         cwd=target,
