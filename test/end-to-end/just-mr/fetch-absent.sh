@@ -21,6 +21,8 @@ env
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
+readonly OUT="${TEST_TMPDIR}/out"
+readonly OUT2="${TEST_TMPDIR}/out2"
 
 mkdir work
 cd work
@@ -62,7 +64,15 @@ CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     --fetch-absent setup)
 cat $CONF
 echo
-"${JUST}" install --local-build-root "${LBR}" -C "${CONF}" -o . 2>&1
-grep 42 out.txt
+"${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
+          -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
+grep 42 "${OUT}/out.txt"
+
+# As the last call of just-mr had --fetch-absent, all relevent information
+# about the root should now be available locally, so we can build without
+# a serve or remote endpoint with still (logically) fetching absent roots.
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
+             --fetch-absent install -o "${OUT2}" 2>&1
+grep 42 "${OUT2}/out.txt"
 
 echo DONE

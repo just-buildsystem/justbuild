@@ -211,6 +211,11 @@ namespace Utils {
 [[nodiscard]] auto CreateTypedTmpDir(std::string const& type) noexcept
     -> TmpDirPtr;
 
+/// \brief Get the path to the file storing the tree id associated with
+/// a given commit.
+[[nodiscard]] auto GetCommitTreeIDFile(std::string const& commit) noexcept
+    -> std::filesystem::path;
+
 /// \brief Get the path to the file storing the tree id of an archive
 /// content.
 [[nodiscard]] auto GetArchiveTreeIDFile(std::string const& repo_type,

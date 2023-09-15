@@ -44,6 +44,11 @@ auto CreateTypedTmpDir(std::string const& type) noexcept -> TmpDirPtr {
     return TmpDir::Create(parent_path);
 }
 
+auto GetCommitTreeIDFile(std::string const& commit) noexcept
+    -> std::filesystem::path {
+    return StorageConfig::BuildRoot() / "commit-tree-map" / commit;
+}
+
 auto GetArchiveTreeIDFile(std::string const& repo_type,
                           std::string const& content) noexcept
     -> std::filesystem::path {

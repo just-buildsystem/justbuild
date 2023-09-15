@@ -67,10 +67,43 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         return;
     }
     if (not is_commit_present.value()) {
-        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
-        // check if commit is known to remote serve service, if asked for an
-        // absent root
         if (repo_info.absent) {
+            auto tree_id_file =
+                JustMR::Utils::GetCommitTreeIDFile(repo_info.hash);
+            if (FileSystemManager::Exists(tree_id_file)) {
+                // read resolved tree id
+                auto resolved_tree_id =
+                    FileSystemManager::ReadFile(tree_id_file);
+                if (not resolved_tree_id) {
+                    (*logger)(fmt::format("Failed to read tree id from file {}",
+                                          tree_id_file.string()),
+                              /*fatal=*/true);
+                    return;
+                }
+                if (fetch_absent) {
+                    (*ws_setter)(std::pair(
+                        nlohmann::json::array(
+                            {repo_info.ignore_special
+                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                 : FileRoot::kGitTreeMarker,
+                             *resolved_tree_id,
+                             StorageConfig::GitRoot().string()}),
+                        false));
+                }
+                else {
+                    (*ws_setter)(std::pair(
+                        nlohmann::json::array(
+                            {repo_info.ignore_special
+                                 ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                 : FileRoot::kGitTreeMarker,
+                             *resolved_tree_id}),
+                        false));
+                }
+                return;
+            }
+            JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
+            // check if commit is known to remote serve service, if asked for an
+            // absent root
             if (serve_api != nullptr) {
                 if (auto tree_id = serve_api->RetrieveTreeFromCommit(
                         repo_info.hash, repo_info.subdir, fetch_absent)) {
@@ -158,6 +191,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             [tmp_dir,  // keep tmp_dir alive
                              repo_info,
                              tree_id,
+                             tree_id_file,
                              logger,
                              ws_setter](auto const& values) {
                                 if (not values[0]->second) {
@@ -165,6 +199,19 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                               /*fatal=*/true);
                                     return;
                                 }
+                                // Now that we also have the tree, write the
+                                // association.
+                                if (not JustMR::Utils::WriteTreeIDFile(
+                                        tree_id_file, *tree_id)) {
+                                    (*logger)(
+                                        fmt::format("Failed to write tree id "
+                                                    "{} to file {}",
+                                                    *tree_id,
+                                                    tree_id_file.string()),
+                                        /*fatal=*/true);
+                                    return;
+                                }
+
                                 // set the workspace root as present
                                 (*ws_setter)(std::pair(
                                     nlohmann::json::array(
@@ -323,6 +370,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             });
     }
     else {
+        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [logger](auto const& msg, bool fatal) {
