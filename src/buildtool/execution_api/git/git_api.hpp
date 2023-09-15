@@ -26,6 +26,9 @@
 /// \brief API for local execution.
 class GitApi final : public IExecutionApi {
   public:
+    GitApi() : repo_config_{&RepositoryConfig::Instance()} {}
+    explicit GitApi(gsl::not_null<RepositoryConfig*> const& repo_config)
+        : repo_config_{repo_config} {}
     auto CreateAction(
         ArtifactDigest const& /*root_digest*/,
         std::vector<std::string> const& /*command*/,
@@ -51,8 +54,8 @@ class GitApi final : public IExecutionApi {
         for (std::size_t i{}; i < artifacts_info.size(); ++i) {
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type)) {
-                auto tree = RepositoryConfig::Instance().ReadTreeFromGitCAS(
-                    info.digest.hash());
+                auto tree =
+                    repo_config_->ReadTreeFromGitCAS(info.digest.hash());
                 if (not tree) {
                     return false;
                 }
@@ -70,8 +73,8 @@ class GitApi final : public IExecutionApi {
                 }
             }
             else {
-                auto blob = RepositoryConfig::Instance().ReadBlobFromGitCAS(
-                    info.digest.hash());
+                auto blob =
+                    repo_config_->ReadBlobFromGitCAS(info.digest.hash());
                 if (not blob) {
                     return false;
                 }
@@ -100,8 +103,8 @@ class GitApi final : public IExecutionApi {
             auto fd = fds[i];
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type) and not raw_tree) {
-                auto tree = RepositoryConfig::Instance().ReadTreeFromGitCAS(
-                    info.digest.hash());
+                auto tree =
+                    repo_config_->ReadTreeFromGitCAS(info.digest.hash());
                 if (not tree) {
                     Logger::Log(LogLevel::Debug,
                                 "Tree {} not known to git",
@@ -132,8 +135,8 @@ class GitApi final : public IExecutionApi {
                 }
             }
             else {
-                auto blob = RepositoryConfig::Instance().ReadBlobFromGitCAS(
-                    info.digest.hash());
+                auto blob =
+                    repo_config_->ReadBlobFromGitCAS(info.digest.hash());
                 if (not blob) {
                     Logger::Log(LogLevel::Debug,
                                 "Blob {} not known to git",
@@ -156,23 +159,114 @@ class GitApi final : public IExecutionApi {
         return true;
     }
 
+    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
-        std::vector<Artifact::ObjectInfo> const& /*artifacts_info*/,
-        gsl::not_null<IExecutionApi*> const& /*api*/) noexcept
-        -> bool override {
-        // So far, no user of the git API ever calls RetrieveToCas.
-        // Hence, we will implement it, only once the first use case arises
-        // in order to avoid dead code.
-        Logger::Log(LogLevel::Warning,
-                    "Git API, RetrieveToCas not implemented yet.");
-        return false;
+        std::vector<Artifact::ObjectInfo> const& artifacts_info,
+        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool override {
+        // Return immediately if target CAS is this CAS
+        if (this == api) {
+            return true;
+        }
+
+        // Determine missing artifacts in other CAS.
+        std::vector<ArtifactDigest> digests;
+        digests.reserve(artifacts_info.size());
+        std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
+        for (auto const& info : artifacts_info) {
+            digests.emplace_back(info.digest);
+            info_map[info.digest] = info;
+        }
+        auto const& missing_digests = api->IsAvailable(digests);
+        std::vector<Artifact::ObjectInfo> missing_artifacts_info;
+        missing_artifacts_info.reserve(missing_digests.size());
+        for (auto const& digest : missing_digests) {
+            missing_artifacts_info.emplace_back(info_map[digest]);
+        }
+
+        // Collect blobs of missing artifacts from local CAS. Trees are
+        // processed recursively before any blob is uploaded.
+        BlobContainer container{};
+        for (auto const& info : missing_artifacts_info) {
+            std::optional<std::string> content;
+            // Recursively process trees.
+            if (IsTreeObject(info.type)) {
+                auto tree =
+                    repo_config_->ReadTreeFromGitCAS(info.digest.hash());
+                if (not tree) {
+                    return false;
+                }
+                BlobContainer tree_deps_only_blobs{};
+                for (auto const& [path, entry] : *tree) {
+                    if (entry->IsTree()) {
+                        if (not RetrieveToCas(
+                                {Artifact::ObjectInfo{
+                                    .digest = ArtifactDigest{entry->Hash(),
+                                                             /*size*/ 0,
+                                                             entry->IsTree()},
+                                    .type = entry->Type(),
+                                    .failed = false}},
+                                api)) {
+                            return false;
+                        }
+                    }
+                    else {
+                        content = entry->RawData();
+                        if (not content) {
+                            return false;
+                        }
+                        auto digest =
+                            ArtifactDigest::Create<ObjectType::File>(*content);
+                        try {
+                            tree_deps_only_blobs.Emplace(
+                                BazelBlob{digest,
+                                          *content,
+                                          IsExecutableObject(entry->Type())});
+                        } catch (std::exception const& ex) {
+                            Logger::Log(LogLevel::Error,
+                                        "failed to emplace blob: ",
+                                        ex.what());
+                            return false;
+                        }
+                    }
+                }
+                if (not api->Upload(tree_deps_only_blobs)) {
+                    return false;
+                }
+                content = tree->RawData();
+            }
+            else {
+                content = repo_config_->ReadBlobFromGitCAS(info.digest.hash());
+            }
+            if (not content) {
+                return false;
+            }
+
+            ArtifactDigest digest;
+            if (IsTreeObject(info.type)) {
+                digest = ArtifactDigest::Create<ObjectType::Tree>(*content);
+            }
+            else {
+                digest = ArtifactDigest::Create<ObjectType::File>(*content);
+            }
+
+            try {
+                container.Emplace(
+                    BazelBlob{digest, *content, IsExecutableObject(info.type)});
+            } catch (std::exception const& ex) {
+                Logger::Log(
+                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+                return false;
+            }
+        }
+
+        // Upload blobs to remote CAS.
+        return api->Upload(container, /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] auto RetrieveToMemory(
         Artifact::ObjectInfo const& artifact_info)
         -> std::optional<std::string> override {
-        return RepositoryConfig::Instance().ReadBlobFromGitCAS(
-            artifact_info.digest.hash());
+        return repo_config_->ReadBlobFromGitCAS(artifact_info.digest.hash());
     }
 
     /// NOLINTNEXTLINE(google-default-arguments)
@@ -192,9 +286,7 @@ class GitApi final : public IExecutionApi {
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool override {
-        return RepositoryConfig::Instance()
-            .ReadBlobFromGitCAS(digest.hash())
-            .has_value();
+        return repo_config_->ReadBlobFromGitCAS(digest.hash()).has_value();
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
@@ -207,6 +299,9 @@ class GitApi final : public IExecutionApi {
         }
         return result;
     }
+
+  private:
+    gsl::not_null<RepositoryConfig*> repo_config_;
 };
 
 #endif
