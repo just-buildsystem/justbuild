@@ -44,6 +44,7 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/storage", "config"]
     ]
   }
 }

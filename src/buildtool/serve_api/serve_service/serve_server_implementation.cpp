@@ -25,8 +25,11 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/serve_service/target_level_cache_server.hpp"
+#include "src/buildtool/storage/config.hpp"
 
 namespace {
 template <typename T>
@@ -66,6 +69,20 @@ auto ServeServerImpl::Run() -> bool {
         creds = grpc::InsecureServerCredentials();
     }
 
+    // make sure the git root directory is properly initialized
+    if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
+        Logger::Log(LogLevel::Error,
+                    "Could not create directory {}. Aborting",
+                    StorageConfig::GitRoot().string());
+        return false;
+    }
+    if (not GitRepo::InitAndOpen(StorageConfig::GitRoot(), true)) {
+        Logger::Log(LogLevel::Error,
+                    fmt::format("could not initialize bare git repository {}",
+                                StorageConfig::GitRoot().string()));
+        return false;
+    }
+
     builder.AddListeningPort(
         fmt::format("{}:{}", interface_, port_), creds, &port_);
 
@@ -99,7 +116,6 @@ auto ServeServerImpl::Run() -> bool {
             return false;
         }
     }
-
     server->Wait();
     return true;
 }
