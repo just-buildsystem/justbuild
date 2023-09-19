@@ -37,7 +37,7 @@ message ServeCommitTreeResponse {
   // The requested Git tree hash.
   string tree = 1;
 
-  enum ServeCommitTreeStatus{
+  enum ServeCommitTreeStatus {
     // All good
     OK = 0;
 
@@ -47,7 +47,7 @@ message ServeCommitTreeResponse {
     // Tree not found
     NOT_FOUND = 2;
 
-    // Internaly, something is very broken
+    // Internally, something is very broken
     INTERNAL_ERROR = 3;
   }
 
@@ -56,10 +56,86 @@ message ServeCommitTreeResponse {
   ServeCommitTreeStatus status = 2;
 }
 
+// A request message for
+// [TargetLevelCache.ServeArchiveTree][justbuild.just_serve.TargetLevelCache.ServeArchiveTree].
+message ServeArchiveTreeRequest {
+  // The git blob identifier of the archive.
+  string content = 1;
+
+  enum ArchiveType {
+    TAR = 0;
+    ZIP = 1;
+  }
+
+  // The type of archive this blob should be treated as.
+  ArchiveType archive_type = 2;
+
+  // Relative path of requested tree with respect to the commit root.
+  string subdir = 3;
+
+  enum SymlinksResolve {
+    // Process archive as-is
+    NONE = 0;
+
+    // Ignore all symlinks
+    IGNORE = 1;
+
+    // Resolve only
+    PARTIAL = 2;
+
+    // Resolve all symlinks
+    COMPLETE = 3;
+  }
+
+  // How symlinks inside the archive should be handled.
+  SymlinksResolve resolve_symlinks = 4;
+
+  // If set to true and the tree is found, it will be uploaded to the
+  // remote-execution end point.
+  bool sync_tree = 5;
+}
+
+// A response message for
+// [TargetLevelCache.ServeArchiveTree][justbuild.just_serve.TargetLevelCache.ServeArchiveTree].
+message ServeArchiveTreeResponse {
+  // The requested Git tree hash.
+  string tree = 1;
+
+  enum ServeArchiveTreeStatus{
+    // All good
+    OK = 0;
+
+    // Failed to upload tree remotely
+    SYNC_ERROR = 1;
+
+    // Failed to unpack as archive of the specified type
+    UNPACK_ERROR = 2;
+
+    // Failed to resolve symlinks as requested
+    RESOLVE_ERROR = 3;
+
+    // Tree not found
+    NOT_FOUND = 4;
+
+    // Internally, something is very broken
+    INTERNAL_ERROR = 5;
+  }
+
+  // If the status has a code `OK` or `SYNC_ERROR`, the tree is correct.
+  // For any other value, the `tree` field is not set.
+  ServeArchiveTreeStatus status = 2;
+}
+
 // Services for improved interaction with the target-level cache.
 service SourceTree {
   // Retrieve the Git-subtree identifier from a given Git commit.
   //
   // There are no method-specific errors.
   rpc ServeCommitTree(ServeCommitTreeRequest) returns (ServeCommitTreeResponse) {}
+
+  // Retrieve the Git-subtree identifier for the tree obtained
+  // by unpacking an archive with a given blob identifier.
+  //
+  // There are no method-specific errors.
+  rpc ServeArchiveTree(ServeArchiveTreeRequest) returns (ServeArchiveTreeResponse) {}
 }
