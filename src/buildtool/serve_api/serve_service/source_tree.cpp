@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/serve_api/serve_service/target_level_cache_server.hpp"
+#include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
@@ -24,7 +24,7 @@
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 
-auto TargetLevelCacheService::CreateExecutionApi(
+auto SourceTreeService::CreateExecutionApi(
     std::optional<RemoteExecutionConfig::ServerAddress> const& address)
     -> gsl::not_null<IExecutionApi::Ptr> {
     if (address) {
@@ -37,7 +37,7 @@ auto TargetLevelCacheService::CreateExecutionApi(
     return std::make_unique<LocalApi>();
 }
 
-auto TargetLevelCacheService::GetTreeFromCommit(
+auto SourceTreeService::GetTreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,
     std::string const& subdir,
@@ -66,13 +66,13 @@ auto TargetLevelCacheService::GetTreeFromCommit(
     return std::nullopt;
 }
 
-auto TargetLevelCacheService::ServeCommitTree(
+auto SourceTreeService::ServeCommitTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ::justbuild::just_serve::ServeCommitTreeResponse* response)
     -> ::grpc::Status {
-    using ServeCommitTreeStatus =
-        ::justbuild::just_serve::ServeCommitTreeStatus;
+    using ServeCommitTreeResponse =
+        ::justbuild::just_serve::ServeCommitTreeResponse;
     auto const& commit{request->commit()};
     auto const& subdir{request->subdir()};
     // try in local build root Git cache
@@ -86,7 +86,7 @@ auto TargetLevelCacheService::ServeCommitTree(
                 auto str = fmt::format("Failed to SetGitCAS at {}",
                                        StorageConfig::GitRoot().string());
                 logger_->Emit(LogLevel::Debug, str);
-                response->set_status(ServeCommitTreeStatus::INTERNAL_ERROR);
+                response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
                 return ::grpc::Status::OK;
             }
             auto git_api = GitApi{&repo};
@@ -97,13 +97,13 @@ auto TargetLevelCacheService::ServeCommitTree(
                 auto str = fmt::format("Failed to sync tree {}", *tree_id);
                 logger_->Emit(LogLevel::Debug, str);
                 *(response->mutable_tree()) = std::move(*tree_id);
-                response->set_status(ServeCommitTreeStatus::SYNC_ERROR);
+                response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
                 return ::grpc::Status::OK;
             }
         }
         // set response
         *(response->mutable_tree()) = std::move(*tree_id);
-        response->set_status(ServeCommitTreeStatus::OK);
+        response->set_status(ServeCommitTreeResponse::OK);
         return ::grpc::Status::OK;
     }
     // try given extra repositories, in order
@@ -118,7 +118,8 @@ auto TargetLevelCacheService::ServeCommitTree(
                     auto str =
                         fmt::format("Failed to SetGitCAS at {}", path.string());
                     logger_->Emit(LogLevel::Debug, str);
-                    response->set_status(ServeCommitTreeStatus::INTERNAL_ERROR);
+                    response->set_status(
+                        ServeCommitTreeResponse::INTERNAL_ERROR);
                     return ::grpc::Status::OK;
                 }
                 auto git_api = GitApi{&repo};
@@ -129,16 +130,16 @@ auto TargetLevelCacheService::ServeCommitTree(
                     auto str = fmt::format("Failed to sync tree {}", *tree_id);
                     logger_->Emit(LogLevel::Debug, str);
                     *(response->mutable_tree()) = std::move(*tree_id);
-                    response->set_status(ServeCommitTreeStatus::SYNC_ERROR);
+                    response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
                 }
             }
             // set response
             *(response->mutable_tree()) = std::move(*tree_id);
-            response->set_status(ServeCommitTreeStatus::OK);
+            response->set_status(ServeCommitTreeResponse::OK);
             return ::grpc::Status::OK;
         }
     }
     // commit not found
-    response->set_status(ServeCommitTreeStatus::NOT_FOUND);
+    response->set_status(ServeCommitTreeResponse::NOT_FOUND);
     return ::grpc::Status::OK;
 }

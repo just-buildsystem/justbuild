@@ -30,20 +30,6 @@ message ServeCommitTreeRequest {
   bool sync_tree = 3;
 }
 
-enum ServeCommitTreeStatus{
-  // All good
-  OK = 0;
-
-  // Failed to upload tree remotely
-  SYNC_ERROR = 1;
-
-  // Tree not found
-  NOT_FOUND = 2;
-
-  // Internaly, something is very broken
-  INTERNAL_ERROR = 3;
-}
-
 
 // A response message for
 // [TargetLevelCache.ServeCommitTree][justbuild.just_serve.TargetLevelCache.ServeCommitTree].
@@ -51,13 +37,27 @@ message ServeCommitTreeResponse {
   // The requested Git tree hash.
   string tree = 1;
 
+  enum ServeCommitTreeStatus{
+    // All good
+    OK = 0;
+
+    // Failed to upload tree remotely
+    SYNC_ERROR = 1;
+
+    // Tree not found
+    NOT_FOUND = 2;
+
+    // Internaly, something is very broken
+    INTERNAL_ERROR = 3;
+  }
+
   // If the status has a code `OK` or `SYNC_ERROR`, the tree is correct.
   // For any other value, the `tree` field is not set.
   ServeCommitTreeStatus status = 2;
 }
 
 // Services for improved interaction with the target-level cache.
-service TargetLevelCache {
+service SourceTree {
   // Retrieve the Git-subtree identifier from a given Git commit.
   //
   // There are no method-specific errors.

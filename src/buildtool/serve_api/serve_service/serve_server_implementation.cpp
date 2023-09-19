@@ -28,7 +28,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/serve_api/serve_service/target_level_cache_server.hpp"
+#include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 namespace {
@@ -47,11 +47,11 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }  // namespace
 
 auto ServeServerImpl::Run() -> bool {
-    TargetLevelCacheService tlc{};
+    SourceTreeService sts{};
 
     grpc::ServerBuilder builder;
 
-    builder.RegisterService(&tlc);
+    builder.RegisterService(&sts);
 
     std::shared_ptr<grpc::ServerCredentials> creds;
     if (Auth::GetAuthMethod() == AuthMethod::kTLS) {

@@ -19,7 +19,7 @@
 ServeTargetLevelCacheClient::ServeTargetLevelCacheClient(
     std::string const& server,
     Port port) noexcept {
-    stub_ = justbuild::just_serve::TargetLevelCache::NewStub(
+    stub_ = justbuild::just_serve::SourceTree::NewStub(
         CreateChannelWithCredentials(server, port));
 }
 
@@ -41,7 +41,7 @@ auto ServeTargetLevelCacheClient::ServeCommitTree(std::string const& commit_id,
         return std::nullopt;
     }
     if (response.status() !=
-        ::justbuild::just_serve::ServeCommitTreeStatus::OK) {
+        ::justbuild::just_serve::ServeCommitTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeCommitTree response returned with {}",
                      static_cast<int>(response.status()));

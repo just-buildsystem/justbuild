@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TARGET_LEVEL_CACHE_SERVER_HPP
-#define TARGET_LEVEL_CACHE_SERVER_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_SERVE_SERVICE_SOURCE_TREE_HPP
+#define INCLUDED_SRC_BUILDTOOL_SERVE_API_SERVE_SERVICE_SOURCE_TREE_HPP
 
 #include <filesystem>
 #include <memory>
@@ -27,8 +27,8 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-class TargetLevelCacheService final
-    : public justbuild::just_serve::TargetLevelCache::Service {
+class SourceTreeService final
+    : public justbuild::just_serve::SourceTree::Service {
 
   public:
     // Retrieve the tree of a commit.
@@ -67,4 +67,4 @@ class TargetLevelCacheService final
         std::shared_ptr<Logger> const& logger) -> std::optional<std::string>;
 };
 
-#endif  // TARGET_LEVEL_CACHE_SERVER_HPP
+#endif

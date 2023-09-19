@@ -39,7 +39,7 @@ class ServeTargetLevelCacheClient {
         -> std::optional<std::string>;
 
   private:
-    std::unique_ptr<justbuild::just_serve::TargetLevelCache::Stub> stub_;
+    std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteTLCClient"};
 };
 
