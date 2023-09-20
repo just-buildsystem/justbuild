@@ -88,6 +88,14 @@
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
+, "absent-config":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["absent-config"]
+  , "test": ["absent-config.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "repos": ["fetch-absent (data)"]
+  }
 , "fetch-absent (data)":
   { "type": "generic"
   , "out_dirs": ["src"]
@@ -113,6 +121,7 @@
               , "defaults"
               , "absent-roots"
               , "fetch-absent"
+              , "absent-config"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
