@@ -33,6 +33,7 @@
 /// \brief Arguments common to all just-mr subcommands
 struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> repository_config{std::nullopt};
+    std::optional<std::filesystem::path> absent_repository_file{std::nullopt};
     std::optional<std::filesystem::path> checkout_locations_file{std::nullopt};
     std::vector<std::string> explicit_distdirs{};
     JustMR::PathsPtr just_mr_paths = std::make_shared<JustMR::Paths>();
@@ -96,6 +97,16 @@ static inline void SetupMultiRepoCommonArguments(
                    std::filesystem::absolute(repository_config_raw));
            },
            "Repository-description file to use.")
+        ->type_name("FILE");
+    app->add_option_function<std::string>(
+           "--absent",
+           [clargs](auto const& file_raw) {
+               clargs->absent_repository_file =
+                   std::filesystem::weakly_canonical(
+                       std::filesystem::absolute(file_raw));
+           },
+           "File specifying the repositories to consider absent (overrides the "
+           "pragma in the config file).")
         ->type_name("FILE");
     app->add_option_function<std::string>(
            "--local-build-root",

@@ -51,6 +51,10 @@ The just-mrrc is given by a JSON object.
    detail). The lookup is performed in the same order the location
    objects appear in the list.
 
+ - The value for the key *`"absent"`*, if provided, is a JSON list
+   of location objects to search for a file specifying the list of
+   absent repositories.
+
  - The value for the key *`"local build root"`* is a single location
    object, specifying the path to use as the local build root. For more
    details, see **`just-mr`**(1).
@@ -123,6 +127,10 @@ An example just-mrrc file could look like the following:
   , {"root": "workspace", "path": "etc/repos.json"}
   , {"root": "home", "path": ".just-repos.json"}
   , {"root": "system", "path": "etc/just-repos.json"}
+  ]
+, "absent":
+  [ {"root": "workspace", "path": "etc/absent.json"}
+  , {"root": "home", "path": ".just-absent"}
   ]
 , "local build root": {"root": "home", "path": ".cache/just"}
 , "checkout locations": {"root": "home", "path": ".just-local.json"}

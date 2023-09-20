@@ -148,7 +148,8 @@ void DefaultReachableRepositories(
 }
 
 auto ReadConfiguration(
-    std::optional<std::filesystem::path> const& config_file_opt) noexcept
+    std::optional<std::filesystem::path> const& config_file_opt,
+    std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration> {
     if (not config_file_opt) {
         Logger::Log(LogLevel::Error, "Cannot find repository configuration.");
@@ -156,7 +157,7 @@ auto ReadConfiguration(
     }
     auto const& config_file = *config_file_opt;
 
-    std::shared_ptr<Configuration> config{nullptr};
+    auto config = nlohmann::json::object();
     if (not FileSystemManager::IsFile(config_file)) {
         Logger::Log(LogLevel::Error,
                     "Cannot read config file {}.",
@@ -165,14 +166,13 @@ auto ReadConfiguration(
     }
     try {
         std::ifstream fs(config_file);
-        auto map = Expression::FromJson(nlohmann::json::parse(fs));
-        if (not map->IsMap()) {
+        config = nlohmann::json::parse(fs);
+        if (not config.is_object()) {
             Logger::Log(LogLevel::Error,
                         "Config file {} does not contain a JSON object.",
                         config_file.string());
             std::exit(kExitConfigError);
         }
-        config = std::make_shared<Configuration>(map);
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Error,
                     "Parsing config file {} failed with error:\n{}",
@@ -180,7 +180,62 @@ auto ReadConfiguration(
                     e.what());
         std::exit(kExitConfigError);
     }
-    return config;
+
+    if (absent_file_opt) {
+        if (not FileSystemManager::IsFile(*absent_file_opt)) {
+            Logger::Log(LogLevel::Error,
+                        "Not file specifying the absent repositories: {}",
+                        absent_file_opt->string());
+            std::exit(kExitConfigError);
+        }
+        try {
+            std::ifstream fs(*absent_file_opt);
+            auto absent = nlohmann::json::parse(fs);
+            if (not absent.is_array()) {
+                Logger::Log(LogLevel::Error,
+                            "Expected {} to contain a list of repository "
+                            "names, but found {}",
+                            absent_file_opt->string(),
+                            absent.dump());
+                std::exit(kExitConfigError);
+            }
+            std::unordered_set<std::string> absent_set{};
+            for (auto const& repo : absent) {
+                if (not repo.is_string()) {
+                    Logger::Log(LogLevel::Error,
+                                "Repositories names have to be strings, but "
+                                "found entry {} in {}",
+                                repo.dump(),
+                                absent_file_opt->string());
+                    std::exit(kExitConfigError);
+                }
+                absent_set.insert(repo);
+            }
+            auto new_repos = nlohmann::json::object();
+            auto repos = config.value("repositories", nlohmann::json::object());
+            for (auto const& [key, val] : repos.items()) {
+                new_repos[key] = val;
+                auto ws = val.value("repository", nlohmann::json::object());
+                auto pragma = ws.value("pragma", nlohmann::json::object());
+                pragma["absent"] = absent_set.contains(key);
+                ws["pragma"] = pragma;
+                new_repos[key]["repository"] = ws;
+            }
+            config["repositories"] = new_repos;
+        } catch (std::exception const& e) {
+            Logger::Log(LogLevel::Error,
+                        "Parsing absent-repos file {} failed with error:\n{}",
+                        absent_file_opt->string(),
+                        e.what());
+            std::exit(kExitConfigError);
+        }
+    }
+
+    try {
+        return std::make_shared<Configuration>(Expression::FromJson(config));
+    } catch (...) {
+        return nullptr;
+    }
 }
 
 auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,

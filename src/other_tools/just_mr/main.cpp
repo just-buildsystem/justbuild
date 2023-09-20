@@ -590,6 +590,21 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             }
         }
     }
+    // read path to absent repository specification if not already provided by
+    // the user
+    if (not clargs->common.absent_repository_file) {
+        auto absent_order = rc_config["absent"];
+        if (absent_order.IsNotNull() and absent_order->IsList()) {
+            for (auto const& entry : absent_order->List()) {
+                auto path = ReadLocation(
+                    entry, clargs->common.just_mr_paths->workspace_root);
+                if (path and FileSystemManager::IsFile(path->first)) {
+                    clargs->common.absent_repository_file = path->first;
+                    break;
+                }
+            }
+        }
+    }
     // read config lookup order
     auto config_lookup_order = rc_config["config lookup order"];
     if (config_lookup_order.IsNotNull()) {
@@ -744,7 +759,8 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         // The remaining options all need the config file
-        auto config = JustMR::Utils::ReadConfiguration(config_file);
+        auto config = JustMR::Utils::ReadConfiguration(
+            config_file, arguments.common.absent_repository_file);
 
         // Run subcommand `setup` or `setup-env`
         if (arguments.cmd == SubCommand::kSetup or

@@ -53,6 +53,12 @@ order:
 The default configuration lookup order can be adjusted in the just-mrrc
 file. See **`just-mrrc`**(5) for more details.
 
+**`--absent`** *`PATH`*  
+Path to a file specifying which repositories are to be considered
+absent, overriding the values set by the *`"pragma"`* entries in the
+multi-repository configuration. The file has to contain a JSON array
+of those repository names to be considered absent.
+
 **`-D`**, **`--defines`** *`JSON`*  
 Defines, via an in-line JSON object, an overlay configuration for
 **`just`**(1); if used as a launcher for a subcommand known to support

@@ -60,7 +60,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             if (not lock) {
                 return kExitGenericFailure;
             }
-            auto config = JustMR::Utils::ReadConfiguration(config_file);
+            auto config = JustMR::Utils::ReadConfiguration(
+                config_file, common_args.absent_repository_file);
 
             use_config = true;
             mr_config_path = MultiRepoSetup(config,

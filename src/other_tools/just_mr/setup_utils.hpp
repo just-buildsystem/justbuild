@@ -55,7 +55,8 @@ void DefaultReachableRepositories(
 
 /// \brief Read in a just-mr configuration file.
 [[nodiscard]] auto ReadConfiguration(
-    std::optional<std::filesystem::path> const& config_file_opt) noexcept
+    std::optional<std::filesystem::path> const& config_file_opt,
+    std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
 
 /// \brief Setup of a remote API based on just-mr arguments.
