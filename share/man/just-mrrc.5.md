@@ -132,11 +132,11 @@ An example just-mrrc file could look like the following:
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
 , "just": {"root": "system", "path": "usr/bin/just"}
 , "git": {"root": "system", "path": "usr/bin/git"}
+, "remote execution": {"address": "10.0.0.1:8980"}
 , "just args":
-  { "build": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
-  , "install": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
-  , "rebuild": ["-r", "10.0.0.1:8980", "--remote-execution-property", "OS:Linux"]
-  , "install-cas": ["-r", "10.0.0.1:8980"]
+  { "build": ["--remote-execution-property", "OS:Linux"]
+  , "install": ["--remote-execution-property", "OS:Linux"]
+  , "rebuild": ["--remote-execution-property", "OS:Linux"]
   }
 }
 ```
