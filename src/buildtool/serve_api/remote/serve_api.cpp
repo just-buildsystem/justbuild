@@ -29,3 +29,13 @@ auto ServeApi::RetrieveTreeFromCommit(std::string const& commit,
     -> std::optional<std::string> {
     return stc_->ServeCommitTree(commit, subdir, sync_tree);
 }
+
+auto ServeApi::RetrieveTreeFromArchive(
+    std::string const& content,
+    std::string const& archive_type,
+    std::string const& subdir,
+    std::optional<PragmaSpecial> const& resolve_symlinks,
+    bool sync_tree) -> std::optional<std::string> {
+    return stc_->ServeArchiveTree(
+        content, archive_type, subdir, resolve_symlinks, sync_tree);
+}

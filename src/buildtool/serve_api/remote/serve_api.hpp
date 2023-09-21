@@ -20,6 +20,7 @@
 #include <string>
 
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 class ServeApi final {
@@ -40,6 +41,13 @@ class ServeApi final {
                                               std::string const& subdir = ".",
                                               bool sync_tree = false)
         -> std::optional<std::string>;
+
+    [[nodiscard]] auto RetrieveTreeFromArchive(
+        std::string const& content,
+        std::string const& archive_type = "archive",
+        std::string const& subdir = ".",
+        std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
+        bool sync_tree = false) -> std::optional<std::string>;
 
   private:
     // source tree service client

@@ -12,6 +12,7 @@
   , "srcs": ["source_tree_client.cpp"]
   , "deps":
     [ ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
@@ -23,7 +24,11 @@
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
   , "srcs": ["serve_api.cpp"]
-  , "deps": [["src/buildtool/common/remote", "port"], "source_tree_client"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , "source_tree_client"
+    ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
 }

@@ -20,6 +20,7 @@
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for SourceTree service defined in:
@@ -31,12 +32,27 @@ class SourceTreeClient {
     /// \brief Retrieve the Git tree of a given commit, if known by the remote.
     /// \param[in] commit_id Hash of the Git commit to look up.
     /// \param[in] subdir Relative path of the tree inside commit.
-    /// \param[in] sync_tree Sync tree to the remote-execution end point
+    /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
     /// \returns The hash of the tree if commit found, nullopt otherwise.
     [[nodiscard]] auto ServeCommitTree(std::string const& commit_id,
                                        std::string const& subdir,
                                        bool sync_tree)
         -> std::optional<std::string>;
+
+    /// \brief Retrieve the Git tree of an archive content, if known by remote.
+    /// \param[in] content Hash of the archive content to look up.
+    /// \param[in] archive_type Type of archive ("archive"|"zip").
+    /// \param[in] subdir Relative path of the tree inside archive.
+    /// \param[in] resolve_symlinks Optional enum to state how symlinks in the
+    /// archive should be handled if the tree has to be actually computed.
+    /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
+    /// \returns The hash of the tree if content blob found, nullopt otherwise.
+    [[nodiscard]] auto ServeArchiveTree(
+        std::string const& content,
+        std::string const& archive_type,
+        std::string const& subdir,
+        std::optional<PragmaSpecial> const& resolve_symlinks,
+        bool sync_tree) -> std::optional<std::string>;
 
   private:
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
