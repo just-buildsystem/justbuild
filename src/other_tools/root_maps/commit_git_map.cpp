@@ -256,9 +256,11 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             else {
                 if (not fetch_absent) {
                     // give warning
-                    (*logger)(
-                        "Absent root requested, but no serve endpoint provided",
-                        /*fatal=*/false);
+                    (*logger)(fmt::format("Missing serve endpoint for Git "
+                                          "repository {} marked absent "
+                                          "requires slower network fetch.",
+                                          repo_root.string()),
+                              /*fatal=*/false);
                 }
             }
         }
