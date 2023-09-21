@@ -246,7 +246,7 @@ auto CreateFilePathGitMap(
         else {
             // warn if import to git is inefficient
             if (current_subcmd) {
-                (*logger)(fmt::format("Warning: Inefficient Git import of file "
+                (*logger)(fmt::format("Inefficient Git import of file "
                                       "path \'{}\'.\nPlease consider using "
                                       "\'just-mr setup\' and \'just {}\' "
                                       "separately to cache the output.",
