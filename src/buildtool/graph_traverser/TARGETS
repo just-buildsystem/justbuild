@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_engine/executor", "executor"]
     , ["src/buildtool/execution_engine/traverser", "traverser"]

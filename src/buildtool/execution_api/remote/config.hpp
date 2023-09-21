@@ -19,29 +19,15 @@
 #include <filesystem>
 #include <map>
 #include <optional>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include <fmt/core.h>
-#include <nlohmann/json.hpp>
-
-#include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 
 class RemoteExecutionConfig {
   public:
-    struct ServerAddress {
-        std::string host{};
-        Port port{};
-
-        [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
-            return nlohmann::json{
-                fmt::format("{}:{}", host, static_cast<std::uint16_t>(port))};
-        }
-    };
-
     // Obtain global instance
     [[nodiscard]] static auto Instance() noexcept -> RemoteExecutionConfig& {
         static RemoteExecutionConfig config;
@@ -114,35 +100,6 @@ class RemoteExecutionConfig {
 
     // Platform properties for execution.
     std::map<std::string, std::string> platform_properties_{};
-
-    [[nodiscard]] static auto ParseAddress(std::string const& address) noexcept
-        -> std::optional<ServerAddress> {
-        std::istringstream iss(address);
-        std::string host;
-        std::string port;
-        if (not std::getline(iss, host, ':') or
-            not std::getline(iss, port, ':')) {
-            return std::nullopt;
-        }
-        auto port_num = ParsePort(port);
-        if (not host.empty() and port_num) {
-            return ServerAddress{std::move(host), *port_num};
-        }
-        return std::nullopt;
-    }
-
-    [[nodiscard]] static auto ParseProperty(
-        std::string const& property) noexcept
-        -> std::optional<std::pair<std::string, std::string>> {
-        std::istringstream pss(property);
-        std::string key;
-        std::string val;
-        if (not std::getline(pss, key, ':') or
-            not std::getline(pss, val, ':')) {
-            return std::nullopt;
-        }
-        return std::make_pair(key, val);
-    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP

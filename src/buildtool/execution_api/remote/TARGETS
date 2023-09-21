@@ -72,11 +72,7 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "srcs": ["config.cpp"]
-  , "deps":
-    [ ["@", "fmt", "", "fmt"]
-    , ["@", "json", "", "json"]
-    , ["src/buildtool/common/remote", "port"]
-    ]
+  , "deps": [["src/buildtool/common/remote", "remote_common"]]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   }
 }

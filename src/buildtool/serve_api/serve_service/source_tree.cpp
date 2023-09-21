@@ -25,7 +25,7 @@
 #include "src/buildtool/storage/config.hpp"
 
 auto SourceTreeService::CreateExecutionApi(
-    std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+    std::optional<ServerAddress> const& address)
     -> gsl::not_null<IExecutionApi::Ptr> {
     if (address) {
         ExecutionConfiguration config;

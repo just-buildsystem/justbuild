@@ -16,14 +16,21 @@
 #include <iterator>
 #include <vector>
 
-#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 
-class RemoteServeConfig : public RemoteExecutionConfig {
+class RemoteServeConfig {
   public:
     // Obtain global instance
     [[nodiscard]] static auto Instance() noexcept -> RemoteServeConfig& {
         static RemoteServeConfig config;
         return config;
+    }
+
+    // Set remote execution and cache address, unsets if parsing `address` fails
+    [[nodiscard]] static auto SetRemoteAddress(
+        std::string const& address) noexcept -> bool {
+        auto& inst = Instance();
+        return static_cast<bool>(inst.remote_address_ = ParseAddress(address));
     }
 
     // Set the list of known repositories
@@ -36,6 +43,12 @@ class RemoteServeConfig : public RemoteExecutionConfig {
         return repos.size() == inst.repositories_.size();
     }
 
+    // Remote execution address, if set
+    [[nodiscard]] static auto RemoteAddress() noexcept
+        -> std::optional<ServerAddress> {
+        return Instance().remote_address_;
+    }
+
     // Repositories known to 'just serve'
     [[nodiscard]] static auto KnownRepositories() noexcept
         -> const std::vector<std::filesystem::path>& {
@@ -43,6 +56,9 @@ class RemoteServeConfig : public RemoteExecutionConfig {
     }
 
   private:
+    // Server address of remote execution.
+    std::optional<ServerAddress> remote_address_{};
+
     // Known Git repositories to serve server.
     std::vector<std::filesystem::path> repositories_{};
 };

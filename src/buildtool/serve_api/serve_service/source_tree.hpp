@@ -23,6 +23,7 @@
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -57,7 +58,7 @@ class SourceTreeService final
         CreateExecutionApi(std::nullopt)};
 
     [[nodiscard]] static auto CreateExecutionApi(
-        std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+        std::optional<ServerAddress> const& address)
         -> gsl::not_null<IExecutionApi::Ptr>;
 
     [[nodiscard]] static auto GetTreeFromCommit(

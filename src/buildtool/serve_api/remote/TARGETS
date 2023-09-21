@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
-  , "deps": [["src/buildtool/execution_api/remote", "config"]]
+  , "deps": [["src/buildtool/common/remote", "remote_common"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
 , "serve_target_level_cache_client":

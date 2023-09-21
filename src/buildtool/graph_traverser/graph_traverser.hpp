@@ -30,6 +30,7 @@
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -270,7 +271,7 @@ class GraphTraverser {
     }
 
     [[nodiscard]] static auto CreateExecutionApi(
-        std::optional<RemoteExecutionConfig::ServerAddress> const& address)
+        std::optional<ServerAddress> const& address)
         -> gsl::not_null<IExecutionApi::Ptr> {
         if (address) {
             ExecutionConfiguration config;

@@ -14,6 +14,7 @@
   , "proto": ["just_serve_proto"]
   , "deps":
     [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/remote", "config"]
     ]

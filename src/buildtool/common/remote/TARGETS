@@ -22,4 +22,11 @@
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
+, "remote_common":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["remote_common"]
+  , "hdrs": ["remote_common.hpp"]
+  , "deps": [["@", "fmt", "", "fmt"], ["@", "json", "", "json"], "port"]
+  , "stage": ["src", "buildtool", "common", "remote"]
+  }
 }
