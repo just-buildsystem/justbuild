@@ -23,6 +23,7 @@ readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly OUT="${TEST_TMPDIR}/out"
 readonly OUT2="${TEST_TMPDIR}/out2"
+readonly OUT3="${TEST_TMPDIR}/out3"
 
 mkdir work
 cd work
@@ -74,5 +75,39 @@ grep 42 "${OUT}/out.txt"
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
              --fetch-absent install -o "${OUT2}" 2>&1
 grep 42 "${OUT2}/out.txt"
+
+# Now take the same repo, but without the subdir, to ensure we did not
+# cache a wrong association.
+cat > repos.json <<EOF
+{ "repositories":
+  { "":
+    { "repository":
+      { "type": "git"
+      , "commit": "$COMMIT_0"
+      , "pragma": {"absent": true}
+      , "repository": "http://non-existent.example.org/data.git"
+      , "branch": "master"
+      }
+    , "target_root": "targets"
+    }
+  , "targets": {"repository": {"type": "file", "path": "targets"}}
+  }
+}
+EOF
+cat > targets/TARGETS <<'EOF'
+{ "":
+  { "type": "generic"
+  , "outs": ["out.txt"]
+  , "cmds": ["head -c 1 src/4.txt > out.txt", "cat src/2.txt >> out.txt"]
+  , "deps": ["src/4.txt", "src/2.txt"]
+  }
+}
+EOF
+"${JUST_MR}" --norc --local-build-root "${LBR}" \
+             --remote-serve-address ${SERVE} \
+             -r ${REMOTE_EXECUTION_ADDRESS} \
+             --just "${JUST}" \
+             --fetch-absent install -o "${OUT3}" 2>&1
+grep 42 "${OUT3}/out.txt"
 
 echo DONE
