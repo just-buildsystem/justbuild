@@ -151,7 +151,6 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                      std::string const& repo_name,
                      std::string const& repo_type,
                      gsl::not_null<ContentGitMap*> const& content_git_map,
-                     bool fetch_absent,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
@@ -226,7 +225,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
         .pragma_special = pragma_special_value,
-        .absent = not fetch_absent and pragma_absent_value};
+        .absent = pragma_absent_value};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
@@ -774,7 +773,6 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     key,
                                     repo_type_str,
                                     content_git_map,
-                                    fetch_absent,
                                     ts,
                                     setter,
                                     wrapped_logger);

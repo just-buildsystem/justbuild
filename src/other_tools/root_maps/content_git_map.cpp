@@ -49,6 +49,7 @@ void ResolveContentTree(
     bool is_cache_hit,
     std::optional<PragmaSpecial> const& pragma_special,
     bool absent,
+    bool fetch_absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& ws_setter,
@@ -70,7 +71,7 @@ void ResolveContentTree(
             // set the workspace root
             auto root = nlohmann::json::array(
                 {FileRoot::kGitTreeMarker, *resolved_tree_id});
-            if (not absent) {
+            if (fetch_absent or not absent) {
                 root.emplace_back(StorageConfig::GitRoot().string());
             }
             (*ws_setter)(std::pair(std::move(root), true));
@@ -88,6 +89,7 @@ void ResolveContentTree(
                  tree_id_file,
                  is_cache_hit,
                  absent,
+                 fetch_absent,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -121,7 +123,7 @@ void ResolveContentTree(
                     // set the workspace root
                     auto root = nlohmann::json::array(
                         {FileRoot::kGitTreeMarker, resolved_tree.id});
-                    if (not absent) {
+                    if (fetch_absent or not absent) {
                         root.emplace_back(StorageConfig::GitRoot().string());
                     }
                     (*ws_setter)(std::pair(std::move(root), is_cache_hit));
@@ -139,7 +141,7 @@ void ResolveContentTree(
         // set the workspace root as-is
         auto root =
             nlohmann::json::array({FileRoot::kGitTreeMarker, tree_hash});
-        if (not absent) {
+        if (fetch_absent or not absent) {
             root.emplace_back(StorageConfig::GitRoot().string());
         }
         (*ws_setter)(std::pair(std::move(root), is_cache_hit));
@@ -153,15 +155,17 @@ auto CreateContentGitMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    bool fetch_absent,
     std::size_t jobs) -> ContentGitMap {
     auto gitify_content = [content_cas_map,
                            import_to_git_map,
                            resolve_symlinks_map,
-                           critical_git_op_map](auto ts,
-                                                auto setter,
-                                                auto logger,
-                                                auto /* unused */,
-                                                auto const& key) {
+                           critical_git_op_map,
+                           fetch_absent](auto ts,
+                                         auto setter,
+                                         auto logger,
+                                         auto /* unused */,
+                                         auto const& key) {
         auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
             key.repo_type, key.archive.content);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
@@ -193,6 +197,7 @@ auto CreateContentGitMap(
                  content = key.archive.content,
                  pragma_special = key.pragma_special,
                  absent = key.absent,
+                 fetch_absent,
                  resolve_symlinks_map,
                  ts,
                  setter,
@@ -233,6 +238,7 @@ auto CreateContentGitMap(
                                        true, /*is_cache_hit*/
                                        pragma_special,
                                        absent,
+                                       fetch_absent,
                                        resolve_symlinks_map,
                                        ts,
                                        setter,
@@ -259,6 +265,7 @@ auto CreateContentGitMap(
                  subdir = key.subdir,
                  pragma_special = key.pragma_special,
                  absent = key.absent,
+                 fetch_absent,
                  import_to_git_map,
                  resolve_symlinks_map,
                  ts,
@@ -303,6 +310,7 @@ auto CreateContentGitMap(
                          subdir,
                          pragma_special,
                          absent,
+                         fetch_absent,
                          resolve_symlinks_map,
                          ts,
                          setter,
@@ -365,6 +373,7 @@ auto CreateContentGitMap(
                                                false, /*is_cache_hit*/
                                                pragma_special,
                                                absent,
+                                               fetch_absent,
                                                resolve_symlinks_map,
                                                ts,
                                                setter,

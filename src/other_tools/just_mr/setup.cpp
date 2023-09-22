@@ -130,6 +130,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                                &import_to_git_map,
                                                &resolve_symlinks_map,
                                                &critical_git_op_map,
+                                               common_args.fetch_absent,
                                                common_args.jobs);
     auto fpath_git_map = CreateFilePathGitMap(just_cmd_args.subcmd_name,
                                               &critical_git_op_map,
