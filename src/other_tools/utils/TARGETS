@@ -28,4 +28,15 @@
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
   }
+, "content":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["content"]
+  , "hdrs": ["content.hpp"]
+  , "deps":
+    [ "curl_easy_handle"
+    , ["src/buildtool/common", "user_structs"]
+    , ["src/buildtool/crypto", "hasher"]
+    ]
+  , "stage": ["src", "other_tools", "utils"]
+  }
 }

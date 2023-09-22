@@ -14,39 +14,12 @@
 
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
-#include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/other_tools/utils/curl_easy_handle.hpp"
-
-namespace {
-
-/// \brief Fetches a file from the internet and stores its content in memory.
-/// Returns the content.
-[[nodiscard]] auto NetworkFetch(std::string const& fetch_url,
-                                CAInfoPtr const& ca_info) noexcept
-    -> std::optional<std::string> {
-    auto curl_handle =
-        CurlEasyHandle::Create(ca_info->no_ssl_verify, ca_info->ca_bundle);
-    if (not curl_handle) {
-        return std::nullopt;
-    }
-    return curl_handle->DownloadToString(fetch_url);
-}
-
-template <Hasher::HashType type>
-[[nodiscard]] auto GetContentHash(std::string const& data) noexcept
-    -> std::string {
-    Hasher hasher{type};
-    hasher.Update(data);
-    auto digest = std::move(hasher).Finalize();
-    return digest.HexString();
-}
-
-}  // namespace
+#include "src/other_tools/utils/content.hpp"
 
 auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                          CAInfoPtr const& ca_info,
