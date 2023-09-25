@@ -219,6 +219,17 @@ class GitRepo {
                                        anon_logger_ptr const& logger) noexcept
         -> std::optional<bool>;
 
+    /// \brief Check if given blob ID is present in the directory structure of
+    /// the local repository and try to return it.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// Returns a pair of a success flag, stating that no errors occurred while
+    /// performing the libgit2 calls, and an optional string containing the
+    /// content of the blob, if the blob is found. It guarantees the logger is
+    /// called exactly once with fatal if failure.
+    [[nodiscard]] auto TryReadBlob(std::string const& blob_id,
+                                   anon_logger_ptr const& logger) noexcept
+        -> std::pair<bool, std::optional<std::string>>;
+
     /// \brief Get the object info related to a given path inside a Git tree.
     /// Unlike GetSubtreeFromTree, we here ignore errors and only return a value
     /// when all is successful.
