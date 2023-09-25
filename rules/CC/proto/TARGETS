@@ -1,13 +1,16 @@
 { "defaults":
   { "type": ["CC/proto", "defaults"]
   , "PROTOC": ["protoc"]
-  , "LDFLAGS": ["-lprotobuf"]
   , "PATH": ["/bin", "/usr/bin"]
+  , "deps": ["libprotobuf"]
   }
 , "service defaults":
   { "type": ["CC/proto", "defaults"]
   , "base": ["defaults"]
   , "GRPC_PLUGIN": ["/usr/bin/grpc_cpp_plugin"]
-  , "ADD_LDFLAGS": ["-lgrpc++", "-lgrpc", "-lgpr"]
+  , "deps": ["libgrpc++"]
   }
+, "libprotobuf":
+  {"type": ["CC/pkgconfig", "system_library"], "name": ["libprotobuf"]}
+, "libgrpc++": {"type": ["CC/pkgconfig", "system_library"], "name": ["grpc++"]}
 }
