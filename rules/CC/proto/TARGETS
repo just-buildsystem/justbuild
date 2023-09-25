@@ -11,6 +11,6 @@
   , "deps": ["libgrpc++"]
   }
 , "libprotobuf":
-  {"type": ["CC/pkgconfig", "system_library"], "name": ["libprotobuf"]}
+  {"type": ["CC/pkgconfig", "system_library"], "name": ["protobuf"]}
 , "libgrpc++": {"type": ["CC/pkgconfig", "system_library"], "name": ["grpc++"]}
 }
