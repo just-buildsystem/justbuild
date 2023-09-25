@@ -17,7 +17,10 @@
 
 #include <utility>
 
+#include "src/buildtool/common/user_structs.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
@@ -29,8 +32,13 @@ using ContentGitMap =
 [[nodiscard]] auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    LocalPathsPtr const& just_mr_paths,
+    CAInfoPtr const& ca_info,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    ServeApi* serve_api,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap;
 

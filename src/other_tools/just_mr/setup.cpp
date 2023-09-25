@@ -95,7 +95,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
                                             : nullptr};
 
-    // setup the API for serving tree of known commit
+    // setup the API for serving trees of Gti repos or archives
     auto serve_api = JustMR::Utils::SetupServeApi(
         common_args.remote_serve_address, auth_args);
 
@@ -126,12 +126,18 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            remote_api ? &(*remote_api) : nullptr,
                            common_args.fetch_absent,
                            common_args.jobs);
-    auto content_git_map = CreateContentGitMap(&content_cas_map,
-                                               &import_to_git_map,
-                                               &resolve_symlinks_map,
-                                               &critical_git_op_map,
-                                               common_args.fetch_absent,
-                                               common_args.jobs);
+    auto content_git_map =
+        CreateContentGitMap(&content_cas_map,
+                            &import_to_git_map,
+                            common_args.just_mr_paths,
+                            common_args.ca_info,
+                            &resolve_symlinks_map,
+                            &critical_git_op_map,
+                            serve_api ? &(*serve_api) : nullptr,
+                            local_api ? &(*local_api) : nullptr,
+                            remote_api ? &(*remote_api) : nullptr,
+                            common_args.fetch_absent,
+                            common_args.jobs);
     auto fpath_git_map = CreateFilePathGitMap(just_cmd_args.subcmd_name,
                                               &critical_git_op_map,
                                               &import_to_git_map,

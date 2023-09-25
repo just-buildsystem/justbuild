@@ -81,7 +81,10 @@
   , "hdrs": ["content_git_map.hpp"]
   , "srcs": ["content_git_map.cpp"]
   , "deps":
-    [ ["src/other_tools/ops_maps", "content_cas_map"]
+    [ ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/common", "user_structs"]
+    , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     ]
@@ -99,6 +102,7 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/other_tools/utils", "content"]
     ]
   }
 , "tree_id_git_map":
