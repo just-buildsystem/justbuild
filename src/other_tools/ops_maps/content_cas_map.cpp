@@ -66,16 +66,6 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             return;
         }
         JustMRProgress::Instance().TaskTracker().Start(key.origin);
-        // check if content is in remote CAS, if a remote is given
-        if (remote_api and local_api and remote_api->IsAvailable(digest) and
-            remote_api->RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = digest,
-                                      .type = ObjectType::File}},
-                local_api)) {
-            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
-            (*setter)(true);
-            return;
-        }
         // add distfile to CAS
         auto repo_distfile =
             (key.distfile
@@ -84,6 +74,16 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
         JustMR::Utils::AddDistfileToCAS(repo_distfile, just_mr_paths);
         // check if content is in CAS now
         if (cas.BlobPath(digest, /*is_executable=*/false)) {
+            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+            (*setter)(true);
+            return;
+        }
+        // check if content is in remote CAS, if a remote is given
+        if (remote_api and local_api and remote_api->IsAvailable(digest) and
+            remote_api->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::File}},
+                local_api)) {
             JustMRProgress::Instance().TaskTracker().Stop(key.origin);
             (*setter)(true);
             return;
