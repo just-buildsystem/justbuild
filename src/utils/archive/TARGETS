@@ -1,0 +1,11 @@
+{ "archive_ops":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["archive_ops"]
+  , "hdrs": ["archive_ops.hpp"]
+  , "srcs": ["archive_ops.cpp"]
+  , "deps": [["@", "gsl", "", "gsl"]]
+  , "stage": ["src", "utils", "archive"]
+  , "private-deps":
+    [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
+  }
+}

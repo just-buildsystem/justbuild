@@ -20,7 +20,7 @@
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/other_tools/utils/archive_ops.hpp"
+#include "src/utils/archive/archive_ops.hpp"
 
 namespace {
 

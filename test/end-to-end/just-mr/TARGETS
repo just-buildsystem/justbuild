@@ -25,7 +25,7 @@
   , "private-deps":
     [ ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "logging"]
-    , ["@", "src", "src/other_tools/utils", "archive_ops"]
+    , ["@", "src", "src/utils/archive", "archive_ops"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
     ]
   , "private-ldflags": ["-pthread"]

@@ -1,0 +1,15 @@
+{ "archive_usage":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["archive_usage"]
+  , "srcs": ["archive_usage.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "", "libarchive"]
+    , ["@", "src", "src/utils/archive", "archive_ops"]
+    ]
+  , "stage": ["test", "utils", "archive"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["archive_usage"]}
+}

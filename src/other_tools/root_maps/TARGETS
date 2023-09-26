@@ -81,7 +81,7 @@
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
-    [ ["src/other_tools/utils", "archive_ops"]
+    [ ["src/utils/archive", "archive_ops"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/storage", "storage"]

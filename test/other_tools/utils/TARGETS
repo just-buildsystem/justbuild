@@ -1,17 +1,4 @@
-{ "archive_usage":
-  { "type": ["@", "rules", "CC/test", "test"]
-  , "name": ["archive_usage"]
-  , "srcs": ["archive_usage.test.cpp"]
-  , "private-deps":
-    [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "", "libarchive"]
-    , ["@", "src", "src/other_tools/utils", "archive_ops"]
-    ]
-  , "stage": ["test", "other_tools", "utils"]
-  }
-, "curl_usage_install":
+{ "curl_usage_install":
   { "type": ["@", "rules", "CC", "binary"]
   , "tainted": ["test"]
   , "name": ["curl_usage_install"]
@@ -43,8 +30,5 @@
   , "stage": ["test", "other_tools", "utils"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "deps": ["archive_usage", "curl_usage", "curl_url"]
-  }
+  {"type": "install", "tainted": ["test"], "deps": ["curl_usage", "curl_url"]}
 }

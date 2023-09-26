@@ -92,6 +92,7 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "dirs": [[["./", "cpp", "TESTS"], "cpp"]]
+  , "dirs":
+    [[["./", "cpp", "TESTS"], "cpp"], [["./", "archive", "TESTS"], "archive"]]
   }
 }

@@ -19,7 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/other_tools/utils/archive_ops.hpp"
+#include "src/utils/archive/archive_ops.hpp"
 
 extern "C" {
 #include <archive.h>

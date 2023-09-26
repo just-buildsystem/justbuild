@@ -1,14 +1,4 @@
-{ "archive_ops":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["archive_ops"]
-  , "hdrs": ["archive_ops.hpp"]
-  , "srcs": ["archive_ops.cpp"]
-  , "deps": [["@", "gsl", "", "gsl"]]
-  , "stage": ["src", "other_tools", "utils"]
-  , "private-deps":
-    [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
-  }
-, "curl_context":
+{ "curl_context":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["curl_context"]
   , "hdrs": ["curl_context.hpp"]
