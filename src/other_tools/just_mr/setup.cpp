@@ -19,9 +19,11 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
@@ -34,7 +36,6 @@
 #include "src/other_tools/root_maps/distdir_git_map.hpp"
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 #include "src/other_tools/root_maps/tree_id_git_map.hpp"
-#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 
 auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
@@ -227,5 +228,5 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
     // if successful, return the output config
-    return JustMR::Utils::AddToCAS(mr_config.dump(2));
+    return StorageUtils::AddToCAS(mr_config.dump(2));
 }

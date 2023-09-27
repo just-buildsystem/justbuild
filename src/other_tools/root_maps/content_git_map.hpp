@@ -17,9 +17,9 @@
 
 #include <utility>
 
+#include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
-#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 
 /// \brief Maps the content of an archive to the resulting Git tree WS root,
 /// together with the information whether it was a cache hit.

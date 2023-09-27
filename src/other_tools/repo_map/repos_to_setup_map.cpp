@@ -15,6 +15,7 @@
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 

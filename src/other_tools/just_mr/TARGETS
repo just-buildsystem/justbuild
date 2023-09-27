@@ -41,17 +41,12 @@
   , "hdrs": ["utils.hpp"]
   , "srcs": ["utils.cpp"]
   , "deps":
-    [ ["src/utils/cpp", "tmp_dir"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/main", "constants"]
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
-  , "private-deps":
-    [ ["src/utils/cpp", "path"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["src/buildtool/file_system", "file_storage"]
-    ]
   }
 , "exit_codes":
   { "type": ["@", "rules", "CC", "library"]
@@ -69,6 +64,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "clidefaults"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/logging", "log_level"]
@@ -132,6 +128,7 @@
     [ ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -151,6 +148,7 @@
     [ ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "fs_utils"]
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
@@ -162,7 +160,7 @@
     , ["src/other_tools/root_maps", "distdir_git_map"]
     , ["src/other_tools/root_maps", "fpath_git_map"]
     , ["src/other_tools/root_maps", "tree_id_git_map"]
-    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "local"]

@@ -18,6 +18,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -36,7 +37,7 @@ void ResolveFilePathTree(
     if (pragma_special) {
         // get the resolved tree
         auto tree_id_file =
-            JustMR::Utils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
+            StorageUtils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -90,8 +91,8 @@ void ResolveFilePathTree(
                     }
                     auto const& resolved_tree = *hashes[0];
                     // cache the resolved tree in the CAS map
-                    if (not JustMR::Utils::WriteTreeIDFile(tree_id_file,
-                                                           resolved_tree.id)) {
+                    if (not StorageUtils::WriteTreeIDFile(tree_id_file,
+                                                          resolved_tree.id)) {
                         (*logger)(fmt::format("Failed to write resolved tree "
                                               "id to file {}",
                                               tree_id_file.string()),
@@ -255,7 +256,7 @@ auto CreateFilePathGitMap(
                           /*fatal=*/false);
             }
             // it's not a git repo, so import it to git cache
-            auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("file");
+            auto tmp_dir = StorageUtils::CreateTypedTmpDir("file");
             if (not tmp_dir) {
                 (*logger)("Failed to create import-to-git tmp directory!",
                           /*fatal=*/true);

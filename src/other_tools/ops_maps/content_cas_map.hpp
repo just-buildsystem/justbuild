@@ -19,9 +19,10 @@
 #include <string>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
@@ -61,8 +62,8 @@ struct ArchiveRepoInfo {
 /// \brief Maps the content hash of an archive to an "exists" status flag.
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
 
-[[nodiscard]] auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
-                                       JustMR::CAInfoPtr const& ca_info,
+[[nodiscard]] auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
+                                       CAInfoPtr const& ca_info,
                                        IExecutionApi* local_api,
                                        IExecutionApi* remote_api,
                                        std::size_t jobs) -> ContentCASMap;

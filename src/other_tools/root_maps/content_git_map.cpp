@@ -16,7 +16,9 @@
 
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -54,7 +56,7 @@ void ResolveContentTree(
     if (pragma_special) {
         // get the resolved tree
         auto tree_id_file =
-            JustMR::Utils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
+            StorageUtils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -108,8 +110,8 @@ void ResolveContentTree(
                     }
                     auto const& resolved_tree = *hashes[0];
                     // cache the resolved tree in the CAS map
-                    if (not JustMR::Utils::WriteTreeIDFile(tree_id_file,
-                                                           resolved_tree.id)) {
+                    if (not StorageUtils::WriteTreeIDFile(tree_id_file,
+                                                          resolved_tree.id)) {
                         (*logger)(fmt::format("Failed to write resolved tree "
                                               "id to file {}",
                                               tree_id_file.string()),
@@ -160,7 +162,7 @@ auto CreateContentGitMap(
                                                 auto logger,
                                                 auto /* unused */,
                                                 auto const& key) {
-        auto archive_tree_id_file = JustMR::Utils::GetArchiveTreeIDFile(
+        auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
             key.repo_type, key.archive.content);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
             // read archive_tree_id from file tree_id_file
@@ -264,7 +266,7 @@ auto CreateContentGitMap(
                  logger]([[maybe_unused]] auto const& values) {
                     // content is in CAS
                     // extract archive
-                    auto tmp_dir = JustMR::Utils::CreateTypedTmpDir(repo_type);
+                    auto tmp_dir = StorageUtils::CreateTypedTmpDir(repo_type);
                     if (not tmp_dir) {
                         (*logger)(fmt::format("Failed to create tmp path for "
                                               "{} target {}",
@@ -314,7 +316,7 @@ auto CreateContentGitMap(
                             // only tree id is needed
                             std::string archive_tree_id = values[0]->first;
                             // write to tree id file
-                            if (not JustMR::Utils::WriteTreeIDFile(
+                            if (not StorageUtils::WriteTreeIDFile(
                                     archive_tree_id_file, archive_tree_id)) {
                                 (*logger)(
                                     fmt::format("Failed to write tree id "

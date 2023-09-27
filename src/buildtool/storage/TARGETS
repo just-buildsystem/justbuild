@@ -58,4 +58,22 @@
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps": [["src/buildtool/execution_api/remote", "config"]]
   }
+, "fs_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fs_utils"]
+  , "hdrs": ["fs_utils.hpp"]
+  , "srcs": ["fs_utils.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "user_structs"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/utils/cpp", "tmp_dir"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  , "private-deps":
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/utils/cpp", "path"]
+    , "config"
+    , "storage"
+    ]
+  }
 }

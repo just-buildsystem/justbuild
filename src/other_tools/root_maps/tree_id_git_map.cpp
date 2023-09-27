@@ -19,11 +19,11 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
 
 namespace {
 
@@ -145,7 +145,7 @@ auto CreateTreeIdGitMap(
                 if (not *tree_found) {
                     JustMRProgress::Instance().TaskTracker().Start(key.origin);
                     // create temporary location for command execution root
-                    auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("git-tree");
+                    auto tmp_dir = StorageUtils::CreateTypedTmpDir("git-tree");
                     if (not tmp_dir) {
                         (*logger)(
                             "Failed to create tmp directory for tree id map!",
@@ -154,7 +154,7 @@ auto CreateTreeIdGitMap(
                     }
                     // create temporary location for storing command result
                     // files
-                    auto out_dir = JustMR::Utils::CreateTypedTmpDir("git-tree");
+                    auto out_dir = StorageUtils::CreateTypedTmpDir("git-tree");
                     if (not out_dir) {
                         (*logger)(
                             "Failed to create tmp directory for tree id map!",
@@ -282,7 +282,7 @@ auto CreateTreeIdGitMap(
                             }
                             // define temp repo path
                             auto tmp_dir =
-                                JustMR::Utils::CreateTypedTmpDir("git-tree");
+                                StorageUtils::CreateTypedTmpDir("git-tree");
                             ;
                             if (not tmp_dir) {
                                 (*logger)(fmt::format("Could not create unique "

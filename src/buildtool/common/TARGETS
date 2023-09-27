@@ -116,4 +116,15 @@
     , ["src/buildtool/storage", "storage"]
     ]
   }
+, "user_structs":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["user_structs"]
+  , "hdrs": ["user_structs.hpp"]
+  , "stage": ["src", "buildtool", "common"]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/main", "constants"]
+    ]
+  }
 }

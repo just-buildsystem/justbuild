@@ -16,6 +16,7 @@
 
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -26,7 +27,7 @@ namespace {
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// Returns the content.
 [[nodiscard]] auto NetworkFetch(std::string const& fetch_url,
-                                JustMR::CAInfoPtr const& ca_info) noexcept
+                                CAInfoPtr const& ca_info) noexcept
     -> std::optional<std::string> {
     auto curl_handle =
         CurlEasyHandle::Create(ca_info->no_ssl_verify, ca_info->ca_bundle);
@@ -47,8 +48,8 @@ template <Hasher::HashType type>
 
 }  // namespace
 
-auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
-                         JustMR::CAInfoPtr const& ca_info,
+auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
+                         CAInfoPtr const& ca_info,
                          IExecutionApi* local_api,
                          IExecutionApi* remote_api,
                          std::size_t jobs) -> ContentCASMap {
@@ -71,7 +72,7 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             (key.distfile
                  ? key.distfile.value()
                  : std::filesystem::path(key.fetch_url).filename().string());
-        JustMR::Utils::AddDistfileToCAS(repo_distfile, just_mr_paths);
+        StorageUtils::AddDistfileToCAS(repo_distfile, just_mr_paths);
         // check if content is in CAS now
         if (cas.BlobPath(digest, /*is_executable=*/false)) {
             JustMRProgress::Instance().TaskTracker().Stop(key.origin);
@@ -132,8 +133,8 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
             }
         }
         // add the fetched data to CAS
-        auto path = JustMR::Utils::AddToCAS(*data);
-        // check that storing the fetched data succeeded
+        auto path = StorageUtils::AddToCAS(*data);
+        // check one last time if content is in CAS now
         if (not path) {
             (*logger)(fmt::format("Failed to store fetched content from {}",
                                   key.fetch_url),

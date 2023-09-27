@@ -15,13 +15,16 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UTILS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UTILS_HPP
 
+#include <map>
+#include <optional>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/main/constants.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/utils/cpp/tmp_dir.hpp"
 
 /* Paths and constants required by just-mr */
 
@@ -135,115 +138,7 @@ std::unordered_map<std::string, CheckoutType> const kCheckoutTypeMap = {
     {"file", CheckoutType::File},
     {"distdir", CheckoutType::Distdir},
     {"git tree", CheckoutType::GitTree}};
-
-/// \brief Pragma "special" value enum
-enum class PragmaSpecial : std::uint8_t {
-    Ignore,
-    ResolvePartially,
-    ResolveCompletely
-};
-
-/// \brief Pragma "special" value map
-std::unordered_map<std::string, PragmaSpecial> const kPragmaSpecialMap = {
-    {"ignore", PragmaSpecial::Ignore},
-    {"resolve-partially", PragmaSpecial::ResolvePartially},
-    {"resolve-completely", PragmaSpecial::ResolveCompletely}};
-
-/// \brief Pragma "special" value inverse map, from enum to string
-std::unordered_map<PragmaSpecial, std::string> const kPragmaSpecialInverseMap =
-    {{PragmaSpecial::Ignore, "ignore"},
-     {PragmaSpecial::ResolvePartially, "resolve-partially"},
-     {PragmaSpecial::ResolveCompletely, "resolve-completely"}};
-
-namespace JustMR {
-
-struct Paths {
-    // user-defined locations
-    std::optional<std::filesystem::path> root{std::nullopt};
-    std::filesystem::path setup_root{FileSystemManager::GetCurrentDirectory()};
-    std::optional<std::filesystem::path> workspace_root{
-        // find workspace root
-        []() -> std::optional<std::filesystem::path> {
-            std::function<bool(std::filesystem::path const&)>
-                is_workspace_root = [&](std::filesystem::path const& path) {
-                    return std::any_of(
-                        kRootMarkers.begin(),
-                        kRootMarkers.end(),
-                        [&path](auto const& marker) {
-                            return FileSystemManager::Exists(path / marker);
-                        });
-                };
-            // default path to current dir
-            auto path = FileSystemManager::GetCurrentDirectory();
-            auto root_path = path.root_path();
-            while (true) {
-                if (is_workspace_root(path)) {
-                    return path;
-                }
-                if (path == root_path) {
-                    return std::nullopt;
-                }
-                path = path.parent_path();
-            }
-        }()};
-    nlohmann::json git_checkout_locations{};
-    std::vector<std::filesystem::path> distdirs{};
-};
-
-struct CAInfo {
-    bool no_ssl_verify{false};
-    std::optional<std::filesystem::path> ca_bundle{std::nullopt};
-};
-
-using PathsPtr = std::shared_ptr<JustMR::Paths>;
-using CAInfoPtr = std::shared_ptr<JustMR::CAInfo>;
-
-namespace Utils {
-
-/// \brief Get location of Git repository. Defaults to the Git cache root when
-/// no better location is found.
-[[nodiscard]] auto GetGitRoot(JustMR::PathsPtr const& just_mr_paths,
-                              std::string const& repo_url) noexcept
-    -> std::filesystem::path;
-
-/// \brief Create a tmp directory with controlled lifetime for specific
-/// operations (archive, zip, file, distdir checkouts; fetch; update).
-[[nodiscard]] auto CreateTypedTmpDir(std::string const& type) noexcept
-    -> TmpDirPtr;
-
-/// \brief Get the path to the file storing the tree id associated with
-/// a given commit.
-[[nodiscard]] auto GetCommitTreeIDFile(std::string const& commit) noexcept
-    -> std::filesystem::path;
-
-/// \brief Get the path to the file storing the tree id of an archive
-/// content.
-[[nodiscard]] auto GetArchiveTreeIDFile(std::string const& repo_type,
-                                        std::string const& content) noexcept
-    -> std::filesystem::path;
-
-/// \brief Get the path to the file storing the tree id of a distdir list
-/// content.
-[[nodiscard]] auto GetDistdirTreeIDFile(std::string const& content) noexcept
-    -> std::filesystem::path;
-
-/// \brief Get the path to the file storing a resolved tree hash.
-[[nodiscard]] auto GetResolvedTreeIDFile(
-    std::string const& tree_hash,
-    PragmaSpecial const& pragma_special) noexcept -> std::filesystem::path;
-
-/// \brief Write a tree id to file. The parent folder of the file must exist!
-[[nodiscard]] auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
-                                   std::string const& tree_id) noexcept -> bool;
-
-/// \brief Add data to file CAS.
-/// Returns the path to the file added to CAS, or nullopt if not added.
-[[nodiscard]] auto AddToCAS(std::string const& data) noexcept
-    -> std::optional<std::filesystem::path>;
-
-/// \brief Try to add distfile to CAS.
-void AddDistfileToCAS(std::filesystem::path const& distfile,
-                      JustMR::PathsPtr const& just_mr_paths) noexcept;
+namespace JustMR::Utils {
 
 /// \brief Recursive part of the ResolveRepo function.
 /// Keeps track of repository names to detect any cyclic dependencies.
@@ -260,8 +155,6 @@ auto ResolveRepo(ExpressionPtr const& repo_desc,
                  ExpressionPtr const& repos) noexcept
     -> std::optional<ExpressionPtr>;
 
-}  // namespace Utils
-
-}  // namespace JustMR
+}  // namespace JustMR::Utils
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UTILS_HPP

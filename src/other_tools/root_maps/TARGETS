@@ -15,6 +15,7 @@
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/file_system", "file_storage"]
@@ -31,7 +32,7 @@
   , "deps":
     [ ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/other_tools/just_mr", "utils"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
@@ -44,6 +45,8 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
     ]
   }
 , "fpath_git_map":
@@ -57,7 +60,8 @@
     , ["src/utils/cpp", "path_hash"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/other_tools/just_mr", "utils"]
-    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -67,6 +71,8 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/storage", "fs_utils"]
     ]
   }
 , "content_git_map":
@@ -77,15 +83,17 @@
   , "deps":
     [ ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
-    , ["src/other_tools/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["src/utils/archive", "archive_ops"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/buildtool/file_system", "file_root"]
@@ -109,9 +117,9 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/system", "system_command"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
-    , ["src/other_tools/just_mr", "utils"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/ops_maps", "content_cas_map"]

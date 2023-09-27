@@ -18,7 +18,7 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 
 namespace {
 
@@ -167,7 +167,7 @@ auto CreateImportToGitMap(
                         }
                         // create tmp directory
                         auto tmp_dir =
-                            JustMR::Utils::CreateTypedTmpDir("import-to-git");
+                            StorageUtils::CreateTypedTmpDir("import-to-git");
                         if (not tmp_dir) {
                             (*logger)(
                                 fmt::format("Could not create unique path "

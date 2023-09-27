@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_OTHER_TOOLS_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
-#define INCLUDED_SRC_OTHER_TOOLS_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
+#define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
 
 #include <filesystem>
 #include <optional>
@@ -21,8 +21,9 @@
 
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 
@@ -94,4 +95,4 @@ struct hash<GitObjectToResolve> {
 };
 }  // namespace std
 
-#endif  // INCLUDED_SRC_OTHER_TOOLS_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP

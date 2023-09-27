@@ -26,6 +26,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
@@ -36,9 +37,9 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> absent_repository_file{std::nullopt};
     std::optional<std::filesystem::path> checkout_locations_file{std::nullopt};
     std::vector<std::string> explicit_distdirs{};
-    JustMR::PathsPtr just_mr_paths = std::make_shared<JustMR::Paths>();
+    LocalPathsPtr just_mr_paths = std::make_shared<LocalPaths>();
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
-    JustMR::CAInfoPtr ca_info = std::make_shared<JustMR::CAInfo>();
+    CAInfoPtr ca_info = std::make_shared<CAInfo>();
     std::optional<std::filesystem::path> just_path{std::nullopt};
     std::optional<std::string> main{std::nullopt};
     std::optional<std::filesystem::path> rc_path{std::nullopt};

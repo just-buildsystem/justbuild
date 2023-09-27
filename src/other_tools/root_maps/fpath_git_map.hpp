@@ -16,9 +16,10 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FPATH_GIT_MAP_HPP
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
-#include "src/other_tools/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 

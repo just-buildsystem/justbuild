@@ -17,6 +17,8 @@
 #include <algorithm>
 
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -44,7 +46,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
                              CommitGitMap::SetterPtr const& ws_setter,
                              CommitGitMap::LoggerPtr const& logger) {
     // write association of the root tree in id file
-    if (not JustMR::Utils::WriteTreeIDFile(tree_id_file, root_tree_id)) {
+    if (not StorageUtils::WriteTreeIDFile(tree_id_file, root_tree_id)) {
         (*logger)(fmt::format("Failed to write tree id {} to file {}",
                               root_tree_id,
                               tree_id_file.string()),
@@ -118,7 +120,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
     if (not is_commit_present.value()) {
         if (repo_info.absent) {
             auto tree_id_file =
-                JustMR::Utils::GetCommitTreeIDFile(repo_info.hash);
+                StorageUtils::GetCommitTreeIDFile(repo_info.hash);
             if (FileSystemManager::Exists(tree_id_file)) {
                 // read resolved tree id
                 auto resolved_tree_id =
@@ -223,7 +225,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             JustMRProgress::Instance().TaskTracker().Stop(
                                 repo_info.origin);
                             // Move tree from CAS to local git storage
-                            auto tmp_dir = JustMR::Utils::CreateTypedTmpDir(
+                            auto tmp_dir = StorageUtils::CreateTypedTmpDir(
                                 "fetch-absent-root");
                             if (not tmp_dir) {
                                 (*logger)(
@@ -346,7 +348,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             }
         }
         // default to fetching it from network
-        auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("fetch");
+        auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create fetch tmp directory!",
                       /*fatal=*/true);
@@ -485,7 +487,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
 auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    JustMR::PathsPtr const& just_mr_paths,
+    LocalPathsPtr const& just_mr_paths,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi* serve_api,
@@ -513,7 +515,7 @@ auto CreateCommitGitMap(
             fetch_repo = std::filesystem::absolute(fetch_repo).string();
         }
         std::filesystem::path repo_root =
-            JustMR::Utils::GetGitRoot(just_mr_paths, fetch_repo);
+            StorageUtils::GetGitRoot(just_mr_paths, fetch_repo);
         // ensure git repo
         // define Git operation to be done
         GitOpKey op_key = {

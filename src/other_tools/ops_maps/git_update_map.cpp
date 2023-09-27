@@ -16,9 +16,9 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 auto CreateGitUpdateMap(GitCASPtr const& git_cas,
@@ -39,7 +39,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
                 /*fatal=*/true);
             return;
         }
-        auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("update");
+        auto tmp_dir = StorageUtils::CreateTypedTmpDir("update");
         if (not tmp_dir) {
             (*logger)(fmt::format("Failed to create commit update tmp dir for "
                                   "remote {}",

@@ -20,6 +20,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -65,7 +66,7 @@ auto CreateDistdirGitMap(
                                                 auto /* unused */,
                                                 auto const& key) {
         auto distdir_tree_id_file =
-            JustMR::Utils::GetDistdirTreeIDFile(key.content_id);
+            StorageUtils::GetDistdirTreeIDFile(key.content_id);
         if (FileSystemManager::Exists(distdir_tree_id_file)) {
             // read distdir_tree_id from file tree_id_file
             auto distdir_tree_id =
@@ -135,7 +136,7 @@ auto CreateDistdirGitMap(
                  logger]([[maybe_unused]] auto const& values) mutable {
                     // repos are in CAS
                     // create the links to CAS
-                    auto tmp_dir = JustMR::Utils::CreateTypedTmpDir("distdir");
+                    auto tmp_dir = StorageUtils::CreateTypedTmpDir("distdir");
                     if (not tmp_dir) {
                         (*logger)(fmt::format("Failed to create tmp path for "
                                               "distdir target {}",
@@ -171,7 +172,7 @@ auto CreateDistdirGitMap(
                             // only the tree is of interest
                             std::string distdir_tree_id = values[0]->first;
                             // write to tree id file
-                            if (not JustMR::Utils::WriteTreeIDFile(
+                            if (not StorageUtils::WriteTreeIDFile(
                                     distdir_tree_id_file, distdir_tree_id)) {
                                 (*logger)(
                                     fmt::format(
