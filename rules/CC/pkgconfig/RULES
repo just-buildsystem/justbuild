@@ -1,7 +1,8 @@
 { "system_library":
   { "doc": ["A system library via pkg-config"]
   , "string_fields": ["name", "args", "stage"]
-  , "implicit": {"defaults": [["./", "..", "defaults"]]}
+  , "implicit":
+    {"defaults": [["./", "..", "defaults"]], "add_rpath": ["add_rpath"]}
   , "config_vars": ["PKG_CONFIG_ARGS", "ENV"]
   , "field_doc":
     { "name": ["The pkg-config name of the library."]
