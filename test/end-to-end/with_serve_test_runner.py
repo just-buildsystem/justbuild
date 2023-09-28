@@ -52,6 +52,7 @@ def run_cmd(cmd: List[str],
             cwd: str):
     subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stderr=stderr)
 
+
 def get_remote_execution_address(d: Json) -> str:
     return "%s:%d" % (d["interface"], int(d["port"]))
 
@@ -114,14 +115,21 @@ g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 SERVE_INFO = os.path.join(REMOTE_DIR, "serve-info.json")
 SERVE_CONFIG_FILE = os.path.join(REMOTE_DIR, "serve.json")
 
-serve_config : Json = {
+serve_config: Json = {
     "local build root": SERVE_DIR,
-    "logging": {"limit": 6, "plain": True},
-    "execution endpoint": {"address": g_REMOTE_EXECUTION_ADDRESS},
-    "remote service": {"info file": SERVE_INFO},
+    "logging": {
+        "limit": 6,
+        "plain": True
+    },
+    "execution endpoint": {
+        "address": g_REMOTE_EXECUTION_ADDRESS
+    },
+    "remote service": {
+        "info file": SERVE_INFO
+    },
 }
 
-repositories : List[str] = []
+repositories: List[str] = []
 repos_env: Dict[str, str] = {}
 
 REPOS_DIR = os.path.realpath("repos")
@@ -151,30 +159,32 @@ for repo in os.listdir("data"):
         ["git", "init"],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
-        stdout = subprocess.DEVNULL,
-        stderr = subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     run_cmd(
         ["git", "add", "-f", "."],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
-        stdout = subprocess.DEVNULL,
-        stderr = subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     run_cmd(
         ["git", "commit", "-m",
-         "Content of %s" % (target,)],
+         "Content of %s" % (target, )],
         cwd=target,
         env=dict(os.environ, **GIT_NOBODY_ENV),
-        stdout = subprocess.DEVNULL,
-        stderr = subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
     repositories.append(target)
     repos_env["COMMIT_%d" % count] = subprocess.run(
         ["git", "log", "-n", "1", "--format=%H"],
         stdout=subprocess.PIPE,
-        stderr = subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
         cwd=target).stdout.decode('utf-8').strip()
+    # increase counter
+    count += 1
 
 serve_config["repositories"] = repositories
 
@@ -199,14 +209,12 @@ SERVE_ADDRESS = get_remote_execution_address(serve_info)
 
 # run the actual test
 
-ENV = dict(
-    os.environ,
-    TEST_TMPDIR=TEMP_DIR,
-    TMPDIR=TEMP_DIR,
-    REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
-    SERVE=SERVE_ADDRESS,
-    **repos_env
-)
+ENV = dict(os.environ,
+           TEST_TMPDIR=TEMP_DIR,
+           TMPDIR=TEMP_DIR,
+           REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
+           SERVE=SERVE_ADDRESS,
+           **repos_env)
 
 if "COMPATIBLE" in ENV:
     del ENV["COMPATIBLE"]
