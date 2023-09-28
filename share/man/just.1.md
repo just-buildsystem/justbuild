@@ -16,7 +16,8 @@ SYNOPSIS
 **`just`** **`rebuild`** \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
 **`just`** **`traverse`** \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* **`-g`** *`GRAPH_FILE`*  
 **`just`** **`gc`** \[*`OPTION`*\]...  
-**`just`** **`execute`** \[*`OPTION`*\]...
+**`just`** **`execute`** \[*`OPTION`*\]...  
+**`just`** **`serve`** *`SERVE_CONFIG_FILE`*
 
 DESCRIPTION
 ===========
@@ -520,6 +521,13 @@ format as for the **`-r`** option. The first matching entry (if any) is taken;
 if none matches, the default execution endpoint is taken (either
 as specified by **`-r`**, or local execution if no endpoint is
 specified).  
+Supported by: analyse|build|install-cas|install|rebuild|traverse.
+
+Remote serve options
+--------------------
+
+**`--remote-serve-address`** *`NAME`*:*`PORT`*  
+Address of the remote execution service.  
 Supported by: analyse|build|install-cas|install|rebuild|traverse.
 
 Authentication options

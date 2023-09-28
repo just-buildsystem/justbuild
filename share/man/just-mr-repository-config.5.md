@@ -143,6 +143,10 @@ resolve all confined relative symbolic links, while a value of
 the confined relative upwards symbolic links; for a *`"file"`* workspace root
 these two values imply *`"to_git"`* is *`true`*.
 
+For all workspace roots the pragma key *`"absent"`* is supported. If its value
+is *`true`* then it indicates that an absent root should be generated, i.e., one
+given only by its Git tree without any explicit witnessing repository.
+
 Repository description
 ----------------------
 

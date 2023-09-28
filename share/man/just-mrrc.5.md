@@ -100,6 +100,13 @@ The just-mrrc is given by a JSON object.
    Each subkey value can be overwritten by its corresponding command-line
    argument.
 
+ - The value for the key *`"remote serve"`* is a JSON object specifying the
+   remote serve options for **`just-mr`**.  
+   For subkey *`"address"`* the value is a string specifying the remote
+   serve address in a NAME:PORT format.  
+   Each subkey value can be overwritten by its corresponding command-line
+   argument.
+
  - The value for the key *`"authentication"`* is a JSON object specifying
    client-side authentication options for **`just-mr`**.  
    For subkey *`"ca cert"`* the value is a string specifying the path to a TLS CA

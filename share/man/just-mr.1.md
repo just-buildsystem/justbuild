@@ -131,6 +131,9 @@ location for archives, between local CAS (or distdirs) and the network.
 Address of a **`just`** **`serve`** service. This is used as intermediary fetch
 location for Git commits, between local CAS and the network.
 
+**`--fetch-absent`**  
+Try to make available all repositories, including those marked as absent.
+
 **`--compatible`**  
 At increased computational effort, be compatible with the original remote build
 execution protocol. If a remote execution service address is provided, this 
@@ -273,8 +276,9 @@ The **`--local-launcher`** argument is passed to **`just`** as early
 argument for those *known* subcommands that accept it (build, install,
 rebuild).
 
-The **`--remote-execution-address`** and **`--compatible`** arguments are passed
-to **`just`** as early arguments for those *known* subcommands that accept them
+The **`--remote-execution-address`**, **`--compatible`**, and 
+**`--remote-serve-address`** arguments are passed to **`just`** as early
+arguments for those *known* subcommands that accept them
 (analyse, build, install-cas, install, rebuild, traverse).
 
 The *authentication options* given to **`just-mr`** are passed to **`just`** as
