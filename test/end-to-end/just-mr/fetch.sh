@@ -73,4 +73,46 @@ newfoocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
 echo "Foo archive has now content ${newfoocontent}"
 test "${newfoocontent}" = "${foocontent}"
 
+
+# Verify we can fetch the same archive if marked absent using --fetch-absent
+cat > repos.json <<EOF
+{ "repositories":
+  { "foo":
+    { "repository":
+      { "type": "archive"
+      , "content": "${foocontent}"
+      , "fetch": "http://non-existent.example.org/foo-1.2.3.tar"
+      , "subdir": "foo"
+      , "pragma": {"absent": true}
+      }
+    }
+  , "":
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"foo": "foo"}
+    }
+  }
+}
+EOF
+echo "Repository configuration:"
+cat repos.json
+
+# Use clean build root
+rm -rf "${LBR}"
+
+# Call just-mr with distdir present, to make it aware of the file
+"${JUST_MR}" --norc --local-build-root "${LBR}" --distdir "${DISTDIR}" setup 2>&1
+
+# Remove distdir content
+rm -rf "${DISTDIR}"
+mkdir -p "${DISTDIR}"
+
+# Ask just-mr to fetch to the empty distdir
+"${JUST_MR}" --norc --local-build-root "${LBR}" --fetch-absent fetch -o "${DISTDIR}" 2>&1
+
+# Verify that the correct file is stored in the distdir
+test -f "${DISTDIR}/foo-1.2.3.tar"
+newfoocontent=$(git hash-object "${DISTDIR}/foo-1.2.3.tar")
+echo "Foo archive has now content ${newfoocontent}"
+test "${newfoocontent}" = "${foocontent}"
+
 echo OK

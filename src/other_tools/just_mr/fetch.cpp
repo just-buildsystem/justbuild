@@ -168,72 +168,89 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
             }
             // only do work if repo is archive type
             if (kCheckoutTypeMap.at(repo_type_str) == CheckoutType::Archive) {
-                // check mandatory fields
-                auto repo_desc_content = (*resolved_repo_desc)->At("content");
-                if (not repo_desc_content) {
-                    Logger::Log(LogLevel::Error,
-                                "Mandatory field \"content\" is missing");
-                    return kExitFetchError;
-                }
-                if (not repo_desc_content->get()->IsString()) {
-                    Logger::Log(
-                        LogLevel::Error,
-                        "Unsupported value {} for mandatory field \"content\"",
-                        repo_desc_content->get()->ToString());
-                    return kExitFetchError;
-                }
-                auto repo_desc_fetch = (*resolved_repo_desc)->At("fetch");
-                if (not repo_desc_fetch) {
-                    Logger::Log(LogLevel::Error,
-                                "Mandatory field \"fetch\" is missing");
-                    return kExitFetchError;
-                }
-                if (not repo_desc_fetch->get()->IsString()) {
-                    Logger::Log(LogLevel::Error,
-                                "ArchiveCheckout: Unsupported value {} for "
-                                "mandatory field \"fetch\"",
-                                repo_desc_fetch->get()->ToString());
-                    return kExitFetchError;
-                }
-                auto repo_desc_subdir =
-                    (*resolved_repo_desc)->Get("subdir", Expression::none_t{});
-                auto subdir =
-                    std::filesystem::path(repo_desc_subdir->IsString()
-                                              ? repo_desc_subdir->String()
-                                              : "")
-                        .lexically_normal();
-                auto repo_desc_distfile =
-                    (*resolved_repo_desc)
-                        ->Get("distfile", Expression::none_t{});
-                auto repo_desc_sha256 =
-                    (*resolved_repo_desc)->Get("sha256", Expression::none_t{});
-                auto repo_desc_sha512 =
-                    (*resolved_repo_desc)->Get("sha512", Expression::none_t{});
+                // check "absent" pragma
+                auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
+                auto pragma_absent = repo_desc_pragma
+                                         ? repo_desc_pragma->get()->At("absent")
+                                         : std::nullopt;
+                auto pragma_absent_value = pragma_absent and
+                                           pragma_absent->get()->IsBool() and
+                                           pragma_absent->get()->Bool();
+                // only fetch if either archive is not marked absent, or if
+                // explicitly told to fetch absent archives
+                if (not pragma_absent_value or common_args.fetch_absent) {
+                    // check mandatory fields
+                    auto repo_desc_content =
+                        (*resolved_repo_desc)->At("content");
+                    if (not repo_desc_content) {
+                        Logger::Log(LogLevel::Error,
+                                    "Mandatory field \"content\" is missing");
+                        return kExitFetchError;
+                    }
+                    if (not repo_desc_content->get()->IsString()) {
+                        Logger::Log(LogLevel::Error,
+                                    "Unsupported value {} for mandatory field "
+                                    "\"content\"",
+                                    repo_desc_content->get()->ToString());
+                        return kExitFetchError;
+                    }
+                    auto repo_desc_fetch = (*resolved_repo_desc)->At("fetch");
+                    if (not repo_desc_fetch) {
+                        Logger::Log(LogLevel::Error,
+                                    "Mandatory field \"fetch\" is missing");
+                        return kExitFetchError;
+                    }
+                    if (not repo_desc_fetch->get()->IsString()) {
+                        Logger::Log(LogLevel::Error,
+                                    "ArchiveCheckout: Unsupported value {} for "
+                                    "mandatory field \"fetch\"",
+                                    repo_desc_fetch->get()->ToString());
+                        return kExitFetchError;
+                    }
+                    auto repo_desc_subdir =
+                        (*resolved_repo_desc)
+                            ->Get("subdir", Expression::none_t{});
+                    auto subdir =
+                        std::filesystem::path(repo_desc_subdir->IsString()
+                                                  ? repo_desc_subdir->String()
+                                                  : "")
+                            .lexically_normal();
+                    auto repo_desc_distfile =
+                        (*resolved_repo_desc)
+                            ->Get("distfile", Expression::none_t{});
+                    auto repo_desc_sha256 =
+                        (*resolved_repo_desc)
+                            ->Get("sha256", Expression::none_t{});
+                    auto repo_desc_sha512 =
+                        (*resolved_repo_desc)
+                            ->Get("sha512", Expression::none_t{});
 
-                ArchiveRepoInfo archive_info = {
-                    .archive = {.content = repo_desc_content->get()->String(),
-                                .distfile =
-                                    repo_desc_distfile->IsString()
-                                        ? std::make_optional(
-                                              repo_desc_distfile->String())
-                                        : std::nullopt,
-                                .fetch_url = repo_desc_fetch->get()->String(),
-                                .sha256 = repo_desc_sha256->IsString()
-                                              ? std::make_optional(
-                                                    repo_desc_sha256->String())
-                                              : std::nullopt,
-                                .sha512 = repo_desc_sha512->IsString()
-                                              ? std::make_optional(
-                                                    repo_desc_sha512->String())
-                                              : std::nullopt,
-                                .origin = repo_name,
-                                .origin_from_distdir = false},
-                    .repo_type = repo_type_str,
-                    .subdir = subdir.empty() ? "." : subdir.string(),
-                    .pragma_special = std::nullopt  // not used
-                };
-                // add to list
-                repos_to_fetch.emplace_back(std::move(archive_info));
+                    ArchiveRepoInfo archive_info = {
+                        .archive =
+                            {.content = repo_desc_content->get()->String(),
+                             .distfile = repo_desc_distfile->IsString()
+                                             ? std::make_optional(
+                                                   repo_desc_distfile->String())
+                                             : std::nullopt,
+                             .fetch_url = repo_desc_fetch->get()->String(),
+                             .sha256 = repo_desc_sha256->IsString()
+                                           ? std::make_optional(
+                                                 repo_desc_sha256->String())
+                                           : std::nullopt,
+                             .sha512 = repo_desc_sha512->IsString()
+                                           ? std::make_optional(
+                                                 repo_desc_sha512->String())
+                                           : std::nullopt,
+                             .origin = repo_name,
+                             .origin_from_distdir = false},
+                        .repo_type = repo_type_str,
+                        .subdir = subdir.empty() ? "." : subdir.string(),
+                        .pragma_special = std::nullopt,  // not used
+                        .absent = false                  // not used
+                    };
+                    // add to list
+                    repos_to_fetch.emplace_back(std::move(archive_info));
+                }
             }
         }
         else {
