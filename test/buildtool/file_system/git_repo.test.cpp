@@ -205,6 +205,29 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
         REQUIRE(head_commit);
         CHECK(*head_commit == kRootCommit);
     }
+
+    SECTION("Fetch with base refspecs from path") {
+        // make bare real repo to fetch into
+        auto path_fetch_all = TestUtils::CreateTestRepoWithCheckout();
+        REQUIRE(path_fetch_all);
+        auto repo_fetch_all = GitRepo::Open(*path_fetch_all);
+
+        // fetch all
+        CHECK(repo_fetch_all->FetchFromPath(
+            nullptr, *path_fetch_all, std::nullopt, logger));
+    }
+
+    SECTION("Fetch branch from path") {
+        // make bare real repo to fetch into
+        auto path_fetch_branch = TestUtils::CreateTestRepoWithCheckout();
+        REQUIRE(path_fetch_branch);
+        auto repo_fetch_branch = GitRepo::Open(*path_fetch_branch);
+        REQUIRE(repo_fetch_branch);
+
+        // fetch branch
+        CHECK(repo_fetch_branch->FetchFromPath(
+            nullptr, *path_fetch_branch, "master", logger));
+    }
 }
 
 TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
@@ -369,6 +392,52 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             CHECK(*obj_info->symlink_content == "bar");
         }
     }
+
+    SECTION("Fetch from local repository via temporary repository") {
+        SECTION("Fetch all") {
+            // set repo to fetch into
+            auto path_fetch_all = TestUtils::GetRepoPath();
+            auto repo_fetch_all =
+                GitRepo::InitAndOpen(path_fetch_all, /*is_bare=*/true);
+            REQUIRE(repo_fetch_all);
+
+            // check commit is not there before fetch
+            CHECK_FALSE(
+                *repo_fetch_all->CheckCommitExists(kRootCommit, logger));
+
+            // create tmp dir to use for fetch
+            auto tmp_path_fetch_all = TestUtils::GetRepoPath();
+            REQUIRE(FileSystemManager::CreateDirectory(tmp_path_fetch_all));
+            // fetch all with base refspecs
+            REQUIRE(repo_fetch_all->LocalFetchViaTmpRepo(
+                tmp_path_fetch_all, *repo_path, std::nullopt, logger));
+
+            // check commit is there after fetch
+            CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
+        }
+
+        SECTION("Fetch branch") {
+            // set repo to fetch into
+            auto path_fetch_branch = TestUtils::GetRepoPath();
+            auto repo_fetch_branch =
+                GitRepo::InitAndOpen(path_fetch_branch, /*is_bare=*/true);
+            REQUIRE(repo_fetch_branch);
+
+            // check commit is not there before fetch
+            CHECK_FALSE(
+                *repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
+
+            // create tmp dir to use for fetch
+            auto tmp_path_fetch_branch = TestUtils::GetRepoPath();
+            REQUIRE(FileSystemManager::CreateDirectory(tmp_path_fetch_branch));
+            // fetch branch
+            REQUIRE(repo_fetch_branch->LocalFetchViaTmpRepo(
+                tmp_path_fetch_branch, *repo_path, "master", logger));
+
+            // check commit is there after fetch
+            CHECK(*repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
+        }
+    }
 }
 
 TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
@@ -397,7 +466,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
     threads.reserve(kNumThreads);
 
     SECTION("Lookups in the same ODB") {
-        constexpr int NUM_CASES = 5;
+        constexpr int NUM_CASES = 6;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
                 [&remote_cas, &remote_repo_path, &logger, &starting_signal](
@@ -456,6 +525,24 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                                 remote_repo->CheckCommitExists(kRootCommit,
                                                                logger);
                             CHECK(*result_containing);
+                        } break;
+                        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+                        case 5: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
+                            // set up tmp dir
+                            // create tmp dir to use for fetch
+                            auto tmp_path_fetch_branch =
+                                TestUtils::GetRepoPath();
+                            REQUIRE(FileSystemManager::CreateDirectory(
+                                tmp_path_fetch_branch));
+                            // fetch all
+                            REQUIRE(remote_repo->LocalFetchViaTmpRepo(
+                                tmp_path_fetch_branch,
+                                *remote_repo_path,
+                                std::nullopt,
+                                logger));
                         } break;
                     }
                 },

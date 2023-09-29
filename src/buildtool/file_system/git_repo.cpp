@@ -287,6 +287,56 @@ void backend_free(git_odb_backend* /*_backend*/) {}
 // A backend that can be used to read and create tree objects in-memory.
 auto const kInMemoryODBParent = CreateInMemoryODBParent();
 
+struct FetchIntoODBBackend {
+    git_odb_backend parent;
+    git_odb* target_odb;  // the odb where the fetch objects will end up into
+};
+
+[[nodiscard]] auto fetch_backend_writepack(git_odb_writepack** _writepack,
+                                           git_odb_backend* _backend,
+                                           [[maybe_unused]] git_odb* odb,
+                                           git_indexer_progress_cb progress_cb,
+                                           void* progress_payload) -> int {
+    if (_backend != nullptr) {
+        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+        return git_odb_write_pack(
+            _writepack, b->target_odb, progress_cb, progress_payload);
+    }
+    return GIT_ERROR;
+}
+
+[[nodiscard]] auto fetch_backend_exists(git_odb_backend* _backend,
+                                        const git_oid* oid) -> int {
+    if (_backend != nullptr) {
+        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+        return git_odb_exists(b->target_odb, oid);
+    }
+    return GIT_ERROR;
+}
+
+void fetch_backend_free(git_odb_backend* /*_backend*/) {}
+
+[[nodiscard]] auto CreateFetchIntoODBParent() -> git_odb_backend {
+    git_odb_backend b{};
+    b.version = GIT_ODB_BACKEND_VERSION;
+    // only populate the functions needed
+    b.writepack = &fetch_backend_writepack;  // needed for fetch
+    b.exists = &fetch_backend_exists;
+    b.free = &fetch_backend_free;
+    return b;
+}
+
+// A backend that can be used to fetch from the remote of another repository.
+auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
+
+// callback to remote fetch without an SSL certificate check
+const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
+                                           int /*valid*/,
+                                           const char* /*host*/,
+                                           void* /*payload*/) -> int {
+    return 0;
+};
+
 }  // namespace
 #endif  // BOOTSTRAP_BUILD_TOOL
 
@@ -780,6 +830,101 @@ auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
         Logger::Log(
             LogLevel::Error, "get head commit failed with:\n{}", ex.what());
         return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
+                            std::string const& repo_path,
+                            std::optional<std::string> const& branch,
+                            anon_logger_ptr const& logger) noexcept -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("Cannot fetch commit using a fake repository!",
+                      true /*fatal*/);
+            return false;
+        }
+        // create remote from repo
+        git_remote* remote_ptr{nullptr};
+        if (git_remote_create_anonymous(
+                &remote_ptr, GetRepoRef()->Ptr(), repo_path.c_str()) != 0) {
+            (*logger)(fmt::format("Creating remote {} for local repository {} "
+                                  "failed with:\n{}",
+                                  repo_path,
+                                  GetGitPath().string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            // cleanup resources
+            git_remote_free(remote_ptr);
+            return false;
+        }
+        // wrap remote object
+        auto remote = std::unique_ptr<git_remote, decltype(&remote_closer)>(
+            remote_ptr, remote_closer);
+        // get the canonical url
+        auto canonical_url = std::string(git_remote_url(remote.get()));
+
+        // get a well-defined config file
+        if (not cfg) {
+            // get config snapshot of current repo
+            git_config* cfg_ptr{nullptr};
+            if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) !=
+                0) {
+                (*logger)(fmt::format("Retrieving config object in fetch from "
+                                      "path failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return false;
+            }
+            // share pointer with caller
+            cfg.reset(cfg_ptr, config_closer);
+        }
+
+        // define default fetch options
+        git_fetch_options fetch_opts{};
+        git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+        // no proxy
+        fetch_opts.proxy_opts.type = GIT_PROXY_NONE;
+        // no SSL verification
+        fetch_opts.callbacks.certificate_check = certificate_passthrough_cb;
+        // disable update of the FETCH_HEAD pointer
+        fetch_opts.update_fetchhead = 0;
+
+        // setup fetch refspecs array
+        git_strarray refspecs_array_obj{};
+        if (branch) {
+            // make sure we check for tags as well
+            std::string tag = fmt::format("+refs/tags/{}", *branch);
+            std::string head = fmt::format("+refs/heads/{}", *branch);
+            PopulateStrarray(&refspecs_array_obj, {tag, head});
+        }
+        auto refspecs_array =
+            std::unique_ptr<git_strarray, decltype(&strarray_deleter)>(
+                &refspecs_array_obj, strarray_deleter);
+
+        if (git_remote_fetch(
+                remote.get(), refspecs_array.get(), &fetch_opts, nullptr) !=
+            0) {
+            (*logger)(fmt::format(
+                          "Fetching {} in local repository {} failed with:\n{}",
+                          branch ? fmt::format("branch {}", *branch) : "all",
+                          GetGitPath().string(),
+                          GitLastError()),
+                      true /*fatal*/);
+            return false;
+        }
+        return true;  // success!
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "Fetch {} from local repository {} failed with:\n{}",
+                    branch ? fmt::format("branch {}", *branch) : "all",
+                    repo_path,
+                    ex.what());
+        return false;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
@@ -1339,6 +1484,83 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::LocalFetchViaTmpRepo(std::filesystem::path const& tmp_dir,
+                                   std::string const& repo_path,
+                                   std::optional<std::string> const& branch,
+                                   anon_logger_ptr const& logger) noexcept
+    -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            Logger::Log(LogLevel::Debug,
+                        "Branch local fetch called on a real repository");
+        }
+        // create the temporary real repository
+        // it can be bare, as the refspecs for this fetch will be given
+        // explicitly.
+        auto tmp_repo = GitRepo::InitAndOpen(tmp_dir, /*is_bare=*/true);
+        if (tmp_repo == std::nullopt) {
+            return false;
+        }
+        // add backend, with max priority
+        FetchIntoODBBackend b{.parent = kFetchIntoODBParent,
+                              .target_odb = GetGitOdb().get()};
+        if (git_odb_add_backend(
+                tmp_repo->GetGitOdb().get(),
+                // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+                reinterpret_cast<git_odb_backend*>(&b),
+                std::numeric_limits<int>::max()) == 0) {
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<anon_logger_t>(
+                [logger](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While doing branch local fetch via "
+                                          "tmp repo:\n{}",
+                                          msg),
+                              fatal);
+                });
+            // get the config of the correct target repo
+            auto cfg = GetConfigSnapshot();
+            if (cfg == nullptr) {
+                (*logger)(fmt::format("Retrieving config object in local fetch "
+                                      "via tmp repo failed with:\n{}",
+                                      GitLastError()),
+                          true /*fatal*/);
+                return false;
+            }
+            return tmp_repo->FetchFromPath(
+                cfg, repo_path, branch, wrapped_logger);
+        }
+        (*logger)(fmt::format(
+                      "Adding custom backend for local fetch failed with:\n{}",
+                      GitLastError()),
+                  true /*fatal*/);
+        return false;
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error,
+            "Fetch {} from local repository {} via tmp dir failed with:\n{}",
+            branch ? fmt::format("branch {}", *branch) : "all",
+            repo_path,
+            ex.what());
+        return false;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
+auto GitRepo::GetConfigSnapshot() const noexcept
+    -> std::shared_ptr<git_config> {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    git_config* cfg_ptr{nullptr};
+    if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) == 0) {
+        return std::shared_ptr<git_config>(cfg_ptr, config_closer);
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+    return nullptr;
 }
 
 auto GitRepo::IsRepoFake() const noexcept -> bool {

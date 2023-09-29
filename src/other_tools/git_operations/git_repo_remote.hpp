@@ -110,10 +110,6 @@ class GitRepoRemote : public GitRepo {
                                        anon_logger_ptr const& logger) noexcept
         -> bool;
 
-    /// \brief Get a snapshot of the repository configuration.
-    /// Returns nullptr on errors.
-    [[nodiscard]] auto GetConfigSnapshot() const -> std::shared_ptr<git_config>;
-
   private:
     /// \brief Open "fake" repository wrapper for existing CAS.
     explicit GitRepoRemote(GitCASPtr git_cas) noexcept;

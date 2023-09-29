@@ -619,11 +619,3 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         return false;
     }
 }
-
-auto GitRepoRemote::GetConfigSnapshot() const -> std::shared_ptr<git_config> {
-    git_config* cfg_ptr{nullptr};
-    if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) != 0) {
-        return nullptr;
-    }
-    return std::shared_ptr<git_config>(cfg_ptr, config_closer);
-}

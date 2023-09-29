@@ -22,6 +22,7 @@
 
 extern "C" {
 struct git_repository;
+struct git_config;
 }
 
 /// \brief Git repository logic.
@@ -162,6 +163,19 @@ class GitRepo {
     [[nodiscard]] auto GetHeadCommit(anon_logger_ptr const& logger) noexcept
         -> std::optional<std::string>;
 
+    /// \brief Fetch from given local repository. It can either fetch a given
+    /// named branch, or it can fetch with base refspecs.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// If non-null, use given config snapshot to interact with config entries;
+    /// otherwise, use a snapshot from the current repo and share pointer to it.
+    /// Returns a success flag. It guarantees the logger is called exactly once
+    /// with fatal if failure.
+    [[nodiscard]] auto FetchFromPath(std::shared_ptr<git_config> cfg,
+                                     std::string const& repo_path,
+                                     std::optional<std::string> const& branch,
+                                     anon_logger_ptr const& logger) noexcept
+        -> bool;
+
     /// \brief Get the tree id of a subtree given the root commit
     /// Calling it from a fake repository allows thread-safe use.
     /// Returns the subtree hash, as a string, or nullopt if failure.
@@ -237,6 +251,24 @@ class GitRepo {
     [[nodiscard]] auto GetObjectByPathFromTree(
         std::string const& tree_id,
         std::string const& rel_path) noexcept -> std::optional<TreeEntryInfo>;
+
+    /// \brief Fetch from given local repository via a temporary location. Uses
+    /// tmp dir to fetch asynchronously using libgit2.
+    /// Caller needs to make sure the temporary directory exists and that the
+    /// given path is thread- and process-safe!
+    /// Uses either a given branch, or fetches all (with base refspecs).
+    /// Returns a success flag.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto LocalFetchViaTmpRepo(
+        std::filesystem::path const& tmp_dir,
+        std::string const& repo_path,
+        std::optional<std::string> const& branch,
+        anon_logger_ptr const& logger) noexcept -> bool;
+
+    /// \brief Get a snapshot of the repository configuration.
+    /// Returns nullptr on errors.
+    [[nodiscard]] auto GetConfigSnapshot() const noexcept
+        -> std::shared_ptr<git_config>;
 
   private:
     /// \brief Wrapped git_repository with guarded destructor.
