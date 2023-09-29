@@ -49,8 +49,10 @@ if 'JUST_BUILD_CONF' in os.environ:
     g_CONF = json.loads(os.environ['JUST_BUILD_CONF'])
 
 if "PACKAGE" in os.environ:
-    g_CONF["ADD_CFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get("ADD_CFLAGS", [])
-    g_CONF["ADD_CXXFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get("ADD_CXXFLAGS", [])
+    g_CONF["ADD_CFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get(
+        "ADD_CFLAGS", [])
+    g_CONF["ADD_CXXFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get(
+        "ADD_CXXFLAGS", [])
 
 ARCHS: Dict[str, str] = {
     'i686': 'x86',
@@ -405,6 +407,8 @@ def bootstrap() -> None:
             dirs.remove('serve_api')
         if 'other_tools' in dirs:
             dirs.remove('other_tools')
+        if 'archive' in dirs:
+            dirs.remove('archive')
         for f in files:
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))

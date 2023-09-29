@@ -61,6 +61,7 @@
     , ["@", "protoc", "", "libprotobuf"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "grpc", "", "grpc_cpp_plugin"]
+    , ["@", "src", "", "libarchive"]
     ]
   }
 , "just_other_deps":

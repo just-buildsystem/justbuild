@@ -16,6 +16,8 @@
       , "protoc": "protobuf"
       , "libcurl": "com_github_curl_curl"
       , "libarchive": "com_github_libarchive_libarchive"
+      , "lzma": "lzma"
+      , "bzip2": "bzip2"
       }
     , "bootstrap": {"link": ["-pthread"]}
     , "bootstrap_local": {"link": ["-pthread"]}
@@ -57,6 +59,9 @@
         , "com_github_cares_cares"
         , "com_github_grpc_grpc"
         , "com_github_libgit2_libgit2"
+        , "com_github_libarchive_libarchive"
+        , "lzma"
+        , "bzip2"
         ]
       }
     , "target_root": "import targets"
@@ -332,7 +337,6 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.bzip2"
     , "bindings": {"rules": "rules-bzip2"}
-    , "bootstrap": {"drop": true}
     }
   , "lzma":
     { "repository":
@@ -346,7 +350,6 @@
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.lzma"
     , "bindings": {"rules": "rules-lzma"}
-    , "bootstrap": {"drop": true}
     }
   , "re2":
     { "repository":
@@ -471,7 +474,6 @@
       , "bzip2": "bzip2"
       , "lzma": "lzma"
       }
-    , "bootstrap": {"drop": true}
     }
   }
 }
