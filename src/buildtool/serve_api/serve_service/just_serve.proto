@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package justbuild.just_serve;
 
+import "build/bazel/remote/execution/v2/remote_execution.proto";
+
 // A request message for
 // [TargetLevelCache.ServeCommitTree][justbuild.just_serve.TargetLevelCache.ServeCommitTree].
 message ServeCommitTreeRequest {
@@ -138,4 +140,69 @@ service SourceTree {
   //
   // There are no method-specific errors.
   rpc ServeArchiveTree(ServeArchiveTreeRequest) returns (ServeArchiveTreeResponse) {}
+}
+
+message ServeTargetRequest {
+  // Digest of the blob containing the target description
+  //
+  // The client has to guarantee that the blob is present in the remote CAS
+  // before calling ServeTarget
+  build.bazel.remote.execution.v2.Digest target_cache_key_id = 1;
+
+  // Digest of the blob containing the execution backend description
+  //
+  // The client has to guarantee that the blob has been uploaded to the remote
+  // CAS
+  build.bazel.remote.execution.v2.Digest execution_backend_description_id  = 2;
+}
+
+message ServeTargetResponse {
+  // Digest of the blob with the JSON object containing the target-cache value
+  // The implementation must guarantee that all the referenced objects are
+  // present in the remote CAS.
+  build.bazel.remote.execution.v2.Digest target_value = 1;
+}
+
+message ServeTargetVariablesRequest {
+  // Git hash of the target-level root tree.
+  string root_tree = 1;
+
+  // Relative path of the targets file inside the root tree.
+  string target_file = 2;
+
+  // Name of the export target to look up.
+  string target = 3;
+}
+
+message ServeTargetVariablesResponse {
+  // List of flexible configuration variables.
+  repeated string flexible_config = 1;
+}
+
+service Target {
+  // Given a target-level caching key, returns the computed value. In doing so,
+  // it can build on the associated end-point passing the
+  // RemoteExecutionProperties contained in the ServeTargetRequest.
+  //
+  // If the status has a code different from `OK`, the response MUST not be used.
+  //
+  // Errors:
+  // * `FAILED_PRECONDITION`: Failed to find required information in the CAS or
+  //   the target cache key is malformed.
+  // * `UNAVAILABLE`: Could not communicate with the remote execution endpoint.
+  // * `INTERNAL`: Internally, something is very broken.
+  rpc ServeTarget(ServeTargetRequest) returns (ServeTargetResponse) {}
+
+  // Given the target-level root tree and the name of an export target, returns
+  // the list of flexible variables from that target's description.
+  //
+  // If the status has a code different from `OK`, the response MUST not be used.
+  //
+  // Errors:
+  // * `FAILED_PRECONDITION`: An error occurred in retrieving the configuration
+  //   of the requested target, such as missing entries (target-root, target
+  //   file, target name), unparsable target file, or requested target not
+  //   being of "type" : "export".
+  // * `INTERNAL`: Internally, something is very broken.
+  rpc ServeTargetVariables(ServeTargetVariablesRequest) returns (ServeTargetVariablesResponse) {}
 }
