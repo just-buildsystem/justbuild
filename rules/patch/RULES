@@ -26,7 +26,7 @@
       , "with \":\". Specifying this field extends values from \"base\"."
       ]
     }
-  , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
+  , "config_vars": ["ARCH", "HOST_ARCH"]
   , "imports":
     { "base-provides": ["CC", "defaults-base-provides"]
     , "base-provides-list": ["CC", "defaults-base-provides-list"]
