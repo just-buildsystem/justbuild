@@ -17,6 +17,7 @@
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_api/common", "create_execution_api"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":

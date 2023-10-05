@@ -24,19 +24,6 @@
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 
-auto SourceTreeService::CreateExecutionApi(
-    std::optional<ServerAddress> const& address)
-    -> gsl::not_null<IExecutionApi::Ptr> {
-    if (address) {
-        ExecutionConfiguration config;
-        config.skip_cache_lookup = false;
-
-        return std::make_unique<BazelApi>(
-            "remote-execution", address->host, address->port, config);
-    }
-    return std::make_unique<LocalApi>();
-}
-
 auto SourceTreeService::GetTreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,

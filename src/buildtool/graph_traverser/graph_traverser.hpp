@@ -34,6 +34,7 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -268,19 +269,6 @@ class GraphTraverser {
         return std::make_tuple(std::move(*blobs_opt),
                                std::move(*trees_opt),
                                std::move(*actions_opt));
-    }
-
-    [[nodiscard]] static auto CreateExecutionApi(
-        std::optional<ServerAddress> const& address)
-        -> gsl::not_null<IExecutionApi::Ptr> {
-        if (address) {
-            ExecutionConfiguration config;
-            config.skip_cache_lookup = false;
-
-            return std::make_unique<BazelApi>(
-                "remote-execution", address->host, address->port, config);
-        }
-        return std::make_unique<LocalApi>();
     }
 
     /// \brief Requires for the executor to upload blobs to CAS. In the case any

@@ -26,4 +26,15 @@
   , "hdrs": ["bytestream_common.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
+, "create_execution_api":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["create_execution_api"]
+  , "hdrs": ["create_execution_api.hpp"]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/remote", "bazel"]
+    ]
+  }
 }
