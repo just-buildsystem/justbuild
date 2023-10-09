@@ -26,6 +26,7 @@
 // Key for target cache. Created from target name and effective config.
 class TargetCacheKey {
   public:
+    explicit TargetCacheKey(Artifact::ObjectInfo id) : id_{std::move(id)} {}
     [[nodiscard]] static auto Create(
         std::string const& repo_key,
         BuildMaps::Base::NamedTarget const& target_name,
@@ -43,7 +44,6 @@ class TargetCacheKey {
     }
 
   private:
-    explicit TargetCacheKey(Artifact::ObjectInfo id) : id_{std::move(id)} {}
     Artifact::ObjectInfo id_;
 };
 
