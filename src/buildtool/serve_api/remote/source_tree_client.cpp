@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/serve_api/remote/serve_target_level_cache_client.hpp"
+#include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 #include "src/buildtool/common/remote/client_common.hpp"
 
-ServeTargetLevelCacheClient::ServeTargetLevelCacheClient(
-    std::string const& server,
-    Port port) noexcept {
+SourceTreeClient::SourceTreeClient(std::string const& server,
+                                   Port port) noexcept {
     stub_ = justbuild::just_serve::SourceTree::NewStub(
         CreateChannelWithCredentials(server, port));
 }
 
-auto ServeTargetLevelCacheClient::ServeCommitTree(std::string const& commit_id,
-                                                  std::string const& subdir,
-                                                  bool sync_tree)
+auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,
+                                       std::string const& subdir,
+                                       bool sync_tree)
     -> std::optional<std::string> {
     justbuild::just_serve::ServeCommitTreeRequest request{};
     request.set_commit(commit_id);

@@ -15,7 +15,7 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 
 ServeApi::ServeApi(std::string const& host, Port port) noexcept
-    : tlc_{std::make_unique<ServeTargetLevelCacheClient>(host, port)} {}
+    : stc_{std::make_unique<SourceTreeClient>(host, port)} {}
 
 // implement move constructor in cpp, where all members are complete types
 ServeApi::ServeApi(ServeApi&& other) noexcept = default;
@@ -27,5 +27,5 @@ auto ServeApi::RetrieveTreeFromCommit(std::string const& commit,
                                       std::string const& subdir,
                                       bool sync_tree)
     -> std::optional<std::string> {
-    return tlc_->ServeCommitTree(commit, subdir, sync_tree);
+    return stc_->ServeCommitTree(commit, subdir, sync_tree);
 }

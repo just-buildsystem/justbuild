@@ -16,7 +16,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
-#include "src/buildtool/serve_api/remote/serve_target_level_cache_client.hpp"
+#include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 auto const kRootCommit =
     std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
@@ -32,36 +32,36 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
     auto const& info = RemoteServeConfig::RemoteAddress();
 
     // Create TLC client
-    ServeTargetLevelCacheClient tlc_client(info->host, info->port);
+    SourceTreeClient st_client(info->host, info->port);
 
     SECTION("Commit in bare checkout") {
-        auto root_id = tlc_client.ServeCommitTree(kRootCommit, ".", false);
+        auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);
         REQUIRE(root_id);
         CHECK(root_id.value() == kRootId);
 
-        auto baz_id = tlc_client.ServeCommitTree(kRootCommit, "baz", false);
+        auto baz_id = st_client.ServeCommitTree(kRootCommit, "baz", false);
         REQUIRE(baz_id);
         CHECK(baz_id.value() == kBazId);
     }
 
     SECTION("Commit in non-bare checkout") {
-        auto root_id = tlc_client.ServeCommitTree(kRootSymCommit, ".", false);
+        auto root_id = st_client.ServeCommitTree(kRootSymCommit, ".", false);
         REQUIRE(root_id);
         CHECK(root_id.value() == kRootSymId);
 
-        auto baz_id = tlc_client.ServeCommitTree(kRootSymCommit, "baz", false);
+        auto baz_id = st_client.ServeCommitTree(kRootSymCommit, "baz", false);
         REQUIRE(baz_id);
         CHECK(baz_id.value() == kBazSymId);
     }
 
     SECTION("Subdir not found") {
         auto root_id =
-            tlc_client.ServeCommitTree(kRootCommit, "does_not_exist", false);
+            st_client.ServeCommitTree(kRootCommit, "does_not_exist", false);
         CHECK_FALSE(root_id);
     }
 
     SECTION("Commit not known") {
-        auto root_id = tlc_client.ServeCommitTree(
+        auto root_id = st_client.ServeCommitTree(
             "0123456789abcdef0123456789abcdef01234567", ".", false);
         CHECK_FALSE(root_id);
     }

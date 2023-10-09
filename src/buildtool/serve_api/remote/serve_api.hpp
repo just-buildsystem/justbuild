@@ -20,7 +20,7 @@
 #include <string>
 
 #include "src/buildtool/common/remote/port.hpp"
-#include "src/buildtool/serve_api/remote/serve_target_level_cache_client.hpp"
+#include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 class ServeApi final {
   public:
@@ -42,8 +42,8 @@ class ServeApi final {
         -> std::optional<std::string>;
 
   private:
-    // target-level cache service client
-    std::unique_ptr<ServeTargetLevelCacheClient> tlc_;
+    // source tree service client
+    std::unique_ptr<SourceTreeClient> stc_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP

@@ -33,15 +33,9 @@ class SourceTreeService final
     : public justbuild::just_serve::SourceTree::Service {
 
   public:
-    // Retrieve the tree of a commit.
+    // Retrieve the Git-subtree identifier from a given Git commit.
     //
-    // This request interrogates the service whether it knows a given Git
-    // commit. If requested commit is found, it provides the commit's
-    // Git-tree identifier.
-    //
-    // Errors:
-    //
-    // * `NOT_FOUND`: The requested commit could not be found.
+    // There are no method-specific errors.
     auto ServeCommitTree(
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::ServeCommitTreeRequest* request,
@@ -58,11 +52,11 @@ class SourceTreeService final
     gsl::not_null<IExecutionApi::Ptr> const local_api_{
         CreateExecutionApi(std::nullopt)};
 
-    [[nodiscard]] static auto GetTreeFromCommit(
+    [[nodiscard]] static auto GetSubtreeFromCommit(
         std::filesystem::path const& repo_path,
         std::string const& commit,
         std::string const& subdir,
         std::shared_ptr<Logger> const& logger) -> std::optional<std::string>;
 };
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_SERVE_SERVICE_SOURCE_TREE_HPP

@@ -5,11 +5,11 @@
   , "deps": [["src/buildtool/common/remote", "remote_common"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
-, "serve_target_level_cache_client":
+, "source_tree_client":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["serve_target_level_cache_client"]
-  , "hdrs": ["serve_target_level_cache_client.hpp"]
-  , "srcs": ["serve_target_level_cache_client.cpp"]
+  , "name": ["source_tree_client"]
+  , "hdrs": ["source_tree_client.hpp"]
+  , "srcs": ["source_tree_client.cpp"]
   , "deps":
     [ ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/logging", "logging"]
@@ -23,10 +23,7 @@
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
   , "srcs": ["serve_api.cpp"]
-  , "deps":
-    [ ["src/buildtool/common/remote", "port"]
-    , "serve_target_level_cache_client"
-    ]
+  , "deps": [["src/buildtool/common/remote", "port"], "source_tree_client"]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
 }

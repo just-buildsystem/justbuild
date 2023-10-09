@@ -24,7 +24,7 @@
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 
-auto SourceTreeService::GetTreeFromCommit(
+auto SourceTreeService::GetSubtreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,
     std::string const& subdir,
@@ -36,8 +36,8 @@ auto SourceTreeService::GetTreeFromCommit(
                 [logger, repo_path, commit](auto const& msg, bool fatal) {
                     if (fatal) {
                         auto err = fmt::format(
-                            "ServeCommitTree: While retrieving tree of commit "
-                            "{} from repository {}:\n{}",
+                            "ServeCommitTree: While retrieving subtree of "
+                            "commit {} from repository {}:\n{}",
                             commit,
                             repo_path.string(),
                             msg);
@@ -63,7 +63,7 @@ auto SourceTreeService::ServeCommitTree(
     auto const& commit{request->commit()};
     auto const& subdir{request->subdir()};
     // try in local build root Git cache
-    if (auto tree_id = GetTreeFromCommit(
+    if (auto tree_id = GetSubtreeFromCommit(
             StorageConfig::GitRoot(), commit, subdir, logger_)) {
         if (request->sync_tree()) {
             // sync tree with remote CAS
@@ -95,8 +95,8 @@ auto SourceTreeService::ServeCommitTree(
     }
     // try given extra repositories, in order
     for (auto const& path : RemoteServeConfig::KnownRepositories()) {
-        if (auto tree_id = GetTreeFromCommit(path, commit, subdir, logger_)) {
-
+        if (auto tree_id =
+                GetSubtreeFromCommit(path, commit, subdir, logger_)) {
             if (request->sync_tree()) {
                 // sync tree with remote CAS
                 auto digest = ArtifactDigest{*tree_id, 0, /*is_tree=*/true};

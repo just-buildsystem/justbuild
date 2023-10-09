@@ -1,22 +1,15 @@
-{ "target_level_cache_client":
+{ "source_tree_client":
   { "type": ["utils/serve_service", "CC test"]
-  , "name": ["target_level_cache_client"]
-  , "srcs": ["target_level_cache_client.test.cpp"]
+  , "name": ["source_tree_client"]
+  , "srcs": ["source_tree_client.test.cpp"]
   , "data": [["buildtool/file_system", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-serve"]
-    , [ "@"
-      , "src"
-      , "src/buildtool/serve_api/remote"
-      , "serve_target_level_cache_client"
-      ]
+    , ["@", "src", "src/buildtool/serve_api/remote", "source_tree_client"]
     ]
   , "stage": ["test", "buildtool", "serve_api"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "deps": ["target_level_cache_client"]
-  }
+  {"type": "install", "tainted": ["test"], "deps": ["source_tree_client"]}
 }

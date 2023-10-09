@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_TLC_CLIENT_HPP
-#define INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_TLC_CLIENT_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_SOURCE_TREE_CLIENT_HPP
+#define INCLUDED_SRC_BUILDTOOL_SERVE_API_SOURCE_TREE_CLIENT_HPP
 
 #include <memory>
 #include <string>
@@ -22,11 +22,11 @@
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-/// Implements client side for service defined in:
+/// Implements client side for SourceTree service defined in:
 /// src/buildtool/serve_api/serve_service/just_serve.proto
-class ServeTargetLevelCacheClient {
+class SourceTreeClient {
   public:
-    ServeTargetLevelCacheClient(std::string const& server, Port port) noexcept;
+    SourceTreeClient(std::string const& server, Port port) noexcept;
 
     /// \brief Retrieve the Git tree of a given commit, if known by the remote.
     /// \param[in] commit_id Hash of the Git commit to look up.
@@ -40,7 +40,7 @@ class ServeTargetLevelCacheClient {
 
   private:
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
-    Logger logger_{"RemoteTLCClient"};
+    Logger logger_{"RemoteSourceTreeClient"};
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_TLC_CLIENT_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_SOURCE_TREE_CLIENT_HPP

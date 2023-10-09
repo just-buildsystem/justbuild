@@ -3,7 +3,6 @@
   , "name": ["just_serve_proto"]
   , "service": ["yes"]
   , "srcs": ["just_serve.proto"]
-  , "deps": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["justbuild", "just_serve"]
   }
 , "source_tree":
