@@ -422,6 +422,15 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
             auto const& args_list = cmd_args->List();
             args.reserve(args_list.size());
             for (auto const& arg : args_list) {
+                if (not arg->IsString()) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Configuration-file provided 'just' argument key {} "
+                        "must have strings in its list value, but found {}",
+                        cmd_name,
+                        arg->ToString());
+                    std::exit(kExitConfigError);
+                }
                 args.emplace_back(arg->String());
             }
             clargs->just_cmd.just_args[cmd_name] = std::move(args);

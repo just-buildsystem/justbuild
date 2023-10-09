@@ -434,6 +434,13 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     // create list of archives to fetch
     auto dist_repos_to_fetch = std::make_shared<std::vector<ArchiveContent>>();
     for (auto const& dist_repo : distdir_repos) {
+        if (not dist_repo->IsString()) {
+            (*logger)(fmt::format("DistdirCheckout: Unsupported value {} for "
+                                  "\"repositories\" list entry",
+                                  dist_repo->ToString()),
+                      /*fatal=*/true);
+            return;
+        }
         // get name of dist_repo
         auto dist_repo_name = dist_repo->String();
         // check that repo name exists
