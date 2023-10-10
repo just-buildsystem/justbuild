@@ -21,37 +21,77 @@
 
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/configuration_client.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
+#include "src/buildtool/serve_api/remote/target_client.hpp"
 
 class ServeApi final {
   public:
-    using Ptr = std::unique_ptr<ServeApi>;
-
-    ServeApi(std::string const& host, Port port) noexcept;
-
     ServeApi(ServeApi const&) = delete;
-    ServeApi(ServeApi&& other) noexcept;
+    ~ServeApi() = default;
 
     auto operator=(ServeApi const&) -> ServeApi& = delete;
     auto operator=(ServeApi&&) -> ServeApi& = delete;
 
-    ~ServeApi();
+    [[nodiscard]] static auto Instance() noexcept -> ServeApi& {
+        static ServeApi instance = ServeApi::init();
+        return instance;
+    }
 
-    [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
-                                              std::string const& subdir = ".",
-                                              bool sync_tree = false)
-        -> std::optional<std::string>;
+    [[nodiscard]] static auto RetrieveTreeFromCommit(
+        std::string const& commit,
+        std::string const& subdir = ".",
+        bool sync_tree = false) -> std::optional<std::string> {
+        return Instance().stc_->ServeCommitTree(commit, subdir, sync_tree);
+    }
 
-    [[nodiscard]] auto RetrieveTreeFromArchive(
+    [[nodiscard]] static auto RetrieveTreeFromArchive(
         std::string const& content,
         std::string const& archive_type = "archive",
         std::string const& subdir = ".",
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
-        bool sync_tree = false) -> std::optional<std::string>;
+        bool sync_tree = false) -> std::optional<std::string> {
+        return Instance().stc_->ServeArchiveTree(
+            content, archive_type, subdir, resolve_symlinks, sync_tree);
+    }
+
+    [[nodiscard]] static auto ServeTargetVariables(
+        std::string const& target_root_id,
+        std::string const& target_file,
+        std::string const& target) -> std::optional<std::vector<std::string>> {
+        return Instance().tc_->ServeTargetVariables(
+            target_root_id, target_file, target);
+    }
+
+    [[nodiscard]] static auto ServeTarget(const TargetCacheKey& key)
+        -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
+        return Instance().tc_->ServeTarget(key);
+    }
+
+    [[nodiscard]] static auto CheckServeRemoteExecution() -> bool {
+        return Instance().cc_->CheckServeRemoteExecution();
+    }
 
   private:
+    ServeApi(std::string const& host, Port port) noexcept
+        : stc_{std::make_unique<SourceTreeClient>(host, port)},
+          tc_{std::make_unique<TargetClient>(host, port)},
+          cc_{std::make_unique<ConfigurationClient>(host, port)} {}
+
+    ServeApi(ServeApi&& other) noexcept = default;
+
+    [[nodiscard]] static auto init() noexcept -> ServeApi {
+        auto sadd = RemoteServeConfig::RemoteAddress();
+        return ServeApi{sadd->host, sadd->port};
+    }
+
     // source tree service client
     std::unique_ptr<SourceTreeClient> stc_;
+    // target service client
+    std::unique_ptr<TargetClient> tc_;
+    // configuration service client
+    std::unique_ptr<ConfigurationClient> cc_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP

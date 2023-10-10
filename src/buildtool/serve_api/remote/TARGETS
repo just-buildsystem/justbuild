@@ -23,12 +23,51 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
-  , "srcs": ["serve_api.cpp"]
   , "deps":
     [ ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , "source_tree_client"
+    , "target_client"
+    , "configuration_client"
+    , "config"
     ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
+  }
+, "target_client":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_client"]
+  , "hdrs": ["target_client.hpp"]
+  , "srcs": ["target_client.cpp"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/execution_api/common", "create_execution_api"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
+  , "stage": ["src", "buildtool", "serve_api", "remote"]
+  , "private-deps":
+    [ ["src/buildtool/common/remote", "client_common"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["@", "json", "", "json"]
+    ]
+  }
+, "configuration_client":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["configuration_client"]
+  , "hdrs": ["configuration_client.hpp"]
+  , "srcs": ["configuration_client.cpp"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/common/remote", "client_common"]
+    ]
+  , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
+  , "stage": ["src", "buildtool", "serve_api", "remote"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    ]
   }
 }
