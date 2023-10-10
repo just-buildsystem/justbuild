@@ -116,6 +116,10 @@ auto CurlEasyHandle::DownloadToFile(
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_FOLLOWLOCATION, 1);
 
+        // ensure failure on error codes that otherwise might return OK
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_FAILONERROR, 1);
+
         // set callback for writing to file
         std::ofstream file(file_path.c_str(), std::ios::binary);
 
@@ -193,6 +197,10 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
         // ensure redirects are allowed, otherwise it might simply read empty
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
         curl_easy_setopt(handle_.get(), CURLOPT_FOLLOWLOCATION, 1);
+
+        // ensure failure on error codes that otherwise might return OK
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg, hicpp-vararg)
+        curl_easy_setopt(handle_.get(), CURLOPT_FAILONERROR, 1);
 
         // set callback for writing to string
         std::string content{};
