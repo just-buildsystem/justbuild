@@ -133,11 +133,19 @@ auto CreateContentCASMap(JustMR::PathsPtr const& just_mr_paths,
         }
         // add the fetched data to CAS
         auto path = JustMR::Utils::AddToCAS(*data);
-        // check one last time if content is in CAS now
+        // check that storing the fetched data succeeded
         if (not path) {
-            (*logger)(fmt::format("Failed to fetch a file with id {} from {}",
-                                  key.content,
+            (*logger)(fmt::format("Failed to store fetched content from {}",
                                   key.fetch_url),
+                      /*fatal=*/true);
+            return;
+        }
+        // check that the data we stored actually produces the requested digest
+        if (not cas.BlobPath(digest, /*is_executable=*/false)) {
+            (*logger)(fmt::format(
+                          "Content {} was not found at given fetch location {}",
+                          key.content,
+                          key.fetch_url),
                       /*fatal=*/true);
             return;
         }
