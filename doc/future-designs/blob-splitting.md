@@ -45,13 +45,11 @@ protocol:
 
     message SplitBlobRequest {
       string instance_name = 1;
-      Digest digest = 2;
-      DigestFunction.Value digest_function = 3;
+      Digest blob_digest = 2;
     }
 
     message SplitBlobResponse {
-      repeated Digest digests = 1;
-      google.rpc.Status status = 2;
+      repeated Digest chunk_digests = 1;
     }
 
     message ServerCapabilities {
@@ -85,24 +83,22 @@ Blob split procedure
 ### Server side
 
 When the server receives a request to split a blob via the `SplitBlob`
-rpc, it first checks whether the blob given by the `digest` from the
-`SplitBlobRequest` message exists in its CAS and if not, an error is
-returned by sending back a `SplitBlobResponse` message with the
-`status.code` field set to `google.rpc.Code.NOT_FOUND`. Otherwise, it
-loads the blob data and splits it into chunks according to the
-implemented data chunking algorithm. As explained later, there are
-different implementation options for this algorithm, but they all must
-ensure one property: the concatenation of the chunks result in the
-original blob. After the blob is splitted, the server computes a digest
-for each chunk according to the `digest_function` specified in the
-`SplitBlobRequest` message and puts each chunk that is not yet stored in
-its CAS. If an error occurs during storing the chunks in the CAS, an
-error is returned by sending back a `SplitBlobResponse` message with the
-`status.code` field set to `google.rpc.Code.INTERNAL`. Otherwise, the
-chunk digests are collected in the `digests` field of a
-`SplitBlobResponse` message in the same order as the chunks within the
-blob data block and sent back to the client with `status.code` set to
-`google.rpc.Code.OK`.
+rpc, it first checks whether the blob given by the `blob_digest` from
+the `SplitBlobRequest` message exists in its CAS. If not, the status
+code `google.rpc.Code.NOT_FOUND` is returned. Otherwise, it loads the
+blob data and splits it into chunks according to the implemented data
+chunking algorithm. As explained later, there are different
+implementation options for this algorithm, but they all must ensure one
+property: the concatenation of the chunks result in the original blob.
+After the blob is splitted, the server computes a digest for each chunk
+according to the configured digest function and puts each chunk that is
+not yet stored in its CAS. If an error occurs during storing the chunks
+in the CAS due to storage shortage, the status code
+`google.rpc.Code.RESOURCE_EXHAUSTED` is returned. Otherwise, the chunk
+digests are collected in the `chunk_digests` field of a
+`SplitBlobResponse` message in the same order as the chunks occur within
+the binary blob data and the message is sent back to the client with the
+status code `google.rpc.Code.OK`.
 
 > Note: Since the same data is basically stored twice for each blob, the
 > storage consumption for the remote server is roughly doubled. Some
@@ -113,20 +109,19 @@ blob data block and sent back to the client with `status.code` set to
 
 If a client wants to take advantage from blob splitting, it requests to
 split a blob into chunks at the remote side by calling the `SplitBlob`
-rpc from the `ContentAddressableStorage` service given a valid
-`SplitBlobRequest` message containing the respective blob `digest` and
-`digest_function`. If the `status` field of the returned
-`SplitBlobResponse` message contains an error, the split operation
-failed and the client needs to fall back to fetch the entire blob.
-Otherwise, blob splitting was successful and the remote server returns
-an ordered list of chunk `digests` and guarantees that the chunks are
-available in its CAS and that the concatention of all chunks in the
-given order will result in the requested blob. The client checks which
-chunks are available locally, fetches only the locally missing chunks
-from the remote side via the `BatchReadBlobs` rpc or the `ByteStream`
-API, and reconstructs the requested blob by concatenating the binary
-data of its chunks. Finally, it stores the chunks as well as the
-resulting blob in its local CAS.
+rpc from the `ContentAddressableStorage` service given a
+`SplitBlobRequest` message containing the `blob_digest` of the
+respective blob. If the status code returned by the `SplitBlob` rpc
+contains an error, the split operation failed and the client needs to
+fall back to fetch the entire blob. Otherwise, blob splitting was
+successful and the remote server returns an ordered list of
+`chunk_digests` and guarantees that the chunks are available in its CAS
+and that the concatention of all chunks in the given order will result
+in the requested blob. The client checks which chunks are available
+locally, fetches only the locally missing chunks from the remote side
+via the `BatchReadBlobs` rpc or the `ByteStream` API, and assembles the
+requested blob by concatenating the binary data of its chunks. Finally,
+it stores the chunks as well as the resulting blob in its local CAS.
 
 > Note: Since the same data is basically stored twice for each blob, the
 > local storage consumption is roughly doubled. Some savings occur when
@@ -218,8 +213,10 @@ implementation such as a [polynomial rolling
 hash](https://ieeexplore.ieee.org/document/5390135), the [Rabin
 fingerprint](http://www.cs.cmu.edu/~15-749/READINGS/optional/rabin1981.pdf),
 or a [cyclic polynomial rolling
-hash](https://dl.acm.org/doi/abs/10.1145/256163.256168). However, the
-[fast rolling Gear hash
+hash](https://dl.acm.org/doi/abs/10.1145/256163.256168) (also called
+Buzhash). However, the [fast rolling Gear hash
 algorithm](https://www.usenix.org/conference/atc16/technical-sessions/presentation/xia)
-has been proven to be very compute efficient specifically for
-content-based chunking of a stream of data.
+(also called FastCDC) has been proven to be very compute efficient and
+faster than the other rolling hash algorithms specifically for
+content-based chunking of a stream of data while achieving similar
+deduplication ratios as the Rabin fingerprint.
