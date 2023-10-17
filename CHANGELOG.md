@@ -1,6 +1,12 @@
-## Release `1.2.2` (UNRELEASED)
+## Release `1.2.2` (2023-10-17)
 
 Bug fixes on top of release `1.2.1`.
+
+### Fixes
+
+- Proper handling of fetch errors in `just-mr`
+- Portability improvements: bootstrapping with `-Wno-pedantic`,
+  case-insensitive naming, fixed version ranges in conditionals
 
 ## Release `1.2.1` (2023-08-29)
 
