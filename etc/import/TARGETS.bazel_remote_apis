@@ -3,6 +3,12 @@
   , "name": ["semver_proto"]
   , "srcs": ["build/bazel/semver/semver.proto"]
   }
+, "build/bazel/remote/execution/v2/remote_execution.proto":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src":
+    [["FILE", null, "build/bazel/remote/execution/v2/remote_execution.proto"]]
+  , "patch": [["@", "patches", "", "remote_execution.proto.diff"]]
+  }
 , "remote_execution_proto impl":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["remote_execution_proto"]
@@ -25,5 +31,6 @@
     , "The Remote Execution API is an API that, at its most general, allows clients"
     , "to request execution of binaries on a remote system."
     ]
+  , "flexible_config": ["ARCH", "ENV", "HOST_ARCH", "PATCH"]
   }
 }
