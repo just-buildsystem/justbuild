@@ -230,6 +230,10 @@ assert remote_proc
 remote_proc.terminate()
 rout, rerr = remote_proc.communicate()
 
+assert serve_proc
+serve_proc.terminate()
+sout, serr = serve_proc.communicate()
+
 dump_results()
 
 for f in sys.argv[2:]:
