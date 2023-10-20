@@ -1,0 +1,39 @@
+{ "serve-target-remote-build":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-target-remote-build"]
+  , "test": ["serve_target_remote_build.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "repos": [["end-to-end/target-cache/data", "greetlib"]]
+  }
+, "serve-target-cache-hit":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-target-cache-hit"]
+  , "test": ["serve_target_cache_hit.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
+, "serve-start-execute":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["serve-start-execute"]
+  , "test": ["serve_start_execute.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
+, "serve-export-deps":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-export-deps"]
+  , "test": ["serve_export_deps.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps":
+    [ "serve-target-remote-build"
+    , "serve-target-cache-hit"
+    , "serve-start-execute"
+    , "serve-export-deps"
+    ]
+  }
+}

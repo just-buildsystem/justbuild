@@ -50,22 +50,32 @@
   }
 , "TESTS":
   { "type": "install"
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
   , "tainted": ["test"]
   , "dirs":
-    [ [["./", "actions", "TESTS"], "actions"]
-    , [["./", "cli", "TESTS"], "cli"]
-    , [["./", "generated-binary", "TESTS"], "generated-binary"]
-    , [["./", "target-tests", "TESTS"], "targets"]
-    , [["./", "user-errors", "TESTS"], "user-errors"]
-    , [["./", "built-in-rules", "TESTS"], "built-in-rules"]
-    , [["./", "build-fails", "TESTS"], "build-fails"]
-    , [["./", "remote-execution", "TESTS"], "remote-execution"]
-    , [["./", "target-cache", "TESTS"], "target-cache"]
-    , [["./", "just-mr", "TESTS"], "just-mr"]
-    , [["./", "git-import", "TESTS"], "git-import"]
-    , [["./", "gc", "TESTS"], "gc"]
-    , [["./", "execution-service", "TESTS"], "execution-service"]
-    , [["./", "symlinks", "TESTS"], "symlinks"]
-    ]
+    { "type": "++"
+    , "$1":
+      [ [ [["./", "actions", "TESTS"], "actions"]
+        , [["./", "cli", "TESTS"], "cli"]
+        , [["./", "generated-binary", "TESTS"], "generated-binary"]
+        , [["./", "target-tests", "TESTS"], "targets"]
+        , [["./", "user-errors", "TESTS"], "user-errors"]
+        , [["./", "built-in-rules", "TESTS"], "built-in-rules"]
+        , [["./", "build-fails", "TESTS"], "build-fails"]
+        , [["./", "remote-execution", "TESTS"], "remote-execution"]
+        , [["./", "target-cache", "TESTS"], "target-cache"]
+        , [["./", "just-mr", "TESTS"], "just-mr"]
+        , [["./", "git-import", "TESTS"], "git-import"]
+        , [["./", "gc", "TESTS"], "gc"]
+        , [["./", "execution-service", "TESTS"], "execution-service"]
+        , [["./", "symlinks", "TESTS"], "symlinks"]
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": [[["./", "serve-service", "TESTS"], "serve-service"]]
+        }
+      ]
+    }
   }
 }
