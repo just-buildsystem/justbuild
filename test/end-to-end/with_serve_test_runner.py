@@ -210,12 +210,14 @@ SERVE_ADDRESS = get_remote_execution_address(serve_info)
 
 # run the actual test
 
-ENV = dict(os.environ,
-           TEST_TMPDIR=TEMP_DIR,
-           TMPDIR=TEMP_DIR,
-           REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
-           SERVE=SERVE_ADDRESS,
-           **repos_env)
+ENV = dict(
+    os.environ,
+    TEST_TMPDIR=TEMP_DIR,
+    TMPDIR=TEMP_DIR,
+    REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
+    SERVE=SERVE_ADDRESS,
+    SERVE_LBR=SERVE_LBR,  # expose the serve build root to the test env
+    **repos_env)
 
 if "COMPATIBLE" in ENV:
     del ENV["COMPATIBLE"]

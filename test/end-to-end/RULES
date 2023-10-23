@@ -223,8 +223,10 @@
       , ""
       , "An empty directory is created to store any temporary files needed"
       , "by the test, and it is made available in the environment variable"
-      , "TEST_TMPDIR. The test should not assume write permissions"
-      , "outside the working directory and the TEST_TMPDIR."
+      , "TEST_TMPDIR. Also, the serve server build root is being made available"
+      , "in the environment variable SERVE_LBR. The test should not assume"
+      , "write permissions outside the working directory, the TEST_TMPDIR, and"
+      , "the SERVE_LBR."
       , "For convenience, the environment variable TMPDIR is also set to TEST_TMPDIR."
       ]
     , "name":
