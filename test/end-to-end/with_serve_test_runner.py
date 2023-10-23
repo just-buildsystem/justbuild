@@ -72,6 +72,7 @@ REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
 g_REMOTE_EXECUTION_ADDRESS: str = ""
 
 SERVE_DIR = os.path.realpath("serve")
+os.makedirs(SERVE_DIR, exist_ok=True)
 SERVE_LBR = os.path.join(SERVE_DIR, "build-root")
 
 remote_proc = None
@@ -112,11 +113,11 @@ with open(REMOTE_INFO) as f:
 g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 
 # start just serve service
-SERVE_INFO = os.path.join(REMOTE_DIR, "serve-info.json")
-SERVE_CONFIG_FILE = os.path.join(REMOTE_DIR, "serve.json")
+SERVE_INFO = os.path.join(SERVE_DIR, "serve-info.json")
+SERVE_CONFIG_FILE = os.path.join(SERVE_DIR, "serve.json")
 
 serve_config: Json = {
-    "local build root": SERVE_DIR,
+    "local build root": SERVE_LBR,
     "logging": {
         "limit": 6,
         "plain": True
