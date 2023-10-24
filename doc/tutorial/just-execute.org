@@ -373,15 +373,14 @@ suitable docker image.
 
 Let's write a ~Dockerfile~ that has ~just execute~ as ~ENTRYPOINT~. We
 assume the binary ~just~ is available inside the container at path
-~/bin/just~. For more details on how to have such binary in the
-container, please refer to the section below, [[How to have the binary
-just inside a docker image]].
+~/bin/just~. The easiest way is to use a
+[[https://github.com/just-buildsystem/justbuild-static-binaries][static just binary]]
+and copy it into the container.
 
 #+SRCNAME: Dockerfile
 #+BEGIN_SRC docker
 FROM debian:bullseye-slim
 
-# We assume a statically built just is available at ./just
 COPY ./just /bin/just
 
 RUN apt update
@@ -413,77 +412,4 @@ cycle, you can bind a "host directory" within the container as
 follows
 #+BEGIN_SRC bash
 $ docker run --network host --name execute-latex --mount type=bind,source="${HOME}/.cache",target=/cache bullseye-latex -p 8080 --local-build-root /cache/docker/latex
-#+END_SRC
-
-** How to have the binary just inside the chroot environment
-
-*** Compile statically
-
-Since ~just~ and ~just-mr~ must also be available in the host
-environment, the best way to have ~just~ inside the environment is to
-compile a static binary, and copy it into the chroot environment.
-
-Please refer to the [[../../INSTALL.md][installation guide]] for details.
-
-**** GLIBC warning
-
-~just~ depends on a suitable ~libc~ library. If ~glibc~ is used, the
-generated static binary will still require ~glibc~ at runtime. This is
-a peculiarity of ~glibc~ and not of our tool.
-
-*** Bootstrap ~just~ inside the chroot environment
-
-Bootstrapping ~just~ is also a possibility. Please refer to the
-[[../../INSTALL.md][installation guide]] for details.
-
-** How to have the binary just inside a docker image
-
-*** Compile and copy a static binary ~just~
-
-As for the chroot environment, generate a static binary to be
-~COPY~-ed into the docker image is the recommended way.
-
-Please refer to the [[../../INSTALL.md][installation guide]] for details.
-
-*** APPENDIX Bootstrapping just inside a docker image
-
-For bootstrapping, we have to install several dependencies that might
-not be required afterward. Therefore, we exploit a multi-stage build,
-which allows to obtain a final image that does not include the
-dependencies needed for the build. For the latex example presented
-above, the ~Dockerfile~ can read
-#+SRCNAME: Dockerfile
-#+BEGIN_SRC docker
-# Stage 1: bootstrap the binary
-#
-FROM debian:bullseye-slim as build
-RUN apt update
-RUN apt install -y --no-install-recommends \
-                    clang \
-                    python3 \
-                    git \
-                    patch \
-                    unzip \
-                    wget \
-                    ca-certificates
-RUN git clone https://github.com/just-buildsystem/justbuild.git
-# use a well defined commit to foster reproducibility
-RUN git checkout 246e1b7f28f319e4be5bd24466494e6b5868ca6f
-RUN cd justbuild && ./bin/bootstrap.py . /just-bootstrapped
-
-# Stage 2: setup the required environment and run just execute
-#
-FROM debian:bullseye-slim
-
-# Copy the binary from the build container
-COPY --from=build /just-bootstrapped/out/bin/just /bin/just
-
-# the environment created for this example happens to satisfy the
-# run-time dependencies of just remember to double check it with your
-# project. Eventually, use a static version of just
-
-RUN apt update
-RUN apt install -y --no-install-recommends texlive-full
-
-ENTRYPOINT ["/bin/just", "execute"]
 #+END_SRC
