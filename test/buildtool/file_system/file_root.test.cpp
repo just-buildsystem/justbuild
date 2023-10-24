@@ -165,7 +165,8 @@ TEST_CASE("Creating file root", "[file_root]") {
         REQUIRE(root_path);
 
         CHECK(FileRoot{*root_path}.Exists("."));
-        CHECK_FALSE(FileRoot{"does_not_exist"}.Exists("."));
+        CHECK_FALSE(
+            FileRoot{std::filesystem::path{"does_not_exist"}}.Exists("."));
     }
 
     SECTION("git root") {
@@ -184,8 +185,9 @@ TEST_CASE("Creating file root", "[file_root]") {
         REQUIRE(root_path);
 
         CHECK(FileRoot{*root_path, /*ignore_special=*/true}.Exists("."));
-        CHECK_FALSE(
-            FileRoot{"does_not_exist", /*ignore_special=*/true}.Exists("."));
+        CHECK_FALSE(FileRoot{std::filesystem::path{"does_not_exist"},
+                             /*ignore_special=*/true}
+                        .Exists("."));
     }
 
     SECTION("git root ignore-special") {

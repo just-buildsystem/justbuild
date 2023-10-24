@@ -94,7 +94,9 @@ class FileRoot {
         gsl::not_null<GitCASPtr> cas;
         gsl::not_null<GitTreePtr> tree;
     };
-    using root_t = std::variant<fs_root_t, git_root_t>;
+    // absent roots are defined by a tree hash with no witnessing repository
+    using absent_root_t = std::string;
+    using root_t = std::variant<fs_root_t, git_root_t, absent_root_t>;
 
   public:
     static constexpr auto kGitTreeMarker = "git tree";
@@ -297,12 +299,24 @@ class FileRoot {
     FileRoot() noexcept = default;
     explicit FileRoot(bool ignore_special) noexcept
         : ignore_special_(ignore_special) {}
-    // avoid type narrowing errors
-    explicit FileRoot(char const* root) noexcept : root_{fs_root_t{root}} {}
+    // avoid type narrowing errors, but force explicit choice of underlying type
+    explicit FileRoot(char const* /*root*/) noexcept {
+        Logger::Log(LogLevel::Error,
+                    "FileRoot object instantiation must be explicit!");
+    }
+    explicit FileRoot(char const* /*root*/, bool /*ignore_special*/) noexcept {
+        Logger::Log(LogLevel::Error,
+                    "FileRoot object instantiation must be explicit!");
+    }
+    explicit FileRoot(std::string root) noexcept
+        : root_{absent_root_t{std::move(root)}} {}
+    explicit FileRoot(std::string root, bool ignore_special) noexcept
+        : root_{absent_root_t{std::move(root)}},
+          ignore_special_{ignore_special} {}
     explicit FileRoot(std::filesystem::path root) noexcept
-        : root_{std::move(root)} {}
+        : root_{fs_root_t{std::move(root)}} {}
     FileRoot(std::filesystem::path root, bool ignore_special) noexcept
-        : root_{std::move(root)}, ignore_special_{ignore_special} {}
+        : root_{fs_root_t{std::move(root)}}, ignore_special_{ignore_special} {}
     FileRoot(gsl::not_null<GitCASPtr> const& cas,
              gsl::not_null<GitTreePtr> const& tree,
              bool ignore_special = false) noexcept
@@ -338,6 +352,13 @@ class FileRoot {
                 j.push_back(std::get<git_root_t>(root_).tree->Hash());
                 return j;
             }
+            if (std::holds_alternative<absent_root_t>(root_)) {
+                nlohmann::json j;
+                // ignore-special git-tree-based roots are still content-fixed
+                j.push_back(kGitTreeMarker);
+                j.push_back(std::get<absent_root_t>(root_));
+                return j;
+            }
         } catch (...) {
         }
         return std::nullopt;
@@ -359,12 +380,16 @@ class FileRoot {
             return static_cast<bool>(
                 std::get<git_root_t>(root_).tree->LookupEntryByPath(path));
         }
-        // std::holds_alternative<fs_root_t>(root_) == true
-        auto root_path = std::get<fs_root_t>(root_) / path;
-        auto exists = FileSystemManager::Exists(root_path);
-        auto type = FileSystemManager::Type(root_path, /*allow_upwards=*/true);
-        return (ignore_special_ ? exists and type and IsNonSpecialObject(*type)
-                                : exists);
+        if (std::holds_alternative<fs_root_t>(root_)) {
+            auto root_path = std::get<fs_root_t>(root_) / path;
+            auto exists = FileSystemManager::Exists(root_path);
+            auto type =
+                FileSystemManager::Type(root_path, /*allow_upwards=*/true);
+            return (ignore_special_
+                        ? exists and type and IsNonSpecialObject(*type)
+                        : exists);
+        }
+        return false;  // absent roots cannot be interrogated locally
     }
 
     [[nodiscard]] auto IsFile(
@@ -375,10 +400,12 @@ class FileRoot {
                         file_path)) {
                 return IsFileObject(entry->Type());
             }
-            return false;
         }
-        return FileSystemManager::IsFile(std::get<fs_root_t>(root_) /
-                                         file_path);
+        else if (std::holds_alternative<fs_root_t>(root_)) {
+            return FileSystemManager::IsFile(std::get<fs_root_t>(root_) /
+                                             file_path);
+        }
+        return false;  // absent roots cannot be interrogated locally
     }
 
     [[nodiscard]] auto IsSymlink(
@@ -389,10 +416,12 @@ class FileRoot {
                         file_path)) {
                 return IsSymlinkObject(entry->Type());
             }
-            return false;
         }
-        return FileSystemManager::IsNonUpwardsSymlink(
-            std::get<fs_root_t>(root_) / file_path);
+        else if (std::holds_alternative<fs_root_t>(root_)) {
+            return FileSystemManager::IsNonUpwardsSymlink(
+                std::get<fs_root_t>(root_) / file_path);
+        }
+        return false;  // absent roots cannot be interrogated locally
     }
 
     [[nodiscard]] auto IsBlob(
@@ -411,10 +440,12 @@ class FileRoot {
                         dir_path)) {
                 return entry->IsTree();
             }
-            return false;
         }
-        return FileSystemManager::IsDirectory(std::get<fs_root_t>(root_) /
-                                              dir_path);
+        else if (std::holds_alternative<fs_root_t>(root_)) {
+            return FileSystemManager::IsDirectory(std::get<fs_root_t>(root_) /
+                                                  dir_path);
+        }
+        return false;  // absent roots cannot be interrogated locally
     }
 
     /// \brief Read content of file or symlink.
@@ -428,14 +459,15 @@ class FileRoot {
                     return entry->Blob();
                 }
             }
-            return std::nullopt;
         }
-        auto full_path = std::get<fs_root_t>(root_) / file_path;
-        if (auto type =
-                FileSystemManager::Type(full_path, /*allow_upwards=*/true)) {
-            return IsSymlinkObject(*type)
-                       ? FileSystemManager::ReadSymlink(full_path)
-                       : FileSystemManager::ReadFile(full_path);
+        else if (std::holds_alternative<fs_root_t>(root_)) {
+            auto full_path = std::get<fs_root_t>(root_) / file_path;
+            if (auto type = FileSystemManager::Type(full_path,
+                                                    /*allow_upwards=*/true)) {
+                return IsSymlinkObject(*type)
+                           ? FileSystemManager::ReadSymlink(full_path)
+                           : FileSystemManager::ReadFile(full_path);
+            }
         }
         return std::nullopt;
     }
@@ -454,7 +486,7 @@ class FileRoot {
                     }
                 }
             }
-            else {
+            else if (std::holds_alternative<fs_root_t>(root_)) {
                 DirectoryEntries::pairs_t map{};
                 if (FileSystemManager::ReadDirectory(
                         std::get<fs_root_t>(root_) / dir_path,
@@ -488,10 +520,12 @@ class FileRoot {
             }
             return std::nullopt;
         }
-        auto type = FileSystemManager::Type(
-            std::get<fs_root_t>(root_) / file_path, /*allow_upwards=*/true);
-        if (type and IsBlobObject(*type)) {
-            return type;
+        if (std::holds_alternative<fs_root_t>(root_)) {
+            auto type = FileSystemManager::Type(
+                std::get<fs_root_t>(root_) / file_path, /*allow_upwards=*/true);
+            if (type and IsBlobObject(*type)) {
+                return type;
+            }
         }
         return std::nullopt;
     }
@@ -550,7 +584,26 @@ class FileRoot {
             }
             return std::nullopt;
         }
-        return ArtifactDescription{file_path, repository};
+        if (std::holds_alternative<fs_root_t>(root_)) {
+            return ArtifactDescription{file_path, repository};
+        }
+        return std::nullopt;  // absent roots are neither LOCAL nor KNOWN
+    }
+
+    [[nodiscard]] inline auto IsAbsent() const noexcept -> bool {
+        return std::holds_alternative<absent_root_t>(root_);
+    }
+
+    [[nodiscard]] inline auto GetAbsentTreeId() const noexcept
+        -> std::optional<std::string> {
+        if (std::holds_alternative<absent_root_t>(root_)) {
+            try {
+                return std::get<absent_root_t>(root_);
+            } catch (...) {
+                return std::nullopt;
+            }
+        }
+        return std::nullopt;
     }
 
   private:

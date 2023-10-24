@@ -43,7 +43,7 @@ namespace {
             return std::move(*root);
         }
     }
-    return FileRoot{"missing"};
+    return FileRoot{std::filesystem::path{"missing"}};
 }
 
 [[nodiscard]] auto CreateFixedRepoInfo(
@@ -61,7 +61,7 @@ namespace {
     std::string const& tfn = "TARGETS",
     std::string const& rfn = "RULES",
     std::string const& efn = "EXPRESSIONS") {
-    static auto const kFileRoot = FileRoot{"file path"};
+    static auto const kFileRoot = FileRoot{std::filesystem::path{"file path"}};
     return RepositoryConfig::RepositoryInfo{
         kFileRoot, kFileRoot, kFileRoot, kFileRoot, bindings, tfn, rfn, efn};
 }

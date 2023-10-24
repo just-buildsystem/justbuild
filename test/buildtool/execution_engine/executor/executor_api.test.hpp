@@ -31,8 +31,8 @@
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 
 static inline void SetupConfig() {
-    auto info = RepositoryConfig::RepositoryInfo{
-        FileRoot{"test/buildtool/execution_engine/executor"}};
+    auto info = RepositoryConfig::RepositoryInfo{FileRoot{
+        std::filesystem::path{"test/buildtool/execution_engine/executor"}}};
     RepositoryConfig::Instance().SetInfo("", std::move(info));
 }
 

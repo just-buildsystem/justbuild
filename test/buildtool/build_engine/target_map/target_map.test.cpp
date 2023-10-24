@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <filesystem>
+
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
@@ -47,10 +49,14 @@ void SetupConfig() {
     [[maybe_unused]] static auto done = CreateSymlinks();
     // create the file roots
     auto info = RepositoryConfig::RepositoryInfo{
-        FileRoot{"test/buildtool/build_engine/target_map/data_src"},
-        FileRoot{"test/buildtool/build_engine/target_map/data_targets"},
-        FileRoot{"test/buildtool/build_engine/target_map/data_rules"},
-        FileRoot{"test/buildtool/build_engine/target_map/data_expr"}};
+        FileRoot{std::filesystem::path{"test/buildtool/build_engine/target_map/"
+                                       "data_src"}},
+        FileRoot{std::filesystem::path{"test/buildtool/build_engine/target_map/"
+                                       "data_targets"}},
+        FileRoot{std::filesystem::path{"test/buildtool/build_engine/target_map/"
+                                       "data_rules"}},
+        FileRoot{std::filesystem::path{"test/buildtool/build_engine/target_map/"
+                                       "data_expr"}}};
     RepositoryConfig::Instance().Reset();
     RepositoryConfig::Instance().SetInfo("", std::move(info));
 }
