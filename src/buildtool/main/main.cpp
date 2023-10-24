@@ -513,25 +513,31 @@ auto ParseRoot(std::string const& repo,
         return {FileRoot{path}, std::move(path)};
     }
     if (root[0] == FileRoot::kGitTreeMarker) {
-        if (root.size() != 3 or (not root[1].is_string()) or
-            (not root[2].is_string())) {
+        if (not(root.size() == 3 and root[1].is_string() and
+                root[2].is_string()) and
+            not(root.size() == 2 and root[1].is_string())) {
             Logger::Log(LogLevel::Error,
-                        "\"git tree\" scheme expects two string arguments, "
-                        "but found {} for {} of repository {}",
+                        "\"git tree\" scheme expects one or two string "
+                        "arguments, but found {} for {} of repository {}",
                         root.dump(),
                         keyword,
                         repo);
             std::exit(kExitFailure);
         }
-        if (auto git_root = FileRoot::FromGit(root[2], root[1])) {
-            return {std::move(*git_root), std::nullopt};
+        if (root.size() == 3) {
+            if (auto git_root = FileRoot::FromGit(root[2], root[1])) {
+                return {std::move(*git_root), std::nullopt};
+            }
+            Logger::Log(LogLevel::Error,
+                        "Could not create file root for {}tree id {}",
+                        root.size() == 3
+                            ? fmt::format("git repository {} and ", root[2])
+                            : "",
+                        root[1]);
+            std::exit(kExitFailure);
         }
-        Logger::Log(LogLevel::Error,
-                    "Could not create file root for git repository {} and tree "
-                    "id {}",
-                    root[2],
-                    root[1]);
-        std::exit(kExitFailure);
+        // return absent root
+        return {FileRoot{std::string{root[1]}}, std::nullopt};
     }
     if (root[0] == FileRoot::kFileIgnoreSpecialMarker) {
         if (root.size() != 2 or (not root[1].is_string())) {
@@ -548,26 +554,35 @@ auto ParseRoot(std::string const& repo,
         return {FileRoot{path, /*ignore_special=*/true}, std::move(path)};
     }
     if (root[0] == FileRoot::kGitTreeIgnoreSpecialMarker) {
-        if (root.size() != 3 or (not root[1].is_string()) or
-            (not root[2].is_string())) {
-            Logger::Log(LogLevel::Error,
-                        "\"git tree ignore-special\" scheme expects two string "
-                        "arguments, but found {} for {} of repository {}",
-                        root.dump(),
-                        keyword,
-                        repo);
+        if (not(root.size() == 3 and root[1].is_string() and
+                root[2].is_string()) and
+            not(root.size() == 2 and root[1].is_string())) {
+            Logger::Log(
+                LogLevel::Error,
+                "\"git tree ignore-special\" scheme expects one or two string "
+                "arguments, but found {} for {} of repository {}",
+                root.dump(),
+                keyword,
+                repo);
             std::exit(kExitFailure);
         }
-        if (auto git_root =
-                FileRoot::FromGit(root[2], root[1], /*ignore_special=*/true)) {
-            return {std::move(*git_root), std::nullopt};
+        if (root.size() == 3) {
+            if (auto git_root = FileRoot::FromGit(
+                    root[2], root[1], /*ignore_special=*/true)) {
+                return {std::move(*git_root), std::nullopt};
+            }
+            Logger::Log(
+                LogLevel::Error,
+                "Could not create ignore-special file root for {}tree id {}",
+                root.size() == 3
+                    ? fmt::format("git repository {} and ", root[2])
+                    : "",
+                root[1]);
+            std::exit(kExitFailure);
         }
-        Logger::Log(LogLevel::Error,
-                    "Could not create file root for git repository {} and tree "
-                    "id {}",
-                    root[2],
-                    root[1]);
-        std::exit(kExitFailure);
+        // return absent root
+        return {FileRoot{std::string{root[1]}, /*ignore_special=*/true},
+                std::nullopt};
     }
     Logger::Log(LogLevel::Error,
                 "Unknown scheme in the specification {} of {} of repository {}",
