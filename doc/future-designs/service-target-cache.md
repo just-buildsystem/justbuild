@@ -151,6 +151,16 @@ description that are used by `just describe`. Alternatively, the
 answer may indicate the kind of error (unknown root, not an export
 target, etc).
 
+#### Auxiliary request: remote-execution endpoint
+
+Given that all artifact exchanges between client and `just serve` rely on the
+CAS of a given remote endpoint, the client might want to double check that the
+remote execution endpoint it wants to use is the same that is associated
+with the `just serve` instance.
+
+The server replies with the address (with the port number) of the associated
+remote execution endpoint.
+
 ### Sources: local git repositories and remote trees
 
 A `just serve` instance takes roots from various sources,
@@ -198,6 +208,32 @@ to CAS). It is an error if, outside the computations delegated to
 containing an absent root. Moreover, whenever there is a dependency on a
 repository containing an absent root, a `just
 serve` endpoint has to be specified in the invocation of `just`.
+
+### Modifications to the justbuild analysis of an export target
+
+During the analysis of an export target, querying `just serve` is exclusively
+linked to the presence of at least one _absent_ root.
+
+The first time that we need to query `just serve` we have to verify that its
+remote endpoint coincides with the one given to just, otherwise we error out.
+
+If the _target root_ is marked as absent:
+ - we query `just serve` for retrieving the flexible configuration variables
+   (`ServeTargetVariables`) needed to compute the `TargetCacheKey`. If `just
+   serve` cannot answer, we break the analysis and inform the user with a proper
+   error message.
+
+Once we know the flexible configuration variables, during the computation of the
+`TargetCacheKey`, we need to verify if any of the (recursively) referenced trees
+is absent (`ComputeTargetCacheKey`) -- this is checked while building the
+repository graph. Once the target cache key is computed, we first verify if we
+have it locally. If not and if at least one tree is absent:
+ - query `just serve` to get the target cache value for the given key. Note that
+   even if `just serve` cannot provide the target cache value, we can continue
+   the analysis in the hope that the absent tree is guarded by a closer (inner)
+   export target. The analysis will fail if, in the continuation, no suitable
+   target cache values can be retrieved from `just serve`.
+
 
 ### Auxiliary changes
 
