@@ -206,3 +206,15 @@ service Target {
   // * `INTERNAL`: Internally, something is very broken.
   rpc ServeTargetVariables(ServeTargetVariablesRequest) returns (ServeTargetVariablesResponse) {}
 }
+
+message RemoteExecutionEndpointRequest {}
+
+message RemoteExecutionEndpointResponse {
+  string address = 1;
+}
+
+// This service can be used by the client to double check the server configuration
+service Configuration {
+  // Returns the address of the associated remote endpoint
+  rpc RemoteExecutionEndpoint(RemoteExecutionEndpointRequest) returns (RemoteExecutionEndpointResponse) {}
+}
