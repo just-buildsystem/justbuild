@@ -26,6 +26,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 
 - Improved protability and update of the bundled dependencies.
 - Various minor improvements and typo fixes in the documentation.
+- Fixed a race condition in an internal cache of `just execute` used for keeping
+  track of running operations.
 
 ## Release `1.2.0` (2023-08-25)
 
