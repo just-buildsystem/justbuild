@@ -2,6 +2,11 @@
 
 Bug fixes on top of release `1.2.2`.
 
+### Fixes
+
+- Fixed a race condition in an internal cache of `just execute` used for keeping
+  track of running operations.
+
 ## Release `1.2.2` (2023-10-17)
 
 Bug fixes on top of release `1.2.1`.

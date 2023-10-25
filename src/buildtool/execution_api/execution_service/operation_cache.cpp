@@ -19,13 +19,11 @@
 #include "google/protobuf/timestamp.pb.h"
 
 void OperationCache::GarbageCollection() {
-    std::shared_lock slock{mutex_};
     if (cache_.size() > (threshold_ << 1U)) {
         std::vector<std::pair<std::string, ::google::longrunning::Operation>>
             tmp;
         tmp.reserve(cache_.size());
         std::copy(cache_.begin(), cache_.end(), std::back_insert_iterator(tmp));
-        slock.release();
         std::sort(tmp.begin(), tmp.end(), [](auto const& x, auto const& y) {
             ::google::protobuf::Timestamp tx;
             ::google::protobuf::Timestamp ty;
@@ -35,7 +33,6 @@ void OperationCache::GarbageCollection() {
         });
 
         std::size_t deleted = 0;
-        std::unique_lock ulock{mutex_};
         for (auto const& [key, op] : tmp) {
             if (op.done()) {
                 DropInternal(key);

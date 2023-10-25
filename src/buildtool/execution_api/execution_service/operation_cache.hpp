@@ -63,8 +63,8 @@ class OperationCache {
     std::size_t threshold_{1U << kDefaultExponent};
 
     void SetInternal(std::string const& action, Operation const& op) {
-        GarbageCollection();
         std::unique_lock lock{mutex_};
+        GarbageCollection();
         cache_[action] = op;
     }
 
