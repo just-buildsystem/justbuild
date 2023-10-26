@@ -836,32 +836,34 @@ void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
-    std::size_t jobs,
+    std::size_t /* jobs */,
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api) {
-    auto ts = TaskSystem{jobs};
+    if (!cache_targets.empty()) {
+        Logger::Log(LogLevel::Info,
+                    "Backing up artifacts of {} export targets",
+                    cache_targets.size());
+    }
     auto downloader = [&local_api, &remote_api](auto infos) {
         return remote_api->RetrieveToCas(infos, local_api);
     };
     for (auto const& [key, target] : cache_targets) {
-        ts.QueueTask(
-            [&key = key, &target = target, &extra_infos, &downloader]() {
-                if (auto entry =
-                        TargetCacheEntry::FromTarget(target, extra_infos)) {
-                    if (not Storage::Instance().TargetCache().Store(
-                            key, *entry, downloader)) {
-                        Logger::Log(LogLevel::Warning,
-                                    "Failed writing target cache entry for {}",
-                                    key.Id().ToString());
-                    }
-                }
-                else {
-                    Logger::Log(LogLevel::Warning,
-                                "Failed creating target cache entry for {}",
-                                key.Id().ToString());
-                }
-            });
+        if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {
+            if (not Storage::Instance().TargetCache().Store(
+                    key, *entry, downloader)) {
+                Logger::Log(LogLevel::Warning,
+                            "Failed writing target cache entry for {}",
+                            key.Id().ToString());
+            }
+        }
+        else {
+            Logger::Log(LogLevel::Warning,
+                        "Failed creating target cache entry for {}",
+                        key.Id().ToString());
+        }
     }
+    Logger::Log(LogLevel::Debug,
+                "Finished backing up artifacts of export targets");
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
