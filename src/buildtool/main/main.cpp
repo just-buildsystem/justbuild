@@ -424,6 +424,36 @@ void SetupHashFunction() {
         return Target::ConfiguredTarget{.target = std::move(*entity),
                                         .config = std::move(config)};
     }
+#ifndef BOOTSTRAP_BUILD_TOOL
+    if (target_root->IsAbsent()) {
+        // since the user has not specified the target to build, we use the most
+        // reasonable default value:
+        //
+        // module -> "." (i.e., current module)
+        // target -> ""  (i.e., firstmost lexicographical target name)
+
+        auto target = nlohmann::json::parse(R"([".",""])");
+        Logger::Log(LogLevel::Debug,
+                    "Detected absent target root for repo {} and no target was "
+                    "given. Assuming default target {}",
+                    main_repo,
+                    target.dump());
+        auto entity = Base::ParseEntityNameFromJson(
+            target,
+            Base::EntityName{Base::NamedTarget{main_repo, current_module, ""}},
+            [&target](std::string const& parse_err) {
+                Logger::Log(LogLevel::Error,
+                            "Parsing target name {} failed with:\n{}",
+                            target.dump(),
+                            parse_err);
+            });
+        if (not entity) {
+            std::exit(kExitFailure);
+        }
+        return Target::ConfiguredTarget{.target = std::move(*entity),
+                                        .config = std::move(config)};
+    }
+#endif
     auto const target_file =
         (std::filesystem::path{current_module} / target_file_name).string();
     if (not target_root->IsFile(target_file)) {
