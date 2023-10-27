@@ -80,10 +80,10 @@ void FinalizeExport(
 }
 
 [[nodiscard]] auto ComputeTargetCacheKey(
-    BuildMaps::Base::EntityName const& exported_target,
+    BuildMaps::Base::EntityName const& export_target,
     Configuration const& target_config) -> std::optional<TargetCacheKey> {
     static auto const& repos = RepositoryConfig::Instance();
-    auto const& target_name = exported_target.GetNamedTarget();
+    auto const& target_name = export_target.GetNamedTarget();
     if (auto repo_key = repos.RepositoryKey(target_name.repository)) {
         return TargetCacheKey::Create(*repo_key, target_name, target_config);
     }
@@ -101,49 +101,13 @@ void ExportRule(
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "export target", logger);
-    desc->ExpectFields(kExpectedFields);
-    auto exported_target_name = desc->ReadExpression("target");
-    if (not exported_target_name) {
-        return;
-    }
-    auto exported_target = BuildMaps::Base::ParseEntityNameFromExpression(
-        exported_target_name,
-        key.target,
-        [&logger, &exported_target_name](std::string const& parse_err) {
-            (*logger)(fmt::format("Parsing target name {} failed with:\n{}",
-                                  exported_target_name->ToString(),
-                                  parse_err),
-                      true);
-        });
-    if (not exported_target) {
-        return;
-    }
     auto flexible_vars = desc->ReadStringList("flexible_config");
     if (not flexible_vars) {
         return;
     }
     auto effective_config = key.config.Prune(*flexible_vars);
+    auto target_cache_key = ComputeTargetCacheKey(key.target, effective_config);
 
-    auto fixed_config =
-        desc->ReadOptionalExpression("fixed_config", Expression::kEmptyMap);
-    if (not fixed_config->IsMap()) {
-        (*logger)(fmt::format("fixed_config has to be a map, but found {}",
-                              fixed_config->ToString()),
-                  true);
-        return;
-    }
-    for (auto const& var : fixed_config->Map().Keys()) {
-        if (effective_config.VariableFixed(var)) {
-            (*logger)(
-                fmt::format("Variable {} is both fixed and flexible.", var),
-                true);
-            return;
-        }
-    }
-    auto target_config = effective_config.Update(fixed_config);
-
-    auto target_cache_key =
-        ComputeTargetCacheKey(*exported_target, target_config);
     if (target_cache_key) {
         if (auto target_cache_value =
                 Storage::Instance().TargetCache().Read(*target_cache_key)) {
@@ -201,6 +165,41 @@ void ExportRule(
                     "Export target {} is not eligible for target caching",
                     key.target.ToString());
     }
+
+    desc->ExpectFields(kExpectedFields);
+    auto exported_target_name = desc->ReadExpression("target");
+    if (not exported_target_name) {
+        return;
+    }
+    auto exported_target = BuildMaps::Base::ParseEntityNameFromExpression(
+        exported_target_name,
+        key.target,
+        [&logger, &exported_target_name](std::string const& parse_err) {
+            (*logger)(fmt::format("Parsing target name {} failed with:\n{}",
+                                  exported_target_name->ToString(),
+                                  parse_err),
+                      true);
+        });
+    if (not exported_target) {
+        return;
+    }
+    auto fixed_config =
+        desc->ReadOptionalExpression("fixed_config", Expression::kEmptyMap);
+    if (not fixed_config->IsMap()) {
+        (*logger)(fmt::format("fixed_config has to be a map, but found {}",
+                              fixed_config->ToString()),
+                  true);
+        return;
+    }
+    for (auto const& var : fixed_config->Map().Keys()) {
+        if (effective_config.VariableFixed(var)) {
+            (*logger)(
+                fmt::format("Variable {} is both fixed and flexible.", var),
+                true);
+            return;
+        }
+    }
+    auto target_config = effective_config.Update(fixed_config);
 
     (*subcaller)(
         {BuildMaps::Target::ConfiguredTarget{
