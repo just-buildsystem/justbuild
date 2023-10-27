@@ -31,7 +31,7 @@ cannot be set in to fixed values in the action description.
 
 As for `"git tree"` repositories the result of the fetch action is
 determined ahead of time, it is not necessary to isolate the fetch
-actions in the same way as we do with the fetch actions; if the
+actions in the same way as we do with the build actions; if the
 non-isolation misguides the fetch action, the verification of the
 fetched tree will notice this and an error will be reported instead
 of obtaining wrong results. Therefore, the following proposed
