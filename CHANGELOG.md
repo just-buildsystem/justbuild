@@ -4,6 +4,13 @@ Bug fixes on top of release `1.2.2`.
 
 ### Fixes
 
+- The cache key used for an export target is now based on the export
+  target itself rather than that of the exported target. The latter
+  could lead to spourious cache hits, but only in the case where
+  an explicit file reference was exported and an regular target
+  with the same name exists. Where the new cache keys overlap with
+  the old ones, they refer to the same configured targets; so no
+  special action is to be taken when updating.
 - Fixed a race condition in an internal cache of `just execute` used for keeping
   track of running operations.
 
