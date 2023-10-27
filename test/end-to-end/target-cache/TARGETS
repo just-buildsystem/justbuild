@@ -17,6 +17,13 @@
     , "bootstrap-src-staged"
     ]
   }
+, "export-extern":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["export-extern"]
+  , "test": ["export-extern.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  }
 , "bootstrap-src-staged":
   {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]}
 , "TESTS":
