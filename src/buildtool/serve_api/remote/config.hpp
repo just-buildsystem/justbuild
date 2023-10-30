@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
+#define INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
+
 #include <filesystem>
 #include <iterator>
 #include <vector>
@@ -62,3 +65,5 @@ class RemoteServeConfig {
     // Known Git repositories to serve server.
     std::vector<std::filesystem::path> repositories_{};
 };
+
+#endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
