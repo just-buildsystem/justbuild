@@ -471,30 +471,36 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             // check mandatory fields
             auto repo_desc_content = (*resolved_repo_desc)->At("content");
             if (not repo_desc_content) {
-                (*logger)(
-                    "DistdirCheckout: Mandatory field \"content\" is "
-                    "missing",
-                    /*fatal=*/true);
+                (*logger)(fmt::format(
+                              "DistdirCheckout: Mandatory field \"content\" is "
+                              "missing for repository {}",
+                              nlohmann::json(dist_repo_name).dump()),
+                          /*fatal=*/true);
                 return;
             }
             if (not repo_desc_content->get()->IsString()) {
                 (*logger)(fmt::format("DistdirCheckout: Unsupported value {} "
-                                      "for mandatory field \"content\"",
-                                      repo_desc_content->get()->ToString()),
+                                      "for mandatory field \"content\" for "
+                                      "repository {}",
+                                      repo_desc_content->get()->ToString(),
+                                      nlohmann::json(dist_repo_name).dump()),
                           /*fatal=*/true);
                 return;
             }
             auto repo_desc_fetch = (*resolved_repo_desc)->At("fetch");
             if (not repo_desc_fetch) {
-                (*logger)(
-                    "DistdirCheckout: Mandatory field \"fetch\" is missing",
-                    /*fatal=*/true);
+                (*logger)(fmt::format("DistdirCheckout: Mandatory field "
+                                      "\"fetch\" is missing for repository {}",
+                                      nlohmann::json(dist_repo_name).dump()),
+                          /*fatal=*/true);
                 return;
             }
             if (not repo_desc_fetch->get()->IsString()) {
-                (*logger)(fmt::format("DistdirCheckout: Unsupported value {} "
-                                      "for mandatory field \"fetch\"",
-                                      repo_desc_fetch->get()->ToString()),
+                (*logger)(fmt::format(
+                              "DistdirCheckout: Unsupported value {} "
+                              "for mandatory field \"fetch\" for repository {}",
+                              repo_desc_fetch->get()->ToString(),
+                              nlohmann::json(dist_repo_name).dump()),
                           /*fatal=*/true);
                 return;
             }
