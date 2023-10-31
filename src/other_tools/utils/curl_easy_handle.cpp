@@ -54,14 +54,15 @@ auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
 
 }  // namespace
 
-auto CurlEasyHandle::Create() noexcept -> std::shared_ptr<CurlEasyHandle> {
-    return Create(false, std::nullopt);
+auto CurlEasyHandle::Create(LogLevel log_level) noexcept
+    -> std::shared_ptr<CurlEasyHandle> {
+    return Create(false, std::nullopt, log_level);
 }
 
 auto CurlEasyHandle::Create(
     bool no_ssl_verify,
-    std::optional<std::filesystem::path> const& ca_bundle) noexcept
-    -> std::shared_ptr<CurlEasyHandle> {
+    std::optional<std::filesystem::path> const& ca_bundle,
+    LogLevel log_level) noexcept -> std::shared_ptr<CurlEasyHandle> {
     try {
         auto curl = std::make_shared<CurlEasyHandle>();
         auto* handle = curl_easy_init();
@@ -72,6 +73,8 @@ auto CurlEasyHandle::Create(
         // store CA info
         curl->no_ssl_verify_ = no_ssl_verify;
         curl->ca_bundle_ = ca_bundle;
+        // store log level
+        curl->log_level_ = log_level;
         return curl;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
@@ -157,7 +160,7 @@ auto CurlEasyHandle::DownloadToFile(
             // cleanup failed downloaded file, if created
             [[maybe_unused]] auto tmp_res =
                 FileSystemManager::RemoveFile(file_path);
-            Logger::Log(LogLevel::Error, [&tmp_file]() {
+            Logger::Log(log_level_, [&tmp_file]() {
                 return fmt::format("curl download to file failed:\n{}",
                                    read_stream_data(tmp_file));
             });
@@ -173,7 +176,7 @@ auto CurlEasyHandle::DownloadToFile(
         std::fclose(tmp_file);
         return res;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, [&ex, &tmp_file]() {
+        Logger::Log(log_level_, [&ex, &tmp_file]() {
             return fmt::format(
                 "curl download to file failed with:\n{}\n"
                 "while performing:\n{}",
@@ -234,7 +237,7 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
 
         // check result
         if (res != CURLE_OK) {
-            Logger::Log(LogLevel::Error, [&tmp_file]() {
+            Logger::Log(log_level_, [&tmp_file]() {
                 return fmt::format("curl download to string failed:\n{}",
                                    read_stream_data(tmp_file));
             });
@@ -250,7 +253,7 @@ auto CurlEasyHandle::DownloadToString(std::string const& url) noexcept
         std::fclose(tmp_file);
         return content;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, [&ex, &tmp_file]() {
+        Logger::Log(log_level_, [&ex, &tmp_file]() {
             return fmt::format(
                 "curl download to string failed with:\n{}\n"
                 "while performing:\n{}",

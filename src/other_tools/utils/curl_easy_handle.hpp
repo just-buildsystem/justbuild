@@ -22,6 +22,7 @@
 #include <string>
 
 #include "gsl/gsl"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/utils/curl_context.hpp"
 
 extern "C" {
@@ -46,13 +47,15 @@ class CurlEasyHandle {
     auto operator=(CurlEasyHandle&& other) = delete;
 
     /// \brief Create a CurlEasyHandle object
-    [[nodiscard]] auto static Create() noexcept
+    [[nodiscard]] auto static Create(
+        LogLevel log_level = LogLevel::Error) noexcept
         -> std::shared_ptr<CurlEasyHandle>;
 
     /// \brief Create a CurlEasyHandle object with non-default CA info
     [[nodiscard]] auto static Create(
         bool no_ssl_verify,
-        std::optional<std::filesystem::path> const& ca_bundle) noexcept
+        std::optional<std::filesystem::path> const& ca_bundle,
+        LogLevel log_level = LogLevel::Error) noexcept
         -> std::shared_ptr<CurlEasyHandle>;
 
     /// \brief Download file from URL into given file_path.
@@ -73,6 +76,8 @@ class CurlEasyHandle {
     std::unique_ptr<CURL, decltype(&curl_easy_closer)> handle_{
         nullptr,
         curl_easy_closer};
+    // allow also non-fatal logging of curl operations
+    LogLevel log_level_{};
 
     bool no_ssl_verify_{false};
     std::optional<std::filesystem::path> ca_bundle_{std::nullopt};

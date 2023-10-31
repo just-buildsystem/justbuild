@@ -11,11 +11,15 @@
   , "name": ["curl_easy_handle"]
   , "hdrs": ["curl_easy_handle.hpp"]
   , "srcs": ["curl_easy_handle.cpp"]
-  , "deps": ["curl_context", ["@", "gsl", "", "gsl"]]
+  , "deps":
+    [ "curl_context"
+    , ["src/buildtool/logging", "log_level"]
+    , ["@", "gsl", "", "gsl"]
+    ]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
-    [ ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/file_system", "file_system_manager"]
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
     , ["", "libcurl"]
     ]
   }
