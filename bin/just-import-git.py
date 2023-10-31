@@ -287,8 +287,7 @@ def handle_import(args: Namespace) -> Json:
     import_map: Json = {}
     for theirs, ours in args.import_map:
         import_map[theirs] = ours
-    main_repos = repos_to_import(foreign_repos, foreign_name,
-                                 import_map.keys())
+    main_repos = repos_to_import(foreign_repos, foreign_name, import_map.keys())
     extra_repos = sorted([x for x in main_repos if x != foreign_name])
     extra_imports = sorted(extra_layers_to_import(foreign_repos, main_repos))
     ordered_imports: List[str] = [foreign_name] + extra_repos + extra_imports

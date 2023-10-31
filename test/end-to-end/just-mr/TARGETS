@@ -41,6 +41,16 @@
     , ["end-to-end", "mr-tool-under-test"]
     ]
   }
+, "just_mr_mirrors":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["just_mr_mirrors"]
+  , "test": ["just-mr-mirrors.test.sh"]
+  , "deps":
+    [ "create_test_archives"
+    , ["utils", "test_utils_install"]
+    , ["end-to-end", "mr-tool-under-test"]
+    ]
+  }
 , "git-tree-verbosity":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-tree-verbosity"]
@@ -159,6 +169,7 @@
           , "$1":
             [ [ "install-roots-symlinks"
               , "just_mr_mp"
+              , "just_mr_mirrors"
               , "git-tree-verbosity"
               , "git-tree-env"
               , "defaults"
