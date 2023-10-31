@@ -86,6 +86,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
 
 void EnsureCommit(GitRepoInfo const& repo_info,
                   std::filesystem::path const& repo_root,
+                  std::string const& fetch_repo,
                   GitCASPtr const& git_cas,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
                   gsl::not_null<ImportToGitMap*> const& import_to_git_map,
@@ -361,7 +362,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                           fatal);
             });
         if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                          repo_info.repo_url,
+                                          fetch_repo,
                                           repo_info.branch,
                                           git_bin,
                                           launcher,
@@ -386,7 +387,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                   "{} for remote {}",
                                   repo_info.hash,
                                   repo_info.branch,
-                                  repo_info.repo_url),
+                                  fetch_repo),
                       /*fatal=*/true);
             return;
         }
@@ -534,6 +535,7 @@ auto CreateCommitGitMap(
             {std::move(op_key)},
             [key,
              repo_root,
+             fetch_repo,
              critical_git_op_map,
              import_to_git_map,
              git_bin,
@@ -564,6 +566,7 @@ auto CreateCommitGitMap(
                     });
                 EnsureCommit(key,
                              repo_root,
+                             fetch_repo,
                              op_result.git_cas,
                              critical_git_op_map,
                              import_to_git_map,
