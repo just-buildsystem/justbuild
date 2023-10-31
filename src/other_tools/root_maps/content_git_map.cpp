@@ -501,6 +501,7 @@ auto CreateContentGitMap(
                                  archive_tree_id_file,
                                  content = key.archive.content,
                                  fetch_url = key.archive.fetch_url,
+                                 mirrors = key.archive.mirrors,
                                  sha256 = key.archive.sha256,
                                  sha512 = key.archive.sha512,
                                  pragma_special = key.pragma_special,
@@ -707,16 +708,27 @@ auto CreateContentGitMap(
                                             /*fatal=*/true);
                                         return;
                                     }
-                                    // now do the actual fetch
+                                    // now do the actual fetch; first, try the
+                                    // main fetch URL
                                     auto data =
                                         NetworkFetch(fetch_url, ca_info);
-                                    if (data == std::nullopt) {
-                                        (*logger)(fmt::format(
-                                                      "Failed to fetch a file "
-                                                      "with id {} from {}",
-                                                      content,
-                                                      fetch_url),
-                                                  /*fatal=*/true);
+                                    if (not data) {
+                                        // try the mirrors, in order, if given
+                                        for (auto const& mirror : mirrors) {
+                                            data =
+                                                NetworkFetch(mirror, ca_info);
+                                            if (data) {
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    if (not data) {
+                                        (*logger)(
+                                            fmt::format("Failed to fetch a "
+                                                        "file with content {} "
+                                                        "from provided remotes",
+                                                        content),
+                                            /*fatal=*/true);
                                         return;
                                     }
                                     // check content wrt checksums
@@ -800,8 +812,8 @@ auto CreateContentGitMap(
                                               key.archive.content),
                                   /*fatal=*/false);
                     }
-                    // if not fetching absent, request the resolved subdir tree
-                    // directly
+                    // if not fetching absent, request the resolved subdir
+                    // tree directly
                     else {
                         if (auto tree_id = serve_api->RetrieveTreeFromArchive(
                                 key.archive.content,
@@ -837,8 +849,8 @@ auto CreateContentGitMap(
                     }
                 }
                 // revert to network fetch and import_to_git
-                // before any network fetching, check that mandatory fields are
-                // provided
+                // before any network fetching, check that mandatory fields
+                // are provided
                 if (key.archive.fetch_url.empty()) {
                     (*logger)("Failed to provide archive fetch url!",
                               /*fatal=*/true);
@@ -847,11 +859,11 @@ auto CreateContentGitMap(
                 // now do the actual fetch
                 auto data = NetworkFetch(key.archive.fetch_url, ca_info);
                 if (data == std::nullopt) {
-                    (*logger)(
-                        fmt::format("Failed to fetch a file with id {} from {}",
-                                    key.archive.content,
-                                    key.archive.fetch_url),
-                        /*fatal=*/true);
+                    (*logger)(fmt::format("Failed to fetch a file with id "
+                                          "{} from {}",
+                                          key.archive.content,
+                                          key.archive.fetch_url),
+                              /*fatal=*/true);
                     return;
                 }
                 // check content wrt checksums
@@ -885,11 +897,11 @@ auto CreateContentGitMap(
                 auto path = StorageUtils::AddToCAS(*data);
                 // check one last time if content is in CAS now
                 if (not path) {
-                    (*logger)(
-                        fmt::format("Failed to fetch a file with id {} from {}",
-                                    key.archive.content,
-                                    key.archive.fetch_url),
-                        /*fatal=*/true);
+                    (*logger)(fmt::format("Failed to fetch a file with id "
+                                          "{} from {}",
+                                          key.archive.content,
+                                          key.archive.fetch_url),
+                              /*fatal=*/true);
                     return;
                 }
                 JustMRProgress::Instance().TaskTracker().Stop(
@@ -910,7 +922,8 @@ auto CreateContentGitMap(
                 // done
                 return;
             }
-            // if not marked absent, do regular fetch to CAS and import_to_git
+            // if not marked absent, do regular fetch to CAS and
+            // import_to_git
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
                 {key.archive},
@@ -948,11 +961,11 @@ auto CreateContentGitMap(
                 },
                 [logger, content = key.archive.content](auto const& msg,
                                                         bool fatal) {
-                    (*logger)(
-                        fmt::format("While ensuring content {} is in CAS:\n{}",
-                                    content,
-                                    msg),
-                        fatal);
+                    (*logger)(fmt::format("While ensuring content {} is in "
+                                          "CAS:\n{}",
+                                          content,
+                                          msg),
+                              fatal);
                 });
         }
     };

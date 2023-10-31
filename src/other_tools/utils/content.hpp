@@ -20,6 +20,7 @@
 
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"
 
 // Utilities related to the content of an archive
@@ -29,8 +30,8 @@
 [[nodiscard]] static auto NetworkFetch(std::string const& fetch_url,
                                        CAInfoPtr const& ca_info) noexcept
     -> std::optional<std::string> {
-    auto curl_handle =
-        CurlEasyHandle::Create(ca_info->no_ssl_verify, ca_info->ca_bundle);
+    auto curl_handle = CurlEasyHandle::Create(
+        ca_info->no_ssl_verify, ca_info->ca_bundle, LogLevel::Debug);
     if (not curl_handle) {
         return std::nullopt;
     }

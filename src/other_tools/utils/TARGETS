@@ -40,6 +40,7 @@
     [ "curl_easy_handle"
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   , "stage": ["src", "other_tools", "utils"]
   }

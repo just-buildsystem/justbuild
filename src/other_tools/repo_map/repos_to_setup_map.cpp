@@ -213,6 +213,29 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
     auto repo_desc_distfile = repo_desc->Get("distfile", Expression::none_t{});
     auto repo_desc_sha256 = repo_desc->Get("sha256", Expression::none_t{});
     auto repo_desc_sha512 = repo_desc->Get("sha512", Expression::none_t{});
+    // check optional mirrors
+    auto repo_desc_mirrors = repo_desc->Get("mirrors", Expression::list_t{});
+    std::vector<std::string> mirrors{};
+    if (repo_desc_mirrors->IsList()) {
+        mirrors.reserve(repo_desc_mirrors->List().size());
+        for (auto const& elem : repo_desc_mirrors->List()) {
+            if (not elem->IsString()) {
+                (*logger)(fmt::format("ArchiveCheckout: Unsupported list entry "
+                                      "{} in optional field \"mirrors\"",
+                                      elem->ToString()),
+                          /*fatal=*/true);
+                return;
+            }
+            mirrors.emplace_back(elem->String());
+        }
+    }
+    else {
+        (*logger)(fmt::format("ArchiveCheckout: Optional field \"mirrors\" "
+                              "should be a list of strings, but found: {}",
+                              repo_desc_mirrors->ToString()),
+                  /*fatal=*/true);
+        return;
+    }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
     auto pragma_special = repo_desc_pragma
@@ -238,6 +261,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                              ? std::make_optional(repo_desc_distfile->String())
                              : std::nullopt,
              .fetch_url = repo_desc_fetch->get()->String(),
+             .mirrors = std::move(mirrors),
              .sha256 = repo_desc_sha256->IsString()
                            ? std::make_optional(repo_desc_sha256->String())
                            : std::nullopt,
@@ -511,6 +535,36 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             auto repo_desc_sha512 =
                 (*resolved_repo_desc)->Get("sha512", Expression::none_t{});
 
+            // check optional mirrors
+            auto repo_desc_mirrors =
+                (*resolved_repo_desc)->Get("mirrors", Expression::list_t{});
+            std::vector<std::string> mirrors{};
+            if (repo_desc_mirrors->IsList()) {
+                mirrors.reserve(repo_desc_mirrors->List().size());
+                for (auto const& elem : repo_desc_mirrors->List()) {
+                    if (not elem->IsString()) {
+                        (*logger)(fmt::format(
+                                      "DistdirCheckout: Unsupported list entry "
+                                      "{} in optional field \"mirrors\" for "
+                                      "repository {}",
+                                      elem->ToString(),
+                                      nlohmann::json(dist_repo_name).dump()),
+                                  /*fatal=*/true);
+                        return;
+                    }
+                    mirrors.emplace_back(elem->String());
+                }
+            }
+            else {
+                (*logger)(fmt::format("DistdirCheckout: Optional field "
+                                      "\"mirrors\" for repository {} should be "
+                                      "a list of strings, but found: {}",
+                                      nlohmann::json(dist_repo_name).dump(),
+                                      repo_desc_mirrors->ToString()),
+                          /*fatal=*/true);
+                return;
+            }
+
             ArchiveContent archive = {
                 .content = repo_desc_content->get()->String(),
                 .distfile =
@@ -518,6 +572,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                         ? std::make_optional(repo_desc_distfile->String())
                         : std::nullopt,
                 .fetch_url = repo_desc_fetch->get()->String(),
+                .mirrors = std::move(mirrors),
                 .sha256 = repo_desc_sha256->IsString()
                               ? std::make_optional(repo_desc_sha256->String())
                               : std::nullopt,

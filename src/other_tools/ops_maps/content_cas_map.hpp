@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
@@ -26,15 +27,16 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
-    std::string content; /* key */
-    std::optional<std::string> distfile;
-    std::string fetch_url;
-    std::optional<std::string> sha256;
-    std::optional<std::string> sha512;
+    std::string content{}; /* key */
+    std::optional<std::string> distfile{std::nullopt};
+    std::string fetch_url{};
+    std::vector<std::string> mirrors{};
+    std::optional<std::string> sha256{std::nullopt};
+    std::optional<std::string> sha512{std::nullopt};
     // name of repository for which work is done; used in progress reporting
-    std::string origin;
+    std::string origin{};
     // flag deciding whether progress reporting is needed for key
-    bool origin_from_distdir;
+    bool origin_from_distdir{};
 
     [[nodiscard]] auto operator==(const ArchiveContent& other) const -> bool {
         return content == other.content;
@@ -43,9 +45,9 @@ struct ArchiveContent {
 
 // Used in callers of ContentCASMap which need extra fields
 struct ArchiveRepoInfo {
-    ArchiveContent archive; /* key */
-    std::string repo_type;  /* key */
-    std::string subdir;     /* key */
+    ArchiveContent archive{}; /* key */
+    std::string repo_type{};  /* key */
+    std::string subdir{};     /* key */
     // create root based on "special" pragma value
     std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
     // create an absent root
