@@ -14,7 +14,12 @@
 
 #ifndef CAS_SERVER_HPP
 #define CAS_SERVER_HPP
+
+#include <optional>
+#include <string>
+
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -112,6 +117,29 @@ class CASServiceImpl final
     auto GetTree(::grpc::ServerContext* context,
                  const ::bazel_re::GetTreeRequest* request,
                  ::grpc::ServerWriter< ::bazel_re::GetTreeResponse>* writer)
+        -> ::grpc::Status override;
+    // Split a blob into chunks.
+    //
+    // Clients can use this API before downloading a blob to determine which
+    // parts of the blob are already present locally and do not need to be
+    // downloaded again.
+    //
+    // The blob is split into chunks which are individually stored in the CAS. A
+    // list of the chunk digests is returned in the order in which the chunks
+    // have to be concatenated to assemble the requested blob.
+    //
+    // Using this API is optional but it allows clients to download only the
+    // missing parts of a blob instead of the entire blob data, which in turn
+    // can considerably reduce network traffic.
+    //
+    // Errors:
+    //
+    // * `NOT_FOUND`: The requested blob is not present in the CAS.
+    // * `RESOURCE_EXHAUSTED`: There is insufficient disk quota to store the
+    //   blob chunks.
+    auto SplitBlob(::grpc::ServerContext* context,
+                   const ::bazel_re::SplitBlobRequest* request,
+                   ::bazel_re::SplitBlobResponse* response)
         -> ::grpc::Status override;
 
   private:
