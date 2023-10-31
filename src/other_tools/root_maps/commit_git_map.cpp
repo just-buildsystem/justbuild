@@ -355,18 +355,52 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                       /*fatal=*/true);
             return;
         }
-        // setup wrapped logger
+        // store failed attempts for subsequent logging
+        std::string err_messages{};
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [logger](auto const& msg, bool fatal) {
-                (*logger)(fmt::format("While fetching via tmp repo:\n{}", msg),
-                          fatal);
+            [fetch_repo, &err_messages](auto const& msg, bool /*fatal*/) {
+                err_messages +=
+                    fmt::format("\nWhile attempting fetch from remote {}:\n{}",
+                                fetch_repo,
+                                msg);
             });
+        // try the main fetch URL
+        bool fetched{false};
         if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
                                           fetch_repo,
                                           repo_info.branch,
                                           git_bin,
                                           launcher,
                                           wrapped_logger)) {
+            // try to fetch from mirrors, in order, if given
+            for (auto mirror : repo_info.mirrors) {
+                if (GitURLIsPath(mirror)) {
+                    mirror = std::filesystem::absolute(mirror).string();
+                }
+                wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                    [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
+                        err_messages += fmt::format(
+                            "\nWhile attempting fetch from mirror {}:\n{}",
+                            mirror,
+                            msg);
+                    });
+                if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                              mirror,
+                                              repo_info.branch,
+                                              git_bin,
+                                              launcher,
+                                              wrapped_logger)) {
+                    fetched = true;
+                    break;
+                }
+            }
+        }
+        if (not fetched) {
+            // log fetch failure details separately to reduce verbosity
+            (*logger)(
+                fmt::format("While fetching via tmp repo:{}", err_messages),
+                /*fatal=*/false);
+            (*logger)("Failed to fetch from provided remotes", /*fatal=*/true);
             return;
         }
         // setup wrapped logger

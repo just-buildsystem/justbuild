@@ -17,6 +17,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
@@ -32,6 +33,7 @@ struct GitRepoInfo {
     std::string repo_url{};
     std::string branch{};
     std::string subdir{}; /* key */
+    std::vector<std::string> mirrors{};
     // name of repository for which work is done; used in progress reporting
     std::string origin{};
     // create root that ignores symlinks

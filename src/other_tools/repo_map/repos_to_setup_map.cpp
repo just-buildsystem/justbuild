@@ -92,6 +92,29 @@ void GitCheckout(ExpressionPtr const& repo_desc,
                                             ? repo_desc_subdir->String()
                                             : "")
                       .lexically_normal();
+    // check optional mirrors
+    auto repo_desc_mirrors = repo_desc->Get("mirrors", Expression::list_t{});
+    std::vector<std::string> mirrors{};
+    if (repo_desc_mirrors->IsList()) {
+        mirrors.reserve(repo_desc_mirrors->List().size());
+        for (auto const& elem : repo_desc_mirrors->List()) {
+            if (not elem->IsString()) {
+                (*logger)(fmt::format("GitCheckout: Unsupported list entry {} "
+                                      "in optional field \"mirrors\"",
+                                      elem->ToString()),
+                          /*fatal=*/true);
+                return;
+            }
+            mirrors.emplace_back(elem->String());
+        }
+    }
+    else {
+        (*logger)(fmt::format("GitCheckout: Optional field \"mirrors\" should "
+                              "be a list of strings, but found: {}",
+                              repo_desc_mirrors->ToString()),
+                  /*fatal=*/true);
+        return;
+    }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
     auto pragma_special = repo_desc_pragma
@@ -115,6 +138,7 @@ void GitCheckout(ExpressionPtr const& repo_desc,
         .repo_url = repo_desc_repository->get()->String(),
         .branch = repo_desc_branch->get()->String(),
         .subdir = subdir.empty() ? "." : subdir.string(),
+        .mirrors = std::move(mirrors),
         .origin = repo_name,
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
         .absent = pragma_absent_value};
