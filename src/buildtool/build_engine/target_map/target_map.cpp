@@ -37,6 +37,10 @@
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
 
@@ -1595,6 +1599,21 @@ void GlobTargetWithDirEntry(
         });
 }
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+// The remote execution endpoint specified on the command line must be the same
+// used by the provided just serve instance.
+[[nodiscard]] auto CheckServeAndExecutionEndpoints() -> bool {
+    auto sadd = RemoteServeConfig::RemoteAddress();
+    if (!sadd) {
+        Logger::Log(LogLevel::Error,
+                    "Absent root detected. Please provide "
+                    "--remote-serve-address and retry.");
+        return false;
+    }
+    return ServeApi::CheckServeRemoteExecution();
+}
+#endif  // BOOTSTRAP_BUILD_TOOL
+
 }  // namespace
 
 namespace BuildMaps::Target {
@@ -1604,12 +1623,14 @@ auto CreateTargetMap(
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&
         directory_entries_map,
+    const gsl::not_null<AbsentTargetMap*>& absent_target_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
     std::size_t jobs) -> TargetMap {
     auto target_reader = [source_target_map,
                           targets_file_map,
                           rule_map,
                           result_map,
+                          absent_target_map,
                           directory_entries_map](auto ts,
                                                  auto setter,
                                                  auto logger,
@@ -1703,6 +1724,34 @@ auto CreateTargetMap(
 
             );
         }
+#ifndef BOOTSTRAP_BUILD_TOOL
+        else if (RepositoryConfig::Instance()
+                     .TargetRoot(key.target.ToModule().repository)
+                     ->IsAbsent()) {
+            static auto consistent_serve_and_remote_execution =
+                CheckServeAndExecutionEndpoints();
+            if (!consistent_serve_and_remote_execution) {
+                (*logger)(
+                    "Inconsistent remote execution endpoint and just serve "
+                    "configuration detected.",
+                    true);
+                return;
+            }
+            absent_target_map->ConsumeAfterKeysReady(
+                ts,
+                {key},
+                [setter](auto values) {
+                    (*setter)(AnalysedTargetPtr{*values[0]});
+                },
+                [logger, key](auto msg, auto fatal) {
+                    (*logger)(
+                        fmt::format("While processing absent target {}: {}",
+                                    key.target.ToString(),
+                                    msg),
+                        fatal);
+                });
+        }
+#endif
         else {
             targets_file_map->ConsumeAfterKeysReady(
                 ts,

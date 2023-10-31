@@ -74,8 +74,14 @@ TEST_CASE("simple targets") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -407,8 +413,14 @@ TEST_CASE("configuration deduplication") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     std::vector<AnalysedTargetPtr> result;
     bool error{false};
@@ -462,8 +474,14 @@ TEST_CASE("generator functions in string arguments") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -530,9 +548,14 @@ TEST_CASE("built-in rules") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
-
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
     AnalysedTargetPtr result;
     bool error{false};
     std::string error_msg;
@@ -709,8 +732,14 @@ TEST_CASE("target reference") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -820,8 +849,14 @@ TEST_CASE("trees") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -895,8 +930,14 @@ TEST_CASE("RESULT error reporting") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1029,8 +1070,14 @@ TEST_CASE("wrong arguments") {
     auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
     auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
     BuildMaps::Target::ResultTargetMap result_map{0};
-    auto target_map = BuildMaps::Target::CreateTargetMap(
-        &source, &targets_file_map, &rule_map, &directory_entries, &result_map);
+    auto absent_target_map =
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+    auto target_map = BuildMaps::Target::CreateTargetMap(&source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};

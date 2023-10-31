@@ -20,6 +20,7 @@
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
+#include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -133,10 +134,12 @@ void DetectAndReportPending(std::string const& name,
     auto expr_map = Base::CreateExpressionMap(&expressions_file_map, jobs);
     auto rule_map = Base::CreateRuleMap(&rule_file_map, &expr_map, jobs);
     auto source_targets = Base::CreateSourceTargetMap(&directory_entries, jobs);
+    auto absent_target_map = Target::CreateAbsentTargetMap(result_map, jobs);
     auto target_map = Target::CreateTargetMap(&source_targets,
                                               &targets_file_map,
                                               &rule_map,
                                               &directory_entries,
+                                              &absent_target_map,
                                               result_map,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());

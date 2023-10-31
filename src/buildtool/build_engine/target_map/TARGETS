@@ -40,6 +40,7 @@
   , "deps":
     [ "configured_target"
     , "result_map"
+    , "absent_target_map"
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
@@ -63,6 +64,8 @@
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "path_hash"]
     , ["src/utils/cpp", "vector"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   }
 , "target_map_testable_internals":
@@ -80,5 +83,27 @@
     , ["src/buildtool/build_engine/analysed_target", "target"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  }
+, "absent_target_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["absent_target_map"]
+  , "hdrs": ["absent_target_map.hpp"]
+  , "srcs": ["absent_target_map.cpp"]
+  , "private-hdrs": ["built_in_rules.hpp", "export.hpp", "utils.hpp"]
+  , "deps":
+    [ "configured_target"
+    , "result_map"
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["@", "gsl", "", "gsl"]
+    ]
+  , "stage": ["src", "buildtool", "build_engine", "target_map"]
+  , "private-deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    ]
   }
 }
