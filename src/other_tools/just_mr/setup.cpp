@@ -90,13 +90,13 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     }
 
     // setup the APIs for archive fetches
-    auto remote_api = JustMR::Utils::SetupRemoteApi(
+    auto remote_api = JustMR::Utils::GetRemoteApi(
         common_args.remote_execution_address, auth_args);
     IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
                                             : nullptr};
 
-    // setup the API for serving trees of Gti repos or archives
-    auto serve_api = JustMR::Utils::SetupServeApi(
+    // setup the API for serving trees of Git repos or archives
+    auto serve_api_exists = JustMR::Utils::SetupServeApi(
         common_args.remote_serve_address, auth_args);
 
     // setup the required async maps
@@ -123,7 +123,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            common_args.alternative_mirrors,
                            common_args.git_path->string(),
                            *common_args.local_launcher,
-                           serve_api ? &(*serve_api) : nullptr,
+                           serve_api_exists,
                            local_api ? &(*local_api) : nullptr,
                            remote_api ? &(*remote_api) : nullptr,
                            common_args.fetch_absent,
@@ -136,7 +136,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             common_args.ca_info,
                             &resolve_symlinks_map,
                             &critical_git_op_map,
-                            serve_api ? &(*serve_api) : nullptr,
+                            serve_api_exists,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.fetch_absent,

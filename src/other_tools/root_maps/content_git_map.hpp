@@ -38,7 +38,7 @@ using ContentGitMap =
     CAInfoPtr const& ca_info,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    ServeApi* serve_api,
+    bool serve_api_exists,
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
     bool fetch_absent,

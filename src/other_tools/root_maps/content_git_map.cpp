@@ -306,7 +306,7 @@ auto CreateContentGitMap(
     CAInfoPtr const& ca_info,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    ServeApi* serve_api,
+    bool serve_api_exists,
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
     bool fetch_absent,
@@ -318,7 +318,7 @@ auto CreateContentGitMap(
                            just_mr_paths,
                            additional_mirrors,
                            ca_info,
-                           serve_api,
+                           serve_api_exists,
                            local_api,
                            remote_api,
                            fetch_absent](auto ts,
@@ -469,13 +469,13 @@ auto CreateContentGitMap(
                     return;
                 }
                 // check if content is known to remote serve service
-                if (serve_api != nullptr) {
+                if (serve_api_exists) {
                     // if fetching absent, request (and sync) the whole archive
                     // tree, UNRESOLVED, to ensure we maintain the id file
                     // association
                     if (fetch_absent) {
                         if (auto root_tree_id =
-                                serve_api->RetrieveTreeFromArchive(
+                                ServeApi::RetrieveTreeFromArchive(
                                     key.archive.content,
                                     key.repo_type,
                                     /*subdir = */ ".",
@@ -810,7 +810,7 @@ auto CreateContentGitMap(
                     // if not fetching absent, request the resolved subdir
                     // tree directly
                     else {
-                        if (auto tree_id = serve_api->RetrieveTreeFromArchive(
+                        if (auto tree_id = ServeApi::RetrieveTreeFromArchive(
                                 key.archive.content,
                                 key.repo_type,
                                 key.subdir,

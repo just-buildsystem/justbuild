@@ -269,7 +269,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                 nr == 1 ? "archive" : "archives");
 
     // setup the APIs for archive fetches
-    auto remote_api = JustMR::Utils::SetupRemoteApi(
+    auto remote_api = JustMR::Utils::GetRemoteApi(
         common_args.remote_execution_address, auth_args);
     IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
                                             : nullptr};

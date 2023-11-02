@@ -238,8 +238,8 @@ auto ReadConfiguration(
     }
 }
 
-auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
-                    MultiRepoRemoteAuthArguments const& auth)
+auto GetRemoteApi(std::optional<std::string> const& remote_exec_addr,
+                  MultiRepoRemoteAuthArguments const& auth)
     -> IExecutionApi::Ptr {
     // we only allow remotes in native mode
     if (remote_exec_addr and not Compatibility::IsCompatible()) {
@@ -262,7 +262,7 @@ auto SetupRemoteApi(std::optional<std::string> const& remote_exec_addr,
 }
 
 auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
-                   MultiRepoRemoteAuthArguments const& auth) -> ServeApi::Ptr {
+                   MultiRepoRemoteAuthArguments const& auth) -> bool {
     if (remote_serve_addr) {
         // setup authentication
         SetupAuthConfig(auth);
@@ -273,10 +273,9 @@ auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
                         *remote_serve_addr);
             std::exit(kExitConfigError);
         }
-        auto address = RemoteServeConfig::RemoteAddress();
-        return std::make_unique<ServeApi>(address->host, address->port);
+        return true;
     }
-    return nullptr;
+    return false;
 }
 
 }  // namespace JustMR::Utils

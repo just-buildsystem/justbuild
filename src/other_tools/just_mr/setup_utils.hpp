@@ -59,15 +59,17 @@ void DefaultReachableRepositories(
     std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
 
-/// \brief Setup of a remote API based on just-mr arguments.
-[[nodiscard]] auto SetupRemoteApi(
+/// \brief Get a remote API instance based on just-mr arguments.
+/// \returns Pointer to a configured remote API, or nullptr.
+[[nodiscard]] auto GetRemoteApi(
     std::optional<std::string> const& remote_exec_addr,
     MultiRepoRemoteAuthArguments const& auth) -> IExecutionApi::Ptr;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
+/// \returns Flag stating whether a serve API is available or not.
 [[nodiscard]] auto SetupServeApi(
     std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) -> ServeApi::Ptr;
+    MultiRepoRemoteAuthArguments const& auth) -> bool;
 
 }  // namespace Utils
 
