@@ -142,17 +142,18 @@ namespace JustMR::Utils {
 
 /// \brief Recursive part of the ResolveRepo function.
 /// Keeps track of repository names to detect any cyclic dependencies.
-auto ResolveRepo(ExpressionPtr const& repo_desc,
-                 ExpressionPtr const& repos,
-                 gsl::not_null<std::unordered_set<std::string>*> const& seen)
+[[nodiscard]] auto ResolveRepo(
+    ExpressionPtr const& repo_desc,
+    ExpressionPtr const& repos,
+    gsl::not_null<std::unordered_set<std::string>*> const& seen)
     -> std::optional<ExpressionPtr>;
 
 /// \brief Resolves any cyclic dependency issues and follows the repository
 /// dependencies until the one containing the WS root is found.
 /// Returns a repository entry as an ExpressionPtr, or nullopt if cyclic
 /// dependency found.
-auto ResolveRepo(ExpressionPtr const& repo_desc,
-                 ExpressionPtr const& repos) noexcept
+[[nodiscard]] auto ResolveRepo(ExpressionPtr const& repo_desc,
+                               ExpressionPtr const& repos) noexcept
     -> std::optional<ExpressionPtr>;
 
 }  // namespace JustMR::Utils
