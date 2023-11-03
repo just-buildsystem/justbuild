@@ -27,6 +27,11 @@ cat > src/TARGETS <<'EOF'
   , "outs": ["hello.txt"]
   , "cmds": ["echo Hello World > hello.txt"]
   }
+, "symlink":
+  { "type": "generic"
+  , "outs": ["hello.txt", "content.txt"]
+  , "cmds": ["echo Hello World > content.txt", "ln -s content.txt hello.txt"]
+  }
 }
 EOF
 SRCDIR=$(realpath src)
@@ -65,5 +70,29 @@ ls -al "${OUTDIR}"
 cd "${OUTDIR}"
 grep World "${ID}"
 grep Original unrelated.txt
+
+# Verify non-interference of install symlinks (overwrite existing file)
+cd "${SRCDIR}"
+"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+
+echo
+ls -al "${OUTDIR}"
+cd "${OUTDIR}"
+grep World hello.txt
+grep Original unrelated.txt
+[ "$(realpath --relative-to=$(pwd) hello.txt)" = "content.txt" ]
+
+# Verify non-interference of install symlinks (overwrite existing symlink)
+rm -f ${OUTDIR}/hello.txt
+ln -s /noexistent ${OUTDIR}/hello.txt
+cd "${SRCDIR}"
+"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+
+echo
+ls -al "${OUTDIR}"
+cd "${OUTDIR}"
+grep World hello.txt
+grep Original unrelated.txt
+[ "$(realpath --relative-to=$(pwd) hello.txt)" = "content.txt" ]
 
 echo OK
