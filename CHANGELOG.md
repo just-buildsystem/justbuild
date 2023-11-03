@@ -21,6 +21,8 @@ Bug fixes on top of release `1.2.2`.
   some targets.
 - Fixed a race condition in an internal cache of `just execute` used for keeping
   track of running operations.
+- Also symlinks are properly unlinked before installing on that
+  location.
 
 ## Release `1.2.2` (2023-10-17)
 

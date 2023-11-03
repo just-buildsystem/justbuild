@@ -153,6 +153,11 @@ class FileSystemManager {
                             link.parent_path().string());
                 return false;
             }
+            if (not RemoveFile(link)) {
+                Logger::Log(
+                    log_failure_at, "can not remove file {}", link.string());
+                return false;
+            }
 #ifdef __unix__
             std::filesystem::create_directory_symlink(to, link);
             return std::filesystem::is_symlink(link);
@@ -344,7 +349,10 @@ class FileSystemManager {
                                   kSetEpochTime,
                                   kSetWritable>(src, dst, fd_less, opt);
             case ObjectType::Symlink:
-                return CopySymlinkAs<kSetEpochTime>(src, dst);
+                return CopySymlinkAs<kSetEpochTime>(
+                    src,
+                    dst,
+                    opt == std::filesystem::copy_options::overwrite_existing);
             case ObjectType::Tree:
                 break;
         }
@@ -441,7 +449,8 @@ class FileSystemManager {
             if (!std::filesystem::exists(status)) {
                 return true;
             }
-            if (!std::filesystem::is_regular_file(status)) {
+            if (!std::filesystem::is_regular_file(status) and
+                !std::filesystem::is_symlink(status)) {
                 return false;
             }
             return std::filesystem::remove(file);
@@ -1009,6 +1018,11 @@ class FileSystemManager {
                 std::filesystem::is_symlink(dst)) {
                 return false;
             }
+            if (not RemoveFile(dst)) {
+                Logger::Log(
+                    LogLevel::Error, "cannot remove file {}", dst.string());
+                return false;
+            }
             return std::filesystem::copy_file(src, dst, opt);
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
@@ -1023,6 +1037,11 @@ class FileSystemManager {
     [[nodiscard]] static auto WriteFileImpl(
         std::string const& content,
         std::filesystem::path const& file) noexcept -> bool {
+        if (not FileSystemManager::RemoveFile(file)) {
+            Logger::Log(
+                LogLevel::Error, "can not remove file {}", file.string());
+            return false;
+        }
         try {
             std::ofstream writer{file};
             if (!writer.is_open()) {
@@ -1139,6 +1158,12 @@ class FileSystemManager {
         [[nodiscard]] static auto CopyFile(char const* src,
                                            char const* dst,
                                            bool skip_existing) noexcept -> int {
+            if (not skip_existing) {
+                // remove dst if it exists
+                if (unlink(dst) != 0 and errno != ENOENT) {
+                    return PackError(ERROR_OPEN_OUTPUT, errno);
+                }
+            }
             // NOLINTNEXTLINE(hicpp-signed-bitwise)
             auto write_flags = kWriteFlags | (skip_existing ? O_EXCL : 0);
             auto out = FdOpener{dst, write_flags, kWritePerms};

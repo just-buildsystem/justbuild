@@ -532,15 +532,7 @@ class GraphTraverser {
         std::vector<std::filesystem::path> output_paths{};
         output_paths.reserve(rel_paths.size());
         for (auto const& rel_path : rel_paths) {
-            auto output_path = clargs_.stage->output_dir / rel_path;
-            if (FileSystemManager::IsFile(output_path) and
-                not FileSystemManager::RemoveFile(output_path)) {
-                Logger::Log(LogLevel::Error,
-                            "Could not clean output path {}",
-                            output_path.string());
-                return std::nullopt;
-            }
-            output_paths.emplace_back(std::move(output_path));
+            output_paths.emplace_back(clargs_.stage->output_dir / rel_path);
         }
         return output_paths;
     }
