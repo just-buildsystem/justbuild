@@ -24,9 +24,16 @@ namespace StorageUtils {
 auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
                 std::string const& repo_url) noexcept -> std::filesystem::path {
     if (just_mr_paths->git_checkout_locations.contains(repo_url)) {
-        return std::filesystem::absolute(ToNormalPath(std::filesystem::path{
-            just_mr_paths->git_checkout_locations[repo_url]
-                .get<std::string>()}));
+        if (just_mr_paths->git_checkout_locations[repo_url].is_string()) {
+            return std::filesystem::absolute(ToNormalPath(std::filesystem::path{
+                just_mr_paths->git_checkout_locations[repo_url]
+                    .get<std::string>()}));
+        }
+        Logger::Log(
+            LogLevel::Warning,
+            "Retrieving Git checkout location: key {} has non-string value {}",
+            nlohmann::json(repo_url).dump(),
+            just_mr_paths->git_checkout_locations[repo_url].dump());
     }
     auto repo_url_as_path = std::filesystem::absolute(
         ToNormalPath(std::filesystem::path(repo_url)));
