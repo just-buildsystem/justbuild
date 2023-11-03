@@ -190,7 +190,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["mirrors"]
   , "hdrs": ["mirrors.hpp"]
-  , "deps": [["@", "json", "", "json"]]
+  , "deps": [["@", "json", "", "json"], ["src/buildtool/logging", "logging"]]
   , "stage": ["src", "other_tools", "just_mr"]
   }
 }
