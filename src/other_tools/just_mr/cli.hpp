@@ -29,6 +29,7 @@
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 
 /// \brief Arguments common to all just-mr subcommands
@@ -38,6 +39,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> checkout_locations_file{std::nullopt};
     std::vector<std::string> explicit_distdirs{};
     LocalPathsPtr just_mr_paths = std::make_shared<LocalPaths>();
+    MirrorsPtr alternative_mirrors = std::make_shared<Mirrors>();
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
     CAInfoPtr ca_info = std::make_shared<CAInfo>();
     std::optional<std::filesystem::path> just_path{std::nullopt};

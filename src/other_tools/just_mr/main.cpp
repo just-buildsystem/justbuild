@@ -676,7 +676,7 @@ auto main(int argc, char* argv[]) -> int {
                 kDefaultDistdirs);
         }
 
-        // read checkout locations
+        // read checkout locations and alternative mirrors
         if (arguments.common.checkout_locations_file) {
             try {
                 std::ifstream ifs(*arguments.common.checkout_locations_file);
@@ -685,6 +685,12 @@ auto main(int argc, char* argv[]) -> int {
                     checkout_locations_json
                         .value("checkouts", nlohmann::json::object())
                         .value("git", nlohmann::json::object());
+                arguments.common.alternative_mirrors->local_mirrors =
+                    checkout_locations_json.value("local mirrors",
+                                                  nlohmann::json::object());
+                arguments.common.alternative_mirrors->preferred_hostnames =
+                    checkout_locations_json.value("preferred hostnames",
+                                                  nlohmann::json::array());
             } catch (std::exception const& e) {
                 Logger::Log(
                     LogLevel::Error,

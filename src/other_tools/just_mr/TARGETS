@@ -66,11 +66,11 @@
     , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/execution_api/local", "config"]
-    , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/logging", "log_level"]
+    , "mirrors"
+    , "utils"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
-  , "private-deps": [["src/buildtool/logging", "logging"]]
   }
 , "setup_utils":
   { "type": ["@", "rules", "CC", "library"]
@@ -185,5 +185,12 @@
     , ["src/utils/cpp", "file_locking"]
     , "setup_utils"
     ]
+  }
+, "mirrors":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mirrors"]
+  , "hdrs": ["mirrors.hpp"]
+  , "deps": [["@", "json", "", "json"]]
+  , "stage": ["src", "other_tools", "just_mr"]
   }
 }
