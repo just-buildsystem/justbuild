@@ -836,7 +836,7 @@ void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
-    std::size_t /* jobs */,
+    std::size_t jobs,
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api) {
     if (!cache_targets.empty()) {
@@ -844,8 +844,8 @@ void WriteTargetCacheEntries(
                     "Backing up artifacts of {} export targets",
                     cache_targets.size());
     }
-    auto downloader = [&local_api, &remote_api](auto infos) {
-        return remote_api->RetrieveToCas(infos, local_api);
+    auto downloader = [&local_api, &remote_api, &jobs](auto infos) {
+        return remote_api->ParallelRetrieveToCas(infos, local_api, jobs);
     };
     for (auto const& [key, target] : cache_targets) {
         if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {
@@ -1097,7 +1097,9 @@ auto main(int argc, char* argv[]) -> int {
                 if (build_result) {
                     WriteTargetCacheEntries(cache_targets,
                                             build_result->extra_infos,
-                                            arguments.common.jobs,
+                                            arguments.build.build_jobs > 0
+                                                ? arguments.build.build_jobs
+                                                : arguments.common.jobs,
                                             traverser.GetLocalApi(),
                                             traverser.GetRemoteApi());
 
