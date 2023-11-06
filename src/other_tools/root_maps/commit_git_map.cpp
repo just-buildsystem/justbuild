@@ -22,6 +22,7 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
+#include "src/other_tools/utils/curl_url_handle.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -87,6 +88,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
 void EnsureCommit(GitRepoInfo const& repo_info,
                   std::filesystem::path const& repo_root,
                   std::string const& fetch_repo,
+                  MirrorsPtr const& additional_mirrors,
                   GitCASPtr const& git_cas,
                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
                   gsl::not_null<ImportToGitMap*> const& import_to_git_map,
@@ -356,42 +358,138 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             return;
         }
         // store failed attempts for subsequent logging
-        std::string err_messages{};
-        auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [fetch_repo, &err_messages](auto const& msg, bool /*fatal*/) {
-                err_messages +=
-                    fmt::format("\nWhile attempting fetch from remote {}:\n{}",
-                                fetch_repo,
-                                msg);
-            });
-        // try the main fetch URL
         bool fetched{false};
-        if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                          fetch_repo,
+        std::string err_messages{};
+        // try local mirrors first
+        auto local_mirrors =
+            MirrorsUtils::GetLocalMirrors(additional_mirrors, fetch_repo);
+        for (auto mirror : local_mirrors) {
+            if (GitURLIsPath(mirror)) {
+                mirror = std::filesystem::absolute(mirror).string();
+            }
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
+                    err_messages += fmt::format(
+                        "\nWhile attempting fetch from local mirror "
+                        "{}:\n{}",
+                        mirror,
+                        msg);
+                });
+            if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                          mirror,
                                           repo_info.branch,
                                           git_bin,
                                           launcher,
                                           wrapped_logger)) {
-            // try to fetch from mirrors, in order, if given
-            for (auto mirror : repo_info.mirrors) {
-                if (GitURLIsPath(mirror)) {
-                    mirror = std::filesystem::absolute(mirror).string();
+                fetched = true;
+                break;
+            }
+        }
+        if (not fetched) {
+            // get preferred hostnames list
+            auto preferred_hostnames =
+                MirrorsUtils::GetPreferredHostnames(additional_mirrors);
+            // try first the main URL, but with each of the preferred hostnames,
+            // if URL is not a path
+            if (not GitURLIsPath(fetch_repo)) {
+                for (auto const& hostname : preferred_hostnames) {
+                    if (auto preferred_url = CurlURLHandle::ReplaceHostname(
+                            fetch_repo, hostname)) {
+                        auto wrapped_logger =
+                            std::make_shared<AsyncMapConsumerLogger>(
+                                [preferred_url, &err_messages](auto const& msg,
+                                                               bool /*fatal*/) {
+                                    err_messages += fmt::format(
+                                        "\nWhile attempting fetch from remote "
+                                        "{}:\n{}",
+                                        *preferred_url,
+                                        msg);
+                                });
+                        if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                                      *preferred_url,
+                                                      repo_info.branch,
+                                                      git_bin,
+                                                      launcher,
+                                                      wrapped_logger)) {
+                            fetched = true;
+                            break;
+                        }
+                    }
                 }
-                wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
+            }
+            if (not fetched) {
+                // now try the original main fetch URL
+                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                    [fetch_repo, &err_messages](auto const& msg,
+                                                bool /*fatal*/) {
                         err_messages += fmt::format(
-                            "\nWhile attempting fetch from mirror {}:\n{}",
-                            mirror,
+                            "\nWhile attempting fetch from remote {}:\n{}",
+                            fetch_repo,
                             msg);
                     });
-                if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                              mirror,
-                                              repo_info.branch,
-                                              git_bin,
-                                              launcher,
-                                              wrapped_logger)) {
-                    fetched = true;
-                    break;
+                if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                                  fetch_repo,
+                                                  repo_info.branch,
+                                                  git_bin,
+                                                  launcher,
+                                                  wrapped_logger)) {
+                    // now try to fetch from mirrors, in order, if given
+                    for (auto mirror : repo_info.mirrors) {
+                        if (GitURLIsPath(mirror)) {
+                            mirror = std::filesystem::absolute(mirror).string();
+                        }
+                        else {
+                            // if non-path, try each of the preferred hostnames
+                            for (auto const& hostname : preferred_hostnames) {
+                                if (auto preferred_mirror =
+                                        CurlURLHandle::ReplaceHostname(
+                                            mirror, hostname)) {
+                                    wrapped_logger = std::make_shared<
+                                        AsyncMapConsumerLogger>(
+                                        [preferred_mirror, &err_messages](
+                                            auto const& msg, bool /*fatal*/) {
+                                            err_messages += fmt::format(
+                                                "\nWhile attempting fetch from "
+                                                "mirror {}:\n{}",
+                                                *preferred_mirror,
+                                                msg);
+                                        });
+                                    if (git_repo->FetchViaTmpRepo(
+                                            tmp_dir->GetPath(),
+                                            *preferred_mirror,
+                                            repo_info.branch,
+                                            git_bin,
+                                            launcher,
+                                            wrapped_logger)) {
+                                        fetched = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (fetched) {
+                            break;
+                        }
+                        wrapped_logger =
+                            std::make_shared<AsyncMapConsumerLogger>(
+                                [mirror, &err_messages](auto const& msg,
+                                                        bool /*fatal*/) {
+                                    err_messages += fmt::format(
+                                        "\nWhile attempting fetch from mirror "
+                                        "{}:\n{}",
+                                        mirror,
+                                        msg);
+                                });
+                        if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                                      mirror,
+                                                      repo_info.branch,
+                                                      git_bin,
+                                                      launcher,
+                                                      wrapped_logger)) {
+                            fetched = true;
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -523,6 +621,7 @@ auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     LocalPathsPtr const& just_mr_paths,
+    MirrorsPtr const& additional_mirrors,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi* serve_api,
@@ -533,6 +632,7 @@ auto CreateCommitGitMap(
     auto commit_to_git = [critical_git_op_map,
                           import_to_git_map,
                           just_mr_paths,
+                          additional_mirrors,
                           git_bin,
                           launcher,
                           serve_api,
@@ -570,6 +670,7 @@ auto CreateCommitGitMap(
             [key,
              repo_root,
              fetch_repo,
+             additional_mirrors,
              critical_git_op_map,
              import_to_git_map,
              git_bin,
@@ -601,6 +702,7 @@ auto CreateCommitGitMap(
                 EnsureCommit(key,
                              repo_root,
                              fetch_repo,
+                             additional_mirrors,
                              op_result.git_cas,
                              critical_git_op_map,
                              import_to_git_map,

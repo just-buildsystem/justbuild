@@ -33,6 +33,7 @@
     [ ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/common", "user_structs"]
+    , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
@@ -47,6 +48,7 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
+    , ["src/other_tools/utils", "curl_url_handle"]
     ]
   }
 , "fpath_git_map":
