@@ -87,6 +87,15 @@ class IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api) noexcept -> bool = 0;
 
+    /// \brief A variant of RetrieveToCas that is allowed to internally use
+    /// the specified number of threads to carry out the task in parallel.
+    [[nodiscard]] virtual auto ParallelRetrieveToCas(
+        std::vector<Artifact::ObjectInfo> const& artifacts_info,
+        gsl::not_null<IExecutionApi*> const& api,
+        std::size_t /* jobs */) noexcept -> bool {
+        return RetrieveToCas(artifacts_info, api);
+    }
+
     /// \brief Retrieve one artifact from CAS and make it available for
     /// furter in-memory processing
     [[nodiscard]] virtual auto RetrieveToMemory(
