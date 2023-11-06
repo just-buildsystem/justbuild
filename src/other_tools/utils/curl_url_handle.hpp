@@ -100,6 +100,7 @@ class CurlURLHandle {
     /// It allows the user to be very permissive with the types of URL strings
     /// it can parse by providing configuration arguments that mirror those
     /// provided by the libcurl API (see libcurl docs for effects of each flag).
+    /// \param [in] ignore_fatal Do not log failure if error or exception.
     /// \returns Pointer to created object, nullptr on failure to parse with
     /// given arguments, or nullopt on an unexpected exception.
     [[nodiscard]] auto static CreatePermissive(
@@ -109,8 +110,8 @@ class CurlURLHandle {
         bool use_non_support_scheme = false,
         bool use_no_authority = false,
         bool use_path_as_is = false,
-        bool use_allow_space = false) noexcept
-        -> std::optional<CurlURLHandlePtr>;
+        bool use_allow_space = false,
+        bool ignore_fatal = false) noexcept -> std::optional<CurlURLHandlePtr>;
 
     /// \brief Creates a duplicate CurlURLHandle object.
     /// \returns Pointer to duplicated object, or nullptr on errors.
@@ -118,10 +119,12 @@ class CurlURLHandle {
 
     /// \brief Recomposes the URL from the fields in the stored handle.
     /// Flags parallel the libcurl API for handling the scheme and port fields.
+    /// \param [in] ignore_fatal Do not log failure if error or exception.
     /// \returns The recomposed URL as a string, or nullopt on errors.
     [[nodiscard]] auto GetURL(bool use_default_port = false,
                               bool use_default_scheme = false,
-                              bool use_no_default_port = false) noexcept
+                              bool use_no_default_port = false,
+                              bool ignore_fatal = false) noexcept
         -> std::optional<std::string>;
 
     /// \brief Gets the parsed scheme field.
