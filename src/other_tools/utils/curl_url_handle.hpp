@@ -91,8 +91,8 @@ class CurlURLHandle {
     /// \brief Creates a CurlURLHandle object by parsing the given URL.
     /// It performs also a normalization step of the path. Requires the protocol
     /// to be explicitly specified, i.e., it must have a non-empty scheme field.
-    /// Returns nullptr on failure to parse, and nullopt on an unexpected
-    /// exception.
+    /// \returns Pointer to created object, nullptr on failure to parse, or
+    /// nullopt on an unexpected exception.
     [[nodiscard]] auto static Create(std::string const& url) noexcept
         -> std::optional<CurlURLHandlePtr>;
 
@@ -100,8 +100,8 @@ class CurlURLHandle {
     /// It allows the user to be very permissive with the types of URL strings
     /// it can parse by providing configuration arguments that mirror those
     /// provided by the libcurl API (see libcurl docs for effects of each flag).
-    /// Returns nullptr on failure to parse with given arguments, and nullopt on
-    /// an unexpected exception.
+    /// \returns Pointer to created object, nullptr on failure to parse with
+    /// given arguments, or nullopt on an unexpected exception.
     [[nodiscard]] auto static CreatePermissive(
         std::string const& url,
         bool use_guess_scheme = false,
@@ -113,18 +113,20 @@ class CurlURLHandle {
         -> std::optional<CurlURLHandlePtr>;
 
     /// \brief Creates a duplicate CurlURLHandle object.
-    /// Returns nullptr on errors.
+    /// \returns Pointer to duplicated object, or nullptr on errors.
     [[nodiscard]] auto Duplicate() noexcept -> CurlURLHandlePtr;
 
     /// \brief Recomposes the URL from the fields in the stored handle.
     /// Flags parallel the libcurl API for handling the scheme and port fields.
-    /// Returns the recomposed URL as a string, or nullopt on errors.
+    /// \returns The recomposed URL as a string, or nullopt on errors.
     [[nodiscard]] auto GetURL(bool use_default_port = false,
                               bool use_default_scheme = false,
                               bool use_no_default_port = false) noexcept
         -> std::optional<std::string>;
 
     /// \brief Gets the parsed scheme field.
+    /// \returns Nullopt on errors, or an OptionalString containing either the
+    /// existing stored scheme or nullopt if scheme field is missing.
     [[nodiscard]] auto GetScheme(bool use_default_scheme = false) noexcept
         -> std::optional<OptionalString>;
 
@@ -132,19 +134,20 @@ class CurlURLHandle {
     /// don't contain special characters, gitconfig key URLs (*.<key>.*) allow
     /// asterisks ('*'). This function recognizes such hostnames and returns a
     /// struct containing all the relevant parsed fields required for matching.
-    /// Returns nullopt if errors, nullptr if unparsable.
+    /// \returns Pointer to said struct, nullopt if errors, nullptr if
+    /// unparsable.
     [[nodiscard]] auto static ParseConfigKey(std::string const& key) noexcept
         -> std::optional<GitConfigKeyPtr>;
 
     /// \brief Parses a given gitconfig key url component (e.g., http.<key>.*)
     /// and returns to what degree it matches the stored URL.
     /// In particular, a non-parsable key returns a non-match.
-    /// Returns nullopt on errors.
+    /// \returns Matching degree struct, or nullopt on errors.
     [[nodiscard]] auto MatchConfigKey(std::string const& key) noexcept
         -> std::optional<ConfigKeyMatchDegree>;
 
     /// \brief Checks if the stored URL matches a given "no_proxy"-style string.
-    /// Returns whether a match was found, or nullopt on errors.
+    /// \returns Whether a match was found, or nullopt on errors.
     [[nodiscard]] auto NoproxyStringMatches(
         std::string const& no_proxy) noexcept -> std::optional<bool>;
 
