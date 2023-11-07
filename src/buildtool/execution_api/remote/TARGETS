@@ -65,6 +65,7 @@
     [ "bazel_network"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/multithreading", "task_system"]
     ]
   }
 , "config":
