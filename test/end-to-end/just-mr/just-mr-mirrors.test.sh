@@ -103,6 +103,8 @@ readonly DISTFILES=${WRKDIR}/.distfiles
 mkdir -p ${DISTFILES}
 readonly DISTDIR_ARGS="--distdir ${DISTFILES}"
 
+### Using "mirrors" config field
+
 echo "Create repos.json"
 mkdir -p "${TEST_ROOT}"
 cd "${TEST_ROOT}"
@@ -164,6 +166,79 @@ cat > test-repos.json <<EOF
 EOF
 
 CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 setup --all)
+if [ ! -s "${CONFIG_CPP}" ]; then
+    exit 1
+fi
+
+### Using .just-local specifications
+
+rm -rf ${BUILDROOT}
+
+cat > test-repos.json <<EOF
+{ "repositories":
+  { "git_repo_1":
+    { "repository":
+      { "type": "git"
+      , "repository": "http://non-existent.example.org/dummy.git"
+      , "branch": "test"
+      , "commit": "${GIT_REPO_COMMIT}"
+      , "subdir": "foo"
+      }
+    }
+  , "git_repo_2":
+    { "repository":
+      { "type": "git"
+      , "repository": "http://non-existent.example.org/dummy.git"
+      , "branch": "test"
+      , "commit": "${GIT_REPO_COMMIT}"
+      , "subdir": "."
+      }
+    }
+  , "zip_repo":
+    { "repository":
+      { "type": "zip"
+      , "content": "${ZIP_REPO_CONTENT}"
+      , "distfile": "zip_repo.zip"
+      , "fetch": "http://non-existent.example.org/zip_repo.zip"
+      , "sha256": "${ZIP_REPO_SHA256}"
+      , "sha512": "${ZIP_REPO_SHA512}"
+      , "subdir": "root"
+      , "pragma": {"special": "resolve-partially"}
+      }
+    }
+  , "tgz_repo":
+    { "repository":
+      { "type": "archive"
+      , "content": "${TGZ_REPO_CONTENT}"
+      , "distfile": "tgz_repo.tar.gz"
+      , "fetch": "http://non-existent.example.org:${port_num}/tgz_repo.tar.gz"
+      , "sha256": "${TGZ_REPO_SHA256}"
+      , "sha512": "${TGZ_REPO_SHA512}"
+      , "subdir": "root/baz"
+      , "pragma": {"special": "ignore"}
+      }
+    }
+  }
+}
+EOF
+
+cat > just-local.json <<EOF
+{ "local mirrors":
+  { "http://non-existent.example.org/dummy.git":
+    [ "http://non-existent.example.org/dummy.git"
+    , "${GIT_ROOT}"
+    ]
+  , "http://non-existent.example.org/zip_repo.zip":
+    [ "http://non-existent.example.org/zip_repo.zip"
+    , "http://127.0.0.1:${port_num}/zip_repo.zip"
+    ]
+  }
+, "preferred hostnames":
+  ["non-existent.example.org", "127.0.0.1"]
+}
+EOF
+
+CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 setup --all)
 if [ ! -s "${CONFIG_CPP}" ]; then
     exit 1
 fi
