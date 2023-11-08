@@ -98,9 +98,9 @@ class Artifact {
         [[nodiscard]] static auto FromJson(nlohmann::json const& j)
             -> std::optional<ObjectInfo> {
             if (j.is_object() and j["id"].is_string() and
-                j["size"].is_number() and j["type"].is_string()) {
+                j["size"].is_number() and j["file_type"].is_string()) {
                 auto const& object_type =
-                    FromChar(*(j["type"].get<std::string>().c_str()));
+                    FromChar(*(j["file_type"].get<std::string>().c_str()));
                 return ObjectInfo{
                     .digest = ArtifactDigest{j["id"].get<std::string>(),
                                              j["size"].get<std::size_t>(),

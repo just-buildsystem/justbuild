@@ -46,6 +46,17 @@
     ]
   , "stage": ["test", "buildtool", "common"]
   }
+, "artifact_object_info":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["artifact_object_info"]
+  , "srcs": ["artifact_object_info.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    ]
+  , "stage": ["test", "buildtool", "common"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -54,6 +65,7 @@
     , "artifact_description"
     , "artifact_factory"
     , "repository_config"
+    , "artifact_object_info"
     ]
   }
 }
