@@ -49,11 +49,11 @@ has access to the respective project. In order to avoid polluting
 a multi-repository specification with the URLs of such restricted
 mirrors, the `.just-local` file is extended to support additional
 keys in its JSON object.
-- For the optional key `"additional mirrors"`, if given, a JSON object
+- For the optional key `"local mirrors"`, if given, a JSON object
   is specified that maps primary URLs to a list of local (non-public)
   mirrors. Those mirrors are always tried first (in the given order)
   before any other URL is contacted.
-- For the optional key `"preferred mirrors"`, if given, a list of
+- For the optional key `"preferred hostnames"`, if given, a list of
   host names is specified. When fetching from a non-local URL, URLs
   with host names in the given list are preferred (in the order
   given) over URLs with other host names.
