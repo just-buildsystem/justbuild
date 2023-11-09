@@ -61,6 +61,7 @@
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/other_tools/just_mr", "mirrors"]
     , ["src/utils/cpp", "hash_combine"]
     , ["@", "json", "", "json"]
     ]

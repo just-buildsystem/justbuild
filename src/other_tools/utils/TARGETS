@@ -38,9 +38,11 @@
   , "hdrs": ["content.hpp"]
   , "deps":
     [ "curl_easy_handle"
+    , "curl_url_handle"
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/other_tools/just_mr", "mirrors"]
     ]
   , "stage": ["src", "other_tools", "utils"]
   }

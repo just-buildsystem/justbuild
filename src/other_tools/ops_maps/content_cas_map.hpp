@@ -24,6 +24,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
@@ -65,6 +66,7 @@ struct ArchiveRepoInfo {
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
 
 [[nodiscard]] auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
+                                       MirrorsPtr const& additional_mirrors,
                                        CAInfoPtr const& ca_info,
                                        IExecutionApi* local_api,
                                        IExecutionApi* remote_api,

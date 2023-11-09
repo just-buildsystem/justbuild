@@ -277,6 +277,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     // create async maps
     auto content_cas_map =
         CreateContentCASMap(common_args.just_mr_paths,
+                            common_args.alternative_mirrors,
                             common_args.ca_info,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,

@@ -302,6 +302,7 @@ auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     LocalPathsPtr const& just_mr_paths,
+    MirrorsPtr const& additional_mirrors,
     CAInfoPtr const& ca_info,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
@@ -315,6 +316,7 @@ auto CreateContentGitMap(
                            resolve_symlinks_map,
                            critical_git_op_map,
                            just_mr_paths,
+                           additional_mirrors,
                            ca_info,
                            serve_api,
                            local_api,
@@ -505,6 +507,7 @@ auto CreateContentGitMap(
                                  sha256 = key.archive.sha256,
                                  sha512 = key.archive.sha512,
                                  pragma_special = key.pragma_special,
+                                 additional_mirrors,
                                  ca_info,
                                  origin = key.archive.origin,
                                  absent = key.absent,
@@ -708,20 +711,12 @@ auto CreateContentGitMap(
                                             /*fatal=*/true);
                                         return;
                                     }
-                                    // now do the actual fetch; first, try the
-                                    // main fetch URL
-                                    auto data =
-                                        NetworkFetch(fetch_url, ca_info);
-                                    if (not data) {
-                                        // try the mirrors, in order, if given
-                                        for (auto const& mirror : mirrors) {
-                                            data =
-                                                NetworkFetch(mirror, ca_info);
-                                            if (data) {
-                                                break;
-                                            }
-                                        }
-                                    }
+                                    // now do the actual fetch
+                                    auto data = NetworkFetchWithMirrors(
+                                        fetch_url,
+                                        mirrors,
+                                        ca_info,
+                                        additional_mirrors);
                                     if (not data) {
                                         (*logger)(
                                             fmt::format("Failed to fetch a "

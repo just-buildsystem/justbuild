@@ -20,18 +20,23 @@
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/content.hpp"
+#include "src/other_tools/utils/curl_url_handle.hpp"
 
 auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
+                         MirrorsPtr const& additional_mirrors,
                          CAInfoPtr const& ca_info,
                          IExecutionApi* local_api,
                          IExecutionApi* remote_api,
                          std::size_t jobs) -> ContentCASMap {
-    auto ensure_in_cas = [just_mr_paths, ca_info, local_api, remote_api](
-                             auto /*unused*/,
-                             auto setter,
-                             auto logger,
-                             auto /*unused*/,
-                             auto const& key) {
+    auto ensure_in_cas = [just_mr_paths,
+                          additional_mirrors,
+                          ca_info,
+                          local_api,
+                          remote_api](auto /*unused*/,
+                                      auto setter,
+                                      auto logger,
+                                      auto /*unused*/,
+                                      auto const& key) {
         // check if content already in CAS
         auto const& cas = Storage::Instance().CAS();
         auto digest = ArtifactDigest(key.content, 0, false);
@@ -69,17 +74,9 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                       /*fatal=*/true);
             return;
         }
-        // now do the actual fetch; first, try the main fetch URL
-        auto data = NetworkFetch(key.fetch_url, ca_info);
-        if (not data) {
-            // try the mirrors, in order, if given
-            for (auto const& mirror : key.mirrors) {
-                data = NetworkFetch(mirror, ca_info);
-                if (data) {
-                    break;
-                }
-            }
-        }
+        // now do the actual fetch
+        auto data = NetworkFetchWithMirrors(
+            key.fetch_url, key.mirrors, ca_info, additional_mirrors);
         if (not data) {
             (*logger)(fmt::format("Failed to fetch a file with id {} from "
                                   "provided remotes",
