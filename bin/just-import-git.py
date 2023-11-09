@@ -125,7 +125,8 @@ def get_base_config(repository_config: Optional[str]) -> Optional[Json]:
     fail('Could not get base config')
 
 
-def clone(url: str, branch: str) -> Tuple[str, Dict[str, str], str]:
+def clone(url: str, branch: str,
+          mirrors: List[str]) -> Tuple[str, Dict[str, Any], str]:
     # clone the given git repository, checkout the specified
     # branch, and return the checkout location
     workdir: str = tempfile.mkdtemp()
@@ -136,12 +137,14 @@ def clone(url: str, branch: str) -> Tuple[str, Dict[str, str], str]:
                           cwd=srcdir,
                           stdout=subprocess.PIPE).decode('utf-8').strip()
     log("Importing commit %s" % (commit, ))
-    repo: Dict[str, str] = {
+    repo: Dict[str, Any] = {
         "type": "git",
         "repository": url,
         "branch": branch,
         "commit": commit,
     }
+    if mirrors:
+        repo = dict(repo, **{"mirrors": mirrors})
     return srcdir, repo, workdir
 
 
@@ -220,7 +223,7 @@ def name_imports(to_import: List[str],
     return assign
 
 
-def rewrite_repo(repo_spec: Json, *, remote: Dict[str, str],
+def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
                  assign: Json) -> Json:
     new_spec: Json = {}
     repo = repo_spec.get("repository", {})
@@ -255,7 +258,7 @@ def rewrite_repo(repo_spec: Json, *, remote: Dict[str, str],
 def handle_import(args: Namespace) -> Json:
     base_config: Json = cast(Json, get_base_config(args.repository_config))
     base_repos: Json = base_config.get("repositories", {})
-    srcdir, remote, to_cleanup = clone(args.URL, args.branch)
+    srcdir, remote, to_cleanup = clone(args.URL, args.branch, args.mirrors)
     if args.foreign_repository_config:
         foreign_config_file = args.foreign_repository_config
     else:
@@ -355,6 +358,12 @@ def main():
         "Map the specified foreign repository to the specified existing repository",
         action="append",
         default=[])
+    parser.add_argument("--mirror",
+                        dest="mirrors",
+                        help="Alternative fetch locations for the repository",
+                        action="append",
+                        default=[],
+                        metavar="URL")
     parser.add_argument('URL')
     parser.add_argument('foreign_repository_name', nargs='?')
     args = parser.parse_args()
