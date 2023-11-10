@@ -74,14 +74,24 @@ set in the **`just-mrrc`**(5) file.
 Default: path *`".cache/just"`* in user's home directory.
 
 **`--checkout-locations`** *`PATH`*  
-Specification file for checkout locations. This file contains a JSON
-object, for which under the key *`"<version control>"`* of key
-*`"checkouts"`* we get pairs of repository URLs as keys and absolute
-paths as values. Currently supported version control is Git, therefore
-the respective key is *`"git"`*. The paths contained for each repository
-URL point to existing locations on the filesystem containing the
-checkout of the respective repository. This options overwrites any
-values set in the **`just-mrrc`**(5) file.  
+Specification file for checkout locations and additional mirrors.
+This file contains a JSON object with several known keys:
+
+ - the key *`"<version control>"`* of key *`"checkouts"`* specifies
+   pairs of repository URLs as keys and absolute paths as values.
+   Currently supported version control is Git, therefore
+   the respective key is *`"git"`*. The paths contained for each repository
+   URL point to existing locations on the filesystem containing the
+   checkout of the respective repository.  
+ - the key *`"local mirrors"`*, if given, is a JSON object mapping primary
+   URLs to a list of local (non-public) mirrors. These mirrors are always
+   tried first (in the given order) before any other URL is contacted.
+ - the key *`"preferred hostnames"`*, if given, is a list of strings
+   specifying known hostnames. When fetching from a non-local URL, URLs
+   with hostnames in the given list are preferred (in the order given)
+   over URLs with other hostnames.
+
+This options overwrites any values set in the **`just-mrrc`**(5) file.  
 Default: file path *`".just-local.json"`* in user's home directory.
 
 **`-L`**, **`--local-launcher`** *`JSON_ARRAY`*  

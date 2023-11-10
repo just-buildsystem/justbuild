@@ -60,8 +60,8 @@ The just-mrrc is given by a JSON object.
    details, see **`just-mr`**(1).
 
  - The value for the key *`"checkout locations"`* is a single location
-   object, specifying the path to the file for checkout locations. For
-   more details, see **`just-mr`**(1).
+   object, specifying the path to the file describing checkout locations
+   and additional mirror locations. For more details, see **`just-mr`**(1).
 
  - The value for the key *`"distdirs"`* is a JSON list of location
    objects, specifying where to look for distribution files (usually

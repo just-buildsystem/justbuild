@@ -82,6 +82,14 @@ for a single repository. Useful, if the repository to be imported does
 not have a repository configuration or should be imported without
 dependencies.
 
+**`--mirror`** *`URL`*
+Provides an alternative fetch location for the imported repository.
+Specifying this option multiple times will accumulate URLs in the order
+they appear on the command line. These URLs will not be used during the
+import, but instead will be recorded as the value of the `"mirrors"` key
+in the resulting configuration of the imported repository.
+See **`just-mr-repository-config`**(5).
+
 See also
 ========
 

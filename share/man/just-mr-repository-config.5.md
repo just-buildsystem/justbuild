@@ -59,6 +59,10 @@ The following fields are supported:
    This entry is optional. If missing, the basename of the fetch URL is
    used.
 
+ - *`"mirrors"`* is an optional list of alternative locations to try to
+   fetch from if contacting the main fetch location fails. This entry is
+   optional.
+
  - *`"sha256"`*,
 
  - *`"sha512"`* provide optional checksum hashes in order to verify the
@@ -85,6 +89,10 @@ The following fields are supported:
 
  - *`"branch"`* provides the branch name, with the promise that it
    contains the aforementioned commit. This entry is mandatory.
+
+ - *`"mirrors"`* is an optional list of alternative locations to try to
+   fetch from if contacting the main repository fails. This entry is
+   optional.
 
  - *`"subdir"`* specifies the subdirectory containing the distribution
    files. This entry is optional. If missing, the root directory of the
