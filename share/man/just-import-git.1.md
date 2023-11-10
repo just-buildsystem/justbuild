@@ -54,8 +54,8 @@ recorded as the branch to follow. Defaults to *`"master"`*.
 Use the specified file as the configuration to import into. The string
 *`-`* is treated as a request to take the config from stdin; so a file
 called *`-`* has to be described as *`.`*/*`-`*, or similar. If not
-specified, for a config file is searched in the same way, as **`just-mr`**
-does, when invoked with **`--norc`**.
+specified, a config file is searched for in the same way as **`just-mr`**
+does when invoked with **`--norc`**.
 
 **`-h`**, **`--help`**  
 Output a usage message and exit.
