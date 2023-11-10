@@ -92,8 +92,25 @@ The following fields are supported:
 
 ### *`"git tree"`*
 
-It defines as workspace root a known Git tree obtainable by a generic
-command.
+It defines as workspace root as a fixed `git` tree, given by the
+corresponding tree identifier. If that tree is not known already to
+`just-mr`, a specified command will be executed in a fresh directory
+that is expected to produce the given tree somewhere below the
+working directory.
+
+This type of root is the way builds against sources versioned in
+arbitrary version-control systems can be carried out. The command
+then would be a call to the version control system requesting an
+export at a particular version.
+
+As the root is already fully determined by the specified `git` tree
+identifier, the corresponding action need not be fully isolated.
+In fact, to check out a repository it might be necessary to provide
+credentials (which do not matter for the checked-out tree, but
+differ from user to user). To support this, the description of the
+root can specify environment variables to inherit from the ambient
+environment. E.g., `SSH_AUTH_SOCK` can be specified here to support
+`ssh`-based authentication.
 
 The following fields are supported:
 
@@ -107,6 +124,9 @@ The following fields are supported:
 
  - *`"env"`* provides a map of envariables to be set for executing the
    command.
+
+ - *`"inherit env"`* provides a list of variables to be inherited from the
+   environment `just-mr` is called within, if set there.
 
 ### *`"distdir"`*
 
