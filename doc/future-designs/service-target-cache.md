@@ -223,17 +223,10 @@ If the _target root_ is marked as absent:
    serve` cannot answer, we break the analysis and inform the user with a proper
    error message.
 
-Once we know the flexible configuration variables, during the computation of the
-`TargetCacheKey`, we need to verify if any of the (recursively) referenced trees
-is absent (`ComputeTargetCacheKey`) -- this is checked while building the
-repository graph. Once the target cache key is computed, we first verify if we
-have it locally. If not and if at least one tree is absent:
- - query `just serve` to get the target cache value for the given key. Note that
-   even if `just serve` cannot provide the target cache value, we can continue
-   the analysis in the hope that the absent tree is guarded by a closer (inner)
-   export target. The analysis will fail if, in the continuation, no suitable
-   target cache values can be retrieved from `just serve`.
-
+ - once we know the flexible configuration variables, we compute the
+   `TargetCacheKey`. If it is not in the local target cache, we query `just
+   serve` to get the target cache value for the given key. If it is not able to
+   provide the target cache value, we error out.
 
 ### Auxiliary changes
 
