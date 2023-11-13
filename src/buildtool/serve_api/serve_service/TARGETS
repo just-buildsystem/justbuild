@@ -53,6 +53,12 @@
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/execution_api/execution_service", "execution_server"]
+    , ["src/buildtool/execution_api/execution_service", "ac_server"]
+    , ["src/buildtool/execution_api/execution_service", "cas_server"]
+    , ["src/buildtool/execution_api/execution_service", "bytestream_server"]
+    , ["src/buildtool/execution_api/execution_service", "capabilities_server"]
+    , ["src/buildtool/execution_api/execution_service", "operations_server"]
     ]
   }
 }

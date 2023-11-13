@@ -47,7 +47,7 @@ class ServeServerImpl {
     ServeServerImpl(ServeServerImpl&&) noexcept = delete;
     auto operator=(ServeServerImpl&&) noexcept -> ServeServerImpl& = delete;
 
-    auto Run() -> bool;
+    auto Run(bool with_execute) -> bool;
     ~ServeServerImpl() = default;
 
   private:

@@ -25,6 +25,12 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/execution_api/execution_service/ac_server.hpp"
+#include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
+#include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
+#include "src/buildtool/execution_api/execution_service/cas_server.hpp"
+#include "src/buildtool/execution_api/execution_service/execution_server.hpp"
+#include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -46,12 +52,43 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }
 }  // namespace
 
-auto ServeServerImpl::Run() -> bool {
+auto ServeServerImpl::Run(bool with_execute) -> bool {
+    // make sure the git root directory is properly initialized
+    if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
+        Logger::Log(LogLevel::Error,
+                    "Could not create directory {}. Aborting",
+                    StorageConfig::GitRoot().string());
+        return false;
+    }
+    if (not GitRepo::InitAndOpen(StorageConfig::GitRoot(), true)) {
+        Logger::Log(LogLevel::Error,
+                    fmt::format("could not initialize bare git repository {}",
+                                StorageConfig::GitRoot().string()));
+        return false;
+    }
+
     SourceTreeService sts{};
 
     grpc::ServerBuilder builder;
 
     builder.RegisterService(&sts);
+
+    // the user has not given any remote-execution endpoint
+    // so we start a "just-execute instance" on the same process
+    [[maybe_unused]] ExecutionServiceImpl es{};
+    [[maybe_unused]] ActionCacheServiceImpl ac{};
+    [[maybe_unused]] CASServiceImpl cas{};
+    [[maybe_unused]] BytestreamServiceImpl b{};
+    [[maybe_unused]] CapabilitiesServiceImpl cap{};
+    [[maybe_unused]] OperarationsServiceImpl op{};
+    if (with_execute) {
+        builder.RegisterService(&es)
+            .RegisterService(&ac)
+            .RegisterService(&cas)
+            .RegisterService(&b)
+            .RegisterService(&cap)
+            .RegisterService(&op);
+    }
 
     std::shared_ptr<grpc::ServerCredentials> creds;
     if (Auth::GetAuthMethod() == AuthMethod::kTLS) {
@@ -69,26 +106,19 @@ auto ServeServerImpl::Run() -> bool {
         creds = grpc::InsecureServerCredentials();
     }
 
-    // make sure the git root directory is properly initialized
-    if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
-        Logger::Log(LogLevel::Error,
-                    "Could not create directory {}. Aborting",
-                    StorageConfig::GitRoot().string());
-        return false;
-    }
-    if (not GitRepo::InitAndOpen(StorageConfig::GitRoot(), true)) {
-        Logger::Log(LogLevel::Error,
-                    fmt::format("could not initialize bare git repository {}",
-                                StorageConfig::GitRoot().string()));
-        return false;
-    }
-
     builder.AddListeningPort(
         fmt::format("{}:{}", interface_, port_), creds, &port_);
 
     auto server = builder.BuildAndStart();
     if (!server) {
         Logger::Log(LogLevel::Error, "Could not start serve service");
+        return false;
+    }
+
+    if (with_execute and !RemoteExecutionConfig::SetRemoteAddress(
+                             fmt::format("{}:{}", interface_, port_))) {
+        Logger::Log(LogLevel::Error,
+                    "Internal error: cannot set the remote address");
         return false;
     }
 
@@ -106,8 +136,10 @@ auto ServeServerImpl::Run() -> bool {
 
     auto const& info_str = nlohmann::to_string(info);
     Logger::Log(LogLevel::Info,
-                fmt::format("{}serve service started: {}",
+                fmt::format("{}serve{} service{} started: {}",
                             Compatibility::IsCompatible() ? "compatible " : "",
+                            with_execute ? " and execute" : "",
+                            with_execute ? "s" : "",
                             info_str));
 
     if (!info_file_.empty()) {
