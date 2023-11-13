@@ -34,7 +34,9 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/serve_api/serve_service/configuration.hpp"
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
+#include "src/buildtool/serve_api/serve_service/target.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 namespace {
@@ -68,10 +70,14 @@ auto ServeServerImpl::Run(bool with_execute) -> bool {
     }
 
     SourceTreeService sts{};
+    TargetService ts{};
+    ConfigurationService cs{};
 
     grpc::ServerBuilder builder;
 
     builder.RegisterService(&sts);
+    builder.RegisterService(&ts);
+    builder.RegisterService(&cs);
 
     // the user has not given any remote-execution endpoint
     // so we start a "just-execute instance" on the same process

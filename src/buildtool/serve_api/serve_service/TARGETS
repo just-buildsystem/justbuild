@@ -46,6 +46,8 @@
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
     [ "source_tree"
+    , "target_service"
+    , "configuration_service"
     , ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "json", "", "json"]
@@ -60,5 +62,42 @@
     , ["src/buildtool/execution_api/execution_service", "capabilities_server"]
     , ["src/buildtool/execution_api/execution_service", "operations_server"]
     ]
+  }
+, "target_service":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_service"]
+  , "hdrs": ["target.hpp"]
+  , "srcs": ["target.cpp"]
+  , "proto": ["just_serve_proto"]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_api/common", "create_execution_api"]
+    ]
+  , "stage": ["src", "buildtool", "serve_api", "serve_service"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "verify_hash"]
+    ]
+  }
+, "configuration_service":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["configuration_service"]
+  , "hdrs": ["configuration.hpp"]
+  , "srcs": ["configuration.cpp"]
+  , "proto": ["just_serve_proto"]
+  , "stage": ["src", "buildtool", "serve_api", "serve_service"]
+  , "private-deps": [["src/buildtool/execution_api/remote", "config"]]
   }
 }
