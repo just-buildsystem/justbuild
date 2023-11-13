@@ -611,6 +611,24 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
             }
         }
     }
+    std::vector<std::string> inherit_env{};
+    auto repo_desc_inherit_env =
+        repo_desc->Get("inherit env", Expression::none_t{});
+    if (repo_desc_inherit_env.IsNotNull() and repo_desc_inherit_env->IsList()) {
+        for (auto const& envvar : repo_desc_inherit_env->List()) {
+            if (envvar->IsString()) {
+                inherit_env.emplace_back(envvar->String());
+            }
+            else {
+                (*logger)(
+                    fmt::format("GitTreeCheckout: Not a variable name in the "
+                                "specification of \"inherit env\": {}",
+                                envvar->ToString()),
+                    /*fatal=*/true);
+                return;
+            }
+        }
+    }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
     auto pragma_special = repo_desc_pragma
@@ -632,6 +650,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
     TreeIdInfo tree_id_info = {
         .hash = repo_desc_hash->get()->String(),
         .env_vars = std::move(env),
+        .inherit_env = std::move(inherit_env),
         .command = std::move(cmd),
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
         .absent = not fetch_absent and pragma_absent_value};

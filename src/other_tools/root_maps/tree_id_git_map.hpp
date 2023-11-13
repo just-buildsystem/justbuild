@@ -17,6 +17,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
@@ -25,6 +26,7 @@
 struct TreeIdInfo {
     std::string hash{}; /* key */
     std::map<std::string, std::string> env_vars{};
+    std::vector<std::string> inherit_env{};
     std::vector<std::string> command{};
     // name of repository for which work is done; used in progress reporting
     std::string origin{};

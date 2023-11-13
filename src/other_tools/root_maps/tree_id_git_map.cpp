@@ -14,6 +14,8 @@
 
 #include "src/other_tools/root_maps/tree_id_git_map.hpp"
 
+#include <cstdlib>
+
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
@@ -167,11 +169,15 @@ auto CreateTreeIdGitMap(
                     std::copy(key.command.begin(),
                               key.command.end(),
                               std::back_inserter(cmdline));
-                    auto const command_output =
-                        system.Execute(cmdline,
-                                       key.env_vars,
-                                       tmp_dir->GetPath(),
-                                       out_dir->GetPath());
+                    std::map<std::string, std::string> env{key.env_vars};
+                    for (auto const& k : key.inherit_env) {
+                        const char* v = std::getenv(k.c_str());
+                        if (v != nullptr) {
+                            env[k] = std::string(v);
+                        }
+                    }
+                    auto const command_output = system.Execute(
+                        cmdline, env, tmp_dir->GetPath(), out_dir->GetPath());
                     if (not command_output) {
                         (*logger)(fmt::format("Failed to execute command:\n{}",
                                               nlohmann::json(cmdline).dump()),
