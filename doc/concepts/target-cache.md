@@ -173,7 +173,7 @@ can be exponentially larger than the value.
 Therefore, in our serialisation, we add an entry for every subexpression
 and separately add a list of which subexpressions are artifacts, nodes,
 or results. During deserialisation, we use this subexpression structure
-to deserialize every subexpression only one.
+to deserialize every subexpression only once.
 
 Sharding of target cache
 ------------------------
