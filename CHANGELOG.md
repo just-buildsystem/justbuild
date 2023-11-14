@@ -4,13 +4,21 @@ Bug fixes on top of release `1.2.2`.
 
 ### Fixes
 
-- The cache key used for an export target is now based on the export
-  target itself rather than that of the exported target. The latter
-  could lead to spourious cache hits, but only in the case where
-  an explicit file reference was exported and an regular target
-  with the same name exists. Where the new cache keys overlap with
-  the old ones, they refer to the same configured targets; so no
-  special action is to be taken when updating.
+- The cache key used for an export target is now based on the
+  export target itself rather than that of the exported target. The
+  latter could lead to spurious cache hits, but only in the case
+  where the exported target was an explicit file reference, and a
+  regular target with the same name existed as well. Where the new
+  cache keys would overlap with the old ones, they would refer to
+  the same configured targets. However, we used the fact that we
+  changed the target cache key to also clean up the serialization
+  format to only contain the JSON object describing repository,
+  target, and effective configuration, instead of a singleton list
+  containing this object. Therefore, old and new cache keys do not
+  overlap at all. In particular, no special care has to be taken
+  on upgrading or downgrading. However, old target-level cache
+  entries will not be used leading potentially to rebuilding of
+  some targets.
 - Fixed a race condition in an internal cache of `just execute` used for keeping
   track of running operations.
 
