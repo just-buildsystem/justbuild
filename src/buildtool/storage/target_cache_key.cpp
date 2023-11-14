@@ -31,10 +31,10 @@ auto TargetCacheKey::Create(std::string const& repo_key,
     try {
         // target's repository is content-fixed, we can compute a cache key
         auto target_desc = nlohmann::json{
-            {{"repo_key", repo_key},
-             {"target_name",
-              nlohmann::json{target_name.module, target_name.name}.dump()},
-             {"effective_config", effective_config.ToString()}}};
+            {"repo_key", repo_key},
+            {"target_name",
+             nlohmann::json{target_name.module, target_name.name}.dump()},
+            {"effective_config", effective_config.ToString()}};
         if (auto target_key = Storage::Instance().CAS().StoreBlob(
                 target_desc.dump(2), /*is_executable=*/false)) {
             return TargetCacheKey{
