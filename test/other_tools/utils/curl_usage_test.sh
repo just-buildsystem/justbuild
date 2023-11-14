@@ -43,10 +43,15 @@ python3 -u "${ROOT}/utils/run_test_server.py" "${port_file}" & server_pid=$!
 # set up cleanup of http server
 trap "server_cleanup ${server_pid}" INT TERM EXIT
 # wait for the server to be available
-while  [ -z "$(cat "${port_file}")" ]
+tries=0
+while [ -z "$(cat "${port_file}")" ] && [ $tries -lt 10 ]
 do
+    tries=$((${tries}+1))
     sleep 1s
 done
+if [ -z "$(cat ${port_file})" ]; then
+    exit 1
+fi
 
 cd "${ROOT}"
 
