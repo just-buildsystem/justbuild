@@ -75,6 +75,8 @@ SERVE_DIR = os.path.realpath("serve")
 os.makedirs(SERVE_DIR, exist_ok=True)
 SERVE_LBR = os.path.join(SERVE_DIR, "build-root")
 
+compatible = json.loads(sys.argv[1])
+
 remote_proc = None
 
 # start just execute as remote service
@@ -95,6 +97,9 @@ remote_cmd = [
     "6",
     "--plain-log",
 ]
+
+if compatible:
+    remote_cmd.append("--compatible")
 
 remotestdout = open("remotestdout", "w")
 remotestderr = open("remotestderr", "w")
@@ -123,7 +128,8 @@ serve_config: Json = {
         "plain": True
     },
     "execution endpoint": {
-        "address": g_REMOTE_EXECUTION_ADDRESS
+        "address": g_REMOTE_EXECUTION_ADDRESS,
+        "compatible": compatible
     },
     "remote service": {
         "info file": SERVE_INFO
@@ -219,7 +225,9 @@ ENV = dict(
     SERVE_LBR=SERVE_LBR,  # expose the serve build root to the test env
     **repos_env)
 
-if "COMPATIBLE" in ENV:
+if compatible:
+    ENV["COMPATIBLE"] = "YES"
+elif "COMPATIBLE" in ENV:
     del ENV["COMPATIBLE"]
 
 for k in ["TLS_CA_CERT", "TLS_CLIENT_CERT", "TLS_CLIENT_KEY"]:

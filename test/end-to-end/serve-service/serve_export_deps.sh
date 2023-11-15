@@ -31,6 +31,11 @@ readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly LOCAL_DIR="${TEST_TMPDIR}/local"
 readonly ABSENT_DIR="${TEST_TMPDIR}/absent"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 # Set up sample repository
 readonly GENERATOR="${TEST_TMPDIR}/generate.sh"
 readonly GEN_DIR="{TEST_TMPDIR}/gen-dir"
@@ -81,7 +86,7 @@ cat repos.json
 
 CONF=$("${JUST_MR}" --norc --local-build-root "${SERVE_LBR}" setup)
 cat "${CONF}"
-"${JUST}" build --local-build-root "${SERVE_LBR}" -C "${CONF}" -r ${REMOTE_EXECUTION_ADDRESS} main
+"${JUST}" build --local-build-root "${SERVE_LBR}" -C "${CONF}" -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
 )
 
 # Set up local repository
@@ -149,11 +154,15 @@ echo
 
 rm "${GENERATOR}"
 
-CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" setup --all)
+CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" ${COMPAT} setup --all)
 cat "${CONF}"
 echo
 
 # test that we can successfully compile using just serve
-"${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" --remote-serve-address ${SERVE} -r ${REMOTE_EXECUTION_ADDRESS} main
-"${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" --remote-serve-address ${SERVE} -r ${REMOTE_EXECUTION_ADDRESS} main
+"${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" \
+                --remote-serve-address ${SERVE} \
+                -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
+"${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" \
+                --remote-serve-address ${SERVE} \
+                -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
 )

@@ -31,10 +31,20 @@ readonly PIDFILE="${PWD}/pid.txt"
 
 # test that, if no remote endpoint is passed to just-serve, it will spawn a
 # just-execute instance
+COMPAT=""
 cat > .just-servec <<EOF
 { "repositories": []
 , "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
 , "local build root": "${LBR}"
+EOF
+if [ "${COMPATIBLE:-}" = "YES" ]
+then
+  COMPAT="--compatible"
+  cat >> .just-servec <<EOF
+, "execution endpoint": {"compatible": true}
+EOF
+fi
+cat >> .just-servec <<EOF
 }
 EOF
 echo "Serve service configuration:"
@@ -75,12 +85,14 @@ cat > TARGETS <<ENDTARGETS
 
 ENDTARGETS
 
-"${JUST}" install --local-build-root "${LBR}" -r localhost:${PORT} -o .
+"${JUST}" install --local-build-root "${LBR}" \
+                  -r localhost:${PORT} ${COMPAT} -o .
 grep 'just-serve-just-execute' out.txt
 
 # test that if we only pass --remote-serve-address it is also used as remote
 # execution endpoint
 
 rm -rf "${LBR}"
-"${JUST}" install --local-build-root "${LBR}" --remote-serve-address localhost:${PORT} -o .
+"${JUST}" install --local-build-root "${LBR}" \
+                  --remote-serve-address localhost:${PORT} ${COMPAT} -o .
 grep 'just-serve-just-execute' out.txt

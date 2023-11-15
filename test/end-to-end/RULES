@@ -216,7 +216,13 @@
     ]
   , "target_fields": ["deps", "test", "repos"]
   , "string_fields": ["keep", "name"]
-  , "config_vars": ["ARCH", "HOST_ARCH", "RUNS_PER_TEST", "TEST_ENV"]
+  , "config_vars":
+    [ "ARCH"
+    , "HOST_ARCH"
+    , "RUNS_PER_TEST"
+    , "TEST_ENV"
+    , "TEST_COMPATIBLE_REMOTE"
+    ]
   , "field_doc":
     { "test":
       [ "The shell script for the test, launched with sh."
@@ -254,6 +260,8 @@
       , "If set, no test action will be taken from cache."
       ]
     , "TEST_ENV": ["The environment for executing the test runner."]
+    , "TEST_COMPATIBLE_REMOTE":
+      ["If true, run the remote execution in compatible mode."]
     }
   , "tainted": ["test"]
   , "artifacts_doc":

@@ -174,15 +174,17 @@
               , "git-tree-env"
               , "defaults"
               , "absent-roots"
-              , "fetch-absent"
-              , "absent-config"
-              , "fetch-absent-archives"
-              , "fetch-absent-archives-symlinks"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
               , "then": []
-              , "else": ["fetch-remote"]
+              , "else":
+                [ "fetch-remote"
+                , "fetch-absent"
+                , "absent-config"
+                , "fetch-absent-archives"
+                , "fetch-absent-archives-symlinks"
+                ]
               }
             ]
           }

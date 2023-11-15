@@ -43,6 +43,11 @@ EOF
 readonly REMOTE_PROPERTIES="--remote-execution-property foo:bar"
 readonly DISPATCH="--endpoint-configuration ${DISPATCH_FILE}"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 # Set up sample repository
 readonly GENERATOR="${TEST_TMPDIR}/generate.sh"
 readonly GEN_DIR="{TEST_TMPDIR}/gen-dir"
@@ -104,6 +109,7 @@ echo
     --local-build-root "${SERVE_LBR}" \
     -C "${CONF}"                      \
     -r "${REMOTE_EXECUTION_ADDRESS}"  \
+    ${COMPAT}                         \
     ${REMOTE_PROPERTIES}              \
     ${DISPATCH}                       \
     main
@@ -148,6 +154,7 @@ echo "failed as expected"
     --remote-serve-address "${SERVE}" \
     -C "${CONF}"                      \
     -r "${SERVE}"                     \
+    ${COMPAT}                         \
     ${REMOTE_PROPERTIES}              \
     ${DISPATCH}                       \
     main && echo "this should fail" >&2 && exit 1
@@ -158,6 +165,7 @@ echo "failed as expected"
     --remote-serve-address "${SERVE}" \
     -C "${CONF}"                      \
     -r "${REMOTE_EXECUTION_ADDRESS}"  \
+    ${COMPAT}                         \
     ${REMOTE_PROPERTIES}              \
     ${DISPATCH}                       \
     main

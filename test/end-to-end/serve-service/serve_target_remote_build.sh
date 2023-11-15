@@ -27,6 +27,11 @@ readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 mkdir work
 cd work
 touch ROOT
@@ -48,7 +53,7 @@ EOF
 
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     --remote-serve-address ${SERVE} \
-                    -r ${REMOTE_EXECUTION_ADDRESS} \
+                    -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
                     setup)
 cat $CONF
 
@@ -57,7 +62,7 @@ cat $CONF
 ${JUST} build --local-build-root "${LBR}" -C "${CONF}" \
           --remote-serve-address ${SERVE} \
           --log-limit 8 \
-          -r "${REMOTE_EXECUTION_ADDRESS}" greet 2>&1 && \
+          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} greet 2>&1 && \
           echo "This test should fail" && exit 1
 
 echo OK
