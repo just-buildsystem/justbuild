@@ -51,14 +51,31 @@ class TargetCache {
         std::function<bool(std::vector<Artifact::ObjectInfo> const&)>;
 
     TargetCache(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
-                std::filesystem::path const& store_path)
-        : cas_{std::move(cas)}, file_store_{store_path / ComputeShard()} {
-        if constexpr (kDoGlobalUplink) {
+                std::filesystem::path const& store_path,
+                bool compute_shard = true)
+        : cas_{std::move(cas)},
+          file_store_{compute_shard ? store_path / ComputeShard()
+                                    : store_path} {
+        if (kDoGlobalUplink && compute_shard) {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
                 cas_->StoreBlob(StorageConfig::ExecutionBackendDescription());
             EnsuresAudit(id and ArtifactDigest{*id}.hash() == ComputeShard());
         }
+    }
+
+    /// \brief Returns a new TargetCache backed by the same CAS, but the
+    /// FileStorage uses the given \p shard. This is particularly useful for the
+    /// just-serve server implementation, since the sharding must be performed
+    /// according to the client's request and not following the server
+    /// configuration. It is caller's responsibility to check that \p shard is a
+    /// valid path.
+    [[nodiscard]] auto WithShard(const std::string& shard) const
+        -> std::unique_ptr<TargetCache> {
+        return std::make_unique<TargetCache<kDoGlobalUplink>>(
+            cas_,
+            file_store_.StorageRoot().parent_path() / shard,
+            /*compute_shard=*/false);
     }
 
     TargetCache(TargetCache const&) = default;

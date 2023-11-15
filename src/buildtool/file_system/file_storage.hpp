@@ -70,6 +70,10 @@ class FileStorage {
         return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
     }
 
+    [[nodiscard]] auto StorageRoot() const noexcept -> std::filesystem::path {
+        return storage_root_;
+    }
+
   private:
     static constexpr bool kFdLess{kType == ObjectType::Executable};
     std::filesystem::path storage_root_{};
