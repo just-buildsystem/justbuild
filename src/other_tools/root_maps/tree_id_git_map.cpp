@@ -96,7 +96,16 @@ auto CreateTreeIdGitMap(
                            auto logger,
                            auto /*unused*/,
                            auto const& key) {
-        // first, check whether tree exists already in CAS
+        // if root is absent, no work needs to be done
+        if (key.absent) {
+            auto root = nlohmann::json::array(
+                {key.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                    : FileRoot::kGitTreeMarker,
+                 key.hash});
+            (*setter)(std::pair(std::move(root), false));
+            return;
+        }
+        // check whether tree exists already in CAS
         // ensure Git cache
         // define Git operation to be done
         GitOpKey op_key = {.params =

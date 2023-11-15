@@ -109,4 +109,35 @@ test $(jq -r '.repositories.test.workspace_root | length' "${CONF}") = 2
 # Check the tree was correctly set via 'just serve' remote
 test "$(jq -r '.repositories.test.workspace_root[1]' "${CONF}")" = "${GIT_ROOT_ID}"
 
+# Now check that an absent git tree repository works without running the command
+rm -rf "${LBR}"
+
+cat > repos.json <<EOF
+{ "repositories":
+  { "test":
+    { "repository":
+      { "type": "git tree"
+      , "id": "${GIT_ROOT_ID}"
+      , "cmd": ["non_existent_script.sh"]
+      , "pragma": {"absent": true}
+      }
+    }
+  }
+}
+EOF
+echo "Repository configuration:"
+cat repos.json
+
+# Compute the repository configuration
+CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" --remote-serve-address localhost:${PORT} setup)
+cat "${CONF}"
+echo
+
+# Check that an absent root was created
+test "$(jq -r '.repositories.test.workspace_root[0]' "${CONF}")" = "git tree"
+test $(jq -r '.repositories.test.workspace_root | length' "${CONF}") = 2
+
+# Check the tree was correctly set via 'just serve' remote
+test "$(jq -r '.repositories.test.workspace_root[1]' "${CONF}")" = "${GIT_ROOT_ID}"
+
 echo OK
