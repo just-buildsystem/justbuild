@@ -143,6 +143,7 @@ location for Git commits, between local CAS and the network.
 
 **`--fetch-absent`**  
 Try to make available all repositories, including those marked as absent.
+This option cannot be set together with **`--compatible`**.
 
 **`--compatible`**  
 At increased computational effort, be compatible with the original remote build

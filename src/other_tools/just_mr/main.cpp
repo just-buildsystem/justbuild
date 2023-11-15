@@ -760,6 +760,14 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommands known to just and `do`
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
+            // check setup configuration arguments for validity
+            if (Compatibility::IsCompatible() and
+                arguments.common.fetch_absent) {
+                Logger::Log(LogLevel::Error,
+                            "Fetching absent repositories only available in "
+                            "native mode!");
+                return kExitConfigError;
+            }
             return CallJust(config_file,
                             arguments.common,
                             arguments.setup,
@@ -780,6 +788,14 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommand `setup` or `setup-env`
         if (arguments.cmd == SubCommand::kSetup or
             arguments.cmd == SubCommand::kSetupEnv) {
+            // check setup configuration arguments for validity
+            if (Compatibility::IsCompatible() and
+                arguments.common.fetch_absent) {
+                Logger::Log(LogLevel::Error,
+                            "Fetching absent repositories only available in "
+                            "native mode!");
+                return kExitConfigError;
+            }
             auto mr_config_path = MultiRepoSetup(
                 config,
                 arguments.common,
@@ -806,13 +822,21 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommand `fetch`
         if (arguments.cmd == SubCommand::kFetch) {
             // check fetch configuration arguments for validity
-            if (arguments.common.remote_execution_address and
-                arguments.fetch.backup_to_remote and
-                Compatibility::IsCompatible()) {
-                Logger::Log(LogLevel::Error,
-                            "Remote backup for fetched archives only available "
-                            "in native mode!");
-                return kExitConfigError;
+            if (Compatibility::IsCompatible()) {
+                if (arguments.common.remote_execution_address and
+                    arguments.fetch.backup_to_remote) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "Remote backup for fetched archives only available "
+                        "in native mode!");
+                    return kExitConfigError;
+                }
+                if (arguments.common.fetch_absent) {
+                    Logger::Log(LogLevel::Error,
+                                "Fetching absent repositories only available "
+                                "in native mode!");
+                    return kExitConfigError;
+                }
             }
             return MultiRepoFetch(config,
                                   arguments.common,
