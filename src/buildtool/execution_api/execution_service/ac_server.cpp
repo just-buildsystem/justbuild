@@ -14,13 +14,19 @@
 
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 
-#include "fmt/core.h"
+#include <fmt/core.h>
+
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/verify_hash.hpp"
 
 auto ActionCacheServiceImpl::GetActionResult(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::GetActionResultRequest* request,
     ::bazel_re::ActionResult* response) -> ::grpc::Status {
+    if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
+        logger_.Emit(LogLevel::Debug, *error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    }
     logger_.Emit(LogLevel::Trace,
                  "GetActionResult: {}",
                  request->action_digest().hash());

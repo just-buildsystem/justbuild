@@ -15,12 +15,17 @@
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
+#include "src/utils/cpp/verify_hash.hpp"
 
 auto OperarationsServiceImpl::GetOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::GetOperationRequest* request,
     ::google::longrunning::Operation* response) -> ::grpc::Status {
     auto const& hash = request->name();
+    if (auto error_msg = IsAHash(hash); error_msg) {
+        logger_.Emit(LogLevel::Debug, *error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    }
     logger_.Emit(LogLevel::Trace, "GetOperation: {}", hash);
     std::optional<::google::longrunning::Operation> op;
     op = OperationCache::Query(hash);

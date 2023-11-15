@@ -17,6 +17,7 @@
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , "operation_cache"
+    , ["src/utils/cpp", "verify_hash"]
     ]
   , "private-ldflags": ["-pthread"]
   }
@@ -35,6 +36,7 @@
   , "private-deps":
     [ ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/utils/cpp", "verify_hash"]
     ]
   }
 , "cas_server":
@@ -54,6 +56,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/utils/cpp", "verify_hash"]
     ]
   }
 , "server_implementation":
@@ -98,6 +101,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/utils/cpp", "verify_hash"]
     ]
   }
 , "capabilities_server":
@@ -130,6 +134,6 @@
   , "deps": [["src/buildtool/logging", "logging"]]
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
-  , "private-deps": ["operation_cache"]
+  , "private-deps": ["operation_cache", ["src/utils/cpp", "verify_hash"]]
   }
 }

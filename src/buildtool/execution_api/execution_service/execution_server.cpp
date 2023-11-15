@@ -26,6 +26,7 @@
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/verify_hash.hpp"
 
 static void UpdateTimeStamp(::google::longrunning::Operation* op) {
     ::google::protobuf::Timestamp t;
@@ -40,6 +41,10 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     const noexcept -> std::pair<std::optional<::bazel_re::Action>,
                                 std::optional<std::string>> {
     // get action description
+    if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
+        logger_.Emit(LogLevel::Error, *error_msg);
+        return {std::nullopt, *error_msg};
+    }
     auto path = storage_->CAS().BlobPath(request->action_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
@@ -57,7 +62,11 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
             return {std::nullopt, str};
         }
     }
-
+    if (auto error_msg = IsAHash(action.input_root_digest().hash());
+        error_msg) {
+        logger_.Emit(LogLevel::Error, *error_msg);
+        return {std::nullopt, *error_msg};
+    }
     path = Compatibility::IsCompatible()
                ? storage_->CAS().BlobPath(action.input_root_digest(), false)
                : storage_->CAS().TreePath(action.input_root_digest());
@@ -74,7 +83,10 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
 auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     const noexcept -> std::pair<std::optional<::bazel_re::Command>,
                                 std::optional<std::string>> {
-
+    if (auto error_msg = IsAHash(action.command_digest().hash()); error_msg) {
+        logger_.Emit(LogLevel::Error, *error_msg);
+        return {std::nullopt, *error_msg};
+    }
     auto path = storage_->CAS().BlobPath(action.command_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
@@ -488,6 +500,10 @@ auto ExecutionServiceImpl::WaitExecution(
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
     auto const& hash = request->name();
+    if (auto error_msg = IsAHash(hash); error_msg) {
+        logger_.Emit(LogLevel::Error, *error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    }
     logger_.Emit(LogLevel::Trace, "WaitExecution: {}", hash);
     std::optional<::google::longrunning::Operation> op;
     do {

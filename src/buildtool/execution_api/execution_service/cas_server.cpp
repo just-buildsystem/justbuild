@@ -17,14 +17,17 @@
 #include "fmt/core.h"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/verify_hash.hpp"
 
 static constexpr std::size_t kJustHashLength = 42;
 static constexpr std::size_t kSHA256Length = 64;
 
 static auto IsValidHash(std::string const& x) -> bool {
+    auto error_msg = IsAHash(x);
     auto const& length = x.size();
-    return (Compatibility::IsCompatible() and length == kSHA256Length) or
-           length == kJustHashLength;
+    return !error_msg and
+           ((Compatibility::IsCompatible() and length == kSHA256Length) or
+            length == kJustHashLength);
 }
 
 auto CASServiceImpl::FindMissingBlobs(

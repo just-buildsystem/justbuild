@@ -23,6 +23,7 @@
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
+#include "src/utils/cpp/verify_hash.hpp"
 
 namespace {
 auto ParseResourceName(std::string const& x) -> std::optional<std::string> {
@@ -51,6 +52,11 @@ auto BytestreamServiceImpl::Read(
         auto str = fmt::format("could not parse {}", request->resource_name());
         logger_.Emit(LogLevel::Error, str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+
+    if (auto error_msg = IsAHash(*hash); error_msg) {
+        logger_.Emit(LogLevel::Debug, *error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
 
     auto lock = GarbageCollector::SharedLock();
@@ -107,6 +113,10 @@ auto BytestreamServiceImpl::Write(
         auto str = fmt::format("could not parse {}", request.resource_name());
         logger_.Emit(LogLevel::Error, str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+    if (auto error_msg = IsAHash(*hash); error_msg) {
+        logger_.Emit(LogLevel::Debug, *error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
     logger_.Emit(LogLevel::Trace,
                  "Write: {}, offset {}, finish write {}",
