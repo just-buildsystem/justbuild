@@ -79,8 +79,7 @@ cat repos.json
 grep checked-out "${OUT}/sources.txt"
 
 # Verify the environment is needed
-export CREDENTIALS_PATH=/dev/null
-"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR2}" \
-             build 2>&1 && exit 1 || :
+export CREDENTIAL_PATH=/dev/null
+"${JUST_MR}" --norc --local-build-root "${LBR2}" setup 2>&1 && exit 1 || :
 
 echo DONE
