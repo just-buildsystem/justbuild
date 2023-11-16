@@ -138,8 +138,19 @@ CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" setup)
 cat "${CONF}"
 echo
 # test that it fails without using just serve
-"${JUST}" build --local-build-root "${LBR}" -C "${CONF}" main && echo "this should fail" && exit 1
+"${JUST}" analyse --local-build-root "${LBR}" -C "${CONF}" main && echo "this should fail" >&2 && exit 1
 echo "failed as expected"
+
+# test that it fails if we use a different remote execution address w.r.t. the
+# one used by just-serve
+"${JUST}" analyse                     \
+    --local-build-root "${LBR}"       \
+    --remote-serve-address "${SERVE}" \
+    -C "${CONF}"                      \
+    -r "${SERVE}"                     \
+    ${REMOTE_PROPERTIES}              \
+    ${DISPATCH}                       \
+    main && echo "this should fail" >&2 && exit 1
 
 # test that we can successfully compile using just serve
 "${JUST}" build                       \
