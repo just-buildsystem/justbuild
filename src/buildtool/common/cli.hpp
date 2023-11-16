@@ -407,7 +407,7 @@ static inline auto SetupEndpointArguments(
 static inline auto SetupServeEndpointArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<ServeArguments*> const& clargs) {
-    app->add_option("--remote-serve-address",
+    app->add_option("-R,--remote-serve-address",
                     clargs->remote_serve_address,
                     "Address of the serve service.")
         ->type_name("NAME:PORT");

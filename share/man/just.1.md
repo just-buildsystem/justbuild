@@ -526,7 +526,7 @@ Supported by: analyse|build|install-cas|install|rebuild|traverse.
 Remote serve options
 --------------------
 
-**`--remote-serve-address`** *`NAME`*:*`PORT`*  
+**`-R`**, **`--remote-serve-address`** *`NAME`*:*`PORT`*  
 Address of the remote execution service.  
 Supported by: analyse|build|install-cas|install|rebuild|traverse.
 
