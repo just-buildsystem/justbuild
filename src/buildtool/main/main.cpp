@@ -135,17 +135,32 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
 }
 
 void SetupServeConfig(ServeArguments const& srvargs) {
-    using RemoteConfig = RemoteServeConfig;
     if (srvargs.remote_serve_address) {
-        if (not RemoteConfig::SetRemoteAddress(*srvargs.remote_serve_address)) {
+        if (not RemoteServeConfig::SetRemoteAddress(
+                *srvargs.remote_serve_address)) {
             Logger::Log(LogLevel::Error,
                         "setting serve service address '{}' failed.",
                         *srvargs.remote_serve_address);
             std::exit(kExitFailure);
         }
+        // if the user has not provided the --remote-execution-address, we fall
+        // back to the --remote-serve-address
+        if (auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
+            !client_remote_address) {
+            if (!RemoteExecutionConfig::SetRemoteAddress(
+                    *srvargs.remote_serve_address)) {
+                Logger::Log(LogLevel::Error,
+                            "setting remote execution address '{}' failed.",
+                            *srvargs.remote_serve_address);
+                std::exit(kExitFailure);
+            }
+            Logger::Log(LogLevel::Info,
+                        "Using '{}' as the remote execution endpoint.",
+                        *srvargs.remote_serve_address);
+        }
     }
     if (not srvargs.repositories.empty() and
-        not RemoteConfig::SetKnownRepositories(srvargs.repositories)) {
+        not RemoteServeConfig::SetKnownRepositories(srvargs.repositories)) {
         Logger::Log(LogLevel::Error,
                     "setting serve service repositories failed.");
         std::exit(kExitFailure);

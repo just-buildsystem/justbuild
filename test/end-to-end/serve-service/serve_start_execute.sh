@@ -77,3 +77,10 @@ ENDTARGETS
 
 "${JUST}" install --local-build-root "${LBR}" -r localhost:${PORT} -o .
 grep 'just-serve-just-execute' out.txt
+
+# test that if we only pass --remote-serve-address it is also used as remote
+# execution endpoint
+
+rm -rf "${LBR}"
+"${JUST}" install --local-build-root "${LBR}" --remote-serve-address localhost:${PORT} -o .
+grep 'just-serve-just-execute' out.txt

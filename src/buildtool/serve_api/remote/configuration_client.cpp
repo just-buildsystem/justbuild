@@ -22,8 +22,8 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
     auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
     if (!client_remote_address) {
         logger_.Emit(LogLevel::Error,
-                     "In order to use just-serve, also the "
-                     "--remote-execution-address option must be given.");
+                     "Internal error: the remote execution endpoint should "
+                     "have been set.");
         return false;
     }
 
