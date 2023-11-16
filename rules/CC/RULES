@@ -75,6 +75,7 @@
   , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
   , "imports":
     { "base-provides": "defaults-base-provides"
+    , "base-provides-++": "defaults-base-provides-++"
     , "base-provides-list": "defaults-base-provides-list"
     , "artifacts_list": ["./", "..", "field_artifacts_list"]
     , "nub_left": ["", "nub_left"]
@@ -119,7 +120,7 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "CFLAGS"}
           , "then": {"type": "var", "name": "CFLAGS"}
-          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
       , ["provider", "CXXFLAGS"]
@@ -127,7 +128,7 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "CXXFLAGS"}
           , "then": {"type": "var", "name": "CXXFLAGS"}
-          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
       , ["provider", "LDFLAGS"]
@@ -135,7 +136,7 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "LDFLAGS"}
           , "then": {"type": "var", "name": "LDFLAGS"}
-          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
       , ["provider", "AR"]
@@ -151,9 +152,7 @@
         , { "type": "++"
           , "$1":
             [ {"type": "var", "name": "PATH"}
-            , { "type": "++"
-              , "$1": {"type": "CALL_EXPRESSION", "name": "base-provides-list"}
-              }
+            , {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
             ]
           }
         ]
