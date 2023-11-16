@@ -21,9 +21,11 @@ env
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
+readonly LBR_NON_ABSENT="${TEST_TMPDIR}/local-build-root-non-absent"
 readonly OUT="${TEST_TMPDIR}/out"
 readonly OUT2="${TEST_TMPDIR}/out2"
 readonly OUT3="${TEST_TMPDIR}/out3"
+readonly OUT_NON_ABSENT="${TEST_TMPDIR}/out4"
 
 mkdir work
 cd work
@@ -109,5 +111,45 @@ EOF
              --just "${JUST}" \
              --fetch-absent install -o "${OUT3}" 2>&1
 grep 42 "${OUT3}/out.txt"
+
+# Now, on a fresh local build root, take the original description
+# without any absent hint. In this way, we verify that even for
+# concrete repositories fetching over the just-serve instance works
+# (as we removed all other ways to get the commit).
+cat > repos.json <<EOF
+{ "repositories":
+  { "":
+    { "repository":
+      { "type": "git"
+      , "commit": "$COMMIT_0"
+      , "repository": "http://non-existent.example.org/data.git"
+      , "branch": "master"
+      , "subdir": "src"
+      }
+    , "target_root": "targets"
+    }
+  , "targets": {"repository": {"type": "file", "path": "targets"}}
+  }
+}
+EOF
+cat > targets/TARGETS <<'EOF'
+{ "":
+  { "type": "generic"
+  , "outs": ["out.txt"]
+  , "cmds": ["head -c 1 4.txt > out.txt", "cat 2.txt >> out.txt"]
+  , "deps": ["4.txt", "2.txt"]
+  }
+}
+EOF
+echo
+cat repos.json
+echo
+"${JUST_MR}" --norc --local-build-root "${LBR_NON_ABSENT}" \
+             --remote-serve-address ${SERVE} \
+             -r ${REMOTE_EXECUTION_ADDRESS} \
+             --just "${JUST}" \
+             install -o "${OUT_NON_ABSENT}" 2>&1
+grep 42 "${OUT_NON_ABSENT}/out.txt"
+
 
 echo DONE
