@@ -28,7 +28,7 @@
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for service defined here:
-/// https://github.com/bazelbuild/bazel/blob/4b6ad34dbba15dacebfb6cbf76fa741649cdb007/third_party/remoteapis/build/bazel/remote/execution/v2/remote_execution.proto#L137
+/// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L144
 class BazelAcClient {
   public:
     BazelAcClient(std::string const& server, Port port) noexcept;

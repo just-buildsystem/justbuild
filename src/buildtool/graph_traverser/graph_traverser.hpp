@@ -147,7 +147,7 @@ class GraphTraverser {
 
         if (clargs_.stage->remember) {
             if (not remote_api_->ParallelRetrieveToCas(
-                    *object_infos, GetLocalApi(), clargs_.jobs)) {
+                    *object_infos, GetLocalApi(), clargs_.jobs, true)) {
                 Logger::Log(LogLevel::Warning, "Failed to copy objects to CAS");
             }
         }

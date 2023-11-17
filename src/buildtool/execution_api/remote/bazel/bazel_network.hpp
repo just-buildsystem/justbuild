@@ -15,10 +15,15 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_NETWORK_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_NETWORK_HPP
 
+#include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
@@ -69,6 +74,9 @@ class BazelNetwork {
 
     [[nodiscard]] auto IsAvailable(std::vector<bazel_re::Digest> const& digests)
         const noexcept -> std::vector<bazel_re::Digest>;
+
+    [[nodiscard]] auto SplitBlob(bazel_re::Digest const& digest) const noexcept
+        -> std::optional<std::vector<bazel_re::Digest>>;
 
     /// \brief Uploads blobs to CAS
     /// \param blobs              The blobs to upload

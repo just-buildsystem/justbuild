@@ -89,17 +89,22 @@ class IExecutionApi {
 
     /// \brief A variant of RetrieveToCas that is allowed to internally use
     /// the specified number of threads to carry out the task in parallel.
+    /// Given it is supported by the server, blob splitting enables traffic
+    /// reduction when fetching blobs from the remote by reusing locally
+    /// available blob chunks and just fetching unknown blob chunks to assemble
+    /// the remote blobs.
     [[nodiscard]] virtual auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api,
-        std::size_t /* jobs */) noexcept -> bool {
+        std::size_t /* jobs */,
+        bool /* use_blob_splitting */) noexcept -> bool {
         return RetrieveToCas(artifacts_info, api);
     }
 
     /// \brief Retrieve one artifact from CAS and make it available for
     /// furter in-memory processing
     [[nodiscard]] virtual auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info)
+        Artifact::ObjectInfo const& artifact_info) noexcept
         -> std::optional<std::string> = 0;
 
     /// \brief Upload blobs to CAS. Uploads only the blobs that are not yet

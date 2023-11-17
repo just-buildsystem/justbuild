@@ -239,7 +239,7 @@ class LocalApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info)
+        Artifact::ObjectInfo const& artifact_info) noexcept
         -> std::optional<std::string> override {
         std::optional<std::filesystem::path> location{};
         if (IsTreeObject(artifact_info.type)) {

@@ -264,7 +264,7 @@ class GitApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info)
+        Artifact::ObjectInfo const& artifact_info) noexcept
         -> std::optional<std::string> override {
         return repo_config_->ReadBlobFromGitCAS(artifact_info.digest.hash());
     }

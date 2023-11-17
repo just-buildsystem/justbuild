@@ -15,12 +15,15 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP
 
+#include <filesystem>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
@@ -68,7 +71,8 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api,
-        std::size_t jobs) noexcept -> bool final;
+        std::size_t jobs,
+        bool use_blob_splitting) noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
@@ -88,7 +92,7 @@ class BazelApi final : public IExecutionApi {
         const noexcept -> std::vector<ArtifactDigest> final;
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info)
+        Artifact::ObjectInfo const& artifact_info) noexcept
         -> std::optional<std::string> final;
 
   private:

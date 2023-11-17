@@ -905,7 +905,7 @@ void WriteTargetCacheEntries(
                     cache_targets.size());
     }
     auto downloader = [&local_api, &remote_api, &jobs](auto infos) {
-        return remote_api->ParallelRetrieveToCas(infos, local_api, jobs);
+        return remote_api->ParallelRetrieveToCas(infos, local_api, jobs, false);
     };
     for (auto const& [key, target] : cache_targets) {
         if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {

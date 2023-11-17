@@ -14,10 +14,16 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 
+#include <mutex>
+#include <shared_mutex>
+#include <unordered_map>
+
 #include "grpcpp/grpcpp.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 
 namespace {
@@ -27,6 +33,67 @@ namespace {
     -> std::string {
     return fmt::format(
         "{}/blobs/{}/{}", instance_name, digest.hash(), digest.size_bytes());
+}
+
+// In order to determine whether blob splitting is supported at the remote, a
+// trial request to the remote CAS service is issued. This is just a workaround
+// until the blob split API extension is accepted as part of the official remote
+// execution protocol. Then, the ordinary way to determine server capabilities
+// can be employed by using the capabilities service.
+[[nodiscard]] auto BlobSplitSupport(
+    std::string const& instance_name,
+    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
+        stub) noexcept -> bool {
+    // Create empty blob.
+    std::string empty_str{};
+    std::string hash = HashFunction::ComputeBlobHash(empty_str).HexString();
+    bazel_re::Digest digest{};
+    digest.set_hash(NativeSupport::Prefix(hash, false));
+    digest.set_size_bytes(empty_str.size());
+
+    // Upload empty blob.
+    grpc::ClientContext update_context{};
+    bazel_re::BatchUpdateBlobsRequest update_request{};
+    bazel_re::BatchUpdateBlobsResponse update_response{};
+    update_request.set_instance_name(instance_name);
+    auto* request = update_request.add_requests();
+    request->mutable_digest()->CopyFrom(digest);
+    request->set_data(empty_str);
+    grpc::Status update_status = stub->BatchUpdateBlobs(
+        &update_context, update_request, &update_response);
+    if (not update_status.ok()) {
+        return false;
+    }
+
+    // Request splitting empty blob.
+    grpc::ClientContext split_context{};
+    bazel_re::SplitBlobRequest split_request{};
+    bazel_re::SplitBlobResponse split_response{};
+    split_request.set_instance_name(instance_name);
+    split_request.mutable_blob_digest()->CopyFrom(digest);
+    grpc::Status split_status =
+        stub->SplitBlob(&split_context, split_request, &split_response);
+    return split_status.ok();
+}
+
+// Cached version of blob-split support request.
+[[nodiscard]] auto BlobSplitSupportCached(
+    std::string const& instance_name,
+    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
+        stub) noexcept -> bool {
+    static auto mutex = std::shared_mutex{};
+    static auto blob_split_support_map =
+        std::unordered_map<std::string, bool>{};
+    {
+        auto lock = std::shared_lock(mutex);
+        if (blob_split_support_map.contains(instance_name)) {
+            return blob_split_support_map[instance_name];
+        }
+    }
+    auto supported = BlobSplitSupport(instance_name, stub);
+    auto lock = std::unique_lock(mutex);
+    blob_split_support_map[instance_name] = supported;
+    return supported;
 }
 
 }  // namespace
@@ -195,6 +262,26 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
     return std::nullopt;
 }
 
+auto BazelCasClient::SplitBlob(std::string const& instance_name,
+                               bazel_re::Digest const& digest) noexcept
+    -> std::optional<std::vector<bazel_re::Digest>> {
+    if (not BlobSplitSupportCached(instance_name, stub_)) {
+        return std::nullopt;
+    }
+    grpc::ClientContext context{};
+    bazel_re::SplitBlobRequest request{};
+    request.set_instance_name(instance_name);
+    request.mutable_blob_digest()->CopyFrom(digest);
+    bazel_re::SplitBlobResponse response{};
+    grpc::Status status = stub_->SplitBlob(&context, request, &response);
+    std::vector<bazel_re::Digest> result{};
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return std::nullopt;
+    }
+    return ProcessResponseContents<bazel_re::Digest>(response);
+}
+
 template <class T_OutputIter>
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                                       T_OutputIter const& start,
@@ -329,6 +416,14 @@ auto GetResponseContents<bazel_re::Directory, bazel_re::GetTreeResponse>(
     bazel_re::GetTreeResponse const& response) noexcept
     -> pb::RepeatedPtrField<bazel_re::Directory> const& {
     return response.directories();
+}
+
+// Specialization of GetResponseContents for 'SplitBlobResponse'
+template <>
+auto GetResponseContents<bazel_re::Digest, bazel_re::SplitBlobResponse>(
+    bazel_re::SplitBlobResponse const& response) noexcept
+    -> pb::RepeatedPtrField<bazel_re::Digest> const& {
+    return response.chunk_digests();
 }
 
 }  // namespace detail
