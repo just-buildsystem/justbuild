@@ -1149,7 +1149,7 @@ class FileSystemManager {
     class LowLevel {
         static constexpr ssize_t kDefaultChunkSize = 1024 * 32;
         static constexpr int kWriteFlags =
-            O_WRONLY | O_CREAT | O_TRUNC | O_SYNC;  // NOLINT
+            O_WRONLY | O_CREAT | O_TRUNC;           // NOLINT
         static constexpr int kWritePerms =          // 644
             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;  // NOLINT
 
