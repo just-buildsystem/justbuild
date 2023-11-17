@@ -2,6 +2,11 @@
 
 Bug fixes on top of release `1.2.3`.
 
+### Fixes
+
+- The built-in rule `"install"` now properly enforces that the
+  resulting stage is well-formed, i.e., without tree conflicts.
+
 ## Release `1.2.3` (2023-11-15)
 
 Bug fixes on top of release `1.2.2`.
