@@ -128,6 +128,17 @@
     ]
   , "repos": ["fetch-absent-with-symlinks (data)"]
   }
+, "fetch-absent-distdir-archive":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["fetch-absent-distdir-archive"]
+  , "test": ["fetch-absent-distdir-archive.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "fetch-absent (data)"
+    ]
+  , "repos": ["fetch-absent (data)"]
+  }
 , "fetch-absent (data)":
   { "type": "generic"
   , "out_dirs": ["src"]
@@ -184,6 +195,7 @@
                 , "absent-config"
                 , "fetch-absent-archives"
                 , "fetch-absent-archives-symlinks"
+                , "fetch-absent-distdir-archive"
                 ]
               }
             ]
