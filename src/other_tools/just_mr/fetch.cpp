@@ -242,7 +242,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                                  repo_desc_sha512->String())
                                            : std::nullopt,
                              .origin = repo_name,
-                             .origin_from_distdir = false},
+                             .fetch_only = true},
                         .repo_type = repo_type_str,
                         .subdir = subdir.empty() ? "." : subdir.string(),
                         .pragma_special = std::nullopt,  // not used

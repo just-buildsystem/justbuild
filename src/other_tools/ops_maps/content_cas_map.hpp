@@ -36,8 +36,8 @@ struct ArchiveContent {
     std::optional<std::string> sha512{std::nullopt};
     // name of repository for which work is done; used in progress reporting
     std::string origin{};
-    // flag deciding whether progress reporting is needed for key
-    bool origin_from_distdir{};
+    // flag to separate logic for pure fetch operations
+    bool fetch_only{};
 
     [[nodiscard]] auto operator==(const ArchiveContent& other) const -> bool {
         return content == other.content;

@@ -37,25 +37,28 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                                       auto logger,
                                       auto /*unused*/,
                                       auto const& key) {
-        // check if content already in CAS
         auto const& cas = Storage::Instance().CAS();
         auto digest = ArtifactDigest(key.content, 0, false);
-        if (cas.BlobPath(digest, /*is_executable=*/false)) {
-            (*setter)(true);
-            return;
-        }
-        JustMRProgress::Instance().TaskTracker().Start(key.origin);
-        // add distfile to CAS
-        auto repo_distfile =
-            (key.distfile
-                 ? key.distfile.value()
-                 : std::filesystem::path(key.fetch_url).filename().string());
-        StorageUtils::AddDistfileToCAS(repo_distfile, just_mr_paths);
-        // check if content is in CAS now
-        if (cas.BlobPath(digest, /*is_executable=*/false)) {
-            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
-            (*setter)(true);
-            return;
+        // separate logic if we need a pure fetch
+        if (key.fetch_only) {
+            if (cas.BlobPath(digest, /*is_executable=*/false)) {
+                (*setter)(true);
+                return;
+            }
+            JustMRProgress::Instance().TaskTracker().Start(key.origin);
+            // add distfile to CAS
+            auto repo_distfile =
+                (key.distfile ? key.distfile.value()
+                              : std::filesystem::path(key.fetch_url)
+                                    .filename()
+                                    .string());
+            StorageUtils::AddDistfileToCAS(repo_distfile, just_mr_paths);
+            // check if content is in CAS now
+            if (cas.BlobPath(digest, /*is_executable=*/false)) {
+                JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+                (*setter)(true);
+                return;
+            }
         }
         // check if content is in remote CAS, if a remote is given
         if (remote_api and local_api and remote_api->IsAvailable(digest) and
@@ -67,8 +70,8 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
             (*setter)(true);
             return;
         }
-        // archive needs fetching
-        // before any network fetching, check that mandatory fields are provided
+        // archive needs network fetching;
+        // first, check that mandatory fields are provided
         if (key.fetch_url.empty()) {
             (*logger)("Failed to provide archive fetch url!",
                       /*fatal=*/true);
@@ -129,7 +132,10 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                       /*fatal=*/true);
             return;
         }
-        JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+        if (key.fetch_only) {
+            JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+        }
+        // success!
         (*setter)(true);
     };
     return AsyncMapConsumer<ArchiveContent, bool>(ensure_in_cas, jobs);
