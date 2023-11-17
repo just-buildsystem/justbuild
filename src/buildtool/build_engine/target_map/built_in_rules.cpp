@@ -666,6 +666,11 @@ void InstallRuleWithDeps(
         stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
     }
 
+    auto conflict = BuildMaps::Target::Utils::tree_conflict(stage);
+    if (conflict) {
+        (*logger)(fmt::format("TREE conflict on subtree {}", *conflict), true);
+        return;
+    }
     auto const& empty_map = Expression::kEmptyMap;
     auto result = std::make_shared<AnalysedTarget const>(
         TargetResult{

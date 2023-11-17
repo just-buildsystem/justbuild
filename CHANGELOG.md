@@ -46,6 +46,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 - Various minor improvements and typo fixes in the documentation.
 - Fixed a race condition in an internal cache of `just execute`
   used for keeping track of running operations.
+- The built-in rule `"install"` now properly enforces that the
+  resulting stage is well-formed, i.e., without tree conflicts.
 
 ## Release `1.2.0` (2023-08-25)
 
