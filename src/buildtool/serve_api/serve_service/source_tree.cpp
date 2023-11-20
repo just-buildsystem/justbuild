@@ -684,3 +684,76 @@ auto SourceTreeService::ServeArchiveTree(
                        request->sync_tree(),
                        response);
 }
+
+auto SourceTreeService::ServeContent(
+    ::grpc::ServerContext* /* context */,
+    const ::justbuild::just_serve::ServeContentRequest* request,
+    ServeContentResponse* response) -> ::grpc::Status {
+    auto const& content{request->content()};
+    // acquire lock for CAS
+    auto lock = GarbageCollector::SharedLock();
+    if (!lock) {
+        auto str = fmt::format("Could not acquire gc SharedLock");
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeContentResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // check if content blob is in Git cache
+    if (auto data =
+            GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_)) {
+        // upload blob to remote CAS
+        auto digest = ArtifactDigest{content, 0, /*is_tree=*/false};
+        auto repo = RepositoryConfig{};
+        if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
+            auto str = fmt::format("Failed to SetGitCAS at {}",
+                                   StorageConfig::GitRoot().string());
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeContentResponse::INTERNAL_ERROR);
+            return ::grpc::Status::OK;
+        }
+        auto git_api = GitApi{&repo};
+        if (not git_api.RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::File}},
+                &(*remote_api_))) {
+            auto str = fmt::format("Failed to sync content {}", content);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeContentResponse::SYNC_ERROR);
+            return ::grpc::Status::OK;
+        }
+        // success!
+        response->set_status(ServeContentResponse::OK);
+        return ::grpc::Status::OK;
+    }
+    // check if content blob is in a known repository
+    for (auto const& path : RemoteServeConfig::KnownRepositories()) {
+        if (auto data = GetBlobFromRepo(path, content, logger_)) {
+            // upload blob to remote CAS
+            auto digest = ArtifactDigest{content, 0, /*is_tree=*/false};
+            auto repo = RepositoryConfig{};
+            if (not repo.SetGitCAS(path)) {
+                auto str = fmt::format("Failed to SetGitCAS at {}",
+                                       StorageConfig::GitRoot().string());
+                logger_->Emit(LogLevel::Error, str);
+                response->set_status(ServeContentResponse::INTERNAL_ERROR);
+                return ::grpc::Status::OK;
+            }
+            auto git_api = GitApi{&repo};
+            if (not git_api.RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = digest,
+                                          .type = ObjectType::File}},
+                    &(*remote_api_))) {
+                auto str = fmt::format("Failed to sync content {}", content);
+                logger_->Emit(LogLevel::Error, str);
+                response->set_status(ServeContentResponse::SYNC_ERROR);
+                return ::grpc::Status::OK;
+            }
+            // success!
+            response->set_status(ServeContentResponse::OK);
+            return ::grpc::Status::OK;
+        }
+    }
+    // content blob not known
+    response->set_status(ServeContentResponse::NOT_FOUND);
+    return ::grpc::Status::OK;
+}

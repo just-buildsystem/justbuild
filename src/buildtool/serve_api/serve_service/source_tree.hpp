@@ -41,6 +41,8 @@ class SourceTreeService final
     using ServeArchiveTreeResponse =
         ::justbuild::just_serve::ServeArchiveTreeResponse;
 
+    using ServeContentResponse = ::justbuild::just_serve::ServeContentResponse;
+
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
     // There are no method-specific errors.
@@ -57,6 +59,15 @@ class SourceTreeService final
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
         ServeArchiveTreeResponse* response) -> ::grpc::Status override;
+
+    // Make the blob identifier of an archive content available in
+    // remote CAS, if blob is known.
+    //
+    // There are no method-specific errors.
+    auto ServeContent(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::ServeContentRequest* request,
+        ServeContentResponse* response) -> ::grpc::Status override;
 
   private:
     mutable std::shared_mutex mutex_;
