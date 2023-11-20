@@ -120,3 +120,25 @@ auto SourceTreeClient::ServeArchiveTree(
     }
     return response.tree();
 }
+
+auto SourceTreeClient::ServeContent(std::string const& content) -> bool {
+    justbuild::just_serve::ServeContentRequest request{};
+    request.set_content(content);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ServeContentResponse response;
+    grpc::Status status = stub_->ServeContent(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return false;
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::ServeContentResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ServeContent response returned with {}",
+                     static_cast<int>(response.status()));
+        return false;
+    }
+    return true;
+}

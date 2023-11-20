@@ -56,6 +56,11 @@ class ServeApi final {
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
 
+    [[nodiscard]] static auto ContentInRemoteCAS(std::string const& content)
+        -> bool {
+        return Instance().stc_->ServeContent(content);
+    }
+
     [[nodiscard]] static auto ServeTargetVariables(
         std::string const& target_root_id,
         std::string const& target_file,

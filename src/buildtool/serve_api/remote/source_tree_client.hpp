@@ -54,6 +54,12 @@ class SourceTreeClient {
         std::optional<PragmaSpecial> const& resolve_symlinks,
         bool sync_tree) -> std::optional<std::string>;
 
+    /// \brief Make a given content blob available in remote CAS, if known by
+    /// serve remote.
+    /// \param[in] content Hash of the archive content to look up.
+    /// \returns Flag to state whether content is in remote CAS.
+    [[nodiscard]] auto ServeContent(std::string const& content) -> bool;
+
   private:
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteSourceTreeClient"};
