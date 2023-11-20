@@ -109,7 +109,7 @@ auto SourceTreeService::GetSubtreeFromCommit(
                             commit,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Trace, err);
+                        logger->Emit(LogLevel::Info, err);
                     }
                 });
             if (auto tree_id = repo->GetSubtreeFromCommit(
@@ -138,7 +138,7 @@ auto SourceTreeService::GetSubtreeFromTree(
                             tree_id,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Trace, err);
+                        logger->Emit(LogLevel::Info, err);
                     }
                 });
             if (auto subtree_id =
@@ -166,7 +166,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                             blob_id,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Trace, err);
+                        logger->Emit(LogLevel::Info, err);
                     }
                 });
             auto res = repo->TryReadBlob(blob_id, wrapped_logger);
@@ -177,7 +177,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                 auto str = fmt::format("Blob {} not found in repository {}",
                                        blob_id,
                                        repo_path.string());
-                logger->Emit(LogLevel::Trace, str);
+                logger->Emit(LogLevel::Info, str);
             }
             return res.second;
         }
@@ -201,7 +201,7 @@ auto SourceTreeService::ServeCommitTree(
             if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
                 auto str = fmt::format("Failed to SetGitCAS at {}",
                                        StorageConfig::GitRoot().string());
-                logger_->Emit(LogLevel::Debug, str);
+                logger_->Emit(LogLevel::Error, str);
                 response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
                 return ::grpc::Status::OK;
             }
@@ -211,7 +211,7 @@ auto SourceTreeService::ServeCommitTree(
                                           .type = ObjectType::Tree}},
                     &(*remote_api_))) {
                 auto str = fmt::format("Failed to sync tree {}", *tree_id);
-                logger_->Emit(LogLevel::Debug, str);
+                logger_->Emit(LogLevel::Error, str);
                 *(response->mutable_tree()) = std::move(*tree_id);
                 response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
                 return ::grpc::Status::OK;
@@ -233,7 +233,7 @@ auto SourceTreeService::ServeCommitTree(
                 if (not repo.SetGitCAS(path)) {
                     auto str =
                         fmt::format("Failed to SetGitCAS at {}", path.string());
-                    logger_->Emit(LogLevel::Debug, str);
+                    logger_->Emit(LogLevel::Error, str);
                     response->set_status(
                         ServeCommitTreeResponse::INTERNAL_ERROR);
                     return ::grpc::Status::OK;
@@ -244,7 +244,7 @@ auto SourceTreeService::ServeCommitTree(
                                               .type = ObjectType::Tree}},
                         &(*remote_api_))) {
                     auto str = fmt::format("Failed to sync tree {}", *tree_id);
-                    logger_->Emit(LogLevel::Debug, str);
+                    logger_->Emit(LogLevel::Error, str);
                     *(response->mutable_tree()) = std::move(*tree_id);
                     response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
                 }
@@ -272,7 +272,7 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
         if (not repo.SetGitCAS(repo_path)) {
             auto str =
                 fmt::format("Failed to SetGitCAS at {}", repo_path.string());
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -282,7 +282,7 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
                                       .type = ObjectType::Tree}},
                 &(*remote_api_))) {
             auto str = fmt::format("Failed to sync tree {}", tree_id);
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             *(response->mutable_tree()) = tree_id;
             response->set_status(ServeArchiveTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
@@ -311,7 +311,7 @@ auto SourceTreeService::ResolveContentTree(
                 auto str =
                     fmt::format("Failed to read resolved tree id from file {}",
                                 tree_id_file.string());
-                logger_->Emit(LogLevel::Debug, str);
+                logger_->Emit(LogLevel::Error, str);
                 response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
                 return ::grpc::Status::OK;
             }
@@ -332,7 +332,7 @@ auto SourceTreeService::ResolveContentTree(
                 [&resolved_tree](auto hashes) { resolved_tree = *hashes[0]; },
                 [logger = logger_, tree_id, &failed](auto const& msg,
                                                      bool fatal) {
-                    logger->Emit(LogLevel::Debug,
+                    logger->Emit(LogLevel::Error,
                                  "While resolving tree {}:\n{}",
                                  tree_id,
                                  msg);
@@ -341,7 +341,7 @@ auto SourceTreeService::ResolveContentTree(
         }
         if (failed) {
             auto str = fmt::format("Failed to resolve tree id {}", tree_id);
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
@@ -350,7 +350,7 @@ auto SourceTreeService::ResolveContentTree(
         if (error) {
             auto str = fmt::format(
                 "Failed to resolve symlinks in tree {}:\n{}", tree_id, *error);
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
@@ -359,7 +359,7 @@ auto SourceTreeService::ResolveContentTree(
             auto str =
                 fmt::format("Failed to write resolved tree id to file {}",
                             tree_id_file.string());
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
@@ -384,7 +384,7 @@ auto SourceTreeService::ImportToGit(
     if (not git_repo) {
         auto str = fmt::format("Could not initialize repository {}",
                                unpack_path.string());
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -397,7 +397,7 @@ auto SourceTreeService::ImportToGit(
                     "repository {}:\n{}",
                     unpack_path.string(),
                     msg);
-                logger->Emit(LogLevel::Trace, err);
+                logger->Emit(LogLevel::Error, err);
             }
         });
     // stage and commit all
@@ -409,14 +409,14 @@ auto SourceTreeService::ImportToGit(
         auto str =
             fmt::format("Failed to create initial commit in repository {}",
                         unpack_path.string());
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
     // create a tmp directory for the fetch to Git CAS
     auto tmp_dir = StorageUtils::CreateTypedTmpDir("import-to-git");
     if (not tmp_dir) {
-        logger_->Emit(LogLevel::Debug,
+        logger_->Emit(LogLevel::Error,
                       "Failed to create tmp path for git import");
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
@@ -426,7 +426,7 @@ auto SourceTreeService::ImportToGit(
     if (not just_git_cas) {
         auto str = fmt::format("Failed to open Git ODB at {}",
                                StorageConfig::GitRoot().string());
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -434,7 +434,7 @@ auto SourceTreeService::ImportToGit(
     if (not just_git_repo) {
         auto str = fmt::format("Failed to open Git repository {}",
                                StorageConfig::GitRoot().string());
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -446,7 +446,7 @@ auto SourceTreeService::ImportToGit(
                     "ServeArchiveTree: While fetching in repository {}:\n{}",
                     StorageConfig::GitRoot().string(),
                     msg);
-                logger->Emit(LogLevel::Trace, err);
+                logger->Emit(LogLevel::Error, err);
             }
         });
     // fetch the new commit into the Git CAS via tmp directory; the call is
@@ -457,7 +457,7 @@ auto SourceTreeService::ImportToGit(
                                                 wrapped_logger)) {
         auto str =
             fmt::format("Failed to fetch commit {} into Git CAS", *commit_hash);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -471,7 +471,7 @@ auto SourceTreeService::ImportToGit(
                     *commit_hash,
                     StorageConfig::GitRoot().string(),
                     msg);
-                logger->Emit(LogLevel::Trace, err);
+                logger->Emit(LogLevel::Error, err);
             }
         });
     // tag commit and keep it in Git CAS
@@ -483,7 +483,7 @@ auto SourceTreeService::ImportToGit(
         if (not git_repo) {
             auto str = fmt::format("Failed to open Git CAS repository {}",
                                    StorageConfig::GitRoot().string());
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -493,7 +493,7 @@ auto SourceTreeService::ImportToGit(
                                   wrapped_logger)) {
             auto str =
                 fmt::format("Failed to tag and keep commit {}", *commit_hash);
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -507,7 +507,7 @@ auto SourceTreeService::ImportToGit(
                     "{}:\n{}",
                     *commit_hash,
                     msg);
-                logger->Emit(LogLevel::Trace, err);
+                logger->Emit(LogLevel::Error, err);
             }
         });
     // get the root tree of this commit, to store in file; this is thread-safe
@@ -516,7 +516,7 @@ auto SourceTreeService::ImportToGit(
     if (not tree_id) {
         auto str = fmt::format("Failed to retrieve tree id of commit {}",
                                *commit_hash);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -524,7 +524,7 @@ auto SourceTreeService::ImportToGit(
     if (not StorageUtils::WriteTreeIDFile(archive_tree_id_file, *tree_id)) {
         auto str = fmt::format("Failed to write tree id to file {}",
                                archive_tree_id_file.string());
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -538,7 +538,7 @@ auto SourceTreeService::ImportToGit(
                     subdir,
                     *tree_id,
                     msg);
-                logger->Emit(LogLevel::Trace, err);
+                logger->Emit(LogLevel::Error, err);
             }
         });
     // get the subtree id; this is thread-safe
@@ -547,7 +547,7 @@ auto SourceTreeService::ImportToGit(
     if (not subtree_id) {
         auto str = fmt::format("Failed to retrieve tree id of commit {}",
                                *commit_hash);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -578,7 +578,7 @@ auto SourceTreeService::ServeArchiveTree(
         if (not archive_tree_id) {
             auto str = fmt::format("Failed to read tree id from file {}",
                                    archive_tree_id_file.string());
-            logger_->Emit(LogLevel::Debug, str);
+            logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -605,7 +605,7 @@ auto SourceTreeService::ServeArchiveTree(
         // report error for missing tree specified in id file
         auto str =
             fmt::format("Tree {} is known, but missing!", *archive_tree_id);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -613,7 +613,7 @@ auto SourceTreeService::ServeArchiveTree(
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("Could not acquire gc SharedLock");
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -660,7 +660,7 @@ auto SourceTreeService::ServeArchiveTree(
             "Failed to create tmp path for {} archive with content {}",
             archive_type,
             content);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -670,7 +670,7 @@ auto SourceTreeService::ServeArchiveTree(
         auto str = fmt::format("Failed to extract archive {} from CAS:\n{}",
                                content_cas_path->string(),
                                *res);
-        logger_->Emit(LogLevel::Debug, str);
+        logger_->Emit(LogLevel::Error, str);
         response->set_status(ServeArchiveTreeResponse::UNPACK_ERROR);
         return ::grpc::Status::OK;
     }
