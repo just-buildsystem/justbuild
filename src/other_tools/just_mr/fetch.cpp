@@ -274,11 +274,16 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     IExecutionApi::Ptr local_api{remote_api ? std::make_unique<LocalApi>()
                                             : nullptr};
 
+    // setup the API for serving trees of Git repos or archives
+    auto serve_api_exists = JustMR::Utils::SetupServeApi(
+        common_args.remote_serve_address, auth_args);
+
     // create async maps
     auto content_cas_map =
         CreateContentCASMap(common_args.just_mr_paths,
                             common_args.alternative_mirrors,
                             common_args.ca_info,
+                            serve_api_exists,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.jobs);

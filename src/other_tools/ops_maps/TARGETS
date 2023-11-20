@@ -70,6 +70,7 @@
     [ ["src/other_tools/utils", "content"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]

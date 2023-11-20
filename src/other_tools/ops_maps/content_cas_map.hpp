@@ -68,6 +68,7 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
 [[nodiscard]] auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                                        MirrorsPtr const& additional_mirrors,
                                        CAInfoPtr const& ca_info,
+                                       bool serve_api_exists,
                                        IExecutionApi* local_api,
                                        IExecutionApi* remote_api,
                                        std::size_t jobs) -> ContentCASMap;

@@ -15,6 +15,7 @@
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -25,12 +26,14 @@
 auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                          MirrorsPtr const& additional_mirrors,
                          CAInfoPtr const& ca_info,
+                         bool serve_api_exists,
                          IExecutionApi* local_api,
                          IExecutionApi* remote_api,
                          std::size_t jobs) -> ContentCASMap {
     auto ensure_in_cas = [just_mr_paths,
                           additional_mirrors,
                           ca_info,
+                          serve_api_exists,
                           local_api,
                           remote_api](auto /*unused*/,
                                       auto setter,
@@ -58,6 +61,20 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                 JustMRProgress::Instance().TaskTracker().Stop(key.origin);
                 (*setter)(true);
                 return;
+            }
+            // check if content is known to remote serve service
+            if (serve_api_exists and
+                ServeApi::ContentInRemoteCAS(key.content)) {
+                // try to get content from remote CAS
+                if (remote_api != nullptr and local_api != nullptr and
+                    remote_api->RetrieveToCas(
+                        {Artifact::ObjectInfo{.digest = digest,
+                                              .type = ObjectType::File}},
+                        local_api)) {
+                    JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+                    (*setter)(true);
+                    return;
+                }
             }
         }
         // check if content is in remote CAS, if a remote is given

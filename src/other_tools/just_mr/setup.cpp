@@ -106,6 +106,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         CreateContentCASMap(common_args.just_mr_paths,
                             common_args.alternative_mirrors,
                             common_args.ca_info,
+                            serve_api_exists,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.jobs);
