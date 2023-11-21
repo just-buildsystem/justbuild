@@ -6,6 +6,8 @@ Bug fixes on top of release `1.2.3`.
 
 - The built-in rule `"install"` now properly enforces that the
   resulting stage is well-formed, i.e., without tree conflicts.
+- Local execution and `just execute` now correctly create empty
+  directories if they are part of the action's input.
 
 ## Release `1.2.3` (2023-11-15)
 

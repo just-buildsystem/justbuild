@@ -176,8 +176,13 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     return std::nullopt;
 }
 
-auto LocalAction::StageFile(std::filesystem::path const& target_path,
-                            Artifact::ObjectInfo const& info) const -> bool {
+auto LocalAction::StageInput(std::filesystem::path const& target_path,
+                             Artifact::ObjectInfo const& info) const noexcept
+    -> bool {
+    if (IsTreeObject(info.type)) {
+        return FileSystemManager::CreateDirectory(target_path);
+    }
+
     auto blob_path =
         storage_->CAS().BlobPath(info.digest, IsExecutableObject(info.type));
 
@@ -204,19 +209,19 @@ auto LocalAction::StageFile(std::filesystem::path const& target_path,
            FileSystemManager::CreateFileHardlink(*blob_path, target_path);
 }
 
-auto LocalAction::StageInputFiles(
+auto LocalAction::StageInputs(
     std::filesystem::path const& exec_path) const noexcept -> bool {
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
 
-    auto infos =
-        storage_->CAS().RecursivelyReadTreeLeafs(root_digest_, exec_path);
+    auto infos = storage_->CAS().RecursivelyReadTreeLeafs(
+        root_digest_, exec_path, /*include_trees=*/true);
     if (not infos) {
         return false;
     }
     for (std::size_t i{}; i < infos->first.size(); ++i) {
-        if (not StageFile(infos->first.at(i), infos->second.at(i))) {
+        if (not StageInput(infos->first.at(i), infos->second.at(i))) {
             return false;
         }
     }
@@ -237,8 +242,8 @@ auto LocalAction::CreateDirectoryStructure(
         return false;
     }
 
-    // stage input files to execution directory
-    if (not StageInputFiles(exec_path)) {
+    // stage inputs (files, leaf trees) to execution directory
+    if (not StageInputs(exec_path)) {
         logger_.Emit(LogLevel::Error,
                      "failed to stage input files to exec_path");
         return false;

@@ -101,16 +101,16 @@ class LocalAction final : public IExecutionAction {
     [[nodiscard]] auto Run(bazel_re::Digest const& action_id) const noexcept
         -> std::optional<Output>;
 
-    [[nodiscard]] auto StageFile(std::filesystem::path const& target_path,
-                                 Artifact::ObjectInfo const& info) const
-        -> bool;
+    [[nodiscard]] auto StageInput(
+        std::filesystem::path const& target_path,
+        Artifact::ObjectInfo const& info) const noexcept -> bool;
 
-    /// \brief Stage input artifacts to the execution directory.
+    /// \brief Stage input artifacts and leaf trees to the execution directory.
     /// Stage artifacts and their parent directory structure from CAS to the
     /// specified execution directory. The execution directory may no exist.
     /// \param[in] exec_path Absolute path to the execution directory.
     /// \returns Success indicator.
-    [[nodiscard]] auto StageInputFiles(
+    [[nodiscard]] auto StageInputs(
         std::filesystem::path const& exec_path) const noexcept -> bool;
 
     [[nodiscard]] auto CreateDirectoryStructure(
