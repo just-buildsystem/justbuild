@@ -135,7 +135,11 @@ done
 
 # install --remember
 
-## install a tree with --remember
+## install a tree with --remember, this also tests blob splitting for:
+##  - file smaller than minimum chunk size (2 KB)
+##  - file larger than maximum chunk size (64 KB)
+##  - tree smaller than minimum chunk size
+##  - tree larger than maximum chunk size
 
 mkdir -p "${SRCDIR_C}"
 cd "${SRCDIR_C}"
@@ -146,11 +150,13 @@ cat > TARGETS <<'EOF'
   { "type": "generic"
   , "out_dirs": ["out"]
   , "cmds":
-    [ "mkdir -p out/foo out/bar out/baz"
+    [ "mkdir -p out/foo out/bar out/baz out/large"
     , "echo some file content > out/foo/data.txt"
     , "echo more file content > out/bar/file.txt"
     , "echo even more file content > out/bar/another_file.txt"
     , "ln -s dummy out/baz/link"
+    , "for i in $(seq 1000); do echo foo > out/large/$(printf %064d $i).txt; done"
+    , "for i in $(seq 128); do seq 1 1024 >> out/large.txt; done"
     ]
   }
 }
