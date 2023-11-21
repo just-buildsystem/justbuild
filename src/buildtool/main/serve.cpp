@@ -14,6 +14,8 @@
 
 #include "src/buildtool/main/serve.hpp"
 
+#include <chrono>
+
 #ifndef BOOTSTRAP_BUILD_TOOL
 
 #include <fstream>
@@ -344,6 +346,58 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                 std::exit(kExitFailure);
             }
             clargs->endpoint.remote_execution_address = address->String();
+        }
+    }
+    // read jobs value
+    auto jobs = serve_config["jobs"];
+    if (jobs.IsNotNull()) {
+        if (not jobs->IsNumber()) {
+            Logger::Log(LogLevel::Error,
+                        "just serve: configuration-file provided jobs has to "
+                        "be a number, but found {}",
+                        jobs->ToString());
+            std::exit(kExitFailure);
+        }
+        clargs->common.jobs = jobs->Number();
+    }
+    // read build options
+    auto build_args = serve_config["build"];
+    if (build_args.IsNotNull()) {
+        if (not build_args->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "just-serve: configuration-file provided build "
+                        "arguments has to be a map, but found {}",
+                        build_args->ToString());
+            std::exit(kExitFailure);
+        }
+        // read the build jobs
+        auto build_jobs = build_args->Get("build jobs", Expression::none_t{});
+        if (build_jobs.IsNotNull()) {
+            if (not build_jobs->IsNumber()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "just serve: configuration-file provided build jobs "
+                    "has to be a number, but found {}",
+                    build_jobs->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->build.build_jobs = build_jobs->Number();
+        }
+        else {
+            clargs->build.build_jobs = clargs->common.jobs;
+        }
+        // read action timeout
+        auto timeout = build_args->Get("action timeout", Expression::none_t{});
+        if (timeout.IsNotNull()) {
+            if (not timeout->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "just serve: configuration-file provided action "
+                            "timeout has to be a number, but found {}",
+                            timeout->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->build.timeout =
+                std::size_t(timeout->Number()) * std::chrono::seconds{1};
         }
     }
 }

@@ -134,7 +134,9 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     }
 }
 
-void SetupServeConfig(ServeArguments const& srvargs) {
+void SetupServeConfig(ServeArguments const& srvargs,
+                      CommonArguments const& cargs,
+                      BuildArguments const& bargs) {
     if (srvargs.remote_serve_address) {
         if (not RemoteServeConfig::SetRemoteAddress(
                 *srvargs.remote_serve_address)) {
@@ -163,6 +165,20 @@ void SetupServeConfig(ServeArguments const& srvargs) {
         not RemoteServeConfig::SetKnownRepositories(srvargs.repositories)) {
         Logger::Log(LogLevel::Error,
                     "Setting serve service repositories failed.");
+        std::exit(kExitFailure);
+    }
+    // make parallelism and build options available for remote builds
+    if (not RemoteServeConfig::SetJobs(cargs.jobs)) {
+        Logger::Log(LogLevel::Error, "Setting jobs failed.");
+        std::exit(kExitFailure);
+    }
+    if (bargs.build_jobs > 0 and
+        not RemoteServeConfig::SetBuildJobs(bargs.build_jobs)) {
+        Logger::Log(LogLevel::Error, "Setting build jobs failed.");
+        std::exit(kExitFailure);
+    }
+    if (not RemoteServeConfig::SetActionTimeout(bargs.timeout)) {
+        Logger::Log(LogLevel::Error, "Setting action timeout failed.");
         std::exit(kExitFailure);
     }
 }
@@ -814,7 +830,7 @@ auto main(int argc, char* argv[]) -> int {
         SetupHashFunction();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
-        SetupServeConfig(arguments.serve);
+        SetupServeConfig(arguments.serve, arguments.common, arguments.build);
         SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {

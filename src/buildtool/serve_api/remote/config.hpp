@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
 #define INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
 
+#include <chrono>
 #include <filesystem>
 #include <iterator>
 #include <vector>
@@ -46,6 +47,24 @@ class RemoteServeConfig {
         return repos.size() == inst.repositories_.size();
     }
 
+    // Set the number of jobs
+    [[nodiscard]] static auto SetJobs(std::size_t jobs) noexcept -> bool {
+        return static_cast<bool>(Instance().jobs_ = jobs);
+    }
+
+    // Set the number of build jobs
+    [[nodiscard]] static auto SetBuildJobs(std::size_t build_jobs) noexcept
+        -> bool {
+        return static_cast<bool>(Instance().build_jobs_ = build_jobs);
+    }
+
+    // Set the action timeout
+    [[nodiscard]] static auto SetActionTimeout(
+        std::chrono::milliseconds const& timeout) noexcept -> bool {
+        Instance().timeout_ = timeout;
+        return Instance().timeout_ > std::chrono::seconds{0};
+    }
+
     // Remote execution address, if set
     [[nodiscard]] static auto RemoteAddress() noexcept
         -> std::optional<ServerAddress> {
@@ -58,12 +77,37 @@ class RemoteServeConfig {
         return Instance().repositories_;
     }
 
+    // Get the number of jobs
+    [[nodiscard]] static auto Jobs() noexcept -> std::size_t {
+        return Instance().jobs_;
+    }
+
+    // Get the number of build jobs
+    [[nodiscard]] static auto BuildJobs() noexcept -> std::size_t {
+        return Instance().build_jobs_;
+    }
+
+    // Get the action timeout
+    [[nodiscard]] static auto ActionTimeout() noexcept
+        -> std::chrono::milliseconds {
+        return Instance().timeout_;
+    }
+
   private:
     // Server address of remote execution.
     std::optional<ServerAddress> remote_address_{};
 
     // Known Git repositories to serve server.
     std::vector<std::filesystem::path> repositories_{};
+
+    // Number of jobs
+    std::size_t jobs_{};
+
+    // Number of build jobs
+    std::size_t build_jobs_{};
+
+    // Action timeout
+    std::chrono::milliseconds timeout_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
