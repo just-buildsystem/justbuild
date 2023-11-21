@@ -4,5 +4,15 @@
   , "test": ["simple_build.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["simple_build"]}
+, "tree_inputs":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["tree_inputs"]
+  , "test": ["tree_inputs.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["simple_build", "tree_inputs"]
+  }
 }

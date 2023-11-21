@@ -34,6 +34,12 @@
   , "test": ["configure-vars.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "tree inputs":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tree-inputs"]
+  , "test": ["tree-inputs.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -44,6 +50,7 @@
     , "glob expansion"
     , "configure target name"
     , "configure variables"
+    , "tree inputs"
     ]
   }
 }
