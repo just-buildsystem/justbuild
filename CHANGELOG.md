@@ -48,6 +48,8 @@ A feature release on top of `1.2.0`, backwards compatible.
   used for keeping track of running operations.
 - The built-in rule `"install"` now properly enforces that the
   resulting stage is well-formed, i.e., without tree conflicts.
+- Local execution and `just execute` now correctly create empty
+  directories if they are part of the action's input.
 
 ## Release `1.2.0` (2023-08-25)
 

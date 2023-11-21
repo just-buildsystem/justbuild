@@ -108,15 +108,17 @@ class LocalCAS {
     }
 
     /// \brief Traverses a tree recursively and retrieves object infos of all
-    /// found blobs (leafs). Tree objects are not added to the result list, but
-    /// converted to a path name.
+    /// found blobs (leafs). Tree objects are by default not added to the result
+    /// list, but converted to a path name.
     /// \param tree_digest      Digest of the tree.
     /// \param parent           Local parent path.
+    /// \param include_trees    Include leaf tree objects (empty trees).
     /// \returns Pair of vectors, first containing filesystem paths, second
     /// containing object infos.
     [[nodiscard]] auto RecursivelyReadTreeLeafs(
         bazel_re::Digest const& tree_digest,
-        std::filesystem::path const& parent) const noexcept
+        std::filesystem::path const& parent,
+        bool include_trees = false) const noexcept
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
 
