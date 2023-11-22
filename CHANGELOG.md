@@ -12,6 +12,12 @@ A feature release on top of `1.2.0`, backwards compatible.
 - `just-mr` is able to back up and retrieve distribution files
   from a remote execution endpoint. This simplifies usage in an
   environment with restricted internet access.
+- `just execute` now supports blob splitting as new RPC call. `just
+  install` uses this call to reduce traffic if the remote-execution
+  endpoint supports blob splitting and the `--remember` option is given.
+  In this way, traffic from the remote-execution endpoint can be reduced
+  when subsequently installing artifacts with only small local
+  differences.
 
 ### Other changes
 
