@@ -39,6 +39,8 @@ echo -n World > $1/hello/world/tree/name.txt
 EOF
 chmod 755 "${TOOLS_DIR}/tree"
 
+mkdir work
+cd work
 
 touch WORKSPACE
 cat > TARGETS <<'EOF'
