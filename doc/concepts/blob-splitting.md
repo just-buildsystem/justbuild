@@ -18,25 +18,26 @@ modification of the sources, the complete artifact needs to be
 downloaded even though maybe only a small fraction of the compiled
 binary artifact has been changed.
 
-Thus, we propose a blob splitting strategy as conservative extension to
+Thus, we introduced a blob splitting API as conservative extension to
 the original [remote execution
 API](https://github.com/bazelbuild/remote-apis/blob/main/build/bazel/remote/execution/v2/remote_execution.proto),
-which allows to split the binary data of a blob into chunks and to
-transmit only the modified chunks instead of the whole blob data. The
-goal is to reduce traffic between local host and remote server and to
-avoid unnecessary waiting times for users frequently working on large
-artifacts at the cost of an increased storage consumption.
+which allows to split the binary data of a blob into chunks and then to
+transmit only the modified chunks instead of the whole blob data. This
+reduces traffic between the remote server and the local host and avoids
+unnecessary waiting times for users frequently working on large
+artifacts. The downside of this API is an increased storage consumption,
+since the binary data of the splitted artifacts will be stored twice.
 
 Remote execution API extension
 ------------------------------
 
-We extend the existing remote execution API by introducing a new remote
-procedure call (rpc) to the `ContentAddressableStorage` service to split
-a blob into chunks along with respective request and response messages,
-and by adding a flag to the `ServerCapabilities` message to indicate
-whether blob splitting is supported by the server or not. The following
-code snippet depicts the proposed extensions to the remote execution
-protocol:
+We extended the existing remote execution API by introducing a new
+remote procedure call (rpc) to the `ContentAddressableStorage` service
+to split a blob into chunks along with respective request and response
+messages, and by adding a flag to the `CacheCapabilities` message to
+indicate whether blob splitting is supported by the server instance or
+not. The following code snippet depicts the required extensions to the
+remote execution protocol:
 
     service ContentAddressableStorage {
       ...
@@ -52,7 +53,7 @@ protocol:
       repeated Digest chunk_digests = 1;
     }
 
-    message ServerCapabilities {
+    message CacheCapabilities {
       ...
       bool blob_split_support = <free field number>;
     }
@@ -136,7 +137,7 @@ API mentioned above. Once this is done and field numbers are assigned,
 servers that have upgraded to the new API version inform clients that
 have upgraded to the new API version whether they support blob splitting
 or not by setting the `blob_split_support` field in the
-`ServerCapabilities` message accordingly. A server only provides the
+`CacheCapabilities` message accordingly. A server only provides the
 aforementioned guarantee to clients once it has announced to support
 blob splitting using this field.
 
