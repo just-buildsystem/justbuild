@@ -1023,7 +1023,7 @@ auto main(int argc, char* argv[]) -> int {
                 if (build_result) {
                     WriteTargetCacheEntries(cache_targets,
                                             build_result->extra_infos,
-                                            arguments.common.jobs,
+                                            jobs,
                                             traverser.GetLocalApi(),
                                             traverser.GetRemoteApi());
 
