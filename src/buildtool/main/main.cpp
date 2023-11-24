@@ -1158,9 +1158,7 @@ auto main(int argc, char* argv[]) -> int {
                 if (build_result) {
                     WriteTargetCacheEntries(cache_targets,
                                             build_result->extra_infos,
-                                            arguments.build.build_jobs > 0
-                                                ? arguments.build.build_jobs
-                                                : arguments.common.jobs,
+                                            jobs,
                                             traverser.GetLocalApi(),
                                             traverser.GetRemoteApi());
 
