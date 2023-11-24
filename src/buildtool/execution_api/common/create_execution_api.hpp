@@ -20,15 +20,19 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
 /// \brief Utility function to instantiate either a Local or Bazel Execution
 /// API.
 /// \param address if provided, a BazelApi is instantiated
+/// \param repo_config repository configuration to be used by GitApi calls
 /// \param instance_name only used in the construction of the BazelApi object
 [[nodiscard]] static inline auto CreateExecutionApi(
     std::optional<ServerAddress> const& address,
+    std::optional<gsl::not_null<RepositoryConfig*>> const& repo_config =
+        std::nullopt,
     std::string const& instance_name = "remote-execution")
     -> gsl::not_null<IExecutionApi::Ptr> {
     if (address) {
@@ -38,7 +42,7 @@
         return std::make_unique<BazelApi>(
             instance_name, address->host, address->port, config);
     }
-    return std::make_unique<LocalApi>();
+    return std::make_unique<LocalApi>(repo_config);
 }
 
 #endif

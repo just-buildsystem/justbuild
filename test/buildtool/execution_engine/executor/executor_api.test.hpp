@@ -21,6 +21,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -30,14 +31,16 @@
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 
-static inline void SetupConfig() {
+static inline void SetupConfig(RepositoryConfig* repo_config) {
     auto info = RepositoryConfig::RepositoryInfo{FileRoot{
         std::filesystem::path{"test/buildtool/execution_engine/executor"}}};
-    RepositoryConfig::Instance().SetInfo("", std::move(info));
+    repo_config->Reset();
+    repo_config->SetInfo("", std::move(info));
 }
 
-static inline void RunBlobUpload(ApiFactory const& factory) {
-    SetupConfig();
+static inline void RunBlobUpload(RepositoryConfig* repo_config,
+                                 ApiFactory const& factory) {
+    SetupConfig(repo_config);
     auto api = factory();
     std::string const blob = "test";
     CHECK(api->Upload(BlobContainer{{BazelBlob{
@@ -77,12 +80,13 @@ template <class Executor>
     return tree_artifact->Content().Info();
 }
 
-static inline void RunHelloWorldCompilation(ApiFactory const& factory,
+static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
+                                            ApiFactory const& factory,
                                             bool is_hermetic = true,
                                             int expected_queued = 0,
                                             int expected_cached = 0) {
     using path = std::filesystem::path;
-    SetupConfig();
+    SetupConfig(repo_config);
     auto const main_cpp_desc =
         ArtifactDescription{path{"data/hello_world/main.cpp"}, ""};
     auto const& main_cpp_id = main_cpp_desc.Id();
@@ -103,8 +107,10 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
     CHECK(g.ArtifactNodeWithId(exec_id)->HasBuilderAction());
 
     auto api = factory();
-    Executor runner{
-        api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+    Executor runner{repo_config,
+                    api.get(),
+                    api.get(),
+                    RemoteExecutionConfig::PlatformProperties()};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -132,13 +138,14 @@ static inline void RunHelloWorldCompilation(ApiFactory const& factory,
     }
 }
 
-static inline void RunGreeterCompilation(ApiFactory const& factory,
+static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
+                                         ApiFactory const& factory,
                                          std::string const& greetcpp,
                                          bool is_hermetic = true,
                                          int expected_queued = 0,
                                          int expected_cached = 0) {
     using path = std::filesystem::path;
-    SetupConfig();
+    SetupConfig(repo_config);
     auto const greet_hpp_desc =
         ArtifactDescription{path{"data/greeter/greet.hpp"}, ""};
     auto const& greet_hpp_id = greet_hpp_desc.Id();
@@ -206,8 +213,10 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
     CHECK(g.Add({compile_greet_desc, make_lib_desc, make_exe_desc}));
 
     auto api = factory();
-    Executor runner{
-        api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+    Executor runner{repo_config,
+                    api.get(),
+                    api.get(),
+                    RemoteExecutionConfig::PlatformProperties()};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -241,52 +250,65 @@ static inline void RunGreeterCompilation(ApiFactory const& factory,
     }
 }
 
-[[maybe_unused]] static void TestBlobUpload(ApiFactory const& factory) {
-    SetupConfig();
+[[maybe_unused]] static void TestBlobUpload(RepositoryConfig* repo_config,
+                                            ApiFactory const& factory) {
+    SetupConfig(repo_config);
     // NOLINTNEXTLINE
-    RunBlobUpload(factory);
+    RunBlobUpload(repo_config, factory);
 }
 
 [[maybe_unused]] static void TestHelloWorldCompilation(
+    RepositoryConfig* repo_config,
     ApiFactory const& factory,
     bool is_hermetic = true) {
-    SetupConfig();
+    SetupConfig(repo_config);
     // expecting 1 action queued, 0 results from cache
     // NOLINTNEXTLINE
-    RunHelloWorldCompilation(factory, is_hermetic, 1, 0);
+    RunHelloWorldCompilation(repo_config, factory, is_hermetic, 1, 0);
 
     SECTION("Running same compilation again") {
         // expecting 2 actions queued, 1 result from cache
         // NOLINTNEXTLINE
-        RunHelloWorldCompilation(factory, is_hermetic, 2, 1);
+        RunHelloWorldCompilation(repo_config, factory, is_hermetic, 2, 1);
     }
 }
 
-[[maybe_unused]] static void TestGreeterCompilation(ApiFactory const& factory,
-                                                    bool is_hermetic = true) {
-    SetupConfig();
+[[maybe_unused]] static void TestGreeterCompilation(
+    RepositoryConfig* repo_config,
+    ApiFactory const& factory,
+    bool is_hermetic = true) {
+    SetupConfig(repo_config);
     // expecting 3 action queued, 0 results from cache
     // NOLINTNEXTLINE
-    RunGreeterCompilation(factory, "greet.cpp", is_hermetic, 3, 0);
+    RunGreeterCompilation(repo_config, factory, "greet.cpp", is_hermetic, 3, 0);
 
     SECTION("Running same compilation again") {
         // expecting 6 actions queued, 3 results from cache
-        // NOLINTNEXTLINE
-        RunGreeterCompilation(factory, "greet.cpp", is_hermetic, 6, 3);
+        RunGreeterCompilation(repo_config,
+                              factory,
+                              "greet.cpp",
+                              is_hermetic,
+                              6,  // NOLINT
+                              3);
     }
 
     SECTION("Running modified compilation") {
         // expecting 6 actions queued, 2 results from cache
-        // NOLINTNEXTLINE
-        RunGreeterCompilation(factory, "greet_mod.cpp", is_hermetic, 6, 2);
+        RunGreeterCompilation(repo_config,
+                              factory,
+                              "greet_mod.cpp",
+                              is_hermetic,
+                              6,  // NOLINT
+                              2);
     }
 }
 
-static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
+static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
+                                              ApiFactory const& factory,
                                               bool /*is_hermetic*/ = true,
                                               int /*expected_queued*/ = 0,
                                               int /*expected_cached*/ = 0) {
-    SetupConfig();
+    SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
 
     auto foo = std::string{"foo"};
@@ -314,8 +336,10 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
     auto foo_id = g.AddArtifact(foo_desc);
     auto bar_id = g.AddArtifact(bar_desc);
 
-    Executor runner{
-        api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+    Executor runner{repo_config,
+                    api.get(),
+                    api.get(),
+                    RemoteExecutionConfig::PlatformProperties()};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -415,11 +439,12 @@ static inline void TestUploadAndDownloadTrees(ApiFactory const& factory,
     }
 }
 
-static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
+static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
+                                                 ApiFactory const& factory,
                                                  bool /*is_hermetic*/ = true,
                                                  int /*expected_queued*/ = 0,
                                                  int /*expected_cached*/ = 0) {
-    SetupConfig();
+    SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
 
     auto const make_tree_id = std::string{"make_tree"};
@@ -457,8 +482,10 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{
-            api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+        Executor runner{repo_config,
+                        api.get(),
+                        api.get(),
+                        RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -502,8 +529,10 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{
-            api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+        Executor runner{repo_config,
+                        api.get(),
+                        api.get(),
+                        RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -563,8 +592,10 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
         // run action
         auto api = factory();
-        Executor runner{
-            api.get(), api.get(), RemoteExecutionConfig::PlatformProperties()};
+        Executor runner{repo_config,
+                        api.get(),
+                        api.get(),
+                        RemoteExecutionConfig::PlatformProperties()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -629,7 +660,8 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
             // run action
             auto api = factory();
-            Executor runner{api.get(),
+            Executor runner{repo_config,
+                            api.get(),
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties()};
             CHECK_FALSE(runner.Process(action));
@@ -649,7 +681,8 @@ static inline void TestRetrieveOutputDirectories(ApiFactory const& factory,
 
             // run action
             auto api = factory();
-            Executor runner{api.get(),
+            Executor runner{repo_config,
+                            api.get(),
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties()};
             CHECK_FALSE(runner.Process(action));

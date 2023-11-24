@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
@@ -22,29 +23,39 @@
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload blob",
                  "[executor]") {
-    TestBlobUpload([&] { return std::make_unique<LocalApi>(); });
+    RepositoryConfig repo_config{};
+    TestBlobUpload(&repo_config,
+                   [&] { return std::make_unique<LocalApi>(&repo_config); });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Compile hello world",
                  "[executor]") {
-    TestHelloWorldCompilation([&] { return std::make_unique<LocalApi>(); });
+    RepositoryConfig repo_config{};
+    TestHelloWorldCompilation(
+        &repo_config, [&] { return std::make_unique<LocalApi>(&repo_config); });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Compile greeter",
                  "[executor]") {
-    TestGreeterCompilation([&] { return std::make_unique<LocalApi>(); });
+    RepositoryConfig repo_config{};
+    TestGreeterCompilation(
+        &repo_config, [&] { return std::make_unique<LocalApi>(&repo_config); });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload and download trees",
                  "[executor]") {
-    TestUploadAndDownloadTrees([&] { return std::make_unique<LocalApi>(); });
+    RepositoryConfig repo_config{};
+    TestUploadAndDownloadTrees(
+        &repo_config, [&] { return std::make_unique<LocalApi>(&repo_config); });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Retrieve output directories",
                  "[executor]") {
-    TestRetrieveOutputDirectories([&] { return std::make_unique<LocalApi>(); });
+    RepositoryConfig repo_config{};
+    TestRetrieveOutputDirectories(
+        &repo_config, [&] { return std::make_unique<LocalApi>(&repo_config); });
 }

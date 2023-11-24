@@ -23,6 +23,7 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Target {
@@ -36,6 +37,7 @@ auto CreateTargetMap(
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&,
     [[maybe_unused]] const gsl::not_null<AbsentTargetMap*>&,
     const gsl::not_null<ResultTargetMap*>&,
+    [[maybe_unused]] const gsl::not_null<RepositoryConfig*>&,
     std::size_t jobs = 0) -> TargetMap;
 
 auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool;

@@ -24,6 +24,7 @@
 #include "src/buildtool/build_engine/base_maps/expression_function.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Base {
@@ -39,6 +40,7 @@ using ExpressionFunctionMap =
     AsyncMapConsumer<EntityName, ExpressionFunctionPtr>;
 
 auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
+                         gsl::not_null<RepositoryConfig*> const& repo_config,
                          std::size_t jobs = 0) -> ExpressionFunctionMap;
 
 }  // namespace BuildMaps::Base

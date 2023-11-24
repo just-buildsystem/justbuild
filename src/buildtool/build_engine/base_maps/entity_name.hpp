@@ -182,6 +182,7 @@ template <typename T>
     T const& list,
     std::size_t const list_size,
     EntityName const& current,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -190,7 +191,7 @@ template <typename T>
             auto const& local_repo_name = GetString(list[1]);
             auto const& module = GetString(list[2]);
             auto const& target = GetString(list[3]);
-            auto const* repo_name = RepositoryConfig::Instance().GlobalName(
+            auto const* repo_name = repo_config->GlobalName(
                 current.GetNamedTarget().repository, local_repo_name);
             if (repo_name != nullptr) {
                 return EntityName{*repo_name, module, target};
@@ -212,6 +213,7 @@ template <typename T>
     T const& list,
     std::size_t const list_size,
     EntityName const& current,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -224,7 +226,7 @@ template <typename T>
             }
             if (s0 == EntityName::kLocationMarker) {
                 return ParseEntityNameLocation(
-                    list, list_size, current, logger);
+                    list, list_size, current, repo_config, logger);
             }
             if (s0 == EntityName::kAnonymousMarker and logger) {
                 (*logger)(fmt::format(
@@ -249,6 +251,7 @@ template <typename T>
 [[nodiscard]] inline auto ParseEntityName(
     T const& source,
     EntityName const& current,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -264,7 +267,8 @@ template <typename T>
                 res = ParseEntityName_2(list, current);
             }
             else if (list_size >= 3) {
-                res = ParseEntityName_3(list, list_size, current, logger);
+                res = ParseEntityName_3(
+                    list, list_size, current, repo_config, logger);
             }
         }
         if (logger and (res == std::nullopt)) {
@@ -280,17 +284,19 @@ template <typename T>
 [[nodiscard]] inline auto ParseEntityNameFromJson(
     nlohmann::json const& json,
     EntityName const& current,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
-    return ParseEntityName(json, current, std::move(logger));
+    return ParseEntityName(json, current, repo_config, std::move(logger));
 }
 
 [[nodiscard]] inline auto ParseEntityNameFromExpression(
     ExpressionPtr const& expr,
     EntityName const& current,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
-    return ParseEntityName(expr, current, std::move(logger));
+    return ParseEntityName(expr, current, repo_config, std::move(logger));
 }
 
 }  // namespace BuildMaps::Base

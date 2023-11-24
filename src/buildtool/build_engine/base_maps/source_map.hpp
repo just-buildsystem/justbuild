@@ -23,6 +23,7 @@
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
@@ -31,6 +32,7 @@ namespace BuildMaps::Base {
 using SourceTargetMap = AsyncMapConsumer<EntityName, AnalysedTargetPtr>;
 
 auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
+                           gsl::not_null<RepositoryConfig*> const& repo_config,
                            std::size_t jobs = 0) -> SourceTargetMap;
 
 }  // namespace BuildMaps::Base

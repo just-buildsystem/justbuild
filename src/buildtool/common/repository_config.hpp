@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -42,11 +43,6 @@ class RepositoryConfig {
         [[nodiscard]] auto BaseContentDescription() const
             -> std::optional<nlohmann::json>;
     };
-
-    [[nodiscard]] static auto Instance() noexcept -> RepositoryConfig& {
-        static RepositoryConfig instance{};
-        return instance;
-    }
 
     void SetInfo(std::string const& repo, RepositoryInfo&& info) {
         repos_[repo].base_desc = info.BaseContentDescription();

@@ -17,19 +17,18 @@
 #include <filesystem>
 #include <unordered_set>
 
-#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/utils/cpp/path.hpp"
 
-auto BuildMaps::Base::CreateDirectoryEntriesMap(std::size_t jobs)
-    -> DirectoryEntriesMap {
-    auto directory_reader = [](auto /* unused*/,
-                               auto setter,
-                               auto logger,
-                               auto /* unused */,
-                               auto const& key) {
-        auto const* ws_root =
-            RepositoryConfig::Instance().WorkspaceRoot(key.repository);
+auto BuildMaps::Base::CreateDirectoryEntriesMap(
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    std::size_t jobs) -> DirectoryEntriesMap {
+    auto directory_reader = [repo_config](auto /* unused*/,
+                                          auto setter,
+                                          auto logger,
+                                          auto /* unused */,
+                                          auto const& key) {
+        auto const* ws_root = repo_config->WorkspaceRoot(key.repository);
         if (ws_root == nullptr) {
             (*logger)(
                 fmt::format("Cannot determine workspace root for repository {}",

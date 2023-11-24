@@ -43,6 +43,7 @@
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
@@ -56,6 +57,7 @@
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     ]
@@ -83,6 +85,7 @@
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]

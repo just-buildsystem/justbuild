@@ -402,12 +402,11 @@ void SetupHashFunction() {
 }
 
 [[nodiscard]] auto ReadConfiguredTarget(
-    AnalysisArguments const& clargs,
     std::string const& main_repo,
-    std::optional<std::filesystem::path> const& main_ws_root)
-    -> Target::ConfiguredTarget {
-    auto const* target_root =
-        RepositoryConfig::Instance().TargetRoot(main_repo);
+    std::optional<std::filesystem::path> const& main_ws_root,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    AnalysisArguments const& clargs) -> Target::ConfiguredTarget {
+    auto const* target_root = repo_config->TargetRoot(main_repo);
     if (target_root == nullptr) {
         Logger::Log(LogLevel::Error,
                     "Cannot obtain target root for main repo {}.",
@@ -415,8 +414,7 @@ void SetupHashFunction() {
         std::exit(kExitFailure);
     }
     auto current_module = std::string{"."};
-    std::string target_file_name =
-        *RepositoryConfig::Instance().TargetFileName(main_repo);
+    std::string target_file_name = *repo_config->TargetFileName(main_repo);
     if (main_ws_root) {
         // module detection only works if main workspace is on the file system
         current_module = DetermineCurrentModule(
@@ -427,6 +425,7 @@ void SetupHashFunction() {
         auto entity = Base::ParseEntityNameFromJson(
             *clargs.target,
             Base::EntityName{Base::NamedTarget{main_repo, current_module, ""}},
+            repo_config,
             [&clargs](std::string const& parse_err) {
                 Logger::Log(LogLevel::Error,
                             "Parsing target name {} failed with:\n{}",
@@ -456,6 +455,7 @@ void SetupHashFunction() {
         auto entity = Base::ParseEntityNameFromJson(
             target,
             Base::EntityName{Base::NamedTarget{main_repo, current_module, ""}},
+            repo_config,
             [&target](std::string const& parse_err) {
                 Logger::Log(LogLevel::Error,
                             "Parsing target name {} failed with:\n{}",
@@ -639,7 +639,8 @@ auto ParseRoot(std::string const& repo,
 
 // Set all roots and name mappings from the command-line arguments and
 // return the name of the main repository and main workspace path if local.
-auto DetermineRoots(CommonArguments const& cargs,
+auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
+                    CommonArguments const& cargs,
                     AnalysisArguments const& aargs)
     -> std::pair<std::string, std::optional<std::filesystem::path>> {
     std::optional<std::filesystem::path> main_ws_root;
@@ -800,7 +801,7 @@ auto DetermineRoots(CommonArguments const& cargs,
                                 "expression_file_name",
                                 aargs.expression_file_name);
 
-        RepositoryConfig::Instance().SetInfo(repo, std::move(info));
+        repository_config->SetInfo(repo, std::move(info));
     }
 
     return {main_repo, main_ws_root};
@@ -840,9 +841,11 @@ void ReportTaintedness(const AnalysisResult& result) {
 auto DetermineNonExplicitTarget(
     std::string const& main_repo,
     std::optional<std::filesystem::path> const& main_ws_root,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     AnalysisArguments const& clargs)
     -> std::optional<BuildMaps::Target::ConfiguredTarget> {
-    auto id = ReadConfiguredTarget(clargs, main_repo, main_ws_root);
+    auto id =
+        ReadConfiguredTarget(main_repo, main_ws_root, repo_config, clargs);
     switch (id.target.GetNamedTarget().reference_t) {
         case Base::ReferenceType::kFile:
             std::cout << id.ToString() << " is a source file." << std::endl;
@@ -954,6 +957,9 @@ auto main(int argc, char* argv[]) -> int {
                 *arguments.analysis.expression_log_limit);
         }
 
+        // global repository configuration
+        RepositoryConfig repo_config{};
+
 #ifndef BOOTSTRAP_BUILD_TOOL
         /**
          * The current implementation of libgit2 uses pthread_key_t incorrectly
@@ -1013,11 +1019,11 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(arguments.build),
                                         std::move(stage_args),
                                         std::move(rebuild_args)},
+                                       &repo_config,
                                        ProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
-            if (not RepositoryConfig::Instance().SetGitCAS(
-                    StorageConfig::GitRoot())) {
+            if (not repo_config.SetGitCAS(StorageConfig::GitRoot())) {
                 Logger::Log(LogLevel::Debug,
                             "Failed set Git CAS {}.",
                             StorageConfig::GitRoot().string());
@@ -1031,7 +1037,7 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
 
         auto [main_repo, main_ws_root] =
-            DetermineRoots(arguments.common, arguments.analysis);
+            DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         auto lock = GarbageCollector::SharedLock();
@@ -1049,8 +1055,7 @@ auto main(int argc, char* argv[]) -> int {
                                 "--compatible");
                     std::exit(EXIT_FAILURE);
                 }
-                if (not RepositoryConfig::Instance().SetGitCAS(
-                        *arguments.graph.git_cas)) {
+                if (not repo_config.SetGitCAS(*arguments.graph.git_cas)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed set Git CAS {}.",
                                 arguments.graph.git_cas->string());
@@ -1062,14 +1067,18 @@ auto main(int argc, char* argv[]) -> int {
             }
         }
         else if (arguments.cmd == SubCommand::kDescribe) {
-            if (auto id = DetermineNonExplicitTarget(
-                    main_repo, main_ws_root, arguments.analysis)) {
+            if (auto id = DetermineNonExplicitTarget(main_repo,
+                                                     main_ws_root,
+                                                     &repo_config,
+                                                     arguments.analysis)) {
                 return arguments.describe.describe_rule
                            ? DescribeUserDefinedRule(
                                  id->target,
+                                 &repo_config,
                                  arguments.common.jobs,
                                  arguments.describe.print_json)
                            : DescribeTarget(*id,
+                                            &repo_config,
                                             arguments.common.jobs,
                                             arguments.describe.print_json);
             }
@@ -1081,9 +1090,12 @@ auto main(int argc, char* argv[]) -> int {
             BuildMaps::Target::ResultTargetMap result_map{
                 arguments.common.jobs};
             auto id = ReadConfiguredTarget(
-                arguments.analysis, main_repo, main_ws_root);
-            auto result = AnalyseTarget(
-                id, &result_map, arguments.common.jobs, arguments.analysis);
+                main_repo, main_ws_root, &repo_config, arguments.analysis);
+            auto result = AnalyseTarget(id,
+                                        &result_map,
+                                        &repo_config,
+                                        arguments.common.jobs,
+                                        arguments.analysis);
             if (result) {
                 if (arguments.analysis.graph_file) {
                     result_map.ToFile(*arguments.analysis.graph_file);

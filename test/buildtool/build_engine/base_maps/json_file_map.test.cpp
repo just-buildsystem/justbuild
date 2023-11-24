@@ -13,10 +13,12 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <memory>
 #include <utility>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
 
@@ -24,7 +26,8 @@ namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-void SetupConfig(std::string target_file_name, bool use_git) {
+auto SetupConfig(std::string target_file_name, bool use_git)
+    -> RepositoryConfig {
     auto root = FileRoot{kBasePath};
     if (use_git) {
         auto repo_path = CreateTestRepo();
@@ -35,8 +38,9 @@ void SetupConfig(std::string target_file_name, bool use_git) {
     }
     auto info = RepositoryConfig::RepositoryInfo{root};
     info.target_file_name = std::move(target_file_name);
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo("", std::move(info));
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", std::move(info));
+    return repo_config;
 }
 
 template <bool kMandatory = true>
@@ -46,10 +50,10 @@ auto ReadJsonFile(std::string const& target_file_name,
                   bool use_git = false,
                   std::optional<JsonFileMap::FailureFunction> fail_func =
                       std::nullopt) -> bool {
-    SetupConfig(target_file_name, use_git);
+    auto repo_config = SetupConfig(target_file_name, use_git);
     auto json_files = CreateJsonFileMap<&RepositoryConfig::WorkspaceRoot,
                                         &RepositoryConfig::TargetFileName,
-                                        kMandatory>(0);
+                                        kMandatory>(&repo_config, 0);
     bool success{true};
     {
         TaskSystem ts;

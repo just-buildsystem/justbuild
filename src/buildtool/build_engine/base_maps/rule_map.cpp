@@ -42,9 +42,11 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
                                                          "tainted",
                                                          "target_fields"};
 
-[[nodiscard]] auto ReadAnonymousObject(EntityName const& id,
-                                       nlohmann::json const& json,
-                                       AsyncMapConsumerLoggerPtr const& logger)
+[[nodiscard]] auto ReadAnonymousObject(
+    EntityName const& id,
+    nlohmann::json const& json,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<UserRule::anonymous_defs_t> {
     auto obj = GetOrDefault(json, "anonymous", nlohmann::json::object());
     if (not obj.is_object()) {
@@ -123,7 +125,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
         Expression::map_t::underlying_map_t rule_mapping{};
         for (auto const& [key, val] : rule_map->items()) {
             auto rule_name = ParseEntityNameFromJson(
-                val, id, [&logger, &id, &name = name](auto msg) {
+                val, id, repo_config, [&logger, &id, &name = name](auto msg) {
                     (*logger)(
                         fmt::format("Parsing rule name for entry {} in field "
                                     "anonymous in rule {} failed with:\n{}",
@@ -148,9 +150,11 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
     return anon_defs;
 }
 
-[[nodiscard]] auto ReadImplicitObject(EntityName const& id,
-                                      nlohmann::json const& json,
-                                      AsyncMapConsumerLoggerPtr const& logger)
+[[nodiscard]] auto ReadImplicitObject(
+    EntityName const& id,
+    nlohmann::json const& json,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<UserRule::implicit_t> {
     auto map = GetOrDefault(json, "implicit", nlohmann::json::object());
     if (not map.is_object()) {
@@ -175,7 +179,10 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
         targets.reserve(val.size());
         for (auto const& item : val) {
             auto expr_id = ParseEntityNameFromJson(
-                item, id, [&logger, &item, &id](std::string const& parse_err) {
+                item,
+                id,
+                repo_config,
+                [&logger, &item, &id](std::string const& parse_err) {
                     (*logger)(fmt::format("Parsing entry {} in implicit field "
                                           "of rule {} failed with:\n{}",
                                           item.dump(),
@@ -234,12 +241,14 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
 
 auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                    gsl::not_null<ExpressionFunctionMap*> const& expr_map,
+                   gsl::not_null<RepositoryConfig*> const& repo_config,
                    std::size_t jobs) -> UserRuleMap {
-    auto user_rule_creator = [rule_file_map, expr_map](auto ts,
-                                                       auto setter,
-                                                       auto logger,
-                                                       auto /*subcaller*/,
-                                                       auto const& id) {
+    auto user_rule_creator = [rule_file_map, expr_map, repo_config](
+                                 auto ts,
+                                 auto setter,
+                                 auto logger,
+                                 auto /*subcaller*/,
+                                 auto const& id) {
         if (not id.IsDefinitionName()) {
             (*logger)(fmt::format("{} cannot name a rule", id.ToString()),
                       true);
@@ -248,7 +257,7 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
         rule_file_map->ConsumeAfterKeysReady(
             ts,
             {id.ToModule()},
-            [ts, expr_map, setter = std::move(setter), logger, id](
+            [ts, expr_map, repo_config, setter = std::move(setter), logger, id](
                 auto json_values) {
                 const auto& target_ = id.GetNamedTarget();
                 auto rule_it = json_values[0]->find(target_.name);
@@ -288,14 +297,14 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                     return;
                 }
 
-                auto implicit_targets =
-                    ReadImplicitObject(id, rule_it.value(), logger);
+                auto implicit_targets = ReadImplicitObject(
+                    id, rule_it.value(), repo_config, logger);
                 if (not implicit_targets) {
                     return;
                 }
 
-                auto anonymous_defs =
-                    ReadAnonymousObject(id, rule_it.value(), logger);
+                auto anonymous_defs = ReadAnonymousObject(
+                    id, rule_it.value(), repo_config, logger);
                 if (not anonymous_defs) {
                     return;
                 }
@@ -311,7 +320,7 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                 }
 
                 auto import_aliases =
-                    reader->ReadEntityAliasesObject("imports");
+                    reader->ReadEntityAliasesObject("imports", repo_config);
                 if (not import_aliases) {
                     return;
                 }

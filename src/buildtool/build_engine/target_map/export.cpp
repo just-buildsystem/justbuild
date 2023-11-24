@@ -81,10 +81,10 @@ void FinalizeExport(
 
 [[nodiscard]] auto ComputeTargetCacheKey(
     BuildMaps::Base::EntityName const& export_target,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     Configuration const& target_config) -> std::optional<TargetCacheKey> {
-    static auto const& repos = RepositoryConfig::Instance();
     auto const& target_name = export_target.GetNamedTarget();
-    if (auto repo_key = repos.RepositoryKey(target_name.repository)) {
+    if (auto repo_key = repo_config->RepositoryKey(target_name.repository)) {
         return TargetCacheKey::Create(*repo_key, target_name, target_config);
     }
     return std::nullopt;
@@ -95,6 +95,7 @@ void FinalizeExport(
 void ExportRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -106,7 +107,8 @@ void ExportRule(
         return;
     }
     auto effective_config = key.config.Prune(*flexible_vars);
-    auto target_cache_key = ComputeTargetCacheKey(key.target, effective_config);
+    auto target_cache_key =
+        ComputeTargetCacheKey(key.target, repo_config, effective_config);
 
     if (target_cache_key) {
         if (auto target_cache_value =
@@ -174,6 +176,7 @@ void ExportRule(
     auto exported_target = BuildMaps::Base::ParseEntityNameFromExpression(
         exported_target_name,
         key.target,
+        repo_config,
         [&logger, &exported_target_name](std::string const& parse_err) {
             (*logger)(fmt::format("Parsing target name {} failed with:\n{}",
                                   exported_target_name->ToString(),

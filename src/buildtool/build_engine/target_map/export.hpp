@@ -20,9 +20,11 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 
 void ExportRule(const nlohmann::json& desc_json,
                 const BuildMaps::Target::ConfiguredTarget& key,
+                const gsl::not_null<RepositoryConfig*>& repo_config,
                 const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
                 const BuildMaps::Target::TargetMap::SetterPtr& setter,
                 const BuildMaps::Target::TargetMap::LoggerPtr& logger,

@@ -14,6 +14,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
@@ -26,7 +27,7 @@ namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-void SetupConfig(bool use_git) {
+auto SetupConfig(bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath / "data_expr"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
@@ -35,17 +36,17 @@ void SetupConfig(bool use_git) {
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo(
-        "", RepositoryConfig::RepositoryInfo{root});
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", RepositoryConfig::RepositoryInfo{root});
+    return repo_config;
 }
 
 auto ReadExpressionFunction(EntityName const& id,
                             ExpressionFunctionMap::Consumer value_checker,
                             bool use_git = false) -> bool {
-    SetupConfig(use_git);
-    auto expr_file_map = CreateExpressionFileMap(0);
-    auto expr_func_map = CreateExpressionMap(&expr_file_map);
+    auto repo_config = SetupConfig(use_git);
+    auto expr_file_map = CreateExpressionFileMap(&repo_config, 0);
+    auto expr_func_map = CreateExpressionMap(&expr_file_map, &repo_config);
 
     bool success{true};
     {

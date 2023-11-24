@@ -19,6 +19,7 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 
 struct AnalysisResult {
     BuildMaps::Target::ConfiguredTarget id;
@@ -29,6 +30,7 @@ struct AnalysisResult {
 [[nodiscard]] auto AnalyseTarget(
     const BuildMaps::Target::ConfiguredTarget& id,
     gsl::not_null<BuildMaps::Target::ResultTargetMap*> const& result_map,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::size_t jobs,
     AnalysisArguments const& clargs) -> std::optional<AnalysisResult>;
 #endif

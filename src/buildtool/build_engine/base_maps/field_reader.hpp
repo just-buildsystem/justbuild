@@ -25,6 +25,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Base {
@@ -170,7 +171,9 @@ class FieldReader {
     }
 
     [[nodiscard]] auto ReadEntityAliasesObject(
-        std::string const& field_name) const -> std::optional<EntityAliases> {
+        std::string const& field_name,
+        gsl::not_null<RepositoryConfig*> const& repo_config) const
+        -> std::optional<EntityAliases> {
         auto const& map =
             GetOrDefault(json_, field_name, nlohmann::json::object());
         if (not map.is_object()) {
@@ -189,6 +192,7 @@ class FieldReader {
             auto expr_id = ParseEntityNameFromJson(
                 val,
                 id_,
+                repo_config,
                 [this, &field_name, entry = val.dump()](
                     std::string const& parse_err) {
                     (*logger_)(fmt::format("Parsing entry {} in field {} of {} "

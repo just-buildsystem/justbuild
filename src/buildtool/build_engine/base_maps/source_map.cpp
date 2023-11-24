@@ -45,12 +45,13 @@ auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
 }  // namespace
 
 auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
+                           gsl::not_null<RepositoryConfig*> const& repo_config,
                            std::size_t jobs) -> SourceTargetMap {
-    auto src_target_reader = [dirs](auto ts,
-                                    auto setter,
-                                    auto logger,
-                                    auto /* unused */,
-                                    auto const& key) {
+    auto src_target_reader = [dirs, repo_config](auto ts,
+                                                 auto setter,
+                                                 auto logger,
+                                                 auto /* unused */,
+                                                 auto const& key) {
         using std::filesystem::path;
         const auto& target = key.GetNamedTarget();
         auto name = path(target.name).lexically_normal();
@@ -62,8 +63,7 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
             return;
         }
         auto dir = (path(target.module) / name).parent_path();
-        auto const* ws_root =
-            RepositoryConfig::Instance().WorkspaceRoot(target.repository);
+        auto const* ws_root = repo_config->WorkspaceRoot(target.repository);
 
         auto src_file_reader = [key, name, setter, logger, dir, ws_root](
                                    bool exists_in_ws_root) {

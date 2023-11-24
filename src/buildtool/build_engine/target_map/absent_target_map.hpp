@@ -18,12 +18,14 @@
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Target {
 using AbsentTargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 
 auto CreateAbsentTargetMap(const gsl::not_null<ResultTargetMap*>&,
+                           gsl::not_null<RepositoryConfig*> const& repo_config,
                            std::size_t jobs = 0) -> AbsentTargetMap;
 
 }  // namespace BuildMaps::Target

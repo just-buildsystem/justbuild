@@ -21,6 +21,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
@@ -29,7 +30,9 @@ namespace BuildMaps::Base {
 using DirectoryEntriesMap =
     AsyncMapConsumer<ModuleName, FileRoot::DirectoryEntries>;
 
-auto CreateDirectoryEntriesMap(std::size_t jobs = 0) -> DirectoryEntriesMap;
+auto CreateDirectoryEntriesMap(
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    std::size_t jobs = 0) -> DirectoryEntriesMap;
 
 }  // namespace BuildMaps::Base
 

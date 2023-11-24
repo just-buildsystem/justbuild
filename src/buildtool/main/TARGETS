@@ -55,11 +55,12 @@
   , "deps":
     [ ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "config"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/build_engine/base_maps", "rule_map"]
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
     , ["src/buildtool/logging", "logging"]
@@ -111,6 +112,7 @@
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "config"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":

@@ -14,26 +14,26 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #endif
+
 auto BuildMaps::Target::CreateAbsentTargetMap(
     const gsl::not_null<ResultTargetMap*>& result_map,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::size_t jobs) -> AbsentTargetMap {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    auto target_reader = [result_map](auto /*ts*/,
-                                      auto setter,
-                                      auto logger,
-                                      auto /*subcaller*/,
-                                      auto key) {
+    auto target_reader = [result_map, repo_config](auto /*ts*/,
+                                                   auto setter,
+                                                   auto logger,
+                                                   auto /*subcaller*/,
+                                                   auto key) {
         // assumptions:
         // - target with absent targets file requested
         // - ServeApi correctly configured
         auto const& repo_name = key.target.ToModule().repository;
-        auto target_root_id = RepositoryConfig::Instance()
-                                  .TargetRoot(repo_name)
-                                  ->GetAbsentTreeId();
+        auto target_root_id =
+            repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
         if (!target_root_id) {
             (*logger)(fmt::format("Failed to get the target root id for "
                                   "repository \"{}\"",
@@ -43,7 +43,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
         }
         auto flexible_vars = ServeApi::ServeTargetVariables(
             *target_root_id,
-            *RepositoryConfig::Instance().TargetFileName(repo_name),
+            *(repo_config->TargetFileName(repo_name)),
             key.target.GetNamedTarget().name);
         if (!flexible_vars) {
             (*logger)(fmt::format("Failed to obtain flexible config variables "
@@ -55,8 +55,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
         // TODO(asartori): avoid code duplication in export.cpp
         auto effective_config = key.config.Prune(*flexible_vars);
         auto target_name = key.target.GetNamedTarget();
-        auto repo_key =
-            RepositoryConfig::Instance().RepositoryKey(target_name.repository);
+        auto repo_key = repo_config->RepositoryKey(target_name.repository);
         if (!repo_key) {
             (*logger)(
                 fmt::format("Failed to obtain repository key for repo \"{}\"",

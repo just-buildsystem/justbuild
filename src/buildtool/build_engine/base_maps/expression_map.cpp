@@ -23,12 +23,13 @@
 namespace BuildMaps::Base {
 
 auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
+                         gsl::not_null<RepositoryConfig*> const& repo_config,
                          std::size_t jobs) -> ExpressionFunctionMap {
-    auto expr_func_creator = [expr_file_map](auto ts,
-                                             auto setter,
-                                             auto logger,
-                                             auto subcaller,
-                                             auto const& id) {
+    auto expr_func_creator = [expr_file_map, repo_config](auto ts,
+                                                          auto setter,
+                                                          auto logger,
+                                                          auto subcaller,
+                                                          auto const& id) {
         if (not id.IsDefinitionName()) {
             (*logger)(
                 fmt::format("{} cannot name an expression", id.ToString()),
@@ -38,7 +39,8 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
         expr_file_map->ConsumeAfterKeysReady(
             ts,
             {id.ToModule()},
-            [setter = std::move(setter),
+            [repo_config,
+             setter = std::move(setter),
              logger,
              subcaller = std::move(subcaller),
              id](auto json_values) {
@@ -68,7 +70,7 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
                 }
 
                 auto import_aliases =
-                    reader->ReadEntityAliasesObject("imports");
+                    reader->ReadEntityAliasesObject("imports", repo_config);
                 if (not import_aliases) {
                     return;
                 }

@@ -104,8 +104,7 @@ template <class T>
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Test missing repository",
                  "[repository_config]") {
-    auto& config = RepositoryConfig::Instance();
-    config.Reset();
+    RepositoryConfig config{};
 
     CHECK(config.Info("missing") == nullptr);
     CHECK_FALSE(config.RepositoryKey("missing"));
@@ -114,8 +113,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compute key of fixed repository",
                  "[repository_config]") {
-    auto& config = RepositoryConfig::Instance();
-    config.Reset();
+    RepositoryConfig config{};
 
     SECTION("for single fixed repository") {
         config.SetInfo("foo", CreateFixedRepoInfo());
@@ -144,8 +142,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compute key of file repository",
                  "[repository_config]") {
-    auto& config = RepositoryConfig::Instance();
-    config.Reset();
+    RepositoryConfig config{};
 
     SECTION("for single file repository") {
         config.SetInfo("foo", CreateFileRepoInfo());
@@ -163,8 +160,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compare key of two repos with same content",
                  "[repository_config]") {
-    auto& config = RepositoryConfig::Instance();
-    config.Reset();
+    RepositoryConfig config{};
 
     // create two different repo infos with same content (baz should be same)
     config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));

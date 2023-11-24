@@ -75,7 +75,9 @@ class SourceTreeService final
 
     // remote execution endpoint
     gsl::not_null<IExecutionApi::Ptr> const remote_api_{
-        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())};
+        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                           std::nullopt,
+                           "serve-remote-execution")};
     // local api
     gsl::not_null<IExecutionApi::Ptr> const local_api_{
         CreateExecutionApi(std::nullopt)};

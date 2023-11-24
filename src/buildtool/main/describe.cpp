@@ -53,7 +53,8 @@ void PrintFields(nlohmann::json const& fields,
 }
 
 void PrettyPrintRule(nlohmann::json const& rdesc,
-                     BuildMaps::Base::EntityName const& rule_name) {
+                     BuildMaps::Base::EntityName const& rule_name,
+                     gsl::not_null<RepositoryConfig*> const& repo_config) {
     auto doc = rdesc.find("doc");
     if (doc != rdesc.end()) {
         PrintDoc(*doc, " | ");
@@ -85,6 +86,7 @@ void PrettyPrintRule(nlohmann::json const& rdesc,
                 auto resolved_entry = BuildMaps::Base::ParseEntityNameFromJson(
                     entry,
                     rule_name,
+                    repo_config,
                     [&entry, &rule_name](std::string const& parse_err) {
                         Logger::Log(LogLevel::Warning,
                                     "Failed to resolve {} relative to {}:\n{}",
@@ -217,11 +219,13 @@ void PrintRuleAsOrderedJson(nlohmann::json const& rdesc,
 
 }  // namespace
 
-auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
-                             std::size_t jobs,
-                             bool print_json) -> int {
+auto DescribeUserDefinedRule(
+    BuildMaps::Base::EntityName const& rule_name,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
+    std::size_t jobs,
+    bool print_json) -> int {
     bool failed{};
-    auto rule_file_map = Base::CreateRuleFileMap(jobs);
+    auto rule_file_map = Base::CreateRuleFileMap(repo_config, jobs);
     nlohmann::json rules_file;
     {
         TaskSystem ts{jobs};
@@ -250,14 +254,15 @@ auto DescribeUserDefinedRule(BuildMaps::Base::EntityName const& rule_name,
         PrintRuleAsOrderedJson(*ruledesc_it, rule_name.ToJson());
         return kExitSuccess;
     }
-    PrettyPrintRule(*ruledesc_it, rule_name);
+    PrettyPrintRule(*ruledesc_it, rule_name, repo_config);
     return kExitSuccess;
 }
 
 auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
+                    gsl::not_null<RepositoryConfig*> const& repo_config,
                     std::size_t jobs,
                     bool print_json) -> int {
-    auto targets_file_map = Base::CreateTargetsFileMap(jobs);
+    auto targets_file_map = Base::CreateTargetsFileMap(repo_config, jobs);
     nlohmann::json targets_file{};
     bool failed{false};
     {
@@ -319,7 +324,10 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         return kExitSuccess;
     }
     auto rule_name = BuildMaps::Base::ParseEntityNameFromJson(
-        *rule_it, id.target, [&rule_it, &id](std::string const& parse_err) {
+        *rule_it,
+        id.target,
+        repo_config,
+        [&rule_it, &id](std::string const& parse_err) {
             Logger::Log(LogLevel::Error,
                         "Parsing rule name {} for target {} failed with:\n{}.",
                         rule_it->dump(),
@@ -333,5 +341,5 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         std::cout << id.ToString() << " is defined by user-defined rule "
                   << rule_name->ToString() << ".\n\n";
     }
-    return DescribeUserDefinedRule(*rule_name, jobs, print_json);
+    return DescribeUserDefinedRule(*rule_name, repo_config, jobs, print_json);
 }

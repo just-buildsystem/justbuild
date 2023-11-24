@@ -4,6 +4,7 @@
   , "hdrs": ["graph_traverser.hpp"]
   , "deps":
     [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "tree"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_engine/dag", "dag"]

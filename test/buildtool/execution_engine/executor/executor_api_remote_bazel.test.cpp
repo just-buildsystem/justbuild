@@ -13,28 +13,32 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 
 TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
+    RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    TestBlobUpload([&] {
+    TestBlobUpload(&repo_config, [&] {
         return BazelApi::Ptr{
             new BazelApi{"remote-execution", info->host, info->port, config}};
     });
 }
 
 TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
+    RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestHelloWorldCompilation(
+        &repo_config,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -43,12 +47,14 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 }
 
 TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
+    RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestGreeterCompilation(
+        &repo_config,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -57,12 +63,14 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 }
 
 TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
+    RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestUploadAndDownloadTrees(
+        &repo_config,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -71,12 +79,14 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 }
 
 TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
+    RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
     TestRetrieveOutputDirectories(
+        &repo_config,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};

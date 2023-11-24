@@ -32,7 +32,8 @@
   , "hdrs": ["create_execution_api.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
-    [ ["src/buildtool/common/remote", "remote_common"]
+    [ ["src/buildtool/common", "config"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     ]

@@ -18,6 +18,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -205,17 +206,18 @@ class TestApi : public IExecutionApi {
     TestApiConfig config_{};
 };
 
-static void SetupConfig(std::filesystem::path const& ws) {
+[[nodiscard]] auto SetupConfig(std::filesystem::path const& ws)
+    -> RepositoryConfig {
     auto info = RepositoryConfig::RepositoryInfo{FileRoot{ws}};
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo("", std::move(info));
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", std::move(info));
+    return repo_config;
 }
 
 [[nodiscard]] static auto CreateTest(gsl::not_null<DependencyGraph*> const& g,
                                      std::filesystem::path const& ws)
-    -> TestApiConfig {
+    -> std::pair<TestApiConfig, RepositoryConfig> {
     using path = std::filesystem::path;
-    SetupConfig(ws);
 
     auto const local_cpp_desc = ArtifactDescription{path{"local.cpp"}, ""};
     auto const known_cpp_desc = ArtifactDescription{
@@ -243,14 +245,14 @@ static void SetupConfig(std::filesystem::path const& ws) {
     config.response.cached = true;
     config.response.exit_code = 0;
 
-    return config;
+    return std::make_pair(config, SetupConfig(ws));
 }
 
 TEST_CASE("Executor: Process artifact", "[executor]") {
     std::filesystem::path workspace_path{
         "test/buildtool/execution_engine/executor"};
     DependencyGraph g;
-    auto config = CreateTest(&g, workspace_path);
+    auto [config, repo_config] = CreateTest(&g, workspace_path);
 
     auto const local_cpp_desc =
         ArtifactFactory::DescribeLocalArtifact("local.cpp", "");
@@ -262,7 +264,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -272,7 +274,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["local.cpp"].uploads = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -282,7 +284,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["known.cpp"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(not runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -294,7 +296,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         "test/buildtool/execution_engine/executor"};
 
     DependencyGraph g;
-    auto config = CreateTest(&g, workspace_path);
+    auto [config, repo_config] = CreateTest(&g, workspace_path);
 
     auto const local_cpp_desc =
         ArtifactFactory::DescribeLocalArtifact("local.cpp", "");
@@ -315,7 +317,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -328,7 +330,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.cached = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -341,7 +343,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.artifacts["output2.exe"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -357,7 +359,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.failed = true;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -370,7 +372,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.exit_code = 1;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -386,7 +388,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{api.get(), api.get(), {}};
+        Executor runner{&repo_config, api.get(), api.get(), {}};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));

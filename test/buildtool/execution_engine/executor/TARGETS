@@ -10,6 +10,7 @@
   , "srcs": ["executor.test.cpp"]
   , "private-deps":
     [ ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
@@ -26,6 +27,7 @@
   , "private-deps":
     [ "executor_api_tests"
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
@@ -44,6 +46,7 @@
   , "private-deps":
     [ "executor_api_tests"
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]

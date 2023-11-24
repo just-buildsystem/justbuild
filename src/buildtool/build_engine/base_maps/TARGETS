@@ -14,10 +14,10 @@
     [ ["src/buildtool/multithreading", "async_map_consumer"]
     , "module_name"
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/common", "config"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
-  , "private-deps":
-    [["src/buildtool/common", "config"], ["src/utils/cpp", "path"]]
+  , "private-deps": [["src/utils/cpp", "path"]]
   }
 , "json_file_map":
   { "type": ["@", "rules", "CC", "library"]
@@ -84,6 +84,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/multithreading", "task_system"]
     ]
@@ -99,6 +100,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
@@ -129,6 +131,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , "module_name"
     ]
@@ -164,6 +167,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , "module_name"
     ]

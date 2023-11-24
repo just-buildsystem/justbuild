@@ -27,6 +27,7 @@ auto BuildMaps::Target::Utils::obtainTargetByName(
     const ExpressionPtr& expr,
     const Configuration& env,
     const Base::EntityName& current,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     std::unordered_map<BuildMaps::Target::ConfiguredTarget,
                        AnalysedTargetPtr> const& deps_by_transition)
     -> AnalysedTargetPtr {
@@ -34,9 +35,10 @@ auto BuildMaps::Target::Utils::obtainTargetByName(
     auto reference = eval(expr["dep"], env);
     std::string error{};
     auto target = BuildMaps::Base::ParseEntityNameFromExpression(
-        reference, current, [&error](std::string const& parse_err) {
-            error = parse_err;
-        });
+        reference,
+        current,
+        repo_config,
+        [&error](std::string const& parse_err) { error = parse_err; });
     if (not target) {
         throw Evaluator::EvaluationError{
             fmt::format("Parsing target name {} failed with:\n{}",

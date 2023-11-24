@@ -26,6 +26,7 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]

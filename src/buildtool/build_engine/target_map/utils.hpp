@@ -28,6 +28,7 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 
 namespace BuildMaps::Target::Utils {
 
@@ -35,6 +36,7 @@ auto obtainTargetByName(const SubExprEvaluator&,
                         const ExpressionPtr&,
                         const Configuration&,
                         const Base::EntityName&,
+                        const gsl::not_null<RepositoryConfig*>&,
                         std::unordered_map<BuildMaps::Target::ConfiguredTarget,
                                            AnalysedTargetPtr> const&)
     -> AnalysedTargetPtr;

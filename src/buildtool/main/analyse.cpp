@@ -125,22 +125,29 @@ void DetectAndReportPending(std::string const& name,
 [[nodiscard]] auto AnalyseTarget(
     const Target::ConfiguredTarget& id,
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
+    gsl::not_null<RepositoryConfig*> const& repo_config,
     std::size_t jobs,
     AnalysisArguments const& clargs) -> std::optional<AnalysisResult> {
-    auto directory_entries = Base::CreateDirectoryEntriesMap(jobs);
-    auto expressions_file_map = Base::CreateExpressionFileMap(jobs);
-    auto rule_file_map = Base::CreateRuleFileMap(jobs);
-    auto targets_file_map = Base::CreateTargetsFileMap(jobs);
-    auto expr_map = Base::CreateExpressionMap(&expressions_file_map, jobs);
-    auto rule_map = Base::CreateRuleMap(&rule_file_map, &expr_map, jobs);
-    auto source_targets = Base::CreateSourceTargetMap(&directory_entries, jobs);
-    auto absent_target_map = Target::CreateAbsentTargetMap(result_map, jobs);
+    auto directory_entries = Base::CreateDirectoryEntriesMap(repo_config, jobs);
+    auto expressions_file_map =
+        Base::CreateExpressionFileMap(repo_config, jobs);
+    auto rule_file_map = Base::CreateRuleFileMap(repo_config, jobs);
+    auto targets_file_map = Base::CreateTargetsFileMap(repo_config, jobs);
+    auto expr_map =
+        Base::CreateExpressionMap(&expressions_file_map, repo_config, jobs);
+    auto rule_map =
+        Base::CreateRuleMap(&rule_file_map, &expr_map, repo_config, jobs);
+    auto source_targets =
+        Base::CreateSourceTargetMap(&directory_entries, repo_config, jobs);
+    auto absent_target_map =
+        Target::CreateAbsentTargetMap(result_map, repo_config, jobs);
     auto target_map = Target::CreateTargetMap(&source_targets,
                                               &targets_file_map,
                                               &rule_map,
                                               &directory_entries,
                                               &absent_target_map,
                                               result_map,
+                                              repo_config,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};

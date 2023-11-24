@@ -72,6 +72,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     // remote execution endpoint used for remote building
     gsl::not_null<IExecutionApi::Ptr> const remote_api_{
         CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                           std::nullopt,
                            "serve-remote-execution")};
     // used for storing and retrieving target-level cache entries
     gsl::not_null<IExecutionApi::Ptr> const local_api_{

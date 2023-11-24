@@ -31,6 +31,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -68,19 +69,23 @@ class GraphTraverser {
         bool failed_artifacts;
     };
 
-    explicit GraphTraverser(CommandLineArguments clargs)
+    explicit GraphTraverser(CommandLineArguments clargs,
+                            gsl::not_null<RepositoryConfig*> const& repo_config)
         : clargs_{std::move(clargs)},
-          local_api_{CreateExecutionApi(std::nullopt)},
-          remote_api_{
-              CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
+          repo_config_{repo_config},
+          local_api_{CreateExecutionApi(std::nullopt, repo_config)},
+          remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                                         repo_config)},
           reporter_{[](auto done, auto cv) {}} {}
 
     explicit GraphTraverser(CommandLineArguments clargs,
+                            gsl::not_null<RepositoryConfig*> const& repo_config,
                             progress_reporter_t reporter)
         : clargs_{std::move(clargs)},
-          local_api_{CreateExecutionApi(std::nullopt)},
-          remote_api_{
-              CreateExecutionApi(RemoteExecutionConfig::RemoteAddress())},
+          repo_config_{repo_config},
+          local_api_{CreateExecutionApi(std::nullopt, repo_config)},
+          remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                                         repo_config)},
           reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
@@ -222,6 +227,7 @@ class GraphTraverser {
 
   private:
     CommandLineArguments const clargs_;
+    gsl::not_null<RepositoryConfig*> repo_config_;
     gsl::not_null<IExecutionApi::Ptr> const local_api_;
     gsl::not_null<IExecutionApi::Ptr> const remote_api_;
     progress_reporter_t reporter_;
@@ -339,7 +345,8 @@ class GraphTraverser {
     [[nodiscard]] auto Traverse(
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
-        Executor executor{&(*local_api_),
+        Executor executor{repo_config_,
+                          &(*local_api_),
                           &(*remote_api_),
                           RemoteExecutionConfig::PlatformProperties(),
                           clargs_.build.timeout};
@@ -364,9 +371,10 @@ class GraphTraverser {
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
-        auto api_cached =
-            CreateExecutionApi(RemoteExecutionConfig::CacheAddress());
-        Rebuilder executor{&(*local_api_),
+        auto api_cached = CreateExecutionApi(
+            RemoteExecutionConfig::CacheAddress(), repo_config_);
+        Rebuilder executor{repo_config_,
+                           &(*local_api_),
                            &(*remote_api_),
                            &(*api_cached),
                            RemoteExecutionConfig::PlatformProperties(),

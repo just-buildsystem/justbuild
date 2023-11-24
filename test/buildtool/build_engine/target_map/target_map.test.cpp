@@ -44,7 +44,7 @@ auto CreateSymlinks() -> bool {
     return true;
 }
 
-void SetupConfig() {
+auto SetupConfig() -> RepositoryConfig {
     // manually create locally test symlinks in data_src, but only once
     [[maybe_unused]] static auto done = CreateSymlinks();
     // create the file roots
@@ -57,31 +57,38 @@ void SetupConfig() {
                                        "data_rules"}},
         FileRoot{std::filesystem::path{"test/buildtool/build_engine/target_map/"
                                        "data_expr"}}};
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo("", std::move(info));
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", std::move(info));
+    return repo_config;
 }
 
 }  // namespace
 
 TEST_CASE("simple targets") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -403,24 +410,30 @@ TEST_CASE("simple targets") {
 }
 
 TEST_CASE("configuration deduplication") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     std::vector<AnalysedTargetPtr> result;
     bool error{false};
@@ -464,24 +477,30 @@ TEST_CASE("configuration deduplication") {
 }
 
 TEST_CASE("generator functions in string arguments") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -538,24 +557,30 @@ TEST_CASE("generator functions in string arguments") {
 }
 
 TEST_CASE("built-in rules") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
     AnalysedTargetPtr result;
     bool error{false};
     std::string error_msg;
@@ -722,24 +747,30 @@ TEST_CASE("built-in rules") {
 }
 
 TEST_CASE("target reference") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -839,24 +870,30 @@ TEST_CASE("target reference") {
 }
 
 TEST_CASE("trees") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -920,24 +957,30 @@ TEST_CASE("trees") {
 }
 
 TEST_CASE("RESULT error reporting") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1060,24 +1103,30 @@ TEST_CASE("RESULT error reporting") {
 }
 
 TEST_CASE("wrong arguments") {
-    SetupConfig();
-    auto directory_entries = BuildMaps::Base::CreateDirectoryEntriesMap();
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries);
-    auto targets_file_map = BuildMaps::Base::CreateTargetsFileMap(0);
-    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(0);
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
+                                                         &repo_config);
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
     static auto expressions_file_map =
-        BuildMaps::Base::CreateExpressionFileMap(0);
-    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map);
-    auto rule_map = BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map);
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map, 0);
+        BuildMaps::Target::CreateAbsentTargetMap(&result_map, &repo_config, 0);
     auto target_map = BuildMaps::Target::CreateTargetMap(&source,
                                                          &targets_file_map,
                                                          &rule_map,
                                                          &directory_entries,
                                                          &absent_target_map,
-                                                         &result_map);
+                                                         &result_map,
+                                                         &repo_config);
 
     AnalysedTargetPtr result;
     bool error{false};

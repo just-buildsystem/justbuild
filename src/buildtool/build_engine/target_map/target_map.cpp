@@ -221,6 +221,7 @@ void withDependencies(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     std::unordered_map<std::string, ExpressionPtr> params,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -300,19 +301,29 @@ void withDependencies(
     auto string_fields_fcts =
         FunctionMap::MakePtr(FunctionMap::underlying_map_t{
             {"outs",
-             [&deps_by_transition, &key](
+             [&deps_by_transition, &key, repo_config](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
-                         eval, expr, env, key.target, deps_by_transition)
+                         eval,
+                         expr,
+                         env,
+                         key.target,
+                         repo_config,
+                         deps_by_transition)
                          ->Artifacts());
              }},
             {"runfiles",
-             [&deps_by_transition, &key](
+             [&deps_by_transition, &key, repo_config](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
-                         eval, expr, env, key.target, deps_by_transition)
+                         eval,
+                         expr,
+                         env,
+                         key.target,
+                         repo_config,
+                         deps_by_transition)
                          ->RunFiles());
              }}});
     auto param_config = key.config.Prune(param_vars);
@@ -866,6 +877,7 @@ void withRuleDefinition(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1033,6 +1045,7 @@ void withRuleDefinition(
                 auto target = BuildMaps::Base::ParseEntityNameFromExpression(
                     dep_name,
                     key.target,
+                    repo_config,
                     [&logger, &target_field_name, &dep_name](
                         std::string const& parse_err) {
                         (*logger)(fmt::format("Parsing entry {} in target "
@@ -1105,6 +1118,7 @@ void withRuleDefinition(
          rule,
          data,
          key,
+         repo_config,
          params = std::move(params),
          setter,
          logger,
@@ -1188,6 +1202,7 @@ void withRuleDefinition(
                  rule,
                  data,
                  key,
+                 repo_config,
                  params = std::move(params),
                  setter,
                  logger,
@@ -1202,6 +1217,7 @@ void withRuleDefinition(
                                      rule,
                                      data,
                                      key,
+                                     repo_config,
                                      params,
                                      setter,
                                      logger,
@@ -1214,6 +1230,7 @@ void withRuleDefinition(
 
 void withTargetsFile(
     const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     const nlohmann::json& targets_file,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
@@ -1248,8 +1265,14 @@ void withTargetsFile(
             return;
         }
         // Handle built-in rule, if it is
-        auto handled_as_builtin = BuildMaps::Target::HandleBuiltin(
-            *rule_it, desc, key, subcaller, setter, logger, result_map);
+        auto handled_as_builtin = BuildMaps::Target::HandleBuiltin(*rule_it,
+                                                                   desc,
+                                                                   key,
+                                                                   repo_config,
+                                                                   subcaller,
+                                                                   setter,
+                                                                   logger,
+                                                                   result_map);
         if (handled_as_builtin) {
             return;
         }
@@ -1258,6 +1281,7 @@ void withTargetsFile(
         auto rule_name = BuildMaps::Base::ParseEntityNameFromJson(
             *rule_it,
             key.target,
+            repo_config,
             [&logger, &rule_it, &key](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing rule name {} for target {} "
                                       "failed with:\n{}",
@@ -1285,6 +1309,7 @@ void withTargetsFile(
              setter,
              logger,
              key,
+             repo_config,
              result_map,
              rn = *rule_name](auto values) {
                 auto data = TargetData::FromFieldReader(*values[0], desc);
@@ -1300,6 +1325,7 @@ void withTargetsFile(
                     *values[0],
                     data,
                     key,
+                    repo_config,
                     subcaller,
                     setter,
                     std::make_shared<AsyncMapConsumerLogger>(
@@ -1325,6 +1351,7 @@ void withTargetsFile(
 
 void withTargetNode(
     const BuildMaps::Target::ConfiguredTarget& key,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
     const gsl::not_null<TaskSystem*>& ts,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
@@ -1362,8 +1389,14 @@ void withTargetNode(
         rule_map->ConsumeAfterKeysReady(
             ts,
             {(**rule_name)->Name()},
-            [abs, subcaller, setter, logger, key, result_map, rn = **rule_name](
-                auto values) {
+            [abs,
+             subcaller,
+             setter,
+             logger,
+             key,
+             repo_config,
+             result_map,
+             rn = **rule_name](auto values) {
                 auto data = TargetData::FromTargetNode(
                     *values[0],
                     abs,
@@ -1380,6 +1413,7 @@ void withTargetNode(
                 withRuleDefinition(*values[0],
                                    data,
                                    key,
+                                   repo_config,
                                    subcaller,
                                    setter,
                                    std::make_shared<AsyncMapConsumerLogger>(
@@ -1625,20 +1659,28 @@ auto CreateTargetMap(
         directory_entries_map,
     const gsl::not_null<AbsentTargetMap*>& absent_target_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
+    const gsl::not_null<RepositoryConfig*>& repo_config,
     std::size_t jobs) -> TargetMap {
     auto target_reader = [source_target_map,
                           targets_file_map,
                           rule_map,
-                          result_map,
+                          directory_entries_map,
                           absent_target_map,
-                          directory_entries_map](auto ts,
-                                                 auto setter,
-                                                 auto logger,
-                                                 auto subcaller,
-                                                 auto key) {
+                          result_map,
+                          repo_config](auto ts,
+                                       auto setter,
+                                       auto logger,
+                                       auto subcaller,
+                                       auto key) {
         if (key.target.IsAnonymousTarget()) {
-            withTargetNode(
-                key, rule_map, ts, subcaller, setter, logger, result_map);
+            withTargetNode(key,
+                           repo_config,
+                           rule_map,
+                           ts,
+                           subcaller,
+                           setter,
+                           logger,
+                           result_map);
         }
         else if (key.target.GetNamedTarget().reference_t ==
                  BuildMaps::Base::ReferenceType::kTree) {
@@ -1725,8 +1767,7 @@ auto CreateTargetMap(
             );
         }
 #ifndef BOOTSTRAP_BUILD_TOOL
-        else if (RepositoryConfig::Instance()
-                     .TargetRoot(key.target.ToModule().repository)
+        else if (repo_config->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
             static auto consistent_serve_and_remote_execution =
                 CheckServeAndExecutionEndpoints();
@@ -1757,6 +1798,7 @@ auto CreateTargetMap(
                 ts,
                 {key.target.ToModule()},
                 [key,
+                 repo_config,
                  source_target_map,
                  rule_map,
                  ts,
@@ -1765,6 +1807,7 @@ auto CreateTargetMap(
                  logger,
                  result_map](auto values) {
                     withTargetsFile(key,
+                                    repo_config,
                                     *values[0],
                                     source_target_map,
                                     rule_map,

@@ -13,12 +13,14 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <memory>
 #include <utility>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
@@ -27,7 +29,7 @@ namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-void SetupConfig(bool use_git) {
+auto SetupConfig(bool use_git) -> RepositoryConfig {
     // manually create locally a test symlink in data_src; should match the
     // git test_repo structure
     if (not use_git) {
@@ -44,9 +46,9 @@ void SetupConfig(bool use_git) {
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo(
-        "", RepositoryConfig::RepositoryInfo{root});
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", RepositoryConfig::RepositoryInfo{root});
+    return repo_config;
 }
 
 auto ReadSourceTarget(
@@ -55,9 +57,10 @@ auto ReadSourceTarget(
     bool use_git = false,
     std::optional<SourceTargetMap::FailureFunction> fail_func = std::nullopt)
     -> bool {
-    SetupConfig(use_git);
-    auto directory_entries = CreateDirectoryEntriesMap();
-    auto source_artifacts = CreateSourceTargetMap(&directory_entries);
+    auto repo_config = SetupConfig(use_git);
+    auto directory_entries = CreateDirectoryEntriesMap(&repo_config);
+    auto source_artifacts =
+        CreateSourceTargetMap(&directory_entries, &repo_config);
     std::string error_msg;
     bool success{true};
     {

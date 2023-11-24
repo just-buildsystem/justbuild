@@ -57,6 +57,7 @@ class TargetClient {
     Logger logger_{"RemoteTargetClient"};
     gsl::not_null<IExecutionApi::Ptr> const remote_api_{
         CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                           std::nullopt,
                            "remote-execution")};
     gsl::not_null<IExecutionApi::Ptr> const local_api_{
         CreateExecutionApi(std::nullopt)};

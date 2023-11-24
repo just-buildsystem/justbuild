@@ -45,6 +45,7 @@
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "gsl"]
     , ["@", "fmt", "", "fmt"]
@@ -81,6 +82,7 @@
     , ["src/buildtool/build_engine/base_maps", "field_reader"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "config"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   }
@@ -94,13 +96,13 @@
     [ "configured_target"
     , "result_map"
     , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   , "private-deps":
     [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "serve_api"]

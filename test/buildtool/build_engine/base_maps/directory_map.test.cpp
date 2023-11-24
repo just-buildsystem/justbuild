@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <memory>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
@@ -24,7 +25,7 @@ namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-void SetupConfig(bool use_git) {
+auto SetupConfig(bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath / "data_src"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
@@ -33,16 +34,16 @@ void SetupConfig(bool use_git) {
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
-    RepositoryConfig::Instance().Reset();
-    RepositoryConfig::Instance().SetInfo(
-        "", RepositoryConfig::RepositoryInfo{root});
+    RepositoryConfig repo_config{};
+    repo_config.SetInfo("", RepositoryConfig::RepositoryInfo{root});
+    return repo_config;
 }
 
 auto ReadDirectory(ModuleName const& id,
                    DirectoryEntriesMap::Consumer value_checker,
                    bool use_git = false) -> bool {
-    SetupConfig(use_git);
-    auto data_direntries = CreateDirectoryEntriesMap();
+    auto repo_config = SetupConfig(use_git);
+    auto data_direntries = CreateDirectoryEntriesMap(&repo_config);
     bool success{true};
     {
         TaskSystem ts;
