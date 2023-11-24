@@ -94,13 +94,13 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
             (StorageConfig::SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
-        Logger::Log(LogLevel::Error, "failed to configure local execution.");
+        Logger::Log(LogLevel::Error, "Failed to configure local execution.");
         std::exit(kExitFailure);
     }
     for (auto const& property : eargs.platform_properties) {
         if (not RemoteConfig::AddPlatformProperty(property)) {
             Logger::Log(LogLevel::Error,
-                        "addding platform property '{}' failed.",
+                        "Adding platform property '{}' failed.",
                         property);
             std::exit(kExitFailure);
         }
@@ -109,7 +109,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
         if (not RemoteConfig::SetRemoteAddress(
                 *eargs.remote_execution_address)) {
             Logger::Log(LogLevel::Error,
-                        "setting remote execution address '{}' failed.",
+                        "Setting remote execution address '{}' failed.",
                         *eargs.remote_execution_address);
             std::exit(kExitFailure);
         }
@@ -118,7 +118,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
         if (not RemoteConfig::SetRemoteExecutionDispatch(
                 *eargs.remote_execution_dispatch_file)) {
             Logger::Log(LogLevel::Error,
-                        "setting remote execution dispatch based on file '{}'",
+                        "Setting remote execution dispatch based on file '{}'",
                         eargs.remote_execution_dispatch_file->string());
             std::exit(kExitFailure);
         }
@@ -127,7 +127,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
         if (not(RemoteConfig::SetCacheAddress(*rargs.cache_endpoint) ==
                 (*rargs.cache_endpoint != "local"))) {
             Logger::Log(LogLevel::Error,
-                        "setting cache endpoint address '{}' failed.",
+                        "Setting cache endpoint address '{}' failed.",
                         *rargs.cache_endpoint);
             std::exit(kExitFailure);
         }
@@ -139,7 +139,7 @@ void SetupServeConfig(ServeArguments const& srvargs) {
         if (not RemoteServeConfig::SetRemoteAddress(
                 *srvargs.remote_serve_address)) {
             Logger::Log(LogLevel::Error,
-                        "setting serve service address '{}' failed.",
+                        "Setting serve service address '{}' failed.",
                         *srvargs.remote_serve_address);
             std::exit(kExitFailure);
         }
@@ -150,7 +150,7 @@ void SetupServeConfig(ServeArguments const& srvargs) {
             if (!RemoteExecutionConfig::SetRemoteAddress(
                     *srvargs.remote_serve_address)) {
                 Logger::Log(LogLevel::Error,
-                            "setting remote execution address '{}' failed.",
+                            "Setting remote execution address '{}' failed.",
                             *srvargs.remote_serve_address);
                 std::exit(kExitFailure);
             }
@@ -162,7 +162,7 @@ void SetupServeConfig(ServeArguments const& srvargs) {
     if (not srvargs.repositories.empty() and
         not RemoteServeConfig::SetKnownRepositories(srvargs.repositories)) {
         Logger::Log(LogLevel::Error,
-                    "setting serve service repositories failed.");
+                    "Setting serve service repositories failed.");
         std::exit(kExitFailure);
     }
 }
