@@ -16,9 +16,11 @@
 #define INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_FUNCTION_HPP
 
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 #include <optional>
 #include <string>
+#include <utility>
 
 #include "src/buildtool/crypto/hasher.hpp"
 
@@ -52,6 +54,12 @@ class HashFunction {
         };
         return ComputeTaggedHash(data, kBlobTagCreator);
     }
+
+    /// \brief Compute the blob hash of a file or std::nullopt on IO error.
+    [[nodiscard]] static auto ComputeHashFile(
+        const std::filesystem::path& file_path,
+        bool as_tree) noexcept
+        -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 
     /// \brief Compute a tree hash.
     [[nodiscard]] static auto ComputeTreeHash(std::string const& data) noexcept

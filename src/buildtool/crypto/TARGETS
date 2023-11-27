@@ -22,7 +22,12 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hash_function"]
   , "hdrs": ["hash_function.hpp"]
+  , "srcs": ["hash_function.cpp"]
   , "deps": ["hasher", ["@", "gsl", "", "gsl"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
+    ]
   , "stage": ["src", "buildtool", "crypto"]
   }
 }
