@@ -611,6 +611,118 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Parses a FileRoot from string. On errors, populates error_msg.
+    /// \returns the FileRoot and optional local path (if the root is local),
+    /// nullopt on errors.
+    [[nodiscard]] static auto ParseRoot(std::string const& repo,
+                                        std::string const& keyword,
+                                        nlohmann::json const& root,
+                                        gsl::not_null<std::string*> error_msg)
+        -> std::optional<
+            std::pair<FileRoot, std::optional<std::filesystem::path>>> {
+        if ((not root.is_array()) or root.empty()) {
+            *error_msg = fmt::format(
+                "Expected {} for {} to be of the form [<scheme>, ...], but "
+                "found {}",
+                keyword,
+                repo,
+                root.dump());
+            return std::nullopt;
+        }
+        if (root[0] == "file") {
+            if (root.size() != 2 or (not root[1].is_string())) {
+                *error_msg = fmt::format(
+                    "\"file\" scheme expects precisely one string argument, "
+                    "but found {} for {} of repository {}",
+                    root.dump(),
+                    keyword,
+                    repo);
+                return std::nullopt;
+            }
+            auto path = std::filesystem::path{root[1].get<std::string>()};
+            return std::pair(FileRoot{path}, std::move(path));
+        }
+        if (root[0] == FileRoot::kGitTreeMarker) {
+            if (not(root.size() == 3 and root[1].is_string() and
+                    root[2].is_string()) and
+                not(root.size() == 2 and root[1].is_string())) {
+                *error_msg = fmt::format(
+                    "\"git tree\" scheme expects one or two string "
+                    "arguments, but found {} for {} of repository {}",
+                    root.dump(),
+                    keyword,
+                    repo);
+                return std::nullopt;
+            }
+            if (root.size() == 3) {
+                if (auto git_root = FileRoot::FromGit(root[2], root[1])) {
+                    return std::pair(std::move(*git_root), std::nullopt);
+                }
+                *error_msg = fmt::format(
+                    "Could not create file root for {}tree id {}",
+                    root.size() == 3
+                        ? fmt::format("git repository {} and ", root[2])
+                        : "",
+                    root[1]);
+                return std::nullopt;
+            }
+            // return absent root
+            return std::pair(FileRoot{std::string{root[1]}}, std::nullopt);
+        }
+        if (root[0] == FileRoot::kFileIgnoreSpecialMarker) {
+            if (root.size() != 2 or (not root[1].is_string())) {
+                *error_msg = fmt::format(
+                    "\"file ignore-special\" scheme expects precisely "
+                    "one string "
+                    "argument, but found {} for {} of repository {}",
+                    root.dump(),
+                    keyword,
+                    repo);
+                return std::nullopt;
+            }
+            auto path = std::filesystem::path{root[1].get<std::string>()};
+            return std::pair(FileRoot{path, /*ignore_special=*/true},
+                             std::move(path));
+        }
+        if (root[0] == FileRoot::kGitTreeIgnoreSpecialMarker) {
+            if (not(root.size() == 3 and root[1].is_string() and
+                    root[2].is_string()) and
+                not(root.size() == 2 and root[1].is_string())) {
+                *error_msg = fmt::format(
+                    "\"git tree ignore-special\" scheme expects one or two "
+                    "string arguments, but found {} for {} of repository {}",
+                    root.dump(),
+                    keyword,
+                    repo);
+                return std::nullopt;
+            }
+            if (root.size() == 3) {
+                if (auto git_root = FileRoot::FromGit(
+                        root[2], root[1], /*ignore_special=*/true)) {
+                    return std::pair(std::move(*git_root), std::nullopt);
+                }
+                *error_msg = fmt::format(
+                    "Could not create ignore-special file root for {}tree id "
+                    "{}",
+                    root.size() == 3
+                        ? fmt::format("git repository {} and ", root[2])
+                        : "",
+                    root[1]);
+                return std::nullopt;
+            }
+            // return absent root
+            return std::pair(
+                FileRoot{std::string{root[1]}, /*ignore_special=*/true},
+                std::nullopt);
+        }
+        *error_msg = fmt::format(
+            "Unknown scheme in the specification {} of {} of repository {}",
+            root.dump(),
+            keyword,
+            repo);
+        return std::nullopt;
+    }
+
   private:
     root_t root_;
     // If set, forces lookups to ignore entries which are neither file nor

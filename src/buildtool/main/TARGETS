@@ -22,6 +22,7 @@
     , ["src/buildtool/execution_api/execution_service", "operation_cache"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
     , "common"
