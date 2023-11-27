@@ -51,6 +51,14 @@ auto TargetService::ServeTarget(
     auto const& target_cache_key_digest =
         ArtifactDigest{request->target_cache_key_id()};
 
+    // acquire lock for CAS
+    auto lock = GarbageCollector::SharedLock();
+    if (!lock) {
+        auto error_msg = fmt::format("Could not acquire gc SharedLock");
+        logger_->Emit(LogLevel::Error, error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};
+    }
+
     auto const& tc = Storage::Instance().TargetCache().WithShard(
         ArtifactDigest{request->execution_backend_description_id()}.hash());
     auto const& tc_key =
