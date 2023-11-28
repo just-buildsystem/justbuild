@@ -34,6 +34,7 @@
     , "diagnose"
     , "constants"
     , "serve"
+    , "build_utils"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-ldflags":
@@ -200,5 +201,22 @@
     , ["src/buildtool/logging", "logging"]
     , "common"
     ]
+  }
+, "build_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["build_utils"]
+  , "hdrs": ["build_utils.hpp"]
+  , "srcs": ["build_utils.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  , "private-deps": [["src/buildtool/logging", "logging"]]
   }
 }

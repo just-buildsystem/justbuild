@@ -40,8 +40,6 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
-#include "src/buildtool/storage/target_cache_entry.hpp"
-#include "src/buildtool/storage/target_cache_key.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
@@ -57,6 +55,7 @@
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
+#include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -717,23 +716,6 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
     return {main_repo, main_ws_root};
 }
 
-// Return disjoint maps for artifacts and runfiles
-[[nodiscard]] auto ReadOutputArtifacts(AnalysedTargetPtr const& target)
-    -> std::pair<std::map<std::string, ArtifactDescription>,
-                 std::map<std::string, ArtifactDescription>> {
-    std::map<std::string, ArtifactDescription> artifacts{};
-    std::map<std::string, ArtifactDescription> runfiles{};
-    for (auto const& [path, artifact] : target->Artifacts()->Map()) {
-        artifacts.emplace(path, artifact->Artifact());
-    }
-    for (auto const& [path, artifact] : target->RunFiles()->Map()) {
-        if (not artifacts.contains(path)) {
-            runfiles.emplace(path, artifact->Artifact());
-        }
-    }
-    return {artifacts, runfiles};
-}
-
 void ReportTaintedness(const AnalysisResult& result) {
     if (result.target->Tainted().empty()) {
         // Never report untainted targets
@@ -790,56 +772,6 @@ void DumpArtifactsToBuild(
     std::ofstream os(file_path);
     os << dump_string << std::endl;
 }
-
-auto CollectNonKnownArtifacts(
-    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets)
-    -> std::vector<ArtifactDescription> {
-    auto cache_artifacts = std::unordered_set<ArtifactDescription>{};
-    for (auto const& [_, target] : cache_targets) {
-        auto artifacts = target->ContainedNonKnownArtifacts();
-        cache_artifacts.insert(std::make_move_iterator(artifacts.begin()),
-                               std::make_move_iterator(artifacts.end()));
-    }
-    return {std::make_move_iterator(cache_artifacts.begin()),
-            std::make_move_iterator(cache_artifacts.end())};
-}
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-void WriteTargetCacheEntries(
-    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
-    std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
-        extra_infos,
-    std::size_t jobs,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api) {
-    if (!cache_targets.empty()) {
-        Logger::Log(LogLevel::Info,
-                    "Backing up artifacts of {} export targets",
-                    cache_targets.size());
-    }
-    auto downloader = [&local_api, &remote_api, &jobs](auto infos) {
-        return remote_api->ParallelRetrieveToCas(infos, local_api, jobs, false);
-    };
-    for (auto const& [key, target] : cache_targets) {
-        if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {
-            if (not Storage::Instance().TargetCache().Store(
-                    key, *entry, downloader)) {
-                Logger::Log(LogLevel::Warning,
-                            "Failed writing target cache entry for {}",
-                            key.Id().ToString());
-            }
-        }
-        else {
-            Logger::Log(LogLevel::Warning,
-                        "Failed creating target cache entry for {}",
-                        key.Id().ToString());
-        }
-    }
-    Logger::Log(LogLevel::Debug,
-                "Finished backing up artifacts of export targets");
-}
-
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 }  // namespace
 
