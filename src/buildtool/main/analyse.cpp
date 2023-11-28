@@ -127,7 +127,8 @@ void DetectAndReportPending(std::string const& name,
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
     std::size_t jobs,
-    AnalysisArguments const& clargs) -> std::optional<AnalysisResult> {
+    std::optional<std::string> const& request_action_input)
+    -> std::optional<AnalysisResult> {
     auto directory_entries = Base::CreateDirectoryEntriesMap(repo_config, jobs);
     auto expressions_file_map =
         Base::CreateExpressionFileMap(repo_config, jobs);
@@ -196,9 +197,9 @@ void DetectAndReportPending(std::string const& name,
     }
     std::optional<std::string> modified{};
 
-    if (clargs.request_action_input) {
-        if (clargs.request_action_input->starts_with("%")) {
-            auto action_id = clargs.request_action_input->substr(1);
+    if (request_action_input) {
+        if (request_action_input->starts_with("%")) {
+            auto action_id = request_action_input->substr(1);
             auto action = result_map->GetAction(action_id);
             if (action) {
                 Logger::Log(LogLevel::Info,
@@ -215,9 +216,8 @@ void DetectAndReportPending(std::string const& name,
                 return std::nullopt;
             }
         }
-        else if (clargs.request_action_input->starts_with("#")) {
-            auto number =
-                std::atoi(clargs.request_action_input->substr(1).c_str());
+        else if (request_action_input->starts_with("#")) {
+            auto number = std::atoi(request_action_input->substr(1).c_str());
             auto action = GetActionNumber(*target, number);
             if (action) {
                 Logger::Log(
@@ -233,16 +233,16 @@ void DetectAndReportPending(std::string const& name,
             }
         }
         else {
-            auto action = result_map->GetAction(*clargs.request_action_input);
+            auto action = result_map->GetAction(*request_action_input);
             if (action) {
                 Logger::Log(LogLevel::Info,
                             "Request is input of action %{}",
-                            *clargs.request_action_input);
+                            *request_action_input);
                 target = SwitchToActionInput(target, *action);
-                modified = fmt::format("%{}", *clargs.request_action_input);
+                modified = fmt::format("%{}", *request_action_input);
             }
             else {
-                auto number = std::atoi(clargs.request_action_input->c_str());
+                auto number = std::atoi(request_action_input->c_str());
                 auto action = GetActionNumber(*target, number);
                 if (action) {
                     Logger::Log(LogLevel::Info,

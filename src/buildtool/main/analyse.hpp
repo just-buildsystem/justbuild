@@ -32,5 +32,6 @@ struct AnalysisResult {
     gsl::not_null<BuildMaps::Target::ResultTargetMap*> const& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
     std::size_t jobs,
-    AnalysisArguments const& clargs) -> std::optional<AnalysisResult>;
+    std::optional<std::string> const& request_action_input)
+    -> std::optional<AnalysisResult>;
 #endif

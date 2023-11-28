@@ -1001,11 +1001,12 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.common.jobs};
             auto id = ReadConfiguredTarget(
                 main_repo, main_ws_root, &repo_config, arguments.analysis);
-            auto result = AnalyseTarget(id,
-                                        &result_map,
-                                        &repo_config,
-                                        arguments.common.jobs,
-                                        arguments.analysis);
+            auto result =
+                AnalyseTarget(id,
+                              &result_map,
+                              &repo_config,
+                              arguments.common.jobs,
+                              arguments.analysis.request_action_input);
             if (result) {
                 if (arguments.analysis.graph_file) {
                     result_map.ToFile(*arguments.analysis.graph_file);
