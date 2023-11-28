@@ -113,9 +113,11 @@ class ObjectCAS {
     [[nodiscard]] static auto CreateDigest(
         std::filesystem::path const& file_path) noexcept
         -> std::optional<bazel_re::Digest> {
-        auto const bytes = FileSystemManager::ReadFile(file_path);
-        if (bytes.has_value()) {
-            return ArtifactDigest::Create<kType>(*bytes);
+        bool is_tree = kType == ObjectType::Tree;
+        auto hash = HashFunction::ComputeHashFile(file_path, is_tree);
+        if (hash) {
+            return ArtifactDigest(
+                hash->first.HexString(), hash->second, is_tree);
         }
         return std::nullopt;
     }
