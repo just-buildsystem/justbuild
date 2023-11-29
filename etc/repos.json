@@ -59,6 +59,7 @@
         , "com_github_cares_cares"
         , "com_github_grpc_grpc"
         , "com_github_libgit2_libgit2"
+        , "com_github_curl_curl"
         , "com_github_libarchive_libarchive"
         , "lzma"
         , "bzip2"
@@ -455,7 +456,6 @@
       , "ssl": "ssl"
       , "cares": "com_github_cares_cares"
       }
-    , "bootstrap": {"drop": true}
     }
   , "com_github_libarchive_libarchive":
     { "repository":
