@@ -1,0 +1,7 @@
+{ "":
+  { "type": "export"
+  , "target": "list-tree"
+  , "flexible_config": ["AR", "ARCH", "ENV", "OS"]
+  }
+, "list-tree": {"type": "ls -R", "tree": [["TREE", null, "."]]}
+}

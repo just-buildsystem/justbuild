@@ -26,6 +26,7 @@ env
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
+readonly OUTPUT="${TEST_TMPDIR}/output-dir"
 
 COMPAT=""
 if [ "${COMPATIBLE:-}" = "YES" ]; then
@@ -36,15 +37,38 @@ mkdir work
 cd work
 touch ROOT
 cat > repos.json <<EOF
-{ "repositories":
-  { "":
+{ "main": "main"
+, "repositories":
+  { "main":
     { "repository":
       { "type": "git"
       , "commit": "$COMMIT_0"
       , "pragma": {"absent": true}
       , "repository": "http://non-existent.example.org/data.git"
       , "branch": "master"
-      , "subdir": "greetlib/greet"
+      , "subdir": "."
+      }
+    , "target_root": "targets"
+    , "rule_root": "rules"
+    }
+  , "rules":
+    { "repository":
+      { "type": "git"
+      , "commit": "$COMMIT_1"
+      , "pragma": {"absent": true}
+      , "repository": "http://non-existent.example.org/data.git"
+      , "branch": "master"
+      , "subdir": "test/end-to-end/serve-service/data/rules"
+      }
+    }
+  , "targets":
+    { "repository":
+      { "type": "git"
+      , "commit": "$COMMIT_1"
+      , "pragma": {"absent": true}
+      , "repository": "http://non-existent.example.org/data.git"
+      , "branch": "master"
+      , "subdir": "test/end-to-end/serve-service/data/targets"
       }
     }
   }
@@ -57,12 +81,15 @@ CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     setup)
 cat $CONF
 
-# this test is expected to fail until the just serve implements orchestration of
-# remote build
-${JUST} build --local-build-root "${LBR}" -C "${CONF}" \
-          --remote-serve-address ${SERVE} \
-          --log-limit 8 \
-          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} greet 2>&1 && \
-          echo "This test should fail" && exit 1
+# Check that we can build correctly
+${JUST} install --local-build-root "${LBR}" -C "${CONF}" \
+                --remote-serve-address ${SERVE} \
+                --log-limit 6 \
+                -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} \
+                -o "${OUTPUT}" 2>&1
+
+for i in $(seq 5); do
+  grep "./tree/src/$i.txt" ${OUTPUT}/_out
+done
 
 echo OK

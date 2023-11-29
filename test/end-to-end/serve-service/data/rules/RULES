@@ -1,0 +1,42 @@
+{ "ls -R":
+  { "target_fields": ["tree"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "tree"
+        , { "type": "TREE"
+          , "$1":
+            { "type": "map_union"
+            , "$1":
+              { "type": "foreach"
+              , "var": "dep"
+              , "range": {"type": "FIELD", "name": "tree"}
+              , "body":
+                {"type": "DEP_RUNFILES", "dep": {"type": "var", "name": "dep"}}
+              }
+            }
+          }
+        ]
+      , [ "inputs"
+        , { "type": "map_union"
+          , "$1":
+            [ { "type": "singleton_map"
+              , "key": "tree"
+              , "value": {"type": "var", "name": "tree"}
+              }
+            ]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "ACTION"
+        , "outs": ["_out"]
+        , "inputs": {"type": "var", "name": "inputs"}
+        , "cmd": ["sh", "-c", "find . -name '*.txt' > _out"]
+        }
+      }
+    }
+  }
+}

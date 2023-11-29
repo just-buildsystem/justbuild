@@ -4,7 +4,25 @@
   , "test": ["serve_target_remote_build.sh"]
   , "deps":
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
-  , "repos": [["end-to-end/target-cache/data", "greetlib"]]
+  , "repos":
+    [ "serve-target-remote-build (repo)"
+    , "serve-target-remote-build (installed data)"
+    ]
+  }
+, "serve-target-remote-build (repo)":
+  { "type": "generic"
+  , "out_dirs": ["src"]
+  , "cmds": ["for i in `seq 1 5` ; do echo $i > src/$i.txt ; done"]
+  }
+, "serve-target-remote-build (data)":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["data/targets/TARGETS", "data/rules/RULES"]
+  , "stage": ["test", "end-to-end", "serve-service"]
+  }
+, "serve-target-remote-build (installed data)":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [["serve-target-remote-build (data)", "."]]
   }
 , "serve-target-cache-hit":
   { "type": ["end-to-end", "with serve"]
