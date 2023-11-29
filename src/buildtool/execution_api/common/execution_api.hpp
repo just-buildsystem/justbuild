@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP
 
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <optional>
@@ -27,6 +28,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 /// \brief Abstract remote execution API
 /// Can be used to create actions.
@@ -115,6 +117,12 @@ class IExecutionApi {
     [[nodiscard]] virtual auto Upload(BlobContainer const& blobs,
                                       bool skip_find_missing = false) noexcept
         -> bool = 0;
+
+    /// \brief Upload a file to CAS as an object of the specified type.
+    /// It may be assumed that the file is owned entirely by the build process.
+    [[nodiscard]] virtual auto UploadFile(
+        std::filesystem::path const& file_path,
+        ObjectType type) noexcept -> bool;
 
     [[nodiscard]] virtual auto UploadTree(
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&

@@ -7,18 +7,20 @@
     , "execution_action.hpp"
     , "execution_response.hpp"
     ]
+  , "srcs": ["execution_api.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "gsl"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
-  , "private-deps": [["src/buildtool/file_system", "object_type"]]
   }
 , "bytestream-common":
   { "type": ["@", "rules", "CC", "library"]
