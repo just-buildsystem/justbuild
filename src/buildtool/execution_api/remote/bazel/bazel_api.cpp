@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
+#include <fstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -37,6 +38,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/fs_utils.hpp"
 
 namespace {
 
@@ -127,23 +129,30 @@ namespace {
     }
 
     // Assemble blob from chunks.
-    std::string blob_data{};
-    for (auto const& chunk_digest : *chunk_digests) {
-        auto info = Artifact::ObjectInfo{.digest = ArtifactDigest{chunk_digest},
-                                         .type = ObjectType::File};
-        auto chunk_data = api->RetrieveToMemory(info);
-        if (not chunk_data) {
-            Logger::Log(LogLevel::Error,
-                        "could not load blob chunk in memory: ",
-                        chunk_digest.hash());
-            return false;
+    auto tmp_dir = StorageUtils::CreateTypedTmpDir("splice");
+    auto tmp_file = tmp_dir->GetPath() / "blob";
+    std::size_t total_size{};
+    {
+        std::ofstream tmp(tmp_file, std::ios::binary);
+        for (auto const& chunk_digest : *chunk_digests) {
+            auto info =
+                Artifact::ObjectInfo{.digest = ArtifactDigest{chunk_digest},
+                                     .type = ObjectType::File};
+            auto chunk_data = api->RetrieveToMemory(info);
+            if (not chunk_data) {
+                Logger::Log(LogLevel::Error,
+                            "could not load blob chunk in memory: ",
+                            chunk_digest.hash());
+                return false;
+            }
+            tmp << *chunk_data;
+            total_size += chunk_data->size();
         }
-        blob_data += *chunk_data;
     }
 
     Logger::Log(
         LogLevel::Debug,
-        [&artifact_info, &unique_digests, &missing_digests, &blob_data]() {
+        [&artifact_info, &unique_digests, &missing_digests, &total_size]() {
             auto missing_digest_set = std::unordered_set<bazel_re::Digest>{
                 missing_digests.begin(), missing_digests.end()};
             std::uint64_t transmitted_bytes{0};
@@ -153,27 +162,17 @@ namespace {
                 }
             }
             double transmission_factor =
-                not blob_data.empty()
-                    ? 100.0 * transmitted_bytes / blob_data.size()
-                    : 100.0;
+                (total_size > 0) ? 100.0 * transmitted_bytes / total_size
+                                 : 100.0;
             return fmt::format(
                 "Blob splitting saved {} bytes ({:.2f}%) of network traffic "
                 "when fetching {}.\n",
-                blob_data.size() - transmitted_bytes,
+                total_size - transmitted_bytes,
                 100.0 - transmission_factor,
                 artifact_info.ToString());
         });
 
-    // Upload blob to other CAS.
-    BlobContainer container{};
-    try {
-        auto exec = IsExecutableObject(artifact_info.type);
-        container.Emplace(BazelBlob{artifact_info.digest, blob_data, exec});
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, "failed to emplace blob: ", ex.what());
-        return false;
-    }
-    return api->Upload(container, /*skip_find_missing=*/true);
+    return api->UploadFile(tmp_file, artifact_info.type);
 }
 
 }  // namespace
