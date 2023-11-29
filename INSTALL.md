@@ -121,7 +121,7 @@ predictable location on where to pick up the resulting binary, you
 almost certainly want to set the scratch directory.
 
 ```sh
-env PACKAGE=YES LOCALBASE=/usr python3 ${WRKSRC}/bin/bootstrap.py ${WRKSRC} ${WRKDIR}/just-work
+env PACKAGE=YES LOCALBASE=/usr python3 ${SRCDIR}/bin/bootstrap.py ${SRCDIR} ${BUILDDIR}
 ```
 
 If some dependencies should nevertheless be built from source (typically
@@ -131,20 +131,21 @@ a JSON list.
 
 # Installing `just-mr`
 
-In order to set up multi-repository configurations, usually the tools `just-mr`
-is used. It also a useful launcher for `just`.
+In order to set up multi-repository configurations, usually the tool `just-mr`
+is used. It is also a useful launcher for `just`.
 
-This tool is Python3 script located at `bin/just-mr.py` and can simply be put
-into an appropriate location in `PATH`.
+This tool can be obtained by building the target `["", "installed just-mr"]`.
+That target can be built using the previously bootstrapped `just` together with
+the cache directory `.just`, the repository configuration `repo-conf.json`, and
+the build configuration `build-conf.json` left by the bootstrapping process in
+its build directory. This makes use of already existing cache entries and the
+same dependencies (typically the ones provided by the system for package builds)
+as for building `just`.
 
-There is also a compiled version of `just-mr`, which is faster,
-works in parallel, and has additional features. It can be obtained
-by building the target `["", "installed just-mr"]`. That target
-can be built using the bootstrapped `just` and the Python3 script
-`bin/just-mr.py`. Alternatively, the bootstrapping process leaves
-in its work directory a file `repo-conf.json` with the repository
-configuration and a file `build-conf.json` with the build configuration
-used. Those can be used to build `just-mr` using the bootstrapped
-`just`. This approach is preferable for package building, as the
-same dependencies (typically the ones provided by the system) are
-used as for building `just.
+```sh
+${BUILDDIR}/out/bin/just install \
+  --local-build-root ${BUILDDIR}/.just \
+  -C ${BUILDDIR}/repo-conf.json \
+  -c ${BUILDDIR}/build-conf.json \
+  -o ${BUILDDIR}/out/ 'installed just-mr'
+```
