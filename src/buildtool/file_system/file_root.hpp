@@ -340,26 +340,31 @@ class FileRoot {
         return std::nullopt;
     }
 
-    // Return a complete description of the content of this root, if
-    // content-fixed.
+    /// \brief Return a complete description of the content of this root, if
+    /// content fixed. This includes absent roots and any git-tree-based
+    /// ignore-special roots.
     [[nodiscard]] auto ContentDescription() const noexcept
         -> std::optional<nlohmann::json> {
         try {
             if (std::holds_alternative<git_root_t>(root_)) {
                 nlohmann::json j;
-                // ignore-special git-tree-based roots are still content-fixed
-                j.push_back(kGitTreeMarker);
+                j.push_back(ignore_special_ ? kGitTreeIgnoreSpecialMarker
+                                            : kGitTreeMarker);
                 j.push_back(std::get<git_root_t>(root_).tree->Hash());
                 return j;
             }
             if (std::holds_alternative<absent_root_t>(root_)) {
                 nlohmann::json j;
-                // ignore-special git-tree-based roots are still content-fixed
-                j.push_back(kGitTreeMarker);
+                j.push_back(ignore_special_ ? kGitTreeIgnoreSpecialMarker
+                                            : kGitTreeMarker);
                 j.push_back(std::get<absent_root_t>(root_));
                 return j;
             }
-        } catch (...) {
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Debug,
+                        "Retrieving the description of a content-fixed root "
+                        "failed unexpectedly with:\n{}",
+                        ex.what());
         }
         return std::nullopt;
     }
