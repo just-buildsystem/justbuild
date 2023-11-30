@@ -17,10 +17,9 @@
 
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/utils/cpp/gsl.hpp"
-
-#include <gsl/gsl>
 
 /// \brief Helper functions to support the native remote-execution protocol.
 class NativeSupport {

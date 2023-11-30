@@ -17,7 +17,7 @@
 #include <exception>
 #include <fstream>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 [[nodiscard]] auto RemoteExecutionConfig::SetRemoteExecutionDispatch(
     const std::filesystem::path& filename) noexcept -> bool {

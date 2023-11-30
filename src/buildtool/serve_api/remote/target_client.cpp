@@ -16,8 +16,7 @@
 
 #include <utility>
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 

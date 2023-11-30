@@ -22,9 +22,8 @@
 #include <string>
 #include <utility>
 
+#include "gsl/gsl"
 #include "src/buildtool/crypto/hasher.hpp"
-
-#include <gsl/gsl>
 
 /// \brief Hash function used for the entire buildtool.
 class HashFunction {

@@ -16,7 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_TYPE_HPP
 #include <cstdint>
 
-#include <gsl/gsl>
+#include "gsl/gsl"
 
 enum class ObjectType : std::int8_t {
     File,

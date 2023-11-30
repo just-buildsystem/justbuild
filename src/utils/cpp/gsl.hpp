@@ -15,7 +15,7 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_GSL_HPP
 #define INCLUDED_SRC_UTILS_CPP_GSL_HPP
 
-#include <gsl/gsl>
+#include "gsl/gsl"
 
 // implement EnsuresAudit/ExpectsAudit (from gsl-lite) only run in debug mode
 #ifdef NDEBUG

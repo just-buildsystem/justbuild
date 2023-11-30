@@ -20,7 +20,7 @@
 #include <string>
 #include <type_traits>
 
-#include <gsl/gsl>
+#include "gsl/gsl"
 
 enum class LogLevel {
     Error,    ///< Error messages, fatal errors

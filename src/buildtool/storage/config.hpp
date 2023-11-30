@@ -28,8 +28,8 @@
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
-
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -38,8 +38,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
-
-#include <gsl/gsl>
 
 /// \brief Global storage configuration.
 class StorageConfig {

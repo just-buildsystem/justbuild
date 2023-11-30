@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 
+#include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"

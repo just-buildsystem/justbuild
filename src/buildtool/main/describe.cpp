@@ -16,8 +16,7 @@
 
 #include <iostream>
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"

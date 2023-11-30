@@ -18,8 +18,7 @@
 
 #include <vector>
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"

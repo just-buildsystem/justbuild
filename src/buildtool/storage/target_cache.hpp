@@ -20,8 +20,8 @@
 #include <optional>
 #include <utility>
 
-#include <nlohmann/json.hpp>
-
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -32,8 +32,6 @@
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/gsl.hpp"
-
-#include <gsl/gsl>
 
 /// \brief The high-level target cache for storing export target's data.
 /// Supports global uplinking across all generations using the garbage

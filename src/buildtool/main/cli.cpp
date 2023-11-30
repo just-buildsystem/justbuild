@@ -14,9 +14,8 @@
 
 #include "src/buildtool/main/cli.hpp"
 
+#include "gsl/gsl"
 #include "src/buildtool/main/exit_codes.hpp"
-
-#include <gsl/gsl>
 
 namespace {
 

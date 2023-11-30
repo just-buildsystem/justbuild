@@ -20,15 +20,13 @@
 #include <string>
 #include <vector>
 
-#include <nlohmann/json.hpp>
-
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-
-#include <gsl/gsl>
 
 /// \brief Store global build system configuration.
 class LocalExecutionConfig {

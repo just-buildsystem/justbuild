@@ -16,8 +16,7 @@
 
 #include <exception>
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"

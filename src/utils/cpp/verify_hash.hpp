@@ -19,7 +19,8 @@
 #include <optional>
 #include <string>
 
-#include <fmt/core.h>
+#include "fmt/core.h"
+
 /// \brief Check if the passed string \p s is a hash.
 /// This function is mainly used to check that the hash of a Digest received
 /// over the wire is a real hash, to prevent a malicious attack.

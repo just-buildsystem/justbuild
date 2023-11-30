@@ -20,8 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <fmt/core.h>
-
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"

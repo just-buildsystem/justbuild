@@ -14,8 +14,7 @@
 
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
 auto ConfigurationClient::CheckServeRemoteExecution() -> bool {

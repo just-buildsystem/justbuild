@@ -17,8 +17,7 @@
 
 #include <unordered_map>
 
-#include <nlohmann/json.hpp>
-
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
