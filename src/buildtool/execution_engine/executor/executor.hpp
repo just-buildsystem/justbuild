@@ -38,49 +38,6 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
-namespace detail {
-static inline auto scale_time(std::chrono::milliseconds t, double f)
-    -> std::chrono::milliseconds {
-    return std::chrono::milliseconds(std::lround(t.count() * f));
-}
-
-static inline auto merge_properties(
-    const std::map<std::string, std::string>& base,
-    const std::map<std::string, std::string>& overlay) {
-    std::map<std::string, std::string> result = base;
-    for (auto const& [k, v] : overlay) {
-        result[k] = v;
-    }
-    return result;
-}
-
-static inline auto get_alternative_endpoint(
-    const std::map<std::string, std::string>& properties)
-    -> std::unique_ptr<BazelApi> {
-    for (auto const& [pred, endpoint] : RemoteExecutionConfig::DispatchList()) {
-        bool match = true;
-        for (auto const& [k, v] : pred) {
-            auto v_it = properties.find(k);
-            if (not(v_it != properties.end() and v_it->second == v)) {
-                match = false;
-            }
-        }
-        if (match) {
-            Logger::Log(LogLevel::Debug, [endpoint = endpoint] {
-                return fmt::format("Dispatching action to endpoint {}",
-                                   endpoint.ToJson().dump());
-            });
-            ExecutionConfiguration config;
-            return std::make_unique<BazelApi>("alternative remote execution",
-                                              endpoint.host,
-                                              endpoint.port,
-                                              config);
-        }
-    }
-    return nullptr;
-}
-}  // namespace detail
-
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
   public:
@@ -137,7 +94,7 @@ class ExecutorImpl {
             Statistics::Instance().IncrementActionsQueuedCounter();
         }
 
-        auto alternative_api = detail::get_alternative_endpoint(properties);
+        auto alternative_api = GetAlternativeEndpoint(properties);
         if (alternative_api) {
             if (not api->RetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -633,6 +590,51 @@ class ExecutorImpl {
                     "Failed to execute command {}",
                     nlohmann::json(command).dump());
     }
+
+    [[nodiscard]] static inline auto ScaleTime(std::chrono::milliseconds t,
+                                               double f)
+        -> std::chrono::milliseconds {
+        return std::chrono::milliseconds(std::lround(t.count() * f));
+    }
+
+    [[nodiscard]] static inline auto MergeProperties(
+        const std::map<std::string, std::string>& base,
+        const std::map<std::string, std::string>& overlay) {
+        std::map<std::string, std::string> result = base;
+        for (auto const& [k, v] : overlay) {
+            result[k] = v;
+        }
+        return result;
+    }
+
+  private:
+    [[nodiscard]] static inline auto GetAlternativeEndpoint(
+        const std::map<std::string, std::string>& properties)
+        -> std::unique_ptr<BazelApi> {
+        for (auto const& [pred, endpoint] :
+             RemoteExecutionConfig::DispatchList()) {
+            bool match = true;
+            for (auto const& [k, v] : pred) {
+                auto v_it = properties.find(k);
+                if (not(v_it != properties.end() and v_it->second == v)) {
+                    match = false;
+                }
+            }
+            if (match) {
+                Logger::Log(LogLevel::Debug, [endpoint = endpoint] {
+                    return fmt::format("Dispatching action to endpoint {}",
+                                       endpoint.ToJson().dump());
+                });
+                ExecutionConfiguration config;
+                return std::make_unique<BazelApi>(
+                    "alternative remote execution",
+                    endpoint.host,
+                    endpoint.port,
+                    config);
+            }
+        }
+        return nullptr;
+    }
 };
 
 /// \brief Executor for using concrete Execution API.
@@ -666,9 +668,8 @@ class Executor {
             logger,
             action,
             remote_api_,
-            detail::merge_properties(properties_,
-                                     action->ExecutionProperties()),
-            detail::scale_time(timeout_, action->TimeoutScale()),
+            Impl::MergeProperties(properties_, action->ExecutionProperties()),
+            Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
 
         // check response and save digests of results
@@ -729,9 +730,8 @@ class Rebuilder {
             logger,
             action,
             remote_api_,
-            detail::merge_properties(properties_,
-                                     action->ExecutionProperties()),
-            detail::scale_time(timeout_, action->TimeoutScale()),
+            Impl::MergeProperties(properties_, action->ExecutionProperties()),
+            Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached);
 
         if (not response) {
@@ -743,9 +743,8 @@ class Rebuilder {
             logger_cached,
             action,
             api_cached_,
-            detail::merge_properties(properties_,
-                                     action->ExecutionProperties()),
-            detail::scale_time(timeout_, action->TimeoutScale()),
+            Impl::MergeProperties(properties_, action->ExecutionProperties()),
+            Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly);
 
         if (not response_cached) {
