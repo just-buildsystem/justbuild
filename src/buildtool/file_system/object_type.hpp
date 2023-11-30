@@ -25,7 +25,7 @@ enum class ObjectType : std::int8_t {
     Symlink  // non-upwards symbolic link
 };
 
-[[nodiscard]] constexpr auto FromChar(char c) -> ObjectType {
+[[nodiscard]] constexpr auto FromChar(char c) noexcept -> ObjectType {
     switch (c) {
         case 'x':
             return ObjectType::Executable;
@@ -39,7 +39,7 @@ enum class ObjectType : std::int8_t {
     Ensures(false);  // unreachable
 }
 
-[[nodiscard]] constexpr auto ToChar(ObjectType type) -> char {
+[[nodiscard]] constexpr auto ToChar(ObjectType type) noexcept -> char {
     switch (type) {
         case ObjectType::File:
             return 'f';
@@ -53,31 +53,33 @@ enum class ObjectType : std::int8_t {
     Ensures(false);  // unreachable
 }
 
-[[nodiscard]] constexpr auto IsFileObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsFileObject(ObjectType type) noexcept -> bool {
     return type == ObjectType::Executable or type == ObjectType::File;
 }
 
-[[nodiscard]] constexpr auto IsExecutableObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsExecutableObject(ObjectType type) noexcept
+    -> bool {
     return type == ObjectType::Executable;
 }
 
-[[nodiscard]] constexpr auto IsTreeObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsTreeObject(ObjectType type) noexcept -> bool {
     return type == ObjectType::Tree;
 }
 
 /// \brief Non-upwards symlinks are designated as first-class citizens.
-[[nodiscard]] constexpr auto IsSymlinkObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsSymlinkObject(ObjectType type) noexcept -> bool {
     return type == ObjectType::Symlink;
 }
 
 /// \brief Valid blob sources can be files, executables, or symlinks.
-[[nodiscard]] constexpr auto IsBlobObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsBlobObject(ObjectType type) noexcept -> bool {
     return type == ObjectType::Executable or type == ObjectType::File or
            type == ObjectType::Symlink;
 }
 
 /// \brief Only regular files, executables, and trees are non-special entries.
-[[nodiscard]] constexpr auto IsNonSpecialObject(ObjectType type) -> bool {
+[[nodiscard]] constexpr auto IsNonSpecialObject(ObjectType type) noexcept
+    -> bool {
     return type == ObjectType::File or type == ObjectType::Executable or
            type == ObjectType::Tree;
 }
