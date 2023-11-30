@@ -69,9 +69,10 @@ class ServeApi final {
             target_root_id, target_file, target);
     }
 
-    [[nodiscard]] static auto ServeTarget(const TargetCacheKey& key)
+    [[nodiscard]] static auto ServeTarget(const TargetCacheKey& key,
+                                          const std::string& repo_key)
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
-        return Instance().tc_->ServeTarget(key);
+        return Instance().tc_->ServeTarget(key, repo_key);
     }
 
     [[nodiscard]] static auto CheckServeRemoteExecution() -> bool {

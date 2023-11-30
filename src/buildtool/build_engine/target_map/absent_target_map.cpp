@@ -74,7 +74,8 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             Logger::Log(LogLevel::Debug,
                         "Querying just serve for export target {}",
                         key.target.ToString());
-            target_cache_value = ServeApi::ServeTarget(*target_cache_key);
+            target_cache_value =
+                ServeApi::ServeTarget(*target_cache_key, *repo_key);
             from_just_serve = true;
         }
 

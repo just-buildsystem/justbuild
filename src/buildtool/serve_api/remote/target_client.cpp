@@ -25,13 +25,24 @@ TargetClient::TargetClient(std::string const& server, Port port) noexcept {
         CreateChannelWithCredentials(server, port));
 }
 
-auto TargetClient::ServeTarget(const TargetCacheKey& key)
+auto TargetClient::ServeTarget(const TargetCacheKey& key,
+                               const std::string& repo_key)
     -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
     // make sure the blob containing the key is in the remote cas
     if (!local_api_->RetrieveToCas({key.Id()}, &*remote_api_)) {
         logger_.Emit(LogLevel::Error,
                      "failed to retrieve to remote cas ObjectInfo {}",
                      key.Id().ToString());
+        return std::nullopt;
+    }
+    // make sure the repository configuration blob is in the remote cas
+    if (!local_api_->RetrieveToCas(
+            {Artifact::ObjectInfo{.digest = ArtifactDigest{repo_key, 0, false},
+                                  .type = ObjectType::File}},
+            &*remote_api_)) {
+        logger_.Emit(LogLevel::Error,
+                     "failed to retrieve to remote cas blob {}",
+                     repo_key);
         return std::nullopt;
     }
 

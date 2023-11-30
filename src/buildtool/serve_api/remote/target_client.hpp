@@ -38,8 +38,10 @@ class TargetClient {
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
     /// to the given key.
     /// \param[in] key The TargetCacheKey of an export target
+    /// \param[in] repo_key The RepositoryKey to upload as precondition
     /// \returns Pair of cache entry and its object info on success or nullopt.
-    [[nodiscard]] auto ServeTarget(const TargetCacheKey& key)
+    [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
+                                   const std::string& repo_key)
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
 
     /// \brief Retrieve the flexible config variables of an export target.
