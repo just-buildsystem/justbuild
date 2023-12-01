@@ -360,8 +360,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
                 [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
                     err_messages += fmt::format(
-                        "\nWhile attempting fetch from local mirror "
-                        "{}:\n{}",
+                        "\nWhile attempting fetch from local mirror {}:\n{}",
                         mirror,
                         msg);
                 });
@@ -390,8 +389,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 [preferred_url, &err_messages](auto const& msg,
                                                                bool /*fatal*/) {
                                     err_messages += fmt::format(
-                                        "\nWhile attempting fetch from "
-                                        "remote "
+                                        "\nWhile attempting fetch from remote "
                                         "{}:\n{}",
                                         *preferred_url,
                                         msg);
@@ -414,8 +412,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                     [fetch_repo, &err_messages](auto const& msg,
                                                 bool /*fatal*/) {
                         err_messages += fmt::format(
-                            "\nWhile attempting fetch from remote "
-                            "{}:\n{}",
+                            "\nWhile attempting fetch from remote {}:\n{}",
                             fetch_repo,
                             msg);
                     });
@@ -431,8 +428,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             mirror = std::filesystem::absolute(mirror).string();
                         }
                         else {
-                            // if non-path, try each of the preferred
-                            // hostnames
+                            // if non-path, try each of the preferred hostnames
                             for (auto const& hostname : preferred_hostnames) {
                                 if (auto preferred_mirror =
                                         CurlURLHandle::ReplaceHostname(
@@ -442,8 +438,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                         [preferred_mirror, &err_messages](
                                             auto const& msg, bool /*fatal*/) {
                                             err_messages += fmt::format(
-                                                "\nWhile attempting fetch "
-                                                "from "
+                                                "\nWhile attempting fetch from "
                                                 "mirror {}:\n{}",
                                                 *preferred_mirror,
                                                 msg);
@@ -469,8 +464,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 [mirror, &err_messages](auto const& msg,
                                                         bool /*fatal*/) {
                                     err_messages += fmt::format(
-                                        "\nWhile attempting fetch from "
-                                        "mirror "
+                                        "\nWhile attempting fetch from mirror "
                                         "{}:\n{}",
                                         mirror,
                                         msg);
