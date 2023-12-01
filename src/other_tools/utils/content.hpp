@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <variant>
 
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
@@ -42,13 +43,16 @@
 
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// Tries not only a given remote, but also all associated remote locations.
-/// \returns the content.
+/// \returns An error + data union, with the error message at index 0 and the
+/// fetched data at index 1.
 [[nodiscard]] static auto NetworkFetchWithMirrors(
     std::string const& fetch_url,
     std::vector<std::string> const& mirrors,
     CAInfoPtr const& ca_info,
     MirrorsPtr const& additional_mirrors) noexcept
-    -> std::optional<std::string> {
+    -> std::variant<std::string, std::string> {
+    // keep all remotes tried, to report in case fetch fails
+    std::string remotes_buffer{};
     // first, try the local mirrors
     std::optional<std::string> data{std::nullopt};
     auto local_mirrors =
@@ -57,6 +61,8 @@
         if (data = NetworkFetch(mirror, ca_info); data) {
             break;
         }
+        // add local mirror to buffer
+        remotes_buffer.append(fmt::format("\n> {}", mirror));
     }
     if (not data) {
         // get preferred hostnames list
@@ -69,11 +75,15 @@
                 if (data = NetworkFetch(*preferred_url, ca_info); data) {
                     break;
                 }
+                // add preferred URL to buffer
+                remotes_buffer.append(fmt::format("\n> {}", *preferred_url));
             }
         }
         if (not data) {
             // now try the main fetch URL
             if (data = NetworkFetch(fetch_url, ca_info); not data) {
+                // add main fetch URL to buffer
+                remotes_buffer.append(fmt::format("\n> {}", fetch_url));
                 // try the mirrors, in order, if given
                 for (auto const& mirror : mirrors) {
                     // first use with preferred hostnames...
@@ -85,6 +95,9 @@
                                 data) {
                                 break;
                             }
+                            // add preferred mirror to buffer
+                            remotes_buffer.append(
+                                fmt::format("\n> {}", *preferred_mirror));
                         }
                     }
                     // ...then the original mirror
@@ -92,12 +105,17 @@
                         if (data = NetworkFetch(mirror, ca_info); data) {
                             break;
                         }
+                        // add mirror to buffer
+                        remotes_buffer.append(fmt::format("\n> {}", mirror));
                     }
                 }
             }
         }
     }
-    return data;
+    return data ? std::variant<std::string, std::string>(std::in_place_index<1>,
+                                                         *data)
+                : std::variant<std::string, std::string>(std::in_place_index<0>,
+                                                         remotes_buffer);
 }
 
 template <Hasher::HashType type>

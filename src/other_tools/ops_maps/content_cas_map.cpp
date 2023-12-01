@@ -95,12 +95,15 @@ auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
             return;
         }
         // now do the actual fetch
-        auto data = NetworkFetchWithMirrors(
+        auto res = NetworkFetchWithMirrors(
             key.fetch_url, key.mirrors, ca_info, additional_mirrors);
+        auto data =
+            std::get_if<1>(&res);  // get pointer to fetched data, or nullptr
         if (not data) {
             (*logger)(fmt::format("Failed to fetch a file with id {} from "
-                                  "provided remotes",
-                                  key.content),
+                                  "provided remotes:{}",
+                                  key.content,
+                                  std::get<0>(res)),
                       /*fatal=*/true);
             return;
         }
