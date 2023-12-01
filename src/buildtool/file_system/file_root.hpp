@@ -595,11 +595,11 @@ class FileRoot {
         return std::nullopt;  // absent roots are neither LOCAL nor KNOWN
     }
 
-    [[nodiscard]] inline auto IsAbsent() const noexcept -> bool {
+    [[nodiscard]] auto IsAbsent() const noexcept -> bool {
         return std::holds_alternative<absent_root_t>(root_);
     }
 
-    [[nodiscard]] inline auto GetAbsentTreeId() const noexcept
+    [[nodiscard]] auto GetAbsentTreeId() const noexcept
         -> std::optional<std::string> {
         if (std::holds_alternative<absent_root_t>(root_)) {
             try {
@@ -609,6 +609,10 @@ class FileRoot {
             }
         }
         return std::nullopt;
+    }
+
+    [[nodiscard]] auto IgnoreSpecial() const noexcept -> bool {
+        return ignore_special_;
     }
 
     /// \brief Parses a FileRoot from string. On errors, populates error_msg.
