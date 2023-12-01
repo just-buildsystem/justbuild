@@ -26,8 +26,6 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-#include <gsl/gsl>
-
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
     // Given a target-level caching key, returns the computed value. In doing
