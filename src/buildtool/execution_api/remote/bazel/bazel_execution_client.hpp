@@ -41,7 +41,7 @@ class BazelExecutionClient {
     };
 
     struct ExecutionResponse {
-        enum class State { Failed, Ongoing, Finished, Unknown };
+        enum class State { Failed, Ongoing, Finished, Unknown, Retry };
 
         std::string execution_handle{};
         State state{State::Unknown};
@@ -67,14 +67,24 @@ class BazelExecutionClient {
   private:
     std::unique_ptr<bazel_re::Execution::Stub> stub_;
     Logger logger_{"RemoteExecutionClient"};
+    struct RetryReadOperation {
+        std::optional<google::longrunning::Operation> operation{std::nullopt};
+        bool exit_retry_loop{false};
+        std::optional<std::string> error_msg{std::nullopt};
+    };
+
+    struct RetryExtractContents {
+        ExecutionResponse response;
+        std::optional<std::string> error_msg{std::nullopt};
+    };
 
     [[nodiscard]] auto ReadExecution(
         grpc::ClientReader<google::longrunning::Operation>* reader,
-        bool wait) -> std::optional<google::longrunning::Operation>;
+        bool wait) -> RetryReadOperation;
 
     [[nodiscard]] auto ExtractContents(
         std::optional<google::longrunning::Operation>&& operation)
-        -> ExecutionResponse;
+        -> RetryExtractContents;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_EXECUTION_CLIENT_HPP

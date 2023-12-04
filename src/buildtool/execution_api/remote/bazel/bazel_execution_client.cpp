@@ -17,6 +17,7 @@
 #include "grpcpp/grpcpp.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/common/remote/retry.hpp"
 
 namespace bazel_re = build::bazel::remote::execution::v2;
 
@@ -33,15 +34,21 @@ void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
             // Due to a transient condition, such as all workers being occupied
             // (and the server does not support a queue), the action could not
             // be started. The client should retry.
-            logger->Emit(LogLevel::Error,
+            logger->Emit(LogLevel::Debug,
                          fmt::format("Execution could not be started.\n{}",
-                                     s.DebugString()));
+                                     s.ShortDebugString()));
             break;
         default:
             // fallback to default status logging
-            LogStatus(logger, LogLevel::Warning, s);
+            LogStatus(logger, LogLevel::Error, s);
             break;
     }
+}
+
+auto DebugString(grpc::Status const& status) -> std::string {
+    return fmt::format("{}: {}",
+                       static_cast<int>(status.error_code()),
+                       status.error_message());
 }
 
 }  // namespace
@@ -71,12 +78,33 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest(action_digest)});
     request.set_allocated_execution_policy(execution_policy.release());
     request.set_allocated_results_cache_policy(results_cache_policy.release());
+    BazelExecutionClient::ExecutionResponse response;
+    auto execute = [this, &request, wait, &response]() -> RetryResponse {
+        grpc::ClientContext context;
+        std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>>
+            reader(stub_->Execute(&context, request));
 
-    grpc::ClientContext context;
-    std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>> reader(
-        stub_->Execute(&context, request));
-
-    return ExtractContents(ReadExecution(reader.get(), wait));
+        auto [op, fatal, error_msg] = ReadExecution(reader.get(), wait);
+        if (!op.has_value()) {
+            return {
+                .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
+        }
+        auto contents = ExtractContents(std::move(op));
+        response = contents.response;
+        if (response.state == ExecutionResponse::State::Finished) {
+            return {.ok = true};
+        }
+        return {.ok = false,
+                .exit_retry_loop =
+                    response.state != ExecutionResponse::State::Retry,
+                .error_msg = contents.error_msg};
+    };
+    if (not WithRetry(execute, logger_)) {
+        logger_.Emit(LogLevel::Error,
+                     "Failed to execute action {}.",
+                     action_digest.ShortDebugString());
+    }
+    return response;
 }
 
 auto BazelExecutionClient::WaitExecution(std::string const& execution_handle)
@@ -84,30 +112,56 @@ auto BazelExecutionClient::WaitExecution(std::string const& execution_handle)
     bazel_re::WaitExecutionRequest request;
     request.set_name(execution_handle);
 
-    grpc::ClientContext context;
-    std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>> reader(
-        stub_->WaitExecution(&context, request));
+    BazelExecutionClient::ExecutionResponse response;
 
-    return ExtractContents(ReadExecution(reader.get(), true));
+    auto wait_execution = [this, &request, &response]() -> RetryResponse {
+        grpc::ClientContext context;
+        std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>>
+            reader(stub_->WaitExecution(&context, request));
+
+        auto [op, fatal, error_msg] =
+            ReadExecution(reader.get(), /*wait=*/true);
+        if (!op.has_value()) {
+            return {
+                .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
+        }
+        auto contents = ExtractContents(std::move(op));
+        response = contents.response;
+        if (response.state == ExecutionResponse::State::Finished) {
+            return {.ok = true};
+        }
+        return {.ok = false,
+                .exit_retry_loop =
+                    response.state != ExecutionResponse::State::Retry,
+                .error_msg = contents.error_msg};
+    };
+    if (not WithRetry(wait_execution, logger_)) {
+        logger_.Emit(
+            LogLevel::Error, "Failed to Execute action {}.", request.name());
+    }
+    return response;
 }
 
 auto BazelExecutionClient::ReadExecution(
     grpc::ClientReader<google::longrunning::Operation>* reader,
-    bool wait) -> std::optional<google::longrunning::Operation> {
+    bool wait) -> RetryReadOperation {
     if (reader == nullptr) {
-        LogStatus(
-            &logger_,
-            LogLevel::Error,
-            grpc::Status{grpc::StatusCode::UNKNOWN, "Reader unavailable"});
-        return std::nullopt;
+        grpc::Status status{grpc::StatusCode::UNKNOWN, "Reader unavailable"};
+        LogStatus(&logger_, LogLevel::Error, status);
+        return {.operation = std::nullopt,
+                .exit_retry_loop = true,
+                .error_msg = DebugString(status)};
     }
 
     google::longrunning::Operation operation;
     if (not reader->Read(&operation)) {
         grpc::Status status = reader->Finish();
-        // TODO(vmoreno): log error using data in status and operation
-        LogStatus(&logger_, LogLevel::Error, status);
-        return std::nullopt;
+        auto exit_retry_loop =
+            status.error_code() != grpc::StatusCode::UNAVAILABLE;
+        LogStatus(&logger_,
+                  (exit_retry_loop ? LogLevel::Error : LogLevel::Debug),
+                  status);
+        return {std::nullopt, exit_retry_loop, DebugString(status)};
     }
     // Important note: do not call reader->Finish() unless reader->Read()
     // returned false, otherwise the thread will be never released
@@ -116,33 +170,40 @@ auto BazelExecutionClient::ReadExecution(
         }
         grpc::Status status = reader->Finish();
         if (not status.ok()) {
-            // TODO(vmoreno): log error from status and operation
-            LogStatus(&logger_, LogLevel::Error, status);
-            return std::nullopt;
+            auto exit_retry_loop =
+                status.error_code() != grpc::StatusCode::UNAVAILABLE;
+            LogStatus(&logger_,
+                      (exit_retry_loop ? LogLevel::Error : LogLevel::Debug),
+                      status);
+            return {std::nullopt, exit_retry_loop, DebugString(status)};
         }
     }
-    return operation;
+    return {.operation = operation, .exit_retry_loop = false};
 }
 
 auto BazelExecutionClient::ExtractContents(
     std::optional<google::longrunning::Operation>&& operation)
-    -> BazelExecutionClient::ExecutionResponse {
+    -> RetryExtractContents {
     if (not operation) {
         // Error was already logged in ReadExecution()
-        return ExecutionResponse::MakeEmptyFailed();
+        return {ExecutionResponse::MakeEmptyFailed(), std::nullopt};
     }
     auto op = *operation;
     ExecutionResponse response;
     response.execution_handle = op.name();
     if (not op.done()) {
         response.state = ExecutionResponse::State::Ongoing;
-        return response;
+        return {response, std::nullopt};
     }
     if (op.has_error()) {
-        // TODO(vmoreno): log error from google::rpc::Status s = op.error()
         LogStatus(&logger_, LogLevel::Debug, op.error());
-        response.state = ExecutionResponse::State::Failed;
-        return response;
+        if (op.error().code() == grpc::StatusCode::UNAVAILABLE) {
+            response.state = ExecutionResponse::State::Retry;
+        }
+        else {
+            response.state = ExecutionResponse::State::Failed;
+        }
+        return {response, op.error().ShortDebugString()};
     }
 
     // Get execution response Unpacked from Protobufs Any type to the actual
@@ -150,18 +211,23 @@ auto BazelExecutionClient::ExtractContents(
     auto const& raw_response = op.response();
     if (not raw_response.Is<bazel_re::ExecuteResponse>()) {
         // Fatal error, the type should be correct
+        logger_.Emit(LogLevel::Error, "Corrupted ExecuteResponse");
         response.state = ExecutionResponse::State::Failed;
-        return response;
+        return {response, "Corrupted ExecuteResponse"};
     }
 
     bazel_re::ExecuteResponse exec_response;
     raw_response.UnpackTo(&exec_response);
-
-    if (exec_response.status().code() != grpc::StatusCode::OK) {
-        // For now, treat all execution errors (e.g., action timeout) as fatal.
+    auto status_code = exec_response.status().code();
+    if (status_code != grpc::StatusCode::OK) {
         LogExecutionStatus(&logger_, exec_response.status());
-        response.state = ExecutionResponse::State::Failed;
-        return response;
+        if (status_code == grpc::StatusCode::UNAVAILABLE) {
+            response.state = ExecutionResponse::State::Retry;
+        }
+        else {
+            response.state = ExecutionResponse::State::Failed;
+        }
+        return {response, exec_response.status().ShortDebugString()};
     }
 
     ExecutionOutput output;
@@ -172,5 +238,5 @@ auto BazelExecutionClient::ExtractContents(
     response.output = output;
     response.state = ExecutionResponse::State::Finished;
 
-    return response;
+    return {response, std::nullopt};
 }

@@ -204,6 +204,7 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
             return true;
         }
     } catch (...) {
+        Logger::Log(LogLevel::Warning, "unknonwn exception");
     }
 
     Logger::Log(LogLevel::Warning, "Failed to update all blobs");

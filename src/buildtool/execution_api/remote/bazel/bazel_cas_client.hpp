@@ -177,11 +177,21 @@ class BazelCasClient {
         int page_size,
         std::string const& page_token) noexcept -> bazel_re::GetTreeRequest;
 
+    /// \brief Utility class for supporting the Retry strategy while parsing a
+    /// BatchResponse
+    template <typename T_Content>
+    struct RetryProcessBatchResponse {
+        bool ok{false};
+        std::vector<T_Content> result{};
+        bool exit_retry_loop{false};
+        std::optional<std::string> error_msg{};
+    };
+
     template <class T_Content, class T_Inner, class T_Response>
     auto ProcessBatchResponse(
         T_Response const& response,
         std::function<void(std::vector<T_Content>*, T_Inner const&)> const&
-            inserter) const noexcept -> std::vector<T_Content>;
+            inserter) const noexcept -> RetryProcessBatchResponse<T_Content>;
 
     template <class T_Content, class T_Response>
     auto ProcessResponseContents(T_Response const& response) const noexcept

@@ -17,6 +17,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/common/remote/retry.hpp"
 
 BazelAcClient::BazelAcClient(std::string const& server, Port port) noexcept {
     stub_ = bazel_re::ActionCache::NewStub(
@@ -40,17 +41,20 @@ auto BazelAcClient::GetActionResult(
               inline_output_files.end(),
               pb::back_inserter(request.mutable_inline_output_files()));
 
-    grpc::ClientContext context;
     bazel_re::ActionResult response;
-    grpc::Status status = stub_->GetActionResult(&context, request, &response);
-
-    if (not status.ok()) {
+    auto [ok, status] = WithRetry(
+        [this, &response, &request]() {
+            grpc::ClientContext context;
+            return stub_->GetActionResult(&context, request, &response);
+        },
+        logger_);
+    if (not ok) {
         if (status.error_code() == grpc::StatusCode::NOT_FOUND) {
             logger_.Emit(
                 LogLevel::Debug, "cache miss '{}'", status.error_message());
         }
         else {
-            LogStatus(&logger_, LogLevel::Debug, status);
+            LogStatus(&logger_, LogLevel::Error, status);
         }
         return std::nullopt;
     }

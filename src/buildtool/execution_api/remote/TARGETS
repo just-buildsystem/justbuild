@@ -46,6 +46,7 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/common/remote", "retry"]
     ]
   }
 , "bazel":

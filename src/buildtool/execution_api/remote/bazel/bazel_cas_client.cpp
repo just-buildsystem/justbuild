@@ -23,6 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
@@ -155,25 +156,47 @@ auto BazelCasClient::BatchReadBlobs(
     auto request =
         CreateRequest<bazel_re::BatchReadBlobsRequest, bazel_re::Digest>(
             instance_name, begin, end);
-    grpc::ClientContext context;
     bazel_re::BatchReadBlobsResponse response;
-    grpc::Status status = stub_->BatchReadBlobs(&context, request, &response);
-
     std::vector<BazelBlob> result{};
-    if (status.ok()) {
-        result =
-            ProcessBatchResponse<BazelBlob,
-                                 bazel_re::BatchReadBlobsResponse_Response>(
-                response,
-                [](std::vector<BazelBlob>* v,
-                   bazel_re::BatchReadBlobsResponse_Response const& r) {
-                    v->emplace_back(r.digest(), r.data(), /*is_exec=*/false);
-                });
-    }
-    else {
-        LogStatus(&logger_, LogLevel::Debug, status);
-    }
+    try {
+        auto batch_read_blobs =
+            [this, &response, &request, &result]() -> RetryResponse {
+            grpc::ClientContext context;
+            auto status = stub_->BatchReadBlobs(&context, request, &response);
+            if (status.ok()) {
+                auto batch_response = ProcessBatchResponse<
+                    BazelBlob,
+                    bazel_re::BatchReadBlobsResponse_Response>(
+                    response,
+                    [](std::vector<BazelBlob>* v,
+                       bazel_re::BatchReadBlobsResponse_Response const& r) {
+                        v->emplace_back(
+                            r.digest(), r.data(), /*is_exec=*/false);
+                    });
+                if (batch_response.ok) {
+                    result = std::move(batch_response.result);
+                    return {.ok = true};
+                }
+                return {.ok = false,
+                        .exit_retry_loop = batch_response.exit_retry_loop,
+                        .error_msg = batch_response.error_msg};
+            }
+            auto exit_retry_loop =
+                status.error_code() != grpc::StatusCode::UNAVAILABLE;
+            return {
+                .ok = false,
+                .exit_retry_loop = exit_retry_loop,
+                .error_msg = fmt::format("{}: {}",
+                                         static_cast<int>(status.error_code()),
+                                         status.error_message())};
+        };
 
+        if (not WithRetry(batch_read_blobs, logger_)) {
+            logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs");
+        }
+    } catch (...) {
+        logger_.Emit(LogLevel::Error, "Caught exception in BatchReadBlobs");
+    }
     return result;
 }
 
@@ -206,7 +229,7 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 
     auto status = stream->Finish();
     if (not status.ok()) {
-        LogStatus(&logger_, LogLevel::Debug, status);
+        LogStatus(&logger_, LogLevel::Error, status);
     }
 
     return result;
@@ -273,15 +296,18 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
     if (not BlobSplitSupportCached(instance_name, stub_, &logger_)) {
         return std::nullopt;
     }
-    grpc::ClientContext context{};
     bazel_re::SplitBlobRequest request{};
     request.set_instance_name(instance_name);
     request.mutable_blob_digest()->CopyFrom(digest);
     bazel_re::SplitBlobResponse response{};
-    grpc::Status status = stub_->SplitBlob(&context, request, &response);
-    std::vector<bazel_re::Digest> result{};
-    if (not status.ok()) {
-        LogStatus(&logger_, LogLevel::Debug, status);
+    auto [ok, status] = WithRetry(
+        [this, &response, &request]() {
+            grpc::ClientContext context;
+            return stub_->SplitBlob(&context, request, &response);
+        },
+        logger_);
+    if (not ok) {
+        LogStatus(&logger_, LogLevel::Error, status);
         return std::nullopt;
     }
     return ProcessResponseContents<bazel_re::Digest>(response);
@@ -296,16 +322,19 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
         CreateRequest<bazel_re::FindMissingBlobsRequest, bazel_re::Digest>(
             instance_name, start, end);
 
-    grpc::ClientContext context;
     bazel_re::FindMissingBlobsResponse response;
-    grpc::Status status = stub_->FindMissingBlobs(&context, request, &response);
-
+    auto [ok, status] = WithRetry(
+        [this, &response, &request]() {
+            grpc::ClientContext context;
+            return stub_->FindMissingBlobs(&context, request, &response);
+        },
+        logger_);
     std::vector<bazel_re::Digest> result{};
-    if (status.ok()) {
+    if (ok) {
         result = ProcessResponseContents<bazel_re::Digest>(response);
     }
     else {
-        LogStatus(&logger_, LogLevel::Debug, status);
+        LogStatus(&logger_, LogLevel::Error, status);
     }
 
     logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
@@ -332,50 +361,74 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
     -> std::vector<bazel_re::Digest> {
     auto request = CreateUpdateBlobsRequest(instance_name, start, end);
 
-    grpc::ClientContext context;
     bazel_re::BatchUpdateBlobsResponse response;
-    grpc::Status status = stub_->BatchUpdateBlobs(&context, request, &response);
-
     std::vector<bazel_re::Digest> result{};
-    if (status.ok()) {
-        result =
-            ProcessBatchResponse<bazel_re::Digest,
-                                 bazel_re::BatchUpdateBlobsResponse_Response>(
-                response,
-                [](std::vector<bazel_re::Digest>* v,
-                   bazel_re::BatchUpdateBlobsResponse_Response const& r) {
-                    v->push_back(r.digest());
-                });
-    }
-    else {
-        LogStatus(&logger_, LogLevel::Debug, status);
-        if (status.error_code() == grpc::StatusCode::RESOURCE_EXHAUSTED) {
-            logger_.Emit(LogLevel::Debug,
-                         "Falling back to single blob transfers");
-            auto current = start;
-            while (current != end) {
-                if (UpdateSingleBlob(instance_name, (*current))) {
-                    result.emplace_back((*current).digest);
+    try {
+        auto batch_update_blobs =
+            [this, &response, &request, &result, &start, &end, &instance_name]()
+            -> RetryResponse {
+            grpc::ClientContext context;
+            auto status = stub_->BatchUpdateBlobs(&context, request, &response);
+            if (status.ok()) {
+                auto batch_response = ProcessBatchResponse<
+                    bazel_re::Digest,
+                    bazel_re::BatchUpdateBlobsResponse_Response>(
+                    response,
+                    [](std::vector<bazel_re::Digest>* v,
+                       bazel_re::BatchUpdateBlobsResponse_Response const& r) {
+                        v->push_back(r.digest());
+                    });
+                //  todo: check status of each response
+                if (batch_response.ok) {
+                    result = std::move(batch_response.result);
+                    return {.ok = true};
                 }
-                ++current;
+                return {.ok = false,
+                        .exit_retry_loop = batch_response.exit_retry_loop,
+                        .error_msg = batch_response.error_msg};
             }
+            if (status.error_code() == grpc::StatusCode::RESOURCE_EXHAUSTED) {
+                LogStatus(&logger_, LogLevel::Progress, status);
+                logger_.Emit(LogLevel::Progress,
+                             "Falling back to single blob transfers");
+                auto current = start;
+                while (current != end) {
+                    if (UpdateSingleBlob(instance_name, (*current))) {
+                        result.emplace_back((*current).digest);
+                    }
+                    else {
+                        // just retry
+                        return {.ok = false};
+                    }
+                    ++current;
+                }
+                return {.ok = true};
+            }
+            return {.ok = false,
+                    .exit_retry_loop =
+                        status.error_code() != grpc::StatusCode::UNAVAILABLE,
+                    .error_msg = status.error_message()};
+        };
+        if (not WithRetry(batch_update_blobs, logger_)) {
+            logger_.Emit(LogLevel::Error, "Failed to BatchUpdateBlobs.");
         }
-    }
 
-    logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
-        std::ostringstream oss{};
-        oss << "upload blobs" << std::endl;
-        std::for_each(start, end, [&oss](auto const& blob) {
-            oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
-        });
-        oss << "received blobs" << std::endl;
-        std::for_each(
-            result.cbegin(), result.cend(), [&oss](auto const& digest) {
-                oss << fmt::format(" - {}", digest.hash()) << std::endl;
+        logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+            std::ostringstream oss{};
+            oss << "upload blobs" << std::endl;
+            std::for_each(start, end, [&oss](auto const& blob) {
+                oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
             });
-        return oss.str();
-    });
-
+            oss << "received blobs" << std::endl;
+            std::for_each(
+                result.cbegin(), result.cend(), [&oss](auto const& digest) {
+                    oss << fmt::format(" - {}", digest.hash()) << std::endl;
+                });
+            return oss.str();
+        });
+    } catch (...) {
+        logger_.Emit(LogLevel::Error, "Caught exception in DoBatchUpdateBlobs");
+    }
     return result;
 }
 
@@ -490,18 +543,26 @@ template <class T_Content, class T_Inner, class T_Response>
 auto BazelCasClient::ProcessBatchResponse(
     T_Response const& response,
     std::function<void(std::vector<T_Content>*, T_Inner const&)> const&
-        inserter) const noexcept -> std::vector<T_Content> {
+        inserter) const noexcept -> RetryProcessBatchResponse<T_Content> {
     std::vector<T_Content> output;
     for (auto const& res : response.responses()) {
+        bazel_re::BatchUpdateBlobsResponse_Response r;
         auto const& res_status = res.status();
         if (res_status.code() == static_cast<int>(grpc::StatusCode::OK)) {
             inserter(&output, res);
         }
         else {
-            LogStatus(&logger_, LogLevel::Debug, res_status);
+            auto exit_retry_loop =
+                (res_status.code() !=
+                 static_cast<int>(grpc::StatusCode::UNAVAILABLE));
+            return {
+                .ok = false,
+                .exit_retry_loop = exit_retry_loop,
+                .error_msg = fmt::format("While processing batch response: {}",
+                                         res_status.ShortDebugString())};
         }
     }
-    return output;
+    return {.ok = true, .result = std::move(output)};
 }
 
 template <class T_Content, class T_Response>
