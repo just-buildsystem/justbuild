@@ -125,6 +125,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                               serve_api_exists,
                               local_api ? &(*local_api) : nullptr,
                               remote_api ? &(*remote_api) : nullptr,
+                              false, /* backup_to_remote */
                               common_args.jobs);
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 

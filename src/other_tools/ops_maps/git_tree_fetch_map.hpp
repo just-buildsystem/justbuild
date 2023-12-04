@@ -60,6 +60,7 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
     bool serve_api_exists,
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
+    bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP

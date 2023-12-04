@@ -112,6 +112,9 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
     , ["src/other_tools/ops_maps", "archive_fetch_map"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "local"]

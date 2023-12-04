@@ -17,6 +17,7 @@
 #include <cstdlib>
 
 #include "fmt/core.h"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -27,6 +28,37 @@
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
+namespace {
+
+void BackupToRemote(std::string const& tree_id,
+                    IExecutionApi* remote_api,
+                    GitTreeFetchMap::LoggerPtr const& logger) {
+    // try to back up to remote CAS
+    auto repo = RepositoryConfig{};
+    if (repo.SetGitCAS(StorageConfig::GitRoot())) {
+        auto git_api = GitApi{&repo};
+        if (not git_api.RetrieveToCas(
+                {Artifact::ObjectInfo{
+                    .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
+                    .type = ObjectType::Tree}},
+                remote_api)) {
+            // give a warning
+            (*logger)(fmt::format(
+                          "Failed to back up tree {} from local CAS to remote",
+                          tree_id),
+                      /*fatal=*/false);
+        }
+    }
+    else {
+        // give a warning
+        (*logger)(fmt::format("Failed to SetGitCAS at {}",
+                              StorageConfig::GitRoot().string()),
+                  /*fatal=*/false);
+    }
+}
+
+}  // namespace
+
 auto CreateGitTreeFetchMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
@@ -35,6 +67,7 @@ auto CreateGitTreeFetchMap(
     bool serve_api_exists,
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
+    bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap {
     auto tree_to_cache = [critical_git_op_map,
                           import_to_git_map,
@@ -42,11 +75,12 @@ auto CreateGitTreeFetchMap(
                           launcher,
                           serve_api_exists,
                           local_api,
-                          remote_api](auto ts,
-                                      auto setter,
-                                      auto logger,
-                                      auto /*unused*/,
-                                      auto const& key) {
+                          remote_api,
+                          backup_to_remote](auto ts,
+                                            auto setter,
+                                            auto logger,
+                                            auto /*unused*/,
+                                            auto const& key) {
         // check whether tree exists already in Git cache;
         // ensure Git cache exists
         GitOpKey op_key = {.params =
@@ -68,6 +102,7 @@ auto CreateGitTreeFetchMap(
              serve_api_exists,
              local_api,
              remote_api,
+             backup_to_remote,
              key,
              ts,
              setter,
@@ -104,6 +139,11 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 if (*tree_found) {
+                    // backup to remote, if needed
+                    if (backup_to_remote and remote_api != nullptr) {
+                        BackupToRemote(key.hash, remote_api, logger);
+                    }
+                    // success
                     (*setter)(true /*cache hit*/);
                     return;
                 }
@@ -160,6 +200,8 @@ auto CreateGitTreeFetchMap(
                                           /*fatal=*/true);
                                 return;
                             }
+                            // remote CAS already has the tree, so no need to
+                            // even check backup_to_remote flag;
                             // success
                             (*setter)(false /*no cache hit*/);
                         },
@@ -233,6 +275,8 @@ auto CreateGitTreeFetchMap(
                      key,
                      git_bin,
                      launcher,
+                     remote_api,
+                     backup_to_remote,
                      ts,
                      setter,
                      logger](auto const& values) {
@@ -366,6 +410,8 @@ auto CreateGitTreeFetchMap(
                             ts,
                             {std::move(op_key)},
                             [tmp_dir,  // keep tmp_dir alive
+                             remote_api,
+                             backup_to_remote,
                              key,
                              setter,
                              logger](auto const& values) {
@@ -378,6 +424,12 @@ auto CreateGitTreeFetchMap(
                                 }
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     key.origin);
+                                // backup to remote, if needed
+                                if (backup_to_remote and
+                                    remote_api != nullptr) {
+                                    BackupToRemote(
+                                        key.hash, remote_api, logger);
+                                }
                                 // success
                                 (*setter)(false /*no cache hit*/);
                             },
