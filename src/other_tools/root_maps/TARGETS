@@ -115,7 +115,9 @@
   , "srcs": ["tree_id_git_map.cpp"]
   , "deps":
     [ ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]

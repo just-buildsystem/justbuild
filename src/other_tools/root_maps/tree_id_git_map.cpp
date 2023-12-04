@@ -87,15 +87,22 @@ void KeepCommitAndSetRoot(
 
 auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
     std::size_t jobs) -> TreeIdGitMap {
-    auto tree_to_git = [critical_git_op_map, git_bin, launcher](
-                           auto ts,
-                           auto setter,
-                           auto logger,
-                           auto /*unused*/,
-                           auto const& key) {
+    auto tree_to_git = [critical_git_op_map,
+                        import_to_git_map,
+                        git_bin,
+                        launcher,
+                        local_api,
+                        remote_api](auto ts,
+                                    auto setter,
+                                    auto logger,
+                                    auto /*unused*/,
+                                    auto const& key) {
         // if root is absent, no work needs to be done
         if (key.absent) {
             auto root = nlohmann::json::array(
@@ -120,8 +127,16 @@ auto CreateTreeIdGitMap(
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [critical_git_op_map, git_bin, launcher, key, ts, setter, logger](
-                auto const& values) {
+            [critical_git_op_map,
+             import_to_git_map,
+             git_bin,
+             launcher,
+             local_api,
+             remote_api,
+             key,
+             ts,
+             setter,
+             logger](auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
                 if (not op_result.result) {
@@ -155,6 +170,77 @@ auto CreateTreeIdGitMap(
                 }
                 if (not *tree_found) {
                     JustMRProgress::Instance().TaskTracker().Start(key.origin);
+                    // check if tree is in remote CAS, if a remote is given
+                    auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
+                    if (remote_api != nullptr and local_api != nullptr and
+                        remote_api->IsAvailable(digest) and
+                        remote_api->RetrieveToCas(
+                            {Artifact::ObjectInfo{.digest = digest,
+                                                  .type = ObjectType::Tree}},
+                            local_api)) {
+                        JustMRProgress::Instance().TaskTracker().Stop(
+                            key.origin);
+                        // Move tree from CAS to local Git storage
+                        auto tmp_dir = StorageUtils::CreateTypedTmpDir(
+                            "fetch-remote-git-tree");
+                        if (not tmp_dir) {
+                            (*logger)(fmt::format("Failed to create tmp "
+                                                  "directory for copying "
+                                                  "git-tree {} from remote CAS",
+                                                  key.hash),
+                                      true);
+                            return;
+                        }
+                        if (not local_api->RetrieveToPaths(
+                                {Artifact::ObjectInfo{
+                                    .digest = digest,
+                                    .type = ObjectType::Tree}},
+                                {tmp_dir->GetPath()})) {
+                            (*logger)(
+                                fmt::format("Failed to copy git-tree {} to {}",
+                                            key.hash,
+                                            tmp_dir->GetPath().string()),
+                                true);
+                            return;
+                        }
+                        CommitInfo c_info{tmp_dir->GetPath(), "tree", key.hash};
+                        import_to_git_map->ConsumeAfterKeysReady(
+                            ts,
+                            {std::move(c_info)},
+                            [tmp_dir,  // keep tmp_dir alive
+                             key,
+                             setter,
+                             logger](auto const& values) {
+                                if (not values[0]->second) {
+                                    (*logger)("Importing to git failed",
+                                              /*fatal=*/true);
+                                    return;
+                                }
+                                // set the workspace root
+                                auto root = nlohmann::json::array(
+                                    {key.ignore_special
+                                         ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                         : FileRoot::kGitTreeMarker,
+                                     key.hash});
+                                if (not key.absent) {
+                                    root.emplace_back(
+                                        StorageConfig::GitRoot().string());
+                                }
+                                (*setter)(std::pair(std::move(root), false));
+                            },
+                            [logger, tmp_dir, tree_id = key.hash](
+                                auto const& msg, bool fatal) {
+                                (*logger)(
+                                    fmt::format("While moving git-tree {} from "
+                                                "{} to local git:\n{}",
+                                                tree_id,
+                                                tmp_dir->GetPath().string(),
+                                                msg),
+                                    fatal);
+                            });
+
+                        return;
+                    }
                     // create temporary location for command execution root
                     auto tmp_dir = StorageUtils::CreateTypedTmpDir("git-tree");
                     if (not tmp_dir) {

@@ -20,7 +20,9 @@
 #include <vector>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TreeIdInfo {
@@ -62,8 +64,11 @@ using TreeIdGitMap =
 
 [[nodiscard]] auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
     std::size_t jobs) -> TreeIdGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
