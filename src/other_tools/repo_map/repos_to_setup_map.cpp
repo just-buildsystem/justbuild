@@ -18,6 +18,8 @@
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
+#include "src/other_tools/ops_maps/content_cas_map.hpp"
+#include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 
 namespace {
 
@@ -740,10 +742,10 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                                pragma_absent->get()->Bool();
     // populate struct
     TreeIdInfo tree_id_info = {
-        .hash = repo_desc_hash->get()->String(),
-        .env_vars = std::move(env),
-        .inherit_env = std::move(inherit_env),
-        .command = std::move(cmd),
+        .tree_info = GitTreeInfo{.hash = repo_desc_hash->get()->String(),
+                                 .env_vars = std::move(env),
+                                 .inherit_env = std::move(inherit_env),
+                                 .command = std::move(cmd)},
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
         .absent = not fetch_absent and pragma_absent_value};
     // get the WS root as git tree

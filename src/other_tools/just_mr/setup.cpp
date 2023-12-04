@@ -29,7 +29,9 @@
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
+#include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 #include "src/other_tools/root_maps/content_git_map.hpp"
@@ -115,6 +117,14 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                              common_args.git_path->string(),
                              *common_args.local_launcher,
                              common_args.jobs);
+    auto git_tree_fetch_map =
+        CreateGitTreeFetchMap(&critical_git_op_map,
+                              &import_to_git_map,
+                              common_args.git_path->string(),
+                              *common_args.local_launcher,
+                              local_api ? &(*local_api) : nullptr,
+                              remote_api ? &(*remote_api) : nullptr,
+                              common_args.jobs);
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
     auto commit_git_map =
@@ -152,13 +162,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                                &critical_git_op_map,
                                                common_args.jobs);
     auto tree_id_git_map =
-        CreateTreeIdGitMap(&critical_git_op_map,
-                           &import_to_git_map,
-                           common_args.git_path->string(),
-                           *common_args.local_launcher,
-                           local_api ? &(*local_api) : nullptr,
-                           remote_api ? &(*remote_api) : nullptr,
-                           common_args.jobs);
+        CreateTreeIdGitMap(&git_tree_fetch_map, common_args.jobs);
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,
                                                     interactive,

@@ -153,7 +153,9 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
     , "utils"
+    , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/other_tools/repo_map", "repos_to_setup_map"]
     , ["src/other_tools/root_maps", "commit_git_map"]
     , ["src/other_tools/root_maps", "content_git_map"]

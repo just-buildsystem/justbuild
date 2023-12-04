@@ -92,4 +92,31 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]
   }
+, "git_tree_fetch_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_tree_fetch_map"]
+  , "hdrs": ["git_tree_fetch_map.hpp"]
+  , "srcs": ["git_tree_fetch_map.cpp"]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
+    ]
+  , "stage": ["src", "other_tools", "ops_maps"]
+  , "private-deps":
+    [ ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/system", "system_command"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["@", "fmt", "", "fmt"]
+    ]
+  }
 }

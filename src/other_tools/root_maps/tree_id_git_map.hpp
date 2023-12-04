@@ -19,26 +19,19 @@
 #include <utility>
 #include <vector>
 
-#include "nlohmann/json.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/other_tools/ops_maps/critical_git_op_map.hpp"
-#include "src/other_tools/ops_maps/import_to_git_map.hpp"
+#include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TreeIdInfo {
-    std::string hash{}; /* key */
-    std::map<std::string, std::string> env_vars{};
-    std::vector<std::string> inherit_env{};
-    std::vector<std::string> command{};
-    // name of repository for which work is done; used in progress reporting
-    std::string origin{};
+    GitTreeInfo tree_info{}; /* key */
     // create root that ignores symlinks
     bool ignore_special{}; /* key */
     // create an absent root
     bool absent{}; /* key */
 
     [[nodiscard]] auto operator==(const TreeIdInfo& other) const -> bool {
-        return hash == other.hash and ignore_special == other.ignore_special and
+        return tree_info == other.tree_info and
+               ignore_special == other.ignore_special and
                absent == other.absent;
     }
 };
@@ -49,7 +42,7 @@ struct hash<TreeIdInfo> {
     [[nodiscard]] auto operator()(const TreeIdInfo& ti) const noexcept
         -> std::size_t {
         size_t seed{};
-        hash_combine<std::string>(&seed, ti.hash);
+        hash_combine<GitTreeInfo>(&seed, ti.tree_info);
         hash_combine<bool>(&seed, ti.ignore_special);
         hash_combine<bool>(&seed, ti.absent);
         return seed;
@@ -58,17 +51,12 @@ struct hash<TreeIdInfo> {
 }  // namespace std
 
 /// \brief Maps a known tree provided through a generic command to its
-/// workspace root and the information whether it was a cache it.
+/// workspace root and the information whether it was a cache hit.
 using TreeIdGitMap =
     AsyncMapConsumer<TreeIdInfo, std::pair<nlohmann::json, bool>>;
 
 [[nodiscard]] auto CreateTreeIdGitMap(
-    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    std::string const& git_bin,
-    std::vector<std::string> const& launcher,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<GitTreeFetchMap*> const& git_tree_fetch_map,
     std::size_t jobs) -> TreeIdGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
