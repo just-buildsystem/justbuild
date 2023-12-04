@@ -62,8 +62,9 @@ struct ArchiveRepoInfo {
     }
 };
 
-/// \brief Maps the content hash of an archive to an "exists" status flag.
-using ContentCASMap = AsyncMapConsumer<ArchiveContent, bool>;
+/// \brief Maps the content hash of an archive to nullptr, as we only care if
+/// the map fails or not.
+using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
 
 [[nodiscard]] auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
                                        MirrorsPtr const& additional_mirrors,

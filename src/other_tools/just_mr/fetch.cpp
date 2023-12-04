@@ -309,15 +309,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         repo_fetch_map.ConsumeAfterKeysReady(
             &ts,
             repos_to_fetch,
-            [&failed](auto const& values) {
-                // report any fetch fails
-                for (auto const& val : values) {
-                    if (not *val) {
-                        failed = true;
-                        break;
-                    }
-                }
-            },
+            []([[maybe_unused]] auto const& values) {},
             [&failed](auto const& msg, bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
                             "While performing just-mr fetch:\n{}",
