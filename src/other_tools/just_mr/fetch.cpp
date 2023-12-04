@@ -26,8 +26,8 @@
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
+#include "src/other_tools/ops_maps/archive_fetch_map.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
-#include "src/other_tools/ops_maps/repo_fetch_map.hpp"
 
 auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
@@ -120,8 +120,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     Logger::Log(LogLevel::Info, "Fetching to {}", fetch_dir->string());
 
     // gather all repos to be fetched
-    std::vector<ArchiveRepoInfo> repos_to_fetch{};
-    repos_to_fetch.reserve(
+    std::vector<ArchiveRepoInfo> archives_to_fetch{};
+    archives_to_fetch.reserve(
         fetch_repos->to_include.size());  // pre-reserve a maximum size
     for (auto const& repo_name : fetch_repos->to_include) {
         auto repo_desc = repos->At(repo_name);
@@ -249,7 +249,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                         .absent = false                  // not used
                     };
                     // add to list
-                    repos_to_fetch.emplace_back(std::move(archive_info));
+                    archives_to_fetch.emplace_back(std::move(archive_info));
                 }
             }
         }
@@ -262,7 +262,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     }
 
     // report progress
-    auto nr = repos_to_fetch.size();
+    auto nr = archives_to_fetch.size();
     Logger::Log(LogLevel::Info,
                 "Found {} {} to fetch",
                 nr,
@@ -287,7 +287,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.jobs);
-    auto repo_fetch_map = CreateRepoFetchMap(
+    auto archive_fetch_map = CreateArchiveFetchMap(
         &content_cas_map,
         *fetch_dir,
         (fetch_args.backup_to_remote and local_api) ? &(*local_api) : nullptr,
@@ -295,7 +295,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         common_args.jobs);
 
     // set up progress observer
-    JustMRProgress::Instance().SetTotal(repos_to_fetch.size());
+    JustMRProgress::Instance().SetTotal(archives_to_fetch.size());
     std::atomic<bool> done{false};
     std::condition_variable cv{};
     auto reporter = JustMRProgressReporter::Reporter();
@@ -306,9 +306,9 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     bool failed{false};
     {
         TaskSystem ts{common_args.jobs};
-        repo_fetch_map.ConsumeAfterKeysReady(
+        archive_fetch_map.ConsumeAfterKeysReady(
             &ts,
-            repos_to_fetch,
+            archives_to_fetch,
             []([[maybe_unused]] auto const& values) {},
             [&failed](auto const& msg, bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,

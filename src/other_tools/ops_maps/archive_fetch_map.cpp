@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/other_tools/ops_maps/repo_fetch_map.hpp"
+#include "src/other_tools/ops_maps/archive_fetch_map.hpp"
 
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -28,8 +28,8 @@ void ProcessContent(std::filesystem::path const& content_path,
                     IExecutionApi* remote_api,
                     std::string const& content,
                     ArtifactDigest const& digest,
-                    RepoFetchMap::SetterPtr const& setter,
-                    RepoFetchMap::LoggerPtr const& logger) {
+                    ArchiveFetchMap::SetterPtr const& setter,
+                    ArchiveFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     if (local_api != nullptr and remote_api != nullptr) {
         if (not local_api->RetrieveToCas(
@@ -63,17 +63,17 @@ void ProcessContent(std::filesystem::path const& content_path,
 
 }  // namespace
 
-auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
-                        std::filesystem::path const& fetch_dir,
-                        IExecutionApi* local_api,
-                        IExecutionApi* remote_api,
-                        std::size_t jobs) -> RepoFetchMap {
-    auto fetch_repo = [content_cas_map, fetch_dir, local_api, remote_api](
-                          auto ts,
-                          auto setter,
-                          auto logger,
-                          auto /* unused */,
-                          auto const& key) {
+auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
+                           std::filesystem::path const& fetch_dir,
+                           IExecutionApi* local_api,
+                           IExecutionApi* remote_api,
+                           std::size_t jobs) -> ArchiveFetchMap {
+    auto fetch_archive = [content_cas_map, fetch_dir, local_api, remote_api](
+                             auto ts,
+                             auto setter,
+                             auto logger,
+                             auto /* unused */,
+                             auto const& key) {
         // get corresponding distfile
         auto distfile =
             (key.archive.distfile ? key.archive.distfile.value()
@@ -131,5 +131,5 @@ auto CreateRepoFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                            logger);
         }
     };
-    return AsyncMapConsumer<ArchiveRepoInfo, bool>(fetch_repo, jobs);
+    return AsyncMapConsumer<ArchiveRepoInfo, bool>(fetch_archive, jobs);
 }

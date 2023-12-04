@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_REPO_FETCH_MAP_HPP
-#define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_REPO_FETCH_MAP_HPP
+#ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
+#define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
 
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 /// \brief Maps an archive content hash to a status flag.
-using RepoFetchMap = AsyncMapConsumer<ArchiveRepoInfo, bool>;
+using ArchiveFetchMap = AsyncMapConsumer<ArchiveRepoInfo, bool>;
 
-[[nodiscard]] auto CreateRepoFetchMap(
+[[nodiscard]] auto CreateArchiveFetchMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     std::filesystem::path const& fetch_dir,  // should exist!
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
-    std::size_t jobs) -> RepoFetchMap;
+    std::size_t jobs) -> ArchiveFetchMap;
 
-#endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_REPO_FETCH_MAP_HPP
+#endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP

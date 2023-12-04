@@ -76,11 +76,11 @@
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]
   }
-, "repo_fetch_map":
+, "archive_fetch_map":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["repo_fetch_map"]
-  , "hdrs": ["repo_fetch_map.hpp"]
-  , "srcs": ["repo_fetch_map.cpp"]
+  , "name": ["archive_fetch_map"]
+  , "hdrs": ["archive_fetch_map.hpp"]
+  , "srcs": ["archive_fetch_map.cpp"]
   , "deps":
     ["content_cas_map", ["src/buildtool/execution_api/common", "common"]]
   , "stage": ["src", "other_tools", "ops_maps"]

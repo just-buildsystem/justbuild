@@ -110,8 +110,8 @@
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , ["src/other_tools/ops_maps", "archive_fetch_map"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
-    , ["src/other_tools/ops_maps", "repo_fetch_map"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "local"]
