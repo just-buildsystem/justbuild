@@ -224,11 +224,12 @@ file.
 fetch
 -----
 
-This subcommand prepares all archive-type workspace roots for an offline
-build by fetching all their required source files from the specified
-locations given in the input configuration file. Any subsequent
-**`just-mr`** or **`just`** invocations containing fetched archive workspace
-roots will thus need no further network connections.
+This subcommand prepares all archive-type and **`"git tree"`** workspace roots
+for an offline build by fetching all their required source files from the
+specified locations given in the input configuration file or ensuring the 
+specified tree is present in the Git cache, respectively. Any subsequent
+**`just-mr`** or **`just`** invocations containing fetched archive or 
+**`"git tree"`** workspace roots will thus need no further network connections.
 
 If a main repository is provided in the input configuration or on
 command line, only it and its dependencies are considered for fetching.
@@ -245,7 +246,8 @@ directories, use the **`-o`** option.
 
 Additionally, and only in *native mode*, the **`--backup-to-remote`** option can
 be used in combination with the **`--remote-execution-address`** argument to
-synchronize the locally fetched archives with a remote endpoint.
+synchronize the locally fetched archives, as well as the **`"git tree"`** 
+workspace roots, with a remote endpoint.
 
 update
 ------
