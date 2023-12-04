@@ -29,4 +29,22 @@
   , "deps": [["@", "fmt", "", "fmt"], ["@", "json", "", "json"], "port"]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
+, "retry_parameters":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["retry_parameters"]
+  , "hdrs": ["retry_parameters.hpp"]
+  , "deps": [["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "buildtool", "common", "remote"]
+  }
+, "retry":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["retry"]
+  , "hdrs": ["retry.hpp"]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["@", "grpc", "", "grpc++"]
+    , "retry_parameters"
+    ]
+  , "stage": ["src", "buildtool", "common", "remote"]
+  }
 }
