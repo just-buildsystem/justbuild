@@ -162,8 +162,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                                &import_to_git_map,
                                                &critical_git_op_map,
                                                common_args.jobs);
-    auto tree_id_git_map =
-        CreateTreeIdGitMap(&git_tree_fetch_map, common_args.jobs);
+    auto tree_id_git_map = CreateTreeIdGitMap(
+        &git_tree_fetch_map, common_args.fetch_absent, common_args.jobs);
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,
                                                     interactive,

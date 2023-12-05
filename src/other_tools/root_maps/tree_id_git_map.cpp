@@ -20,14 +20,15 @@
 
 auto CreateTreeIdGitMap(
     gsl::not_null<GitTreeFetchMap*> const& git_tree_fetch_map,
+    bool fetch_absent,
     std::size_t jobs) -> TreeIdGitMap {
-    auto tree_to_git = [git_tree_fetch_map](auto ts,
-                                            auto setter,
-                                            auto logger,
-                                            auto /*unused*/,
-                                            auto const& key) {
-        // if root is absent, no work needs to be done
-        if (key.absent) {
+    auto tree_to_git = [git_tree_fetch_map, fetch_absent](auto ts,
+                                                          auto setter,
+                                                          auto logger,
+                                                          auto /*unused*/,
+                                                          auto const& key) {
+        // if root is actually absent, no work needs to be done
+        if (key.absent and not fetch_absent) {
             auto root = nlohmann::json::array(
                 {key.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
                                     : FileRoot::kGitTreeMarker,
@@ -35,6 +36,7 @@ auto CreateTreeIdGitMap(
             (*setter)(std::pair(std::move(root), false));
             return;
         }
+        // otherwise, one must fetch;
         // make sure the required tree is in Git cache
         git_tree_fetch_map->ConsumeAfterKeysReady(
             ts,
@@ -43,15 +45,15 @@ auto CreateTreeIdGitMap(
                 // tree is now in Git cache;
                 // get cache hit info
                 auto is_cache_hit = *values[0];
-                // set the workspace root
-                auto root = nlohmann::json::array(
-                    {key.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                        : FileRoot::kGitTreeMarker,
-                     key.tree_info.hash});
-                if (not key.absent) {
-                    root.emplace_back(StorageConfig::GitRoot().string());
-                }
-                (*setter)(std::pair(std::move(root), is_cache_hit));
+                // set the workspace root as present
+                (*setter)(
+                    std::pair(nlohmann::json::array(
+                                  {key.ignore_special
+                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                       : FileRoot::kGitTreeMarker,
+                                   key.tree_info.hash,
+                                   StorageConfig::GitRoot().string()}),
+                              is_cache_hit));
             },
             [logger, tree_id = key.tree_info.hash](auto const& msg,
                                                    bool fatal) {

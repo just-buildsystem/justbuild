@@ -57,6 +57,7 @@ using TreeIdGitMap =
 
 [[nodiscard]] auto CreateTreeIdGitMap(
     gsl::not_null<GitTreeFetchMap*> const& git_tree_fetch_map,
+    bool fetch_absent,
     std::size_t jobs) -> TreeIdGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
