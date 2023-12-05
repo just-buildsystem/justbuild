@@ -61,6 +61,11 @@ class ServeApi final {
         return Instance().stc_->ServeContent(content);
     }
 
+    [[nodiscard]] static auto TreeInRemoteCAS(std::string const& tree_id)
+        -> bool {
+        return Instance().stc_->ServeTree(tree_id);
+    }
+
     [[nodiscard]] static auto ServeTargetVariables(
         std::string const& target_root_id,
         std::string const& target_file,

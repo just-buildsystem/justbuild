@@ -142,3 +142,24 @@ auto SourceTreeClient::ServeContent(std::string const& content) -> bool {
     }
     return true;
 }
+
+auto SourceTreeClient::ServeTree(std::string const& tree_id) -> bool {
+    justbuild::just_serve::ServeTreeRequest request{};
+    request.set_tree(tree_id);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ServeTreeResponse response;
+    grpc::Status status = stub_->ServeTree(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return false;
+    }
+    if (response.status() != ::justbuild::just_serve::ServeTreeResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ServeTree response returned with {}",
+                     static_cast<int>(response.status()));
+        return false;
+    }
+    return true;
+}

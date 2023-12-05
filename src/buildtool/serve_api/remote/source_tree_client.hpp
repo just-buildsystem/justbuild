@@ -60,6 +60,12 @@ class SourceTreeClient {
     /// \returns Flag to state whether content is in remote CAS.
     [[nodiscard]] auto ServeContent(std::string const& content) -> bool;
 
+    /// \brief Make a given tree available in remote CAS, if known by serve
+    /// remote.
+    /// \param[in] tree_id Identifier of the Git tree to look up.
+    /// \returns Flag to state whether tree is in remote CAS.
+    [[nodiscard]] auto ServeTree(std::string const& tree_id) -> bool;
+
   private:
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteSourceTreeClient"};
