@@ -1027,11 +1027,13 @@ auto main(int argc, char* argv[]) -> int {
                                             trees,
                                             std::move(cache_artifacts));
                 if (build_result) {
-                    WriteTargetCacheEntries(cache_targets,
-                                            build_result->extra_infos,
-                                            jobs,
-                                            traverser.GetLocalApi(),
-                                            traverser.GetRemoteApi());
+                    WriteTargetCacheEntries(
+                        cache_targets,
+                        build_result->extra_infos,
+                        jobs,
+                        traverser.GetLocalApi(),
+                        traverser.GetRemoteApi(),
+                        arguments.tc.target_cache_write_strategy);
 
                     // Repeat taintedness message to make the user aware that
                     // the artifacts are not for production use.

@@ -41,6 +41,7 @@ struct CommandLineArguments {
     DiagnosticArguments diagnose;
     EndpointArguments endpoint;
     BuildArguments build;
+    TCArguments tc;
     StageArguments stage;
     RebuildArguments rebuild;
     FetchArguments fetch;

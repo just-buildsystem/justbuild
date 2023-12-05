@@ -16,6 +16,8 @@
 #define INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 
 #include <map>
+#include <optional>
+#include <string>
 #include <unordered_map>
 
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
@@ -44,6 +46,9 @@ enum class TargetCacheWriteStrategy {
     Split  ///< Create target-level cache entries after syncing the artifacts;
            ///< during artifact sync try to use blob splitting, if available
 };
+
+auto ToTargetCacheWriteStrategy(std::string const&)
+    -> std::optional<TargetCacheWriteStrategy>;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 void WriteTargetCacheEntries(

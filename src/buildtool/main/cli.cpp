@@ -57,6 +57,7 @@ auto SetupBuildCommandArguments(
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
+    SetupTCArguments(app, &clargs->tc);
     SetupCompatibilityArguments(app);
 }
 

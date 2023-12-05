@@ -48,6 +48,20 @@ auto CollectNonKnownArtifacts(
             std::make_move_iterator(cache_artifacts.end())};
 }
 
+auto ToTargetCacheWriteStrategy(std::string const& strategy)
+    -> std::optional<TargetCacheWriteStrategy> {
+    if (strategy == "disable") {
+        return TargetCacheWriteStrategy::Disable;
+    }
+    if (strategy == "sync") {
+        return TargetCacheWriteStrategy::Sync;
+    }
+    if (strategy == "split") {
+        return TargetCacheWriteStrategy::Split;
+    }
+    return std::nullopt;
+}
+
 #ifndef BOOTSTRAP_BUILD_TOOL
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,

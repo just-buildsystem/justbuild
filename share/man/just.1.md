@@ -452,6 +452,24 @@ Supported by: build|install|rebuild|traverse.
 Do not omit runfiles in build report.  
 Supported by: build|install|rebuild|traverse.
 
+**`--target-cache-write-strategy`** *`STRATEGY`*  
+Strategy for creating target-level cache entries. Supported values are
+
+ - *`sync`* Synchronize the artifacts of the export targets and write
+   target-level cache entries. This is the default behaviour.
+ - *`split`* Synchronize the artifacts of the export targets, using
+   blob splitting if the remote-execution endpoint supports it,
+   and write target-level cache entries. As opposed to the default
+   strategy, additional entries (the chunks) are created in the CAS,
+   but subsequent syncs of similar blobs might need less traffic.
+ - *`disable`* Do not write any target-level cache entries. As
+   no artifacts have to be synced, this can be useful for one-off
+   builds of a project or when the connection to the remote-execution
+   endpoint is behind a very slow network.
+
+Supported by: build|install|rebuild.
+
+
 Output dir and path
 -------------------
 

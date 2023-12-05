@@ -30,6 +30,7 @@
 #include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/main/build_utils.hpp"
 #include "src/utils/cpp/path.hpp"
 
 constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
@@ -101,6 +102,12 @@ struct BuildArguments {
     std::optional<std::string> dump_artifacts{std::nullopt};
     std::optional<std::string> print_to_stdout{std::nullopt};
     bool show_runfiles{false};
+};
+
+/// \brief Arguments related to target-level caching
+struct TCArguments {
+    TargetCacheWriteStrategy target_cache_write_strategy{
+        TargetCacheWriteStrategy::Sync};
 };
 
 /// \brief Arguments required for staging.
@@ -459,6 +466,26 @@ static inline auto SetupBuildArguments(
                     clargs->print_to_stdout,
                     "After building, print the specified artifact to stdout.")
         ->type_name("LOGICAL_PATH");
+}
+
+static inline auto SetupTCArguments(gsl::not_null<CLI::App*> const& app,
+                                    gsl::not_null<TCArguments*> const& tcargs) {
+    app->add_option_function<std::string>(
+           "--target-cache-write-strategy",
+           [tcargs](auto const& s) {
+               auto strategy = ToTargetCacheWriteStrategy(s);
+               if (strategy) {
+                   tcargs->target_cache_write_strategy = *strategy;
+               }
+               else {
+                   Logger::Log(LogLevel::Warning,
+                               "Ignoring unknown strategy {} to write "
+                               "target-level cache.",
+                               nlohmann::json(s).dump());
+               }
+           },
+           "Strategy for writing target-cache. (Default: sync)")
+        ->type_name("STRATEGY");
 }
 
 static inline auto SetupStageArguments(

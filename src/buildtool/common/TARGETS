@@ -15,6 +15,7 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/main", "build_utils"]
     , ["src/utils/cpp", "path"]
     , ["@", "cli11", "", "cli11"]
     , ["@", "json", "", "json"]
