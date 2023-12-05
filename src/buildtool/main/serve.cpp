@@ -399,6 +399,27 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             clargs->build.timeout =
                 std::size_t(timeout->Number()) * std::chrono::seconds{1};
         }
+        auto strategy = build_args->Get("target-cache write strategy",
+                                        Expression::none_t{});
+        if (strategy.IsNotNull()) {
+            if (not strategy->IsString()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "just serve: configuration-file provided target-cache "
+                    "write strategy has to be a string, but found {}",
+                    strategy->ToString());
+                std::exit(kExitFailure);
+            }
+            auto s_value = ToTargetCacheWriteStrategy(strategy->String());
+            if (not s_value) {
+                Logger::Log(LogLevel::Error,
+                            "just serve: configuration-file provided unknown "
+                            "target-cache write strategy {}",
+                            strategy->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->tc.target_cache_write_strategy = *s_value;
+        }
     }
 }
 

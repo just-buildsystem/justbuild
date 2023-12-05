@@ -81,7 +81,17 @@ The configuration file is given by a JSON object.
    is used.  
    For subkey *`"action timeout"`* the value in a number specifying the timeout
    limit in seconds for actions run during a remote build. If unset, the default
-   value 300 is used.
+   value 300 is used.  
+   For subkey *`"target-cache write strategy"`* the value has to
+   be one of the values *`"disable"`*, *`"sync"`*, or *`"split"`*.
+   The default is *`"sync"`*, giving the instruction to
+   synchronize artifacts and write target-level cache entries.
+   The value *`"split"`* does the same using blob splitting
+   when synchronizing artifacts, provided it is supported by the
+   remote-execution endpoint. The value *`"disable"`* disables
+   adding new entries to the target-level cache, which defeats the
+   purpose of typical set up to share target-level computations
+   between clients.
 
 
 See also

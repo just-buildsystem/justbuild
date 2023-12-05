@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/main/build_utils.hpp"
 
 class RemoteServeConfig {
   public:
@@ -65,6 +66,10 @@ class RemoteServeConfig {
         return Instance().timeout_ > std::chrono::seconds{0};
     }
 
+    static void SetTCStrategy(TargetCacheWriteStrategy strategy) noexcept {
+        Instance().tc_strategy_ = strategy;
+    }
+
     // Remote execution address, if set
     [[nodiscard]] static auto RemoteAddress() noexcept
         -> std::optional<ServerAddress> {
@@ -93,6 +98,12 @@ class RemoteServeConfig {
         return Instance().timeout_;
     }
 
+    // Get the target-level cache write strategy
+    [[nodiscard]] static auto TCStrategy() noexcept
+        -> TargetCacheWriteStrategy {
+        return Instance().tc_strategy_;
+    }
+
   private:
     // Server address of remote execution.
     std::optional<ServerAddress> remote_address_{};
@@ -108,6 +119,9 @@ class RemoteServeConfig {
 
     // Action timeout
     std::chrono::milliseconds timeout_{};
+
+    // Strategy for synchronizing target-level cache
+    TargetCacheWriteStrategy tc_strategy_{TargetCacheWriteStrategy::Sync};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP

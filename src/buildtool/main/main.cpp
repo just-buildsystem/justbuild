@@ -136,7 +136,8 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
 
 void SetupServeConfig(ServeArguments const& srvargs,
                       CommonArguments const& cargs,
-                      BuildArguments const& bargs) {
+                      BuildArguments const& bargs,
+                      TCArguments const& tc) {
     if (srvargs.remote_serve_address) {
         if (not RemoteServeConfig::SetRemoteAddress(
                 *srvargs.remote_serve_address)) {
@@ -180,6 +181,11 @@ void SetupServeConfig(ServeArguments const& srvargs,
     if (not RemoteServeConfig::SetActionTimeout(bargs.timeout)) {
         Logger::Log(LogLevel::Error, "Setting action timeout failed.");
         std::exit(kExitFailure);
+    }
+    RemoteServeConfig::SetTCStrategy(tc.target_cache_write_strategy);
+    if (tc.target_cache_write_strategy == TargetCacheWriteStrategy::Disable) {
+        Logger::Log(LogLevel::Info,
+                    "Target-level cache writing of serve service is disabled.");
     }
 }
 
@@ -830,7 +836,8 @@ auto main(int argc, char* argv[]) -> int {
         SetupHashFunction();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
-        SetupServeConfig(arguments.serve, arguments.common, arguments.build);
+        SetupServeConfig(
+            arguments.serve, arguments.common, arguments.build, arguments.tc);
         SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {

@@ -541,7 +541,8 @@ auto TargetService::ServeTarget(
                             build_result->extra_infos,
                             jobs,
                             traverser.GetLocalApi(),
-                            traverser.GetRemoteApi());
+                            traverser.GetRemoteApi(),
+                            RemoteServeConfig::TCStrategy());
 
     if (build_result->failed_artifacts) {
         auto msg =
