@@ -190,6 +190,11 @@ for repo in os.listdir("data"):
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         cwd=target).stdout.decode('utf-8').strip()
+    repos_env["TREE_%d" % count] = subprocess.run(
+        ["git", "log", "-n", "1", "--format=%T"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        cwd=target).stdout.decode('utf-8').strip()
     # increase counter
     count += 1
 

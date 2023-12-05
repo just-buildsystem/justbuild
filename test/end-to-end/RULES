@@ -251,7 +251,8 @@
     , "repos":
       [ "The trees, one per entry, that the just serve instance should have"
       , "available. The respective commits will be generated and passed to the"
-      , "test script as COMMIT_0, COMMIT_1, etc."
+      , "test script as COMMIT_0, COMMIT_1, etc., while their respective root"
+      , "tree identifiers are passed to the test script as TREE_0, TREE_1, etc."
       ]
     }
   , "config_doc":
