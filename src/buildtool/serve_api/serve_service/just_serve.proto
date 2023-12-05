@@ -156,6 +156,34 @@ message ServeContentResponse {
   ServeContentStatus status = 1;
 }
 
+// A request message for
+// [TargetLevelCache.ServeTree][justbuild.just_serve.TargetLevelCache.ServeTree].
+message ServeTreeRequest {
+  // The git tree identifier.
+  string tree = 1;
+}
+
+// A response message for
+// [TargetLevelCache.ServeTree][justbuild.just_serve.TargetLevelCache.ServeTree].
+message ServeTreeResponse {
+  enum ServeTreeStatus{
+    // All good
+    OK = 0;
+
+    // Tree not known
+    NOT_FOUND = 1;
+
+    // Failed to upload tree to remote CAS
+    SYNC_ERROR = 2;
+
+    // Internally, something is very broken
+    INTERNAL_ERROR = 3;
+  }
+
+  // If the status has a code `OK`, the tree is in the remote CAS
+  ServeTreeStatus status = 1;
+}
+
 // Services for improved interaction with the target-level cache.
 service SourceTree {
   // Retrieve the Git-subtree identifier from a given Git commit.
@@ -174,6 +202,12 @@ service SourceTree {
   //
   // There are no method-specific errors.
   rpc ServeContent(ServeContentRequest) returns (ServeContentResponse) {}
+
+  // Make a given tree identifier available in remote CAS,
+  // if tree is known.
+  //
+  // There are no method-specific errors.
+  rpc ServeTree(ServeTreeRequest) returns (ServeTreeResponse) {}
 }
 
 message ServeTargetRequest {
