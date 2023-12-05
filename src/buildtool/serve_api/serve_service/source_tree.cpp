@@ -732,8 +732,8 @@ auto SourceTreeService::ServeContent(
             auto digest = ArtifactDigest{content, 0, /*is_tree=*/false};
             auto repo = RepositoryConfig{};
             if (not repo.SetGitCAS(path)) {
-                auto str = fmt::format("Failed to SetGitCAS at {}",
-                                       StorageConfig::GitRoot().string());
+                auto str =
+                    fmt::format("Failed to SetGitCAS at {}", path.string());
                 logger_->Emit(LogLevel::Error, str);
                 response->set_status(ServeContentResponse::INTERNAL_ERROR);
                 return ::grpc::Status::OK;
