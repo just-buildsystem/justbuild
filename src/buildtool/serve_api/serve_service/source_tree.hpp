@@ -42,6 +42,7 @@ class SourceTreeService final
         ::justbuild::just_serve::ServeArchiveTreeResponse;
 
     using ServeContentResponse = ::justbuild::just_serve::ServeContentResponse;
+    using ServeTreeResponse = ::justbuild::just_serve::ServeTreeResponse;
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
@@ -68,6 +69,14 @@ class SourceTreeService final
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::ServeContentRequest* request,
         ServeContentResponse* response) -> ::grpc::Status override;
+
+    // Make a given tree identifier available in remote CAS,
+    // if tree is known.
+    //
+    // There are no method-specific errors.
+    auto ServeTree(::grpc::ServerContext* context,
+                   const ::justbuild::just_serve::ServeTreeRequest* request,
+                   ServeTreeResponse* response) -> ::grpc::Status override;
 
   private:
     mutable std::shared_mutex mutex_;
@@ -123,6 +132,11 @@ class SourceTreeService final
         std::optional<PragmaSpecial> const& resolve_special,
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
+
+    [[nodiscard]] static auto IsTreeInRepo(
+        std::string const& tree_id,
+        std::filesystem::path const& repo_path,
+        std::shared_ptr<Logger> const& logger) -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_SERVE_SERVICE_SOURCE_TREE_HPP
