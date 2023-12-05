@@ -108,6 +108,7 @@
     [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/system", "system_command"]

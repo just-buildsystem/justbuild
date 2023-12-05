@@ -19,6 +19,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/system/system_command.hpp"
@@ -31,6 +32,7 @@ auto CreateGitTreeFetchMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    bool serve_api_exists,
     IExecutionApi* local_api,
     IExecutionApi* remote_api,
     std::size_t jobs) -> GitTreeFetchMap {
@@ -38,6 +40,7 @@ auto CreateGitTreeFetchMap(
                           import_to_git_map,
                           git_bin,
                           launcher,
+                          serve_api_exists,
                           local_api,
                           remote_api](auto ts,
                                       auto setter,
@@ -62,6 +65,7 @@ auto CreateGitTreeFetchMap(
              import_to_git_map,
              git_bin,
              launcher,
+             serve_api_exists,
              local_api,
              remote_api,
              key,
@@ -104,6 +108,14 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 JustMRProgress::Instance().TaskTracker().Start(key.origin);
+                // check if content is known to remote serve service
+                if (serve_api_exists) {
+                    // as we anyway interrogate the remote execution endpoint,
+                    // we're only interested here in the serve endpoint making
+                    // an attempt to upload the tree, if known, to remote CAS
+                    [[maybe_unused]] auto _ =
+                        ServeApi::TreeInRemoteCAS(key.hash);
+                }
                 // check if tree is in remote CAS, if a remote is given
                 auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
                 if (remote_api != nullptr and local_api != nullptr and

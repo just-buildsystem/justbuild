@@ -122,6 +122,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                               &import_to_git_map,
                               common_args.git_path->string(),
                               *common_args.local_launcher,
+                              serve_api_exists,
                               local_api ? &(*local_api) : nullptr,
                               remote_api ? &(*remote_api) : nullptr,
                               common_args.jobs);
