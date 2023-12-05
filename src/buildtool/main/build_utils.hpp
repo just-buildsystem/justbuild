@@ -38,6 +38,13 @@
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets)
     -> std::vector<ArtifactDescription>;
 
+enum class TargetCacheWriteStrategy {
+    Disable,  ///< Do not create target-level cache entries
+    Sync,     ///< Create target-level cache entries after syncing the artifacts
+    Split  ///< Create target-level cache entries after syncing the artifacts;
+           ///< during artifact sync try to use blob splitting, if available
+};
+
 #ifndef BOOTSTRAP_BUILD_TOOL
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
@@ -45,7 +52,8 @@ void WriteTargetCacheEntries(
         extra_infos,
     std::size_t jobs,
     gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api);
+    gsl::not_null<IExecutionApi*> const& remote_api,
+    TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync);
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
