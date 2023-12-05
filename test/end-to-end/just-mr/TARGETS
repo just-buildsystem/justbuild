@@ -83,6 +83,13 @@
   , "test": ["fetch-remote.sh"]
   , "deps": [["end-to-end", "mr-tool-under-test"]]
   }
+, "fetch-remote-git-tree":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["fetch-remote-git-tree"]
+  , "test": ["fetch-remote-git-tree.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
 , "absent-roots":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["absent-roots"]
@@ -191,6 +198,7 @@
               , "then": []
               , "else":
                 [ "fetch-remote"
+                , "fetch-remote-git-tree"
                 , "fetch-absent"
                 , "absent-config"
                 , "fetch-absent-archives"
