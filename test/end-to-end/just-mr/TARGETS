@@ -105,6 +105,14 @@
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
+, "fetch-absent-git-tree":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["fetch-absent-git-tree"]
+  , "test": ["fetch-absent-git-tree.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "repos": ["fetch-absent (data)"]
+  }
 , "absent-config":
   { "type": ["end-to-end", "with serve"]
   , "name": ["absent-config"]
@@ -200,6 +208,7 @@
                 [ "fetch-remote"
                 , "fetch-remote-git-tree"
                 , "fetch-absent"
+                , "fetch-absent-git-tree"
                 , "absent-config"
                 , "fetch-absent-archives"
                 , "fetch-absent-archives-symlinks"
