@@ -105,6 +105,8 @@
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/serve_api/progress_reporting", "progress"]
+    , ["src/buildtool/serve_api/progress_reporting", "statistics"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   }

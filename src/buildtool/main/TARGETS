@@ -125,6 +125,7 @@
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/serve_api/progress_reporting", "progress_reporter"]
     ]
   }
 , "diagnose":

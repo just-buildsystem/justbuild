@@ -14,6 +14,8 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/serve_api/progress_reporting/progress.hpp"
+#include "src/buildtool/serve_api/progress_reporting/statistics.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #endif
@@ -80,9 +82,18 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             Logger::Log(LogLevel::Debug,
                         "Querying just serve for export target {}",
                         key.target.ToString());
+            ServeServiceProgress::Instance().TaskTracker().Start(
+                target_cache_key->Id().ToString());
+            ServeServiceStatistics::Instance().IncrementDispatchedCounter();
             target_cache_value =
                 ServeApi::ServeTarget(*target_cache_key, *repo_key);
+            ServeServiceStatistics::Instance().IncrementServedCounter();
+            ServeServiceProgress::Instance().TaskTracker().Stop(
+                target_cache_key->Id().ToString());
             from_just_serve = true;
+        }
+        else {
+            ServeServiceStatistics::Instance().IncrementCacheHitsCounter();
         }
 
         if (!target_cache_value) {

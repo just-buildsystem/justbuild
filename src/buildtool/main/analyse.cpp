@@ -14,6 +14,12 @@
 
 #include "src/buildtool/main/analyse.hpp"
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include <atomic>
+#include <condition_variable>
+#include <thread>
+#endif  // BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
@@ -24,6 +30,9 @@
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/serve_api/progress_reporting/progress_reporter.hpp"
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
 
@@ -153,6 +162,14 @@ void DetectAndReportPending(std::string const& name,
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+    std::atomic<bool> done{false};
+    std::condition_variable cv{};
+    auto reporter = ServeServiceProgressReporter::Reporter();
+    auto observer =
+        std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
+#endif  // BOOTSTRAP_BUILD_TOOL
+
     bool failed{false};
     {
         TaskSystem ts{jobs};
@@ -167,6 +184,13 @@ void DetectAndReportPending(std::string const& name,
                 failed = failed or fatal;
             });
     }
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+    // close progress observer
+    done = true;
+    cv.notify_all();
+    observer.join();
+#endif  // BOOTSTRAP_BUILD_TOOL
 
     if (failed) {
         return std::nullopt;
