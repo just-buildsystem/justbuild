@@ -1,0 +1,29 @@
+{ "statistics":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["statistics"]
+  , "hdrs": ["statistics.hpp"]
+  , "stage": ["src", "buildtool", "serve_api", "progress_reporting"]
+  }
+, "progress":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["progress"]
+  , "hdrs": ["progress.hpp"]
+  , "stage": ["src", "buildtool", "serve_api", "progress_reporting"]
+  , "deps": [["src/buildtool/progress_reporting", "task_tracker"]]
+  }
+, "progress_reporter":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["progress_reporter"]
+  , "hdrs": ["progress_reporter.hpp"]
+  , "srcs": ["progress_reporter.cpp"]
+  , "stage": ["src", "buildtool", "serve_api", "progress_reporting"]
+  , "deps": [["src/buildtool/progress_reporting", "base_progress_reporter"]]
+  , "private-deps":
+    [ "progress"
+    , "statistics"
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  }
+}
