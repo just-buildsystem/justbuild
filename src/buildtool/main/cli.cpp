@@ -37,7 +37,8 @@ auto SetupAnalyseCommandArguments(
     SetupLogArguments(app, &clargs->log);
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupCacheArguments(app, &clargs->endpoint);
-    SetupEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionPropertiesArguments(app, &clargs->endpoint);
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupCompatibilityArguments(app);
@@ -51,7 +52,8 @@ auto SetupBuildCommandArguments(
     SetupLogArguments(app, &clargs->log);
     SetupAnalysisArguments(app, &clargs->analysis);
     SetupCacheArguments(app, &clargs->endpoint);
-    SetupEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionPropertiesArguments(app, &clargs->endpoint);
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
@@ -83,7 +85,7 @@ auto SetupInstallCasCommandArguments(
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCompatibilityArguments(app);
     SetupCacheArguments(app, &clargs->endpoint);
-    SetupEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
@@ -98,7 +100,8 @@ auto SetupTraverseCommandArguments(
     SetupCommonArguments(app, &clargs->common);
     SetupLogArguments(app, &clargs->log);
     SetupCacheArguments(app, &clargs->endpoint);
-    SetupEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
+    SetupExecutionPropertiesArguments(app, &clargs->endpoint);
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);

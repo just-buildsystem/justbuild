@@ -389,13 +389,18 @@ static inline auto SetupCacheArguments(
         ->type_name("PATH");
 }
 
-static inline auto SetupEndpointArguments(
+static inline auto SetupExecutionEndpointArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option("-r,--remote-execution-address",
                     clargs->remote_execution_address,
                     "Address of the remote-execution service.")
         ->type_name("NAME:PORT");
+}
+
+static inline auto SetupExecutionPropertiesArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<EndpointArguments*> const& clargs) {
     app->add_option("--endpoint-configuration",
                     clargs->remote_execution_dispatch_file,
                     "File with dispatch instructions to use different "

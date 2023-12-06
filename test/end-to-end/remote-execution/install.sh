@@ -28,10 +28,11 @@ readonly OUTDIR_B="${TEST_TMPDIR}/out/instance-B"
 readonly OUTDIR_C="${TEST_TMPDIR}/out/instance-C"
 
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
+REMOTE_EXECUTION_PROPS=""
 LOCAL_ARGS=""
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]
 then
-   REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+   REMOTE_EXECUTION_PROPS="--remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
 if [ -n "${COMPATIBLE:-}" ]
 then
@@ -57,7 +58,8 @@ cat > TARGETS <<'EOF'
 EOF
 
 "${JUST}" build --local-build-root "${LBRDIR_A}" \
-          --dump-artifacts "${WRKDIR}/tree.json" ${REMOTE_EXECUTION_ARGS} 2>&1
+          --dump-artifacts "${WRKDIR}/tree.json" \
+          ${REMOTE_EXECUTION_ARGS} ${REMOTE_EXECUTION_PROPS} 2>&1
 
 ## instance B should be able to fetch
 
@@ -164,7 +166,8 @@ EOF
 
 "${JUST}" install --local-build-root "${LBRDIR_C}" \
           --remember -o "${OUTDIR_C}/remote" \
-          --dump-artifacts "${WRKDIR}/tree.json" ${REMOTE_EXECUTION_ARGS} 2>&1
+          --dump-artifacts "${WRKDIR}/tree.json" \
+          ${REMOTE_EXECUTION_ARGS} ${REMOTE_EXECUTION_PROPS} 2>&1
 
 ## now it should also be available for local installation
 

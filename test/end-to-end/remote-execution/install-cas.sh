@@ -22,9 +22,10 @@ readonly OUTDIR="${PWD}/out"
 
 LOCAL_ARGS="--local-build-root ${LBRDIR}"
 REMOTE_ARGS="${LOCAL_ARGS} -r ${REMOTE_EXECUTION_ADDRESS}"
+REMOTE_PROPS=""
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]
 then
-   REMOTE_ARGS="${REMOTE_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+   REMOTE_PROPS="--remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
 if [ -n "${COMPATIBLE:-}" ]
 then
@@ -48,7 +49,7 @@ cat > TARGETS <<'EOF'
 }
 EOF
 
-"${JUST}" build ${REMOTE_ARGS} --dump-artifacts artifacts.json 2>&1
+"${JUST}" build ${REMOTE_ARGS} ${REMOTE_PROPS} --dump-artifacts artifacts.json 2>&1
 echo
 cat artifacts.json
 OUT="$(jq -r '.out.id' artifacts.json)::t"

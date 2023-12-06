@@ -539,7 +539,7 @@ format as for the **`-r`** option. The first matching entry (if any) is taken;
 if none matches, the default execution endpoint is taken (either
 as specified by **`-r`**, or local execution if no endpoint is
 specified).  
-Supported by: analyse|build|install-cas|install|rebuild|traverse.
+Supported by: analyse|build|install|rebuild|traverse.
 
 Remote serve options
 --------------------
