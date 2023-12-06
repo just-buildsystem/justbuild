@@ -89,6 +89,28 @@ struct MultiRepoRemoteAuthArguments {
     std::optional<std::filesystem::path> tls_client_key{std::nullopt};
 };
 
+enum class SubCommand {
+    kUnknown,
+    kMRVersion,
+    kFetch,
+    kUpdate,
+    kSetup,
+    kSetupEnv,
+    kJustDo,
+    kJustSubCmd
+};
+
+struct CommandLineArguments {
+    SubCommand cmd{SubCommand::kUnknown};
+    MultiRepoCommonArguments common;
+    MultiRepoLogArguments log;
+    MultiRepoSetupArguments setup;
+    MultiRepoFetchArguments fetch;
+    MultiRepoUpdateArguments update;
+    MultiRepoJustSubCmdsArguments just_cmd;
+    MultiRepoRemoteAuthArguments auth;
+};
+
 static inline void SetupMultiRepoCommonArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<MultiRepoCommonArguments*> const& clargs) {

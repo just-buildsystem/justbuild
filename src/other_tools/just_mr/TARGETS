@@ -21,6 +21,7 @@
     , "setup"
     , "launch"
     , "setup_utils"
+    , "rc"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
@@ -196,6 +197,22 @@
   , "name": ["mirrors"]
   , "hdrs": ["mirrors.hpp"]
   , "deps": [["@", "json", "", "json"], ["src/buildtool/logging", "logging"]]
+  , "stage": ["src", "other_tools", "just_mr"]
+  }
+, "rc":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["rc"]
+  , "hdrs": ["rc.hpp"]
+  , "srcs": ["rc.cpp"]
+  , "deps": ["cli"]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
+    , "exit_codes"
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   }
 }
