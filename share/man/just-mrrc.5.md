@@ -109,14 +109,22 @@ The just-mrrc is given by a JSON object.
 
  - The value for the key *`"authentication"`* is a JSON object specifying
    client-side authentication options for **`just-mr`**.  
-   For subkey *`"ca cert"`* the value is a single location object the path to
-   a TLS CA certificate.  
+   For subkey *`"ca cert"`* the value is a single location object
+   specifying the path to a TLS CA certificate.
    For subkey *`"client cert"`* the value is a single location object specifying
    the path to a TLS client certificate.  
    For subkey *`"client key"`* the value is a single location object specifying
    the path to a TLS client key.  
    Each subkey value can be overwritten by its corresponding command-line
    argument.
+
+ - The value for the key *`"just files"`* is a JSON object. The keys correspond
+   to options that some **`just`** subcommands accept and require a file as
+   argument. For each key, the value is a list of location objects. When
+   **`just-mr`** is used as a launcher and the invoked subcommand is known to
+   support this option, this option is set in the **`just`** invocation with
+   the first matching entry, if any. The supported options are *`"config"`*
+   and *`endpoint-configuration`*.
 
  - The value for the key *`"just args"`* is a JSON object. Its keys are
    **`just`** subcommands and its value is a JSON list of strings. For the
@@ -152,6 +160,12 @@ An example just-mrrc file could look like the following:
   { "build": ["--remote-execution-property", "OS:Linux"]
   , "install": ["--remote-execution-property", "OS:Linux"]
   , "rebuild": ["--remote-execution-property", "OS:Linux"]
+  }
+, "just files":
+  { "config":
+    [ {"root": "workspace", "path": "etc/config.json"}
+    , {"root": "home", "path": ".just-config"}
+    ]
   }
 }
 ```

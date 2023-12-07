@@ -103,6 +103,30 @@ namespace {
                           std::filesystem::weakly_canonical(
                               std::filesystem::absolute(root_path / base)));
 }
+
+[[nodiscard]] auto ReadOptionalLocationList(
+    ExpressionPtr const& location_list,
+    std::optional<std::filesystem::path> const& ws_root,
+    std::string const& argument_name) -> std::optional<std::filesystem::path> {
+    if (location_list->IsNone()) {
+        return std::nullopt;
+    }
+    if (not location_list->IsList()) {
+        Logger::Log(LogLevel::Error,
+                    "Argument {} has to be a list, but found {}",
+                    argument_name,
+                    location_list->ToString());
+        std::exit(kExitConfigError);
+    }
+    for (auto const& location : location_list->List()) {
+        auto p = ReadLocation(location, ws_root);
+        if (p and FileSystemManager::IsFile(p->first)) {
+            return p->first;
+        }
+    }
+    return std::nullopt;
+}
+
 }  // namespace
 
 /// \brief Read just-mrrc file and set up various configs. Return the path to
@@ -215,6 +239,26 @@ namespace {
         if (git) {
             clargs->common.git_path = git->first;
         }
+    }
+    // read the just file-arguments
+    auto just_files = rc_config["just files"];
+    if (just_files.IsNotNull()) {
+        if (not just_files->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Configration-file provided 'just files' has to be a "
+                        "map, but found {}.",
+                        just_files->ToString());
+            std::exit(kExitConfigError);
+        }
+        auto files = Configuration(just_files);
+        clargs->just_cmd.config = ReadOptionalLocationList(
+            files["config"],
+            clargs->common.just_mr_paths->workspace_root,
+            "'config' in 'just files'");
+        clargs->just_cmd.endpoint_configuration = ReadOptionalLocationList(
+            files["endpoint-configuration"],
+            clargs->common.just_mr_paths->workspace_root,
+            "'endpoint-configuration' in 'just files'");
     }
     // read additional just args; user can append, but does not overwrite
     auto just_args = rc_config["just args"];

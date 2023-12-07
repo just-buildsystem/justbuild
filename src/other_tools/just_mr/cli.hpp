@@ -80,6 +80,8 @@ struct MultiRepoJustSubCmdsArguments {
     std::optional<std::string> subcmd_name{std::nullopt};
     std::vector<std::string> additional_just_args{};
     std::unordered_map<std::string, std::vector<std::string>> just_args{};
+    std::optional<std::filesystem::path> config{};
+    std::optional<std::filesystem::path> endpoint_configuration{};
 };
 
 // corresponding to the similarly-named arguments in 'just'

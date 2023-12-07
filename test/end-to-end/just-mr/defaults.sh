@@ -36,6 +36,10 @@ cat > "${SAMPLE_RC}" <<EOF
   , {"root": "system", "path": "${LOG_DIR#/}/rc2.log"}
   ]
 , "local launcher": ["env", "SET_IN_RC=true"]
+, "just files":
+  { "config": [{"root": "workspace", "path": "sample-config.json"}]
+  , "endpoint-configuration": [{"root": "workspace", "path": "endpoint.json"}]
+  }
 }
 EOF
 cat "${SAMPLE_RC}"
@@ -56,6 +60,8 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument("-C", dest="repository_config")
+parser.add_argument("-c", "--config", dest="build_config")
+parser.add_argument("--endpoint-configuration", dest="endpoint")
 parser.add_argument("--local-build-root", dest="local_build_root")
 parser.add_argument("-L","--local-launcher", dest="local_launcher")
 parser.add_argument("-f", "--log-file", dest="log_file",
@@ -74,6 +80,18 @@ with open(os.path.join(target_dir, "log-limit"), "w") as f:
   f.write(json.dumps(options.log_limit))
 with open(os.path.join(target_dir, "log-file"), "w") as f:
   f.write(json.dumps(options.log_file))
+if options.build_config:
+  with open(os.path.join(target_dir, "config"), "w") as f:
+    f.write(json.dumps(options.build_config))
+else:
+  if os.path.exists(os.path.join(target_dir, "config")):
+    os.unlink(os.path.join(target_dir, "config"))
+if options.endpoint:
+  with open(os.path.join(target_dir, "endpoint"), "w") as f:
+    f.write(json.dumps(options.endpoint))
+else:
+  if os.path.exists(os.path.join(target_dir, "endpoint")):
+    os.unlink(os.path.join(target_dir, "endpoint"))
 with open(os.path.join(target_dir, "launcher"), "w") as f:
   if options.local_launcher:
     f.write(options.local_launcher)
@@ -169,5 +187,59 @@ test $(jq '. == [ {"foo": "override", "baz": "baz"}] ' "${PARSE_DIR}/defines") =
              -D '{"foo": "bar"}' -D '{"baz": "baz"}' \
              build -D '{"foo": "override"}' -D '{"x": "y"}' "${PARSE_DIR}" 2>&1
 test $(jq '. == [ {"foo": "bar", "baz": "baz"}, {"foo": "override"}, {"x": "y"}] ' "${PARSE_DIR}/defines") = true
+
+## -c
+
+# honored from rc-file if present
+touch sample-config.json
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/config" ]
+
+# not honored for non-analysing subcommands
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" install-cas "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/config" ] && exit 1 || :
+
+# not considered an error if not present
+rm -f sample-config.json
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/config" ] && exit 1 || :
+
+# not considered, if key not present in rc
+cat > tmprc.json <<'EOF'
+{"just files": {"unrelated": 123}}
+EOF
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc tmprc.json build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/config" ] && exit 1 || :
+
+## --endpoint-configuration
+
+# honored from rc-file if present
+touch endpoint.json
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/endpoint" ]
+
+# not honored for non-endpoint-specific subcommands
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" install-cas "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/endpoint" ] && exit 1 || :
+
+# not considered an error if not present
+rm -f endpoint.json
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/endpoint" ] && exit 1 || :
+
+# not considered, if key not present in rc
+cat > tmprc.json <<'EOF'
+{"just files": {"unrelated": 123}}
+EOF
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc tmprc.json build "${PARSE_DIR}" 2>&1
+[ -f "${PARSE_DIR}/endpoint" ] && exit 1 || :
 
 echo OK

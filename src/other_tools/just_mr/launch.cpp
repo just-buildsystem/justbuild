@@ -48,6 +48,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool use_launcher{false};
     bool supports_defines{false};
     bool supports_remote{false};
+    bool supports_dispatch{false};
     bool supports_cacert{false};
     bool supports_client_auth{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
@@ -81,6 +82,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
         supports_defines = kKnownJustSubcommands.at(*subcommand).defines;
         supports_remote = kKnownJustSubcommands.at(*subcommand).remote;
+        supports_dispatch = kKnownJustSubcommands.at(*subcommand).dispatch;
         supports_cacert = kKnownJustSubcommands.at(*subcommand).cacert;
         supports_client_auth =
             kKnownJustSubcommands.at(*subcommand).client_auth;
@@ -121,6 +123,10 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         cmd.emplace_back("--plain-log");
     }
     if (supports_defines) {
+        if (just_cmd_args.config) {
+            cmd.emplace_back("-c");
+            cmd.emplace_back(just_cmd_args.config->string());
+        }
         auto overlay_config = Configuration();
         for (auto const& s : common_args.defines) {
             try {
@@ -152,6 +158,10 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     if (supports_remote and common_args.remote_execution_address) {
         cmd.emplace_back("-r");
         cmd.emplace_back(*common_args.remote_execution_address);
+    }
+    if (supports_dispatch and just_cmd_args.endpoint_configuration) {
+        cmd.emplace_back("--endpoint-configuration");
+        cmd.emplace_back(*just_cmd_args.endpoint_configuration);
     }
     if (supports_remote and common_args.remote_serve_address) {
         cmd.emplace_back("--remote-serve-address");
