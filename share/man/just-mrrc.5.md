@@ -109,12 +109,12 @@ The just-mrrc is given by a JSON object.
 
  - The value for the key *`"authentication"`* is a JSON object specifying
    client-side authentication options for **`just-mr`**.  
-   For subkey *`"ca cert"`* the value is a string specifying the path to a TLS CA
-   certificate.  
-   For subkey *`"client cert"`* the value is a string specifying the path to a
-   TLS client certificate.  
-   For subkey *`"client key"`* the value is a string specifying the path to a TLS
-   client key.  
+   For subkey *`"ca cert"`* the value is a single location object the path to
+   a TLS CA certificate.  
+   For subkey *`"client cert"`* the value is a single location object specifying
+   the path to a TLS client certificate.  
+   For subkey *`"client key"`* the value is a single location object specifying
+   the path to a TLS client key.  
    Each subkey value can be overwritten by its corresponding command-line
    argument.
 
