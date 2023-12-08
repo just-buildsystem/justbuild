@@ -211,17 +211,30 @@ service SourceTree {
 }
 
 message ServeTargetRequest {
-  // Digest of the blob containing the target description
+  // Digest of the blob containing the target description.
   //
-  // The client has to guarantee that the blob is present in the remote CAS
-  // before calling ServeTarget
+  // The client has to guarantee that the blob has been uploaded to the
+  // remote CAS.
   build.bazel.remote.execution.v2.Digest target_cache_key_id = 1;
 
-  // Digest of the blob containing the execution backend description
+  // A single property of the remote execution environment.
+  message Property {
+    // Property name
+    string name = 1;
+
+    // Property value
+    string value = 2;
+  }
+
+  // The execution properties. The key-value pairs accumulate, with latest
+  // value for each key being taken.
+  repeated Property execution_properties  = 2;
+
+  // Digest of the blob containing the endpoint configuration.
   //
-  // The client has to guarantee that the blob has been uploaded to the remote
-  // CAS
-  build.bazel.remote.execution.v2.Digest execution_backend_description_id  = 2;
+  // The client has to guarantee that the blob has been uploaded to the
+  // remote CAS.
+  build.bazel.remote.execution.v2.Digest dispatch_info  = 3;
 }
 
 message ServeTargetResponse {
