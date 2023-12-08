@@ -121,13 +121,6 @@ auto ServeServerImpl::Run(bool with_execute) -> bool {
         return false;
     }
 
-    if (with_execute and !RemoteExecutionConfig::SetRemoteAddress(
-                             fmt::format("{}:{}", interface_, port_))) {
-        Logger::Log(LogLevel::Error,
-                    "Internal error: cannot set the remote address");
-        return false;
-    }
-
     auto pid = getpid();
 
     nlohmann::json const& info = {

@@ -146,21 +146,6 @@ void SetupServeConfig(ServeArguments const& srvargs,
                         *srvargs.remote_serve_address);
             std::exit(kExitFailure);
         }
-        // if the user has not provided the --remote-execution-address, we fall
-        // back to the --remote-serve-address
-        if (auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
-            !client_remote_address) {
-            if (!RemoteExecutionConfig::SetRemoteAddress(
-                    *srvargs.remote_serve_address)) {
-                Logger::Log(LogLevel::Error,
-                            "Setting remote execution address '{}' failed.",
-                            *srvargs.remote_serve_address);
-                std::exit(kExitFailure);
-            }
-            Logger::Log(LogLevel::Info,
-                        "Using '{}' as the remote execution endpoint.",
-                        *srvargs.remote_serve_address);
-        }
     }
     if (not srvargs.repositories.empty() and
         not RemoteServeConfig::SetKnownRepositories(srvargs.repositories)) {
@@ -862,6 +847,22 @@ auto main(int argc, char* argv[]) -> int {
                 return kExitFailure;
             }
             return kExitSuccess;
+        }
+
+        // If no execution endpoint was given, the client should default to the
+        // serve endpoint, if given
+        if (not RemoteExecutionConfig::RemoteAddress() and
+            arguments.serve.remote_serve_address) {
+            if (!RemoteExecutionConfig::SetRemoteAddress(
+                    *arguments.serve.remote_serve_address)) {
+                Logger::Log(LogLevel::Error,
+                            "Setting remote execution address '{}' failed.",
+                            *arguments.serve.remote_serve_address);
+                std::exit(kExitFailure);
+            }
+            Logger::Log(LogLevel::Info,
+                        "Using '{}' as the remote execution endpoint.",
+                        *arguments.serve.remote_serve_address);
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
 

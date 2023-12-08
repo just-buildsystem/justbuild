@@ -47,6 +47,9 @@ class ServeServerImpl {
     ServeServerImpl(ServeServerImpl&&) noexcept = delete;
     auto operator=(ServeServerImpl&&) noexcept -> ServeServerImpl& = delete;
 
+    /// \brief Start the serve service.
+    /// \param with_execute Flag specifying if just serve should act also as
+    /// just execute (i.e., start remote execution services with same interface)
     auto Run(bool with_execute) -> bool;
     ~ServeServerImpl() = default;
 
