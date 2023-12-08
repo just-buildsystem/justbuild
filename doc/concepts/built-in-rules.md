@@ -163,10 +163,10 @@ a non-upwards path). The provides map is empty.
 The `"configure"` rule allows to configure a target with a given
 configuration. The field `"target"` is evaluated and the result of the
 evaluation must name a single target (not a list). The `"config"` field
-is evaluated and must result in a map, which is used as configuration
+is evaluated and must result in a map, which is used as configuration overlay
 for the given target.
 
-This rule uses the given configuration to overlay the current
+This rule uses the given configuration overlay to modify the current
 environment for evaluating the given target, and thereby performs a
 configuration transition. It forwards all results
 (artifacts/runfiles/provides map) of the configured target to the upper
