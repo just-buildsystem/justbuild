@@ -245,7 +245,7 @@ namespace {
     if (just_files.IsNotNull()) {
         if (not just_files->IsMap()) {
             Logger::Log(LogLevel::Error,
-                        "Configration-file provided 'just files' has to be a "
+                        "Configuration-file provided 'just files' has to be a "
                         "map, but found {}.",
                         just_files->ToString());
             std::exit(kExitConfigError);
@@ -413,7 +413,7 @@ namespace {
                         serve->ToString());
             std::exit(kExitConfigError);
         }
-        if (not clargs->common.remote_execution_address) {
+        if (not clargs->common.remote_serve_address) {
             auto addr = serve->Get("address", Expression::none_t{});
             if (addr.IsNotNull()) {
                 if (not addr->IsString()) {
@@ -423,7 +423,7 @@ namespace {
                                 addr->ToString());
                     std::exit(kExitConfigError);
                 }
-                clargs->common.remote_execution_address = addr->String();
+                clargs->common.remote_serve_address = addr->String();
             }
         }
     }
