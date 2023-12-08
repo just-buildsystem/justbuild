@@ -70,7 +70,8 @@ void WriteTargetCacheEntries(
     std::size_t jobs,
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api,
-    TargetCacheWriteStrategy strategy) {
+    TargetCacheWriteStrategy strategy,
+    TargetCache<true> const& tc) {
     if (strategy == TargetCacheWriteStrategy::Disable) {
         return;
     }
@@ -88,8 +89,7 @@ void WriteTargetCacheEntries(
     };
     for (auto const& [key, target] : cache_targets) {
         if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {
-            if (not Storage::Instance().TargetCache().Store(
-                    key, *entry, downloader)) {
+            if (not tc.Store(key, *entry, downloader)) {
                 Logger::Log(LogLevel::Warning,
                             "Failed writing target cache entry for {}",
                             key.Id().ToString());

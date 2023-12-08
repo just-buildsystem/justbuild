@@ -28,6 +28,8 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 // Return disjoint maps for artifacts and runfiles
@@ -58,7 +60,8 @@ void WriteTargetCacheEntries(
     std::size_t jobs,
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api,
-    TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync);
+    TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync,
+    TargetCache<true> const& tc = Storage::Instance().TargetCache());
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
