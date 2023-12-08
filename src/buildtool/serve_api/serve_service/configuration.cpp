@@ -24,11 +24,6 @@ auto ConfigurationService::RemoteExecutionEndpoint(
     ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
     -> ::grpc::Status {
     auto address = RemoteExecutionConfig::RemoteAddress();
-    if (!address) {
-        return grpc::Status{grpc::StatusCode::INTERNAL,
-                            "could not obtain the address of the associated "
-                            "remote execution endpoint"};
-    }
-    response->set_address(address->ToJson().dump());
+    response->set_address(address ? address->ToJson().dump() : std::string());
     return ::grpc::Status::OK;
 }

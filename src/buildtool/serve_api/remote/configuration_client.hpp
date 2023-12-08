@@ -31,9 +31,7 @@
 class ConfigurationClient {
   public:
     ConfigurationClient(std::string const& server, Port port) noexcept
-        :
-
-          stub_{justbuild::just_serve::Configuration::NewStub(
+        : stub_{justbuild::just_serve::Configuration::NewStub(
               CreateChannelWithCredentials(server, port))} {}
 
     auto CheckServeRemoteExecution() -> bool;

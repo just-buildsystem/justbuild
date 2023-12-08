@@ -283,6 +283,10 @@ message RemoteExecutionEndpointResponse {
 
 // This service can be used by the client to double check the server configuration
 service Configuration {
-  // Returns the address of the associated remote endpoint
+  // Returns the address of the associated remote endpoint, if set,
+  // or an empty string signaling that the serve endpoint acts also
+  // as a remote execution endpoint.
+  //
+  // There are no method-specific errors.
   rpc RemoteExecutionEndpoint(RemoteExecutionEndpointRequest) returns (RemoteExecutionEndpointResponse) {}
 }

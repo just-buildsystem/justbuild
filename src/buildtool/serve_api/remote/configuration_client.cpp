@@ -14,8 +14,11 @@
 
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 
+#include <optional>
+
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 
 auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
     auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
@@ -23,6 +26,13 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
         logger_.Emit(LogLevel::Error,
                      "Internal error: the remote execution endpoint should "
                      "have been set.");
+        return false;
+    }
+    auto client_serve_address = RemoteServeConfig::RemoteAddress();
+    if (!client_serve_address) {
+        logger_.Emit(
+            LogLevel::Error,
+            "Internal error: the serve endpoint should have been set.");
         return false;
     }
 
@@ -36,16 +46,43 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
         LogStatus(&logger_, LogLevel::Error, status);
         return false;
     }
-    auto serve_remote_endpoint = nlohmann::json::parse(response.address());
-    if (serve_remote_endpoint != client_remote_address->ToJson()) {
-        Logger::Log(LogLevel::Error,
-                    "Different execution endpoint detected.\nIn order to "
-                    "correctly use just serve, its remote execution endpoint "
-                    "must be the same used by the client.\nserve remote "
-                    "endpoint:  {}\nclient remote endpoint: {}",
-                    serve_remote_endpoint.dump(),
-                    client_remote_address->ToJson().dump());
-        return false;
+    auto client_msg = client_remote_address->ToJson().dump();
+    std::string serve_msg{};
+
+    if (response.address().empty()) {
+        // just serve acts as just execute, so from the server's perspective
+        // there is nothing to be checked and it's the client's job to ensure
+        // that its remote execution and serve endpoints match
+        //
+        // NOTE: This check might make sense to be removed altogether in the
+        // future, or updated to (at most) a warning.
+        if (client_remote_address->ToJson() == client_serve_address->ToJson()) {
+            return true;
+        }
+        serve_msg = client_serve_address->ToJson().dump();
     }
-    return true;
+    else {
+        nlohmann::json serve_remote_endpoint{};
+        try {
+            serve_remote_endpoint = nlohmann::json::parse(response.address());
+        } catch (std::exception const& ex) {
+            logger_.Emit(
+                LogLevel::Error,
+                "Parsing configured address from response failed with:\n{}",
+                ex.what());
+        }
+        if (serve_remote_endpoint == client_remote_address->ToJson()) {
+            return true;
+        }
+        serve_msg = serve_remote_endpoint.dump();
+    }
+    // log any mismatch found
+    logger_.Emit(
+        LogLevel::Error,
+        "Different execution endpoint detected.\nIn order to correctly use "
+        "just serve, its remote execution endpoint must be the same used by "
+        "the client.\nserve remote endpoint:  {}\nclient remote endpoint: {}",
+        serve_msg,
+        client_msg);
+    return false;
 }

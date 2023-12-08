@@ -20,6 +20,11 @@
 class ConfigurationService final
     : public justbuild::just_serve::Configuration::Service {
   public:
+    // Returns the address of the associated remote endpoint, if set,
+    // or an empty string signaling that the serve endpoint acts also
+    // as a remote execution endpoint.
+    //
+    // There are no method-specific errors.
     auto RemoteExecutionEndpoint(
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::RemoteExecutionEndpointRequest* request,
