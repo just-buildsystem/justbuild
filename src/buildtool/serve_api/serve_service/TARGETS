@@ -72,22 +72,22 @@
   , "deps":
     [ ["src/buildtool/logging", "logging"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/common", "create_execution_api"]
+    , ["src/buildtool/execution_api/common", "common"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , "target_utils"
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["src/buildtool/build_engine/target_map", "target_map"]
-    , ["src/buildtool/file_system", "git_cas"]
-    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/main", "analyse"]
     , ["src/buildtool/main", "build_utils"]
@@ -109,5 +109,30 @@
   , "proto": ["just_serve_proto"]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps": [["src/buildtool/execution_api/remote", "config"]]
+  }
+, "target_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["target_utils"]
+  , "hdrs": ["target_utils.hpp"]
+  , "srcs": ["target_utils.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "serve_api", "serve_service"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "git_cas"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
   }
 }
