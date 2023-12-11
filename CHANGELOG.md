@@ -58,6 +58,12 @@ A feature release on top of `1.2.0`, backwards compatible.
   directories if they are part of the action's input.
 - Fixed overwrite of existing symlinks in the output directory
   when using subcommands `install` and `install-cas`.
+- The format for target-cache shards was changed to a canonical form.
+  The new and old formats do not overlap, therefore the correctness
+  of the builds is not affected. In particular, no special care has
+  to be taken on upgrading or downgrading. However, some target-level
+  cache entries will not be used leading potentially to rebuilding of
+  some targets.
 
 ## Release `1.2.0` (2023-08-25)
 
