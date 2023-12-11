@@ -16,91 +16,31 @@
 
 #include <exception>
 #include <fstream>
+#include <utility>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 [[nodiscard]] auto RemoteExecutionConfig::SetRemoteExecutionDispatch(
     const std::filesystem::path& filename) noexcept -> bool {
-    nlohmann::json dispatch{};
     try {
-        std::ifstream fs(filename);
-        dispatch = nlohmann::json::parse(fs);
-    } catch (std::exception const& e) {
-        Logger::Log(LogLevel::Warning,
-                    "Failed to read json file {}: {}",
-                    filename.string(),
-                    e.what());
-        return false;
-    }
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        parsed{};
-    try {
-        if (not dispatch.is_array()) {
-            Logger::Log(LogLevel::Warning,
-                        "Endpoint configuration has to be a list of pairs, but "
-                        "found {}",
-                        dispatch.dump());
-            return false;
+        if (auto dispatch_info = FileSystemManager::ReadFile(filename)) {
+            auto parsed = ParseDispatch(*dispatch_info);
+            if (parsed.index() == 0) {
+                Logger::Log(LogLevel::Warning, std::get<0>(parsed));
+            }
+            Instance().dispatch_ = std::move(std::get<1>(parsed));
+            return true;
         }
-        for (auto const& entry : dispatch) {
-            if (not(entry.is_array() and entry.size() == 2)) {
-                Logger::Log(
-                    LogLevel::Warning,
-                    "Endpoint configuration has to be a list of pairs, but "
-                    "found entry {}",
-                    entry.dump());
-                return false;
-            }
-            if (not entry[0].is_object()) {
-                Logger::Log(LogLevel::Warning,
-                            "Property condition has to be given as an object, "
-                            "but found {}",
-                            entry[0].dump());
-                return false;
-            }
-            std::map<std::string, std::string> props{};
-            for (auto const& [k, v] : entry[0].items()) {
-                if (not v.is_string()) {
-                    Logger::Log(LogLevel::Warning,
-                                "Property condition has to be given as an "
-                                "object of strings but found {}",
-                                entry[0].dump());
-                    return false;
-                }
-                props.emplace(k, v.template get<std::string>());
-            }
-            if (not entry[1].is_string()) {
-                Logger::Log(
-                    LogLevel::Warning,
-                    "Endpoint has to be specified as string (in the form "
-                    "host:port), but found {}",
-                    entry[1].dump());
-                return false;
-            }
-            auto endpoint = ParseAddress(entry[1].template get<std::string>());
-            if (not endpoint) {
-                Logger::Log(LogLevel::Warning,
-                            "Failed to parse {} as endpoint.",
-                            entry[1].dump());
-                return false;
-            }
-            parsed.emplace_back(props, *endpoint);
-        }
-    } catch (std::exception const& e) {
         Logger::Log(LogLevel::Warning,
-                    "Failure analysing endpoint configuration {}: {}",
-                    dispatch.dump(),
-                    e.what());
-        return false;
-    }
-
-    try {
-        Instance().dispatch_ = parsed;
+                    "Failed to read json file {}",
+                    filename.string());
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Warning,
                     "Failure assigning the endpoint configuration: {}",
                     e.what());
-        return false;
     }
-    return true;
+    return false;
 }
