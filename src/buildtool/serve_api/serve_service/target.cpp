@@ -285,7 +285,7 @@ auto TargetService::ServeTarget(
                 "Failed to extract artifacts from target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
         }
         if (!local_api_->RetrieveToCas(artifacts, &*remote_api_)) {
             auto msg = fmt::format(
@@ -293,7 +293,7 @@ auto TargetService::ServeTarget(
                 "the target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
         }
 
         // make sure the target cache value is in the remote cas
@@ -302,7 +302,7 @@ auto TargetService::ServeTarget(
                 "Failed to upload to remote cas the target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return grpc::Status{grpc::StatusCode::UNAVAILABLE, msg};
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
 
         *(response->mutable_target_value()) =
@@ -320,7 +320,7 @@ auto TargetService::ServeTarget(
             "could not retrieve from remote-execution end point blob {}",
             target_cache_key_info.ToString());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     auto const& target_description_str =
@@ -335,7 +335,7 @@ auto TargetService::ServeTarget(
                                target_cache_key_digest.hash(),
                                ex.what());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     if (not target_description_dict.IsNotNull() or
         not target_description_dict->IsMap()) {
@@ -344,7 +344,7 @@ auto TargetService::ServeTarget(
                         target_cache_key_digest.hash(),
                         target_description_dict.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     std::string error_msg{};  // buffer to store various error messages
@@ -367,7 +367,8 @@ auto TargetService::ServeTarget(
 
     if (!check_key("repo_key") or !check_key("target_name") or
         !check_key("effective_config")) {
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, error_msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              error_msg};
     }
 
     // get repository config blob path
@@ -380,7 +381,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             repo_key.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     ArtifactDigest repo_key_dgst{repo_key->String(), 0, /*is_tree=*/false};
     if (!local_api_->IsAvailable(repo_key_dgst) and
@@ -392,7 +393,7 @@ auto TargetService::ServeTarget(
             "Could not retrieve from remote-execution end point blob {}",
             repo_key->String());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::UNAVAILABLE, msg};
+        return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
     }
     auto repo_config_path = Storage::Instance().CAS().BlobPath(
         repo_key_dgst, /*is_executable=*/false);
@@ -400,7 +401,7 @@ auto TargetService::ServeTarget(
         auto msg = fmt::format("Repository configuration blob {} not in CAS",
                                repo_key->String());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     // populate the RepositoryConfig instance
@@ -409,7 +410,8 @@ auto TargetService::ServeTarget(
     if (auto err_msg = DetermineRoots(
             main_repo, *repo_config_path, &repository_config, logger_)) {
         logger_->Emit(LogLevel::Error, *err_msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, *err_msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              *err_msg};
     }
 
     // get the target name
@@ -422,7 +424,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             target_expr.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     auto target_name = nlohmann::json::object();
     try {
@@ -433,7 +435,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             ex.what());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     // get the effective config of the export target
@@ -446,7 +448,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             config_expr.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     Configuration config{};
     try {
@@ -458,7 +460,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             ex.what());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     // get the ConfiguredTarget
@@ -474,7 +476,8 @@ auto TargetService::ServeTarget(
         });
     if (not entity) {
         logger_->Emit(LogLevel::Error, error_msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, error_msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              error_msg};
     }
 
     BuildMaps::Target::ResultTargetMap result_map{RemoteServeConfig::Jobs()};
@@ -492,7 +495,7 @@ auto TargetService::ServeTarget(
         auto msg = fmt::format("Failed to analyse target {}",
                                configured_target.target.ToString());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     // get the output artifacts
@@ -534,7 +537,7 @@ auto TargetService::ServeTarget(
         auto msg = fmt::format("Build for target {} failed",
                                configured_target.target.ToString());
         logger_->Emit(LogLevel::Error, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     WriteTargetCacheEntries(cache_targets,
@@ -549,7 +552,7 @@ auto TargetService::ServeTarget(
             fmt::format("Build result for target {} contains failed artifacts ",
                         configured_target.target.ToString());
         logger_->Emit(LogLevel::Warning, msg);
-        return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
     // make sure remote CAS has all artifacts
@@ -560,7 +563,7 @@ auto TargetService::ServeTarget(
                 "Failed to upload to remote cas the target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return grpc::Status{grpc::StatusCode::UNAVAILABLE, msg};
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
         *(response->mutable_target_value()) =
             std::move(target_entry->second.digest);
@@ -571,7 +574,7 @@ auto TargetService::ServeTarget(
     auto msg = fmt::format("Failed to read TargetCacheKey {} after store",
                            target_cache_key_digest.hash());
     logger_->Emit(LogLevel::Error, msg);
-    return grpc::Status{grpc::StatusCode::INTERNAL, msg};
+    return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
 }
 
 auto TargetService::GetBlobContent(std::filesystem::path const& repo_path,
