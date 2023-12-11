@@ -46,25 +46,48 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
         return std::nullopt;
     }
 
+    // add target cache key to request
     bazel_re::Digest key_dgst{key.Id().digest};
     justbuild::just_serve::ServeTargetRequest request{};
     *(request.mutable_target_cache_key_id()) = std::move(key_dgst);
 
-    auto execution_backend_dgst = ArtifactDigest::Create<ObjectType::File>(
-        StorageConfig::ExecutionBackendDescription());
-    auto const& execution_info =
-        Artifact::ObjectInfo{.digest = ArtifactDigest{execution_backend_dgst},
-                             .type = ObjectType::File};
-    if (!local_api_->RetrieveToCas({execution_info}, &*remote_api_)) {
-        logger_.Emit(LogLevel::Error,
-                     "failed to upload blob {} to remote cas",
-                     execution_info.ToString());
-        return std::nullopt;
+    // add execution properties to request
+    for (auto const& [k, v] : RemoteExecutionConfig::PlatformProperties()) {
+        auto* prop = request.add_execution_properties();
+        prop->set_name(k);
+        prop->set_value(v);
     }
 
-    *(request.mutable_execution_backend_description_id()) =
-        std::move(execution_backend_dgst);
+    // add dispatch information to request, while ensuring blob is uploaded to
+    // remote cas
+    auto dispatch_list = nlohmann::json::array();
+    for (auto const& [props, endpoint] :
+         RemoteExecutionConfig::DispatchList()) {
+        auto entry = nlohmann::json::array();
+        entry.push_back(nlohmann::json(props));
+        entry.push_back(endpoint.ToJson());
+        dispatch_list.push_back(entry);
+    }
 
+    auto dispatch_dgst =
+        Storage::Instance().CAS().StoreBlob(dispatch_list.dump(2));
+    if (not dispatch_dgst) {
+        logger_.Emit(LogLevel::Error,
+                     "failed to store blob {} to local cas",
+                     dispatch_list.dump(2));
+        return std::nullopt;
+    }
+    auto const& dispatch_info = Artifact::ObjectInfo{
+        .digest = ArtifactDigest{*dispatch_dgst}, .type = ObjectType::File};
+    if (!local_api_->RetrieveToCas({dispatch_info}, &*remote_api_)) {
+        logger_.Emit(LogLevel::Error,
+                     "failed to upload blob {} to remote cas",
+                     dispatch_info.ToString());
+        return std::nullopt;
+    }
+    *(request.mutable_dispatch_info()) = std::move(*dispatch_dgst);
+
+    // call rpc
     grpc::ClientContext context;
     justbuild::just_serve::ServeTargetResponse response;
     auto const& status = stub_->ServeTarget(&context, request, &response);
