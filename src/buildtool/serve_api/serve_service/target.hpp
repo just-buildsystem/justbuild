@@ -16,12 +16,17 @@
 #define INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP
 
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
+#include <variant>
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -78,6 +83,13 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     // used for storing and retrieving target-level cache entries
     gsl::not_null<IExecutionApi::Ptr> const local_api_{
         CreateExecutionApi(std::nullopt)};
+
+    /// \brief Get from remote and parse the endpoint configuration. The method
+    /// also ensures the content has the expected format.
+    /// \returns An error + data union, with a pair of grpc status at index 0
+    /// and the dispatch list stored as a JSON object at index 1.
+    auto GetDispatchList(ArtifactDigest const& dispatch_digest)
+        -> std::variant<::grpc::Status, nlohmann::json>;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP
