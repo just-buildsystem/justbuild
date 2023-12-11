@@ -541,6 +541,23 @@ as specified by **`-r`**, or local execution if no endpoint is
 specified).  
 Supported by: analyse|build|install|rebuild|traverse.
 
+**`--max-attempts`** *`NUM`*  
+If a remote procedure call (rpc) returns `grpc::StatusCode::UNAVAILABLE`, that
+rpc is retried at most *`NUM`* times. (Default: 1, i.e., no retry).  
+Supported by: analyse|build|install|rebuild|traverse.
+
+**`--initial-backoff-seconds`** *`NUM`*  
+Before retrying the second time, the client will wait the given amount of
+seconds plus a jitter, to better distribute the workload. (Default: 1).  
+Supported by: analyse|build|install|rebuild|traverse.
+
+**`--max-backoff-seconds`** *`NUM`*  
+From the third attempt (included) on, the backoff time is doubled at
+each attempt, until it exceeds the `max-backoff-seconds`
+parameter. From that point, the waiting time is computed as
+`max-backoff-seconds` plus a jitter. (Default: 60)  
+Supported by: analyse|build|install|rebuild|traverse.
+
 Remote serve options
 --------------------
 

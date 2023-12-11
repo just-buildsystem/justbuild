@@ -42,6 +42,7 @@
 #include "src/buildtool/storage/target_cache.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/retry_parameters.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -307,6 +308,29 @@ void SetupHashFunction() {
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
                                   : HashFunction::JustHash::Native);
+}
+
+void SetupRetryConfig(RetryArguments const& args) {
+    if (args.max_attempts) {
+        if (!Retry::SetMaxAttempts(*args.max_attempts)) {
+            Logger::Log(LogLevel::Error, "Invalid value for max-attempts.");
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.initial_backoff_seconds) {
+        if (!Retry::SetInitialBackoffSeconds(*args.initial_backoff_seconds)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid value for initial-backoff-seconds.");
+            std::exit(kExitFailure);
+        }
+    }
+    if (args.max_backoff_seconds) {
+        if (!Retry::SetMaxBackoffSeconds(*args.max_backoff_seconds)) {
+            Logger::Log(LogLevel::Error,
+                        "Invalid value for max-backoff-seconds.");
+            std::exit(kExitFailure);
+        }
+    }
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -881,6 +905,7 @@ auto main(int argc, char* argv[]) -> int {
                 : std::nullopt;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+        SetupRetryConfig(arguments.retry);
         GraphTraverser const traverser{{jobs,
                                         std::move(arguments.build),
                                         std::move(stage_args),

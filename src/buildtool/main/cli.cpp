@@ -42,6 +42,7 @@ auto SetupAnalyseCommandArguments(
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupCompatibilityArguments(app);
+    SetupRetryArguments(app, &clargs->retry);
 }
 
 /// \brief Setup arguments for sub command "just build".
@@ -61,6 +62,7 @@ auto SetupBuildCommandArguments(
     SetupBuildArguments(app, &clargs->build);
     SetupTCArguments(app, &clargs->tc);
     SetupCompatibilityArguments(app);
+    SetupRetryArguments(app, &clargs->retry);
 }
 
 /// \brief Setup arguments for sub command "just install".
@@ -91,6 +93,7 @@ auto SetupInstallCasCommandArguments(
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupFetchArguments(app, &clargs->fetch);
     SetupLogArguments(app, &clargs->log);
+    SetupRetryArguments(app, &clargs->retry);
 }
 
 /// \brief Setup arguments for sub command "just traverse".

@@ -86,6 +86,13 @@ struct DiagnosticArguments {
     std::optional<std::string> dump_nodes{std::nullopt};
 };
 
+/// \brief Arguments required for tuning the retry strategy.
+struct RetryArguments {
+    std::optional<unsigned int> max_attempts{};
+    std::optional<unsigned int> initial_backoff_seconds{};
+    std::optional<unsigned int> max_backoff_seconds{};
+};
+
 /// \brief Arguments required for specifying build endpoint.
 struct EndpointArguments {
     std::optional<std::filesystem::path> local_root{};
@@ -686,6 +693,27 @@ static inline auto SetupServeArguments(
                     serve_args->config,
                     "Configuration file for the subcommand.")
         ->required();
+}
+
+static inline void SetupRetryArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<RetryArguments*> const& args) {
+    app->add_option(
+        "--max-attempts",
+        args->max_attempts,
+        "Total number of attempts in case of a remote resource becomes "
+        "unavailable. Must be greater than 0. (Default: 1)");
+    app->add_option(
+        "--initial-backoff-seconds",
+        args->initial_backoff_seconds,
+        "Initial amount of time, in seconds, to wait before retrying a rpc "
+        "call. The waiting time is doubled at each attempt. Must be greater "
+        "than 0. (Default: 1)");
+    app->add_option("--max-backoff-seconds",
+                    args->max_backoff_seconds,
+                    "The backoff time cannot be bigger than this parameter. "
+                    "Note that some jitter is still added to avoid to overload "
+                    "the resources that survived the outage. (Default: 60)");
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
