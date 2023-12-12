@@ -325,9 +325,15 @@ class ExecutorImpl {
             // if known tree is not available, recursively upload its content
             auto tree = ReadGitTree(repo, repo_config, hash);
             if (not tree) {
+                Logger::Log(
+                    LogLevel::Error, "failed to read git tree {}", hash);
                 return false;
             }
             if (not VerifyOrUploadTree(api, *tree)) {
+                Logger::Log(LogLevel::Error,
+                            "failed to verifyorupload git tree {} [{}]",
+                            tree->Hash(),
+                            hash);
                 return false;
             }
             content = tree->RawData();
@@ -337,6 +343,7 @@ class ExecutorImpl {
             content = ReadGitBlob(repo, repo_config, hash);
         }
         if (not content) {
+            Logger::Log(LogLevel::Error, "failed to get content");
             return false;
         }
 
