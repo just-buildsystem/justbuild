@@ -260,6 +260,22 @@ message ServeTargetVariablesResponse {
   repeated string flexible_config = 1;
 }
 
+message ServeTargetDescriptionRequest {
+  // Git hash of the target-level root tree.
+  string root_tree = 1;
+
+  // Relative path of the targets file inside the root tree.
+  string target_file = 2;
+
+  // Name of the export target to look up.
+  string target = 3;
+}
+
+message ServeTargetDescriptionResponse {
+  // Digest of the blob containing the desired target description fields.
+  build.bazel.remote.execution.v2.Digest description_id = 1;
+}
+
 service Target {
   // Given a target-level caching key, returns the computed value. In doing so,
   // it can build on the associated end-point passing the
@@ -286,6 +302,26 @@ service Target {
   //   being of "type" : "export".
   // * `INTERNAL`: Internally, something is very broken.
   rpc ServeTargetVariables(ServeTargetVariablesRequest) returns (ServeTargetVariablesResponse) {}
+
+  // Given the target-level root tree and the name of an export target,
+  // returns the digest of the blob containing the flexible variables field,
+  // as well as the documentation fields pertaining tho the target and
+  // its configuration variables, as taken from the target's description.
+  // This information should be enough for a client to produce locally a
+  // full description of said target.
+  //
+  // The server MUST make the returned blob available in the remote CAS.
+  //
+  // If the status has a code different from `OK`, the response MUST not be used.
+  //
+  // Errors:
+  // * `FAILED_PRECONDITION`: An error occurred in retrieving the configuration
+  //   of the requested target, such as missing entries (target-root, target
+  //   file, target name), unparsable target file, or requested target not
+  //   being of "type" : "export".
+  // * `UNAVAILABLE`: Could not communicate with the remote CAS.
+  // * `INTERNAL`: Internally, something is very broken.
+  rpc ServeTargetDescription(ServeTargetDescriptionRequest) returns (ServeTargetDescriptionResponse) {}
 }
 
 message RemoteExecutionEndpointRequest {}
