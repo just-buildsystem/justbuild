@@ -1013,9 +1013,8 @@ class FileSystemManager {
             std::filesystem::copy_options::overwrite_existing) noexcept
         -> bool {
         try {
-            // src and dst should be actual files
-            if (std::filesystem::is_symlink(src) or
-                std::filesystem::is_symlink(dst)) {
+            // src should be an actual file
+            if (std::filesystem::is_symlink(src)) {
                 return false;
             }
             if (not RemoveFile(dst)) {

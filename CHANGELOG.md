@@ -56,6 +56,8 @@ A feature release on top of `1.2.0`, backwards compatible.
   resulting stage is well-formed, i.e., without tree conflicts.
 - Local execution and `just execute` now correctly create empty
   directories if they are part of the action's input.
+- Fixed overwrite of existing symlinks in the output directory
+  when using subcommands `install` and `install-cas`.
 
 ## Release `1.2.0` (2023-08-25)
 
