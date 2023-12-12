@@ -16,6 +16,12 @@
   , "test": ["install.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "analyse":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["analyse"]
+  , "test": ["analyse.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "build -P":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["build-P"]
@@ -25,6 +31,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["defaults", "pwd", "install", "build -P"]
+  , "deps": ["defaults", "pwd", "install", "build -P", "analyse"]
   }
 }

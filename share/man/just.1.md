@@ -667,6 +667,14 @@ treated as stdout. Output is a JSON map between tree ids and the
 corresponding artifact map, which maps the path to the artifact
 description.
 
+**`--dump-provides`** *`PATH`*  
+Dump the provides map of the given target to file. *`-`* is treated
+as stdout. The output is a JSON object mapping the providers to their
+values, serialized as JSON; in particular, artifacts are replaced
+by a JSON object with their intensional description. Therefore, the
+dumped JSON is not uniquely readable, but requires an out-of-band
+understanding where artifacts are to be expected.
+
 **`rebuild`** specific options
 ------------------------------
 

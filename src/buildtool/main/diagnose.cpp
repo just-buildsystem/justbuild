@@ -134,6 +134,27 @@ void DumpTrees(std::string const& file_path, AnalysisResult const& result) {
     }
 }
 
+void DumpProvides(std::string const& file_path, AnalysisResult const& result) {
+    auto const dump_string =
+        result.target->Result()
+            .provides->ToJson(Expression::JsonMode::SerializeAllButNodes)
+            .dump(2);
+    if (file_path == "-") {
+        Logger::Log(LogLevel::Info,
+                    "Provides map for target {}:",
+                    result.id.ToString());
+        std::cout << dump_string << std::endl;
+    }
+    else {
+        Logger::Log(LogLevel::Info,
+                    "Dumping provides map for target {} to file '{}'.",
+                    result.id.ToString(),
+                    file_path);
+        std::ofstream os(file_path);
+        os << dump_string << std::endl;
+    }
+}
+
 void DumpTargets(std::string const& file_path,
                  std::vector<Target::ConfiguredTarget> const& target_ids,
                  std::string const& target_qualifier = "") {
@@ -286,6 +307,9 @@ void DiagnoseResults(AnalysisResult const& result,
     }
     if (clargs.dump_trees) {
         DumpTrees(*clargs.dump_trees, result);
+    }
+    if (clargs.dump_provides) {
+        DumpProvides(*clargs.dump_provides, result);
     }
     if (clargs.dump_vars) {
         DumpVars(*clargs.dump_vars, result);
