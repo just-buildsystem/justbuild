@@ -47,7 +47,10 @@ class ByteStreamClient {
             if (not finished_) {
                 auto status = reader_->Finish();
                 if (not status.ok()) {
-                    LogStatus(logger_, LogLevel::Debug, status);
+                    logger_->Emit(LogLevel::Error,
+                                  "{}: {}",
+                                  static_cast<int>(status.error_code()),
+                                  status.error_message());
                     return std::nullopt;
                 }
                 finished_ = true;
@@ -150,10 +153,18 @@ class ByteStreamClient {
                 LogStatus(&logger_, LogLevel::Error, status);
                 return false;
             }
-
-            return gsl::narrow<std::size_t>(response.committed_size()) ==
-                   data.size();
+            if (gsl::narrow<std::size_t>(response.committed_size()) !=
+                data.size()) {
+                logger_.Emit(
+                    LogLevel::Error,
+                    "Commited size {} is different from the original one {}.",
+                    response.committed_size(),
+                    data.size());
+                return false;
+            }
+            return true;
         } catch (...) {
+            logger_.Emit(LogLevel::Error, "Caught exception in Write");
             return false;
         }
     }
