@@ -16,6 +16,7 @@
 
 #include <mutex>
 #include <shared_mutex>
+#include <sstream>
 #include <unordered_map>
 
 #include "grpcpp/grpcpp.h"
@@ -79,8 +80,8 @@ namespace {
 // Cached version of blob-split support request.
 [[nodiscard]] auto BlobSplitSupportCached(
     std::string const& instance_name,
-    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
-        stub) noexcept -> bool {
+    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
+    Logger const* logger) noexcept -> bool {
     static auto mutex = std::shared_mutex{};
     static auto blob_split_support_map =
         std::unordered_map<std::string, bool>{};
@@ -91,6 +92,10 @@ namespace {
         }
     }
     auto supported = BlobSplitSupport(instance_name, stub);
+    logger->Emit(LogLevel::Debug,
+                 "Blob split support for \"{}\": {}",
+                 instance_name,
+                 supported);
     auto lock = std::unique_lock(mutex);
     blob_split_support_map[instance_name] = supported;
     return supported;
@@ -265,7 +270,7 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
 auto BazelCasClient::SplitBlob(std::string const& instance_name,
                                bazel_re::Digest const& digest) noexcept
     -> std::optional<std::vector<bazel_re::Digest>> {
-    if (not BlobSplitSupportCached(instance_name, stub_)) {
+    if (not BlobSplitSupportCached(instance_name, stub_, &logger_)) {
         return std::nullopt;
     }
     grpc::ClientContext context{};
