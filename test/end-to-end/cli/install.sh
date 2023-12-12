@@ -71,7 +71,7 @@ cd "${OUTDIR}"
 grep World "${ID}"
 grep Original unrelated.txt
 
-# Verify non-interference of install symlinks (overwrite existing file)
+# Verify non-interference of install (overwrite existing file with symlink)
 cd "${SRCDIR}"
 "${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
 
@@ -82,9 +82,22 @@ grep World hello.txt
 grep Original unrelated.txt
 [ "$(realpath --relative-to=$(pwd) hello.txt)" = "content.txt" ]
 
-# Verify non-interference of install symlinks (overwrite existing symlink)
+# Verify non-interference of install (overwrite existing symlink with symlink)
 rm -f ${OUTDIR}/hello.txt
 ln -s /noexistent ${OUTDIR}/hello.txt
+cd "${SRCDIR}"
+"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+
+echo
+ls -al "${OUTDIR}"
+cd "${OUTDIR}"
+grep World hello.txt
+grep Original unrelated.txt
+[ "$(realpath --relative-to=$(pwd) hello.txt)" = "content.txt" ]
+
+# Verify non-interference of install (overwrite existing symlink with file)
+rm -f ${OUTDIR}/content.txt
+ln -s /noexistent ${OUTDIR}/content.txt
 cd "${SRCDIR}"
 "${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
 
