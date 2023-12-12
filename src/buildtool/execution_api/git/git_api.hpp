@@ -80,6 +80,9 @@ class GitApi final : public IExecutionApi {
                     not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
                                                        /*kSetWritable=*/true>(
                         *blob, output_paths[i], info.type)) {
+                    Logger::Log(LogLevel::Error,
+                                "staging to output path {} failed.",
+                                output_paths[i].string());
                     return false;
                 }
             }

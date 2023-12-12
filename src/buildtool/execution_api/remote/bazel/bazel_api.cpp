@@ -124,6 +124,9 @@ auto BazelApi::CreateAction(
             if (not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
                                                    /*kSetWritable=*/true>(
                     blobs[pos].data, output_paths[gpos], type)) {
+                Logger::Log(LogLevel::Error,
+                            "staging to output path {} failed.",
+                            output_paths[gpos].string());
                 return false;
             }
         }

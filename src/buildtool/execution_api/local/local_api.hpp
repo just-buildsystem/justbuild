@@ -107,6 +107,9 @@ class LocalApi final : public IExecutionApi {
                              /*kSetEpochTime=*/true,
                              /*kSetWritable=*/true>(
                              *blob_path, output_paths[i], info.type)) {
+                    Logger::Log(LogLevel::Error,
+                                "staging to output path {} failed.",
+                                output_paths[i].string());
                     return false;
                 }
             }
