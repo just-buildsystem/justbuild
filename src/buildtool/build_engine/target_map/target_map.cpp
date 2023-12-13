@@ -1633,21 +1633,6 @@ void GlobTargetWithDirEntry(
         });
 }
 
-#ifndef BOOTSTRAP_BUILD_TOOL
-// The remote execution endpoint specified on the command line must be the same
-// used by the provided just serve instance.
-[[nodiscard]] auto CheckServeAndExecutionEndpoints() -> bool {
-    auto sadd = RemoteServeConfig::RemoteAddress();
-    if (!sadd) {
-        Logger::Log(LogLevel::Error,
-                    "Absent root detected. Please provide "
-                    "--remote-serve-address and retry.");
-        return false;
-    }
-    return ServeApi::CheckServeRemoteExecution();
-}
-#endif  // BOOTSTRAP_BUILD_TOOL
-
 }  // namespace
 
 namespace BuildMaps::Target {
@@ -1769,13 +1754,20 @@ auto CreateTargetMap(
 #ifndef BOOTSTRAP_BUILD_TOOL
         else if (repo_config->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
-            static auto consistent_serve_and_remote_execution =
-                CheckServeAndExecutionEndpoints();
-            if (!consistent_serve_and_remote_execution) {
+            if (not RemoteServeConfig::RemoteAddress()) {
+                (*logger)(
+                    fmt::format("Root for target {} is absent, but no serve "
+                                "endpoint was configured. Please provide "
+                                "--remote-serve=address and retry.",
+                                key.target.ToJson().dump()),
+                    /*is_fatal=*/true);
+                return;
+            }
+            if (not ServeApi::CheckServeRemoteExecution()) {
                 (*logger)(
                     "Inconsistent remote execution endpoint and just serve "
                     "configuration detected.",
-                    true);
+                    /*is_fatal=*/true);
                 return;
             }
             absent_target_map->ConsumeAfterKeysReady(
