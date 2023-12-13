@@ -296,6 +296,8 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
     }
     if (BuildMaps::Target::IsBuiltInRule(*rule_it)) {
         if (print_json) {
+            // For built-in rules, we have no user-defined description to
+            // provide other than informing the user that it is a built-in rule.
             std::cout << nlohmann::json({{"type", *rule_it}}).dump(2)
                       << std::endl;
             return kExitSuccess;
