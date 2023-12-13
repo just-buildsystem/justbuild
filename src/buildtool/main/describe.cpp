@@ -15,6 +15,7 @@
 #include "src/buildtool/main/describe.hpp"
 
 #include <iostream>
+#include <optional>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
@@ -22,6 +23,12 @@
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
+#ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/execution_api/common/create_execution_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
 
@@ -261,6 +268,116 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     gsl::not_null<RepositoryConfig*> const& repo_config,
                     std::size_t jobs,
                     bool print_json) -> int {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    // check if target root is absent
+    if (repo_config->TargetRoot(id.target.ToModule().repository)->IsAbsent()) {
+        // check that we have a serve endpoint configured
+        if (not RemoteServeConfig::RemoteAddress()) {
+            Logger::Log(LogLevel::Error,
+                        fmt::format("Root for target {} is absent but no serve "
+                                    "endpoint was configured. Please provide "
+                                    "--remote-serve-address and retry.",
+                                    id.target.ToJson().dump()));
+            return kExitFailure;
+        }
+        // check that just serve and the client use same remote execution
+        // endpoint; it might make sense in the future to remove or avoid this
+        // check, e.g., if remote endpoints are behind proxies.
+        if (not ServeApi::CheckServeRemoteExecution()) {
+            Logger::Log(LogLevel::Error,
+                        "Inconsistent remote execution endpoint and just serve "
+                        "configuration detected.");
+            return kExitFailure;
+        }
+        // ask serve endpoint to provide the description
+        auto const& repo_name = id.target.ToModule().repository;
+        auto target_root_id =
+            repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
+        if (!target_root_id) {
+            Logger::Log(
+                LogLevel::Error,
+                "Failed to get the target root id for repository \"{}\"",
+                repo_name);
+            return kExitFailure;
+        }
+        if (auto dgst = ServeApi::ServeTargetDescription(
+                *target_root_id,
+                *(repo_config->TargetFileName(repo_name)),
+                id.target.GetNamedTarget().name)) {
+            // if we're only asked to provide rule description as JSON, as this
+            // is an export target, we don't need the blob and can directly
+            // provide the user the information
+            if (print_json) {
+                std::cout << nlohmann::json({{"type", "export"}}).dump(2)
+                          << std::endl;
+                return kExitSuccess;
+            }
+            // get description from remote CAS
+            auto const local_api = CreateExecutionApi(
+                std::nullopt, std::make_optional(repo_config));
+            auto const remote_api =
+                CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
+                                   std::make_optional(repo_config));
+            auto const& desc_info =
+                Artifact::ObjectInfo{.digest = *dgst, .type = ObjectType::File};
+            if (!local_api->IsAvailable(*dgst)) {
+                if (!remote_api->RetrieveToCas({desc_info}, &*local_api)) {
+                    Logger::Log(LogLevel::Error,
+                                "Failed to retrieve blob {} from remote CAS",
+                                desc_info.ToString());
+                    return kExitFailure;
+                }
+            }
+            auto const desc_str = local_api->RetrieveToMemory(desc_info);
+            if (not desc_str) {
+                Logger::Log(LogLevel::Error,
+                            "Could not load in memory blob {}",
+                            desc_info.ToString());
+                return kExitFailure;
+            }
+            // parse blob into JSON object
+            nlohmann::json desc;
+            try {
+                desc = nlohmann::json::parse(*desc_str);
+            } catch (std::exception const& ex) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Parsing served target description failed with:\n{}",
+                    ex.what());
+                return kExitFailure;
+            }
+            // serve endpoint already checked that this target is of
+            // "type": "export", so we can just print the description
+            std::cout << id.ToString()
+                      << " is defined by built-in rule \"export\"."
+                      << std::endl;
+            auto doc = desc.find("doc");
+            if (doc != desc.end()) {
+                PrintDoc(*doc, " | ");
+            }
+            auto config_doc = nlohmann::json::object();
+            auto config_doc_it = desc.find("config_doc");
+            if (config_doc_it != desc.end() and config_doc_it->is_object()) {
+                config_doc = *config_doc_it;
+            }
+            auto flexible_config = desc.find("flexible_config");
+            if (flexible_config != desc.end() and
+                (not flexible_config->empty())) {
+                std::cout << " Flexible configuration variables\n";
+                PrintFields(*flexible_config, config_doc, " - ", "   | ");
+            }
+            return kExitSuccess;
+        }
+        // report failure to serve description
+        Logger::Log(LogLevel::Error,
+                    "Serve endpoint could not provide description of target {} "
+                    "with absent root.",
+                    id.target.ToJson().dump());
+        return kExitFailure;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+
+    // process with a present target root
     auto targets_file_map = Base::CreateTargetsFileMap(repo_config, jobs);
     nlohmann::json targets_file{};
     bool failed{false};
