@@ -132,7 +132,11 @@ auto TargetService::ServeTarget(
         description["endpoint dispatch list"] = std::move(dispatch_list);
     }
 
-    // add backend description to CAS
+    // add backend description to CAS;
+    // we match the sharding strategy from regular just builds, i.e., allowing
+    // fields with invalid UTF-8 characters to be considered for the serialized
+    // JSON description, but using the UTF-8 replacement character to solve any
+    // decoding errors.
     auto const description_str = description.dump(
         2, ' ', false, nlohmann::json::error_handler_t::replace);
     auto execution_backend_dgst =
