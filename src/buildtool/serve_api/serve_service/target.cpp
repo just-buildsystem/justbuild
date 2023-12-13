@@ -620,3 +620,174 @@ auto TargetService::ServeTargetVariables(
     // respond with success
     return ::grpc::Status::OK;
 }
+
+auto TargetService::ServeTargetDescription(
+    ::grpc::ServerContext* /*context*/,
+    const ::justbuild::just_serve::ServeTargetDescriptionRequest* request,
+    ::justbuild::just_serve::ServeTargetDescriptionResponse* response)
+    -> ::grpc::Status {
+    auto const& root_tree{request->root_tree()};
+    auto const& target_file{request->target_file()};
+    auto const& target{request->target()};
+    // retrieve content of target file
+    std::optional<std::string> target_file_content{std::nullopt};
+    bool tree_found{false};
+    // try in local build root Git cache
+    if (auto res = GetBlobContent(
+            StorageConfig::GitRoot(), root_tree, target_file, logger_)) {
+        tree_found = true;
+        if (res->first) {
+            if (not res->second) {
+                // tree exists, but does not contain target file
+                auto err = fmt::format(
+                    "Target-root {} found, but does not contain target file {}",
+                    root_tree,
+                    target_file);
+                return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                                      err};
+            }
+            target_file_content = *res->second;
+        }
+    }
+    if (not target_file_content) {
+        // try given extra repositories, in order
+        for (auto const& path : RemoteServeConfig::KnownRepositories()) {
+            if (auto res =
+                    GetBlobContent(path, root_tree, target_file, logger_)) {
+                tree_found = true;
+                if (res->first) {
+                    if (not res->second) {
+                        // tree exists, but does not contain target file
+                        auto err = fmt::format(
+                            "Target-root {} found, but does not contain target "
+                            "file {}",
+                            root_tree,
+                            target_file);
+                        return ::grpc::Status{
+                            ::grpc::StatusCode::FAILED_PRECONDITION, err};
+                    }
+                    target_file_content = *res->second;
+                    break;
+                }
+            }
+        }
+    }
+    // report if failed to find root tree
+    if (not target_file_content) {
+        if (tree_found) {
+            // something went wrong trying to read the target file blob
+            auto err =
+                fmt::format("Could not read target file {}", target_file);
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
+        }
+        // tree not found
+        auto err = fmt::format("Missing target-root tree {}", root_tree);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    // parse target file as json
+    ExpressionPtr map{nullptr};
+    try {
+        map = Expression::FromJson(nlohmann::json::parse(*target_file_content));
+    } catch (std::exception const& e) {
+        auto err = fmt::format(
+            "Failed to parse target file {} as json with error:\n{}",
+            target_file,
+            e.what());
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    if (not map->IsMap()) {
+        auto err =
+            fmt::format("Target file {} should contain a map, but found:\n{}",
+                        target_file,
+                        map->ToString());
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    // do validity checks (target is present and is of "type": "export")
+    auto target_desc = map->At(target);
+    if (not target_desc) {
+        // target is not present
+        auto err = fmt::format(
+            "Missing target {} in target file {}", target, target_file);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    auto export_desc = target_desc->get()->At("type");
+    if (not export_desc) {
+        auto err = fmt::format(
+            "Missing \"type\" field for target {} in target file {}.",
+            target,
+            target_file);
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    if (not export_desc->get()->IsString()) {
+        auto err = fmt::format(
+            "Field \"type\" for target {} in target file {} should be a "
+            "string, but found:\n{}",
+            target,
+            target_file,
+            export_desc->get()->ToString());
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    if (export_desc->get()->String() != "export") {
+        // target is not of "type" : "export"
+        auto err =
+            fmt::format(R"(target {} is not of "type" : "export")", target);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
+    }
+    // populate response description object with fields as-is
+    nlohmann::json desc{};
+    if (auto doc = target_desc->get()->Get("doc", Expression::none_t{});
+        doc.IsNotNull()) {
+        desc["doc"] = doc->ToJson();
+    }
+    if (auto config_doc =
+            target_desc->get()->Get("config_doc", Expression::none_t{});
+        config_doc.IsNotNull()) {
+        desc["config_doc"] = config_doc->ToJson();
+    }
+    if (auto flexible_config =
+            target_desc->get()->Get("flexible_config", Expression::none_t{});
+        flexible_config.IsNotNull()) {
+        desc["flexible_config"] = flexible_config->ToJson();
+    }
+
+    // acquire lock for CAS
+    auto lock = GarbageCollector::SharedLock();
+    if (!lock) {
+        auto error_msg = fmt::format("Could not acquire gc SharedLock");
+        logger_->Emit(LogLevel::Error, error_msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};
+    }
+
+    // store description blob to local CAS and sync with remote CAS;
+    // we keep the documentation strings as close to actual as possible, so we
+    // do not fail if they contain invalid UTF-8 characters, instead we use the
+    // UTF-8 replacement character to solve any decoding errors.
+    if (auto dgst = Storage::Instance().CAS().StoreBlob(
+            desc.dump(2, ' ', false, nlohmann::json::error_handler_t::replace),
+            /*is_executable=*/false)) {
+        auto const& artifact_dgst = ArtifactDigest{*dgst};
+        if (not local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = artifact_dgst,
+                                      .type = ObjectType::File}},
+                &*remote_api_)) {
+            auto error_msg = fmt::format(
+                "Failed to upload to remote cas the description blob {}",
+                artifact_dgst.hash());
+            logger_->Emit(LogLevel::Error, error_msg);
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, error_msg};
+        }
+
+        // populate response
+        *(response->mutable_description_id()) = *dgst;
+        return ::grpc::Status::OK;
+    }
+    // failed to store blob
+    const auto* const error_msg =
+        "Failed to store description blob to local cas";
+    logger_->Emit(LogLevel::Error, error_msg);
+    return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};
+}

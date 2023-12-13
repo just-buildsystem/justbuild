@@ -72,6 +72,31 @@ class TargetService final : public justbuild::just_serve::Target::Service {
         ::justbuild::just_serve::ServeTargetVariablesResponse* response)
         -> ::grpc::Status override;
 
+    // Given the target-level root tree and the name of an export target,
+    // returns the digest of the blob containing the flexible variables field,
+    // as well as the documentation fields pertaining tho the target and
+    // its configuration variables, as taken from the target's description.
+    // This information should be enough for a client to produce locally a
+    // full description of said target.
+    //
+    // The server MUST make the returned blob available in the remote CAS.
+    //
+    // If the status has a code different from `OK`, the response MUST not be
+    // used.
+    //
+    // Errors:
+    // * `FAILED_PRECONDITION`: An error occurred in retrieving the
+    //   configuration of the requested target, such as missing entries
+    //   (target-root, target file, target name), unparsable target file, or
+    //   requested target not being of "type" : "export".
+    // * `UNAVAILABLE`: Could not communicate with the remote CAS.
+    // * `INTERNAL`: Internally, something is very broken.
+    auto ServeTargetDescription(
+        ::grpc::ServerContext* /*context*/,
+        const ::justbuild::just_serve::ServeTargetDescriptionRequest* request,
+        ::justbuild::just_serve::ServeTargetDescriptionResponse* response)
+        -> ::grpc::Status override;
+
   private:
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
