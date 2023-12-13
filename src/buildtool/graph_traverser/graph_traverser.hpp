@@ -73,9 +73,10 @@ class GraphTraverser {
                             gsl::not_null<RepositoryConfig*> const& repo_config)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
-          local_api_{CreateExecutionApi(std::nullopt, repo_config)},
+          local_api_{CreateExecutionApi(std::nullopt,
+                                        std::make_optional(repo_config))},
           remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                                         repo_config)},
+                                         std::make_optional(repo_config))},
           reporter_{[](auto done, auto cv) {}} {}
 
     explicit GraphTraverser(CommandLineArguments clargs,
@@ -83,9 +84,10 @@ class GraphTraverser {
                             progress_reporter_t reporter)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
-          local_api_{CreateExecutionApi(std::nullopt, repo_config)},
+          local_api_{CreateExecutionApi(std::nullopt,
+                                        std::make_optional(repo_config))},
           remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                                         repo_config)},
+                                         std::make_optional(repo_config))},
           reporter_{std::move(reporter)} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
@@ -371,8 +373,9 @@ class GraphTraverser {
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
-        auto api_cached = CreateExecutionApi(
-            RemoteExecutionConfig::CacheAddress(), repo_config_);
+        auto api_cached =
+            CreateExecutionApi(RemoteExecutionConfig::CacheAddress(),
+                               std::make_optional(repo_config_));
         Rebuilder executor{repo_config_,
                            &(*local_api_),
                            &(*remote_api_),
