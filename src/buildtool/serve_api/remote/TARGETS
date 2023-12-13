@@ -27,7 +27,8 @@
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
   , "deps":
-    [ ["src/buildtool/common/remote", "port"]
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , "source_tree_client"
     , "target_client"

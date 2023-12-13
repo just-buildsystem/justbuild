@@ -149,3 +149,24 @@ auto TargetClient::ServeTargetVariables(std::string const& target_root_id,
     }
     return res;
 }
+
+auto TargetClient::ServeTargetDescription(std::string const& target_root_id,
+                                          std::string const& target_file,
+                                          std::string const& target)
+    -> std::optional<ArtifactDigest> {
+    justbuild::just_serve::ServeTargetDescriptionRequest request{};
+    request.set_root_tree(target_root_id);
+    request.set_target_file(target_file);
+    request.set_target(target);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ServeTargetDescriptionResponse response;
+    grpc::Status status =
+        stub_->ServeTargetDescription(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Error, status);
+        return std::nullopt;
+    }
+    return ArtifactDigest{response.description_id()};
+}

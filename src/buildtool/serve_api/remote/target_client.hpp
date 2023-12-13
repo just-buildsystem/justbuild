@@ -23,6 +23,7 @@
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -53,6 +54,17 @@ class TargetClient {
                                             std::string const& target_file,
                                             std::string const& target)
         -> std::optional<std::vector<std::string>>;
+
+    /// \brief Retrieve the artifact digest of the blob containing the export
+    /// target description fields required by just describe.
+    /// \param[in] target_root_id Hash of target-level root tree.
+    /// \param[in] target_file Relative path of the target file.
+    /// \param[in] target Name of the target to interrogate.
+    /// \returns The artifact digest, or nullopt on errors.
+    [[nodiscard]] auto ServeTargetDescription(std::string const& target_root_id,
+                                              std::string const& target_file,
+                                              std::string const& target)
+        -> std::optional<ArtifactDigest>;
 
   private:
     std::unique_ptr<justbuild::just_serve::Target::Stub> stub_;

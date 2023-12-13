@@ -19,6 +19,8 @@
 #include <optional>
 #include <string>
 
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
@@ -71,6 +73,14 @@ class ServeApi final {
         std::string const& target_file,
         std::string const& target) -> std::optional<std::vector<std::string>> {
         return Instance().tc_->ServeTargetVariables(
+            target_root_id, target_file, target);
+    }
+
+    [[nodiscard]] static auto ServeTargetDescription(
+        std::string const& target_root_id,
+        std::string const& target_file,
+        std::string const& target) -> std::optional<ArtifactDigest> {
+        return Instance().tc_->ServeTargetDescription(
             target_root_id, target_file, target);
     }
 
