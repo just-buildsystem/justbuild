@@ -70,6 +70,18 @@ The configuration file is given by a JSON object.
    execution address in a NAME:PORT format.  
    For subkey *`"compatible"`* the value is a flag which specifies whether
    the remote endpoint uses the original remote execution protocol.  
+   If the key *`"execution endpoint"`* is given, the following three keys will
+   be evaluated as well:  
+   - *`"max-attempts"`*: the value must be a number specifying the maximum
+     number of attempts to perform when a remote procedure call (to the
+     *`"execution endpoint"`* given) fails because the resource is unavailable.  
+   - *`"initial-backoff-seconds"`*: the value must be a number; before retrying
+     the second time, the client will wait the given amount of seconds plus a jitter,
+     to better distribute the workload.  
+   - *`"max-backoff-seconds"`*: the value must be a number; from the third
+     attempt (included) on, the backoff time is doubled at each attempt, until
+     it exceeds the `"max-backoff-seconds"` value. From that point, the waiting
+     time is computed as `"max-backoff-seconds"` value plus a jitter.  
 
  - The value for the key *`"jobs"`* specifies the number of jobs to run. If
    unset, the number of available cores is used.  
