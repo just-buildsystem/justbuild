@@ -4,11 +4,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 
 ### Major new features
 
-- New subcommand `just serve` to start server answering queries
-  about the tree of a given commit, if known. The functionality
-  of this subcommand will be extended over time to eventually
-  provide a target-level caching service as described in the
-  corresponding design document.
+- New subcommand `just serve` to start a target-level caching service,
+  as described in the corresponding design document. 
 - `just-mr` is able to back up and retrieve distribution files
   from a remote execution endpoint. This simplifies usage in an
   environment with restricted internet access.
