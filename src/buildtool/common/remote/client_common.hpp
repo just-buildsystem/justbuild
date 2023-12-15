@@ -45,32 +45,38 @@
     return grpc::CreateChannel(address, creds);
 }
 
-[[maybe_unused]] static inline void LogStatus(Logger const* logger,
-                                              LogLevel level,
-                                              grpc::Status const& s) noexcept {
-    if (logger == nullptr) {
-        Logger::Log(level,
-                    "{}: {}",
-                    static_cast<int>(s.error_code()),
-                    s.error_message());
-    }
-    else {
-        logger->Emit(level,
-                     "{}: {}",
-                     static_cast<int>(s.error_code()),
-                     s.error_message());
-    }
+[[nodiscard]] static inline auto StatusString(
+    grpc::Status const& s,
+    std::optional<std::string> const& prefix = std::nullopt) noexcept
+    -> std::string {
+    return fmt::format("{}{}: {}",
+                       (prefix.has_value() ? fmt::format("{}: ", *prefix) : ""),
+                       static_cast<int>(s.error_code()),
+                       s.error_message());
 }
 
+[[nodiscard]] static inline auto StatusString(
+    google::rpc::Status const& s,
+    std::optional<std::string> const& prefix = std::nullopt) noexcept
+    -> std::string {
+    return fmt::format("{}{}: {}",
+                       (prefix.has_value() ? fmt::format("{}: ", *prefix) : ""),
+                       static_cast<int>(s.code()),
+                       s.message());
+}
+
+template <typename T_Status>
 [[maybe_unused]] static inline void LogStatus(
     Logger const* logger,
     LogLevel level,
-    google::rpc::Status const& s) noexcept {
+    T_Status const& s,
+    std::optional<std::string> const& prefix = std::nullopt) noexcept {
+    auto msg = [&s, &prefix]() { return StatusString(s, prefix); };
     if (logger == nullptr) {
-        Logger::Log(level, "{}: {}", static_cast<int>(s.code()), s.message());
+        Logger::Log(level, msg);
     }
     else {
-        logger->Emit(level, "{}: {}", static_cast<int>(s.code()), s.message());
+        logger->Emit(level, msg);
     }
 }
 
