@@ -1780,7 +1780,7 @@ auto CreateTargetMap(
                 (*logger)(
                     fmt::format("Root for target {} is absent, but no serve "
                                 "endpoint was configured. Please provide "
-                                "--remote-serve=address and retry.",
+                                "--remote-serve-address and retry.",
                                 key.target.ToJson().dump()),
                     /*is_fatal=*/true);
                 return;
