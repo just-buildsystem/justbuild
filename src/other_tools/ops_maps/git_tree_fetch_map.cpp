@@ -20,15 +20,68 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
 namespace {
+
+void MoveCASTreeToGit(std::string const& tree_id,
+                      ArtifactDigest const& digest,
+                      gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+                      IExecutionApi* local_api,
+                      gsl::not_null<TaskSystem*> const& ts,
+                      GitTreeFetchMap::SetterPtr const& setter,
+                      GitTreeFetchMap::LoggerPtr const& logger) {
+    // Move tree from CAS to local Git storage
+    auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch-remote-git-tree");
+    if (not tmp_dir) {
+        (*logger)(fmt::format("Failed to create tmp directory for copying "
+                              "git-tree {} from remote CAS",
+                              digest.hash()),
+                  true);
+        return;
+    }
+    if (not local_api->RetrieveToPaths(
+            {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
+            {tmp_dir->GetPath()})) {
+        (*logger)(fmt::format("Failed to copy git-tree {} to {}",
+                              tree_id,
+                              tmp_dir->GetPath().string()),
+                  true);
+        return;
+    }
+    CommitInfo c_info{tmp_dir->GetPath(), "tree", tree_id};
+    import_to_git_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(c_info)},
+        [tmp_dir,  // keep tmp_dir alive
+         setter,
+         logger](auto const& values) {
+            if (not values[0]->second) {
+                (*logger)("Importing to git failed",
+                          /*fatal=*/true);
+                return;
+            }
+            // remote CAS already has the tree, so no need to even check
+            // backup_to_remote flag;
+            (*setter)(false /*no cache hit*/);
+        },
+        [logger, tmp_dir, tree_id](auto const& msg, bool fatal) {
+            (*logger)(fmt::format(
+                          "While moving git-tree {} from {} to local git:\n{}",
+                          tree_id,
+                          tmp_dir->GetPath().string(),
+                          msg),
+                      fatal);
+        });
+}
 
 void BackupToRemote(std::string const& tree_id,
                     IExecutionApi* remote_api,
@@ -147,8 +200,23 @@ auto CreateGitTreeFetchMap(
                     (*setter)(true /*cache hit*/);
                     return;
                 }
+                // check if tree is known to local CAS
+                auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
+                auto const& cas = Storage::Instance().CAS();
+                if (auto path = cas.TreePath(digest)) {
+                    // import tree to Git cache
+                    MoveCASTreeToGit(key.hash,
+                                     digest,
+                                     import_to_git_map,
+                                     local_api,
+                                     ts,
+                                     setter,
+                                     logger);
+                    // done!
+                    return;
+                }
                 JustMRProgress::Instance().TaskTracker().Start(key.origin);
-                // check if content is known to remote serve service
+                // check if tree is known to remote serve service
                 if (serve_api_exists) {
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
@@ -157,7 +225,6 @@ auto CreateGitTreeFetchMap(
                         ServeApi::TreeInRemoteCAS(key.hash);
                 }
                 // check if tree is in remote CAS, if a remote is given
-                auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
                 if (remote_api != nullptr and local_api != nullptr and
                     remote_api->IsAvailable(digest) and
                     remote_api->RetrieveToCas(
@@ -165,57 +232,14 @@ auto CreateGitTreeFetchMap(
                                               .type = ObjectType::Tree}},
                         local_api)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);
-                    // Move tree from CAS to local Git storage
-                    auto tmp_dir = StorageUtils::CreateTypedTmpDir(
-                        "fetch-remote-git-tree");
-                    if (not tmp_dir) {
-                        (*logger)(fmt::format("Failed to create tmp "
-                                              "directory for copying "
-                                              "git-tree {} from remote CAS",
-                                              key.hash),
-                                  true);
-                        return;
-                    }
-                    if (not local_api->RetrieveToPaths(
-                            {Artifact::ObjectInfo{.digest = digest,
-                                                  .type = ObjectType::Tree}},
-                            {tmp_dir->GetPath()})) {
-                        (*logger)(
-                            fmt::format("Failed to copy git-tree {} to {}",
-                                        key.hash,
-                                        tmp_dir->GetPath().string()),
-                            true);
-                        return;
-                    }
-                    CommitInfo c_info{tmp_dir->GetPath(), "tree", key.hash};
-                    import_to_git_map->ConsumeAfterKeysReady(
-                        ts,
-                        {std::move(c_info)},
-                        [tmp_dir,  // keep tmp_dir alive
-                         key,
-                         setter,
-                         logger](auto const& values) {
-                            if (not values[0]->second) {
-                                (*logger)("Importing to git failed",
-                                          /*fatal=*/true);
-                                return;
-                            }
-                            // remote CAS already has the tree, so no need to
-                            // even check backup_to_remote flag;
-                            // success
-                            (*setter)(false /*no cache hit*/);
-                        },
-                        [logger, tmp_dir, tree_id = key.hash](auto const& msg,
-                                                              bool fatal) {
-                            (*logger)(
-                                fmt::format("While moving git-tree {} from "
-                                            "{} to local git:\n{}",
-                                            tree_id,
-                                            tmp_dir->GetPath().string(),
-                                            msg),
-                                fatal);
-                        });
-
+                    MoveCASTreeToGit(key.hash,
+                                     digest,
+                                     import_to_git_map,
+                                     local_api,
+                                     ts,
+                                     setter,
+                                     logger);
+                    // done!
                     return;
                 }
                 // create temporary location for command execution root
