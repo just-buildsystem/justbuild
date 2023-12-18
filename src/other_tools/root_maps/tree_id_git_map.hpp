@@ -19,6 +19,8 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 

@@ -19,6 +19,7 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"

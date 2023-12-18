@@ -105,7 +105,8 @@
   , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , "exit_codes"
@@ -129,7 +130,8 @@
   , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]

@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_LAUNCH_HPP
 
 #include <filesystem>
+#include <optional>
 
 #include "src/other_tools/just_mr/cli.hpp"
 

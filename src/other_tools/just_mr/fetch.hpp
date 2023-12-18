@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_FETCH_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_FETCH_HPP
 
+#include <memory>
+
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 

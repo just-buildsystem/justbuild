@@ -15,6 +15,11 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FPATH_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FPATH_GIT_MAP_HPP
 
+#include <filesystem>
+#include <optional>
+#include <string>
+
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"

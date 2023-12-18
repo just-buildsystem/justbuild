@@ -14,6 +14,7 @@
 
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
+#include "fmt/core.h"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"

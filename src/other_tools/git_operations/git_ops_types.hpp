@@ -15,6 +15,10 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_OPS_TYPES_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_OPS_TYPES_HPP
 
+#include <filesystem>
+#include <optional>
+#include <string>
+
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/utils/cpp/path.hpp"
 

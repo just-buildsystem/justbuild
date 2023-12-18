@@ -15,7 +15,8 @@
     [["src/buildtool/multithreading", "async_map_consumer"], "git_ops_types"]
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , "git_repo_remote"
     , ["src/buildtool/logging", "logging"]
     ]

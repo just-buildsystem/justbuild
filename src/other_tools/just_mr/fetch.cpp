@@ -16,6 +16,7 @@
 
 #include <filesystem>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"

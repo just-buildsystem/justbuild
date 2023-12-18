@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"

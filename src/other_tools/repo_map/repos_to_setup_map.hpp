@@ -15,6 +15,11 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP
 
+#include <memory>
+#include <optional>
+#include <string>
+
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 #include "src/other_tools/root_maps/content_git_map.hpp"

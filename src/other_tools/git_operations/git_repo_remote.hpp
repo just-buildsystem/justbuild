@@ -15,6 +15,12 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_REPO_REMOTE_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_REPO_REMOTE_HPP
 
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "src/buildtool/file_system/git_repo.hpp"
 
 extern "C" {

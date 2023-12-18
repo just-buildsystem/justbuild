@@ -14,8 +14,10 @@
 
 #include "src/other_tools/git_operations/git_operations.hpp"
 
+#include <memory>
 #include <vector>
 
+#include "fmt/core.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"

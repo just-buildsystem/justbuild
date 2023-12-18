@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 
-#include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"

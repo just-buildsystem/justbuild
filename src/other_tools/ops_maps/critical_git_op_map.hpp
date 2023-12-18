@@ -16,8 +16,11 @@
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_CRITICAL_GIT_OP_MAP_HPP
 
 #include <filesystem>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/git_operations/git_operations.hpp"

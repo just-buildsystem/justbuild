@@ -17,6 +17,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 

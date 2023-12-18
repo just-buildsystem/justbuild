@@ -17,7 +17,9 @@
 
 #include <filesystem>
 #include <string>
+#include <utility>
 
+#include "gsl/gsl"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/path.hpp"

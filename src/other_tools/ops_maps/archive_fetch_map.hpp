@@ -15,6 +15,9 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
 
+#include <filesystem>
+
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 

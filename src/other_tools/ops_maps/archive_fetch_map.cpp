@@ -14,7 +14,11 @@
 
 #include "src/other_tools/ops_maps/archive_fetch_map.hpp"
 
+#include <string>
+
+#include "fmt/core.h"
 #include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"

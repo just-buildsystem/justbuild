@@ -15,11 +15,11 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP
 
+#include <map>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"

@@ -15,8 +15,12 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_DISTDIR_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_DISTDIR_GIT_MAP_HPP
 
+#include <memory>
+#include <string>
+#include <unordered_map>
 #include <utility>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"

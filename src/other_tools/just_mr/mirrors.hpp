@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_MIRRORS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_MIRRORS_HPP
 
+#include <exception>
 #include <memory>
 #include <string>
 #include <vector>

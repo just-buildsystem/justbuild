@@ -18,14 +18,16 @@
   , "srcs": ["import_to_git_map.cpp"]
   , "deps":
     [ "critical_git_op_map"
+    , ["@", "gsl", "", "gsl"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
-    , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "path_hash"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
-    [ ["src/buildtool/storage", "fs_utils"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
@@ -63,11 +65,11 @@
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/other_tools/just_mr", "mirrors"]
     , ["src/utils/cpp", "hash_combine"]
-    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
-    [ ["src/other_tools/utils", "content"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/other_tools/utils", "content"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
@@ -82,12 +84,17 @@
   , "hdrs": ["archive_fetch_map.hpp"]
   , "srcs": ["archive_fetch_map.cpp"]
   , "deps":
-    ["content_cas_map", ["src/buildtool/execution_api/common", "common"]]
+    [ ["@", "gsl", "", "gsl"]
+    , "content_cas_map"
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
-    [ ["src/other_tools/just_mr", "utils"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]
@@ -98,7 +105,7 @@
   , "hdrs": ["git_tree_fetch_map.hpp"]
   , "srcs": ["git_tree_fetch_map.cpp"]
   , "deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
