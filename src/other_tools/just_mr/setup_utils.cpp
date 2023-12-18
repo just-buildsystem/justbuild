@@ -216,10 +216,12 @@ auto ReadConfiguration(
             for (auto const& [key, val] : repos.items()) {
                 new_repos[key] = val;
                 auto ws = val.value("repository", nlohmann::json::object());
-                auto pragma = ws.value("pragma", nlohmann::json::object());
-                pragma["absent"] = absent_set.contains(key);
-                ws["pragma"] = pragma;
-                new_repos[key]["repository"] = ws;
+                if (ws.is_object()) {
+                    auto pragma = ws.value("pragma", nlohmann::json::object());
+                    pragma["absent"] = absent_set.contains(key);
+                    ws["pragma"] = pragma;
+                    new_repos[key]["repository"] = ws;
+                }
             }
             config["repositories"] = new_repos;
         } catch (std::exception const& e) {
