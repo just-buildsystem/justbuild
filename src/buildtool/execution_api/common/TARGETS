@@ -40,4 +40,11 @@
     , ["src/buildtool/execution_api/remote", "bazel"]
     ]
   }
+, "message_limits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_limits"]
+  , "hdrs": ["message_limits.hpp"]
+  , "deps": [["@", "grpc", "", "grpc++"]]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  }
 }
