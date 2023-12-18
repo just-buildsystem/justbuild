@@ -415,10 +415,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         common_args.remote_serve_address, auth_args);
 
     // create async maps
+    auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
+    auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
     auto content_cas_map =
         CreateContentCASMap(common_args.just_mr_paths,
                             common_args.alternative_mirrors,
                             common_args.ca_info,
+                            &critical_git_op_map,
                             serve_api_exists,
                             local_api ? &(*local_api) : nullptr,
                             remote_api ? &(*remote_api) : nullptr,
@@ -429,8 +432,6 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         (fetch_args.backup_to_remote and local_api) ? &(*local_api) : nullptr,
         (fetch_args.backup_to_remote and remote_api) ? &(*remote_api) : nullptr,
         common_args.jobs);
-    auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
-    auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map,
                              common_args.git_path->string(),

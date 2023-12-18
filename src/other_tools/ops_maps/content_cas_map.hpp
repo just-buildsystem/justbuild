@@ -24,6 +24,7 @@
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
+#include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
@@ -65,13 +66,15 @@ struct ArchiveRepoInfo {
 /// the map fails or not.
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
 
-[[nodiscard]] auto CreateContentCASMap(LocalPathsPtr const& just_mr_paths,
-                                       MirrorsPtr const& additional_mirrors,
-                                       CAInfoPtr const& ca_info,
-                                       bool serve_api_exists,
-                                       IExecutionApi* local_api,
-                                       IExecutionApi* remote_api,
-                                       std::size_t jobs) -> ContentCASMap;
+[[nodiscard]] auto CreateContentCASMap(
+    LocalPathsPtr const& just_mr_paths,
+    MirrorsPtr const& additional_mirrors,
+    CAInfoPtr const& ca_info,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    bool serve_api_exists,
+    IExecutionApi* local_api,
+    IExecutionApi* remote_api,
+    std::size_t jobs) -> ContentCASMap;
 
 namespace std {
 template <>
