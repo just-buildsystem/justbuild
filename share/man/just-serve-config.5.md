@@ -46,6 +46,10 @@ The configuration file is given by a JSON object.
    communicating with the remote execution endpoint.  
    For subkey *`"ca cert"`* the value is a string specifying the path to a TLS
    CA certificate.  
+   For subkey *`"client cert"`* the value is a string specifying the path to a
+   TLS client certificate.  
+   For subkey *`"client key"`* the value is a string specifying the path to a
+   TLS client key.  
 
  - The value for the key *`"remote service"`* is a JSON object specifying the
    server arguments for running **`just`** **`serve`** as a service.  
