@@ -253,12 +253,19 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
         }
         uuid = CreateUUIDVersion4(*id);
     }
-    return stream_->Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
-                                      instance_name,
-                                      uuid,
-                                      blob.digest.hash(),
-                                      blob.digest.size_bytes()),
-                          blob.data);
+    auto ok = stream_->Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
+                                         instance_name,
+                                         uuid,
+                                         blob.digest.hash(),
+                                         blob.digest.size_bytes()),
+                             blob.data);
+    if (!ok) {
+        logger_.Emit(LogLevel::Error,
+                     "Failed to write {}:{}",
+                     blob.digest.hash(),
+                     blob.digest.size_bytes());
+    }
+    return ok;
 }
 
 auto BazelCasClient::IncrementalReadSingleBlob(
