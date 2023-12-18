@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

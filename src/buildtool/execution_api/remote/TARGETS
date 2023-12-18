@@ -47,6 +47,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common/remote", "retry"]
+    , ["src/buildtool/execution_api/common", "message_limits"]
     ]
   }
 , "bazel":

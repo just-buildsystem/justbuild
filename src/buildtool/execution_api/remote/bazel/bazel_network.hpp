@@ -136,11 +136,6 @@ class BazelNetwork {
     using DirectoryMap =
         std::unordered_map<bazel_re::Digest, bazel_re::Directory>;
 
-    // Max size for batch transfers
-    static constexpr std::size_t kMaxBatchTransferSize = 3 * 1024 * 1024;
-    static_assert(kMaxBatchTransferSize < GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
-                  "Max batch transfer size too large.");
-
     std::string const instance_name_{};
     ExecutionConfiguration exec_config_{};
     std::unique_ptr<BazelCasClient> cas_{};
