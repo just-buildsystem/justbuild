@@ -205,6 +205,27 @@ those requests as well can be typically served from cache).
 Optionally, the client can request that `just serve` back up this
 tree in the CAS of the associated remote-execution endpoint.
 
+#### Auxiliary request: tree of a distdir
+
+For archives we typically require the `git` blob identifier to be
+given, thus the tree identifier corresponding to a distdir (i.e.,
+a list of distfiles) can always be computed without fetching the
+actual archives. 
+
+In order to allow `just-mr` to set up a repository description that
+can build against an _absent_ distdir repository root, `just serve`
+supports a request which, given a mapping of distfile names to their
+content blob identifiers, returns the tree identifier of a directory
+containing that list of distfiles, with the guarantee that all content
+blobs are known to `just serve`. The locations they are looked for are,
+in order: the local CAS, all known Git repositories (including the
+local Git cache), and the CAS of the associated remote-execution endpoint.
+Any blob located in a Git repository is made available in the local CAS.
+
+Optionally, the client can request that `just serve` back up this
+tree and all the content blobs in the CAS of the associated
+remote-execution endpoint.
+
 #### Auxiliary requests: known Git objects
 
 For `just fetch` operations typically either a blob (e.g., content of
