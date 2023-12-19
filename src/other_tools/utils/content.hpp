@@ -78,6 +78,13 @@
                 // add preferred URL to buffer
                 remotes_buffer.append(fmt::format("\n> {}", *preferred_url));
             }
+            else {
+                // report failed hostname
+                remotes_buffer.append(
+                    fmt::format("\n> {} (failed hostname replace: {})",
+                                fetch_url,
+                                hostname));
+            }
         }
         if (not data) {
             // now try the main fetch URL
@@ -98,6 +105,13 @@
                             // add preferred mirror to buffer
                             remotes_buffer.append(
                                 fmt::format("\n> {}", *preferred_mirror));
+                        }
+                        else {
+                            // report failed hostname
+                            remotes_buffer.append(fmt::format(
+                                "\n> {} (failed hostname replace: {})",
+                                mirror,
+                                hostname));
                         }
                     }
                     // ...then the original mirror

@@ -411,6 +411,13 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                         remotes_buffer.append(
                             fmt::format("\n> {}", *preferred_url));
                     }
+                    else {
+                        // report failed hostname
+                        remotes_buffer.append(
+                            fmt::format("\n> {} (failed hostname replace: {})",
+                                        fetch_repo,
+                                        hostname));
+                    }
                 }
             }
             if (not fetched) {
@@ -468,6 +475,13 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                     // add preferred mirror to buffer
                                     remotes_buffer.append(fmt::format(
                                         "\n> {}", *preferred_mirror));
+                                }
+                                else {
+                                    // report failed hostname
+                                    remotes_buffer.append(fmt::format(
+                                        "\n> {} (failed hostname replace: {})",
+                                        mirror,
+                                        hostname));
                                 }
                             }
                         }
