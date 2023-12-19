@@ -135,7 +135,6 @@ cat > test-repos.json <<EOF
       , "subdir": "root"
       , "pragma": {"special": "resolve-partially"}
       }
-    , "bindings": {"tgz_repo": "tgz_repo", "distdir_repo": "distdir_repo"}
     }
   , "zip_repo_resolved":
     { "repository":
@@ -148,7 +147,6 @@ cat > test-repos.json <<EOF
       , "subdir": "root"
       , "pragma": {"special": "resolve-completely"}
       }
-    , "bindings": {"tgz_repo": "tgz_repo", "distdir_repo": "distdir_repo"}
     }
   , "tgz_repo":
     { "repository":
@@ -228,33 +226,72 @@ cat > test-repos.json <<EOF
   , "distdir_repo":
     { "repository":
       { "type": "distdir"
-      , "repositories": ["git_repo", "zip_repo", "file_repo1"]
-      }
-    , "bindings":
-      { "file_repo2_ignore_special": "file_repo2_ignore_special"
-      , "file_repo2_resolve_partially": "file_repo2_resolve_partially"
-      , "file_repo2_resolve_completely": "file_repo2_resolve_completely"
+      , "repositories":
+        [ "zip_repo"
+        , "zip_repo_resolved"
+        , "tgz_repo"
+        , "git_repo"
+        , "git_repo_ignore_special"
+        , "git_tree_repo"
+        , "git_tree_repo_ignore_special"
+        , "file_repo1"
+        , "file_repo2_ignore_special"
+        , "file_repo2_resolve_partially"
+        , "file_repo2_resolve_completely"
+        ]
       }
     }
   }
 }
 EOF
 
-echo "Set up test cases"
-cat > test_setup.sh <<EOF
-CONFIG_CPP="\$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 setup --all)"
-if [ ! -s "\${CONFIG_CPP}" ]; then
+### Check individual repo types
+
+echo "Test individual repos"
+
+test_alone() {
+  CONFIG_CPP=$("${JUST_MR_CPP}" -C test-repos.json --norc \
+                                --local-build-root "${BUILDROOT}" \
+                                -j 32 setup "$1")
+  if [ ! -s "${CONFIG_CPP}" ]; then
     exit 1
-fi
-EOF
+  fi
+  rm -rf "${BUILDROOT}"
+  echo "> $1 OK"
+}
+
+test_alone zip_repo
+test_alone zip_repo_resolved
+test_alone tgz_repo
+test_alone git_repo
+test_alone git_repo_ignore_special
+test_alone git_tree_repo
+test_alone git_tree_repo_ignore_special
+test_alone file_repo1
+test_alone file_repo2_ignore_special
+test_alone file_repo2_resolve_partially
+test_alone file_repo2_resolve_completely
+test_alone distdir_repo
+
+### Check parallel run
+
+echo "Set up parallel run"
+test_all() {
+  CONFIG_CPP=$("${JUST_MR_CPP}" -C test-repos.json --norc \
+                                --local-build-root "${BUILDROOT}" \
+                                ${DISTDIR_ARGS} -j 32 setup --all)
+  if [ ! -s "${CONFIG_CPP}" ]; then
+    exit 1
+  fi
+}
 
 echo "Run 8 test cases in parallel"
 error=false
 
-sh test_setup.sh & res1=$!
-sh test_setup.sh & res2=$!
-sh test_setup.sh & res3=$!
-sh test_setup.sh & res4=$!
+test_all & res1=$!
+test_all & res2=$!
+test_all & res3=$!
+test_all & res4=$!
 
 wait ${res1}
 if [ $? -ne 0 ]; then
