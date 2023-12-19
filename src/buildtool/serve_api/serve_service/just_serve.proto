@@ -129,6 +129,52 @@ message ServeArchiveTreeResponse {
 }
 
 // A request message for
+// [TargetLevelCache.ServeDistdirTree][justbuild.just_serve.TargetLevelCache.ServeDistdirTree].
+message ServeDistdirTreeRequest {
+  // A distfile item.
+  message Distfile {
+    // The name of the distfile.
+    string name = 1;
+
+    // The git blob identifier of the distfile content.
+    string content = 2;
+  }
+
+  // The list of distfiles.
+  repeated Distfile distfiles = 1;
+
+  // If set to true and all distfile blobs are found, the resulting tree
+  // and all the content blobs will be uploaded to the remote-execution
+  // end point.
+  bool sync_tree = 2;
+}
+
+// A response message for
+// [TargetLevelCache.ServeDistdirTree][justbuild.just_serve.TargetLevelCache.ServeDistdirTree].
+message ServeDistdirTreeResponse {
+  // The requested Git tree hash.
+  string tree = 1;
+
+  enum ServeDistdirTreeStatus{
+    // All good
+    OK = 0;
+
+    // Failed to upload content blobs remotely
+    SYNC_ERROR = 1;
+
+    // At least one content blob is missing
+    NOT_FOUND = 2;
+
+    // Internally, something is very broken
+    INTERNAL_ERROR = 3;
+  }
+
+  // If the status has a code `OK` or `SYNC_ERROR`, the tree is correct.
+  // For any other value, the `tree` field is not set.
+  ServeDistdirTreeStatus status = 2;
+}
+
+// A request message for
 // [TargetLevelCache.ServeContent][justbuild.just_serve.TargetLevelCache.ServeContent].
 message ServeContentRequest {
   // The git blob identifier of the archive.
@@ -196,6 +242,13 @@ service SourceTree {
   //
   // There are no method-specific errors.
   rpc ServeArchiveTree(ServeArchiveTreeRequest) returns (ServeArchiveTreeResponse) {}
+
+  // Compute the Git-tree identifier for the tree containing the content
+  // blobs of a list of distfiles. The implementation must only return the
+  // tree identifier if ALL content blobs are known.
+  //
+  // There are no method-specific errors.
+  rpc ServeDistdirTree(ServeDistdirTreeRequest) returns (ServeDistdirTreeResponse) {}
 
   // Make the blob identifier of an archive content available in
   // remote CAS, if blob is known.
