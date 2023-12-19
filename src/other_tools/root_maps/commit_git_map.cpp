@@ -423,12 +423,15 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             fetch_repo,
                             msg);
                     });
-                if (not git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                                  fetch_repo,
-                                                  repo_info.branch,
-                                                  git_bin,
-                                                  launcher,
-                                                  wrapped_logger)) {
+                if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
+                                              fetch_repo,
+                                              repo_info.branch,
+                                              git_bin,
+                                              launcher,
+                                              wrapped_logger)) {
+                    fetched = true;
+                }
+                else {
                     // add main fetch URL to buffer
                     remotes_buffer.append(fmt::format("\n> {}", fetch_repo));
                     // now try to fetch from mirrors, in order, if given
