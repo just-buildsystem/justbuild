@@ -242,6 +242,24 @@ $ cd ..
 $ rm -rf work
 ```
 
+When looking at the reported actions, we also see the difference
+between the action graph and the part of the action graph that
+is needed to compute the requested artifacts. Targets are always
+analyzed completely, including all actions occurring in their
+definition. When building, however, only that part of the graph is
+traversed that is needed for the requested artifacts. In our case,
+the actual test action is not considered in the build, even though
+it is part of the definition of the target.
+
+A larger difference between actions discovered in the analysis and
+actions processed during the build can occur when rules only use parts
+of a target; consider, e.g., the auxiliary target `just-ext-hdrs`
+that collects the (partially generated) header files of the external
+dependencies, but not the actual libraries. In this case, the
+actions for generating those libraries (compiling sources, calling
+the archive tool) are discovered when analyzing the target, but
+never visited during the build.
+
 Creating a shell test
 ---------------------
 
