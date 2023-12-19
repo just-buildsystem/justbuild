@@ -92,8 +92,6 @@ auto SymlinksResolveToPragmaSpecial(
 
 }  // namespace
 
-// Helper methods
-
 auto SourceTreeService::GetSubtreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,
@@ -593,8 +591,6 @@ auto SourceTreeService::IsTreeInRepo(std::string const& tree_id,
     return false;  // tree not found
 }
 
-// RPC implementations
-
 auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
@@ -730,6 +726,189 @@ auto SourceTreeService::ServeArchiveTree(
                        resolve_special,
                        request->sync_tree(),
                        response);
+}
+
+auto SourceTreeService::ServeDistdirTree(
+    ::grpc::ServerContext* /* context */,
+    const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
+    ServeDistdirTreeResponse* response) -> ::grpc::Status {
+    // acquire lock for CAS
+    auto lock = GarbageCollector::SharedLock();
+    if (!lock) {
+        auto str = fmt::format("Could not acquire gc SharedLock");
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // create in-memory tree from distfiles map
+    GitRepo::tree_entries_t entries{};
+    entries.reserve(request->distfiles().size());
+
+    bool blob_found{};
+    auto const& cas = Storage::Instance().CAS();
+    std::vector<Artifact::ObjectInfo> objects{};  // to be able to sync in batch
+    if (request->sync_tree()) {
+        objects.reserve(request->distfiles().size());
+    }
+
+    for (auto const& kv : request->distfiles()) {
+        auto const& content = kv.content();
+        // check content blob is known
+        auto digest = ArtifactDigest(content, 0, /*is_tree=*/false);
+        // first check the local CAS itself
+        if (blob_found = static_cast<bool>(
+                cas.BlobPath(digest, /*is_executable=*/false));
+            blob_found) {
+            // store digest for later sync with remote, if needed
+            if (request->sync_tree()) {
+                objects.emplace_back(Artifact::ObjectInfo{
+                    .digest = std::move(digest), .type = ObjectType::File});
+            }
+        }
+        else {
+            // check local Git cache
+            if (auto data = GetBlobFromRepo(
+                    StorageConfig::GitRoot(), content, logger_)) {
+                // add content to local CAS
+                if (not cas.StoreBlob(*data, /*is_executable=*/false)) {
+                    auto str = fmt::format(
+                        "Failed to store content {} from local Git cache to "
+                        "local CAS",
+                        content);
+                    logger_->Emit(LogLevel::Error, str);
+                    response->set_status(
+                        ServeDistdirTreeResponse::INTERNAL_ERROR);
+                    return ::grpc::Status::OK;
+                }
+                // store digest for later sync with remote, if needed
+                if (request->sync_tree()) {
+                    objects.emplace_back(Artifact::ObjectInfo{
+                        .digest = std::move(digest), .type = ObjectType::File});
+                }
+                blob_found = true;
+            }
+            else {
+                // check known repositories
+                for (auto const& path :
+                     RemoteServeConfig::KnownRepositories()) {
+                    if (auto data = GetBlobFromRepo(path, content, logger_)) {
+                        // add content to local CAS
+                        if (not cas.StoreBlob(*data, /*is_executable=*/false)) {
+                            auto str = fmt::format(
+                                "Failed to store content {} from known "
+                                "repository {} to local CAS",
+                                path.string(),
+                                content);
+                            logger_->Emit(LogLevel::Error, str);
+                            response->set_status(
+                                ServeDistdirTreeResponse::INTERNAL_ERROR);
+                            return ::grpc::Status::OK;
+                        }
+                        // store digest for later sync with remote, if needed
+                        if (request->sync_tree()) {
+                            objects.emplace_back(Artifact::ObjectInfo{
+                                .digest = std::move(digest),
+                                .type = ObjectType::File});
+                        }
+                        blob_found = true;
+                        break;
+                    }
+                }
+                if (not blob_found) {
+                    // Explanation: clang-tidy gets confused by the break in the
+                    // for-loop above into falsely believing that it can reach
+                    // this point with the variable "digest" already moved, so
+                    // we work around this by creating a new variable here
+                    auto digest_clone =
+                        ArtifactDigest(content, 0, /*is_tree=*/false);
+                    // check remote CAS
+                    if (remote_api_->IsAvailable(digest_clone)) {
+                        // retrieve content to local CAS
+                        if (not remote_api_->RetrieveToCas(
+                                {Artifact::ObjectInfo{
+                                    .digest = digest_clone,
+                                    .type = ObjectType::File}},
+                                &(*local_api_))) {
+                            auto str = fmt::format(
+                                "Failed to retrieve content {} from remote to "
+                                "local CAS",
+                                content);
+                            logger_->Emit(LogLevel::Error, str);
+                            response->set_status(
+                                ServeDistdirTreeResponse::INTERNAL_ERROR);
+                            return ::grpc::Status::OK;
+                        }
+                        // Note: no need to put this digest in the list for
+                        // later sync, as we know the remote already has it
+                        blob_found = true;
+                    }
+                }
+            }
+        }
+        // error out if blob is not known
+        if (not blob_found) {
+            auto str = fmt::format("Content {} is not known", content);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeDistdirTreeResponse::NOT_FOUND);
+            return ::grpc::Status::OK;
+        }
+        // store content blob to the entries list, using the expected raw id
+        if (auto raw_id = FromHexString(content)) {
+            entries[*raw_id].emplace_back(kv.name(), ObjectType::File);
+        }
+        else {
+            auto str = fmt::format(
+                "Conversion of content {} to raw id failed unexpectedly",
+                content);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+            return ::grpc::Status::OK;
+        }
+    }
+    // create in-memory tree of the distdir, now that we know we have all blobs
+    auto tree = GitRepo::CreateShallowTree(entries);
+    if (not tree) {
+        auto str =
+            std::string{"Failed to construct in-memory tree for distdir"};
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // get hash from raw_id
+    auto tree_id = ToHexString(tree->first);
+    // add tree to local CAS
+    auto tree_digest = cas.StoreTree(tree->second);
+    if (not tree_digest) {
+        auto str = fmt::format("Failed to store distdir tree {} to local CAS",
+                               tree_id);
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // if asked, sync tree and all blobs with remote CAS
+    if (request->sync_tree()) {
+        if (not local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = ArtifactDigest(*tree_digest),
+                                      .type = ObjectType::Tree}},
+                &(*remote_api_))) {
+            auto str =
+                fmt::format("Failed to sync tree {} from local CAS", tree_id);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeDistdirTreeResponse::SYNC_ERROR);
+            return ::grpc::Status::OK;
+        }
+        if (not local_api_->RetrieveToCas(objects, &(*remote_api_))) {
+            auto str =
+                std::string{"Failed to bulk sync content blobs from local CAS"};
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeDistdirTreeResponse::SYNC_ERROR);
+            return ::grpc::Status::OK;
+        }
+    }
+    // set response on success
+    response->set_tree(tree_id);
+    response->set_status(ServeDistdirTreeResponse::OK);
+    return ::grpc::Status::OK;
 }
 
 auto SourceTreeService::ServeContent(

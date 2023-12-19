@@ -40,6 +40,8 @@ class SourceTreeService final
         ::justbuild::just_serve::ServeCommitTreeResponse;
     using ServeArchiveTreeResponse =
         ::justbuild::just_serve::ServeArchiveTreeResponse;
+    using ServeDistdirTreeResponse =
+        ::justbuild::just_serve::ServeDistdirTreeResponse;
 
     using ServeContentResponse = ::justbuild::just_serve::ServeContentResponse;
     using ServeTreeResponse = ::justbuild::just_serve::ServeTreeResponse;
@@ -60,6 +62,16 @@ class SourceTreeService final
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
         ServeArchiveTreeResponse* response) -> ::grpc::Status override;
+
+    // Compute the Git-tree identifier for the tree containing the content
+    // blobs of a list of distfiles. The implementation must only return the
+    // tree identifier if ALL content blobs are known.
+    //
+    // There are no method-specific errors.
+    auto ServeDistdirTree(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
+        ServeDistdirTreeResponse* response) -> ::grpc::Status override;
 
     // Make the blob identifier of an archive content available in
     // remote CAS, if blob is known.
