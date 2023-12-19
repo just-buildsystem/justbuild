@@ -201,10 +201,30 @@ class SystemCommand {
 
         // wait for child to finish and obtain return value
         int status{};
-        ::waitpid(pid, &status, 0);
+        std::optional<int> retval{std::nullopt};
+        do {
+            if (::waitpid(pid, &status, 0) == -1) {
+                // this should never happen
+                logger_.Emit(LogLevel::Error,
+                             "Waiting for child failed with: {}",
+                             strerror(errno));
+                break;
+            }
 
-        // NOLINTNEXTLINE(hicpp-signed-bitwise)
-        return WEXITSTATUS(status);
+            if (WIFEXITED(status)) {           // NOLINT(hicpp-signed-bitwise)
+                retval = WEXITSTATUS(status);  // NOLINT(hicpp-signed-bitwise)
+            }
+            else if (WIFSIGNALED(status)) {  // NOLINT(hicpp-signed-bitwise)
+                constexpr auto kSignalBit = 128;
+                auto sig = WTERMSIG(status);  // NOLINT(hicpp-signed-bitwise)
+                retval = kSignalBit + sig;
+                logger_.Emit(
+                    LogLevel::Debug, "Child got killed by signal {}", sig);
+            }
+            // continue waitpid() in case we got STOPSIG from child
+        } while (not retval);
+
+        return retval;
     }
 
     static auto UnwrapStrings(std::vector<std::string>* v) noexcept
