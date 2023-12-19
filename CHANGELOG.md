@@ -6,6 +6,7 @@ Bug fixes on top of release `1.2.4`.
 
 - On errors reading expressions, the full import path is reported
   in the error message.
+- Child processes are now properly waited for in all circumstances.
 
 ## Release `1.2.4` (2023-12-19)
 
