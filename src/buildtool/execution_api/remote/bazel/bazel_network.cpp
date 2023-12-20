@@ -163,53 +163,28 @@ template <class T_Iter>
 auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
                                  T_Iter const& last) noexcept -> bool {
     try {
-        auto num_blobs = gsl::narrow<std::size_t>(std::distance(first, last));
+        // Partition the blobs according to their size. The first group collects
+        // all the blobs that can be uploaded in batch, the second group gathers
+        // blobs whose size exceeds the kMaxBatchTransferSize threshold.
+        //
+        // The blobs belonging to the second group are uploaded via the
+        // bytestream api.
+        std::vector<typename T_Iter::value_type> sorted(first, last);
+        auto it = std::stable_partition(
+            sorted.begin(), sorted.end(), [](auto const& x) {
+                return x.data.size() <= kMaxBatchTransferSize;
+            });
+        auto digests =
+            cas_->BatchUpdateBlobs(instance_name_, sorted.begin(), it);
 
-        std::vector<bazel_re::Digest> digests{};
-        digests.reserve(num_blobs);
-
-        auto begin = first;
-        auto current = first;
-        std::size_t transfer_size{};
-        while (current != last) {
-            auto const& blob = *current;
-            transfer_size += blob.data.size();
-            if (transfer_size > kMaxBatchTransferSize) {
-                if (begin == current) {
-                    if (cas_->UpdateSingleBlob(instance_name_, blob)) {
-                        digests.emplace_back(blob.digest);
-                    }
-                    ++current;
-                }
-                else {
-                    for (auto& digest : cas_->BatchUpdateBlobs(
-                             instance_name_, begin, current)) {
-                        digests.emplace_back(std::move(digest));
-                    }
-                }
-                begin = current;
-                transfer_size = 0;
-            }
-            else {
-                ++current;
-            }
-        }
-        if (begin != current) {
-            for (auto& digest :
-                 cas_->BatchUpdateBlobs(instance_name_, begin, current)) {
-                digests.emplace_back(std::move(digest));
-            }
-        }
-
-        if (digests.size() == num_blobs) {
-            return true;
-        }
+        return digests.size() == std::distance(sorted.begin(), it) &&
+               std::all_of(it, sorted.end(), [this](auto const& x) {
+                   return cas_->UpdateSingleBlob(instance_name_, x);
+               });
     } catch (...) {
-        Logger::Log(LogLevel::Warning, "unknonwn exception");
+        Logger::Log(LogLevel::Error, "Unknown exception");
+        return false;
     }
-
-    Logger::Log(LogLevel::Warning, "Failed to update all blobs");
-    return false;
 }
 
 auto BazelNetwork::UploadBlobs(BlobContainer const& blobs,
