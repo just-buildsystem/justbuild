@@ -77,6 +77,13 @@
     ]
   , "repos": ["serve-tree (archive)"]
   }
+, "serve-query-target-cache-value":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-query-target-cache-value"]
+  , "test": ["serve_query_target_cache_value.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -89,6 +96,7 @@
         , "serve-start-execute"
         , "serve-start-execute-sharding"
         , "serve-export-deps"
+        , "serve-query-target-cache-value"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}

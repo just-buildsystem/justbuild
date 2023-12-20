@@ -226,6 +226,7 @@ ENV = dict(
     TEST_TMPDIR=TEMP_DIR,
     TMPDIR=TEMP_DIR,
     REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
+    REMOTE_LBR=REMOTE_LBR,  # expose the execution build root to the test env
     SERVE=SERVE_ADDRESS,
     SERVE_LBR=SERVE_LBR,  # expose the serve build root to the test env
     **repos_env)
