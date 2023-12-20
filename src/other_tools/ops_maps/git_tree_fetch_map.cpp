@@ -32,10 +32,39 @@
 
 namespace {
 
+void BackupToRemote(std::string const& tree_id,
+                    IExecutionApi* remote_api,
+                    GitTreeFetchMap::LoggerPtr const& logger) {
+    // try to back up to remote CAS
+    auto repo = RepositoryConfig{};
+    if (repo.SetGitCAS(StorageConfig::GitRoot())) {
+        auto git_api = GitApi{&repo};
+        if (not git_api.RetrieveToCas(
+                {Artifact::ObjectInfo{
+                    .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
+                    .type = ObjectType::Tree}},
+                remote_api)) {
+            // give a warning
+            (*logger)(fmt::format(
+                          "Failed to back up tree {} from local CAS to remote",
+                          tree_id),
+                      /*fatal=*/false);
+        }
+    }
+    else {
+        // give a warning
+        (*logger)(fmt::format("Failed to SetGitCAS at {}",
+                              StorageConfig::GitRoot().string()),
+                  /*fatal=*/false);
+    }
+}
+
 void MoveCASTreeToGit(std::string const& tree_id,
                       ArtifactDigest const& digest,
                       gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                       IExecutionApi* local_api,
+                      IExecutionApi* remote_api,
+                      bool do_backup,
                       gsl::not_null<TaskSystem*> const& ts,
                       GitTreeFetchMap::SetterPtr const& setter,
                       GitTreeFetchMap::LoggerPtr const& logger) {
@@ -62,6 +91,9 @@ void MoveCASTreeToGit(std::string const& tree_id,
         ts,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
+         tree_id,
+         remote_api,
+         do_backup,
          setter,
          logger](auto const& values) {
             if (not values[0]->second) {
@@ -69,8 +101,9 @@ void MoveCASTreeToGit(std::string const& tree_id,
                           /*fatal=*/true);
                 return;
             }
-            // remote CAS already has the tree, so no need to even check
-            // backup_to_remote flag;
+            if (do_backup) {
+                BackupToRemote(tree_id, remote_api, logger);
+            }
             (*setter)(false /*no cache hit*/);
         },
         [logger, tmp_dir, tree_id](auto const& msg, bool fatal) {
@@ -81,33 +114,6 @@ void MoveCASTreeToGit(std::string const& tree_id,
                           msg),
                       fatal);
         });
-}
-
-void BackupToRemote(std::string const& tree_id,
-                    IExecutionApi* remote_api,
-                    GitTreeFetchMap::LoggerPtr const& logger) {
-    // try to back up to remote CAS
-    auto repo = RepositoryConfig{};
-    if (repo.SetGitCAS(StorageConfig::GitRoot())) {
-        auto git_api = GitApi{&repo};
-        if (not git_api.RetrieveToCas(
-                {Artifact::ObjectInfo{
-                    .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
-                    .type = ObjectType::Tree}},
-                remote_api)) {
-            // give a warning
-            (*logger)(fmt::format(
-                          "Failed to back up tree {} from local CAS to remote",
-                          tree_id),
-                      /*fatal=*/false);
-        }
-    }
-    else {
-        // give a warning
-        (*logger)(fmt::format("Failed to SetGitCAS at {}",
-                              StorageConfig::GitRoot().string()),
-                  /*fatal=*/false);
-    }
 }
 
 }  // namespace
@@ -205,13 +211,16 @@ auto CreateGitTreeFetchMap(
                 auto const& cas = Storage::Instance().CAS();
                 if (auto path = cas.TreePath(digest)) {
                     // import tree to Git cache
-                    MoveCASTreeToGit(key.hash,
-                                     digest,
-                                     import_to_git_map,
-                                     local_api,
-                                     ts,
-                                     setter,
-                                     logger);
+                    MoveCASTreeToGit(
+                        key.hash,
+                        digest,
+                        import_to_git_map,
+                        local_api,
+                        remote_api,
+                        (backup_to_remote and remote_api != nullptr),
+                        ts,
+                        setter,
+                        logger);
                     // done!
                     return;
                 }
@@ -232,13 +241,16 @@ auto CreateGitTreeFetchMap(
                                               .type = ObjectType::Tree}},
                         local_api)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);
-                    MoveCASTreeToGit(key.hash,
-                                     digest,
-                                     import_to_git_map,
-                                     local_api,
-                                     ts,
-                                     setter,
-                                     logger);
+                    MoveCASTreeToGit(
+                        key.hash,
+                        digest,
+                        import_to_git_map,
+                        local_api,
+                        remote_api,
+                        false,  // tree already in remote, so ignore backing up
+                        ts,
+                        setter,
+                        logger);
                     // done!
                     return;
                 }
