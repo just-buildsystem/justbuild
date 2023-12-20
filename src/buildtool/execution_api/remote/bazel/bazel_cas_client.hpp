@@ -64,7 +64,7 @@ class BazelCasClient {
         std::string const& instance_name,
         std::vector<BazelBlob>::const_iterator const& begin,
         std::vector<BazelBlob>::const_iterator const& end) noexcept
-        -> std::vector<bazel_re::Digest>;
+        -> std::size_t;
 
     /// \brief Upload multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -74,8 +74,7 @@ class BazelCasClient {
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
         BlobContainer::iterator const& begin,
-        BlobContainer::iterator const& end) noexcept
-        -> std::vector<bazel_re::Digest>;
+        BlobContainer::iterator const& end) noexcept -> std::size_t;
 
     /// \brief Upload multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -86,7 +85,7 @@ class BazelCasClient {
         std::string const& instance_name,
         BlobContainer::RelatedBlobList::iterator const& begin,
         BlobContainer::RelatedBlobList::iterator const& end) noexcept
-        -> std::vector<bazel_re::Digest>;
+        -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -152,7 +151,7 @@ class BazelCasClient {
     [[nodiscard]] auto DoBatchUpdateBlobs(std::string const& instance_name,
                                           T_OutputIter const& start,
                                           T_OutputIter const& end) noexcept
-        -> std::vector<bazel_re::Digest>;
+        -> std::size_t;
 
     template <typename T_Request, typename T_ForwardIter>
     [[nodiscard]] auto CreateBatchRequestsMaxSize(

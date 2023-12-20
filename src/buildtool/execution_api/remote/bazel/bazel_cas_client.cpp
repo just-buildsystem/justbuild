@@ -128,16 +128,14 @@ auto BazelCasClient::FindMissingBlobs(
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     std::vector<BazelBlob>::const_iterator const& begin,
-    std::vector<BazelBlob>::const_iterator const& end) noexcept
-    -> std::vector<bazel_re::Digest> {
+    std::vector<BazelBlob>::const_iterator const& end) noexcept -> std::size_t {
     return DoBatchUpdateBlobs(instance_name, begin, end);
 }
 
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     BlobContainer::iterator const& begin,
-    BlobContainer::iterator const& end) noexcept
-    -> std::vector<bazel_re::Digest> {
+    BlobContainer::iterator const& end) noexcept -> std::size_t {
     return DoBatchUpdateBlobs(instance_name, begin, end);
 }
 
@@ -145,7 +143,7 @@ auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     BlobContainer::RelatedBlobList::iterator const& begin,
     BlobContainer::RelatedBlobList::iterator const& end) noexcept
-    -> std::vector<bazel_re::Digest> {
+    -> std::size_t {
     return DoBatchUpdateBlobs(instance_name, begin, end);
 }
 
@@ -401,11 +399,11 @@ template <class T_OutputIter>
 auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
                                         T_OutputIter const& start,
                                         T_OutputIter const& end) noexcept
-    -> std::vector<bazel_re::Digest> {
-    std::vector<bazel_re::Digest> result;
+    -> std::size_t {
     if (start == end) {
-        return result;
+        return 0;
     }
+    std::vector<bazel_re::Digest> result;
     try {
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::BatchUpdateBlobsRequest>(
@@ -476,7 +474,7 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
         return oss.str();
     });
 
-    return result;
+    return result.size();
 }
 
 namespace detail {

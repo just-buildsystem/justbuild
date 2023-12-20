@@ -174,10 +174,10 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
             sorted.begin(), sorted.end(), [](auto const& x) {
                 return x.data.size() <= kMaxBatchTransferSize;
             });
-        auto digests =
+        auto digests_count =
             cas_->BatchUpdateBlobs(instance_name_, sorted.begin(), it);
 
-        return digests.size() == std::distance(sorted.begin(), it) &&
+        return digests_count == std::distance(sorted.begin(), it) &&
                std::all_of(it, sorted.end(), [this](auto const& x) {
                    return cas_->UpdateSingleBlob(instance_name_, x);
                });

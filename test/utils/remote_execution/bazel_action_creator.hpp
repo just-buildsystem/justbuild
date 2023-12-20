@@ -79,8 +79,8 @@
 
     BazelCasClient cas_client(info->host, info->port);
 
-    if (cas_client.BatchUpdateBlobs(instance_name, blobs.begin(), blobs.end())
-            .size() == blobs.size()) {
+    if (cas_client.BatchUpdateBlobs(
+            instance_name, blobs.begin(), blobs.end()) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(action_id);
     }
     return nullptr;
