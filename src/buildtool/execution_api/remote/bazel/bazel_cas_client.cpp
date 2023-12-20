@@ -402,14 +402,26 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
                                         T_OutputIter const& start,
                                         T_OutputIter const& end) noexcept
     -> std::vector<bazel_re::Digest> {
-    auto request = CreateUpdateBlobsRequest(instance_name, start, end);
-
-    bazel_re::BatchUpdateBlobsResponse response;
-    std::vector<bazel_re::Digest> result{};
+    std::vector<bazel_re::Digest> result;
+    if (start == end) {
+        return result;
+    }
     try {
+        auto requests =
+            CreateBatchRequestsMaxSize<bazel_re::BatchUpdateBlobsRequest>(
+                instance_name,
+                start,
+                end,
+                "BatchUpdateBlobs",
+                [this](bazel_re::BatchUpdateBlobsRequest* request,
+                       BazelBlob const& x) {
+                    *(request->add_requests()) =
+                        this->CreateUpdateBlobsSingleRequest(x);
+                });
+        result.reserve(std::distance(start, end));
         auto batch_update_blobs =
-            [this, &response, &request, &result, &start, &end, &instance_name]()
-            -> RetryResponse {
+            [this, &result](auto const& request) -> RetryResponse {
+            bazel_re::BatchUpdateBlobsResponse response;
             grpc::ClientContext context;
             auto status = stub_->BatchUpdateBlobs(&context, request, &response);
             if (status.ok()) {
@@ -421,57 +433,49 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
                        bazel_re::BatchUpdateBlobsResponse_Response const& r) {
                         v->push_back(r.digest());
                     });
-                //  todo: check status of each response
                 if (batch_response.ok) {
-                    result = std::move(batch_response.result);
+                    std::move(std::begin(batch_response.result),
+                              std::end(batch_response.result),
+                              std::back_inserter(result));
                     return {.ok = true};
                 }
                 return {.ok = false,
                         .exit_retry_loop = batch_response.exit_retry_loop,
                         .error_msg = batch_response.error_msg};
             }
-            if (status.error_code() == grpc::StatusCode::RESOURCE_EXHAUSTED) {
-                LogStatus(&logger_, LogLevel::Progress, status);
-                logger_.Emit(LogLevel::Progress,
-                             "Falling back to single blob transfers");
-                auto current = start;
-                while (current != end) {
-                    if (UpdateSingleBlob(instance_name, (*current))) {
-                        result.emplace_back((*current).digest);
-                    }
-                    else {
-                        // just retry
-                        return {.ok = false};
-                    }
-                    ++current;
-                }
-                return {.ok = true};
-            }
             return {.ok = false,
                     .exit_retry_loop =
                         status.error_code() != grpc::StatusCode::UNAVAILABLE,
-                    .error_msg = status.error_message()};
+                    .error_msg = StatusString(status, "BatchUpdateBlobs")};
         };
-        if (not WithRetry(batch_update_blobs, logger_)) {
+        if (not std::all_of(std::begin(requests),
+                            std::end(requests),
+                            [this, &batch_update_blobs](auto const& request) {
+                                return WithRetry(
+                                    [&request, &batch_update_blobs]() {
+                                        return batch_update_blobs(request);
+                                    },
+                                    logger_);
+                            })) {
             logger_.Emit(LogLevel::Error, "Failed to BatchUpdateBlobs.");
         }
-
-        logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
-            std::ostringstream oss{};
-            oss << "upload blobs" << std::endl;
-            std::for_each(start, end, [&oss](auto const& blob) {
-                oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
-            });
-            oss << "received blobs" << std::endl;
-            std::for_each(
-                result.cbegin(), result.cend(), [&oss](auto const& digest) {
-                    oss << fmt::format(" - {}", digest.hash()) << std::endl;
-                });
-            return oss.str();
-        });
     } catch (...) {
         logger_.Emit(LogLevel::Error, "Caught exception in DoBatchUpdateBlobs");
     }
+    logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+        std::ostringstream oss{};
+        oss << "upload blobs" << std::endl;
+        std::for_each(start, end, [&oss](auto const& blob) {
+            oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
+        });
+        oss << "received blobs" << std::endl;
+        std::for_each(
+            result.cbegin(), result.cend(), [&oss](auto const& digest) {
+                oss << fmt::format(" - {}", digest.hash()) << std::endl;
+            });
+        return oss.str();
+    });
+
     return result;
 }
 
