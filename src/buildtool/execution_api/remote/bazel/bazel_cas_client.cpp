@@ -154,20 +154,31 @@ auto BazelCasClient::BatchReadBlobs(
     std::vector<bazel_re::Digest>::const_iterator const& begin,
     std::vector<bazel_re::Digest>::const_iterator const& end) noexcept
     -> std::vector<BazelBlob> {
-    auto request =
-        CreateRequest<bazel_re::BatchReadBlobsRequest, bazel_re::Digest>(
-            instance_name, begin, end);
-    bazel_re::BatchReadBlobsResponse response;
+    if (begin == end) {
+        return {};
+    }
     std::vector<BazelBlob> result{};
     try {
+        auto requests =
+            CreateBatchRequestsMaxSize<bazel_re::BatchReadBlobsRequest>(
+                instance_name,
+                begin,
+                end,
+                "BatchReadBlobs",
+                [](bazel_re::BatchReadBlobsRequest* request,
+                   bazel_re::Digest const& x) {
+                    *(request->add_digests()) = x;
+                });
+        bazel_re::BatchReadBlobsResponse response;
         auto batch_read_blobs =
-            [this, &response, &request, &result]() -> RetryResponse {
+            [this, &response, &result](auto const& request) -> RetryResponse {
             grpc::ClientContext context;
             auto status = stub_->BatchReadBlobs(&context, request, &response);
             if (status.ok()) {
                 auto batch_response = ProcessBatchResponse<
                     BazelBlob,
-                    bazel_re::BatchReadBlobsResponse_Response>(
+                    bazel_re::BatchReadBlobsResponse_Response,
+                    bazel_re::BatchReadBlobsResponse>(
                     response,
                     [](std::vector<BazelBlob>* v,
                        bazel_re::BatchReadBlobsResponse_Response const& r) {
@@ -184,16 +195,20 @@ auto BazelCasClient::BatchReadBlobs(
             }
             auto exit_retry_loop =
                 status.error_code() != grpc::StatusCode::UNAVAILABLE;
-            return {
-                .ok = false,
-                .exit_retry_loop = exit_retry_loop,
-                .error_msg = fmt::format("{}: {}",
-                                         static_cast<int>(status.error_code()),
-                                         status.error_message())};
+            return {.ok = false,
+                    .exit_retry_loop = exit_retry_loop,
+                    .error_msg = StatusString(status, "BatchReadBlobs")};
         };
-
-        if (not WithRetry(batch_read_blobs, logger_)) {
-            logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs");
+        if (not std::all_of(std::begin(requests),
+                            std::end(requests),
+                            [this, &batch_read_blobs](auto const& request) {
+                                return WithRetry(
+                                    [&request, &batch_read_blobs]() {
+                                        return batch_read_blobs(request);
+                                    },
+                                    logger_);
+                            })) {
+            logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs.");
         }
     } catch (...) {
         logger_.Emit(LogLevel::Error, "Caught exception in BatchReadBlobs");
@@ -612,32 +627,6 @@ auto BazelCasClient::CreateGetTreeRequest(
     request.set_page_size(page_size);
     request.set_page_token(page_token);
     return request;
-}
-
-template <class T_Content, class T_Inner, class T_Response>
-auto BazelCasClient::ProcessBatchResponse(
-    T_Response const& response,
-    std::function<void(std::vector<T_Content>*, T_Inner const&)> const&
-        inserter) const noexcept -> RetryProcessBatchResponse<T_Content> {
-    std::vector<T_Content> output;
-    for (auto const& res : response.responses()) {
-        bazel_re::BatchUpdateBlobsResponse_Response r;
-        auto const& res_status = res.status();
-        if (res_status.code() == static_cast<int>(grpc::StatusCode::OK)) {
-            inserter(&output, res);
-        }
-        else {
-            auto exit_retry_loop =
-                (res_status.code() !=
-                 static_cast<int>(grpc::StatusCode::UNAVAILABLE));
-            return {
-                .ok = false,
-                .exit_retry_loop = exit_retry_loop,
-                .error_msg = fmt::format("While processing batch response: {}",
-                                         res_status.ShortDebugString())};
-        }
-    }
-    return {.ok = true, .result = std::move(output)};
 }
 
 template <class T_Content, class T_Response>

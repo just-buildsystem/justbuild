@@ -197,11 +197,32 @@ class BazelCasClient {
         std::optional<std::string> error_msg{};
     };
 
+    // If this function is defined in the .cpp file, clang raises an error
+    // while linking
     template <class T_Content, class T_Inner, class T_Response>
-    auto ProcessBatchResponse(
+    [[nodiscard]] auto ProcessBatchResponse(
         T_Response const& response,
         std::function<void(std::vector<T_Content>*, T_Inner const&)> const&
-            inserter) const noexcept -> RetryProcessBatchResponse<T_Content>;
+            inserter) const noexcept -> RetryProcessBatchResponse<T_Content> {
+        std::vector<T_Content> output;
+        for (auto const& res : response.responses()) {
+            auto const& res_status = res.status();
+            if (res_status.code() == static_cast<int>(grpc::StatusCode::OK)) {
+                inserter(&output, res);
+            }
+            else {
+                auto exit_retry_loop =
+                    (res_status.code() !=
+                     static_cast<int>(grpc::StatusCode::UNAVAILABLE));
+                return {.ok = false,
+                        .exit_retry_loop = exit_retry_loop,
+                        .error_msg =
+                            fmt::format("While processing batch response: {}",
+                                        res_status.ShortDebugString())};
+            }
+        }
+        return {.ok = true, .result = std::move(output)};
+    }
 
     template <class T_Content, class T_Response>
     auto ProcessResponseContents(T_Response const& response) const noexcept
