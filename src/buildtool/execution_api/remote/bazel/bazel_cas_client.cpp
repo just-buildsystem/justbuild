@@ -27,6 +27,7 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 
 namespace {
 
@@ -492,6 +493,53 @@ auto GetResponseContents<bazel_re::Digest, bazel_re::SplitBlobResponse>(
 }
 
 }  // namespace detail
+
+template <typename T_Request, typename T_ForwardIter>
+auto BazelCasClient::CreateBatchRequestsMaxSize(
+    std::string const& instance_name,
+    T_ForwardIter const& first,
+    T_ForwardIter const& last,
+    std::string const& heading,
+    std::function<void(T_Request*,
+                       typename T_ForwardIter::value_type const&)> const&
+        request_builder) const noexcept -> std::vector<T_Request> {
+    if (first == last) {
+        return {};
+    }
+    std::vector<T_Request> result;
+    T_Request accumulating_request;
+    std::for_each(
+        first,
+        last,
+        [&instance_name, &accumulating_request, &result, &request_builder](
+            auto const& blob) {
+            T_Request request;
+            request.set_instance_name(instance_name);
+            request_builder(&request, blob);
+            if (accumulating_request.ByteSizeLong() + request.ByteSizeLong() >
+                kMaxBatchTransferSize) {
+                result.emplace_back(std::move(accumulating_request));
+                accumulating_request = std::move(request);
+            }
+            else {
+                accumulating_request.MergeFrom(request);
+            }
+        });
+    result.emplace_back(std::move(accumulating_request));
+    logger_.Emit(LogLevel::Trace, [&heading, &result]() {
+        std::ostringstream oss{};
+        std::size_t count{0};
+        oss << heading << " - Request sizes:" << std::endl;
+        std::for_each(
+            result.begin(), result.end(), [&oss, &count](auto const& request) {
+                oss << fmt::format(
+                           " {}: {} bytes", ++count, request.ByteSizeLong())
+                    << std::endl;
+            });
+        return oss.str();
+    });
+    return result;
+}
 
 template <class T_Request, class T_Content, class T_OutputIter>
 auto BazelCasClient::CreateRequest(std::string const& instance_name,
