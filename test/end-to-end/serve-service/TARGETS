@@ -12,7 +12,11 @@
 , "serve-target-remote-build (repo)":
   { "type": "generic"
   , "out_dirs": ["src"]
-  , "cmds": ["for i in `seq 1 5` ; do echo $i > src/$i.txt ; done"]
+  , "cmds":
+    [ "for i in `seq 1 5` ; do echo $i > src/$i.txt ; done"
+    , "mkdir src/subdir"
+    , "for i in `seq 6 10` ; do echo $i > src/subdir/sub-$i.txt ; done"
+    ]
   }
 , "serve-target-remote-build (data)":
   { "type": ["@", "rules", "data", "staged"]
@@ -51,15 +55,47 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "serve-tree (data)":
+  { "type": "install"
+  , "files": {"repo/TARGETS": "data/targets/TARGETS.tree"}
+  , "dirs": [["serve-target-remote-build (repo)", "repo"]]
+  }
+, "serve-tree (archive)":
+  { "type": "generic"
+  , "outs": ["src.tar"]
+  , "cmds": ["tar cf src.tar repo"]
+  , "deps": ["serve-tree (data)"]
+  }
+, "serve-tree":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-tree"]
+  , "test": ["serve-tree.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "serve-tree (archive)"
+    ]
+  , "repos": ["serve-tree (archive)"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
   , "deps":
-    [ "serve-target-remote-build"
-    , "serve-target-cache-hit"
-    , "serve-start-execute"
-    , "serve-start-execute-sharding"
-    , "serve-export-deps"
-    ]
+    { "type": "++"
+    , "$1":
+      [ [ "serve-target-remote-build"
+        , "serve-target-cache-hit"
+        , "serve-start-execute"
+        , "serve-start-execute-sharding"
+        , "serve-export-deps"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+        , "then": []
+        , "else": ["serve-tree"]
+        }
+      ]
+    }
   }
 }

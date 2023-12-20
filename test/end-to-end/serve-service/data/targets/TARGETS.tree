@@ -1,0 +1,3 @@
+{ "": {"type": "export", "target": "tree"}
+, "tree": {"type": "install", "dirs": [[["TREE", null, "src"], "."]]}
+}
