@@ -56,10 +56,7 @@
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
 , "serve-tree (data)":
-  { "type": "install"
-  , "files": {"repo/TARGETS": "data/targets/TARGETS.tree"}
-  , "dirs": [["serve-target-remote-build (repo)", "repo"]]
-  }
+  {"type": "install", "dirs": [["serve-target-remote-build (repo)", "repo"]]}
 , "serve-tree (archive)":
   { "type": "generic"
   , "outs": ["src.tar"]
@@ -74,6 +71,7 @@
     [ ["end-to-end", "mr-tool-under-test"]
     , ["end-to-end", "tool-under-test"]
     , "serve-tree (archive)"
+    , "data/targets/TARGETS.tree"
     ]
   , "repos": ["serve-tree (archive)"]
   }
