@@ -163,19 +163,6 @@ class BazelCasClient {
                            typename T_ForwardIter::value_type const&)> const&
             request_builder) const noexcept -> std::vector<T_Request>;
 
-    template <class T_Request, class T_Content, class T_OutputIter>
-    [[nodiscard]] auto CreateRequest(std::string const& instance_name,
-                                     T_OutputIter const& start,
-                                     T_OutputIter const& end) const noexcept
-        -> T_Request;
-
-    template <class T_OutputIter>
-    [[nodiscard]] auto CreateUpdateBlobsRequest(
-        std::string const& instance_name,
-        T_OutputIter const& start,
-        T_OutputIter const& end) const noexcept
-        -> bazel_re::BatchUpdateBlobsRequest;
-
     [[nodiscard]] static auto CreateUpdateBlobsSingleRequest(
         BazelBlob const& b) noexcept
         -> bazel_re::BatchUpdateBlobsRequest_Request;

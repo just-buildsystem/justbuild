@@ -479,31 +479,10 @@ auto BazelCasClient::DoBatchUpdateBlobs(std::string const& instance_name,
 
 namespace detail {
 
-// Getter for request contents (needs specialization, never implemented)
-template <class T_Content, class T_Request>
-static auto GetRequestContents(T_Request&) noexcept
-    -> pb::RepeatedPtrField<T_Content>*;
-
 // Getter for response contents (needs specialization, never implemented)
 template <class T_Content, class T_Response>
 static auto GetResponseContents(T_Response const&) noexcept
     -> pb::RepeatedPtrField<T_Content> const&;
-
-// Specialization of GetRequestContents for 'FindMissingBlobsRequest'
-template <>
-auto GetRequestContents<bazel_re::Digest, bazel_re::FindMissingBlobsRequest>(
-    bazel_re::FindMissingBlobsRequest& request) noexcept
-    -> pb::RepeatedPtrField<bazel_re::Digest>* {
-    return request.mutable_blob_digests();
-}
-
-// Specialization of GetRequestContents for 'BatchReadBlobsRequest'
-template <>
-auto GetRequestContents<bazel_re::Digest, bazel_re::BatchReadBlobsRequest>(
-    bazel_re::BatchReadBlobsRequest& request) noexcept
-    -> pb::RepeatedPtrField<bazel_re::Digest>* {
-    return request.mutable_digests();
-}
 
 // Specialization of GetResponseContents for 'FindMissingBlobsResponse'
 template <>
@@ -576,36 +555,6 @@ auto BazelCasClient::CreateBatchRequestsMaxSize(
         return oss.str();
     });
     return result;
-}
-
-template <class T_Request, class T_Content, class T_OutputIter>
-auto BazelCasClient::CreateRequest(std::string const& instance_name,
-                                   T_OutputIter const& start,
-                                   T_OutputIter const& end) const noexcept
-    -> T_Request {
-    T_Request request;
-    request.set_instance_name(instance_name);
-    std::copy(
-        start,
-        end,
-        pb::back_inserter(detail::GetRequestContents<T_Content>(request)));
-    return request;
-}
-
-template <class T_OutputIter>
-auto BazelCasClient::CreateUpdateBlobsRequest(std::string const& instance_name,
-                                              T_OutputIter const& start,
-                                              T_OutputIter const& end)
-    const noexcept -> bazel_re::BatchUpdateBlobsRequest {
-    bazel_re::BatchUpdateBlobsRequest request;
-    request.set_instance_name(instance_name);
-    std::transform(start,
-                   end,
-                   pb::back_inserter(request.mutable_requests()),
-                   [](BazelBlob const& b) {
-                       return BazelCasClient::CreateUpdateBlobsSingleRequest(b);
-                   });
-    return request;
 }
 
 auto BazelCasClient::CreateUpdateBlobsSingleRequest(BazelBlob const& b) noexcept
