@@ -149,4 +149,21 @@ echo "failed as expected"
     --log-limit 5                     \
     -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 
+# Verify that the export target is fully in cache
+"${JUST}" install                     \
+    --local-build-root "${LBR}"       \
+    -C "${CONF}"                      \
+    --remote-serve-address "${SERVE}" \
+    -r "${REMOTE_EXECUTION_ADDRESS}"  \
+    ${COMPAT}                         \
+    ${REMOTE_PROPERTIES}              \
+    ${DISPATCH}                       \
+    --log-limit 5                     \
+    -o "${OUT}"                       \
+    -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
+ls -R "${OUT}"
+test -f "${OUT}/out/hello/world/tree/hello.txt"
+test -f "${OUT}/out/hello/world/tree/name.txt"
+test "$(cat "${OUT}/out/hello/world/tree/name.txt")" = "World"
+
 echo OK
