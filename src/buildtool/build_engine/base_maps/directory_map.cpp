@@ -36,6 +36,18 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(
                 true);
             return;
         }
+        if (ws_root->IsAbsent()) {
+            std::string missing_root = "[unknown]";
+            auto absent_tree = ws_root->GetAbsentTreeId();
+            if (absent_tree) {
+                missing_root = *absent_tree;
+            }
+            (*logger)(fmt::format("Would have to read directory entries of "
+                                  "absent root {}.",
+                                  missing_root),
+                      true);
+            return;
+        }
         auto dir_path = key.module.empty() ? "." : key.module;
         if (not ws_root->IsDirectory(dir_path)) {
             // Missing directory is fine (source tree might be incomplete),
