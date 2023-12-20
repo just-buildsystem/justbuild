@@ -315,7 +315,7 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
         },
         logger_);
     if (not ok) {
-        LogStatus(&logger_, LogLevel::Error, status);
+        LogStatus(&logger_, LogLevel::Error, status, "SplitBlob");
         return std::nullopt;
     }
     return ProcessResponseContents<bazel_re::Digest>(response);
