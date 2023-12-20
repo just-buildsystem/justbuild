@@ -321,44 +321,64 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
     return ProcessResponseContents<bazel_re::Digest>(response);
 }
 
-template <class T_OutputIter>
+template <class T_ForwardIter>
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
-                                      T_OutputIter const& start,
-                                      T_OutputIter const& end) noexcept
+                                      T_ForwardIter const& start,
+                                      T_ForwardIter const& end) noexcept
     -> std::vector<bazel_re::Digest> {
-    auto request =
-        CreateRequest<bazel_re::FindMissingBlobsRequest, bazel_re::Digest>(
-            instance_name, start, end);
-
-    bazel_re::FindMissingBlobsResponse response;
-    auto [ok, status] = WithRetry(
-        [this, &response, &request]() {
-            grpc::ClientContext context;
-            return stub_->FindMissingBlobs(&context, request, &response);
-        },
-        logger_);
-    std::vector<bazel_re::Digest> result{};
-    if (ok) {
-        result = ProcessResponseContents<bazel_re::Digest>(response);
+    std::vector<bazel_re::Digest> result;
+    if (start == end) {
+        return result;
     }
-    else {
-        LogStatus(&logger_, LogLevel::Error, status);
-    }
-
-    logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
-        std::ostringstream oss{};
-        oss << "find missing blobs" << std::endl;
-        std::for_each(start, end, [&oss](auto const& digest) {
-            oss << fmt::format(" - {}", digest.hash()) << std::endl;
-        });
-        oss << "missing blobs" << std::endl;
-        std::for_each(
-            result.cbegin(), result.cend(), [&oss](auto const& digest) {
+    try {
+        result.reserve(std::distance(start, end));
+        auto requests =
+            CreateBatchRequestsMaxSize<bazel_re::FindMissingBlobsRequest>(
+                instance_name,
+                start,
+                end,
+                "FindMissingBlobs",
+                [](bazel_re::FindMissingBlobsRequest* request,
+                   bazel_re::Digest const& x) {
+                    *(request->add_blob_digests()) = x;
+                });
+        for (auto const& request : requests) {
+            bazel_re::FindMissingBlobsResponse response;
+            auto [ok, status] = WithRetry(
+                [this, &response, &request]() {
+                    grpc::ClientContext context;
+                    return stub_->FindMissingBlobs(
+                        &context, request, &response);
+                },
+                logger_);
+            if (ok) {
+                auto batch =
+                    ProcessResponseContents<bazel_re::Digest>(response);
+                for (auto&& x : batch) {
+                    result.emplace_back(std::move(x));
+                }
+            }
+            else {
+                LogStatus(
+                    &logger_, LogLevel::Error, status, "FindMissingBlobs");
+            }
+        }
+        logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+            std::ostringstream oss{};
+            oss << "find missing blobs" << std::endl;
+            std::for_each(start, end, [&oss](auto const& digest) {
                 oss << fmt::format(" - {}", digest.hash()) << std::endl;
             });
-        return oss.str();
-    });
-
+            oss << "missing blobs" << std::endl;
+            std::for_each(
+                result.cbegin(), result.cend(), [&oss](auto const& digest) {
+                    oss << fmt::format(" - {}", digest.hash()) << std::endl;
+                });
+            return oss.str();
+        });
+    } catch (...) {
+        logger_.Emit(LogLevel::Error, "Caught exception in FindMissingBlobs");
+    }
     return result;
 }
 
