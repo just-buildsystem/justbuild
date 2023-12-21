@@ -30,7 +30,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
     // make sure the blob containing the key is in the remote cas
     if (!local_api_->RetrieveToCas({key.Id()}, &*remote_api_)) {
-        logger_.Emit(LogLevel::Error,
+        logger_.Emit(LogLevel::Performance,
                      "failed to retrieve to remote cas ObjectInfo {}",
                      key.Id().ToString());
         return std::nullopt;
@@ -40,7 +40,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
             {Artifact::ObjectInfo{.digest = ArtifactDigest{repo_key, 0, false},
                                   .type = ObjectType::File}},
             &*remote_api_)) {
-        logger_.Emit(LogLevel::Error,
+        logger_.Emit(LogLevel::Performance,
                      "failed to retrieve to remote cas blob {}",
                      repo_key);
         return std::nullopt;
@@ -72,7 +72,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     auto dispatch_dgst =
         Storage::Instance().CAS().StoreBlob(dispatch_list.dump(2));
     if (not dispatch_dgst) {
-        logger_.Emit(LogLevel::Error,
+        logger_.Emit(LogLevel::Performance,
                      "failed to store blob {} to local cas",
                      dispatch_list.dump(2));
         return std::nullopt;
@@ -80,7 +80,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     auto const& dispatch_info = Artifact::ObjectInfo{
         .digest = ArtifactDigest{*dispatch_dgst}, .type = ObjectType::File};
     if (!local_api_->RetrieveToCas({dispatch_info}, &*remote_api_)) {
-        logger_.Emit(LogLevel::Error,
+        logger_.Emit(LogLevel::Performance,
                      "failed to upload blob {} to remote cas",
                      dispatch_info.ToString());
         return std::nullopt;
@@ -92,7 +92,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     justbuild::just_serve::ServeTargetResponse response;
     auto const& status = stub_->ServeTarget(&context, request, &response);
     if (!status.ok()) {
-        LogStatus(&logger_, LogLevel::Error, status);
+        LogStatus(&logger_, LogLevel::Performance, status);
         return std::nullopt;
     }
     auto const& target_value_dgst = ArtifactDigest{response.target_value()};
@@ -100,7 +100,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                                                 .type = ObjectType::File};
     if (!local_api_->IsAvailable(target_value_dgst)) {
         if (!remote_api_->RetrieveToCas({obj_info}, &*local_api_)) {
-            logger_.Emit(LogLevel::Error,
+            logger_.Emit(LogLevel::Performance,
                          "failed to retrieve blob {} from remote cas",
                          obj_info.ToString());
             return std::nullopt;
@@ -109,7 +109,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
 
     auto const& target_value_str = local_api_->RetrieveToMemory(obj_info);
     if (!target_value_str) {
-        logger_.Emit(LogLevel::Error,
+        logger_.Emit(LogLevel::Performance,
                      "failed to retrieve blob {} from local cas",
                      obj_info.ToString());
         return std::nullopt;
