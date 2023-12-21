@@ -140,10 +140,18 @@ auto TargetService::ServeTarget(
     auto const description_str = description.dump(
         2, ' ', false, nlohmann::json::error_handler_t::replace);
     auto execution_backend_dgst =
-        ArtifactDigest::Create<ObjectType::File>(description_str);
-    auto const& execution_info =
-        Artifact::ObjectInfo{.digest = ArtifactDigest{execution_backend_dgst},
-                             .type = ObjectType::File};
+        Storage::Instance().CAS().StoreBlob(description_str);
+    if (not execution_backend_dgst) {
+        logger_->Emit(
+            LogLevel::Error,
+            "Failed to store execution backend description in local CAS");
+        return ::grpc::Status{
+            ::grpc::StatusCode::INTERNAL,
+            "Failed to store execution backend description in local CAS"};
+    }
+    auto untagged_execution_backend = ArtifactDigest{*execution_backend_dgst};
+    auto const& execution_info = Artifact::ObjectInfo{
+        .digest = untagged_execution_backend, .type = ObjectType::File};
     if (!local_api_->RetrieveToCas({execution_info}, &*remote_api_)) {
         auto msg = fmt::format("Failed to upload blob {} to remote CAS",
                                execution_info.ToString());
@@ -153,7 +161,7 @@ auto TargetService::ServeTarget(
 
     // get a target cache instance with the correct computed shard
     auto const& tc = Storage::Instance().TargetCache().WithShard(
-        execution_backend_dgst.hash());
+        untagged_execution_backend.hash());
     auto const& tc_key =
         TargetCacheKey{{target_cache_key_digest, ObjectType::File}};
 
