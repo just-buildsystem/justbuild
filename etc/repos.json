@@ -387,6 +387,7 @@
       , "sha256": "931f07db9d48cff6a6007c1033ba6d691fe655bea2765444bc1ad974dfc840aa"
       , "sha512": "bb4be3b8a128566581b7ea69d1faa6d08a28624656c2f4afdd8bb8fa804e362b7d8f2bb6c52789081b48f299ddffe18e1795c8dce9b9bc304a5e6d3a4274b11e"
       , "subdir": "grpc-1.56.2"
+      , "pragma": {"special": "ignore"}
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.grpc"
