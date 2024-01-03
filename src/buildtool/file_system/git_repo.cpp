@@ -1313,6 +1313,57 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+auto GitRepo::CheckBlobExists(std::string const& blob_id,
+                              anon_logger_ptr const& logger) noexcept
+    -> std::optional<bool> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            Logger::Log(LogLevel::Debug,
+                        "Blob lookup called on a real repository");
+        }
+        // get git oid
+        git_oid blob_oid;
+        if (git_oid_fromstr(&blob_oid, blob_id.c_str()) != 0) {
+            (*logger)(fmt::format("blob ID parsing in git repository {} failed "
+                                  "with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        // get blob object
+        git_blob* blob_ptr = nullptr;
+        int lookup_res{};
+        {
+            // share the odb lock
+            std::shared_lock lock{GetGitCAS()->mutex_};
+            lookup_res = git_blob_lookup(&blob_ptr, repo_->Ptr(), &blob_oid);
+        }
+        git_blob_free(blob_ptr);
+        if (lookup_res != 0) {
+            if (lookup_res == GIT_ENOTFOUND) {
+                return false;  // blob not found
+            }
+            (*logger)(fmt::format("blob lookup in git repository {} failed "
+                                  "with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return std::nullopt;
+        }
+        return true;  // blob found
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "check blob exists failed with:\n{}", ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 auto GitRepo::TryReadBlob(std::string const& blob_id,
                           anon_logger_ptr const& logger) noexcept
     -> std::pair<bool, std::optional<std::string>> {
