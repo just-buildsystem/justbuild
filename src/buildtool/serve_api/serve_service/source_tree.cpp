@@ -648,12 +648,18 @@ auto SourceTreeService::ServeArchiveTree(
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
+    // check if content is in local CAS already
+    auto digest = ArtifactDigest(content, 0, false);
+    auto const& cas = Storage::Instance().CAS();
     std::optional<std::filesystem::path> content_cas_path{std::nullopt};
-    // check if content blob is in Git cache
-    if (auto data =
-            GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_)) {
-        // add to CAS
-        content_cas_path = StorageUtils::AddToCAS(*data);
+    if (content_cas_path = cas.BlobPath(digest, /*is_executable=*/false);
+        not content_cas_path) {
+        // check if content blob is in Git cache
+        if (auto data =
+                GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_)) {
+            // add to CAS
+            content_cas_path = StorageUtils::AddToCAS(*data);
+        }
     }
     if (not content_cas_path) {
         // check if content blob is in a known repository
@@ -669,7 +675,6 @@ auto SourceTreeService::ServeArchiveTree(
     }
     if (not content_cas_path) {
         // try to retrieve it from remote CAS
-        auto digest = ArtifactDigest(content, 0, false);
         if (not(remote_api_->IsAvailable(digest) and
                 remote_api_->RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
@@ -680,9 +685,14 @@ auto SourceTreeService::ServeArchiveTree(
             return ::grpc::Status::OK;
         }
         // content should now be in CAS
-        auto const& cas = Storage::Instance().CAS();
-        content_cas_path =
-            cas.BlobPath(digest, /*is_executable=*/false).value();
+        content_cas_path = cas.BlobPath(digest, /*is_executable=*/false);
+        if (not content_cas_path) {
+            auto str = fmt::format(
+                "Retrieving content {} from CAS failed unexpectedly", content);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
+            return ::grpc::Status::OK;
+        }
     }
     // extract archive
     auto tmp_dir = StorageUtils::CreateTypedTmpDir(archive_type);
