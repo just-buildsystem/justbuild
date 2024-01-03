@@ -58,6 +58,13 @@ class ServeApi final {
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
 
+    [[nodiscard]] static auto RetrieveTreeFromDistdir(
+        std::shared_ptr<std::unordered_map<std::string, std::string>> const&
+            distfiles,
+        bool sync_tree = false) -> std::optional<std::string> {
+        return Instance().stc_->ServeDistdirTree(distfiles, sync_tree);
+    }
+
     [[nodiscard]] static auto ContentInRemoteCAS(std::string const& content)
         -> bool {
         return Instance().stc_->ServeContent(content);

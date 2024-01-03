@@ -54,6 +54,18 @@ class SourceTreeClient {
         std::optional<PragmaSpecial> const& resolve_symlinks,
         bool sync_tree) -> std::optional<std::string>;
 
+    /// \brief Retrieve the Git tree of a directory of distfiles, if all the
+    /// content blobs are known by serve remote.
+    /// \param[in] distfiles Mapping from distfile names to content blob ids.
+    /// \param[in] sync_tree Sync tree and all ditfile blobs to the
+    /// remote-execution endpoint.
+    /// \returns The hash of the resulting tree if all distfile blobs found,
+    /// nullopt otherwise.
+    [[nodiscard]] auto ServeDistdirTree(
+        std::shared_ptr<std::unordered_map<std::string, std::string>> const&
+            distfiles,
+        bool sync_tree) -> std::optional<std::string>;
+
     /// \brief Make a given content blob available in remote CAS, if known by
     /// serve remote.
     /// \param[in] content Hash of the archive content to look up.

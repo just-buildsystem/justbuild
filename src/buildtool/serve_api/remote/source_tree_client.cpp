@@ -121,6 +121,36 @@ auto SourceTreeClient::ServeArchiveTree(
     return response.tree();
 }
 
+auto SourceTreeClient::ServeDistdirTree(
+    std::shared_ptr<std::unordered_map<std::string, std::string>> const&
+        distfiles,
+    bool sync_tree) -> std::optional<std::string> {
+    justbuild::just_serve::ServeDistdirTreeRequest request{};
+    for (auto const& [k, v] : *distfiles) {
+        auto* distfile = request.add_distfiles();
+        distfile->set_name(k);
+        distfile->set_content(v);
+    }
+    request.set_sync_tree(sync_tree);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ServeDistdirTreeResponse response;
+    grpc::Status status = stub_->ServeDistdirTree(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return std::nullopt;
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::ServeDistdirTreeResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ServeDistdirTree response returned with {}",
+                     static_cast<int>(response.status()));
+        return std::nullopt;
+    }
+    return response.tree();
+}
+
 auto SourceTreeClient::ServeContent(std::string const& content) -> bool {
     justbuild::just_serve::ServeContentRequest request{};
     request.set_content(content);
