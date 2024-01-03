@@ -212,7 +212,8 @@ auto SourceTreeService::ServeCommitTree(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::Tree}},
                     &(*remote_api_))) {
-                auto str = fmt::format("Failed to sync tree {}", *tree_id);
+                auto str = fmt::format(
+                    "Failed to sync tree {} from local Git cache", *tree_id);
                 logger_->Emit(LogLevel::Error, str);
                 *(response->mutable_tree()) = std::move(*tree_id);
                 response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
@@ -245,7 +246,10 @@ auto SourceTreeService::ServeCommitTree(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
                         &(*remote_api_))) {
-                    auto str = fmt::format("Failed to sync tree {}", *tree_id);
+                    auto str = fmt::format(
+                        "Failed to sync tree {} from known repository {}",
+                        *tree_id,
+                        path.string());
                     logger_->Emit(LogLevel::Error, str);
                     *(response->mutable_tree()) = std::move(*tree_id);
                     response->set_status(ServeCommitTreeResponse::SYNC_ERROR);
@@ -283,7 +287,9 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
                 &(*remote_api_))) {
-            auto str = fmt::format("Failed to sync tree {}", tree_id);
+            auto str = fmt::format("Failed to sync tree {} from repository {}",
+                                   tree_id,
+                                   repo_path.string());
             logger_->Emit(LogLevel::Error, str);
             *(response->mutable_tree()) = tree_id;
             response->set_status(ServeArchiveTreeResponse::SYNC_ERROR);
@@ -757,7 +763,8 @@ auto SourceTreeService::ServeContent(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::File}},
                 &(*remote_api_))) {
-            auto str = fmt::format("Failed to sync content {}", content);
+            auto str = fmt::format(
+                "Failed to sync content {} from local Git cache", content);
             logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeContentResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
@@ -784,7 +791,10 @@ auto SourceTreeService::ServeContent(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::File}},
                     &(*remote_api_))) {
-                auto str = fmt::format("Failed to sync content {}", content);
+                auto str = fmt::format(
+                    "Failed to sync content {} from known repository {}",
+                    content,
+                    path.string());
                 logger_->Emit(LogLevel::Error, str);
                 response->set_status(ServeContentResponse::SYNC_ERROR);
                 return ::grpc::Status::OK;
@@ -829,7 +839,8 @@ auto SourceTreeService::ServeTree(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
                 &(*remote_api_))) {
-            auto str = fmt::format("Failed to sync tree {}", tree_id);
+            auto str = fmt::format(
+                "Failed to sync tree {} from local Git cache", tree_id);
             logger_->Emit(LogLevel::Error, str);
             response->set_status(ServeTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
@@ -856,7 +867,10 @@ auto SourceTreeService::ServeTree(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::Tree}},
                     &(*remote_api_))) {
-                auto str = fmt::format("Failed to sync tree {}", tree_id);
+                auto str = fmt::format(
+                    "Failed to sync tree {} from known repository {}",
+                    tree_id,
+                    path.string());
                 logger_->Emit(LogLevel::Error, str);
                 response->set_status(ServeTreeResponse::SYNC_ERROR);
                 return ::grpc::Status::OK;
