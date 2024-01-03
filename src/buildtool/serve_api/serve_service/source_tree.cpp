@@ -745,11 +745,11 @@ auto SourceTreeService::ServeContent(
         response->set_status(ServeContentResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
+    auto const digest = ArtifactDigest{content, 0, /*is_tree=*/false};
     // check if content blob is in Git cache
     if (auto data =
             GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_)) {
         // upload blob to remote CAS
-        auto digest = ArtifactDigest{content, 0, /*is_tree=*/false};
         auto repo = RepositoryConfig{};
         if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
             auto str = fmt::format("Failed to SetGitCAS at {}",
@@ -777,7 +777,6 @@ auto SourceTreeService::ServeContent(
     for (auto const& path : RemoteServeConfig::KnownRepositories()) {
         if (auto data = GetBlobFromRepo(path, content, logger_)) {
             // upload blob to remote CAS
-            auto digest = ArtifactDigest{content, 0, /*is_tree=*/false};
             auto repo = RepositoryConfig{};
             if (not repo.SetGitCAS(path)) {
                 auto str =
@@ -804,6 +803,17 @@ auto SourceTreeService::ServeContent(
             return ::grpc::Status::OK;
         }
     }
+    // check also in the local CAS
+    if (local_api_->IsAvailable(digest) and
+        not local_api_->RetrieveToCas(
+            {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::File}},
+            &(*remote_api_))) {
+        auto str =
+            fmt::format("Failed to sync content {} from local CAS", content);
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeContentResponse::SYNC_ERROR);
+        return ::grpc::Status::OK;
+    }
     // content blob not known
     response->set_status(ServeContentResponse::NOT_FOUND);
     return ::grpc::Status::OK;
@@ -822,10 +832,10 @@ auto SourceTreeService::ServeTree(
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
+    auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
     // check if tree is in Git cache
     if (IsTreeInRepo(tree_id, StorageConfig::GitRoot(), logger_)) {
         // upload tree to remote CAS
-        auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
         auto repo = RepositoryConfig{};
         if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
             auto str = fmt::format("Failed to SetGitCAS at {}",
@@ -853,7 +863,6 @@ auto SourceTreeService::ServeTree(
     for (auto const& path : RemoteServeConfig::KnownRepositories()) {
         if (IsTreeInRepo(tree_id, path, logger_)) {
             // upload tree to remote CAS
-            auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
             auto repo = RepositoryConfig{};
             if (not repo.SetGitCAS(path)) {
                 auto str =
@@ -879,6 +888,17 @@ auto SourceTreeService::ServeTree(
             response->set_status(ServeTreeResponse::OK);
             return ::grpc::Status::OK;
         }
+    }
+    // check also in the local CAS
+    if (local_api_->IsAvailable(digest) and
+        not local_api_->RetrieveToCas(
+            {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
+            &(*remote_api_))) {
+        auto str =
+            fmt::format("Failed to sync tree {} from local CAS", tree_id);
+        logger_->Emit(LogLevel::Error, str);
+        response->set_status(ServeTreeResponse::SYNC_ERROR);
+        return ::grpc::Status::OK;
     }
     // tree not known
     response->set_status(ServeTreeResponse::NOT_FOUND);
