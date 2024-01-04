@@ -30,6 +30,7 @@
             auto parsed = ParseDispatch(*dispatch_info);
             if (parsed.index() == 0) {
                 Logger::Log(LogLevel::Warning, std::get<0>(parsed));
+                return false;
             }
             Instance().dispatch_ = std::move(std::get<1>(parsed));
             return true;
