@@ -1,0 +1,35 @@
+{ "payload":
+  { "type": "generic"
+  , "cmds": ["echo this-is-the-payload > payload.txt"]
+  , "outs": ["payload.txt"]
+  }
+, "drop":
+  { "type": "generic"
+  , "cmds": ["echo please-drop-this > drop.txt"]
+  , "outs": ["drop.txt"]
+  }
+, "post":
+  { "type": "generic"
+  , "cmds": ["echo this-is-added-at-the-end > post.txt"]
+  , "outs": ["post.txt"]
+  }
+, "special-dispatch":
+  { "type": "generic"
+  , "cmds": ["cat payload.txt drop.txt > out.txt"]
+  , "outs": ["out.txt"]
+  , "execution properties":
+    {"type": "singleton_map", "key": "server", "value": "special"}
+  , "deps": ["payload", "drop"]
+  }
+, "internal":
+  { "type": "generic"
+  , "cmds": ["cat out.txt post.txt > final.txt"]
+  , "deps": ["special-dispatch", "post"]
+  , "outs": ["final.txt"]
+  }
+, "":
+  { "type": "export"
+  , "target": "internal"
+  , "flexible_config": ["AR", "ARCH", "ENV", "OS"]
+  }
+}
