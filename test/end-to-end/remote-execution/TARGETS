@@ -45,6 +45,12 @@
   { "type": "install"
   , "tainted": ["test"]
   , "deps":
-    ["native-protocol", "large-blobs", "upload-test", "install", "install-cas"]
+    [ "native-protocol"
+    , "large-blobs"
+    , "upload-test"
+    , "install"
+    , "install-cas"
+    , "dispatch"
+    ]
   }
 }
