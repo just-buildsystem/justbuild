@@ -118,9 +118,10 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     if (eargs.remote_execution_dispatch_file) {
         if (not RemoteConfig::SetRemoteExecutionDispatch(
                 *eargs.remote_execution_dispatch_file)) {
-            Logger::Log(LogLevel::Error,
-                        "Setting remote execution dispatch based on file '{}'",
-                        eargs.remote_execution_dispatch_file->string());
+            Logger::Log(
+                LogLevel::Error,
+                "Setting remote execution dispatch based on file '{}' failed.",
+                eargs.remote_execution_dispatch_file->string());
             std::exit(kExitFailure);
         }
     }
