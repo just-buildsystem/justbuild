@@ -313,6 +313,17 @@ def prune_config(*, repos_file, empty_dir):
     with open(repos_file, "w") as f:
         json.dump(repos, f, indent=2)
 
+def ignore_dst(dst):
+    def ignore_(path, names):
+        if os.path.normpath(path) == dst:
+            return names
+        for n in names:
+            if os.path.normpath(os.path.join(path, n)) == dst:
+                return[n]
+        return []
+    return ignore_
+
+
 def copy_roots(*, repos_file, copy_dir):
     with open(repos_file) as f:
         repos = json.load(f)
@@ -324,10 +335,14 @@ def copy_roots(*, repos_file, copy_dir):
             new_root = os.path.join(copy_dir, repo)
             for x in to_copy:
                 src = os.path.join(old_root, x)
-                dst = os.path.join(new_root, x)
+                dst = os.path.normpath(os.path.join(new_root, x))
+
                 if os.path.isdir(src):
-                    shutil.copytree(src, dst,
-                                     symlinks=False, dirs_exist_ok=True)
+                    shutil.copytree(src,
+                                    dst,
+                                    ignore=ignore_dst(dst),
+                                    symlinks=False,
+                                    dirs_exist_ok=True)
                 elif os.path.isfile(src):
                     os.makedirs(os.path.dirname(dst), exist_ok=True)
                     shutil.copyfile(src, dst, follow_symlinks=True)
@@ -347,8 +362,8 @@ def bootstrap():
     os.makedirs(WRKDIR, exist_ok=True)
     with open(os.path.join(WRKDIR, "build-conf.json"), 'w') as f:
         json.dump(CONF, f, indent=2)
-    src_wrkdir = os.path.join(WRKDIR, "src")
-    shutil.copytree(SRCDIR, src_wrkdir)
+    src_wrkdir = os.path.normpath(os.path.join(WRKDIR, "src"))
+    shutil.copytree(SRCDIR, src_wrkdir, ignore=ignore_dst(src_wrkdir))
     if LOCAL_DEPS:
         config_to_local(
             repos_file =os.path.join(src_wrkdir, REPOS),

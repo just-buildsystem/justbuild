@@ -7,6 +7,8 @@ Bug fixes on top of release `1.2.4`.
 - On errors reading expressions, the full import path is reported
   in the error message.
 - Child processes are now properly waited for in all circumstances.
+- Bootstrapping is now also supported if the build directory resides
+  in the source tree.
 
 ## Release `1.2.4` (2023-12-19)
 
