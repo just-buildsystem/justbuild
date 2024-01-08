@@ -337,6 +337,27 @@
   , "deps": ["config", "raw_logging_internal"]
   }
 , "malloc_internal":
+  { "type": "export"
+  , "target": "malloc_internal_"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "PATCH"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "malloc_internal_":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["malloc_internal"]
