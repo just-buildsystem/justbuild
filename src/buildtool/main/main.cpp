@@ -907,12 +907,15 @@ auto main(int argc, char* argv[]) -> int {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         SetupRetryConfig(arguments.retry);
-        GraphTraverser const traverser{{jobs,
-                                        std::move(arguments.build),
-                                        std::move(stage_args),
-                                        std::move(rebuild_args)},
-                                       &repo_config,
-                                       ProgressReporter::Reporter()};
+        GraphTraverser const traverser{
+            {jobs,
+             std::move(arguments.build),
+             std::move(stage_args),
+             std::move(rebuild_args)},
+            &repo_config,
+            RemoteExecutionConfig::PlatformProperties(),
+            RemoteExecutionConfig::DispatchList(),
+            ProgressReporter::Reporter()};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             if (not repo_config.SetGitCAS(StorageConfig::GitRoot())) {

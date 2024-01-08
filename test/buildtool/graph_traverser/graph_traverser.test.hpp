@@ -129,7 +129,10 @@ class TestProject {
     TestProject p("hello_world_copy_message");
 
     auto const clargs = p.CmdLineArgs();
-    GraphTraverser const gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt{clargs.gtargs,
+                            p.GetRepoConfig(),
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -148,7 +151,11 @@ class TestProject {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        GraphTraverser const gt_get_exec{clargs_exec.gtargs, p.GetRepoConfig()};
+        GraphTraverser const gt_get_exec{
+            clargs_exec.gtargs,
+            p.GetRepoConfig(),
+            RemoteExecutionConfig::PlatformProperties(),
+            RemoteExecutionConfig::DispatchList()};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
@@ -172,7 +179,10 @@ class TestProject {
     TestProject p("copy_local_file");
 
     auto const clargs = p.CmdLineArgs();
-    GraphTraverser const gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt{clargs.gtargs,
+                            p.GetRepoConfig(),
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -191,7 +201,10 @@ class TestProject {
     TestProject p("sequence_printer_build_library_only");
 
     auto const clargs = p.CmdLineArgs();
-    GraphTraverser const gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt{clargs.gtargs,
+                            p.GetRepoConfig(),
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -200,8 +213,11 @@ class TestProject {
     CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
-    GraphTraverser const gt_full_build{clargs_full_build.gtargs,
-                                       p.GetRepoConfig()};
+    GraphTraverser const gt_full_build{
+        clargs_full_build.gtargs,
+        p.GetRepoConfig(),
+        RemoteExecutionConfig::PlatformProperties(),
+        RemoteExecutionConfig::DispatchList()};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
@@ -225,7 +241,9 @@ class TestProject {
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
-                                   full_hello_world.GetRepoConfig()};
+                                   full_hello_world.GetRepoConfig(),
+                                   RemoteExecutionConfig::PlatformProperties(),
+                                   RemoteExecutionConfig::DispatchList()};
     auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
 
@@ -241,7 +259,10 @@ class TestProject {
     TestProject hello_world_known_cpp("hello_world_known_source");
 
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
-    GraphTraverser const gt{clargs.gtargs, full_hello_world.GetRepoConfig()};
+    GraphTraverser const gt{clargs.gtargs,
+                            full_hello_world.GetRepoConfig(),
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -262,7 +283,10 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
-    GraphTraverser gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser gt{clargs.gtargs,
+                      p.GetRepoConfig(),
+                      RemoteExecutionConfig::PlatformProperties(),
+                      RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -288,7 +312,10 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
-    GraphTraverser gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser gt{clargs.gtargs,
+                      p.GetRepoConfig(),
+                      RemoteExecutionConfig::PlatformProperties(),
+                      RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -314,7 +341,10 @@ static void TestTreesUsed(bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
-    GraphTraverser gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser gt{clargs.gtargs,
+                      p.GetRepoConfig(),
+                      RemoteExecutionConfig::PlatformProperties(),
+                      RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -340,7 +370,10 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
-    GraphTraverser gt{clargs.gtargs, p.GetRepoConfig()};
+    GraphTraverser gt{clargs.gtargs,
+                      p.GetRepoConfig(),
+                      RemoteExecutionConfig::PlatformProperties(),
+                      RemoteExecutionConfig::DispatchList()};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -367,7 +400,10 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
-        GraphTraverser const gt{clargs.gtargs, p.GetRepoConfig()};
+        GraphTraverser const gt{clargs.gtargs,
+                                p.GetRepoConfig(),
+                                RemoteExecutionConfig::PlatformProperties(),
+                                RemoteExecutionConfig::DispatchList()};
         auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -381,7 +417,10 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
     // make_exe[flaky]->make_output[miss]
     auto clargs_output = p.CmdLineArgs();
     clargs_output.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_output{clargs_output.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt_output{clargs_output.gtargs,
+                                   p.GetRepoConfig(),
+                                   RemoteExecutionConfig::PlatformProperties(),
+                                   RemoteExecutionConfig::DispatchList()};
     REQUIRE(gt_output.BuildAndStage(clargs_output.graph_description,
                                     clargs_output.artifacts));
     CHECK(Statistics::Instance().ActionsFlakyCounter() == 1);
@@ -392,7 +431,11 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
     // make_exe[flaky]->make_output[miss]->strip_time [miss]
     auto clargs_stripped = p.CmdLineArgs("_entry_points_stripped");
     clargs_stripped.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_stripped{clargs_stripped.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt_stripped{
+        clargs_stripped.gtargs,
+        p.GetRepoConfig(),
+        RemoteExecutionConfig::PlatformProperties(),
+        RemoteExecutionConfig::DispatchList()};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
     CHECK(Statistics::Instance().ActionsFlakyCounter() == 1);
@@ -403,7 +446,10 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
     // make_exe[flaky]->make_output[miss]->strip_time[miss]->list_ctimes [flaky]
     auto clargs_ctimes = p.CmdLineArgs("_entry_points_ctimes");
     clargs_ctimes.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_ctimes{clargs_ctimes.gtargs, p.GetRepoConfig()};
+    GraphTraverser const gt_ctimes{clargs_ctimes.gtargs,
+                                   p.GetRepoConfig(),
+                                   RemoteExecutionConfig::PlatformProperties(),
+                                   RemoteExecutionConfig::DispatchList()};
     REQUIRE(gt_ctimes.BuildAndStage(clargs_ctimes.graph_description,
                                     clargs_ctimes.artifacts));
     CHECK(Statistics::Instance().ActionsFlakyCounter() == 2);

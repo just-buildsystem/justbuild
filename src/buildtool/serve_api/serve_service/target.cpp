@@ -14,8 +14,6 @@
 
 #include "src/buildtool/serve_api/serve_service/target.hpp"
 
-#include <vector>
-
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
@@ -25,7 +23,6 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/analyse.hpp"
@@ -40,8 +37,8 @@
 #include "src/utils/cpp/verify_hash.hpp"
 
 auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
-    -> std::variant<::grpc::Status, nlohmann::json> {
-    using result_t = std::variant<::grpc::Status, nlohmann::json>;
+    -> std::variant<::grpc::Status, dispatch_t> {
+    using result_t = std::variant<::grpc::Status, dispatch_t>;
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
@@ -73,15 +70,7 @@ auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
                         ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
                                        std::get<0>(parsed)});
     }
-    auto const& dispatch = std::get<1>(parsed);
-    auto dispatch_list = nlohmann::json::array();
-    for (auto const& [props, endpoint] : dispatch) {
-        auto entry = nlohmann::json::array();
-        entry.push_back(nlohmann::json(props));
-        entry.push_back(endpoint.ToJson());
-        dispatch_list.push_back(entry);
-    }
-    return result_t(std::in_place_index<1>, std::move(dispatch_list));
+    return result_t(std::in_place_index<1>, std::get<1>(parsed));
 }
 
 auto TargetService::ServeTarget(
@@ -107,14 +96,17 @@ auto TargetService::ServeTarget(
 
     // start filling in the backend description
     auto address = RemoteExecutionConfig::RemoteAddress();
-    auto description = nlohmann::json{
-        {"remote_address", address ? address->ToJson() : nlohmann::json{}}};
-
-    // read in the execution properties and add it to the description
-    description["platform_properties"] = std::map<std::string, std::string>{};
+    // read in the execution properties and add it to the description;
+    // Important: we will need to pass these platform properties also to the
+    // executor (via the graph_traverser) in order for the build to be properly
+    // dispatched to the correct remote-execution endpoint.
+    auto platform_properties = std::map<std::string, std::string>{};
     for (auto const& p : request->execution_properties()) {
-        description["platform_properties"][p.name()] = p.value();
+        platform_properties[p.name()] = p.value();
     }
+    auto description = nlohmann::json{
+        {"remote_address", address ? address->ToJson() : nlohmann::json{}},
+        {"platform_properties", platform_properties}};
 
     // read in the dispatch list and add it to the description, if not empty
     if (auto error_msg = IsAHash(request->dispatch_info().hash()); error_msg) {
@@ -128,8 +120,26 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, err.error_message());
         return err;
     }
-    if (auto dispatch_list = std::get<1>(res); not dispatch_list.empty()) {
-        description["endpoint dispatch list"] = std::move(dispatch_list);
+    // keep dispatch list, as it needs to be passed to the executor (via the
+    // graph_traverser)
+    auto dispatch_list = std::get<1>(res);
+    // parse dispatch list to json and add to description
+    auto dispatch_json = nlohmann::json::array();
+    try {
+        for (auto const& [props, endpoint] : dispatch_list) {
+            auto entry = nlohmann::json::array();
+            entry.push_back(nlohmann::json(props));
+            entry.push_back(endpoint.ToJson());
+            dispatch_json.push_back(entry);
+        }
+    } catch (std::exception const& ex) {
+        logger_->Emit(
+            LogLevel::Info,
+            fmt::format("Parsing dispatch list to JSON failed with:\n{}",
+                        ex.what()));
+    }
+    if (not dispatch_json.empty()) {
+        description["endpoint dispatch list"] = std::move(dispatch_json);
     }
 
     // add backend description to CAS;
@@ -426,6 +436,8 @@ auto TargetService::ServeTarget(
     traverser_args.rebuild = std::nullopt;
     GraphTraverser const traverser{std::move(traverser_args),
                                    &repository_config,
+                                   std::move(platform_properties),
+                                   std::move(dispatch_list),
                                    ProgressReporter::Reporter()};
 
     // perform build

@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
@@ -100,6 +101,10 @@ class TargetService final : public justbuild::just_serve::Target::Service {
   private:
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
+    // type of dispatch list; reduces verbosity
+    using dispatch_t = std::vector<
+        std::pair<std::map<std::string, std::string>, ServerAddress>>;
+
     // remote execution endpoint used for remote building
     gsl::not_null<IExecutionApi::Ptr> const remote_api_{
         CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
@@ -114,7 +119,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     /// \returns An error + data union, with a pair of grpc status at index 0
     /// and the dispatch list stored as a JSON object at index 1.
     auto GetDispatchList(ArtifactDigest const& dispatch_digest)
-        -> std::variant<::grpc::Status, nlohmann::json>;
+        -> std::variant<::grpc::Status, dispatch_t>;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP

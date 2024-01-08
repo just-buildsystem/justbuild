@@ -16,6 +16,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "remote_common"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
   }

@@ -110,7 +110,8 @@ static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties()};
+                    RemoteExecutionConfig::PlatformProperties(),
+                    RemoteExecutionConfig::DispatchList()};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -216,7 +217,8 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties()};
+                    RemoteExecutionConfig::PlatformProperties(),
+                    RemoteExecutionConfig::DispatchList()};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -339,7 +341,8 @@ static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties()};
+                    RemoteExecutionConfig::PlatformProperties(),
+                    RemoteExecutionConfig::DispatchList()};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -485,7 +488,8 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties()};
+                        RemoteExecutionConfig::PlatformProperties(),
+                        RemoteExecutionConfig::DispatchList()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -532,7 +536,8 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties()};
+                        RemoteExecutionConfig::PlatformProperties(),
+                        RemoteExecutionConfig::DispatchList()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -595,7 +600,8 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties()};
+                        RemoteExecutionConfig::PlatformProperties(),
+                        RemoteExecutionConfig::DispatchList()};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -663,7 +669,8 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            RemoteExecutionConfig::PlatformProperties()};
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
             CHECK_FALSE(runner.Process(action));
         }
 
@@ -684,7 +691,8 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            RemoteExecutionConfig::PlatformProperties()};
+                            RemoteExecutionConfig::PlatformProperties(),
+                            RemoteExecutionConfig::DispatchList()};
             CHECK_FALSE(runner.Process(action));
         }
     }
