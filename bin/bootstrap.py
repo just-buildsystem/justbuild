@@ -25,7 +25,7 @@ import platform
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-from typing import Any, Dict, List, Optional, Set, cast
+from typing import Any, Callable, Dict, List, Optional, Set, cast
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -341,6 +341,16 @@ def prune_config(*, repos_file: str, empty_dir: str) -> None:
     with open(repos_file, "w") as f:
         json.dump(repos, f, indent=2)
 
+def ignore_dst(dst: str) -> Callable[[str, List[str]], List[str]]:
+    def ignore_(path: str, names: List[str]) -> List[str]:
+        if os.path.normpath(path) == dst:
+            return names
+        for n in names:
+            if os.path.normpath(os.path.join(path, n)) == dst:
+                return[n]
+        return []
+    return ignore_
+
 
 def copy_roots(*, repos_file: str, copy_dir: str) -> None:
     with open(repos_file) as f:
@@ -353,10 +363,12 @@ def copy_roots(*, repos_file: str, copy_dir: str) -> None:
             new_root: str = os.path.join(copy_dir, repo)
             for x in to_copy:
                 src: str = os.path.join(old_root, x)
-                dst: str = os.path.join(new_root, x)
+                dst: str = os.path.normpath(os.path.join(new_root, x))
+
                 if os.path.isdir(src):
                     shutil.copytree(src,
                                     dst,
+                                    ignore=ignore_dst(dst),
                                     symlinks=False,
                                     dirs_exist_ok=True)
                 elif os.path.isfile(src):
@@ -379,8 +391,8 @@ def bootstrap() -> None:
     os.makedirs(cast(str, g_WRKDIR), exist_ok=True)
     with open(os.path.join(cast(str, g_WRKDIR), "build-conf.json"), 'w') as f:
         json.dump(g_CONF, f, indent=2)
-    src_wrkdir: str = os.path.join(cast(str, g_WRKDIR), "src")
-    shutil.copytree(g_SRCDIR, src_wrkdir)
+    src_wrkdir: str = os.path.normpath(os.path.join(cast(str, g_WRKDIR), "src"))
+    shutil.copytree(g_SRCDIR, src_wrkdir, ignore=ignore_dst(src_wrkdir))
     if g_LOCAL_DEPS:
         config_to_local(repos_file=os.path.join(src_wrkdir, REPOS),
                         link_targets_file=os.path.join(src_wrkdir,
