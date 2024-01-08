@@ -38,7 +38,7 @@ class ConfigurationClient {
 
   private:
     std::unique_ptr<justbuild::just_serve::Configuration::Stub> stub_;
-    Logger logger_{"RemoteTargetClient"};
+    Logger logger_{"RemoteConfigurationClient"};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_CONFIGURATION_CLIENT_HPP
