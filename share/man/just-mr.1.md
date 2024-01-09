@@ -3,8 +3,7 @@
 NAME
 ====
 
-just-mr - multi-repository configuration tool and launcher for
-**`just`**(1)
+just-mr - multi-repository configuration tool and launcher for the build tool
 
 SYNOPSIS
 ========
