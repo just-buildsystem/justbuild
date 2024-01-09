@@ -236,6 +236,34 @@ provided. They check whether the `just serve` endpoint knows these Git
 objects and, if yes, ensure they are uploaded to the remote CAS, from
 where the client can easily then retrieve them.
 
+#### Auxiliary requests: check and get trees
+
+In `just-mr`, the `to_git` pragma most often is used to make sure a local
+root is available in a content-defined manner as a Git-tree. This allows
+it to be used in the build description of export targets. It would be
+beneficial then for export targets built by a serve endpoint to have access
+to such roots, which often describe exactly the target(s) we want built.
+In order to facilitate this, two more auxiliary requests are added.
+
+The first request supported, given a tree identifier corresponding to a
+root, checks whether the serve endpoint has _direct_ access to it, meaning
+it is available to it locally, and, if found, it makes sure the tree is
+made available in a location where the serve endpoint can build against it.
+The places checked for this tree are, in order: the Git cache, the known
+Git repositories, and the local CAS.
+
+The second request supported, given a tree identifier, retrieves a tree
+from the CAS of the associated remote-execution endpoint and makes it
+available in a location where the serve endpoint can build against it,
+with the understanding that the client has ensured beforehand that the
+tree exists in the remote CAS. This is because, in the typical use case,
+a client will first perform a check via the first request above, and if
+the serve endpoint reports that it doesn't know the tree, the client can
+upload it to the remote CAS and ask the serve endpoint to retrieve it via
+the second request. This ensures that a client can avoid unnecessary uploads
+to the remote CAS, while making sure that the serve endpoint has the roots
+marked absent available to build against.
+
 ### Auxiliary service: configuration
 
 #### Auxiliary request: remote-execution endpoint
@@ -295,6 +323,13 @@ commit is used. To allow this communication, `just-mr` also accepts
 arguments describing a `just serve` endpoint and forwards them as
 early arguments to `just`, in the same way as it does, e.g., with
 `--local-build-root`.
+
+If a `just serve` endpoint is given to `just-mr`, the tool ensures
+however possible that all absent roots it generates are available also to
+the serve endpoint for a subsequent orchestrated remote build. Absent
+roots without providing a serve endpoint can also be generated, however
+this is not a typical use case and the tool provides warnings in this
+regard.
 
 #### `just-mr` to inquire remote execution before fetching
 
