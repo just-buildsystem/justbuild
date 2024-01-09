@@ -230,6 +230,56 @@ message ServeTreeResponse {
   ServeTreeStatus status = 1;
 }
 
+// A request message for
+// [TargetLevelCache.CheckRootTree][justbuild.just_serve.TargetLevelCache.CheckRootTree].
+message CheckRootTreeRequest {
+  // The git tree identifier.
+  string tree = 1;
+}
+
+// A response message for
+// [TargetLevelCache.CheckRootTree][justbuild.just_serve.TargetLevelCache.CheckRootTree].
+message CheckRootTreeResponse {
+  enum CheckRootTreeStatus{
+    // All good
+    OK = 0;
+
+    // Tree not known
+    NOT_FOUND = 1;
+
+    // Internally, something is very broken
+    INTERNAL_ERROR = 2;
+  }
+
+  // If the status has a code `OK`, the tree is known locally
+  CheckRootTreeStatus status = 1;
+}
+
+// A request message for
+// [TargetLevelCache.GetRemoteTree][justbuild.just_serve.TargetLevelCache.GetRemoteTree].
+message GetRemoteTreeRequest {
+  // The git tree identifier.
+  string tree = 1;
+}
+
+// A response message for
+// [TargetLevelCache.GetRemoteTree][justbuild.just_serve.TargetLevelCache.GetRemoteTree].
+message GetRemoteTreeResponse {
+  enum GetRemoteTreeStatus{
+    // All good
+    OK = 0;
+
+    // Tree is not found in remote CAS or it failed to be retrieved
+    FAILED_PRECONDITION = 1;
+
+    // Internally, something is very broken
+    INTERNAL_ERROR = 2;
+  }
+
+  // If the status has a code `OK`, the tree is in the local CAS
+  GetRemoteTreeStatus status = 1;
+}
+
 // Services for improved interaction with the target-level cache.
 service SourceTree {
   // Retrieve the Git-subtree identifier from a given Git commit.
@@ -261,6 +311,21 @@ service SourceTree {
   //
   // There are no method-specific errors.
   rpc ServeTree(ServeTreeRequest) returns (ServeTreeResponse) {}
+
+  // Checks if a Git-tree is locally known and, if found, makes it available
+  // in a location where this serve instance can build against.
+  // The implementation should not interrogate the associated remote-execution
+  // endpoint at any point during the completion of this request.
+  //
+  // There are no method-specific errors.
+  rpc CheckRootTree(CheckRootTreeRequest) returns (CheckRootTreeResponse) {}
+
+  // Retrieves a given Git-tree from the CAS of the associated
+  // remote-execution endpoint and makes it available in a location where this
+  // serve instance can build against.
+  //
+  // There are no method-specific errors.
+  rpc GetRemoteTree(GetRemoteTreeRequest) returns (GetRemoteTreeResponse) {}
 }
 
 message ServeTargetRequest {
