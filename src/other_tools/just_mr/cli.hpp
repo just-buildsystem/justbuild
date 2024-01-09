@@ -136,7 +136,10 @@ static inline void SetupMultiRepoCommonArguments(
            "CA certificate bundle to use for SSL verification when fetching "
            "archives from remote.")
         ->type_name("CA_BUNDLE");
-    app->add_option("--just", clargs->just_path, "Path to the just binary.")
+    app->add_option("--just",
+                    clargs->just_path,
+                    fmt::format("The build tool to be launched (default: {}).",
+                                kDefaultJustPath))
         ->type_name("PATH");
     app->add_option("--main",
                     clargs->main,
@@ -152,7 +155,8 @@ static inline void SetupMultiRepoCommonArguments(
         ->type_name("RCFILE");
     app->add_option("--git",
                     clargs->git_path,
-                    "Path to the git binary. (Default: \"git\")")
+                    fmt::format("Path to the git binary. (Default: {})",
+                                kDefaultGitPath))
         ->type_name("PATH");
     app->add_flag("--norc", clargs->norc, "Do not use any just-mrrc file.");
     app->add_option("-j, --jobs",

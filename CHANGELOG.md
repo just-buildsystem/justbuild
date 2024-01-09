@@ -9,6 +9,8 @@ Bug fixes on top of release `1.2.4`.
 - Child processes are now properly waited for in all circumstances.
 - Bootstrapping is now also supported if the build directory resides
   in the source tree.
+- `just-mr` now reports the name of the build tool correctly, even
+  if not called `just`.
 
 ## Release `1.2.4` (2023-12-19)
 

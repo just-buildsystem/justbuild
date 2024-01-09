@@ -93,12 +93,13 @@ void SetupSetupCommandArguments(
 [[nodiscard]] auto ParseCommandLineArguments(int argc, char const* const* argv)
     -> CommandLineArguments {
     CLI::App app(
-        "just-mr, a multi-repository configuration tool and launcher for just");
+        "just-mr, a multi-repository configuration tool and launcher for the "
+        "build tool");
     app.option_defaults()->take_last();
     auto* cmd_mrversion = app.add_subcommand(
         "mrversion", "Print version information in JSON format of this tool.");
-    auto* cmd_setup =
-        app.add_subcommand("setup", "Setup and generate just configuration");
+    auto* cmd_setup = app.add_subcommand(
+        "setup", "Setup and generate configuration for the build tool");
     auto* cmd_setup_env = app.add_subcommand(
         "setup-env", "Setup without workspace root for the main repository.");
     auto* cmd_fetch =
@@ -107,15 +108,16 @@ void SetupSetupCommandArguments(
         "update",
         "Advance Git commit IDs and print updated just-mr configuration.");
     auto* cmd_do = app.add_subcommand(
-        "do", "Canonical way of specifying just subcommands.");
+        "do", "Canonical way of specifying subcommands to be launched.");
     cmd_do->set_help_flag();  // disable help flag
     // define just subcommands
     std::vector<CLI::App*> cmd_just_subcmds{};
     cmd_just_subcmds.reserve(kKnownJustSubcommands.size());
     for (auto const& known_subcmd : kKnownJustSubcommands) {
-        auto* subcmd = app.add_subcommand(
-            known_subcmd.first,
-            "Run setup and call \"just " + known_subcmd.first + "\".");
+        auto* subcmd =
+            app.add_subcommand(known_subcmd.first,
+                               "Run setup and launch the \"" +
+                                   known_subcmd.first + "\" subcommand.");
         subcmd->set_help_flag();  // disable help flag
         cmd_just_subcmds.emplace_back(subcmd);
     }
