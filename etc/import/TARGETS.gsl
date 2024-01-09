@@ -1,4 +1,9 @@
 { "gsl":
+  { "type": "export"
+  , "target": "gsl (unexported)"
+  , "flexible_config": ["OS", "ARCH", "TARGET_ARCH", "TOOLCHAIN_CONFIG"]
+  }
+, "gsl (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["gsl"]
   , "hdrs": [["TREE", null, "."]]

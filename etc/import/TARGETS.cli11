@@ -1,4 +1,24 @@
 { "cli11":
+  { "type": "export"
+  , "target": "cli11 (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "cli11 (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["CLI11"]
   , "hdrs": [["./", "include/CLI", "cli11_headers"]]
