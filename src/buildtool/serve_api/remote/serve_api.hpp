@@ -75,6 +75,16 @@ class ServeApi final {
         return Instance().stc_->ServeTree(tree_id);
     }
 
+    [[nodiscard]] static auto CheckRootTree(std::string const& tree_id)
+        -> std::optional<bool> {
+        return Instance().stc_->CheckRootTree(tree_id);
+    }
+
+    [[nodiscard]] static auto GetTreeFromRemote(std::string const& tree_id)
+        -> bool {
+        return Instance().stc_->GetRemoteTree(tree_id);
+    }
+
     [[nodiscard]] static auto ServeTargetVariables(
         std::string const& target_root_id,
         std::string const& target_file,

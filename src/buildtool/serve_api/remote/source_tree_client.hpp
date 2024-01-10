@@ -78,6 +78,21 @@ class SourceTreeClient {
     /// \returns Flag to state whether tree is in remote CAS.
     [[nodiscard]] auto ServeTree(std::string const& tree_id) -> bool;
 
+    /// \brief Checks if the serve endpoint has a given tree locally available
+    /// and makes it available for a serve-orchestrated build.
+    /// \param[in] tree_id Identifier of the Git tree to look up.
+    /// \returns Flag to state whether tree is known or not, or nullopt on
+    /// errors.
+    [[nodiscard]] auto CheckRootTree(std::string const& tree_id)
+        -> std::optional<bool>;
+
+    /// \brief Retrieve tree from the CAS of the associated remote-execution
+    /// endpoint and makes it available for a serve-orchestrated build.
+    /// \param[in] tree_id Identifier of the Git tree to retrieve.
+    /// \returns Flag to state whether tree was successfully imported into the
+    /// local Git storage or not.
+    [[nodiscard]] auto GetRemoteTree(std::string const& tree_id) -> bool;
+
   private:
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteSourceTreeClient"};

@@ -193,3 +193,53 @@ auto SourceTreeClient::ServeTree(std::string const& tree_id) -> bool {
     }
     return true;
 }
+
+auto SourceTreeClient::CheckRootTree(std::string const& tree_id)
+    -> std::optional<bool> {
+    justbuild::just_serve::CheckRootTreeRequest request{};
+    request.set_tree(tree_id);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::CheckRootTreeResponse response;
+    grpc::Status status = stub_->CheckRootTree(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return std::nullopt;
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::CheckRootTreeResponse::OK) {
+        if (response.status() !=
+            ::justbuild::just_serve::CheckRootTreeResponse::NOT_FOUND) {
+            logger_.Emit(LogLevel::Debug,
+                         "CheckRootTree response returned with {}",
+                         static_cast<int>(response.status()));
+            return std::nullopt;  // tree lookup failed
+        }
+        return false;  // tree not found
+    }
+    return true;  // tree found
+}
+
+auto SourceTreeClient::GetRemoteTree(std::string const& tree_id) -> bool {
+    justbuild::just_serve::GetRemoteTreeRequest request{};
+    request.set_tree(tree_id);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::GetRemoteTreeResponse response;
+    grpc::Status status = stub_->GetRemoteTree(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return false;
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::GetRemoteTreeResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "GetRemoteTree response returned with {}",
+                     static_cast<int>(response.status()));
+        return false;  // retrieving tree or import-to-git failed
+    }
+    // success!
+    return true;
+}
