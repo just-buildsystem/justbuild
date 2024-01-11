@@ -11,6 +11,16 @@
   , "deps":
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   }
+, "tc-deps":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tc-deps"]
+  , "test": ["tc-deps.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["basic", "export"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["basic", "export", "tc-deps"]
+  }
 }
