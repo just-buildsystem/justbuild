@@ -178,6 +178,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         &critical_git_op_map,
         &import_to_git_map,
         &resolve_symlinks_map,
+        serve_api_exists,
+        remote_api ? std::make_optional(&(*remote_api)) : std::nullopt,
         common_args.jobs,
         multi_repo_tool_name,
         common_args.just_path ? common_args.just_path->string()

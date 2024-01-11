@@ -69,6 +69,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/other_tools/just_mr", "utils"]
@@ -79,6 +80,7 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , "root_utils"
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_repo"]
