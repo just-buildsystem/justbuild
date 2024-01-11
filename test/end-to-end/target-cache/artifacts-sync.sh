@@ -41,7 +41,7 @@ readonly TCDIR="$FIRST_GEN/tc"
 "${JUST}" execute --info-file "${INFOFILE}" --pid-file "${PIDFILE}" \
   --local-build-root "${REMOTE_CACHE}" ${ARGS} 2>&1 &
 
-for _ in `seq 1 10`; do
+for _ in `seq 1 60`; do
   if test -f "${INFOFILE}"; then
     break
   fi

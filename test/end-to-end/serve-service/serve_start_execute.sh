@@ -52,7 +52,7 @@ cat .just-servec
 
 "${JUST}" serve .just-servec 2>&1 &
 
-for _ in `seq 1 10`
+for _ in `seq 1 60`
 do
     if test -f "${INFOFILE}"
     then

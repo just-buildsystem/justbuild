@@ -65,7 +65,7 @@ ${JUST} execute --info-file "${INFOFILE}" --pid-file "${PIDFILE}" \
         --log-limit 6 --local-build-root ${ESDIR} ${COMPAT} \
         -L "${LOCAL_LAUNCHER}" 2>&1 &
 
-for _ in `seq 1 10`
+for _ in `seq 1 60`
 do
     if test -f "${INFOFILE}"
     then
