@@ -82,7 +82,7 @@ echo Remote build
 echo
 echo Serve build
 "${JUST_MR}" --norc --local-build-root "${LBR_C}" --just "${JUST}" \
-             ${REMOTE} -R ${SERVE} build \
+             --distdir "${DISTDIR}" ${REMOTE} -R ${SERVE} build \
              --log-limit 4 \
              --dump-artifacts serve.json 2>&1
 
