@@ -19,6 +19,7 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"

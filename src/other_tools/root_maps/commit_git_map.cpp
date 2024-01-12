@@ -19,6 +19,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"

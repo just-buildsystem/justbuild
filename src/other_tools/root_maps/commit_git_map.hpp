@@ -23,7 +23,6 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
