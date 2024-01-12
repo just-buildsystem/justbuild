@@ -142,4 +142,24 @@
     , ["src/buildtool/storage", "config"]
     ]
   }
+, "root_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["root_utils"]
+  , "hdrs": ["root_utils.hpp"]
+  , "srcs": ["root_utils.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/execution_api/git", "git"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    ]
+  }
 }
