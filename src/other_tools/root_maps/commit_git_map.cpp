@@ -259,7 +259,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                             "tree {} for absent commit {}",
                                             *root_tree_id,
                                             repo_info.hash),
-                                true);
+                                /*fatal=*/true);
                             return;
                         }
                         if (not local_api->RetrieveToPaths(
@@ -271,7 +271,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                   "tree {} to {}",
                                                   *root_tree_id,
                                                   tmp_dir->GetPath().string()),
-                                      true);
+                                      /*fatal=*/true);
                             return;
                         }
                         CommitInfo c_info{
@@ -293,16 +293,38 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                               /*fatal=*/true);
                                     return;
                                 }
+                                // sanity check: we should get the expected tree
+                                if (values[0]->first != root_tree_id) {
+                                    (*logger)(
+                                        fmt::format("Unexpected mismatch in "
+                                                    "imported git tree id: "
+                                                    "expected {}, but got {}",
+                                                    root_tree_id,
+                                                    values[0]->first),
+                                        /*fatal=*/true);
+                                    return;
+                                }
+                                // tree is now in Git cache
+                                auto just_git_cas =
+                                    GitCAS::Open(StorageConfig::GitRoot());
+                                if (not just_git_cas) {
+                                    (*logger)(
+                                        "Could not open Git cache object "
+                                        "database!",
+                                        /*fatal=*/true);
+                                    return;
+                                }
                                 // write association to id file, get subdir
                                 // tree, and set the workspace root
-                                WriteIdFileAndSetWSRoot(root_tree_id,
-                                                        subdir,
-                                                        ignore_special,
-                                                        git_cas,
-                                                        repo_root,
-                                                        tree_id_file,
-                                                        ws_setter,
-                                                        logger);
+                                WriteIdFileAndSetWSRoot(
+                                    root_tree_id,
+                                    subdir,
+                                    ignore_special,
+                                    just_git_cas,
+                                    StorageConfig::GitRoot(),
+                                    tree_id_file,
+                                    ws_setter,
+                                    logger);
                             },
                             [logger, tmp_dir, root_tree_id](auto const& msg,
                                                             bool fatal) {
