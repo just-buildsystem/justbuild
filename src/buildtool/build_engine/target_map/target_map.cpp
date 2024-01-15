@@ -297,6 +297,13 @@ void withDependencies(
         }
     }
 
+    // Compute implied export targets
+    std::set<std::string> implied_export{};
+    for (auto const& dep : dependency_values) {
+        implied_export.insert((*dep)->ImpliedExport().begin(),
+                              (*dep)->ImpliedExport().end());
+    }
+
     // Evaluate string parameters
     auto string_fields_fcts =
         FunctionMap::MakePtr(FunctionMap::underlying_map_t{
@@ -849,6 +856,7 @@ void withDependencies(
                                                std::move(trees),
                                                std::move(effective_vars),
                                                std::move(tainted),
+                                               std::move(implied_export),
                                                deps_info);
     analysis_result =
         result_map->Add(key.target, effective_conf, std::move(analysis_result));
@@ -1371,6 +1379,7 @@ void withTargetNode(
                            {},
                            {},
                            {},
+                           {},
                            TargetGraphInformation::kSource}));
     }
     else {
@@ -1472,6 +1481,7 @@ void TreeTarget(
                     std::vector<Tree::Ptr>{},
                     std::unordered_set<std::string>{},
                     std::set<std::string>{},
+                    std::set<std::string>{},
                     TargetGraphInformation::kSource);
                 analysis_result =
                     result_map->Add(key.target, {}, std::move(analysis_result));
@@ -1557,6 +1567,7 @@ void TreeTarget(
                             std::vector<Tree::Ptr>{tree},
                             std::unordered_set<std::string>{},
                             std::set<std::string>{},
+                            std::set<std::string>{},
                             TargetGraphInformation::kSource);
                     analysis_result = result_map->Add(
                         key.target, {}, std::move(analysis_result));
@@ -1589,6 +1600,7 @@ void GlobResult(const std::vector<AnalysedTargetPtr const*>& values,
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
         std::unordered_set<std::string>{},
+        std::set<std::string>{},
         std::set<std::string>{},
         TargetGraphInformation::kSource);
     (*setter)(std::move(target));

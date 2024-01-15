@@ -39,6 +39,7 @@ auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
         std::vector<Tree::Ptr>{},
         std::unordered_set<std::string>{},
         std::set<std::string>{},
+        std::set<std::string>{},
         TargetGraphInformation::kSource);
 }
 

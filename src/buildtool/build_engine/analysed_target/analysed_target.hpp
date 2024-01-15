@@ -37,6 +37,7 @@ class AnalysedTarget {
                    std::vector<Tree::Ptr> trees,
                    std::unordered_set<std::string> vars,
                    std::set<std::string> tainted,
+                   std::set<std::string> implied_export_targets,
                    TargetGraphInformation graph_information)
         : result_{std::move(result)},
           actions_{std::move(actions)},
@@ -44,6 +45,7 @@ class AnalysedTarget {
           trees_{std::move(trees)},
           vars_{std::move(vars)},
           tainted_{std::move(tainted)},
+          implied_export_targets_{std::move(implied_export_targets)},
           graph_information_{std::move(graph_information)} {}
 
     [[nodiscard]] auto Actions() const& noexcept
@@ -100,6 +102,13 @@ class AnalysedTarget {
     [[nodiscard]] auto Tainted() && noexcept -> std::set<std::string> {
         return std::move(tainted_);
     }
+    [[nodiscard]] auto ImpliedExport() const& noexcept
+        -> std::set<std::string> const& {
+        return implied_export_targets_;
+    }
+    [[nodiscard]] auto ImpliedExport() && noexcept -> std::set<std::string> {
+        return std::move(implied_export_targets_);
+    }
     [[nodiscard]] auto Result() const& noexcept -> TargetResult const& {
         return result_;
     }
@@ -125,6 +134,7 @@ class AnalysedTarget {
     std::vector<Tree::Ptr> trees_;
     std::unordered_set<std::string> vars_;
     std::set<std::string> tainted_;
+    std::set<std::string> implied_export_targets_;
     TargetGraphInformation graph_information_;
 };
 

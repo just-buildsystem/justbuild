@@ -44,6 +44,7 @@ namespace {
         std::vector<Tree::Ptr>(),
         std::unordered_set<std::string>{},
         std::set<std::string>{},
+        std::set<std::string>{},
         TargetGraphInformation::kSource);
 }
 

@@ -120,6 +120,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                 std::unordered_set<std::string>{flexible_vars->begin(),
                                                 flexible_vars->end()},
                 std::set<std::string>{},
+                entry.ToImplied(),
                 deps_info);
 
             analysis_result = result_map->Add(key.target,

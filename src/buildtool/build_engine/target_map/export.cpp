@@ -65,6 +65,13 @@ void FinalizeExport(
 
     std::unordered_set<std::string> vars_set{};
     vars_set.insert(vars.begin(), vars.end());
+    std::set<std::string> implied{};
+    if (target_cache_key) {
+        implied.insert((*value)->ImpliedExport().begin(),
+                       (*value)->ImpliedExport().end());
+        implied.insert(target_cache_key->Id().digest.hash());
+    }
+
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{.artifact_stage = (*value)->Artifacts(),
                      .provides = provides,
@@ -74,6 +81,7 @@ void FinalizeExport(
         std::vector<Tree::Ptr>{},
         std::move(vars_set),
         std::set<std::string>{},
+        std::move(implied),
         std::move(deps_info));
     analysis_result = result_map->Add(target,
                                       effective_config,
@@ -151,6 +159,7 @@ void ExportRule(
                     std::unordered_set<std::string>{flexible_vars->begin(),
                                                     flexible_vars->end()},
                     std::set<std::string>{},
+                    entry.ToImplied(),
                     deps_info);
 
                 analysis_result = result_map->Add(key.target,

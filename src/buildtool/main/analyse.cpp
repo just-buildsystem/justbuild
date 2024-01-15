@@ -126,6 +126,7 @@ void DetectAndReportPending(std::string const& name,
         target->Trees(),
         target->Vars(),
         target->Tainted(),
+        target->ImpliedExport(),
         target->GraphInformation());
 }
 

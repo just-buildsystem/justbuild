@@ -171,6 +171,12 @@ void BlobGenRuleWithDeps(
         }
     }
 
+    std::set<std::string> implied_export{};
+    for (auto const& dep : dependency_values) {
+        implied_export.insert((*dep)->ImpliedExport().begin(),
+                              (*dep)->ImpliedExport().end());
+    }
+
     auto name_exp = desc->ReadOptionalExpression(
         "name", ExpressionPtr{std::string{"out.txt"}});
     if (not name_exp) {
@@ -233,6 +239,7 @@ void BlobGenRuleWithDeps(
         std::vector<Tree::Ptr>{},
         std::move(vars_set),
         std::move(tainted),
+        std::move(implied_export),
         std::move(deps_info));
     analysis_result =
         result_map->Add(key.target, effective_conf, std::move(analysis_result));
@@ -399,6 +406,12 @@ void TreeRuleWithDeps(
         }
     }
 
+    std::set<std::string> implied_export{};
+    for (auto const& dep : dependency_values) {
+        implied_export.insert((*dep)->ImpliedExport().begin(),
+                              (*dep)->ImpliedExport().end());
+    }
+
     auto vars_set = std::unordered_set<std::string>{};
     vars_set.insert(param_vars->begin(), param_vars->end());
     for (auto const& dep : dependency_values) {
@@ -460,6 +473,7 @@ void TreeRuleWithDeps(
         std::move(trees),
         std::move(vars_set),
         std::move(tainted),
+        std::move(implied_export),
         std::move(deps_info));
     analysis_result =
         result_map->Add(key.target, effective_conf, std::move(analysis_result));
@@ -616,6 +630,13 @@ void InstallRuleWithDeps(
         }
     }
 
+    // Compute implied export targets
+    std::set<std::string> implied_export{};
+    for (auto const& dep : dependency_values) {
+        implied_export.insert((*dep)->ImpliedExport().begin(),
+                              (*dep)->ImpliedExport().end());
+    }
+
     // Stage deps (runfiles only)
     auto stage = ExpressionPtr{Expression::map_t{}};
     for (auto const& dep : deps) {
@@ -700,6 +721,7 @@ void InstallRuleWithDeps(
         std::vector<Tree::Ptr>{},
         std::move(effective_vars),
         std::move(tainted),
+        std::move(implied_export),
         std::move(deps_info));
 
     result = result_map->Add(key.target, effective_conf, std::move(result));
@@ -949,6 +971,13 @@ void GenericRuleWithDeps(
                 true);
             return;
         }
+    }
+
+    // Compute implied export targets
+    std::set<std::string> implied_export{};
+    for (auto const& dep : dependency_values) {
+        implied_export.insert((*dep)->ImpliedExport().begin(),
+                              (*dep)->ImpliedExport().end());
     }
 
     // Evaluate cmd, outs, env
@@ -1277,6 +1306,7 @@ void GenericRuleWithDeps(
         std::vector<Tree::Ptr>{},
         std::move(effective_vars),
         std::move(tainted),
+        std::move(implied_export),
         std::move(deps_info));
 
     result = result_map->Add(key.target, effective_conf, std::move(result));
@@ -1487,7 +1517,8 @@ void ConfigureRule(
                 std::vector<std::string>{},
                 std::vector<Tree::Ptr>{},
                 std::move(vars_set),
-                std::set<std::string>{},
+                tainted,
+                configured_target->ImpliedExport(),
                 std::move(deps_info));
             analysis_result = result_map->Add(key.target,
                                               std::move(effective_conf),
