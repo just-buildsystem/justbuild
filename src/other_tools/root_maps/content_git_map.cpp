@@ -48,34 +48,32 @@ namespace {
 }
 
 void ResolveContentTree(
-    std::string const& content,
+    ArchiveRepoInfo const& key,
     std::string const& tree_hash,
     bool is_cache_hit,
-    std::optional<PragmaSpecial> const& pragma_special,
-    bool absent,
     bool fetch_absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& ws_setter,
     ContentGitMap::LoggerPtr const& logger) {
-    if (pragma_special) {
+    if (key.pragma_special) {
         // get the resolved tree
         auto tree_id_file =
-            StorageUtils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
+            StorageUtils::GetResolvedTreeIDFile(tree_hash, *key.pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
             if (not resolved_tree_id) {
-                (*logger)(fmt::format("Failed to read resolved "
-                                      "tree id from file {}",
-                                      tree_id_file.string()),
-                          /*fatal=*/true);
+                (*logger)(
+                    fmt::format("Failed to read resolved tree id from file {}",
+                                tree_id_file.string()),
+                    /*fatal=*/true);
                 return;
             }
             // set the workspace root
             auto root = nlohmann::json::array(
                 {FileRoot::kGitTreeMarker, *resolved_tree_id});
-            if (fetch_absent or not absent) {
+            if (fetch_absent or not key.absent) {
                 root.emplace_back(StorageConfig::GitRoot().string());
             }
             (*ws_setter)(std::pair(std::move(root), true));
@@ -86,13 +84,13 @@ void ResolveContentTree(
                 ts,
                 {GitObjectToResolve(tree_hash,
                                     ".",
-                                    *pragma_special,
+                                    *key.pragma_special,
                                     /*known_info=*/std::nullopt)},
                 [resolve_symlinks_map,
                  tree_hash,
                  tree_id_file,
                  is_cache_hit,
-                 absent,
+                 key,
                  fetch_absent,
                  ws_setter,
                  logger](auto const& hashes) {
@@ -127,12 +125,13 @@ void ResolveContentTree(
                     // set the workspace root
                     auto root = nlohmann::json::array(
                         {FileRoot::kGitTreeMarker, resolved_tree.id});
-                    if (fetch_absent or not absent) {
+                    if (fetch_absent or not key.absent) {
                         root.emplace_back(StorageConfig::GitRoot().string());
                     }
                     (*ws_setter)(std::pair(std::move(root), is_cache_hit));
                 },
-                [logger, content](auto const& msg, bool fatal) {
+                [logger, content = key.archive.content](auto const& msg,
+                                                        bool fatal) {
                     (*logger)(fmt::format("While resolving symlinks for "
                                           "content {}:\n{}",
                                           content,
@@ -145,7 +144,7 @@ void ResolveContentTree(
         // set the workspace root as-is
         auto root =
             nlohmann::json::array({FileRoot::kGitTreeMarker, tree_hash});
-        if (fetch_absent or not absent) {
+        if (fetch_absent or not key.absent) {
             root.emplace_back(StorageConfig::GitRoot().string());
         }
         (*ws_setter)(std::pair(std::move(root), is_cache_hit));
@@ -155,13 +154,10 @@ void ResolveContentTree(
 // Helper function for improved readability. It guarantees the logger is called
 // exactly once with fatal if failure.
 void WriteIdFileAndSetWSRoot(
+    ArchiveRepoInfo const& key,
     std::string const& archive_tree_id,
     GitCASPtr const& just_git_cas,
     std::filesystem::path const& archive_tree_id_file,
-    std::string const& content_id,
-    std::string const& subdir,
-    std::optional<PragmaSpecial> const& pragma_special,
-    bool absent,
     bool fetch_absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
@@ -184,7 +180,8 @@ void WriteIdFileAndSetWSRoot(
     }
     // setup wrapped logger
     auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-        [&logger, subdir, tree = archive_tree_id](auto const& msg, bool fatal) {
+        [&logger, subdir = key.subdir, tree = archive_tree_id](auto const& msg,
+                                                               bool fatal) {
             (*logger)(fmt::format("While getting subdir {} from tree {}:\n{}",
                                   subdir,
                                   tree,
@@ -193,16 +190,14 @@ void WriteIdFileAndSetWSRoot(
         });
     // get subtree id
     auto subtree_hash = just_git_repo->GetSubtreeFromTree(
-        archive_tree_id, subdir, wrapped_logger);
+        archive_tree_id, key.subdir, wrapped_logger);
     if (not subtree_hash) {
         return;
     }
     // resolve tree and set workspace root
-    ResolveContentTree(content_id,
+    ResolveContentTree(key,
                        *subtree_hash,
                        false, /*is_cache_hit*/
-                       pragma_special,
-                       absent,
                        fetch_absent,
                        resolve_symlinks_map,
                        ts,
@@ -213,13 +208,9 @@ void WriteIdFileAndSetWSRoot(
 // Helper function for improved readability. It guarantees the logger is called
 // exactly once with fatal if failure.
 void ExtractAndImportToGit(
+    ArchiveRepoInfo const& key,
     std::filesystem::path const& content_cas_path,
     std::filesystem::path const& archive_tree_id_file,
-    std::string const& repo_type,
-    std::string const& content_id,
-    std::string const& subdir,
-    std::optional<PragmaSpecial> const& pragma_special,
-    bool absent,
     bool fetch_absent,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
@@ -227,34 +218,32 @@ void ExtractAndImportToGit(
     ContentGitMap::SetterPtr const& setter,
     ContentGitMap::LoggerPtr const& logger) {
     // extract archive
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir(repo_type);
+    auto tmp_dir = StorageUtils::CreateTypedTmpDir(key.repo_type);
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for {} target {}",
-                              repo_type,
-                              content_id),
+                              key.repo_type,
+                              key.archive.content),
                   /*fatal=*/true);
         return;
     }
-    auto res = ExtractArchive(content_cas_path, repo_type, tmp_dir->GetPath());
+    auto res =
+        ExtractArchive(content_cas_path, key.repo_type, tmp_dir->GetPath());
     if (res != std::nullopt) {
-        (*logger)(fmt::format("Failed to extract archive {} "
-                              "from CAS with error: {}",
-                              content_cas_path.string(),
-                              *res),
-                  /*fatal=*/true);
+        (*logger)(
+            fmt::format("Failed to extract archive {} from CAS with error:\n{}",
+                        content_cas_path.string(),
+                        *res),
+            /*fatal=*/true);
         return;
     }
     // import to git
-    CommitInfo c_info{tmp_dir->GetPath(), repo_type, content_id};
+    CommitInfo c_info{tmp_dir->GetPath(), key.repo_type, key.archive.content};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
          archive_tree_id_file,
-         content_id,
-         subdir,
-         pragma_special,
-         absent,
+         key,
          fetch_absent,
          resolve_symlinks_map,
          ts,
@@ -276,13 +265,10 @@ void ExtractAndImportToGit(
                 return;
             }
             // write to id file and process subdir tree
-            WriteIdFileAndSetWSRoot(archive_tree_id,
+            WriteIdFileAndSetWSRoot(key,
+                                    archive_tree_id,
                                     just_git_cas,
                                     archive_tree_id_file,
-                                    content_id,
-                                    subdir,
-                                    pragma_special,
-                                    absent,
                                     fetch_absent,
                                     resolve_symlinks_map,
                                     ts,
@@ -291,8 +277,7 @@ void ExtractAndImportToGit(
         },
         [logger, target_path = tmp_dir->GetPath()](auto const& msg,
                                                    bool fatal) {
-            (*logger)(fmt::format("While importing target {} "
-                                  "to Git:\n{}",
+            (*logger)(fmt::format("While importing target {} to Git:\n{}",
                                   target_path.string(),
                                   msg),
                       fatal);
@@ -356,10 +341,7 @@ auto CreateContentGitMap(
                 ts,
                 {std::move(op_key)},
                 [archive_tree_id = *archive_tree_id,
-                 subdir = key.subdir,
-                 content = key.archive.content,
-                 pragma_special = key.pragma_special,
-                 absent = key.absent,
+                 key,
                  fetch_absent,
                  resolve_symlinks_map,
                  ts,
@@ -391,16 +373,14 @@ auto CreateContentGitMap(
                             });
                     // get subtree id
                     auto subtree_hash = just_git_repo->GetSubtreeFromTree(
-                        archive_tree_id, subdir, wrapped_logger);
+                        archive_tree_id, key.subdir, wrapped_logger);
                     if (not subtree_hash) {
                         return;
                     }
                     // resolve tree and set workspace root
-                    ResolveContentTree(content,
+                    ResolveContentTree(key,
                                        *subtree_hash,
                                        true, /*is_cache_hit*/
-                                       pragma_special,
-                                       absent,
                                        fetch_absent,
                                        resolve_symlinks_map,
                                        ts,
@@ -423,13 +403,9 @@ auto CreateContentGitMap(
             auto digest = ArtifactDigest(key.archive.content, 0, false);
             if (auto content_cas_path =
                     cas.BlobPath(digest, /*is_executable=*/false)) {
-                ExtractAndImportToGit(*content_cas_path,
+                ExtractAndImportToGit(key,
+                                      *content_cas_path,
                                       archive_tree_id_file,
-                                      key.repo_type,
-                                      key.archive.content,
-                                      key.subdir,
-                                      key.pragma_special,
-                                      key.absent,
                                       fetch_absent,
                                       import_to_git_map,
                                       resolve_symlinks_map,
@@ -515,13 +491,9 @@ auto CreateContentGitMap(
                         }
                         if (auto content_cas_path =
                                 cas.BlobPath(digest, /*is_executable=*/false)) {
-                            ExtractAndImportToGit(*content_cas_path,
+                            ExtractAndImportToGit(key,
+                                                  *content_cas_path,
                                                   archive_tree_id_file,
-                                                  key.repo_type,
-                                                  key.archive.content,
-                                                  key.subdir,
-                                                  key.pragma_special,
-                                                  key.absent,
                                                   fetch_absent,
                                                   import_to_git_map,
                                                   resolve_symlinks_map,
@@ -555,13 +527,9 @@ auto CreateContentGitMap(
                             cas.BlobPath(digest, /*is_executable=*/false)) {
                         JustMRProgress::Instance().TaskTracker().Stop(
                             key.archive.origin);
-                        ExtractAndImportToGit(*content_cas_path,
+                        ExtractAndImportToGit(key,
+                                              *content_cas_path,
                                               archive_tree_id_file,
-                                              key.repo_type,
-                                              key.archive.content,
-                                              key.subdir,
-                                              key.pragma_special,
-                                              key.absent,
                                               fetch_absent,
                                               import_to_git_map,
                                               resolve_symlinks_map,
@@ -637,13 +605,10 @@ auto CreateContentGitMap(
                                         .Stop(key.archive.origin);
                                     // write to id file and process subdir tree
                                     WriteIdFileAndSetWSRoot(
+                                        key,
                                         *root_tree_id,
                                         just_git_cas,
                                         archive_tree_id_file,
-                                        key.archive.content,
-                                        key.subdir,
-                                        key.pragma_special,
-                                        key.absent,
                                         fetch_absent,
                                         resolve_symlinks_map,
                                         ts,
@@ -701,11 +666,8 @@ auto CreateContentGitMap(
                                         ts,
                                         {std::move(c_info)},
                                         [tmp_dir,  // keep tmp_dir alive
+                                         key,
                                          root_tree_id,
-                                         content = key.archive.content,
-                                         subdir = key.subdir,
-                                         pragma_special = key.pragma_special,
-                                         absent = key.absent,
                                          fetch_absent,
                                          just_git_cas,
                                          archive_tree_id_file,
@@ -722,13 +684,10 @@ auto CreateContentGitMap(
                                             // write to id file and process
                                             // subdir tree
                                             WriteIdFileAndSetWSRoot(
+                                                key,
                                                 *root_tree_id,
                                                 just_git_cas,
                                                 archive_tree_id_file,
-                                                content,
-                                                subdir,
-                                                pragma_special,
-                                                absent,
                                                 fetch_absent,
                                                 resolve_symlinks_map,
                                                 ts,
@@ -754,12 +713,7 @@ auto CreateContentGitMap(
                                     ts,
                                     {key.archive},
                                     [archive_tree_id_file,
-                                     archive_origin = key.archive.origin,
-                                     repo_type = key.repo_type,
-                                     content_id = key.archive.content,
-                                     subdir = key.subdir,
-                                     pragma_special = key.pragma_special,
-                                     absent = key.absent,
+                                     key,
                                      fetch_absent,
                                      import_to_git_map,
                                      resolve_symlinks_map,
@@ -769,25 +723,23 @@ auto CreateContentGitMap(
                                         [[maybe_unused]] auto const& values) {
                                         JustMRProgress::Instance()
                                             .TaskTracker()
-                                            .Stop(archive_origin);
+                                            .Stop(key.archive.origin);
                                         // content is in CAS
                                         auto const& cas =
                                             Storage::Instance().CAS();
                                         auto content_cas_path =
                                             cas.BlobPath(
                                                    ArtifactDigest(
-                                                       content_id, 0, false),
+                                                       key.archive.content,
+                                                       0,
+                                                       false),
                                                    /*is_executable=*/
                                                    false)
                                                 .value();
                                         ExtractAndImportToGit(
+                                            key,
                                             content_cas_path,
                                             archive_tree_id_file,
-                                            repo_type,
-                                            content_id,
-                                            subdir,
-                                            pragma_special,
-                                            absent,
                                             fetch_absent,
                                             import_to_git_map,
                                             resolve_symlinks_map,
@@ -830,12 +782,7 @@ auto CreateContentGitMap(
                         ts,
                         {key.archive},
                         [archive_tree_id_file,
-                         archive_origin = key.archive.origin,
-                         repo_type = key.repo_type,
-                         content_id = key.archive.content,
-                         subdir = key.subdir,
-                         pragma_special = key.pragma_special,
-                         absent = key.absent,
+                         key,
                          fetch_absent,
                          import_to_git_map,
                          resolve_symlinks_map,
@@ -843,21 +790,17 @@ auto CreateContentGitMap(
                          setter,
                          logger]([[maybe_unused]] auto const& values) {
                             JustMRProgress::Instance().TaskTracker().Stop(
-                                archive_origin);
+                                key.archive.origin);
                             // content is in CAS
                             auto const& cas = Storage::Instance().CAS();
                             auto content_cas_path =
-                                cas.BlobPath(
-                                       ArtifactDigest(content_id, 0, false),
-                                       /*is_executable=*/false)
+                                cas.BlobPath(ArtifactDigest(
+                                                 key.archive.content, 0, false),
+                                             /*is_executable=*/false)
                                     .value();
-                            ExtractAndImportToGit(content_cas_path,
+                            ExtractAndImportToGit(key,
+                                                  content_cas_path,
                                                   archive_tree_id_file,
-                                                  repo_type,
-                                                  content_id,
-                                                  subdir,
-                                                  pragma_special,
-                                                  absent,
                                                   fetch_absent,
                                                   import_to_git_map,
                                                   resolve_symlinks_map,
