@@ -87,8 +87,15 @@ requires(kIsLocalGeneration) auto TargetCache<
     kDoGlobalUplink>::LocalUplinkEntry(LocalGenerationTC const& latest,
                                        TargetCacheKey const& key) const noexcept
     -> bool {
+    return LocalUplinkEntry(latest, key.Id().digest.hash());
+}
+
+template <bool kDoGlobalUplink>
+template <bool kIsLocalGeneration>
+requires(kIsLocalGeneration) auto TargetCache<kDoGlobalUplink>::
+    LocalUplinkEntry(LocalGenerationTC const& latest,
+                     std::string const& key_digest) const noexcept -> bool {
     // Determine target cache key path of given generation.
-    auto key_digest = key.Id().digest.hash();
     if (FileSystemManager::IsFile(latest.file_store_.GetPath(key_digest))) {
         return true;
     }
@@ -125,6 +132,16 @@ requires(kIsLocalGeneration) auto TargetCache<
         return false;
     }
     auto entry = TargetCacheEntry::FromJson(json_desc);
+
+    // Uplink the implied export targets first
+    for (auto const& implied_digest : entry.ToImplied()) {
+        if (implied_digest != key_digest) {
+            if (not LocalUplinkEntry(latest, implied_digest)) {
+                return false;
+            }
+        }
+    }
+
     std::vector<Artifact::ObjectInfo> artifacts_info;
     if (not entry.ToArtifacts(&artifacts_info)) {
         return false;

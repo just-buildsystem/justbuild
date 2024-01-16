@@ -123,6 +123,11 @@ class TargetCache {
                 /*kSetEpochTime=*/false>
         file_store_;
 
+    template <bool kIsLocalGeneration = not kDoGlobalUplink>
+    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
+        LocalGenerationTC const& latest,
+        std::string const& key_digest) const noexcept -> bool;
+
     [[nodiscard]] static auto ComputeShard() noexcept -> std::string {
         return ArtifactDigest::Create<ObjectType::File>(
                    StorageConfig::ExecutionBackendDescription())
