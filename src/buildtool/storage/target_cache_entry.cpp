@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <exception>
 #include <iterator>
+#include <string>
+#include <vector>
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -29,10 +31,18 @@ auto TargetCacheEntry::FromTarget(
     auto result = TargetResult{.artifact_stage = target->Artifacts(),
                                .provides = target->Provides(),
                                .runfiles = target->RunFiles()};
-    if (auto desc = result.ReplaceNonKnownAndToJson(replacements)) {
-        return TargetCacheEntry{*desc};
+    auto desc = result.ReplaceNonKnownAndToJson(replacements);
+    if (not desc) {
+        return std::nullopt;
     }
-    return std::nullopt;
+    std::vector<std::string> implied{};
+    for (auto const& x : target->ImpliedExport()) {
+        implied.emplace_back(x);
+    }
+    if (not implied.empty()) {
+        (*desc)["implied export targets"] = implied;
+    }
+    return TargetCacheEntry{*desc};
 }
 
 auto TargetCacheEntry::FromJson(nlohmann::json desc) noexcept
