@@ -45,6 +45,22 @@ auto TargetCacheEntry::ToResult() const noexcept
     return TargetResult::FromJson(desc_);
 }
 
+auto TargetCacheEntry::ToImplied() const noexcept -> std::set<std::string> {
+    std::set<std::string> result{};
+    if (desc_.contains("implied export targets")) {
+        try {
+            for (auto const& x : desc_["implied export targets"]) {
+                result.emplace(x);
+            }
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Warning,
+                        "Exception reading implied export targets: {}",
+                        ex.what());
+        }
+    }
+    return result;
+}
+
 [[nodiscard]] auto ToObjectInfo(nlohmann::json const& json)
     -> Artifact::ObjectInfo {
     auto const& desc = ArtifactDescription::FromJson(json);

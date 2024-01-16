@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_ENTRY_HPP
 
 #include <optional>
+#include <set>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -45,6 +46,9 @@ class TargetCacheEntry {
 
     // Obtain TargetResult from cache entry.
     [[nodiscard]] auto ToResult() const noexcept -> std::optional<TargetResult>;
+
+    // Obtain the implied export targets
+    [[nodiscard]] auto ToImplied() const noexcept -> std::set<std::string>;
 
     // Obtain all artifacts from cache entry (all should be known
     // artifacts).
