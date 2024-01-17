@@ -74,12 +74,20 @@ auto CASServiceImpl::FindMissingBlobs(
     return ::grpc::Status::OK;
 }
 
-auto CASServiceImpl::CheckDigestConsistency(
-    std::string const& ref,
-    std::string const& computed) const noexcept -> std::optional<std::string> {
-    if (ref != computed) {
+auto CASServiceImpl::CheckDigestConsistency(bazel_re::Digest const& ref,
+                                            bazel_re::Digest const& computed)
+    const noexcept -> std::optional<std::string> {
+    if (ref.hash() != computed.hash() or
+        ((Compatibility::IsCompatible() or ref.size_bytes() > 0LL) and
+         ref.size_bytes() != computed.size_bytes())) {
         auto const& str = fmt::format(
-            "Blob {} is corrupted: digest and data do not correspond", ref);
+            "Blob {} is corrupted: provided digest {}:{} and digest computed "
+            "from data {}:{} do not correspond.",
+            ref.hash(),
+            ref.hash(),
+            ref.size_bytes(),
+            computed.size_bytes(),
+            computed.size_bytes());
         logger_.Emit(LogLevel::Error, str);
         return str;
     }
@@ -117,7 +125,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
                 logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
-            if (auto err = CheckDigestConsistency(hash, dgst->hash())) {
+            if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
                 return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
             }
         }
@@ -129,7 +137,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
                 logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
-            if (auto err = CheckDigestConsistency(hash, dgst->hash())) {
+            if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
                 return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
             }
         }
