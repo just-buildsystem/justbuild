@@ -57,6 +57,11 @@
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "verify_hash"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "hex_string"]
     , "file_chunker"
     ]
   }
