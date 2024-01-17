@@ -202,6 +202,14 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
+    auto const& blob_digest = request->blob_digest();
+    if (not IsValidHash(blob_digest.hash())) {
+        auto str =
+            fmt::format("SplitBlob: unsupported digest {}", blob_digest.hash());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+
     // Acquire garbage collection lock.
     auto lock = GarbageCollector::SharedLock();
     if (not lock) {
@@ -211,7 +219,6 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
-    auto const& blob_digest = request->blob_digest();
     logger_.Emit(LogLevel::Info, "SplitBlob({})", blob_digest.hash());
 
     // Check blob existence.
