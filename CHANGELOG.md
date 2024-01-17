@@ -45,6 +45,10 @@ A feature release on top of `1.2.0`, backwards compatible.
   on upgrading or downgrading. However, old target-level cache
   entries will not be used leading potentially to rebuilding of
   some targets.
+- Garbage collection now honors the dependencies of target-level
+  caches entries on one another. When upgrading in place, this only
+  applies for target-level cache entries written initially after
+  the upgrade.
 - Improved portability and update of the bundled dependencies.
 - Various minor improvements and typo fixes in the documentation.
 - Fixed a race condition in an internal cache of `just execute`

@@ -229,3 +229,75 @@ The forwarding of artifacts are the reason we chose that in the
 non-cached analysis of an export target the artifacts are passed on as
 received and are not wrapped in an "add to cache" action. The latter
 choice would violate that projection property we rely upon.
+
+### Example
+
+Consider the following target file (on a content-fixed root) as
+example.
+
+```
+{ "generated":
+  {"type": "generic", "outs": ["out.txt"], "cmds": ["echo Hello > out.txt"]}
+, "export": {"type": "export", "target": "generated"}
+, "use":
+  {"type": "install", "dirs": [["generated", "."], ["generated", "other-use"]]}
+, "": {"type": "export", "target": "use"}
+}
+```
+
+Upon initial analysis (on an empty local build root) of the default
+target `""`, the output artifact `out.txt` is an action artifact, more
+precisely the same one that is output of the target `"generated"`;
+the target `"export"` also has the same artifact on output. After
+building the default target, a target-cache entry will be written
+for this target, containing the extensional definition of the target,
+so for `out.txt` the known artifact `e965047ad7c57865...` stored; as
+a side effect, also for the target `"export"` a target-cache entry
+will be written, containing, of course, the same known artifact.
+So on subsequent analysis, both `"export"` and `""` will still
+have the same artifact for `out.txt`, but this time a known one.
+This artifact is now different from the artifact of the target
+`"generated"` (which is still an action artifact), but no conflicts
+arise as the usual target discipline requires that any target not
+a (direct or indirect) dependency of `"export"` use the target
+`"generated"` only indirectly by using the target `"export"`.
+
+Also note that further exporting such a target has to effect, as a
+known artifact always evaluates to itself. In that sense, replacing
+by the extensional definition is a projection.
+
+### Interaction with garbage collection
+
+While adding the implied export targets happens automatically due
+to the evaluation mechanism, the dependencies of target-level cache
+entries on one another still have to be persisted to honor them
+during garbage collection. Otherwise it would be possible that an
+implied target gets garbage collected. In fact, that would even be
+likely as typical builds only reference the top-level export targets.
+
+
+#### Analysis to track the export targets depended upon
+
+As we have to persist this dependency, we need to explicitly track
+it. More precisely, the internal data structure of an analyzed
+target is extended by a set of all the export targets eligible
+for caching, represented by the hashes of the `TargetCacheKey`s,
+encountered during the analysis of that target.
+
+### Extension of the value of a target-level cache entry
+
+The cached value for a target-level cache entry is serialized as a
+JSON object, with besides the keys `"artifacts"`, `"runfiles"`, and
+`"provides"` also a key `"implied export targets"` that lists (in
+lexicographic order) the hashes of the cache keys of the export
+targets the analysis of the given export target depends upon; the
+field is only serialized if that list is non empty.
+
+### Additional invariant honored during uplinking
+
+Our cache honors the additional invariant that, whenever a target-level
+cache entry is present, so are the implied target-level cache
+entries. This invariant is honored when adding new target-level
+cache entries by adding them in the correct order, as well as when
+uplinking by uplinking the implied entries first (and there, of
+course, honoring the respective invariants).
