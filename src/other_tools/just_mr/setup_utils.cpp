@@ -79,72 +79,67 @@ void ReachableRepositories(
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos) {
     // use temporary sets to avoid duplicates
     std::unordered_set<std::string> include_repos_set{};
-    if (repos->IsMap()) {
-        // traversal of bindings
-        std::function<void(std::string const&)> traverse =
-            [&](std::string const& repo_name) {
-                if (not include_repos_set.contains(repo_name)) {
-                    // if not found, add it and repeat for its bindings
-                    include_repos_set.insert(repo_name);
-                    // check bindings
-                    auto repos_repo_name =
-                        repos->Get(repo_name, Expression::none_t{});
-                    if (not repos_repo_name.IsNotNull()) {
-                        return;
-                    }
-                    auto bindings =
-                        repos_repo_name->Get("bindings", Expression::none_t{});
-                    if (bindings.IsNotNull() and bindings->IsMap()) {
-                        for (auto const& bound : bindings->Map().Values()) {
-                            if (bound.IsNotNull() and bound->IsString()) {
-                                traverse(bound->String());
-                            }
+    // traversal of bindings
+    std::function<void(std::string const&)> traverse =
+        [&](std::string const& repo_name) {
+            if (not include_repos_set.contains(repo_name)) {
+                // if not found, add it and repeat for its bindings
+                include_repos_set.insert(repo_name);
+                // check bindings
+                auto repos_repo_name =
+                    repos->Get(repo_name, Expression::none_t{});
+                if (not repos_repo_name.IsNotNull()) {
+                    return;
+                }
+                auto bindings =
+                    repos_repo_name->Get("bindings", Expression::none_t{});
+                if (bindings.IsNotNull() and bindings->IsMap()) {
+                    for (auto const& bound : bindings->Map().Values()) {
+                        if (bound.IsNotNull() and bound->IsString()) {
+                            traverse(bound->String());
                         }
                     }
                 }
-            };
-        traverse(main);  // traverse all bindings of main repository
+            }
+        };
+    traverse(main);  // traverse all bindings of main repository
 
-        // Add overlay repositories
-        std::unordered_set<std::string> setup_repos_set{include_repos_set};
-        for (auto const& repo : include_repos_set) {
-            auto repos_repo = repos->Get(repo, Expression::none_t{});
-            if (repos_repo.IsNotNull()) {
-                // copy over any present alternative root dirs
-                for (auto const& layer : kAltDirs) {
-                    auto layer_val =
-                        repos_repo->Get(layer, Expression::none_t{});
-                    if (layer_val.IsNotNull() and layer_val->IsString()) {
-                        auto repo_name = layer_val->String();
-                        setup_repos_set.insert(repo_name);
-                    }
+    // Add overlay repositories
+    std::unordered_set<std::string> setup_repos_set{include_repos_set};
+    for (auto const& repo : include_repos_set) {
+        auto repos_repo = repos->Get(repo, Expression::none_t{});
+        if (repos_repo.IsNotNull()) {
+            // copy over any present alternative root dirs
+            for (auto const& layer : kAltDirs) {
+                auto layer_val = repos_repo->Get(layer, Expression::none_t{});
+                if (layer_val.IsNotNull() and layer_val->IsString()) {
+                    auto repo_name = layer_val->String();
+                    setup_repos_set.insert(repo_name);
                 }
             }
         }
-
-        // copy to vectors
-        setup_repos->to_setup.clear();
-        setup_repos->to_setup.reserve(setup_repos_set.size());
-        std::copy(
-            setup_repos_set.begin(),
-            setup_repos_set.end(),
-            std::inserter(setup_repos->to_setup, setup_repos->to_setup.end()));
-        setup_repos->to_include.clear();
-        setup_repos->to_include.reserve(include_repos_set.size());
-        std::copy(include_repos_set.begin(),
-                  include_repos_set.end(),
-                  std::inserter(setup_repos->to_include,
-                                setup_repos->to_include.end()));
     }
+
+    // copy to vectors
+    setup_repos->to_setup.clear();
+    setup_repos->to_setup.reserve(setup_repos_set.size());
+    std::copy(
+        setup_repos_set.begin(),
+        setup_repos_set.end(),
+        std::inserter(setup_repos->to_setup, setup_repos->to_setup.end()));
+    setup_repos->to_include.clear();
+    setup_repos->to_include.reserve(include_repos_set.size());
+    std::copy(
+        include_repos_set.begin(),
+        include_repos_set.end(),
+        std::inserter(setup_repos->to_include, setup_repos->to_include.end()));
 }
 
 void DefaultReachableRepositories(
     ExpressionPtr const& repos,
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos) {
-    if (repos.IsNotNull() and repos->IsMap()) {
-        setup_repos->to_setup = repos->Map().Keys();
-        setup_repos->to_include = setup_repos->to_setup;
-    }
+    setup_repos->to_setup = repos->Map().Keys();
+    setup_repos->to_include = setup_repos->to_setup;
 }
 
 auto ReadConfiguration(

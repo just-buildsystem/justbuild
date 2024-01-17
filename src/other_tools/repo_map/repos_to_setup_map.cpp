@@ -121,9 +121,10 @@ void GitCheckout(ExpressionPtr const& repo_desc,
     }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
-    auto pragma_special = repo_desc_pragma
-                              ? repo_desc_pragma->get()->At("special")
-                              : std::nullopt;
+    bool const& pragma_is_map =
+        repo_desc_pragma and repo_desc_pragma->get()->IsMap();
+    auto pragma_special =
+        pragma_is_map ? repo_desc_pragma->get()->At("special") : std::nullopt;
     auto pragma_special_value =
         pragma_special and pragma_special->get()->IsString() and
                 kPragmaSpecialMap.contains(pragma_special->get()->String())
@@ -132,7 +133,7 @@ void GitCheckout(ExpressionPtr const& repo_desc,
             : std::nullopt;
     // check "absent" pragma
     auto pragma_absent =
-        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+        pragma_is_map ? repo_desc_pragma->get()->At("absent") : std::nullopt;
     auto pragma_absent_value = pragma_absent and
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
@@ -242,9 +243,10 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
     }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
-    auto pragma_special = repo_desc_pragma
-                              ? repo_desc_pragma->get()->At("special")
-                              : std::nullopt;
+    bool const& pragma_is_map =
+        repo_desc_pragma and repo_desc_pragma->get()->IsMap();
+    auto pragma_special =
+        pragma_is_map ? repo_desc_pragma->get()->At("special") : std::nullopt;
     auto pragma_special_value =
         pragma_special and pragma_special->get()->IsString() and
                 kPragmaSpecialMap.contains(pragma_special->get()->String())
@@ -253,7 +255,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
             : std::nullopt;
     // check "absent" pragma
     auto pragma_absent =
-        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+        pragma_is_map ? repo_desc_pragma->get()->At("absent") : std::nullopt;
     auto pragma_absent_value = pragma_absent and
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
@@ -334,9 +336,10 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         std::filesystem::absolute(repo_desc_path->get()->String()));
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
-    auto pragma_special = repo_desc_pragma
-                              ? repo_desc_pragma->get()->At("special")
-                              : std::nullopt;
+    bool const& pragma_is_map =
+        repo_desc_pragma and repo_desc_pragma->get()->IsMap();
+    auto pragma_special =
+        pragma_is_map ? repo_desc_pragma->get()->At("special") : std::nullopt;
     auto pragma_special_value =
         pragma_special and pragma_special->get()->IsString() and
                 kPragmaSpecialMap.contains(pragma_special->get()->String())
@@ -345,14 +348,14 @@ void FileCheckout(ExpressionPtr const& repo_desc,
             : std::nullopt;
     // check "to_git" pragma
     auto pragma_to_git =
-        repo_desc_pragma ? repo_desc_pragma->get()->At("to_git") : std::nullopt;
+        pragma_is_map ? repo_desc_pragma->get()->At("to_git") : std::nullopt;
     // resolving symlinks implies also to_git
     if (pragma_special_value == PragmaSpecial::ResolvePartially or
         pragma_special_value == PragmaSpecial::ResolveCompletely or
         (pragma_to_git and pragma_to_git->get()->IsBool() and
          pragma_to_git->get()->Bool())) {
         // check "absent" pragma
-        auto pragma_absent = repo_desc_pragma
+        auto pragma_absent = pragma_is_map
                                  ? repo_desc_pragma->get()->At("absent")
                                  : std::nullopt;
         auto pragma_absent_value = pragma_absent and
@@ -425,8 +428,9 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     }
     // check "absent" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
-    auto pragma_absent =
-        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+    auto pragma_absent = (repo_desc_pragma and repo_desc_pragma->get()->IsMap())
+                             ? repo_desc_pragma->get()->At("absent")
+                             : std::nullopt;
     auto pragma_absent_value = pragma_absent and
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
@@ -727,9 +731,10 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
     }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
-    auto pragma_special = repo_desc_pragma
-                              ? repo_desc_pragma->get()->At("special")
-                              : std::nullopt;
+    bool const& pragma_is_map =
+        repo_desc_pragma and repo_desc_pragma->get()->IsMap();
+    auto pragma_special =
+        pragma_is_map ? repo_desc_pragma->get()->At("special") : std::nullopt;
     auto pragma_special_value =
         pragma_special and pragma_special->get()->IsString() and
                 kPragmaSpecialMap.contains(pragma_special->get()->String())
@@ -738,7 +743,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
             : std::nullopt;
     // check "absent" pragma
     auto pragma_absent =
-        repo_desc_pragma ? repo_desc_pragma->get()->At("absent") : std::nullopt;
+        pragma_is_map ? repo_desc_pragma->get()->At("absent") : std::nullopt;
     auto pragma_absent_value = pragma_absent and
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
@@ -819,6 +824,13 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                           /*fatal=*/true);
                 return;
             }
+            if (not repo_desc_key->get()->IsMap()) {
+                (*logger)(fmt::format("Config: Config entry for repository {} "
+                                      "is not a map",
+                                      nlohmann::json(key).dump()),
+                          /*fatal=*/true);
+                return;
+            }
             auto repo_desc = repo_desc_key->get()->At("repository");
             if (not repo_desc) {
                 (*logger)(fmt::format("Config: Mandatory key \"repository\" "
@@ -834,6 +846,13 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                       "repository {}",
                                       nlohmann::json(key).dump()),
                           /*fatal=*/true);
+                return;
+            }
+            if (not resolved_repo_desc.value()->IsMap()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Config: Repository {} resolves to a non-map description",
+                    nlohmann::json(key).dump());
                 return;
             }
             auto repo_type = (*resolved_repo_desc)->At("type");

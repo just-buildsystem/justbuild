@@ -67,6 +67,12 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     "Config: Mandatory key \"repositories\" missing");
         return kExitFetchError;
     }
+    if (not repos->IsMap()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: Value for key \"repositories\" is not a map");
+        return kExitFetchError;
+    }
+
     auto fetch_repos =
         std::make_shared<JustMR::SetupRepos>();  // repos to setup and include
     JustMR::Utils::DefaultReachableRepositories(repos, fetch_repos);
@@ -139,6 +145,12 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                         nlohmann::json(repo_name).dump());
             return kExitFetchError;
         }
+        if (not repo_desc->get()->IsMap()) {
+            Logger::Log(LogLevel::Error,
+                        "Config: Config entry for repository {} is not a map",
+                        nlohmann::json(repo_name).dump());
+            return kExitFetchError;
+        }
         auto repo = repo_desc->get()->At("repository");
         if (repo) {
             auto resolved_repo_desc =
@@ -147,6 +159,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                 Logger::Log(LogLevel::Error,
                             "Config: Found cyclic dependency for repository {}",
                             nlohmann::json(repo_name).dump());
+                return kExitFetchError;
+            }
+            if (not resolved_repo_desc.value()->IsMap()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Config: Repository {} resolves to a non-map description",
+                    nlohmann::json(repo_name).dump());
                 return kExitFetchError;
             }
             // get repo_type
@@ -180,8 +199,9 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     // check "absent" pragma
                     auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
                     auto pragma_absent =
-                        repo_desc_pragma ? repo_desc_pragma->get()->At("absent")
-                                         : std::nullopt;
+                        (repo_desc_pragma and repo_desc_pragma->get()->IsMap())
+                            ? repo_desc_pragma->get()->At("absent")
+                            : std::nullopt;
                     auto pragma_absent_value =
                         pragma_absent and pragma_absent->get()->IsBool() and
                         pragma_absent->get()->Bool();
@@ -296,8 +316,9 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     // check "absent" pragma
                     auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
                     auto pragma_absent =
-                        repo_desc_pragma ? repo_desc_pragma->get()->At("absent")
-                                         : std::nullopt;
+                        (repo_desc_pragma and repo_desc_pragma->get()->IsMap())
+                            ? repo_desc_pragma->get()->At("absent")
+                            : std::nullopt;
                     auto pragma_absent_value =
                         pragma_absent and pragma_absent->get()->IsBool() and
                         pragma_absent->get()->Bool();

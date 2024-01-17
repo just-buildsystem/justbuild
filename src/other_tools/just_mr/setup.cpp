@@ -55,6 +55,17 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         common_args.just_mr_paths->setup_root);
 
     auto repos = (*config)["repositories"];
+    if (not repos.IsNotNull()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: Mandatory key \"repositories\" missing");
+        return std::nullopt;
+    }
+    if (not repos->IsMap()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: Value for key \"repositories\" is not a map");
+        return std::nullopt;
+    }
+
     auto setup_repos =
         std::make_shared<JustMR::SetupRepos>();  // repos to setup and include
     nlohmann::json mr_config{};                  // output config to populate

@@ -50,6 +50,11 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                     "Config: Mandatory key \"repositories\" missing");
         return kExitUpdateError;
     }
+    if (not repos->IsMap()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: Value for key \"repositories\" is not a map");
+        return kExitUpdateError;
+    }
     // gather repos to update
     std::vector<std::pair<std::string, std::string>> repos_to_update{};
     repos_to_update.reserve(update_args.repos_to_update.size());
@@ -70,6 +75,13 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                             fmt::format("Config: Found cyclic dependency for "
                                         "repository {}",
                                         nlohmann::json(repo_name).dump()));
+                return kExitUpdateError;
+            }
+            if (not resolved_repo_desc.value()->IsMap()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Config: Repository {} resolves to a non-map description",
+                    nlohmann::json(repo_name).dump());
                 return kExitUpdateError;
             }
             // get repo_type

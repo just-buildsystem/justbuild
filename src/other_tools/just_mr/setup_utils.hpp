@@ -43,12 +43,14 @@ struct SetupRepos {
 namespace Utils {
 
 /// \brief Get the repo dependency closure for a given main repository.
+/// \param repos ExpressionPtr of Map type.
 void ReachableRepositories(
     ExpressionPtr const& repos,
     std::string const& main,
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos);
 
 /// \brief By default, we set up and include the full repo dependency closure.
+/// \param repos ExpressionPtr of Map type.
 void DefaultReachableRepositories(
     ExpressionPtr const& repos,
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos);

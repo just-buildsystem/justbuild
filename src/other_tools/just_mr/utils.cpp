@@ -30,7 +30,22 @@ auto ResolveRepo(ExpressionPtr const& repo_desc,
         return std::nullopt;
     }
     [[maybe_unused]] auto insert_res = seen->insert(desc_str);
-    return ResolveRepo(repos[desc_str]["repository"], repos, seen);
+    auto new_repo_desc = repos[desc_str];
+    if (not new_repo_desc->IsMap()) {
+        Logger::Log(LogLevel::Error,
+                    "Config: While resolving dependencies:\nDescription of "
+                    "repository {} is not a map",
+                    desc_str);
+        return std::nullopt;
+    }
+    if (not new_repo_desc->At("repository")) {
+        Logger::Log(LogLevel::Error,
+                    "Config: While resolving dependencies:\nKey \"repository\" "
+                    "missing for repository {}",
+                    desc_str);
+        return std::nullopt;
+    }
+    return ResolveRepo(new_repo_desc->At("repository")->get(), repos, seen);
 }
 
 auto ResolveRepo(ExpressionPtr const& repo_desc,
@@ -41,7 +56,7 @@ auto ResolveRepo(ExpressionPtr const& repo_desc,
         return ResolveRepo(repo_desc, repos, &seen);
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Error,
-                    "Config: While resolving dependencies: {}",
+                    "Config: While resolving dependencies:\n{}",
                     e.what());
         return std::nullopt;
     }
