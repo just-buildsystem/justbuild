@@ -1,0 +1,22 @@
+{ "cas_server":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["cas_server"]
+  , "srcs": ["cas_server.test.cpp"]
+  , "private-deps":
+    [ ["", "catch-main"]
+    , ["@", "catch2", "", "catch2"]
+    , ["utils", "local_hermeticity"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/execution_service"
+      , "cas_server"
+      ]
+    , ["@", "src", "src/buildtool/file_system", "git_repo"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "gsl", "", "gsl"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "execution_service"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["cas_server"]}
+}

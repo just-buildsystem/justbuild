@@ -12,6 +12,9 @@
   { "type": "install"
   , "tainted": ["test"]
   , "dirs":
-    [[["./", "bazel", "TESTS"], "bazel"], [["./", "local", "TESTS"], "local"]]
+    [ [["./", "bazel", "TESTS"], "bazel"]
+    , [["./", "local", "TESTS"], "local"]
+    , [["./", "execution_service", "TESTS"], "execution_service"]
+    ]
   }
 }
