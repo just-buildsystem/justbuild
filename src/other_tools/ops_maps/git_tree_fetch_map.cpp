@@ -258,15 +258,19 @@ auto CreateGitTreeFetchMap(
                 // create temporary location for command execution root
                 auto tmp_dir = StorageUtils::CreateTypedTmpDir("git-tree");
                 if (not tmp_dir) {
-                    (*logger)("Failed to create tmp directory for tree id map!",
-                              /*fatal=*/true);
+                    (*logger)(
+                        "Failed to create execution root tmp directory for "
+                        "tree id map!",
+                        /*fatal=*/true);
                     return;
                 }
                 // create temporary location for storing command result files
                 auto out_dir = StorageUtils::CreateTypedTmpDir("git-tree");
                 if (not out_dir) {
-                    (*logger)("Failed to create tmp directory for tree id map!",
-                              /*fatal=*/true);
+                    (*logger)(
+                        "Failed to create results tmp directory for tree id "
+                        "map!",
+                        /*fatal=*/true);
                     return;
                 }
                 // execute command in temporary location

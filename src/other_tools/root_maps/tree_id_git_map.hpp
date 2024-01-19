@@ -15,13 +15,17 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
 
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
+#include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TreeIdInfo {
@@ -55,11 +59,17 @@ struct hash<TreeIdInfo> {
 /// \brief Maps a known tree provided through a generic command to its
 /// workspace root and the information whether it was a cache hit.
 using TreeIdGitMap =
-    AsyncMapConsumer<TreeIdInfo, std::pair<nlohmann::json, bool>>;
+    AsyncMapConsumer<TreeIdInfo,
+                     std::pair<nlohmann::json /*root*/, bool /*is_cache_hit*/>>;
 
 [[nodiscard]] auto CreateTreeIdGitMap(
     gsl::not_null<GitTreeFetchMap*> const& git_tree_fetch_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
+    bool serve_api_exists,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> TreeIdGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP

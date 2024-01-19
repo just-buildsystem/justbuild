@@ -134,14 +134,22 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , "root_utils"
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "root_utils":
