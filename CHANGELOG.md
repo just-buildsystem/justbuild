@@ -49,6 +49,8 @@ A feature release on top of `1.2.0`, backwards compatible.
   caches entries on one another. When upgrading in place, this only
   applies for target-level cache entries written initially after
   the upgrade.
+- The taintedness of `"configure"` targets is now propagated
+  correctly in analysis.
 - Improved portability and update of the bundled dependencies.
 - Various minor improvements and typo fixes in the documentation.
 - Fixed a race condition in an internal cache of `just execute`
