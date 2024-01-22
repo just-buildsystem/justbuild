@@ -235,6 +235,32 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                         auto repo_desc_sha512 =
                             (*resolved_repo_desc)
                                 ->Get("sha512", Expression::none_t{});
+                        auto repo_desc_mirrors =
+                            (*resolved_repo_desc)
+                                ->Get("mirrors", Expression::list_t{});
+                        std::vector<std::string> mirrors{};
+                        if (repo_desc_mirrors->IsList()) {
+                            mirrors.reserve(repo_desc_mirrors->List().size());
+                            for (auto const& elem : repo_desc_mirrors->List()) {
+                                if (not elem->IsString()) {
+                                    Logger::Log(
+                                        LogLevel::Error,
+                                        "Config: Unsupported list entry {} in "
+                                        "optional field \"mirrors\"",
+                                        elem->ToString());
+                                    return kExitFetchError;
+                                }
+                                mirrors.emplace_back(elem->String());
+                            }
+                        }
+                        else {
+                            Logger::Log(LogLevel::Error,
+                                        "Config: Optional field \"mirrors\" "
+                                        "should be a list of strings, but "
+                                        "found: {}",
+                                        repo_desc_mirrors->ToString());
+                            return kExitFetchError;
+                        }
 
                         ArchiveRepoInfo archive_info = {
                             .archive =
@@ -245,6 +271,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                                repo_desc_distfile->String())
                                          : std::nullopt,
                                  .fetch_url = repo_desc_fetch->get()->String(),
+                                 .mirrors = std::move(mirrors),
                                  .sha256 = repo_desc_sha256->IsString()
                                                ? std::make_optional(
                                                      repo_desc_sha256->String())
