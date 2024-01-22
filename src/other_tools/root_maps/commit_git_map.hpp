@@ -68,7 +68,8 @@ struct hash<GitRepoInfo> {
 /// \brief Maps a Git repository commit hash to its tree workspace root,
 /// together with the information whether it was a cache hit.
 using CommitGitMap =
-    AsyncMapConsumer<GitRepoInfo, std::pair<nlohmann::json, bool>>;
+    AsyncMapConsumer<GitRepoInfo,
+                     std::pair<nlohmann::json /*root*/, bool /*is_cache_hit*/>>;
 
 [[nodiscard]] auto CreateCommitGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,

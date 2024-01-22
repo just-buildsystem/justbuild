@@ -25,6 +25,7 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
+#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -39,8 +40,82 @@ namespace {
         });
 }
 
-// Helper function for improved readability. It guarantees the logger is
-// called exactly once with fatal if failure.
+/// \brief Helper function for ensuring the serve endpoint, if given, has the
+/// root if it was marked absent.
+/// It guarantees the logger is called exactly once with fatal on failure, and
+/// the setter on success.
+void EnsureRootAsAbsent(
+    std::string const& tree_id,
+    std::filesystem::path const& repo_root,
+    GitRepoInfo const& repo_info,
+    bool serve_api_exists,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    CommitGitMap::SetterPtr const& ws_setter,
+    CommitGitMap::LoggerPtr const& logger) {
+    // this is an absent root
+    if (serve_api_exists) {
+        // check if the serve endpoint has this root
+        auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
+        if (not has_tree) {
+            return;
+        }
+        if (not *has_tree) {
+            // try to see if serve endpoint has the information to prepare the
+            // root itself
+            if (auto served_tree_id =
+                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
+                                                     repo_info.subdir,
+                                                     /*sync_tree = */ false)) {
+                // if serve has set up the tree, it must match what we expect
+                if (tree_id != *served_tree_id) {
+                    (*logger)(fmt::format("Mismatch in served root tree "
+                                          "id:\nexpected {}, but got {}",
+                                          tree_id,
+                                          *served_tree_id),
+                              /*fatal=*/true);
+                    return;
+                }
+            }
+            else {
+                if (not remote_api) {
+                    (*logger)(fmt::format("Missing remote-execution endpoint "
+                                          "needed to sync workspace root {} "
+                                          "with the serve endpoint.",
+                                          tree_id),
+                              /*fatal=*/true);
+                    return;
+                }
+                // the tree is known locally, so we can upload it to remote CAS
+                // for the serve endpoint to retrieve it and set up the root
+                if (not EnsureAbsentRootOnServe(tree_id,
+                                                repo_root,
+                                                *remote_api,
+                                                logger,
+                                                true /*no_sync_is_fatal*/)) {
+                    return;
+                }
+            }
+        }
+    }
+    else {
+        // give warning
+        (*logger)(fmt::format("Workspace root {} marked absent but no serve "
+                              "endpoint provided.",
+                              tree_id),
+                  /*fatal=*/false);
+    }
+    // set root as absent
+    (*ws_setter)(std::pair(
+        nlohmann::json::array({repo_info.ignore_special
+                                   ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                   : FileRoot::kGitTreeMarker,
+                               tree_id}),
+        /*is_cache_hit=*/false));
+}
+
+/// \brief Helper function for improved readability.
+/// It guarantees the logger is called exactly once with fatal on failure, and
+/// the setter on success.
 void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
                              std::string const& subdir,
                              bool ignore_special,
@@ -88,6 +163,11 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
         false));
 }
 
+/// \brief Contains the main logic for this async map. It ensures the commit is
+/// available for processing (including fetching for a present root) and setting
+/// the root.
+/// It guarantees the logger is called exactly once with fatal on failure, and
+/// the setter on success.
 void EnsureCommit(
     GitRepoInfo const& repo_info,
     std::filesystem::path const& repo_root,
@@ -153,15 +233,17 @@ void EnsureCommit(
             }
             // set the workspace root
             if (repo_info.absent and not fetch_absent) {
-                (*ws_setter)(
-                    std::pair(nlohmann::json::array(
-                                  {repo_info.ignore_special
-                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                       : FileRoot::kGitTreeMarker,
-                                   *tree_id}),
-                              false));
+                // try by all available means to generate & set the absent root
+                EnsureRootAsAbsent(*tree_id,
+                                   StorageConfig::GitRoot(),
+                                   repo_info,
+                                   serve_api_exists,
+                                   remote_api,
+                                   ws_setter,
+                                   logger);
             }
             else {
+                // this root as present
                 (*ws_setter)(
                     std::pair(nlohmann::json::array(
                                   {repo_info.ignore_special
@@ -169,10 +251,13 @@ void EnsureCommit(
                                        : FileRoot::kGitTreeMarker,
                                    *tree_id,
                                    StorageConfig::GitRoot().string()}),
-                              false));
+                              /*is_cache_hit=*/false));
             }
+            // done!
             return;
         }
+
+        // no id file association exists
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
         // check if commit is known to remote serve service
         if (serve_api_exists) {
@@ -191,15 +276,9 @@ void EnsureCommit(
                                  ? FileRoot::kGitTreeIgnoreSpecialMarker
                                  : FileRoot::kGitTreeMarker,
                              *tree_id}),
-                        false));
+                        /*is_cache_hit=*/false));
                     return;
                 }
-                // give warning
-                (*logger)(fmt::format("Tree at subdir {} for commit {} could "
-                                      "not be served",
-                                      repo_info.subdir,
-                                      repo_info.hash),
-                          /*fatal=*/false);
             }
             // otherwise, request (and sync) the whole commit tree, to ensure
             // we maintain the id file association
@@ -229,7 +308,7 @@ void EnsureCommit(
                         JustMRProgress::Instance().TaskTracker().Stop(
                             repo_info.origin);
                         // write association to id file, get subdir tree,
-                        // and set the workspace root
+                        // and set the workspace root as present
                         WriteIdFileAndSetWSRoot(*root_tree_id,
                                                 repo_info.subdir,
                                                 repo_info.ignore_special,
@@ -297,11 +376,11 @@ void EnsureCommit(
                                 // sanity check: we should get the expected tree
                                 if (values[0]->first != root_tree_id) {
                                     (*logger)(
-                                        fmt::format("Unexpected mismatch in "
-                                                    "imported git tree id: "
-                                                    "expected {}, but got {}",
-                                                    root_tree_id,
-                                                    values[0]->first),
+                                        fmt::format(
+                                            "Mismatch in imported git tree "
+                                            "id:\nexpected {}, but got {}",
+                                            root_tree_id,
+                                            values[0]->first),
                                         /*fatal=*/true);
                                     return;
                                 }
@@ -316,7 +395,7 @@ void EnsureCommit(
                                     return;
                                 }
                                 // write association to id file, get subdir
-                                // tree, and set the workspace root
+                                // tree, and set the workspace root as present
                                 WriteIdFileAndSetWSRoot(
                                     root_tree_id,
                                     subdir,
@@ -356,17 +435,17 @@ void EnsureCommit(
                 }
             }
         }
-        else {
-            if (repo_info.absent) {
-                // give warning
-                (*logger)(
-                    fmt::format("Missing serve endpoint for Git repository {} "
-                                "marked absent requires slower network fetch.",
-                                repo_root.string()),
-                    /*fatal=*/false);
-            }
+
+        // reaching here can only result in a root that is present
+        if (repo_info.absent and not fetch_absent) {
+            (*logger)(fmt::format("Cannot create workspace root as absent for "
+                                  "commit {}.",
+                                  repo_info.hash),
+                      /*fatal=*/true);
+            return;
         }
-        // default to fetching it from network
+
+        // default to fetching from network
         auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create fetch tmp directory!",
@@ -583,7 +662,7 @@ void EnsureCommit(
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
-            [git_cas, repo_info, repo_root, fetch_absent, ws_setter, logger](
+            [git_cas, repo_info, repo_root, ws_setter, logger](
                 auto const& values) {
                 GitOpValue op_result = *values[0];
                 // check flag
@@ -615,17 +694,16 @@ void EnsureCommit(
                 if (not subtree) {
                     return;
                 }
-                // set the workspace root
+                // set the workspace root as present
                 JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
-                auto root = nlohmann::json::array(
-                    {repo_info.ignore_special
-                         ? FileRoot::kGitTreeIgnoreSpecialMarker
-                         : FileRoot::kGitTreeMarker,
-                     *subtree});
-                if (fetch_absent or not repo_info.absent) {
-                    root.emplace_back(repo_root);
-                }
-                (*ws_setter)(std::pair(std::move(root), false));
+                (*ws_setter)(
+                    std::pair(nlohmann::json::array(
+                                  {repo_info.ignore_special
+                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                       : FileRoot::kGitTreeMarker,
+                                   *subtree,
+                                   repo_root}),
+                              /*is_cache_hit=*/false));
             },
             [logger, target_path = repo_root](auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
@@ -636,6 +714,7 @@ void EnsureCommit(
             });
     }
     else {
+        // commit is present in given repository
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
@@ -651,14 +730,27 @@ void EnsureCommit(
             return;
         }
         // set the workspace root
-        auto root = nlohmann::json::array(
-            {repo_info.ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                      : FileRoot::kGitTreeMarker,
-             *subtree});
-        if (fetch_absent or not repo_info.absent) {
-            root.emplace_back(repo_root);
+        if (repo_info.absent and not fetch_absent) {
+            // try by all available means to generate and set the absent root
+            EnsureRootAsAbsent(*subtree,
+                               repo_root,
+                               repo_info,
+                               serve_api_exists,
+                               remote_api,
+                               ws_setter,
+                               logger);
         }
-        (*ws_setter)(std::pair(std::move(root), true));
+        else {
+            // set root as present
+            (*ws_setter)(
+                std::pair(nlohmann::json::array(
+                              {repo_info.ignore_special
+                                   ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                   : FileRoot::kGitTreeMarker,
+                               *subtree,
+                               repo_root.string()}),
+                          /*is_cache_hit=*/true));
+        }
     }
 }
 
