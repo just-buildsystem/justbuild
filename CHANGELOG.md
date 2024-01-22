@@ -27,6 +27,9 @@ A feature release on top of `1.2.0`, backwards compatible.
 - When `just-mr` executes the action to generate the desired tree of a
   `"git tree"` repository, it can be specified that certain variables
   of the environment can be inherited.
+- Support for fetching archives from FTP and TFTP was added to `just-mr`
+  if it was built with bundled curl. For package builds, libcurl has
+  enabled whatever the distro considers suitable.
 
 ### Fixes
 
