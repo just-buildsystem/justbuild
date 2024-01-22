@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
@@ -72,8 +73,8 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> ContentCASMap;
 
 namespace std {

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP
 
+#include <optional>
 #include <utility>
 
 #include "gsl/gsl"
@@ -40,8 +41,8 @@ using ContentGitMap =
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap;
 

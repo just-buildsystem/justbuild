@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -58,8 +59,8 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap;
 

@@ -131,8 +131,8 @@ auto CreateDistdirGitMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> DistdirGitMap {
     auto distdir_to_git = [content_cas_map,
                            import_to_git_map,
@@ -258,8 +258,8 @@ auto CreateDistdirGitMap(
                                 ArtifactDigest{kv.second, 0, /*is_tree=*/false},
                             .type = ObjectType::File});
                     }
-                    if (remote_api != nullptr and local_api != nullptr and
-                        remote_api->RetrieveToCas(objects, local_api)) {
+                    if (remote_api and
+                        remote_api.value()->RetrieveToCas(objects, local_api)) {
                         ImportFromCASAndSetRoot(key.content_list,
                                                 key.content_id,
                                                 distdir_tree_id_file,

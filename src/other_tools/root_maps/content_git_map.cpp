@@ -310,8 +310,8 @@ auto CreateContentGitMap(
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap {
     auto gitify_content = [content_cas_map,
@@ -656,9 +656,8 @@ auto CreateContentGitMap(
                                 // endpoint
                                 auto root_digest = ArtifactDigest{
                                     *root_tree_id, 0, /*is_tree=*/true};
-                                if (remote_api != nullptr and
-                                    local_api != nullptr and
-                                    remote_api->RetrieveToCas(
+                                if (remote_api and
+                                    remote_api.value()->RetrieveToCas(
                                         {Artifact::ObjectInfo{
                                             .digest = root_digest,
                                             .type = ObjectType::Tree}},

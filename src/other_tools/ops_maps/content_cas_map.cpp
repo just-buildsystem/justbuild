@@ -28,18 +28,18 @@
 
 namespace {
 
-void CheckRemoteAndFetchFromNetwork(ArchiveContent const& key,
-                                    ArtifactDigest const& digest,
-                                    MirrorsPtr const& additional_mirrors,
-                                    CAInfoPtr const& ca_info,
-                                    IExecutionApi* local_api,
-                                    IExecutionApi* remote_api,
-                                    ContentCASMap::SetterPtr const& setter,
-                                    ContentCASMap::LoggerPtr const& logger) {
+void CheckRemoteAndFetchFromNetwork(
+    ArchiveContent const& key,
+    ArtifactDigest const& digest,
+    MirrorsPtr const& additional_mirrors,
+    CAInfoPtr const& ca_info,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    ContentCASMap::SetterPtr const& setter,
+    ContentCASMap::LoggerPtr const& logger) {
     // check if content is in remote CAS, if a remote is given
-    if (remote_api != nullptr and local_api != nullptr and
-        remote_api->IsAvailable(digest) and
-        remote_api->RetrieveToCas(
+    if (remote_api and
+        remote_api.value()->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::File}},
             local_api)) {
         JustMRProgress::Instance().TaskTracker().Stop(key.origin);
@@ -123,8 +123,8 @@ auto CreateContentCASMap(
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> ContentCASMap {
     auto ensure_in_cas = [just_mr_paths,
                           additional_mirrors,
@@ -238,12 +238,11 @@ auto CreateContentCASMap(
                     if (serve_api_exists and
                         ServeApi::ContentInRemoteCAS(key.content)) {
                         // try to get content from remote CAS
-                        if (remote_api != nullptr and local_api != nullptr and
-                            remote_api->RetrieveToCas(
-                                {Artifact::ObjectInfo{
-                                    .digest = digest,
-                                    .type = ObjectType::File}},
-                                local_api)) {
+                        if (remote_api and remote_api.value()->RetrieveToCas(
+                                               {Artifact::ObjectInfo{
+                                                   .digest = digest,
+                                                   .type = ObjectType::File}},
+                                               local_api)) {
                             JustMRProgress::Instance().TaskTracker().Stop(
                                 key.origin);
                             (*setter)(nullptr);

@@ -59,7 +59,8 @@
   , "hdrs": ["content_cas_map.hpp"]
   , "srcs": ["content_cas_map.cpp"]
   , "deps":
-    [ ["src/buildtool/common", "user_structs"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/multithreading", "async_map_consumer"]

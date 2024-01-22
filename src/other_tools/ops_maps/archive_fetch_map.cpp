@@ -26,20 +26,21 @@
 
 namespace {
 
-void ProcessContent(std::filesystem::path const& content_path,
-                    std::filesystem::path const& target_name,
-                    IExecutionApi* local_api,
-                    IExecutionApi* remote_api,
-                    std::string const& content,
-                    ArtifactDigest const& digest,
-                    ArchiveFetchMap::SetterPtr const& setter,
-                    ArchiveFetchMap::LoggerPtr const& logger) {
+void ProcessContent(
+    std::filesystem::path const& content_path,
+    std::filesystem::path const& target_name,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    std::string const& content,
+    ArtifactDigest const& digest,
+    ArchiveFetchMap::SetterPtr const& setter,
+    ArchiveFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
-    if (local_api != nullptr and remote_api != nullptr) {
+    if (remote_api) {
         if (not local_api->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::File}},
-                remote_api)) {
+                *remote_api)) {
             // give a warning
             (*logger)(fmt::format("Failed to back up content {} from local CAS "
                                   "to remote",
@@ -67,11 +68,12 @@ void ProcessContent(std::filesystem::path const& content_path,
 
 }  // namespace
 
-auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
-                           std::filesystem::path const& fetch_dir,
-                           IExecutionApi* local_api,
-                           IExecutionApi* remote_api,
-                           std::size_t jobs) -> ArchiveFetchMap {
+auto CreateArchiveFetchMap(
+    gsl::not_null<ContentCASMap*> const& content_cas_map,
+    std::filesystem::path const& fetch_dir,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    std::size_t jobs) -> ArchiveFetchMap {
     auto fetch_archive = [content_cas_map, fetch_dir, local_api, remote_api](
                              auto ts,
                              auto setter,

@@ -88,22 +88,23 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
         false));
 }
 
-void EnsureCommit(GitRepoInfo const& repo_info,
-                  std::filesystem::path const& repo_root,
-                  std::string const& fetch_repo,
-                  MirrorsPtr const& additional_mirrors,
-                  GitCASPtr const& git_cas,
-                  gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-                  gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-                  std::string const& git_bin,
-                  std::vector<std::string> const& launcher,
-                  bool serve_api_exists,
-                  IExecutionApi* local_api,
-                  IExecutionApi* remote_api,
-                  bool fetch_absent,
-                  gsl::not_null<TaskSystem*> const& ts,
-                  CommitGitMap::SetterPtr const& ws_setter,
-                  CommitGitMap::LoggerPtr const& logger) {
+void EnsureCommit(
+    GitRepoInfo const& repo_info,
+    std::filesystem::path const& repo_root,
+    std::string const& fetch_repo,
+    MirrorsPtr const& additional_mirrors,
+    GitCASPtr const& git_cas,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    std::string const& git_bin,
+    std::vector<std::string> const& launcher,
+    bool serve_api_exists,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    bool fetch_absent,
+    gsl::not_null<TaskSystem*> const& ts,
+    CommitGitMap::SetterPtr const& ws_setter,
+    CommitGitMap::LoggerPtr const& logger) {
     // ensure commit exists, and fetch if needed
     auto git_repo = GitRepoRemote::Open(git_cas);  // link fake repo to odb
     if (not git_repo) {
@@ -242,8 +243,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                     // try to get root tree from remote execution endpoint
                     auto root_digest =
                         ArtifactDigest{*root_tree_id, 0, /*is_tree=*/true};
-                    if (remote_api != nullptr and local_api != nullptr and
-                        remote_api->RetrieveToCas(
+                    if (remote_api and
+                        remote_api.value()->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = root_digest,
                                                   .type = ObjectType::Tree}},
                             local_api)) {
@@ -672,8 +673,8 @@ auto CreateCommitGitMap(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     bool serve_api_exists,
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,

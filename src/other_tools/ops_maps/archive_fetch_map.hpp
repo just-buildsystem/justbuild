@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
 
 #include <filesystem>
+#include <optional>
 
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -27,8 +28,8 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveRepoInfo, bool>;
 [[nodiscard]] auto CreateArchiveFetchMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     std::filesystem::path const& fetch_dir,  // should exist!
-    IExecutionApi* local_api,
-    IExecutionApi* remote_api,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> ArchiveFetchMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP
