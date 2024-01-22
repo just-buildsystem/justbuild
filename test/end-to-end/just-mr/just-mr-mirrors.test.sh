@@ -165,14 +165,16 @@ cat > test-repos.json <<EOF
 }
 EOF
 
+rm -rf ${BUILDROOT} ${DISTFILES}/*
+${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 fetch --all -o ${DISTFILES}
+
+rm -rf ${BUILDROOT} ${DISTFILES}/*
 CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 setup --all)
 if [ ! -s "${CONFIG_CPP}" ]; then
     exit 1
 fi
 
 ### Using .just-local specifications
-
-rm -rf ${BUILDROOT}
 
 cat > test-repos.json <<EOF
 { "repositories":
@@ -238,6 +240,10 @@ cat > just-local.json <<EOF
 }
 EOF
 
+rm -rf ${BUILDROOT} ${DISTFILES}/*
+${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 fetch --all -o ${DISTFILES}
+
+rm -rf ${BUILDROOT} ${DISTFILES}/*
 CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 setup --all)
 if [ ! -s "${CONFIG_CPP}" ]; then
     exit 1
