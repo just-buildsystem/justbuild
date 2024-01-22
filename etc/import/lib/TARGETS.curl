@@ -8,6 +8,20 @@
     , "USE_ZLIB"
     , "ENABLE_ARES"
     , "ENABLE_THREADED_RESOLVER"
+    , "CURL_DISABLE_DICT"
+    , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FTP"
+    , "CURL_DISABLE_GOPHER"
+    , "CURL_DISABLE_IMAP"
+    , "CURL_DISABLE_LDAP"
+    , "CURL_DISABLE_LDAPS"
+    , "CURL_DISABLE_MQTT"
+    , "CURL_DISABLE_POP3"
+    , "CURL_DISABLE_RTSP"
+    , "CURL_DISABLE_SMB"
+    , "CURL_DISABLE_SMTP"
+    , "CURL_DISABLE_TELNET"
+    , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
     , "CURL_DISABLE_COOKIES"
@@ -167,6 +181,67 @@
                 , ["CURL_DISABLE_TELNET", 1]
                 , ["CURL_DISABLE_TFTP", 1]
                 ]
+              , "else":
+                { "type": "++"
+                , "$1":
+                  [ { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_DICT"}
+                    , "then": [["CURL_DISABLE_DICT", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_FILE"}
+                    , "then": [["CURL_DISABLE_FILE", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_FTP"}
+                    , "then": [["CURL_DISABLE_FTP", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_GOPHER"}
+                    , "then": [["CURL_DISABLE_GOPHER", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_IMAP"}
+                    , "then": [["CURL_DISABLE_IMAP", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_LDAP"}
+                    , "then": [["CURL_DISABLE_LDAP", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_LDAPS"}
+                    , "then": [["CURL_DISABLE_LDAPS", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_MQTT"}
+                    , "then": [["CURL_DISABLE_MQTT", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_POP3"}
+                    , "then": [["CURL_DISABLE_POP3", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_RTSP"}
+                    , "then": [["CURL_DISABLE_RTSP", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_SMB"}
+                    , "then": [["CURL_DISABLE_SMB", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_SMTP"}
+                    , "then": [["CURL_DISABLE_SMTP", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_TELNET"}
+                    , "then": [["CURL_DISABLE_TELNET", 1]]
+                    }
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "CURL_DISABLE_TFTP"}
+                    , "then": [["CURL_DISABLE_TFTP", 1]]
+                    }
+                  ]
+                }
               }
             , [ ["USE_ARES", {"type": "var", "name": "ENABLE_ARES"}]
               , [ "CURL_DISABLE_ALTSVC"

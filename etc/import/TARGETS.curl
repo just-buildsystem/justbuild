@@ -21,6 +21,20 @@
     , "USE_ZLIB"
     , "ENABLE_ARES"
     , "ENABLE_THREADED_RESOLVER"
+    , "CURL_DISABLE_DICT"
+    , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FTP"
+    , "CURL_DISABLE_GOPHER"
+    , "CURL_DISABLE_IMAP"
+    , "CURL_DISABLE_LDAP"
+    , "CURL_DISABLE_LDAPS"
+    , "CURL_DISABLE_MQTT"
+    , "CURL_DISABLE_POP3"
+    , "CURL_DISABLE_RTSP"
+    , "CURL_DISABLE_SMB"
+    , "CURL_DISABLE_SMTP"
+    , "CURL_DISABLE_TELNET"
+    , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
     , "CURL_DISABLE_COOKIES"
@@ -79,6 +93,20 @@
       [ "Boolean. Enables AsynchDNS by threading if ~ENABLE_ARES==false~."
       , "If ~OS==\"windows\"~, uses win32 threads, otherwise pthreads."
       ]
+    , "CURL_DISABLE_DICT": ["Boolean. Disable DICT."]
+    , "CURL_DISABLE_FILE": ["Boolean. Disable FILE."]
+    , "CURL_DISABLE_FTP": ["Boolean. Disable FTP."]
+    , "CURL_DISABLE_GOPHER": ["Boolean. Disable GOPHER."]
+    , "CURL_DISABLE_IMAP": ["Boolean. Disable IMAP."]
+    , "CURL_DISABLE_LDAP": ["Boolean. Disable LDAP."]
+    , "CURL_DISABLE_LDAPS": ["Boolean. Disable LDAPS."]
+    , "CURL_DISABLE_MQTT": ["Boolean. Disable MQTT."]
+    , "CURL_DISABLE_POP3": ["Boolean. Disable POP3."]
+    , "CURL_DISABLE_RTSP": ["Boolean. Disable RTSP."]
+    , "CURL_DISABLE_SMB": ["Boolean. Disable SMB."]
+    , "CURL_DISABLE_SMTP": ["Boolean. Disable SMTP."]
+    , "CURL_DISABLE_TELNET": ["Boolean. Disable TELNET."]
+    , "CURL_DISABLE_TFTP": ["Boolean. Disable TFTP."]
     , "HTTP_ONLY":
       [ "true|null: Disables the following advanced options:"
       , "DICT, FILE, FTP, GOPHER, IMAP, LDAP, LDAPS,"
@@ -203,6 +231,20 @@
     , "USE_ZLIB"
     , "ENABLE_ARES"
     , "ENABLE_THREADED_RESOLVER"
+    , "CURL_DISABLE_DICT"
+    , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FTP"
+    , "CURL_DISABLE_GOPHER"
+    , "CURL_DISABLE_IMAP"
+    , "CURL_DISABLE_LDAP"
+    , "CURL_DISABLE_LDAPS"
+    , "CURL_DISABLE_MQTT"
+    , "CURL_DISABLE_POP3"
+    , "CURL_DISABLE_RTSP"
+    , "CURL_DISABLE_SMB"
+    , "CURL_DISABLE_SMTP"
+    , "CURL_DISABLE_TELNET"
+    , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
     , "CURL_DISABLE_COOKIES"
@@ -282,6 +324,48 @@
             , "else": true
             }
           }
+        ]
+      , [ "CURL_DISABLE_DICT"
+        , {"type": "var", "name": "CURL_DISABLE_DICT", "default": false}
+        ]
+      , [ "CURL_DISABLE_FILE"
+        , {"type": "var", "name": "CURL_DISABLE_FILE", "default": false}
+        ]
+      , [ "CURL_DISABLE_FTP"
+        , {"type": "var", "name": "CURL_DISABLE_FTP", "default": false}
+        ]
+      , [ "CURL_DISABLE_GOPHER"
+        , {"type": "var", "name": "CURL_DISABLE_GOPHER", "default": false}
+        ]
+      , [ "CURL_DISABLE_IMAP"
+        , {"type": "var", "name": "CURL_DISABLE_IMAP", "default": false}
+        ]
+      , [ "CURL_DISABLE_LDAP"
+        , {"type": "var", "name": "CURL_DISABLE_LDAP", "default": false}
+        ]
+      , [ "CURL_DISABLE_LDAPS"
+        , {"type": "var", "name": "CURL_DISABLE_LDAPS", "default": false}
+        ]
+      , [ "CURL_DISABLE_MQTT"
+        , {"type": "var", "name": "CURL_DISABLE_MQTT", "default": false}
+        ]
+      , [ "CURL_DISABLE_POP3"
+        , {"type": "var", "name": "CURL_DISABLE_POP3", "default": false}
+        ]
+      , [ "CURL_DISABLE_RTSP"
+        , {"type": "var", "name": "CURL_DISABLE_RTSP", "default": false}
+        ]
+      , [ "CURL_DISABLE_SMB"
+        , {"type": "var", "name": "CURL_DISABLE_SMB", "default": false}
+        ]
+      , [ "CURL_DISABLE_SMTP"
+        , {"type": "var", "name": "CURL_DISABLE_SMTP", "default": false}
+        ]
+      , [ "CURL_DISABLE_TELNET"
+        , {"type": "var", "name": "CURL_DISABLE_TELNET", "default": false}
+        ]
+      , [ "CURL_DISABLE_TFTP"
+        , {"type": "var", "name": "CURL_DISABLE_TFTP", "default": false}
         ]
       , ["HTTP_ONLY", {"type": "var", "name": "HTTP_ONLY", "default": false}]
       , [ "CURL_DISABLE_ALTSVC"
@@ -431,6 +515,20 @@
         , "CURL_HIDDEN_SYMBOLS"
         , "ENABLE_ARES"
         , "ENABLE_THREADED_RESOLVER"
+        , "CURL_DISABLE_DICT"
+        , "CURL_DISABLE_FILE"
+        , "CURL_DISABLE_FTP"
+        , "CURL_DISABLE_GOPHER"
+        , "CURL_DISABLE_IMAP"
+        , "CURL_DISABLE_LDAP"
+        , "CURL_DISABLE_LDAPS"
+        , "CURL_DISABLE_MQTT"
+        , "CURL_DISABLE_POP3"
+        , "CURL_DISABLE_RTSP"
+        , "CURL_DISABLE_SMB"
+        , "CURL_DISABLE_SMTP"
+        , "CURL_DISABLE_TELNET"
+        , "CURL_DISABLE_TFTP"
         , "HTTP_ONLY"
         , "CURL_DISABLE_ALTSVC"
         , "CURL_DISABLE_COOKIES"
