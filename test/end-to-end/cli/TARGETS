@@ -28,9 +28,28 @@
   , "test": ["build-p.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "just-mr reporting":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["just-mr-reporting"]
+  , "test": ["just-mr-reporting.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "keep": ["log/warning.txt"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["defaults", "pwd", "install", "build -P", "analyse"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["defaults", "pwd", "install", "build -P", "analyse"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["just-mr reporting"]
+        }
+      ]
+    }
   }
 }
