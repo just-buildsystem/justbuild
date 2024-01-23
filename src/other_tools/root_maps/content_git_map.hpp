@@ -30,7 +30,8 @@
 /// \brief Maps the content of an archive to the resulting Git tree WS root,
 /// together with the information whether it was a cache hit.
 using ContentGitMap =
-    AsyncMapConsumer<ArchiveRepoInfo, std::pair<nlohmann::json, bool>>;
+    AsyncMapConsumer<ArchiveRepoInfo,
+                     std::pair<nlohmann::json /*root*/, bool /*is_cache_hit*/>>;
 
 [[nodiscard]] auto CreateContentGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,

@@ -65,6 +65,9 @@ struct ArchiveRepoInfo {
 
 /// \brief Maps the content hash of an archive to nullptr, as we only care if
 /// the map fails or not.
+/// For pure fetches (fetch_only == true), all possible locations are checked to
+/// obtain the content blob before reverting to the network fetch. Otherwise,
+/// only the remote CAS is checked before going to the network.
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
 
 [[nodiscard]] auto CreateContentCASMap(
