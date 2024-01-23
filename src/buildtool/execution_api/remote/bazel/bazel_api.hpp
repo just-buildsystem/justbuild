@@ -61,7 +61,8 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi* alternative = nullptr) noexcept -> bool final;
+        std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
+            std::nullopt) noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,

@@ -70,7 +70,8 @@ class IExecutionApi {
     [[nodiscard]] virtual auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi* alternative = nullptr) noexcept -> bool = 0;
+        std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
+            std::nullopt) noexcept -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
     /// Tree artifacts are not resolved and instead the tree object will be

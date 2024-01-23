@@ -657,9 +657,9 @@ class Executor {
 
   public:
     explicit Executor(
-        gsl::not_null<RepositoryConfig*> repo_config,
-        IExecutionApi* local_api,
-        IExecutionApi* remote_api,
+        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<IExecutionApi*> const& local_api,
+        gsl::not_null<IExecutionApi*> const& remote_api,
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
@@ -727,10 +727,10 @@ class Rebuilder {
     /// \param properties   Platform properties for execution.
     /// \param timeout      Timeout for action execution.
     Rebuilder(
-        gsl::not_null<RepositoryConfig*> repo_config,
-        IExecutionApi* local_api,
-        IExecutionApi* remote_api,
-        IExecutionApi* api_cached,
+        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<IExecutionApi*> const& local_api,
+        gsl::not_null<IExecutionApi*> const& remote_api,
+        gsl::not_null<IExecutionApi*> const& api_cached,
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
