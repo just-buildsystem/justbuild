@@ -47,6 +47,11 @@ class SourceTreeService final
     using ServeContentResponse = ::justbuild::just_serve::ServeContentResponse;
     using ServeTreeResponse = ::justbuild::just_serve::ServeTreeResponse;
 
+    using CheckRootTreeResponse =
+        ::justbuild::just_serve::CheckRootTreeResponse;
+    using GetRemoteTreeResponse =
+        ::justbuild::just_serve::GetRemoteTreeResponse;
+
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
     // There are no method-specific errors.
@@ -90,6 +95,27 @@ class SourceTreeService final
     auto ServeTree(::grpc::ServerContext* context,
                    const ::justbuild::just_serve::ServeTreeRequest* request,
                    ServeTreeResponse* response) -> ::grpc::Status override;
+
+    // Checks if a Git-tree is locally known and, if found, makes it available
+    // in a location where this serve instance can build against.
+    // The implementation should not interrogate the associated remote-execution
+    // endpoint at any point during the completion of this request.
+    //
+    // There are no method-specific errors.
+    auto CheckRootTree(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::CheckRootTreeRequest* request,
+        CheckRootTreeResponse* response) -> ::grpc::Status override;
+
+    // Retrieves a given Git-tree from the CAS of the associated
+    // remote-execution endpoint and makes it available in a location where this
+    // serve instance can build against.
+    //
+    // There are no method-specific errors.
+    auto GetRemoteTree(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::GetRemoteTreeRequest* request,
+        GetRemoteTreeResponse* response) -> ::grpc::Status override;
 
   private:
     mutable std::shared_mutex mutex_;
