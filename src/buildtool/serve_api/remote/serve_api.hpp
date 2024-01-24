@@ -44,7 +44,7 @@ class ServeApi final {
     [[nodiscard]] static auto RetrieveTreeFromCommit(
         std::string const& commit,
         std::string const& subdir = ".",
-        bool sync_tree = false) -> std::optional<std::string> {
+        bool sync_tree = false) -> std::variant<bool, std::string> {
         return Instance().stc_->ServeCommitTree(commit, subdir, sync_tree);
     }
 
@@ -53,7 +53,7 @@ class ServeApi final {
         std::string const& archive_type = "archive",
         std::string const& subdir = ".",
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
-        bool sync_tree = false) -> std::optional<std::string> {
+        bool sync_tree = false) -> std::variant<bool, std::string> {
         return Instance().stc_->ServeArchiveTree(
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
@@ -61,7 +61,7 @@ class ServeApi final {
     [[nodiscard]] static auto RetrieveTreeFromDistdir(
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,
-        bool sync_tree = false) -> std::optional<std::string> {
+        bool sync_tree = false) -> std::variant<bool, std::string> {
         return Instance().stc_->ServeDistdirTree(distfiles, sync_tree);
     }
 

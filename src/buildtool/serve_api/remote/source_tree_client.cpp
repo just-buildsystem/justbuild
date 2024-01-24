@@ -64,8 +64,7 @@ SourceTreeClient::SourceTreeClient(std::string const& server,
 
 auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,
                                        std::string const& subdir,
-                                       bool sync_tree)
-    -> std::optional<std::string> {
+                                       bool sync_tree) -> result_t {
     justbuild::just_serve::ServeCommitTreeRequest request{};
     request.set_commit(commit_id);
     request.set_subdir(subdir);
@@ -77,16 +76,18 @@ auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return std::nullopt;
+        return true;  // fatal failure
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeCommitTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeCommitTree response returned with {}",
                      static_cast<int>(response.status()));
-        return std::nullopt;
+        return /*fatal = */ (
+            response.status() !=
+            ::justbuild::just_serve::ServeCommitTreeResponse::NOT_FOUND);
     }
-    return response.tree();
+    return response.tree();  // success
 }
 
 auto SourceTreeClient::ServeArchiveTree(
@@ -94,7 +95,7 @@ auto SourceTreeClient::ServeArchiveTree(
     std::string const& archive_type,
     std::string const& subdir,
     std::optional<PragmaSpecial> const& resolve_symlinks,
-    bool sync_tree) -> std::optional<std::string> {
+    bool sync_tree) -> result_t {
     justbuild::just_serve::ServeArchiveTreeRequest request{};
     request.set_content(content);
     request.set_archive_type(StringToArchiveType(archive_type));
@@ -109,22 +110,24 @@ auto SourceTreeClient::ServeArchiveTree(
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return std::nullopt;
+        return true;  // fatal failure
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeArchiveTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeArchiveTree response returned with {}",
                      static_cast<int>(response.status()));
-        return std::nullopt;
+        return /*fatal = */ (
+            response.status() !=
+            ::justbuild::just_serve::ServeArchiveTreeResponse::NOT_FOUND);
     }
-    return response.tree();
+    return response.tree();  // success
 }
 
 auto SourceTreeClient::ServeDistdirTree(
     std::shared_ptr<std::unordered_map<std::string, std::string>> const&
         distfiles,
-    bool sync_tree) -> std::optional<std::string> {
+    bool sync_tree) -> result_t {
     justbuild::just_serve::ServeDistdirTreeRequest request{};
     for (auto const& [k, v] : *distfiles) {
         auto* distfile = request.add_distfiles();
@@ -139,16 +142,18 @@ auto SourceTreeClient::ServeDistdirTree(
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return std::nullopt;
+        return true;  // fatal failure
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeDistdirTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeDistdirTree response returned with {}",
                      static_cast<int>(response.status()));
-        return std::nullopt;
+        return /*fatal = */ (
+            response.status() !=
+            ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND);
     }
-    return response.tree();
+    return response.tree();  // success
 }
 
 auto SourceTreeClient::ServeContent(std::string const& content) -> bool {

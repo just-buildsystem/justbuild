@@ -36,33 +36,35 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);
-        REQUIRE(root_id);
-        CHECK(root_id.value() == kRootId);
+        REQUIRE(std::holds_alternative<std::string>(root_id));
+        CHECK(std::get<std::string>(root_id) == kRootId);
 
         auto baz_id = st_client.ServeCommitTree(kRootCommit, "baz", false);
-        REQUIRE(baz_id);
-        CHECK(baz_id.value() == kBazId);
+        REQUIRE(std::holds_alternative<std::string>(baz_id));
+        CHECK(std::get<std::string>(baz_id) == kBazId);
     }
 
     SECTION("Commit in non-bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootSymCommit, ".", false);
-        REQUIRE(root_id);
-        CHECK(root_id.value() == kRootSymId);
+        REQUIRE(std::holds_alternative<std::string>(root_id));
+        CHECK(std::get<std::string>(root_id) == kRootSymId);
 
         auto baz_id = st_client.ServeCommitTree(kRootSymCommit, "baz", false);
-        REQUIRE(baz_id);
-        CHECK(baz_id.value() == kBazSymId);
+        REQUIRE(std::holds_alternative<std::string>(baz_id));
+        CHECK(std::get<std::string>(baz_id) == kBazSymId);
     }
 
     SECTION("Subdir not found") {
         auto root_id =
             st_client.ServeCommitTree(kRootCommit, "does_not_exist", false);
-        CHECK_FALSE(root_id);
+        REQUIRE(std::holds_alternative<bool>(root_id));
+        CHECK(std::get<bool>(root_id));  // fatal failure
     }
 
     SECTION("Commit not known") {
         auto root_id = st_client.ServeCommitTree(
             "0123456789abcdef0123456789abcdef01234567", ".", false);
-        CHECK_FALSE(root_id);
+        REQUIRE(std::holds_alternative<bool>(root_id));
+        CHECK_FALSE(std::get<bool>(root_id));  // non-fatal failure
     }
 }

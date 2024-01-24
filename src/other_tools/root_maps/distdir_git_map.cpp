@@ -191,6 +191,7 @@ auto CreateDistdirGitMap(
                 ts,
                 {std::move(op_key)},
                 [distdir_tree_id = *distdir_tree_id,
+                 content_id = key.content_id,
                  key,
                  serve_api_exists,
                  remote_api,
@@ -216,24 +217,45 @@ auto CreateDistdirGitMap(
                             if (not *has_tree) {
                                 // try to see if serve endpoint has the
                                 // information to prepare the root itself
-                                if (auto served_tree_id =
-                                        ServeApi::RetrieveTreeFromDistdir(
-                                            key.content_list,
-                                            /*sync_tree=*/false)) {
+                                auto serve_result =
+                                    ServeApi::RetrieveTreeFromDistdir(
+                                        key.content_list,
+                                        /*sync_tree=*/false);
+                                if (std::holds_alternative<std::string>(
+                                        serve_result)) {
                                     // if serve has set up the tree, it must
                                     // match what we expect
-                                    if (distdir_tree_id != *served_tree_id) {
+                                    auto const& served_tree_id =
+                                        std::get<std::string>(serve_result);
+                                    if (distdir_tree_id != served_tree_id) {
                                         (*logger)(
                                             fmt::format(
                                                 "Mismatch in served root tree "
                                                 "id:\nexpected {}, but got {}",
                                                 distdir_tree_id,
-                                                *served_tree_id),
+                                                served_tree_id),
                                             /*fatal=*/true);
                                         return;
                                     }
                                 }
                                 else {
+                                    // check if serve failure was due to distdir
+                                    // content not being found or it is
+                                    // otherwise fatal
+                                    auto const& is_fatal =
+                                        std::get<bool>(serve_result);
+                                    if (is_fatal) {
+                                        (*logger)(
+                                            fmt::format(
+                                                "Serve endpoint failed to set "
+                                                "up root from known distdir "
+                                                "content {}",
+                                                content_id),
+                                            /*fatal=*/true);
+                                        return;
+                                    }
+                                    // at this point we cannot continue without
+                                    // the remote api
                                     if (not remote_api) {
                                         (*logger)(
                                             fmt::format(
@@ -344,17 +366,20 @@ auto CreateDistdirGitMap(
                     }
                     // try to see if serve endpoint has the information to
                     // prepare the root itself
-                    if (auto served_tree_id = ServeApi::RetrieveTreeFromDistdir(
-                            key.content_list,
-                            /*sync_tree=*/false)) {
-                        // if serve has set up the tree, it must match what we
-                        // expect
-                        if (tree_id != *served_tree_id) {
+                    auto serve_result =
+                        ServeApi::RetrieveTreeFromDistdir(key.content_list,
+                                                          /*sync_tree=*/false);
+                    if (std::holds_alternative<std::string>(serve_result)) {
+                        // if serve has set up the tree, it must
+                        // match what we expect
+                        auto const& served_tree_id =
+                            std::get<std::string>(serve_result);
+                        if (tree_id != served_tree_id) {
                             (*logger)(
                                 fmt::format("Mismatch in served root tree "
                                             "id:\nexpected {}, but got {}",
                                             tree_id,
-                                            *served_tree_id),
+                                            served_tree_id),
                                 /*fatal=*/true);
                             return;
                         }
@@ -363,6 +388,17 @@ auto CreateDistdirGitMap(
                             std::pair(nlohmann::json::array(
                                           {FileRoot::kGitTreeMarker, tree_id}),
                                       /*is_cache_hit=*/false));
+                        return;
+                    }
+                    // check if serve failure was due to distdir content not
+                    // being found or it is otherwise fatal
+                    auto const& is_fatal = std::get<bool>(serve_result);
+                    if (is_fatal) {
+                        (*logger)(
+                            fmt::format("Serve endpoint failed to set up root "
+                                        "from known distdir content {}",
+                                        key.content_id),
+                            /*fatal=*/true);
                         return;
                     }
                     // at this point we cannot continue without the remote api
@@ -467,22 +503,38 @@ auto CreateDistdirGitMap(
             }
             // now ask serve endpoint if it can set up the root
             if (serve_api_exists and remote_api) {
-                if (auto served_tree_id =
-                        ServeApi::RetrieveTreeFromDistdir(key.content_list,
-                                                          /*sync_tree=*/true)) {
+                auto serve_result =
+                    ServeApi::RetrieveTreeFromDistdir(key.content_list,
+                                                      /*sync_tree=*/true);
+                if (std::holds_alternative<std::string>(serve_result)) {
                     // if serve has set up the tree, it must match what we
                     // expect
-                    if (tree_id != *served_tree_id) {
+                    auto const& served_tree_id =
+                        std::get<std::string>(serve_result);
+                    if (tree_id != served_tree_id) {
                         (*logger)(fmt::format("Mismatch in served root tree "
                                               "id:\nexpected {}, but got {}",
                                               tree_id,
-                                              *served_tree_id),
+                                              served_tree_id),
                                   /*fatal=*/true);
                         return;
                     }
                     // we only need the serve endpoint to try to set up the
                     // root, as we will check the remote CAS for the
                     // resulting tree anyway
+                }
+                else {
+                    // check if serve failure was due to distdir content not
+                    // being found or it is otherwise fatal
+                    auto const& is_fatal = std::get<bool>(serve_result);
+                    if (is_fatal) {
+                        (*logger)(
+                            fmt::format("Serve endpoint failed to set up root "
+                                        "from known distdir content {}",
+                                        key.content_id),
+                            /*fatal=*/true);
+                        return;
+                    }
                 }
             }
             // check the remote CAS for the tree

@@ -62,21 +62,34 @@ void EnsureRootAsAbsent(
         if (not *has_tree) {
             // try to see if serve endpoint has the information to prepare the
             // root itself
-            if (auto served_tree_id =
-                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
-                                                     repo_info.subdir,
-                                                     /*sync_tree = */ false)) {
+            auto serve_result =
+                ServeApi::RetrieveTreeFromCommit(repo_info.hash,
+                                                 repo_info.subdir,
+                                                 /*sync_tree = */ false);
+            if (std::holds_alternative<std::string>(serve_result)) {
                 // if serve has set up the tree, it must match what we expect
-                if (tree_id != *served_tree_id) {
+                auto const& served_tree_id =
+                    std::get<std::string>(serve_result);
+                if (tree_id != served_tree_id) {
                     (*logger)(fmt::format("Mismatch in served root tree "
                                           "id:\nexpected {}, but got {}",
                                           tree_id,
-                                          *served_tree_id),
+                                          served_tree_id),
                               /*fatal=*/true);
                     return;
                 }
             }
             else {
+                // check if serve failure was due to commit not being found or
+                // it is otherwise fatal
+                auto const& is_fatal = std::get<bool>(serve_result);
+                if (is_fatal) {
+                    (*logger)(fmt::format("Serve endpoint failed to set up "
+                                          "root from known commit {}",
+                                          repo_info.hash),
+                              /*fatal=*/true);
+                    return;
+                }
                 if (not remote_api) {
                     (*logger)(fmt::format("Missing remote-execution endpoint "
                                           "needed to sync workspace root {} "
@@ -263,10 +276,11 @@ void EnsureCommit(
         if (serve_api_exists) {
             // if root purely absent, request only the subdir tree
             if (repo_info.absent and not fetch_absent) {
-                if (auto tree_id = ServeApi::RetrieveTreeFromCommit(
-                        repo_info.hash,
-                        repo_info.subdir,
-                        /*sync_tree = */ false)) {
+                auto serve_result =
+                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
+                                                     repo_info.subdir,
+                                                     /*sync_tree = */ false);
+                if (std::holds_alternative<std::string>(serve_result)) {
                     // set the workspace root as absent
                     JustMRProgress::Instance().TaskTracker().Stop(
                         repo_info.origin);
@@ -275,23 +289,36 @@ void EnsureCommit(
                             {repo_info.ignore_special
                                  ? FileRoot::kGitTreeIgnoreSpecialMarker
                                  : FileRoot::kGitTreeMarker,
-                             *tree_id}),
+                             std::get<std::string>(serve_result)}),
                         /*is_cache_hit=*/false));
+                    return;
+                }
+                // check if serve failure was due to commit not being found or
+                // it is otherwise fatal
+                auto const& is_fatal = std::get<bool>(serve_result);
+                if (is_fatal) {
+                    (*logger)(fmt::format("Serve endpoint failed to set up "
+                                          "root from known commit {}",
+                                          repo_info.hash),
+                              /*fatal=*/true);
                     return;
                 }
             }
             // otherwise, request (and sync) the whole commit tree, to ensure
             // we maintain the id file association
             else {
-                if (auto root_tree_id = ServeApi::RetrieveTreeFromCommit(
-                        repo_info.hash,
-                        /*subdir = */ ".",
-                        /*sync_tree = */ true)) {
+                auto serve_result =
+                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
+                                                     /*subdir = */ ".",
+                                                     /*sync_tree = */ true);
+                if (std::holds_alternative<std::string>(serve_result)) {
+                    auto const& root_tree_id =
+                        std::get<std::string>(serve_result);
                     // verify if we know the tree already locally
                     auto wrapped_logger =
                         std::make_shared<AsyncMapConsumerLogger>(
-                            [logger, tree = *root_tree_id](auto const& msg,
-                                                           bool fatal) {
+                            [logger, tree = root_tree_id](auto const& msg,
+                                                          bool fatal) {
                                 (*logger)(
                                     fmt::format("While verifying presence of "
                                                 "tree {}:\n{}",
@@ -299,8 +326,8 @@ void EnsureCommit(
                                                 msg),
                                     fatal);
                             });
-                    auto tree_present = git_repo->CheckTreeExists(
-                        *root_tree_id, wrapped_logger);
+                    auto tree_present =
+                        git_repo->CheckTreeExists(root_tree_id, wrapped_logger);
                     if (not tree_present) {
                         return;
                     }
@@ -309,7 +336,7 @@ void EnsureCommit(
                             repo_info.origin);
                         // write association to id file, get subdir tree,
                         // and set the workspace root as present
-                        WriteIdFileAndSetWSRoot(*root_tree_id,
+                        WriteIdFileAndSetWSRoot(root_tree_id,
                                                 repo_info.subdir,
                                                 repo_info.ignore_special,
                                                 git_cas,
@@ -321,7 +348,7 @@ void EnsureCommit(
                     }
                     // try to get root tree from remote execution endpoint
                     auto root_digest =
-                        ArtifactDigest{*root_tree_id, 0, /*is_tree=*/true};
+                        ArtifactDigest{root_tree_id, 0, /*is_tree=*/true};
                     if (remote_api and
                         remote_api.value()->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = root_digest,
@@ -337,7 +364,7 @@ void EnsureCommit(
                                 fmt::format("Failed to create tmp "
                                             "directory after fetching root "
                                             "tree {} for absent commit {}",
-                                            *root_tree_id,
+                                            root_tree_id,
                                             repo_info.hash),
                                 /*fatal=*/true);
                             return;
@@ -349,18 +376,18 @@ void EnsureCommit(
                                 {tmp_dir->GetPath()})) {
                             (*logger)(fmt::format("Failed to copy fetched root "
                                                   "tree {} to {}",
-                                                  *root_tree_id,
+                                                  root_tree_id,
                                                   tmp_dir->GetPath().string()),
                                       /*fatal=*/true);
                             return;
                         }
                         CommitInfo c_info{
-                            tmp_dir->GetPath(), "tree", *root_tree_id};
+                            tmp_dir->GetPath(), "tree", root_tree_id};
                         import_to_git_map->ConsumeAfterKeysReady(
                             ts,
                             {std::move(c_info)},
                             [tmp_dir,  // keep tmp_dir alive
-                             root_tree_id = *root_tree_id,
+                             root_tree_id,
                              subdir = repo_info.subdir,
                              ignore_special = repo_info.ignore_special,
                              git_cas,
@@ -411,7 +438,7 @@ void EnsureCommit(
                                 (*logger)(
                                     fmt::format("While moving root tree {} "
                                                 "from {} to local git:\n{}",
-                                                *root_tree_id,
+                                                root_tree_id,
                                                 tmp_dir->GetPath().string(),
                                                 msg),
                                     fatal);
@@ -423,15 +450,20 @@ void EnsureCommit(
                     // remote CAS, so log this attempt and revert to network
                     (*logger)(fmt::format("Tree {} marked as served, but not "
                                           "found on remote",
-                                          *root_tree_id),
+                                          root_tree_id),
                               /*fatal=*/false);
                 }
                 else {
-                    // give warning
-                    (*logger)(fmt::format(
-                                  "Root tree for commit {} could not be served",
-                                  repo_info.hash),
-                              /*fatal=*/false);
+                    // check if serve failure was due to commit not being found
+                    // or it is otherwise fatal
+                    auto const& is_fatal = std::get<bool>(serve_result);
+                    if (is_fatal) {
+                        (*logger)(fmt::format("Serve endpoint failed to set up "
+                                              "root from known commit {}",
+                                              repo_info.hash),
+                                  /*fatal=*/true);
+                        return;
+                    }
                 }
             }
         }
