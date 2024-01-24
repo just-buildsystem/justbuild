@@ -20,6 +20,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -135,7 +136,15 @@ class SourceTreeService final
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
 
-    [[nodiscard]] auto ImportToGit(
+    /// \brief Common import-to-git utility, used by both archives and distdirs.
+    /// \returns An error + data union, where at index 0 is the error message on
+    /// failure and at index 1 is the root tree id of the committed directory on
+    /// success.
+    [[nodiscard]] auto CommonImportToGit(std::filesystem::path const& root_path,
+                                         std::string const& commit_message)
+        -> std::variant<std::string, std::string>;
+
+    [[nodiscard]] auto ArchiveImportToGit(
         std::filesystem::path const& unpack_path,
         std::filesystem::path const& archive_tree_id_file,
         std::string const& content,
@@ -149,6 +158,13 @@ class SourceTreeService final
         std::string const& tree_id,
         std::filesystem::path const& repo_path,
         std::shared_ptr<Logger> const& logger) -> bool;
+
+    [[nodiscard]] auto DistdirImportToGit(
+        std::string const& tree_id,
+        std::string const& content_id,
+        std::unordered_map<std::string, std::string> const& content_list,
+        bool sync_tree,
+        ServeDistdirTreeResponse* response) -> ::grpc::Status;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_SERVE_SERVICE_SOURCE_TREE_HPP
