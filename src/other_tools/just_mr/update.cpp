@@ -31,7 +31,8 @@
 
 auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                      MultiRepoCommonArguments const& common_args,
-                     MultiRepoUpdateArguments const& update_args) -> int {
+                     MultiRepoUpdateArguments const& update_args,
+                     std::string multi_repo_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories update");
 
@@ -204,9 +205,10 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                              ["commit"] = *values[i];
                 }
             },
-            [&failed](auto const& msg, bool fatal) {
+            [&failed, &multi_repo_tool_name](auto const& msg, bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While performing just-mr update:\n{}",
+                            "While performing {} update:\n{}",
+                            multi_repo_tool_name,
                             msg);
                 failed = failed or fatal;
             });

@@ -15,6 +15,7 @@
 #include "src/other_tools/just_mr/launch.hpp"
 
 #include <filesystem>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -34,7 +35,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
               MultiRepoJustSubCmdsArguments const& just_cmd_args,
               MultiRepoLogArguments const& log_args,
               MultiRepoRemoteAuthArguments const& auth_args,
-              bool forward_build_root) -> int {
+              bool forward_build_root,
+              std::string multi_repo_tool_name) -> int {
     // check if subcmd_name can be taken from additional args
     auto additional_args_offset = 0U;
     auto subcommand = just_cmd_args.subcmd_name;
@@ -70,10 +72,14 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                                             setup_args,
                                             just_cmd_args,
                                             auth_args,
-                                            /*interactive=*/false);
+                                            /*interactive=*/false,
+                                            std::move(multi_repo_tool_name));
             if (not mr_config_path) {
                 Logger::Log(LogLevel::Error,
-                            "Failed to setup config while calling \"just {}\"",
+                            "Failed to setup config for calling \"{} {}\"",
+                            common_args.just_path
+                                ? common_args.just_path->string()
+                                : kDefaultJustPath,
                             *subcommand);
                 return kExitSetupError;
             }

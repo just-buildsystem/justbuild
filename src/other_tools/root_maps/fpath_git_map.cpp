@@ -136,15 +136,19 @@ auto CreateFilePathGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
-    std::size_t jobs) -> FilePathGitMap {
+    std::size_t jobs,
+    std::string multi_repo_tool_name,
+    std::string build_tool_name) -> FilePathGitMap {
     auto dir_to_git = [current_subcmd,
                        critical_git_op_map,
                        import_to_git_map,
-                       resolve_symlinks_map](auto ts,
-                                             auto setter,
-                                             auto logger,
-                                             auto /*unused*/,
-                                             auto const& key) {
+                       resolve_symlinks_map,
+                       multi_repo_tool_name,
+                       build_tool_name](auto ts,
+                                        auto setter,
+                                        auto logger,
+                                        auto /*unused*/,
+                                        auto const& key) {
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [logger](auto const& msg, bool fatal) {
@@ -251,9 +255,11 @@ auto CreateFilePathGitMap(
             if (current_subcmd) {
                 (*logger)(fmt::format("Inefficient Git import of file "
                                       "path \'{}\'.\nPlease consider using "
-                                      "\'just-mr setup\' and \'just {}\' "
+                                      "\'{} setup\' and \'{} {}\' "
                                       "separately to cache the output.",
                                       key.fpath.string(),
+                                      multi_repo_tool_name,
+                                      build_tool_name,
                                       *current_subcmd),
                           /*fatal=*/false);
             }

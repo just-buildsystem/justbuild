@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_FETCH_HPP
 
 #include <memory>
+#include <string>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
@@ -25,7 +26,8 @@
                                   MultiRepoCommonArguments const& common_args,
                                   MultiRepoSetupArguments const& setup_args,
                                   MultiRepoFetchArguments const& fetch_args,
-                                  MultiRepoRemoteAuthArguments const& auth_args)
+                                  MultiRepoRemoteAuthArguments const& auth_args,
+                                  std::string multi_repository_tool_name)
     -> int;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_FETCH_HPP

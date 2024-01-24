@@ -23,7 +23,7 @@
 /// \brief Update of Git repos commit information for a multi-repository build.
 [[nodiscard]] auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                                    MultiRepoCommonArguments const& common_args,
-                                   MultiRepoUpdateArguments const& update_args)
-    -> int;
+                                   MultiRepoUpdateArguments const& update_args,
+                                   std::string multi_repo_tool_name) -> int;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UPDATE_HPP

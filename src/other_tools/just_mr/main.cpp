@@ -193,6 +193,15 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
 
 auto main(int argc, char* argv[]) -> int {
     SetupDefaultLogging();
+    std::string my_name{};
+    if (argc > 0) {
+        try {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+            my_name = std::filesystem::path(argv[0]).filename().string();
+        } catch (...) {
+            // ignore, as my_name is only used for error messages
+        }
+    }
     try {
         // get the user-defined arguments
         auto arguments = ParseCommandLineArguments(argc, argv);
@@ -324,7 +333,8 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.just_cmd,
                             arguments.log,
                             arguments.auth,
-                            forward_build_root);
+                            forward_build_root,
+                            my_name);
         }
         auto lock = GarbageCollector::SharedLock();
         if (not lock) {
@@ -352,7 +362,8 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.setup,
                 arguments.just_cmd,
                 arguments.auth,
-                /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv));
+                /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv),
+                my_name);
             // dump resulting config to stdout
             if (not mr_config_path) {
                 return kExitSetupError;
@@ -366,7 +377,8 @@ auto main(int argc, char* argv[]) -> int {
 
         // Run subcommand `update`
         if (arguments.cmd == SubCommand::kUpdate) {
-            return MultiRepoUpdate(config, arguments.common, arguments.update);
+            return MultiRepoUpdate(
+                config, arguments.common, arguments.update, my_name);
         }
 
         // Run subcommand `fetch`
@@ -392,7 +404,8 @@ auto main(int argc, char* argv[]) -> int {
                                   arguments.common,
                                   arguments.setup,
                                   arguments.fetch,
-                                  arguments.auth);
+                                  arguments.auth,
+                                  my_name);
         }
 
         // Unknown subcommand should fail

@@ -44,7 +44,9 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoJustSubCmdsArguments const& just_cmd_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
-                    bool interactive) -> std::optional<std::filesystem::path> {
+                    bool interactive,
+                    std::string multi_repo_tool_name)
+    -> std::optional<std::filesystem::path> {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories setup");
     // set anchor dir to setup_root; current dir will be reverted when anchor
@@ -155,11 +157,15 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             remote_api ? &(*remote_api) : nullptr,
                             common_args.fetch_absent,
                             common_args.jobs);
-    auto fpath_git_map = CreateFilePathGitMap(just_cmd_args.subcmd_name,
-                                              &critical_git_op_map,
-                                              &import_to_git_map,
-                                              &resolve_symlinks_map,
-                                              common_args.jobs);
+    auto fpath_git_map = CreateFilePathGitMap(
+        just_cmd_args.subcmd_name,
+        &critical_git_op_map,
+        &import_to_git_map,
+        &resolve_symlinks_map,
+        common_args.jobs,
+        multi_repo_tool_name,
+        common_args.just_path ? common_args.just_path->string()
+                              : kDefaultJustPath);
     auto distdir_git_map =
         CreateDistdirGitMap(&content_cas_map,
                             &import_to_git_map,
@@ -236,9 +242,11 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     mr_config["repositories"][repo] = mr_repos[repo];
                 }
             },
-            [&failed, interactive](auto const& msg, bool fatal) {
+            [&failed, interactive, multi_repo_tool_name](auto const& msg,
+                                                         bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While performing just-mr {}:\n{}",
+                            "While performing {} {}:\n{}",
+                            multi_repo_tool_name,
                             interactive ? "setup-env" : "setup",
                             msg);
                 failed = failed or fatal;

@@ -37,7 +37,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoFetchArguments const& fetch_args,
-                    MultiRepoRemoteAuthArguments const& auth_args) -> int {
+                    MultiRepoRemoteAuthArguments const& auth_args,
+                    std::string multi_repository_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories fetch");
 
@@ -491,9 +492,11 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
             &ts,
             archives_to_fetch,
             []([[maybe_unused]] auto const& values) {},
-            [&failed_archives](auto const& msg, bool fatal) {
+            [&failed_archives, &multi_repository_tool_name](auto const& msg,
+                                                            bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While performing just-mr fetch:\n{}",
+                            "While performing {} fetch:\n{}",
+                            multi_repository_tool_name,
                             msg);
                 failed_archives = failed_archives or fatal;
             });
@@ -505,9 +508,11 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
             &ts,
             git_trees_to_fetch,
             []([[maybe_unused]] auto const& values) {},
-            [&failed_git_trees](auto const& msg, bool fatal) {
+            [&failed_git_trees, &multi_repository_tool_name](auto const& msg,
+                                                             bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
-                            "While performing just-mr fetch:\n{}",
+                            "While performing {} fetch:\n{}",
+                            multi_repository_tool_name,
                             msg);
                 failed_git_trees = failed_git_trees or fatal;
             });

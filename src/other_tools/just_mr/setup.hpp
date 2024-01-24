@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
@@ -29,6 +30,7 @@
     MultiRepoSetupArguments const& setup_args,
     MultiRepoJustSubCmdsArguments const& just_cmd_args,
     MultiRepoRemoteAuthArguments const& auth_args,
-    bool interactive) -> std::optional<std::filesystem::path>;
+    bool interactive,
+    std::string multi_repo_tool_name) -> std::optional<std::filesystem::path>;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_SETUP_HPP
