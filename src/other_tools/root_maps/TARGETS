@@ -12,6 +12,7 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , "root_utils"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]

@@ -43,10 +43,10 @@ struct DistdirInfo {
 };
 
 /// \brief Maps a list of repositories belonging to a distdir to its
-/// corresponding workspace root and indication whether this was a cache
-/// hit.
+/// corresponding workspace root and indication whether this was a cache hit.
 using DistdirGitMap =
-    AsyncMapConsumer<DistdirInfo, std::pair<nlohmann::json, bool>>;
+    AsyncMapConsumer<DistdirInfo,
+                     std::pair<nlohmann::json /*root*/, bool /*is_cache_hit*/>>;
 
 [[nodiscard]] auto CreateDistdirGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,

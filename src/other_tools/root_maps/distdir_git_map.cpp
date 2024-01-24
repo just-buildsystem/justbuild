@@ -33,6 +33,7 @@
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -58,10 +59,14 @@ namespace {
                        });
 }
 
+/// \brief Called once we know we have the content blobs in local CAS in order
+/// to do the import-to-git step. Then it also sets the root.
+/// It guarantees the logger is called exactly once with fatal on failure, and
+/// the setter on success.
 void ImportFromCASAndSetRoot(
-    std::shared_ptr<std::unordered_map<std::string, std::string>> const&
-        content_list,
-    std::string const& content_id,
+    DistdirInfo const& key,
+    bool is_absent,  // explicitly given
+    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::filesystem::path const& distdir_tree_id_file,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<TaskSystem*> const& ts,
@@ -72,23 +77,25 @@ void ImportFromCASAndSetRoot(
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for "
                               "distdir target {}",
-                              content_id),
+                              key.content_id),
                   /*fatal=*/true);
         return;
     }
     // link content from CAS into tmp dir
-    if (not LinkToCAS(content_list, tmp_dir->GetPath())) {
-        (*logger)(
-            fmt::format("Failed to create links to CAS content!", content_id),
-            /*fatal=*/true);
+    if (not LinkToCAS(key.content_list, tmp_dir->GetPath())) {
+        (*logger)(fmt::format("Failed to create links to CAS content!",
+                              key.content_id),
+                  /*fatal=*/true);
         return;
     }
     // do import to git
-    CommitInfo c_info{tmp_dir->GetPath(), "distdir", content_id};
+    CommitInfo c_info{tmp_dir->GetPath(), "distdir", key.content_id};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
+         is_absent,
+         remote_api,
          distdir_tree_id_file,
          setter,
          logger](auto const& values) {
@@ -108,12 +115,25 @@ void ImportFromCASAndSetRoot(
                           /*fatal=*/true);
                 return;
             }
-            // set the workspace root as present
-            (*setter)(std::pair(
-                nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                       distdir_tree_id,
-                                       StorageConfig::GitRoot().string()}),
-                false /*no cache hit*/));
+            // set the workspace root
+            auto root = nlohmann::json::array(
+                {FileRoot::kGitTreeMarker, distdir_tree_id});
+            if (is_absent) {
+                // we know serve_api_exists is true and serve endpoint does not
+                // have the tree, so we need to upload the root to remote CAS
+                // and tell serve endpoint to set it up
+                if (not EnsureAbsentRootOnServe(distdir_tree_id,
+                                                StorageConfig::GitRoot(),
+                                                remote_api,
+                                                logger,
+                                                /*no_sync_is_fatal = */ true)) {
+                    return;
+                }
+            }
+            else {
+                root.emplace_back(StorageConfig::GitRoot().string());
+            }
+            (*setter)(std::pair(std::move(root), /*is_cache_hit=*/false));
         },
         [logger, target_path = tmp_dir->GetPath()](auto const& msg,
                                                    bool fatal) {
@@ -171,7 +191,9 @@ auto CreateDistdirGitMap(
                 ts,
                 {std::move(op_key)},
                 [distdir_tree_id = *distdir_tree_id,
-                 absent = key.absent,
+                 key,
+                 serve_api_exists,
+                 remote_api,
                  setter,
                  logger](auto const& values) {
                     GitOpValue op_result = *values[0];
@@ -181,14 +203,85 @@ auto CreateDistdirGitMap(
                                   /*fatal=*/true);
                         return;
                     }
-                    // subdir is ".", so no need to deal with the Git cache
-                    // set the workspace root
-                    auto root = nlohmann::json::array(
-                        {FileRoot::kGitTreeMarker, distdir_tree_id});
-                    if (not absent) {
-                        root.emplace_back(StorageConfig::GitRoot().string());
+                    // subdir is "." here, so no need to deal with the Git cache
+                    // and we can simply set the workspace root
+                    if (key.absent) {
+                        if (serve_api_exists) {
+                            // check if serve endpoint has this root
+                            auto has_tree = CheckServeHasAbsentRoot(
+                                distdir_tree_id, logger);
+                            if (not has_tree) {
+                                return;
+                            }
+                            if (not *has_tree) {
+                                // try to see if serve endpoint has the
+                                // information to prepare the root itself
+                                if (auto served_tree_id =
+                                        ServeApi::RetrieveTreeFromDistdir(
+                                            key.content_list,
+                                            /*sync_tree=*/false)) {
+                                    // if serve has set up the tree, it must
+                                    // match what we expect
+                                    if (distdir_tree_id != *served_tree_id) {
+                                        (*logger)(
+                                            fmt::format(
+                                                "Mismatch in served root tree "
+                                                "id:\nexpected {}, but got {}",
+                                                distdir_tree_id,
+                                                *served_tree_id),
+                                            /*fatal=*/true);
+                                        return;
+                                    }
+                                }
+                                else {
+                                    if (not remote_api) {
+                                        (*logger)(
+                                            fmt::format(
+                                                "Missing remote-execution "
+                                                "endpoint needed to sync "
+                                                "workspace root {} with the "
+                                                "serve endpoint.",
+                                                distdir_tree_id),
+                                            /*fatal=*/true);
+                                        return;
+                                    }
+                                    // the tree is known locally, so we upload
+                                    // it to remote CAS for the serve endpoint
+                                    // to retrieve it and set up the root
+                                    if (not EnsureAbsentRootOnServe(
+                                            distdir_tree_id,
+                                            StorageConfig::GitRoot(),
+                                            *remote_api,
+                                            logger,
+                                            true /*no_sync_is_fatal*/)) {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            // give warning
+                            (*logger)(
+                                fmt::format("Workspace root {} marked absent "
+                                            "but no serve endpoint provided.",
+                                            distdir_tree_id),
+                                /*fatal=*/false);
+                        }
+                        // set root as absent
+                        (*setter)(std::pair(
+                            nlohmann::json::array(
+                                {FileRoot::kGitTreeMarker, distdir_tree_id}),
+                            /*is_cache_hit=*/true));
                     }
-                    (*setter)(std::pair(std::move(root), true /*cache hit*/));
+                    else {
+                        // set root as present
+                        (*setter)(
+                            std::pair(nlohmann::json::array(
+                                          {FileRoot::kGitTreeMarker,
+                                           distdir_tree_id,
+                                           StorageConfig::GitRoot().string()}),
+                                      /*is_cache_hit=*/true));
+                    }
                 },
                 [logger, target_path = StorageConfig::GitRoot()](
                     auto const& msg, bool fatal) {
@@ -199,6 +292,7 @@ auto CreateDistdirGitMap(
                               fatal);
                 });
         }
+        // if no association file exists
         else {
             // create in-memory Git tree of distdir content to get the tree id
             GitRepo::tree_entries_t entries{};
@@ -227,87 +321,203 @@ auto CreateDistdirGitMap(
             }
             // get hash from raw_id
             auto tree_id = ToHexString(tree->first);
-            // if pure absent, we simply set the root tree
+            // get digest object
+            auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
+
+            // use this knowledge of the resulting tree identifier to try to set
+            // up the root (present or absent) without actually checking the
+            // status of each content blob individually
             if (key.absent) {
+                if (serve_api_exists) {
+                    // first check if serve endpoint has tree
+                    auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
+                    if (not has_tree) {
+                        return;
+                    }
+                    if (*has_tree) {
+                        // set workspace root as absent
+                        (*setter)(
+                            std::pair(nlohmann::json::array(
+                                          {FileRoot::kGitTreeMarker, tree_id}),
+                                      /*is_cache_hit=*/false));
+                        return;
+                    }
+                    // try to see if serve endpoint has the information to
+                    // prepare the root itself
+                    if (auto served_tree_id = ServeApi::RetrieveTreeFromDistdir(
+                            key.content_list,
+                            /*sync_tree=*/false)) {
+                        // if serve has set up the tree, it must match what we
+                        // expect
+                        if (tree_id != *served_tree_id) {
+                            (*logger)(
+                                fmt::format("Mismatch in served root tree "
+                                            "id:\nexpected {}, but got {}",
+                                            tree_id,
+                                            *served_tree_id),
+                                /*fatal=*/true);
+                            return;
+                        }
+                        // set workspace root as absent
+                        (*setter)(
+                            std::pair(nlohmann::json::array(
+                                          {FileRoot::kGitTreeMarker, tree_id}),
+                                      /*is_cache_hit=*/false));
+                        return;
+                    }
+                    // at this point we cannot continue without the remote api
+                    if (not remote_api) {
+                        (*logger)(
+                            fmt::format("Missing remote-execution endpoint "
+                                        "needed to sync workspace root {} with "
+                                        "the serve endpoint.",
+                                        tree_id),
+                            /*fatal=*/true);
+                        return;
+                    }
+                    // try to supply the serve endpoint with the tree via the
+                    // remote CAS
+                    if (remote_api.value()->IsAvailable({digest})) {
+                        // tell serve to set up the root from the remote CAS
+                        // tree; upload can be skipped
+                        if (EnsureAbsentRootOnServe(
+                                tree_id,
+                                /*repo_path=*/"",
+                                /*remote_api=*/std::nullopt,
+                                logger,
+                                /*no_sync_is_fatal=*/true)) {
+                            // set workspace root as absent
+                            (*setter)(std::pair(
+                                nlohmann::json::array(
+                                    {FileRoot::kGitTreeMarker, tree_id}),
+                                /*is_cache_hit=*/false));
+                            return;
+                        }
+                        (*logger)(fmt::format("Serve endpoint failed to create "
+                                              "workspace root {} that locally "
+                                              "was marked absent.",
+                                              tree_id),
+                                  /*fatal=*/true);
+                        return;
+                    }
+                    // check if we have the tree in local CAS; if yes, upload it
+                    // to remote for the serve endpoint to find it
+                    if (local_api->IsAvailable({digest})) {
+                        if (not local_api->RetrieveToCas(
+                                {Artifact::ObjectInfo{
+                                    .digest = digest,
+                                    .type = ObjectType::Tree}},
+                                *remote_api)) {
+                            (*logger)(fmt::format("Failed to sync tree {} from "
+                                                  "local CAS with remote CAS.",
+                                                  tree_id),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        // tell serve to set up the root from the remote CAS
+                        // tree; upload can be skipped
+                        if (EnsureAbsentRootOnServe(
+                                tree_id,
+                                /*repo_path=*/"",
+                                /*remote_api=*/std::nullopt,
+                                logger,
+                                /*no_sync_is_fatal=*/true)) {
+                            // set workspace root as absent
+                            // set workspace root as absent
+                            (*setter)(std::pair(
+                                nlohmann::json::array(
+                                    {FileRoot::kGitTreeMarker, tree_id}),
+                                /*is_cache_hit=*/false));
+                            return;
+                        }
+                    }
+                    // cannot create absent root with given information
+                    (*logger)(
+                        fmt::format("Serve endpoint failed to create workspace "
+                                    "root {} that locally was marked absent.",
+                                    tree_id),
+                        /*fatal=*/true);
+                    return;
+                }
+                // give warning
+                (*logger)(fmt::format("Workspace root {} marked absent but no "
+                                      "serve endpoint provided.",
+                                      tree_id),
+                          /*fatal=*/false);
+                // set workspace root as absent
                 (*setter)(std::pair(
                     nlohmann::json::array({FileRoot::kGitTreeMarker, tree_id}),
                     false /*no cache hit*/));
                 return;
             }
-            // otherwise, we check first the serve endpoint
-            if (serve_api_exists) {
-                if (auto served_tree_id = ServeApi::RetrieveTreeFromDistdir(
-                        key.content_list, /*sync_tree=*/true)) {
-                    // sanity check
-                    if (*served_tree_id != tree_id) {
-                        (*logger)(
-                            fmt::format("Unexpected served tree id for distdir "
-                                        "content {}:\nExpected {}, but got {}",
-                                        key.content_id,
-                                        tree_id,
-                                        *served_tree_id),
-                            /*is_fatal=*/true);
+
+            // if the root is not-absent, the order of checks is different;
+            // first, look in the local CAS
+            if (local_api->IsAvailable({digest})) {
+                ImportFromCASAndSetRoot(key,
+                                        /*is_absent=*/false,
+                                        /*remote_api=*/std::nullopt,
+                                        distdir_tree_id_file,
+                                        import_to_git_map,
+                                        ts,
+                                        setter,
+                                        logger);
+                // done
+                return;
+            }
+            // now ask serve endpoint if it can set up the root
+            if (serve_api_exists and remote_api) {
+                if (auto served_tree_id =
+                        ServeApi::RetrieveTreeFromDistdir(key.content_list,
+                                                          /*sync_tree=*/true)) {
+                    // if serve has set up the tree, it must match what we
+                    // expect
+                    if (tree_id != *served_tree_id) {
+                        (*logger)(fmt::format("Mismatch in served root tree "
+                                              "id:\nexpected {}, but got {}",
+                                              tree_id,
+                                              *served_tree_id),
+                                  /*fatal=*/true);
                         return;
                     }
-                    // get the ditfiles from remote CAS in bulk
-                    std::vector<Artifact::ObjectInfo> objects{};
-                    objects.reserve(key.content_list->size());
-                    for (auto const& kv : *key.content_list) {
-                        objects.emplace_back(Artifact::ObjectInfo{
-                            .digest =
-                                ArtifactDigest{kv.second, 0, /*is_tree=*/false},
-                            .type = ObjectType::File});
-                    }
-                    if (remote_api and
-                        remote_api.value()->RetrieveToCas(objects, local_api)) {
-                        ImportFromCASAndSetRoot(key.content_list,
-                                                key.content_id,
-                                                distdir_tree_id_file,
-                                                import_to_git_map,
-                                                ts,
-                                                setter,
-                                                logger);
-                        // done!
-                        return;
-                    }
-                    // just serve should have made the blobs available in the
-                    // remote CAS, so log this attempt and revert to default
-                    // fetch each blob individually
-                    (*logger)(fmt::format("Tree {} marked as served, but not "
-                                          "all distfile blobs found on remote",
-                                          *served_tree_id),
-                              /*fatal=*/false);
-                }
-                else {
-                    // give warning
-                    (*logger)(
-                        fmt::format("Distdir content {} could not be served",
-                                    key.content_id),
-                        /*fatal=*/false);
+                    // we only need the serve endpoint to try to set up the
+                    // root, as we will check the remote CAS for the
+                    // resulting tree anyway
                 }
             }
-            else {
-                // give warning
-                (*logger)(
-                    fmt::format("Missing serve endpoint for distdir {} marked "
-                                "absent requires slower network fetch.",
-                                key.content_id),
-                    /*fatal=*/false);
+            // check the remote CAS for the tree
+            if (remote_api and
+                remote_api.value()->RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = digest,
+                                          .type = ObjectType::Tree}},
+                    local_api)) {
+                ImportFromCASAndSetRoot(key,
+                                        /*is_absent=*/false,
+                                        /*remote_api=*/std::nullopt,
+                                        distdir_tree_id_file,
+                                        import_to_git_map,
+                                        ts,
+                                        setter,
+                                        logger);
+                // done!
+                return;
             }
-            // revert to fetching the gathered distdir repos into CAS
+
+            // we could not set the root as present using the CAS tree
+            // invariant, so now we need to ensure we have all individual blobs
             content_cas_map->ConsumeAfterKeysReady(
                 ts,
                 *key.repos_to_fetch,
                 [distdir_tree_id_file,
-                 content_id = key.content_id,
-                 content_list = key.content_list,
+                 key,
                  import_to_git_map,
                  ts,
                  setter,
-                 logger]([[maybe_unused]] auto const& values) mutable {
-                    // repos are in CAS
-                    ImportFromCASAndSetRoot(content_list,
-                                            content_id,
+                 logger]([[maybe_unused]] auto const& values) {
+                    // archive blobs are in CAS
+                    ImportFromCASAndSetRoot(key,
+                                            /*is_absent=*/false,
+                                            /*remote_api=*/std::nullopt,
                                             distdir_tree_id_file,
                                             import_to_git_map,
                                             ts,
