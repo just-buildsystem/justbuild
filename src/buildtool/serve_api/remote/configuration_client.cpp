@@ -79,9 +79,10 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
     // log any mismatch found
     logger_.Emit(
         LogLevel::Error,
-        "Different execution endpoint detected.\nIn order to correctly use "
-        "just serve, its remote execution endpoint must be the same used by "
-        "the client.\nserve remote endpoint:  {}\nclient remote endpoint: {}",
+        "Different execution endpoint detected!\nIn order to correctly use "
+        "the serve service, its remote execution endpoint must be the same "
+        "used by the client.\nserve remote endpoint:  {}\nclient remote "
+        "endpoint: {}",
         serve_msg,
         client_msg);
     return false;

@@ -91,8 +91,8 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             auto map = Expression::FromJson(nlohmann::json::parse(fs));
             if (not map->IsMap()) {
                 Logger::Log(LogLevel::Error,
-                            "In just-serve config file {}: expected an object "
-                            "but found:\n{}",
+                            "In serve service config file {}:\nExpected an "
+                            "object but found:\n{}",
                             clargs->serve.config.string(),
                             map->ToString());
                 std::exit(kExitFailure);
@@ -100,8 +100,8 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             serve_config = Configuration{map};
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
-                        "Parsing just-serve config file {} as JSON failed with "
-                        "error:\n{}",
+                        "Parsing serve service config file {} as JSON failed "
+                        "with error:\n{}",
                         clargs->serve.config.string(),
                         e.what());
             std::exit(kExitFailure);
@@ -109,7 +109,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     }
     else {
         Logger::Log(LogLevel::Error,
-                    "Cannot read just-serve config file {}",
+                    "Cannot read serve service config file {}",
                     clargs->serve.config.string());
         std::exit(kExitFailure);
     }
@@ -118,8 +118,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (local_root.IsNotNull()) {
         if (not local_root->IsString()) {
             Logger::Log(LogLevel::Error,
-                        "just serve: configuration-file provided local root "
-                        "has to be a string, but found {}",
+                        "In serve service config file {}:\nValue for key "
+                        "\"local build root\" has to be a string, but found {}",
+                        clargs->serve.config.string(),
                         local_root->ToString());
             std::exit(kExitFailure);
         }
@@ -131,8 +132,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (not repositories->IsList()) {
             Logger::Log(
                 LogLevel::Error,
-                "just-serve: configuration-file provided repositories has "
-                "to be a list of strings, but found {}",
+                "In serve service config file {}:\nValue for key "
+                "\"repositories\" has to be a list of strings, but found {}",
+                clargs->serve.config.string(),
                 repositories->ToString());
             std::exit(kExitFailure);
         }
@@ -142,8 +144,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         for (auto const& repo : repos_list) {
             if (not repo->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "just-serve: expected each repository path to be a "
-                            "string, but found {}",
+                            "In serve service config file {}:\nExpected each "
+                            "repository path to be a string, but found {}",
+                            clargs->serve.config.string(),
                             repo->ToString());
                 std::exit(kExitFailure);
             }
@@ -154,21 +157,23 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     auto logging = serve_config["logging"];
     if (logging.IsNotNull()) {
         if (not logging->IsMap()) {
-            Logger::Log(
-                LogLevel::Error,
-                "just-serve: configuration-file provided logging arguments has "
-                "to be a map, but found {}",
-                logging->ToString());
+            Logger::Log(LogLevel::Error,
+                        "In serve service config file {}:\nValue for key "
+                        "\"logging\" has to be a map, but found {}",
+                        clargs->serve.config.string(),
+                        logging->ToString());
             std::exit(kExitFailure);
         }
         // read in first the append flag
         auto append = logging->Get("append", Expression::none_t{});
         if (append.IsNotNull()) {
             if (not append->IsBool()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided log append has to be a "
-                            "flag, but found {}",
-                            append->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for logging key "
+                    "\"append\" has to be a flag, but found {}",
+                    clargs->serve.config.string(),
+                    append->ToString());
                 std::exit(kExitFailure);
             }
             clargs->log.log_append = append->Bool();
@@ -177,10 +182,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto plain = logging->Get("plain", Expression::none_t{});
         if (plain.IsNotNull()) {
             if (not plain->IsBool()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided plain log has to be a "
-                            "flag, but found {}",
-                            plain->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for logging key "
+                    "\"plain\" has to be a flag, but found {}",
+                    clargs->serve.config.string(),
+                    plain->ToString());
                 std::exit(kExitFailure);
             }
             clargs->log.plain_log = plain->Bool();
@@ -189,10 +196,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto files = logging->Get("files", Expression::none_t{});
         if (files.IsNotNull()) {
             if (not files->IsList()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided log files has to be a "
-                            "list, but found {}",
-                            files->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for logging key "
+                    "\"files\" has to be a list, but found {}",
+                    clargs->serve.config.string(),
+                    files->ToString());
                 std::exit(kExitFailure);
             }
             auto const& files_list = files->List();
@@ -200,10 +209,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                                           files_list.size());
             for (auto const& file : files_list) {
                 if (not file->IsString()) {
-                    Logger::Log(LogLevel::Error,
-                                "just-serve: expected each log file path to be "
-                                "a string, but found {}",
-                                file->ToString());
+                    Logger::Log(
+                        LogLevel::Error,
+                        "In serve service config file {}:\nExpected each log "
+                        "file path to be a string, but found {}",
+                        clargs->serve.config.string(),
+                        file->ToString());
                     std::exit(kExitFailure);
                 }
                 clargs->log.log_files.emplace_back(file->String());
@@ -213,10 +224,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto limit = logging->Get("limit", Expression::none_t{});
         if (limit.IsNotNull()) {
             if (not limit->IsNumber()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided log limit has to be "
-                            "numeric, but found {}",
-                            limit->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for logging key "
+                    "\"limit\" has to be numeric, but found {}",
+                    clargs->serve.config.string(),
+                    limit->ToString());
                 std::exit(kExitFailure);
             }
             clargs->log.log_limit = ToLogLevel(limit->Number());
@@ -227,8 +240,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (auth_args.IsNotNull()) {
         if (not auth_args->IsMap()) {
             Logger::Log(LogLevel::Error,
-                        "just-serve: configuration-file provided "
-                        "authentication has to be a map, but found {}",
+                        "In serve service config file {}:\nValue for key "
+                        "\"authentication\" has to be a map, but found {}",
+                        clargs->serve.config.string(),
                         auth_args->ToString());
             std::exit(kExitFailure);
         }
@@ -237,8 +251,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (cacert.IsNotNull()) {
             if (not cacert->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided TLS CA certificate has to "
-                            "be a string, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "authentication key \"ca cert\" has to be a "
+                            "string, but found {}",
+                            clargs->serve.config.string(),
                             cacert->ToString());
                 std::exit(kExitFailure);
             }
@@ -249,8 +265,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (client_cert.IsNotNull()) {
             if (not client_cert->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided TLS client certificate has "
-                            "to be a string, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "authentication key \"client cert\" has to be a "
+                            "string, but found {}",
+                            clargs->serve.config.string(),
                             client_cert->ToString());
                 std::exit(kExitFailure);
             }
@@ -261,8 +279,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (client_key.IsNotNull()) {
             if (not client_key->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided TLS client key has to be a "
+                            "In serve service config file {}:\nValue for "
+                            "authentication key \"client key\" has to be a "
                             "string, but found {}",
+                            clargs->serve.config.string(),
                             client_key->ToString());
                 std::exit(kExitFailure);
             }
@@ -274,8 +294,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (remote_service.IsNotNull()) {
         if (not remote_service->IsMap()) {
             Logger::Log(LogLevel::Error,
-                        "just-serve: configuration-file provided remote "
-                        "service has to be a map, but found {}",
+                        "In serve service config file {}:\nValue for key "
+                        "\"remote service\" has to be a map, but found {}",
+                        clargs->serve.config.string(),
                         remote_service->ToString());
             std::exit(kExitFailure);
         }
@@ -284,8 +305,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (interface.IsNotNull()) {
             if (not interface->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided remote service interface "
-                            "has to be a string, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "remote service key \"interface\" has to be a "
+                            "string, but found {}",
+                            clargs->serve.config.string(),
                             interface->ToString());
                 std::exit(kExitFailure);
             }
@@ -295,18 +318,21 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto port = remote_service->Get("port", Expression::none_t{});
         if (port.IsNotNull()) {
             if (not port->IsNumber()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided remote service port has to "
-                            "be numeric, but found {}",
-                            port->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for remote "
+                    "service key \"port\" has to be numeric, but found {}",
+                    clargs->serve.config.string(),
+                    port->ToString());
                 std::exit(kExitFailure);
             }
             double val{};
             if (std::modf(port->Number(), &val) != 0.0) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided remote service port has to "
-                            "be an integer, but found {}",
-                            interface->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for remote "
+                    "service key \"port\" has to be an integer, but found {}",
+                    interface->ToString());
                 std::exit(kExitFailure);
             }
             // we are sure now that the port is an integer
@@ -316,10 +342,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto pid_file = remote_service->Get("pid file", Expression::none_t{});
         if (pid_file.IsNotNull()) {
             if (not pid_file->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided remote service pid file "
-                            "has to be a string, but found {}",
-                            pid_file->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for remote "
+                    "service key \"pid file\" has to be a string, but found {}",
+                    clargs->serve.config.string(),
+                    pid_file->ToString());
                 std::exit(kExitFailure);
             }
             clargs->service.pid_file = pid_file->String();
@@ -329,8 +357,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (info_file.IsNotNull()) {
             if (not info_file->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided remote service info file "
-                            "has to be a string, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "remote service key \"info file\" has to be a "
+                            "string, but found {}",
+                            clargs->serve.config.string(),
                             info_file->ToString());
                 std::exit(kExitFailure);
             }
@@ -342,8 +372,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (server_cert.IsNotNull()) {
             if (not server_cert->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided TLS server certificate has "
-                            "to be a string, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "remote service key \"server cert\" has to be a "
+                            "string, but found {}",
+                            clargs->serve.config.string(),
                             server_cert->ToString());
                 std::exit(kExitFailure);
             }
@@ -355,8 +387,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (server_key.IsNotNull()) {
             if (not server_key->IsString()) {
                 Logger::Log(LogLevel::Error,
-                            "Configuration-provided TLS server key has to be a "
+                            "In serve service config file {}:\nValue for "
+                            "remote service key \"server key\" has to be a "
                             "string, but found {}",
+                            clargs->serve.config.string(),
                             server_key->ToString());
                 std::exit(kExitFailure);
             }
@@ -368,8 +402,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (exec_endpoint.IsNotNull()) {
         if (not exec_endpoint->IsMap()) {
             Logger::Log(LogLevel::Error,
-                        "just-serve: configuration-file provided execution "
-                        "endpoint has to be a map, but found {}",
+                        "In serve service config file {}:\nvalue for key "
+                        "\"execution endpoint\" has to be a map, but found {}",
+                        clargs->serve.config.string(),
                         exec_endpoint->ToString());
             std::exit(kExitFailure);
         }
@@ -379,8 +414,10 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         if (compatible.IsNotNull()) {
             if (not compatible->IsBool()) {
                 Logger::Log(LogLevel::Error,
-                            "just-serve: expected execution endpoint "
-                            "compatible to be a flag, but found {}",
+                            "In serve service config file {}:\nValue for "
+                            "execution endpoint key \"compatible\" has to be a "
+                            "flag, but found {}",
+                            clargs->serve.config.string(),
                             compatible->ToString());
                 std::exit(kExitFailure);
             }
@@ -393,10 +430,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto address = exec_endpoint->Get("address", Expression::none_t{});
         if (address.IsNotNull()) {
             if (not address->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "Configuration-provided execution endpoint address "
-                            "has to be a string, but found {}",
-                            address->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for execution "
+                    "endpoint key \"address\" has to be a string, but found {}",
+                    clargs->serve.config.string(),
+                    address->ToString());
                 std::exit(kExitFailure);
             }
             clargs->endpoint.remote_execution_address = address->String();
@@ -410,8 +449,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (jobs.IsNotNull()) {
         if (not jobs->IsNumber()) {
             Logger::Log(LogLevel::Error,
-                        "just serve: configuration-file provided jobs has to "
-                        "be a number, but found {}",
+                        "In serve service config file {}:\nValue for key "
+                        "\"jobs\" has to be a number, but found {}",
+                        clargs->serve.config.string(),
                         jobs->ToString());
             std::exit(kExitFailure);
         }
@@ -422,8 +462,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     if (build_args.IsNotNull()) {
         if (not build_args->IsMap()) {
             Logger::Log(LogLevel::Error,
-                        "just-serve: configuration-file provided build "
-                        "arguments has to be a map, but found {}",
+                        "In serve service config file {}:\nValue for key "
+                        "\"build\" has to be a map, but found {}",
+                        clargs->serve.config.string(),
                         build_args->ToString());
             std::exit(kExitFailure);
         }
@@ -433,8 +474,9 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             if (not build_jobs->IsNumber()) {
                 Logger::Log(
                     LogLevel::Error,
-                    "just serve: configuration-file provided build jobs "
-                    "has to be a number, but found {}",
+                    "In serve service config file {}:\nValue for build key "
+                    "\"build jobs\" has to be a number, but found {}",
+                    clargs->serve.config.string(),
                     build_jobs->ToString());
                 std::exit(kExitFailure);
             }
@@ -447,10 +489,12 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         auto timeout = build_args->Get("action timeout", Expression::none_t{});
         if (timeout.IsNotNull()) {
             if (not timeout->IsNumber()) {
-                Logger::Log(LogLevel::Error,
-                            "just serve: configuration-file provided action "
-                            "timeout has to be a number, but found {}",
-                            timeout->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for build key "
+                    "\"action timeout\" has to be a number, but found {}",
+                    clargs->serve.config.string(),
+                    timeout->ToString());
                 std::exit(kExitFailure);
             }
             clargs->build.timeout =
@@ -460,19 +504,22 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                                         Expression::none_t{});
         if (strategy.IsNotNull()) {
             if (not strategy->IsString()) {
-                Logger::Log(
-                    LogLevel::Error,
-                    "just serve: configuration-file provided target-cache "
-                    "write strategy has to be a string, but found {}",
-                    strategy->ToString());
+                Logger::Log(LogLevel::Error,
+                            "In serve service config file {}:\nValue for build "
+                            "key \"target-cache write strategy\" has "
+                            "to be a string, but found {}",
+                            clargs->serve.config.string(),
+                            strategy->ToString());
                 std::exit(kExitFailure);
             }
             auto s_value = ToTargetCacheWriteStrategy(strategy->String());
             if (not s_value) {
-                Logger::Log(LogLevel::Error,
-                            "just serve: configuration-file provided unknown "
-                            "target-cache write strategy {}",
-                            strategy->ToString());
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nBuild key "
+                    "\"target-cache write strategy\" has unknown value {}",
+                    clargs->serve.config.string(),
+                    strategy->ToString());
                 std::exit(kExitFailure);
             }
             clargs->tc.target_cache_write_strategy = *s_value;

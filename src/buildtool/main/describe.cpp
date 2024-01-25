@@ -285,8 +285,8 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         // check, e.g., if remote endpoints are behind proxies.
         if (not ServeApi::CheckServeRemoteExecution()) {
             Logger::Log(LogLevel::Error,
-                        "Inconsistent remote execution endpoint and just serve "
-                        "configuration detected.");
+                        "Inconsistent remote execution endpoint and serve "
+                        "endpoint configuration detected.");
             return kExitFailure;
         }
         // ask serve endpoint to provide the description

@@ -80,7 +80,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
         bool from_just_serve = false;
         if (!target_cache_value) {
             Logger::Log(LogLevel::Debug,
-                        "Querying just serve for export target {}",
+                        "Querying serve endpoint for export target {}",
                         key.target.ToString());
             ServeServiceProgress::Instance().TaskTracker().Start(
                 target_cache_key->Id().ToString());
@@ -130,9 +130,9 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                                               true);
 
             Logger::Log(LogLevel::Performance,
-                        "Export target {} served from {}: {} -> {}",
+                        "Export target {} taken from {}: {} -> {}",
                         key.target.ToString(),
-                        (from_just_serve ? "just-serve" : "cache"),
+                        (from_just_serve ? "serve endpoint" : "cache"),
                         target_cache_key->Id().ToString(),
                         info.ToString());
 

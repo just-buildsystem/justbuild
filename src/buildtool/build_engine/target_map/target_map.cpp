@@ -1777,7 +1777,7 @@ auto CreateTargetMap(
             }
             if (not ServeApi::CheckServeRemoteExecution()) {
                 (*logger)(
-                    "Inconsistent remote execution endpoint and just serve "
+                    "Inconsistent remote execution endpoint and serve endpoint"
                     "configuration detected.",
                     /*is_fatal=*/true);
                 return;

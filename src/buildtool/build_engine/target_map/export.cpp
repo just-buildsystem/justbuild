@@ -125,7 +125,7 @@ void ExportRule(
         // if not found locally, try the serve endpoint
         if (not target_cache_value and RemoteServeConfig::RemoteAddress()) {
             Logger::Log(LogLevel::Debug,
-                        "Querying just serve for export target {}",
+                        "Querying serve endpoint for export target {}",
                         key.target.ToString());
             target_cache_value =
                 ServeApi::ServeTarget(*target_cache_key, *repo_key);
@@ -169,9 +169,9 @@ void ExportRule(
                                                   true);
 
                 Logger::Log(LogLevel::Performance,
-                            "Export target {} served from {}: {} -> {}",
+                            "Export target {} taken from {}: {} -> {}",
                             key.target.ToString(),
-                            (from_just_serve ? "just-serve" : "cache"),
+                            (from_just_serve ? "serve endpoint" : "cache"),
                             target_cache_key->Id().ToString(),
                             info.ToString());
 
