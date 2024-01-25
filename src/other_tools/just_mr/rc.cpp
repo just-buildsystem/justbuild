@@ -127,13 +127,8 @@ namespace {
     return std::nullopt;
 }
 
-}  // namespace
-
-/// \brief Read just-mrrc file and set up various configs. Return the path to
-/// the repository config file, if any is provided.
-[[nodiscard]] auto ReadJustMRRC(
-    gsl::not_null<CommandLineArguments*> const& clargs)
-    -> std::optional<std::filesystem::path> {
+[[nodiscard]] auto ObtainRCConfig(
+    gsl::not_null<CommandLineArguments*> const& clargs) -> Configuration {
     Configuration rc_config{};
     auto rc_path = clargs->common.rc_path;
     // set default if rcpath not given
@@ -173,6 +168,17 @@ namespace {
             }
         }
     }
+    return rc_config;
+}
+
+}  // namespace
+
+/// \brief Read just-mrrc file and set up various configs. Return the path to
+/// the repository config file, if any is provided.
+[[nodiscard]] auto ReadJustMRRC(
+    gsl::not_null<CommandLineArguments*> const& clargs)
+    -> std::optional<std::filesystem::path> {
+    Configuration rc_config = ObtainRCConfig(clargs);
     // read local build root; overwritten if user provided it already
     if (not clargs->common.just_mr_paths->root) {
         auto build_root =
