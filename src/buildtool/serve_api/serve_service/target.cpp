@@ -461,8 +461,27 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
-    // make sure remote CAS has all artifacts
+    // now that the target cache key is in, make sure remote CAS has all
+    // required entries
     if (auto target_entry = tc->Read(tc_key); target_entry) {
+        // make sure all artifacts referenced in the target cache value are in
+        // the remote cas
+        std::vector<Artifact::ObjectInfo> tc_artifacts;
+        if (!target_entry->first.ToArtifacts(&tc_artifacts)) {
+            auto msg = fmt::format(
+                "Failed to extract artifacts from target cache entry {}",
+                target_entry->second.ToString());
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        }
+        if (!local_api_->RetrieveToCas(tc_artifacts, &*remote_api_)) {
+            auto msg = fmt::format(
+                "Failed to upload to remote cas the artifacts referenced in "
+                "the target cache entry {}",
+                target_entry->second.ToString());
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        }
         // make sure the target cache value is in the remote cas
         if (!local_api_->RetrieveToCas({target_entry->second}, &*remote_api_)) {
             auto msg = fmt::format(
@@ -471,6 +490,7 @@ auto TargetService::ServeTarget(
             logger_->Emit(LogLevel::Error, msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
+        // set response
         *(response->mutable_target_value()) =
             std::move(target_entry->second.digest);
         return ::grpc::Status::OK;
