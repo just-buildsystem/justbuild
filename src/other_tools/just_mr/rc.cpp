@@ -225,6 +225,14 @@ namespace {
         }
     }
 
+    // If requested, dump effective rc
+    if (clargs->common.dump_rc) {
+        auto dump_json = rc_config.ToJson();
+        dump_json.erase("rc files");
+        std::ofstream os(*clargs->common.dump_rc);
+        os << dump_json.dump(2) << std::endl;
+    }
+
     // read local build root; overwritten if user provided it already
     if (not clargs->common.just_mr_paths->root) {
         auto build_root =

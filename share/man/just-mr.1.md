@@ -158,6 +158,12 @@ Path to the just-mrrc file to use. See **`just-mrrc`**(5) for more
 details.  
 Default: file path *`".just-mrrc"`* in the user's home directory.
 
+**`--dump-rc`** *`PATH`*  
+Dump the effective rc, i.e., the rc after overlaying all applicable auxiliary
+files specified in the `"rc files"` field, to the specified file. In this
+way, an rc can be made self-contained in preparation for committing it to
+a repository.
+
 **`--git`** *`PATH`*  
 Path to the git binary in *`PATH`* or path to the git binary. Used in
 the rare instances when shelling out to git is needed.  
