@@ -1,0 +1,13 @@
+{ "rc_merge":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["rc_merge"]
+  , "srcs": ["rc_merge.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/other_tools/just_mr", "rc_merge"]
+    ]
+  , "stage": ["test", "other_tools", "just_mr"]
+  }
+, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["rc_merge"]}
+}

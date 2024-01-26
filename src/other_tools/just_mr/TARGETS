@@ -217,4 +217,12 @@
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   }
+, "rc_merge":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["rcmerge"]
+  , "hdrs": ["rc_merge.hpp"]
+  , "srcs": ["rc_merge.cpp"]
+  , "stage": ["src", "other_tools", "just_mr"]
+  , "deps": [["src/buildtool/build_engine/expression", "expression"]]
+  }
 }

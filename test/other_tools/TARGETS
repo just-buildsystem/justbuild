@@ -4,6 +4,7 @@
   , "dirs":
     [ [["./", "git_operations", "TESTS"], "git_operations"]
     , [["./", "utils", "TESTS"], "utils"]
+    , [["./", "just_mr", "TESTS"], "just_mr"]
     ]
   }
 }
