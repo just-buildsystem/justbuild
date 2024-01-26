@@ -22,6 +22,7 @@
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+#include "src/other_tools/just_mr/rc_merge.hpp"
 
 namespace {
 
@@ -179,6 +180,51 @@ namespace {
     gsl::not_null<CommandLineArguments*> const& clargs)
     -> std::optional<std::filesystem::path> {
     Configuration rc_config = ObtainRCConfig(clargs);
+
+    // Merge in the rc-files to overlay
+    auto extra_rc_files = rc_config["rc files"];
+    if (not extra_rc_files->IsNone()) {
+        if (not extra_rc_files->IsList()) {
+            Logger::Log(
+                LogLevel::Error,
+                "'rc files' has to be a list of location objects, but found {}",
+                extra_rc_files->ToString());
+            std::exit(kExitConfigError);
+        }
+        for (auto const& entry : extra_rc_files->List()) {
+            auto extra_rc_location = ReadLocation(
+                entry, clargs->common.just_mr_paths->workspace_root);
+            if (extra_rc_location) {
+                auto const& extra_rc_path = extra_rc_location->first;
+                if (FileSystemManager::IsFile(extra_rc_path)) {
+                    Configuration extra_rc_config{};
+                    try {
+                        std::ifstream fs(extra_rc_path);
+                        auto map =
+                            Expression::FromJson(nlohmann::json::parse(fs));
+                        if (not map->IsMap()) {
+                            Logger::Log(LogLevel::Error,
+                                        "In extra RC file {}: expected an "
+                                        "object but found:\n{}",
+                                        extra_rc_path.string(),
+                                        map->ToString());
+                            std::exit(kExitConfigError);
+                        }
+                        extra_rc_config = Configuration{map};
+                    } catch (std::exception const& e) {
+                        Logger::Log(LogLevel::Error,
+                                    "Parsing extra RC file {} as JSON failed "
+                                    "with error:\n{}",
+                                    extra_rc_path.string(),
+                                    e.what());
+                        std::exit(kExitConfigError);
+                    }
+                    rc_config = MergeMRRC(rc_config, extra_rc_config);
+                }
+            }
+        }
+    }
+
     // read local build root; overwritten if user provided it already
     if (not clargs->common.just_mr_paths->root) {
         auto build_root =

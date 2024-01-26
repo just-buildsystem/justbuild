@@ -214,6 +214,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
     , "exit_codes"
+    , "rc_merge"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   }

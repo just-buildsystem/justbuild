@@ -131,13 +131,28 @@ The just-mrrc is given by a JSON object.
    corresponding subcommand, these strings are prefixed to the **`just`**
    argument vector, if **`just-mr`** is used as a launcher.
 
+ - The value for the key *`"rc files"`*, if given, is a list of
+   location objects. For those location objects that refer to
+   an existing file, this file is read as an additional rc file
+   overlaying the given rc file in the specified order; the value
+   of `"rc files"` in the overlaying files is ignored.  
+   In this way, an rc file commited to a repository can be allowed
+   to set a sensible configuration, remote-execution and serve end
+   points, etc. This is particularly useful when simultaneously
+   working on several projects with different settings.
+
+
 EXAMPLE
 =======
 
 An example just-mrrc file could look like the following:
 
 ``` jsonc
-{ "config lookup order":
+{ "rc files":
+  [ {"root": "workspace", "path": "rc.json"}
+  , {"root": "workspace", "path": "etc/rc.json"}
+  ]
+, "config lookup order":
   [ {"root": "workspace", "path": "repos.json"}
   , {"root": "workspace", "path": "etc/repos.json"}
   , {"root": "home", "path": ".just-repos.json"}
