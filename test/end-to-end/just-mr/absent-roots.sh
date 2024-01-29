@@ -23,6 +23,7 @@ readonly INFOFILE="${PWD}/info.json"
 readonly PIDFILE="${PWD}/pid.txt"
 
 readonly LBR="${TEST_TMPDIR}/local-build-root"
+readonly SERVE_LBR="${TEST_TMPDIR}/serve-local-build-root"
 
 readonly REPO_ROOT="${PWD}/serve_repo"
 readonly TEST_DATA="The content of the data file in foo"
@@ -67,7 +68,7 @@ cat repos.json
 cat > .just-servec <<EOF
 { "repositories": ["${REPO_ROOT}"]
 , "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
-, "local build root": "${LBR}"
+, "local build root": "${SERVE_LBR}"
 }
 EOF
 echo "Serve service configuration:"
