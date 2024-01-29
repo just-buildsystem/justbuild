@@ -177,15 +177,6 @@ auto CreateTreeIdGitMap(
                         std::pair(std::move(root), /*is_cache_hit=*/false));
                     return;
                 }
-                // at this point we cannot proceed without the remote api
-                if (not remote_api) {
-                    (*logger)(fmt::format("Missing remote-execution endpoint "
-                                          "needed to sync workspace root {} "
-                                          "with the serve endpoint.",
-                                          key.tree_info.hash),
-                              /*fatal=*/true);
-                    return;
-                }
                 // check if tree in already in remote CAS
                 auto digest =
                     ArtifactDigest{key.tree_info.hash, 0, /*is_tree=*/true};

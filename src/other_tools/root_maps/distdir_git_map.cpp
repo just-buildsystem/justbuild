@@ -254,19 +254,6 @@ auto CreateDistdirGitMap(
                                             /*fatal=*/true);
                                         return;
                                     }
-                                    // at this point we cannot continue without
-                                    // the remote api
-                                    if (not remote_api) {
-                                        (*logger)(
-                                            fmt::format(
-                                                "Missing remote-execution "
-                                                "endpoint needed to sync "
-                                                "workspace root {} with the "
-                                                "serve endpoint.",
-                                                distdir_tree_id),
-                                            /*fatal=*/true);
-                                        return;
-                                    }
                                     // the tree is known locally, so we upload
                                     // it to remote CAS for the serve endpoint
                                     // to retrieve it and set up the root
@@ -398,16 +385,6 @@ auto CreateDistdirGitMap(
                             fmt::format("Serve endpoint failed to set up root "
                                         "from known distdir content {}",
                                         key.content_id),
-                            /*fatal=*/true);
-                        return;
-                    }
-                    // at this point we cannot continue without the remote api
-                    if (not remote_api) {
-                        (*logger)(
-                            fmt::format("Missing remote-execution endpoint "
-                                        "needed to sync workspace root {} with "
-                                        "the serve endpoint.",
-                                        tree_id),
                             /*fatal=*/true);
                         return;
                     }

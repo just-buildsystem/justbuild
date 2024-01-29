@@ -105,8 +105,10 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     }
 
     // setup the APIs for archive fetches
-    auto remote_api = JustMR::Utils::GetRemoteApi(
-        common_args.remote_execution_address, auth_args);
+    auto remote_api =
+        JustMR::Utils::GetRemoteApi(common_args.remote_execution_address,
+                                    common_args.remote_serve_address,
+                                    auth_args);
     IExecutionApi::Ptr local_api{std::make_unique<LocalApi>()};
 
     // setup the API for serving trees of Git repos or archives

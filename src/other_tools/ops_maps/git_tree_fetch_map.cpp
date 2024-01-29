@@ -18,6 +18,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -104,7 +105,9 @@ void MoveCASTreeToGit(
                           /*fatal=*/true);
                 return;
             }
-            if (backup_to_remote and remote_api != std::nullopt) {
+            // backup to remote if needed and in compatibility mode
+            if (backup_to_remote and remote_api != std::nullopt and
+                not Compatibility::IsCompatible()) {
                 BackupToRemote(tree_id, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
@@ -201,8 +204,9 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 if (*tree_found) {
-                    // backup to remote, if needed
-                    if (backup_to_remote and remote_api != std::nullopt) {
+                    // backup to remote if needed and in native mode
+                    if (backup_to_remote and remote_api != std::nullopt and
+                        not Compatibility::IsCompatible()) {
                         BackupToRemote(key.hash, *remote_api, logger);
                     }
                     // success
@@ -465,9 +469,10 @@ auto CreateGitTreeFetchMap(
                                 }
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     key.origin);
-                                // backup to remote, if needed
+                                // backup to remote if needed and in native mode
                                 if (backup_to_remote and
-                                    remote_api != std::nullopt) {
+                                    remote_api != std::nullopt and
+                                    not Compatibility::IsCompatible()) {
                                     BackupToRemote(
                                         key.hash, *remote_api, logger);
                                 }

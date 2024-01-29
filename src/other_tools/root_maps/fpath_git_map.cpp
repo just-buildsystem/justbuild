@@ -46,17 +46,9 @@ void CheckServeAndSetRoot(
             return;  // fatal
         }
         if (not *has_tree) {
-            if (not remote_api) {
-                (*logger)(fmt::format(
-                              "Missing remote-execution endpoint needed to "
-                              "sync workspace root {} with the serve endpoint.",
-                              tree_id),
-                          /*fatal=*/true);
-                return;
-            }
             if (not EnsureAbsentRootOnServe(tree_id,
                                             repo_root,
-                                            remote_api,
+                                            *remote_api,
                                             logger,
                                             /*no_sync_is_fatal=*/absent)) {
                 return;  // fatal

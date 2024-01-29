@@ -90,14 +90,6 @@ void EnsureRootAsAbsent(
                               /*fatal=*/true);
                     return;
                 }
-                if (not remote_api) {
-                    (*logger)(fmt::format("Missing remote-execution endpoint "
-                                          "needed to sync workspace root {} "
-                                          "with the serve endpoint.",
-                                          tree_id),
-                              /*fatal=*/true);
-                    return;
-                }
                 // the tree is known locally, so we can upload it to remote CAS
                 // for the serve endpoint to retrieve it and set up the root
                 if (not EnsureAbsentRootOnServe(tree_id,

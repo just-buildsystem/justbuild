@@ -65,6 +65,7 @@ void DefaultReachableRepositories(
 /// \returns Pointer to a configured remote API, or nullptr.
 [[nodiscard]] auto GetRemoteApi(
     std::optional<std::string> const& remote_exec_addr,
+    std::optional<std::string> const& remote_serve_addr,
     MultiRepoRemoteAuthArguments const& auth) -> IExecutionApi::Ptr;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
