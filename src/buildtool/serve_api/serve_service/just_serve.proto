@@ -46,7 +46,7 @@ message ServeCommitTreeResponse {
     // Failed to upload tree remotely
     SYNC_ERROR = 1;
 
-    // Tree not found
+    // Commit not found
     NOT_FOUND = 2;
 
     // Internally, something is very broken
@@ -116,7 +116,7 @@ message ServeArchiveTreeResponse {
     // Failed to resolve symlinks as requested
     RESOLVE_ERROR = 3;
 
-    // Tree not found
+    // Content blob not known
     NOT_FOUND = 4;
 
     // Internally, something is very broken

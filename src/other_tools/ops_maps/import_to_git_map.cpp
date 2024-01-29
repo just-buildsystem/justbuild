@@ -67,12 +67,13 @@ void KeepCommitAndSetTree(
                                     msg),
                         fatal);
                 });
-            auto tree_hash =
+            auto res =
                 git_repo->GetSubtreeFromCommit(commit, ".", wrapped_logger);
-            if (not tree_hash) {
+            if (not std::holds_alternative<std::string>(res)) {
                 return;
             }
-            (*setter)(std::pair<std::string, GitCASPtr>(*tree_hash, git_cas));
+            (*setter)(std::pair<std::string, GitCASPtr>(
+                std::get<std::string>(res), git_cas));
         },
         [logger, commit, target_path](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While running critical Git op KEEP_TAG for "

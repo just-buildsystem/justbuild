@@ -132,22 +132,38 @@ class SourceTreeService final
     // symlinks resolver map
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};
 
+    /// \brief Check if commit exists and tries to get the subtree if found.
+    /// \returns An error + data union, where at index 0 is a failure type flag
+    /// and at index 1 is the subtree hash on success. The failure flag is false
+    /// if commit was not found and true if failed otherwise.
     [[nodiscard]] static auto GetSubtreeFromCommit(
         std::filesystem::path const& repo_path,
         std::string const& commit,
         std::string const& subdir,
-        std::shared_ptr<Logger> const& logger) -> std::optional<std::string>;
+        std::shared_ptr<Logger> const& logger)
+        -> std::variant<bool, std::string>;
 
+    /// \brief Check if tree exists and tries to get the subtree if found.
+    /// \returns An error + data union, where at index 0 is a failure type flag
+    /// and at index 1 is the subtree hash on success. The failure flag is true
+    /// if repository could not be opened (i.e., fatal failure), false if the
+    /// check for the subtree itself failed.
     [[nodiscard]] static auto GetSubtreeFromTree(
         std::filesystem::path const& repo_path,
         std::string const& tree_id,
         std::string const& subdir,
-        std::shared_ptr<Logger> const& logger) -> std::optional<std::string>;
+        std::shared_ptr<Logger> const& logger)
+        -> std::variant<bool, std::string>;
 
+    /// \brief Tries to retrieve the blob from a repository.
+    /// \returns An error + data union, where at index 0 is a failure type flag
+    /// and at index 1 is the subtree hash on success. The failure flag is false
+    /// if blob was not found and true if failed otherwise.
     [[nodiscard]] static auto GetBlobFromRepo(
         std::filesystem::path const& repo_path,
         std::string const& blob_id,
-        std::shared_ptr<Logger> const& logger) -> std::optional<std::string>;
+        std::shared_ptr<Logger> const& logger)
+        -> std::variant<bool, std::string>;
 
     [[nodiscard]] auto SyncArchive(std::string const& tree_id,
                                    std::filesystem::path const& repo_path,
@@ -180,10 +196,13 @@ class SourceTreeService final
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
 
+    /// \brief Checks if a given tree is a repository.
+    /// \returns A status of tree presence, or nullopt if non-check-related
+    /// failure.
     [[nodiscard]] static auto IsTreeInRepo(
         std::string const& tree_id,
         std::filesystem::path const& repo_path,
-        std::shared_ptr<Logger> const& logger) -> bool;
+        std::shared_ptr<Logger> const& logger) -> std::optional<bool>;
 
     [[nodiscard]] auto DistdirImportToGit(
         std::string const& tree_id,

@@ -689,9 +689,9 @@ void EnsureCommit(
                                   fatal);
                     });
                 // get tree id and return workspace root
-                auto subtree = git_repo->GetSubtreeFromCommit(
+                auto res = git_repo->GetSubtreeFromCommit(
                     repo_info.hash, repo_info.subdir, wrapped_logger);
-                if (not subtree) {
+                if (not std::holds_alternative<std::string>(res)) {
                     return;
                 }
                 // set the workspace root as present
@@ -701,7 +701,7 @@ void EnsureCommit(
                                   {repo_info.ignore_special
                                        ? FileRoot::kGitTreeIgnoreSpecialMarker
                                        : FileRoot::kGitTreeMarker,
-                                   *subtree,
+                                   std::get<std::string>(res),  // subtree id
                                    repo_root}),
                               /*is_cache_hit=*/false));
             },
@@ -724,15 +724,16 @@ void EnsureCommit(
                     fatal);
             });
         // get tree id and return workspace root
-        auto subtree = git_repo->GetSubtreeFromCommit(
+        auto res = git_repo->GetSubtreeFromCommit(
             repo_info.hash, repo_info.subdir, wrapped_logger);
-        if (not subtree) {
+        if (not std::holds_alternative<std::string>(res)) {
             return;
         }
+        auto subtree = std::get<std::string>(res);
         // set the workspace root
         if (repo_info.absent and not fetch_absent) {
             // try by all available means to generate and set the absent root
-            EnsureRootAsAbsent(*subtree,
+            EnsureRootAsAbsent(subtree,
                                repo_root,
                                repo_info,
                                serve_api_exists,
@@ -747,7 +748,7 @@ void EnsureCommit(
                               {repo_info.ignore_special
                                    ? FileRoot::kGitTreeIgnoreSpecialMarker
                                    : FileRoot::kGitTreeMarker,
-                               *subtree,
+                               subtree,
                                repo_root.string()}),
                           /*is_cache_hit=*/true));
         }
