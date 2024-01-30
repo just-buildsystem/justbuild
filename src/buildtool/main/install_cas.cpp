@@ -72,7 +72,8 @@ auto FetchAndInstallArtifacts(
     auto object_info = ObjectInfoFromLiberalString(clargs.object_id);
 
     if (clargs.remember) {
-        if (not api->RetrieveToCas({object_info}, alternative_api)) {
+        if (not api->ParallelRetrieveToCas(
+                {object_info}, alternative_api, 1, true)) {
             Logger::Log(LogLevel::Warning,
                         "Failed to copy artifact {} to local CAS",
                         object_info.ToString());
