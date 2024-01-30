@@ -29,6 +29,7 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/progress_reporting/progress_reporter.hpp"
@@ -38,47 +39,6 @@ namespace {
 
 namespace Base = BuildMaps::Base;
 namespace Target = BuildMaps::Target;
-
-template <HasToString K, typename V>
-[[nodiscard]] auto DetectAndReportCycle(std::string const& name,
-                                        AsyncMapConsumer<K, V> const& map)
-    -> bool {
-    using namespace std::string_literals;
-    auto cycle = map.DetectCycle();
-    if (cycle) {
-        bool found{false};
-        std::ostringstream oss{};
-        oss << fmt::format("Cycle detected in {}:", name) << std::endl;
-        for (auto const& k : *cycle) {
-            auto match = (k == cycle->back());
-            auto prefix{match   ? found ? "`-- "s : ".-> "s
-                        : found ? "|   "s
-                                : "    "s};
-            oss << prefix << k.ToString() << std::endl;
-            found = found or match;
-        }
-        Logger::Log(LogLevel::Error, "{}", oss.str());
-        return true;
-    }
-    return false;
-}
-
-template <HasToString K, typename V>
-void DetectAndReportPending(std::string const& name,
-                            AsyncMapConsumer<K, V> const& map) {
-    using namespace std::string_literals;
-    auto keys = map.GetPendingKeys();
-    if (not keys.empty()) {
-        std::ostringstream oss{};
-        oss << fmt::format("Internal error, failed to evaluate pending {}:",
-                           name)
-            << std::endl;
-        for (auto const& k : keys) {
-            oss << "  " << k.ToString() << std::endl;
-        }
-        Logger::Log(LogLevel::Error, "{}", oss.str());
-    }
-}
 
 [[nodiscard]] auto GetActionNumber(const AnalysedTarget& target, int number)
     -> std::optional<ActionDescription::Ptr> {
@@ -200,11 +160,20 @@ void DetectAndReportPending(std::string const& name,
     if (not target) {
         Logger::Log(
             LogLevel::Error, "Failed to analyse target: {}", id.ToString());
-        if (not(DetectAndReportCycle("expression imports", expr_map) or
-                DetectAndReportCycle("target dependencies", target_map))) {
-            DetectAndReportPending("expressions", expr_map);
-            DetectAndReportPending("targets", expr_map);
+        if (auto error_msg = DetectAndReportCycle(
+                "expression imports", expr_map, Base::kEntityNamePrinter)) {
+            Logger::Log(LogLevel::Error, *error_msg);
+            return std::nullopt;
         }
+        if (auto error_msg =
+                DetectAndReportCycle("target dependencies",
+                                     target_map,
+                                     Target::kConfiguredTargetPrinter)) {
+            Logger::Log(LogLevel::Error, *error_msg);
+            return std::nullopt;
+        }
+        DetectAndReportPending("expressions", expr_map);
+        DetectAndReportPending("targets", expr_map);
         return std::nullopt;
     }
 

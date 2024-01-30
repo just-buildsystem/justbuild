@@ -18,6 +18,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -206,9 +207,10 @@ void ResolveContentTree(
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
                         // check for cycles
-                        auto error = DetectAndReportCycle(*resolve_symlinks_map,
-                                                          tree_hash);
-                        if (error) {
+                        if (auto error = DetectAndReportCycle(
+                                fmt::format("resolving Git tree {}", tree_hash),
+                                *resolve_symlinks_map,
+                                kGitObjectToResolvePrinter)) {
                             (*logger)(fmt::format("Failed to resolve symlinks "
                                                   "in tree {}:\n{}",
                                                   tree_hash,

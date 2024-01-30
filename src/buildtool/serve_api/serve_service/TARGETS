@@ -30,6 +30,7 @@
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]

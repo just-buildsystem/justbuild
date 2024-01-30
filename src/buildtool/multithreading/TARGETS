@@ -57,4 +57,16 @@
   , "deps": [["src/utils/cpp", "atomic"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
+, "async_map_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["async_map_utils"]
+  , "hdrs": ["async_map_utils.hpp"]
+  , "deps":
+    [ "async_map_consumer"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "concepts"]
+    ]
+  , "stage": ["src", "buildtool", "multithreading"]
+  }
 }

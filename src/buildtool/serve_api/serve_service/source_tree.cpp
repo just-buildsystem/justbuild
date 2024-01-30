@@ -25,6 +25,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
@@ -387,8 +388,10 @@ auto SourceTreeService::ResolveContentTree(
             return ::grpc::Status::OK;
         }
         // check for cycles
-        auto error = DetectAndReportCycle(resolve_symlinks_map_, tree_id);
-        if (error) {
+        if (auto error = DetectAndReportCycle(
+                fmt::format("resolving Git tree {}", tree_id),
+                resolve_symlinks_map_,
+                kGitObjectToResolvePrinter)) {
             auto str = fmt::format(
                 "Failed to resolve symlinks in tree {}:\n{}", tree_id, *error);
             logger_->Emit(LogLevel::Error, str);

@@ -310,26 +310,3 @@ auto CreateResolveSymlinksMap() -> ResolveSymlinksMap {
     return AsyncMapConsumer<GitObjectToResolve, ResolvedGitObject>(
         resolve_symlinks);
 }
-
-auto DetectAndReportCycle(ResolveSymlinksMap const& map,
-                          std::string const& root_tree_id)
-    -> std::optional<std::string> {
-    using namespace std::string_literals;
-    auto cycle = map.DetectCycle();
-    if (cycle) {
-        bool found{false};
-        std::ostringstream oss{};
-        oss << fmt::format("Cycle detected for Git tree {}:", root_tree_id)
-            << std::endl;
-        for (auto const& k : *cycle) {
-            auto match = (k == cycle->back());
-            auto prefix{match   ? found ? "`-- "s : ".-> "s
-                        : found ? "|   "s
-                                : "    "s};
-            oss << prefix << k.rel_path << std::endl;
-            found = found or match;
-        }
-        return oss.str();
-    }
-    return std::nullopt;
-}

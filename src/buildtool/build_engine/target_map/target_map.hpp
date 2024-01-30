@@ -15,7 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_MAP_HPP
 
+#include <functional>
+#include <string>
+
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
@@ -39,6 +43,11 @@ auto CreateTargetMap(
     const gsl::not_null<ResultTargetMap*>&,
     [[maybe_unused]] const gsl::not_null<RepositoryConfig*>&,
     std::size_t jobs = 0) -> TargetMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(ConfiguredTarget const&)>
+    kConfiguredTargetPrinter =
+        [](ConfiguredTarget const& x) -> std::string { return x.ToString(); };
 
 auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool;
 

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_MAP_HPP
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -42,6 +43,10 @@ using ExpressionFunctionMap =
 auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
                          gsl::not_null<RepositoryConfig*> const& repo_config,
                          std::size_t jobs = 0) -> ExpressionFunctionMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(EntityName const&)> kEntityNamePrinter =
+    [](EntityName const& x) -> std::string { return x.ToString(); };
 
 }  // namespace BuildMaps::Base
 

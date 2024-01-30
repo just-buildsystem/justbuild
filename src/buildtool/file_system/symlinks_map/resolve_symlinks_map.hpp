@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
 
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
 
@@ -75,11 +76,12 @@ struct ResolvedGitObject {
 using ResolveSymlinksMap =
     AsyncMapConsumer<GitObjectToResolve, ResolvedGitObject>;
 
-[[nodiscard]] auto CreateResolveSymlinksMap() -> ResolveSymlinksMap;
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(GitObjectToResolve const&)>
+    kGitObjectToResolvePrinter =
+        [](GitObjectToResolve const& x) -> std::string { return x.rel_path; };
 
-[[nodiscard]] auto DetectAndReportCycle(ResolveSymlinksMap const& map,
-                                        std::string const& root_tree_id)
-    -> std::optional<std::string>;
+[[nodiscard]] auto CreateResolveSymlinksMap() -> ResolveSymlinksMap;
 
 namespace std {
 template <>
