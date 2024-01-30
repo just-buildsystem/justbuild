@@ -88,7 +88,6 @@ auto SetupInstallCasCommandArguments(
     SetupCompatibilityArguments(app);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
-    SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupFetchArguments(app, &clargs->fetch);
@@ -105,7 +104,6 @@ auto SetupTraverseCommandArguments(
     SetupCacheArguments(app, &clargs->endpoint);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupExecutionPropertiesArguments(app, &clargs->endpoint);
-    SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis

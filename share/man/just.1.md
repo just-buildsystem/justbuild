@@ -563,7 +563,7 @@ Remote serve options
 
 **`-R`**, **`--remote-serve-address`** *`NAME`*:*`PORT`*  
 Address of the remote execution service.  
-Supported by: analyse|build|install-cas|install|rebuild|traverse.
+Supported by: analyse|build|install|rebuild.
 
 Authentication options
 ----------------------

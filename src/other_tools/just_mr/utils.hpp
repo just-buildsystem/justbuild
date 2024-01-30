@@ -50,6 +50,7 @@ struct JustSubCmdFlags {
     bool launch;       // supports the local launcher arg
     bool defines;      // supports defines arg
     bool remote;       // supports remote exec args
+    bool serve;        // supports a serve endpoint
     bool dispatch;     // supports dispatching of the remote-execution endpoint
     bool cacert;       // supports CA cert arg
     bool client_auth;  // supports client auth args
@@ -63,6 +64,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = false,
+      .serve = false,
       .dispatch = false,
       .cacert = false,
       .client_auth = false}},
@@ -72,6 +74,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = true,
       .remote = false,
+      .serve = false,
       .dispatch = false,
       .cacert = false,
       .client_auth = false}},
@@ -81,6 +84,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = true,
       .remote = true,
+      .serve = true,
       .dispatch = true,
       .cacert = false,
       .client_auth = false}},
@@ -90,6 +94,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .serve = true,
       .dispatch = true,
       .cacert = true,
       .client_auth = true}},
@@ -99,6 +104,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .serve = true,
       .dispatch = true,
       .cacert = true,
       .client_auth = true}},
@@ -108,6 +114,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .serve = true,
       .dispatch = true,
       .cacert = true,
       .client_auth = true}},
@@ -117,6 +124,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = true,
+      .serve = false,
       .dispatch = false,
       .cacert = true,
       .client_auth = true}},
@@ -126,6 +134,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = false,
+      .serve = false,
       .dispatch = false,
       .cacert = false,
       .client_auth = false}}};
