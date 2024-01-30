@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -27,7 +28,9 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -53,6 +56,29 @@ auto ToTargetCacheWriteStrategy(std::string const&)
     -> std::optional<TargetCacheWriteStrategy>;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+/// \brief Maps the Id of a TargetCacheKey to nullptr_t, as we only care if
+/// writing the tc entry succeeds or not.
+using TargetCacheWriterMap =
+    AsyncMapConsumer<Artifact::ObjectInfo, std::nullptr_t>;
+
+/// \brief Handles the writing of target cache keys after analysis concludes.
+[[nodiscard]] auto CreateTargetCacheWriterMap(
+    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
+    std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
+        extra_infos,
+    std::size_t jobs,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    gsl::not_null<IExecutionApi*> const& remote_api,
+    TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync,
+    TargetCache<true> const& tc = Storage::Instance().TargetCache())
+    -> TargetCacheWriterMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(Artifact::ObjectInfo const&)>
+    kObjectInfoPrinter = [](Artifact::ObjectInfo const& x) -> std::string {
+    return x.ToString();
+};
+
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&

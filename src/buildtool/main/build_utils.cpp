@@ -15,6 +15,7 @@
 #include "src/buildtool/main/build_utils.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -63,6 +64,95 @@ auto ToTargetCacheWriteStrategy(std::string const& strategy)
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+auto CreateTargetCacheWriterMap(
+    std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
+    std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
+        extra_infos,
+    std::size_t jobs,
+    gsl::not_null<IExecutionApi*> const& local_api,
+    gsl::not_null<IExecutionApi*> const& remote_api,
+    TargetCacheWriteStrategy strategy,
+    TargetCache<true> const& tc) -> TargetCacheWriterMap {
+    auto write_tc_entry =
+        [cache_targets, extra_infos, jobs, local_api, remote_api, strategy, tc](
+            auto /*ts*/,
+            auto setter,
+            auto logger,
+            auto subcaller,
+            auto const& key) {
+            // get the TaretCacheKey corresponding to this Id
+            TargetCacheKey tc_key{key};
+            // check if entry actually needs storing
+            if (not cache_targets.contains(tc_key)) {
+                // sanity check: if not in the map, then it must be in cache
+                if (not tc.Read(tc_key)) {
+                    (*logger)(
+                        fmt::format("Target-cache key {} is neither stored "
+                                    "nor marked for storing",
+                                    key.ToString()),
+                        /*fatal=*/true);
+                    return;
+                }
+                // entry already in target-cache, so nothing to be done
+                (*setter)(nullptr);
+                return;
+            }
+            auto const& target = cache_targets.at(tc_key);
+            auto entry = TargetCacheEntry::FromTarget(target, extra_infos);
+            if (not entry) {
+                (*logger)(
+                    fmt::format("Failed creating target cache entry for key {}",
+                                key.ToString()),
+                    /*fatal=*/true);
+                return;
+            }
+            // only store current entry once all implied targets are stored
+            if (auto implied_targets = entry->ToImpliedIds(key.digest.hash())) {
+                (*subcaller)(
+                    *implied_targets,
+                    [tc_key,
+                     entry,
+                     jobs,
+                     local_api,
+                     remote_api,
+                     strategy,
+                     tc,
+                     setter,
+                     logger]([[maybe_unused]] auto const& values) {
+                        // create parallel artifacts downloader
+                        auto downloader = [&local_api,
+                                           &remote_api,
+                                           &jobs,
+                                           strategy](auto infos) {
+                            return remote_api->ParallelRetrieveToCas(
+                                infos,
+                                local_api,
+                                jobs,
+                                strategy == TargetCacheWriteStrategy::Split);
+                        };
+                        if (not tc.Store(tc_key, *entry, downloader)) {
+                            (*logger)(fmt::format("Failed writing target cache "
+                                                  "entry for {}",
+                                                  tc_key.Id().ToString()),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        // success!
+                        (*setter)(nullptr);
+                    },
+                    logger);
+            }
+            else {
+                (*logger)(fmt::format("Failed retrieving implied targets for "
+                                      "key {}",
+                                      key.ToString()),
+                          /*fatal=*/true);
+            }
+        };
+    return AsyncMapConsumer<Artifact::ObjectInfo, std::nullptr_t>(
+        write_tc_entry, jobs);
+}
+
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
@@ -80,27 +170,39 @@ void WriteTargetCacheEntries(
                     "Backing up artifacts of {} export targets",
                     cache_targets.size());
     }
-    auto downloader = [&local_api, &remote_api, &jobs, strategy](auto infos) {
-        return remote_api->ParallelRetrieveToCas(
-            infos,
-            local_api,
-            jobs,
-            strategy == TargetCacheWriteStrategy::Split);
-    };
-    for (auto const& [key, target] : cache_targets) {
-        if (auto entry = TargetCacheEntry::FromTarget(target, extra_infos)) {
-            if (not tc.Store(key, *entry, downloader)) {
-                Logger::Log(LogLevel::Warning,
-                            "Failed writing target cache entry for {}",
-                            key.Id().ToString());
-            }
-        }
-        else {
-            Logger::Log(LogLevel::Warning,
-                        "Failed creating target cache entry for {}",
-                        key.Id().ToString());
-        }
+    // set up writer map
+    auto tc_writer_map = CreateTargetCacheWriterMap(
+        cache_targets, extra_infos, jobs, local_api, remote_api, strategy, tc);
+    std::vector<Artifact::ObjectInfo> cache_targets_ids;
+    cache_targets_ids.reserve(cache_targets.size());
+    for (auto const& [k, _] : cache_targets) {
+        cache_targets_ids.emplace_back(k.Id());
     }
+    // write the target cache keys
+    bool failed{false};
+    {
+        TaskSystem ts{jobs};
+        tc_writer_map.ConsumeAfterKeysReady(
+            &ts,
+            cache_targets_ids,
+            []([[maybe_unused]] auto _) {},  // map doesn't set anything
+            [&failed](auto const& msg, bool fatal) {
+                Logger::Log(LogLevel::Warning,
+                            "While writing target cache entries:\n{}",
+                            msg);
+                failed = failed or fatal;
+            });
+    }
+    // check for failures and cycles
+    if (failed) {
+        return;
+    }
+    if (auto error = DetectAndReportCycle(
+            "writing cache targets", tc_writer_map, kObjectInfoPrinter)) {
+        Logger::Log(LogLevel::Warning, *error);
+        return;
+    }
+
     Logger::Log(LogLevel::Debug,
                 "Finished backing up artifacts of export targets");
 }

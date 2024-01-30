@@ -50,6 +50,12 @@ class TargetCacheEntry {
     // Obtain the implied export targets
     [[nodiscard]] auto ToImplied() const noexcept -> std::set<std::string>;
 
+    // Obtain the implied export targets hashes as a vector of ObjectInfo,
+    // excluding the digest corresponding to this entry. As opposed to
+    // ToImplied, it returns nullopt on exception.
+    [[nodiscard]] auto ToImpliedIds(std::string const& entry_key_hash)
+        const noexcept -> std::optional<std::vector<Artifact::ObjectInfo>>;
+
     // Obtain all artifacts from cache entry (all should be known
     // artifacts).
     [[nodiscard]] auto ToArtifacts(

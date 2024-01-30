@@ -71,6 +71,28 @@ auto TargetCacheEntry::ToImplied() const noexcept -> std::set<std::string> {
     return result;
 }
 
+auto TargetCacheEntry::ToImpliedIds(std::string const& entry_key_hash)
+    const noexcept -> std::optional<std::vector<Artifact::ObjectInfo>> {
+    std::vector<Artifact::ObjectInfo> result{};
+    if (desc_.contains("implied export targets")) {
+        try {
+            for (auto const& x : desc_["implied export targets"]) {
+                if (x != entry_key_hash) {
+                    result.emplace_back(Artifact::ObjectInfo{
+                        .digest = ArtifactDigest{x, 0, /*is_tree=*/false},
+                        .type = ObjectType::File});
+                }
+            }
+        } catch (std::exception const& ex) {
+            Logger::Log(LogLevel::Warning,
+                        "Exception reading implied export targets: {}",
+                        ex.what());
+            return std::nullopt;
+        }
+    }
+    return result;
+}
+
 [[nodiscard]] auto ToObjectInfo(nlohmann::json const& json)
     -> Artifact::ObjectInfo {
     auto const& desc = ArtifactDescription::FromJson(json);
