@@ -111,7 +111,6 @@ struct hash<ArtifactDigest> {
         -> std::size_t {
         std::size_t seed{};
         hash_combine(&seed, digest.hash_);
-        hash_combine(&seed, digest.size_);
         hash_combine(&seed, digest.is_tree_);
         return seed;
     }
