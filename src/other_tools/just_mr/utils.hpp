@@ -45,15 +45,16 @@ std::vector<std::string> const kTakeOver = {"bindings",
                                             "expression_file_name"};
 
 struct JustSubCmdFlags {
-    bool config;       // requires setup
-    bool build_root;   // supports the local build root arg
-    bool launch;       // supports the local launcher arg
-    bool defines;      // supports defines arg
-    bool remote;       // supports remote exec args
-    bool serve;        // supports a serve endpoint
-    bool dispatch;     // supports dispatching of the remote-execution endpoint
-    bool cacert;       // supports CA cert arg
-    bool client_auth;  // supports client auth args
+    bool config;        // requires setup
+    bool build_root;    // supports the local build root arg
+    bool launch;        // supports the local launcher arg
+    bool defines;       // supports defines arg
+    bool remote;        // supports remote exec args
+    bool remote_props;  // supports remote-execution properties
+    bool serve;         // supports a serve endpoint
+    bool dispatch;      // supports dispatching of the remote-execution endpoint
+    bool cacert;        // supports CA cert arg
+    bool client_auth;   // supports client auth args
 };
 
 // ordered, so that we have replicability
@@ -64,6 +65,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = false,
+      .remote_props = false,
       .serve = false,
       .dispatch = false,
       .cacert = false,
@@ -74,6 +76,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = true,
       .remote = false,
+      .remote_props = false,
       .serve = false,
       .dispatch = false,
       .cacert = false,
@@ -84,6 +87,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = true,
       .remote = true,
+      .remote_props = true,
       .serve = true,
       .dispatch = true,
       .cacert = false,
@@ -94,6 +98,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .remote_props = true,
       .serve = true,
       .dispatch = true,
       .cacert = true,
@@ -104,6 +109,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .remote_props = true,
       .serve = true,
       .dispatch = true,
       .cacert = true,
@@ -114,6 +120,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = true,
       .defines = true,
       .remote = true,
+      .remote_props = true,
       .serve = true,
       .dispatch = true,
       .cacert = true,
@@ -124,6 +131,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = true,
+      .remote_props = false,
       .serve = false,
       .dispatch = false,
       .cacert = true,
@@ -134,6 +142,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .launch = false,
       .defines = false,
       .remote = false,
+      .remote_props = false,
       .serve = false,
       .dispatch = false,
       .cacert = false,

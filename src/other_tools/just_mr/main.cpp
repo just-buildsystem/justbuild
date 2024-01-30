@@ -333,6 +333,7 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.just_cmd,
                             arguments.log,
                             arguments.auth,
+                            arguments.launch_fwd,
                             forward_build_root,
                             my_name);
         }

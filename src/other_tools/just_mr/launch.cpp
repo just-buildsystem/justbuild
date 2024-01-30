@@ -35,6 +35,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
               MultiRepoJustSubCmdsArguments const& just_cmd_args,
               MultiRepoLogArguments const& log_args,
               MultiRepoRemoteAuthArguments const& auth_args,
+              ForwardOnlyArguments const& launch_fwd,
               bool forward_build_root,
               std::string multi_repo_tool_name) -> int {
     // check if subcmd_name can be taken from additional args
@@ -50,6 +51,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool use_launcher{false};
     bool supports_defines{false};
     bool supports_remote{false};
+    bool supports_remote_properties{false};
     bool supports_serve{false};
     bool supports_dispatch{false};
     bool supports_cacert{false};
@@ -89,6 +91,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
         supports_defines = kKnownJustSubcommands.at(*subcommand).defines;
         supports_remote = kKnownJustSubcommands.at(*subcommand).remote;
+        supports_remote_properties =
+            kKnownJustSubcommands.at(*subcommand).remote_props;
         supports_serve = kKnownJustSubcommands.at(*subcommand).serve;
         supports_dispatch = kKnownJustSubcommands.at(*subcommand).dispatch;
         supports_cacert = kKnownJustSubcommands.at(*subcommand).cacert;
@@ -188,6 +192,13 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         if (auth_args.tls_client_key) {
             cmd.emplace_back("--tls-client-key");
             cmd.emplace_back(auth_args.tls_client_key->string());
+        }
+    }
+    // forward-only arguments, still to come before the just-arguments
+    if (supports_remote_properties) {
+        for (auto const& prop : launch_fwd.remote_execution_properties) {
+            cmd.emplace_back("--remote-execution-property");
+            cmd.emplace_back(prop);
         }
     }
     // add args read from just-mrrc

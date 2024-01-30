@@ -28,6 +28,7 @@
     MultiRepoJustSubCmdsArguments const& just_cmd_args,
     MultiRepoLogArguments const& log_args,
     MultiRepoRemoteAuthArguments const& auth_args,
+    ForwardOnlyArguments const& launch_fwd,
     bool forward_build_root,
     std::string multi_repo_tool_name) -> int;
 

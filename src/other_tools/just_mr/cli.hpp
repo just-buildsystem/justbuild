@@ -92,6 +92,10 @@ struct MultiRepoRemoteAuthArguments {
     std::optional<std::filesystem::path> tls_client_key{std::nullopt};
 };
 
+struct ForwardOnlyArguments {
+    std::vector<std::string> remote_execution_properties{};
+};
+
 enum class SubCommand {
     kUnknown,
     kMRVersion,
@@ -112,6 +116,7 @@ struct CommandLineArguments {
     MultiRepoUpdateArguments update;
     MultiRepoJustSubCmdsArguments just_cmd;
     MultiRepoRemoteAuthArguments auth;
+    ForwardOnlyArguments launch_fwd;
 };
 
 static inline void SetupMultiRepoCommonArguments(

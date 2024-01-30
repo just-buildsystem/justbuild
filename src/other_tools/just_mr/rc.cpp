@@ -359,6 +359,30 @@ namespace {
             clargs->just_cmd.just_args[cmd_name] = std::move(args);
         }
     }
+    // read remote-execution properties, used for extending the launch
+    // command-line (not settable on just-mr's command line).
+    auto re_props = rc_config["remote-execution properties"];
+    if (re_props.IsNotNull()) {
+        if (not re_props->IsList()) {
+            Logger::Log(LogLevel::Error,
+                        "Configuration-file provided remote-execution "
+                        "properties have to be a list of strings, but found {}",
+                        re_props->ToString());
+            std::exit(kExitConfigError);
+        }
+        for (auto const& entry : re_props->List()) {
+            if (not entry->IsString()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Configuration-file provided remote-execution properties "
+                    "have to be a list of strings, but found entry {}",
+                    entry->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->launch_fwd.remote_execution_properties.emplace_back(
+                entry->String());
+        }
+    }
     // read default for local launcher
     if (not clargs->common.local_launcher) {
         auto launcher = rc_config["local launcher"];

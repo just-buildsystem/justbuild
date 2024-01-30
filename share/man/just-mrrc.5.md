@@ -118,6 +118,11 @@ The just-mrrc is given by a JSON object.
    Each subkey value can be overwritten by its corresponding command-line
    argument.
 
+ - The value for the key *`"remote-execution properties"`*, if
+   provided, has to be a list of strings. Each entry is forwarded
+   as `--remote-execution-property` to the invocation of the build
+   tool, if **`just-mr`** is used as a launcher.
+
  - The value for the key *`"just files"`* is a JSON object. The keys correspond
    to options that some **`just`** subcommands accept and require a file as
    argument. For each key, the value is a list of location objects. When
@@ -129,7 +134,8 @@ The just-mrrc is given by a JSON object.
  - The value for the key *`"just args"`* is a JSON object. Its keys are
    **`just`** subcommands and its value is a JSON list of strings. For the
    corresponding subcommand, these strings are prefixed to the **`just`**
-   argument vector, if **`just-mr`** is used as a launcher.
+   argument vector (after all other options provided through the rc file),
+   if **`just-mr`** is used as a launcher.
 
  - The value for the key *`"rc files"`*, if given, is a list of
    location objects. For those location objects that refer to
