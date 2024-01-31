@@ -38,39 +38,33 @@
 
 auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
     -> std::variant<::grpc::Status, dispatch_t> {
-    using result_t = std::variant<::grpc::Status, dispatch_t>;
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
     if (!local_api_->IsAvailable(dispatch_digest) and
         !remote_api_->RetrieveToCas({dispatch_info}, &*local_api_)) {
-        return result_t(
-            std::in_place_index<0>,
-            ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                           fmt::format("Could not retrieve from "
-                                       "remote-execution end point blob {}",
-                                       dispatch_info.ToString())});
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              fmt::format("Could not retrieve from "
+                                          "remote-execution endpoint blob {}",
+                                          dispatch_info.ToString())};
     }
     // get blob content
     auto const& dispatch_str = local_api_->RetrieveToMemory(dispatch_info);
     if (not dispatch_str) {
         // this should not fail unless something really broke...
-        return result_t(
-            std::in_place_index<0>,
-            ::grpc::Status{
-                ::grpc::StatusCode::INTERNAL,
-                fmt::format("Unexpected failure in retrieving blob {} from CAS",
-                            dispatch_info.ToString())});
+        return ::grpc::Status{
+            ::grpc::StatusCode::INTERNAL,
+            fmt::format("Unexpected failure in retrieving blob {} from CAS",
+                        dispatch_info.ToString())};
     }
     // parse content
     auto parsed = ParseDispatch(*dispatch_str);
     if (parsed.index() == 0) {
         // pass the parsing error forward
-        return result_t(std::in_place_index<0>,
-                        ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                                       std::get<0>(parsed)});
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              std::get<0>(parsed)};
     }
-    return result_t(std::in_place_index<1>, std::get<1>(parsed));
+    return std::get<1>(parsed);
 }
 
 auto TargetService::ServeTarget(

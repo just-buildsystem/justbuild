@@ -75,69 +75,61 @@ ParseDispatch(std::string const& dispatch_info) noexcept -> std::variant<
     try {
         dispatch = nlohmann::json::parse(dispatch_info);
     } catch (std::exception const& e) {
-        return result_t(
-            std::in_place_index<0>,
-            fmt::format("Failed to parse endpoint configuration: {}",
-                        e.what()));
+        return fmt::format("Failed to parse endpoint configuration: {}",
+                           e.what());
     }
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         parsed{};
     try {
         if (not dispatch.is_array()) {
-            return result_t(std::in_place_index<0>,
-                            fmt::format("Endpoint configuration has to be a "
-                                        "list of pairs, but found {}",
-                                        dispatch.dump()));
+            return fmt::format(
+                "Endpoint configuration has to be a "
+                "list of pairs, but found {}",
+                dispatch.dump());
         }
         for (auto const& entry : dispatch) {
             if (not(entry.is_array() and entry.size() == 2)) {
-                return result_t(
-                    std::in_place_index<0>,
-                    fmt::format("Endpoint configuration has to be a list of "
-                                "pairs, but found entry {}",
-                                entry.dump()));
+                return fmt::format(
+                    "Endpoint configuration has to be a list of "
+                    "pairs, but found entry {}",
+                    entry.dump());
             }
             if (not entry[0].is_object()) {
-                return result_t(std::in_place_index<0>,
-                                fmt::format("Property condition has to be "
-                                            "given as an object, but found {}",
-                                            entry[0].dump()));
+                return fmt::format(
+                    "Property condition has to be "
+                    "given as an object, but found {}",
+                    entry[0].dump());
             }
             std::map<std::string, std::string> props{};
             for (auto const& [k, v] : entry[0].items()) {
                 if (not v.is_string()) {
-                    return result_t(
-                        std::in_place_index<0>,
-                        fmt::format("Property condition has to be given as an "
-                                    "object of strings but found {}",
-                                    entry[0].dump()));
+                    return fmt::format(
+                        "Property condition has to be given as an "
+                        "object of strings but found {}",
+                        entry[0].dump());
                 }
                 props.emplace(k, v.template get<std::string>());
             }
             if (not entry[1].is_string()) {
-                return result_t(
-                    std::in_place_index<0>,
-                    fmt::format("Endpoint has to be specified as string (in "
-                                "the form host:port), but found {}",
-                                entry[1].dump()));
+                return fmt::format(
+                    "Endpoint has to be specified as string (in "
+                    "the form host:port), but found {}",
+                    entry[1].dump());
             }
             auto endpoint = ParseAddress(entry[1].template get<std::string>());
             if (not endpoint) {
-                return result_t(std::in_place_index<0>,
-                                fmt::format("Failed to parse {} as endpoint.",
-                                            entry[1].dump()));
+                return fmt::format("Failed to parse {} as endpoint.",
+                                   entry[1].dump());
             }
             parsed.emplace_back(props, *endpoint);
         }
     } catch (std::exception const& e) {
-        return result_t(
-            std::in_place_index<0>,
-            fmt::format("Failure analysing endpoint configuration {}: {}",
-                        dispatch.dump(),
-                        e.what()));
+        return fmt::format("Failure analysing endpoint configuration {}: {}",
+                           dispatch.dump(),
+                           e.what());
     }
     // success!
-    return result_t(std::in_place_index<1>, std::move(parsed));
+    return parsed;
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_ADDRESS_HPP
