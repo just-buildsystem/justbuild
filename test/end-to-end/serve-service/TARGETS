@@ -95,6 +95,24 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "describe (data)":
+  { "type": "install"
+  , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.describe"}
+  }
+, "describe (locally installed)":
+  {"type": "install", "dirs": [["describe (data)", "repo"]]}
+, "describe":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["describe"]
+  , "test": ["describe.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "describe (locally installed)"
+    ]
+  , "repos": ["describe (data)"]
+  , "keep": ["out/describe.orig", "out/describe"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -109,6 +127,7 @@
         , "serve-start-execute-sharding"
         , "serve-export-deps"
         , "serve-query-target-cache-value"
+        , "describe"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}

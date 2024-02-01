@@ -1,0 +1,27 @@
+{ "":
+  { "type": "export"
+  , "target": "_"
+  , "doc": ["A glorified hello-world example"]
+  , "flexible_config": ["NAME"]
+  , "config_doc": {"NAME": ["The name to say hello to"]}
+  }
+, "_":
+  { "type": "generic"
+  , "arguments_config": ["NAME"]
+  , "outs": ["greeting.txt"]
+  , "cmds":
+    [ { "type": "join"
+      , "$1":
+        [ { "type": "join_cmd"
+          , "$1":
+            [ "echo"
+            , "Hello"
+            , {"type": "var", "name": "NAME", "default": "world"}
+            ]
+          }
+        , " > greeting.txt"
+        ]
+      }
+    ]
+  }
+}
