@@ -27,6 +27,9 @@ auto SetupDescribeCommandArguments(
     SetupCacheArguments(app, &clargs->endpoint);
     SetupAnalysisArguments(app, &clargs->analysis, false);
     SetupLogArguments(app, &clargs->log);
+    SetupServeEndpointArguments(app, &clargs->serve);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
+    SetupCompatibilityArguments(app);
     SetupDescribeArguments(app, &clargs->describe);
 }
 

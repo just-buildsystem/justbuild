@@ -300,7 +300,7 @@ At increased computational effort, be compatible with the original
 remote build execution protocol. As the change affects identifiers, the
 flag must be used consistently for all related invocations.  
 Supported by:
-analyse|build|install-cas|install|rebuild|traverse|execute.
+analyse|build|describe|install-cas|install|rebuild|traverse|execute.
 
 Build configuration options
 ---------------------------
@@ -526,7 +526,7 @@ Supported by: analyse|build|install|rebuild|traverse.
 
 **`-r`**, **`--remote-execution-address`** *`NAME`*:*`PORT`*  
 Address of the remote execution service.  
-Supported by: analyse|build|install-cas|install|rebuild|traverse.
+Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`--endpoint-configuration`** FILE  
 File containing a description on how to dispatch to different
@@ -563,7 +563,7 @@ Remote serve options
 
 **`-R`**, **`--remote-serve-address`** *`NAME`*:*`PORT`*  
 Address of the remote execution service.  
-Supported by: analyse|build|install|rebuild.
+Supported by: analyse|build|describe|install|rebuild.
 
 Authentication options
 ----------------------
