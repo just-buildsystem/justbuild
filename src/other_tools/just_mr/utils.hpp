@@ -72,7 +72,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .client_auth = false}},
     {"describe",
      {.config = true,
-      .build_root = false,
+      .build_root = true,
       .launch = false,
       .defines = true,
       .remote = false,

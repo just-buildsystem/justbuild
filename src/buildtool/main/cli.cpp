@@ -24,6 +24,7 @@ auto SetupDescribeCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupCommonArguments(app, &clargs->common);
+    SetupCacheArguments(app, &clargs->endpoint);
     SetupAnalysisArguments(app, &clargs->analysis, false);
     SetupLogArguments(app, &clargs->log);
     SetupDescribeArguments(app, &clargs->describe);

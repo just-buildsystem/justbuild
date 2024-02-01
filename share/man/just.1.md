@@ -365,7 +365,7 @@ Supported by: build|install|rebuild|traverse|execute.
 **`--local-build-root`** *`PATH`*  
 Root for local CAS, cache, and build directories. The path will be
 created if it does not exist already.  
-Supported by: build|install-cas|install|rebuild|traverse|gc|execute.
+Supported by: build|describe|install-cas|install|rebuild|traverse|gc|execute.
 
 **`--main`** *`NAME`*  
 The repository to take the target from.  
