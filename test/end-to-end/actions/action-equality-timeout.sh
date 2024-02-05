@@ -92,22 +92,22 @@ echo
 cd "${ROOT}/${variant}"
 
 "${JUST}" analyse --local-build-root "${LBRDIR}" --dump-graph graph-null.json 2>&1
-action_configs=$(cat graph-null.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort')
-echo "${action_configs}"
-[ "${action_configs}" = '[[1,null]]' ]
+cat graph-null.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort' > action_configs
+cat action_configs
+[ "$(jq -acM '. == [[1,null]]' action_configs)" = "true" ]
 
 echo
 "${JUST}" analyse --local-build-root "${LBRDIR}" -D '{"TIMEOUT": 1.0}' --dump-graph graph-1.json 2>&1
-action_configs=$(cat graph-1.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort')
-echo "${action_configs}"
-[ "${action_configs}" = '[[1,null]]' ]
+cat graph-1.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort' > action_configs
+cat action_configs
+[ "$(jq -acM '. == [[1,null]]' action_configs)" = "true" ]
 
 echo
 "${JUST}" analyse --local-build-root "${LBRDIR}" -D '{"TIMEOUT": 2.0}' --dump-graph graph-2.json 2>&1
 cat graph-2.json
-action_configs=$(cat graph-2.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort')
-echo "${action_configs}"
-[ "${action_configs}" = '[[1,null],[2]]' ]
+cat graph-2.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.TIMEOUT ]] | sort' > action_configs
+cat action_configs
+[ "$(jq -acM '. == [[1,null],[2]]' action_configs)" = "true" ]
 
 echo "variant ${variant} OK"
 echo
