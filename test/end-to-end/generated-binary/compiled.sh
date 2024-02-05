@@ -34,4 +34,4 @@ bin/tool-under-test analyse --local-build-root .tool-root --dump-graph graph.jso
 
 echo
 echo "Building"
-bin/tool-under-test install -o out --local-build-root .tool-root -J 16 2>&1
+bin/tool-under-test install -L '["env", "PATH='"${PATH}"'"]' -o out --local-build-root .tool-root -J 16 2>&1

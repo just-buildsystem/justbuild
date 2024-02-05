@@ -129,7 +129,7 @@ EOI
 do_test() {
   echo === Enumeration refres to targets ===
 
-  ${TOOL} install -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/enum enumeration 2>&1
+  ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/enum enumeration 2>&1
 
   cat ${OUTDIR}/enum/keys.txt
   echo
@@ -141,7 +141,7 @@ do_test() {
 
   echo === Glob always refres to files and directories are ignored ===
 
-  ${TOOL} install -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/glob glob 2>&1
+  ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/glob glob 2>&1
 
   cat ${OUTDIR}/glob/keys.txt
   echo
@@ -153,7 +153,7 @@ do_test() {
 
   echo === Globs and targets can be combined ===
 
-  ${TOOL} install -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/with_target with_target 2>&1
+  ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/with_target with_target 2>&1
 
   cat ${OUTDIR}/with_target/keys.txt
   echo
@@ -165,7 +165,7 @@ do_test() {
 
   echo === Globs only inspect the top-level directory of the module ===
 
-  ${TOOL} install -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/not_top_level not_top_level 2>&1
+  ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/not_top_level not_top_level 2>&1
 
   cat ${OUTDIR}/not_top_level/keys.txt
   echo

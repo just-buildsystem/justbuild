@@ -45,7 +45,7 @@ echo
 
 # Verify non-interference of install
 cd "${SRCDIR}"
-"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" 2>&1
+"${TOOL}" install -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -o "${OUTDIR}" 2>&1
 
 echo
 ls -al "${OUTDIR}"
@@ -55,7 +55,7 @@ grep Original unrelated.txt
 
 # Verify non-interference of install
 cd "${SRCDIR}"
-"${TOOL}" build --local-build-root "${BUILDROOT}" \
+"${TOOL}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" \
           --dump-artifacts "${OUTDIR}/artifacts.json" 2>&1
 echo
 ID=$(jq -rM '."hello.txt".id' "${OUTDIR}/artifacts.json")
@@ -73,7 +73,7 @@ grep Original unrelated.txt
 
 # Verify non-interference of install (overwrite existing file with symlink)
 cd "${SRCDIR}"
-"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+"${TOOL}" install -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
 
 echo
 ls -al "${OUTDIR}"
@@ -86,7 +86,7 @@ grep Original unrelated.txt
 rm -f ${OUTDIR}/hello.txt
 ln -s /noexistent ${OUTDIR}/hello.txt
 cd "${SRCDIR}"
-"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+"${TOOL}" install -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
 
 echo
 ls -al "${OUTDIR}"
@@ -99,7 +99,7 @@ grep Original unrelated.txt
 rm -f ${OUTDIR}/content.txt
 ln -s /noexistent ${OUTDIR}/content.txt
 cd "${SRCDIR}"
-"${TOOL}" install --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
+"${TOOL}" install -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -o "${OUTDIR}" symlink 2>&1
 
 echo
 ls -al "${OUTDIR}"

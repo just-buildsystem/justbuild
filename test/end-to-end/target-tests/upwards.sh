@@ -38,6 +38,7 @@ cat > src/TARGETS <<'EOF'
 EOF
 
 ./bin/tool-under-test install -o out --workspace-root src \
+	-L '["env", "PATH='"${PATH}"'"]' \
 	--local-build-root .root . it 2>&1
 
 grep OK out/out
@@ -61,6 +62,7 @@ EOF
 
 
 ./bin/tool-under-test install -o out2 --workspace-root src \
+	-L '["env", "PATH='"${PATH}"'"]' \
 	--local-build-root .root deep  'OK up' 2>&1
 grep OK out2/out
 

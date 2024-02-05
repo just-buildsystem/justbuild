@@ -39,6 +39,7 @@ readonly TCDIR="$FIRST_GEN/tc"
 # Start local remote execution server
 # ------------------------------------------------------------------------------
 "${JUST}" execute --info-file "${INFOFILE}" --pid-file "${PIDFILE}" \
+  -L '["env", "PATH='"${PATH}"'"]'  \
   --local-build-root "${REMOTE_CACHE}" ${ARGS} 2>&1 &
 
 for _ in `seq 1 60`; do
@@ -87,6 +88,7 @@ sed -i "s|<RULES_PATH>|${RULES_DIR}|" repos.json
 
 # Build greetlib remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
+  -L '["env", "PATH='"${PATH}"'"]'  \
   build ${ARGS} -r localhost:${PORT} --dump-graph graph.json main 2>&1
 
 # Count actions without tc
@@ -105,6 +107,7 @@ rm -rf "${REMOTE_CACHE}"
 
 # Build greetlib remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
+  -L '["env", "PATH='"${PATH}"'"]'  \
   build ${ARGS} -r localhost:${PORT} --dump-graph graph-tc.json main 2>&1
 
 # Count actions with tc
@@ -122,6 +125,7 @@ rm -rf "${REMOTE_CACHE}"
 
 # Build pydicts remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
+  -L '["env", "PATH='"${PATH}"'"]'  \
   build ${ARGS} -r localhost:${PORT} json_from_py 2>&1
 
 # Clear remote cache
@@ -129,4 +133,5 @@ rm -rf "${REMOTE_CACHE}"
 
 # Build pydicts remotely
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LOCAL_CACHE}" \
+  -L '["env", "PATH='"${PATH}"'"]'  \
   build ${ARGS} -r localhost:${PORT} json_from_py 2>&1

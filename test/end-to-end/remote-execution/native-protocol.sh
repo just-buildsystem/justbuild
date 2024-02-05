@@ -80,7 +80,9 @@ fi
 echo
 echo Upload and download Git tree to local CAS in ${NAME} mode
 echo
-"${JUST}" build -C "${CONF}" --main test test --local-build-root="${LBRDIR}" --dump-artifacts "${RESULT}" ${ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --main test \
+          --local-build-root="${LBRDIR}" --dump-artifacts "${RESULT}" \
+          ${ARGS} test 2>&1
 TREE_ID="$(jq -r ".${OUT_DIRNAME}.id" "${RESULT}" 2>&1)"
 test ${TREE_ID} ${EQUAL} ${GIT_TREE_ID}
 
@@ -92,6 +94,8 @@ fi
 echo
 echo Upload and download Git tree to remote CAS in ${NAME} mode
 echo
-"${JUST}" build -C "${CONF}" --main test test ${REMOTE_EXECUTION_ARGS} --local-build-root="${LBRDIR}" --dump-artifacts "${RESULT}" ${ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --main test \
+          ${REMOTE_EXECUTION_ARGS} --local-build-root="${LBRDIR}" \
+          --dump-artifacts "${RESULT}" ${ARGS} test 2>&1
 TREE_ID="$(jq -r ".${OUT_DIRNAME}.id" "${RESULT}" 2>&1)"
 test ${TREE_ID} ${EQUAL} ${GIT_TREE_ID}

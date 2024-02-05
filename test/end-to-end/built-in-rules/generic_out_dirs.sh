@@ -47,7 +47,7 @@ cat <<EOF > TARGETS
 EOF
 
 echo "read_out_dirs" >&2
-bin/tool-under-test build --local-build-root lcl-build  read_out_dirs
+bin/tool-under-test build -L '["env", "PATH='"${PATH}"'"]' --local-build-root lcl-build  read_out_dirs
 echo "done" >&2
 
 echo "missing_outs_and_out_dirs" >&2
@@ -64,7 +64,7 @@ echo "out_dirs_contains_a_file" >&2
 # the analysis phase should run fine
 bin/tool-under-test analyse --local-build-root lcl-build out_dirs_contains_a_file
 echo "analysis ok" >&2
-bin/tool-under-test build --local-build-root lcl-build out_dirs_contains_a_file && exit 1 || :
+bin/tool-under-test build -L '["env", "PATH='"${PATH}"'"]' --local-build-root lcl-build out_dirs_contains_a_file && exit 1 || :
 echo "done" >&2
 
 echo "outs_contains_a_dir" >&2
@@ -73,7 +73,7 @@ echo "outs_contains_a_dir" >&2
 # anlysis should run fine
 bin/tool-under-test analyse --local-build-root lcl-build outs_contains_a_dir
 echo "analysis ok" >&2
-bin/tool-under-test build --local-build-root lcl-build -f test.log outs_contains_a_dir && exit 1 || :
+bin/tool-under-test build -L '["env", "PATH='"${PATH}"'"]' --local-build-root lcl-build -f test.log outs_contains_a_dir && exit 1 || :
 # grep 'ERROR' test.log | grep 'output file'
 echo "done" >&2
 

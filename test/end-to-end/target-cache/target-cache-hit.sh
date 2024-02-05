@@ -56,8 +56,8 @@ fi
 
 # build project twice locally to trigger a target cache hit
 export CONF="$("$JUST_MR" --norc -C repos.json --local-build-root="$LBRDIR" setup main)"
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
+"$JUST" build -L '["env", "PATH='"${PATH}"'"]' -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
+"$JUST" build -L '["env", "PATH='"${PATH}"'"]' -C "$CONF" main --local-build-root="$LBRDIR" $ARGS 2>&1
 
 REMOTE_EXECUTION_ARGS=""
 if [ "${REMOTE_EXECUTION_ADDRESS:-}" != "" ]; then
@@ -68,5 +68,5 @@ if [ "${REMOTE_EXECUTION_ADDRESS:-}" != "" ]; then
 fi
 
 # build project twice remotely to trigger a target cache hit
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1
-"$JUST" build -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1
+"$JUST" build -L '["env", "PATH='"${PATH}"'"]' -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1
+"$JUST" build -L '["env", "PATH='"${PATH}"'"]' -C "$CONF" main --local-build-root="$LBRDIR" $ARGS $REMOTE_EXECUTION_ARGS 2>&1

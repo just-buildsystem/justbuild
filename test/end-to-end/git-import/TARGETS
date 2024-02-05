@@ -29,7 +29,18 @@
   }
 , "TESTS":
   { "type": "install"
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
   , "tainted": ["test"]
-  , "deps": ["chained-import", "deduplicate"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["deduplicate"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["chained-import", "deduplicate"]
+        }
+      ]
+    }
   }
 }

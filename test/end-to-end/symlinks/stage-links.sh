@@ -49,7 +49,7 @@ if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
 fi
 
 echo "test staging locally"
-${JUST} build ${ARGS} stage-links
+${JUST} build -L '["env", "PATH='"${PATH}"'"]' ${ARGS} stage-links
 
 echo "test staging remotely"
-${JUST} build ${ARGS} ${REMOTE_EXECUTION_ARGS} stage-links
+${JUST} build -L '["env", "PATH='"${PATH}"'"]' ${ARGS} ${REMOTE_EXECUTION_ARGS} stage-links

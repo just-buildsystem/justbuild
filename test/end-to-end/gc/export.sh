@@ -73,6 +73,7 @@ cat TARGETS
 
 # Build to fill the cache
 "${JUST_MR}" ${JUST_MR_ARGS} build ${BUILD_ARGS} \
+          -L '["env", "PATH='"${PATH}"'"]' \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 
 # Demonstrate that from now on, we don't build anything any more
@@ -86,6 +87,7 @@ rm -rf ${LBR}/protocol-dependent/generation-*/*/ac
 
 # Use the export
 "${JUST_MR}" ${JUST_MR_ARGS} build ${BUILD_ARGS} \
+          -L '["env", "PATH='"${PATH}"'"]' \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 
 # collect garbage again
@@ -93,6 +95,7 @@ rm -rf ${LBR}/protocol-dependent/generation-*/*/ac
 
 # Verify that the export target is fully in cache
 "${JUST_MR}" ${JUST_MR_ARGS} install ${BUILD_ARGS} -o "${OUT}" \
+          -L '["env", "PATH='"${PATH}"'"]' \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 ls -R "${OUT}"
 test -f "${OUT}/out/hello/world/tree/hello.txt"

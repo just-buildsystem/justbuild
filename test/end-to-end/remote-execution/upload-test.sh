@@ -59,7 +59,7 @@ fi
 
 # Build locally
 export CONF="$(realpath repos.json)"
-"${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR_1}" ${ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_1}" ${ARGS} 2>&1
 
 # Build remotely
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
@@ -67,7 +67,7 @@ if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
   REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
 
-"${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR_1}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_1}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1
 
 echo === ignore_special root ===
 
@@ -84,7 +84,7 @@ fi
 
 # Build locally
 export CONF="$(realpath repos.json)"
-"${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR_2}" ${ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_2}" ${ARGS} 2>&1
 
 # Build remotely
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
@@ -92,4 +92,4 @@ if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
   REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
 fi
 
-"${JUST}" build -C "${CONF}" --local-build-root="${LBRDIR_2}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_2}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1

@@ -84,9 +84,9 @@ EOF
 echo "local repos configuration:"
 cat repos.json
 
-CONF=$("${JUST_MR}" --norc --local-build-root "${SERVE_LBR}" setup)
+CONF=$("${JUST_MR}" -L '["env", "PATH='"${PATH}"'"]' --norc --local-build-root "${SERVE_LBR}" setup)
 cat "${CONF}"
-"${JUST}" build --local-build-root "${SERVE_LBR}" -C "${CONF}" -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${SERVE_LBR}" -C "${CONF}" -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
 )
 
 # Set up local repository
@@ -154,15 +154,17 @@ echo
 
 rm "${GENERATOR}"
 
-CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" ${COMPAT} setup --all)
+CONF=$("${JUST_MR}" -L '["env", "PATH='"${PATH}"'"]' --norc --local-build-root "${LBR}" ${COMPAT} setup --all)
 cat "${CONF}"
 echo
 
 # test that we can successfully compile using just serve
 "${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" \
+                -L '["env", "PATH='"${PATH}"'"]' \
                 --remote-serve-address ${SERVE} \
                 -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
 "${JUST}" build --main local --local-build-root "${LBR}" -C "${CONF}" \
+                -L '["env", "PATH='"${PATH}"'"]' \
                 --remote-serve-address ${SERVE} \
                 -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} main
 )

@@ -118,7 +118,8 @@ cat ../trees.json
 echo
 echo Build
 echo
-../bin/tool-under-test install -o ../out --local-build-root ../tool-root 2>&1
+../bin/tool-under-test install -L '["env", "PATH='"${PATH}"'"]' \
+      -o ../out --local-build-root ../tool-root 2>&1
 echo
 echo Index
 echo

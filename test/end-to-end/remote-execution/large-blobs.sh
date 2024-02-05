@@ -55,7 +55,8 @@ run_tests() {
     echo
     echo Upload and download to $NAME $TYPE CAS.
     echo
-    "${JUST}" build test $BUILD_ARGS --dump-artifacts result
+    "${JUST}" build -L '["env", "PATH='"${PATH}"'"]' $BUILD_ARGS \
+              --dump-artifacts result
     echo SUCCESS
 
     local ARTIFACT_ID="$(cat result | jq -r '."out.file".id')"

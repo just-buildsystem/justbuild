@@ -58,6 +58,6 @@ cat > TARGETS <<'EOI'
 EOI
 
 
-bin/tool-under-test install -o out --local-build-root .tool-root 2>&1
+bin/tool-under-test install -L '["env", "PATH='"${PATH}"'"]' -o out --local-build-root .tool-root 2>&1
 grep Hello out/out.txt
 grep Good out/out.txt

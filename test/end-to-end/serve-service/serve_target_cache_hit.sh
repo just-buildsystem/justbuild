@@ -99,7 +99,7 @@ EOF
 echo "local repos configuration:"
 cat repos.json
 echo
-CONF=$("${JUST_MR}" --norc --local-build-root "${SERVE_LBR}" setup)
+CONF=$("${JUST_MR}" -L '["env", "PATH='"${PATH}"'"]' --norc --local-build-root "${SERVE_LBR}" setup)
 
 echo "generated conf":
 cat "${CONF}"
@@ -107,6 +107,7 @@ echo
 
 "${JUST}" build                       \
     --local-build-root "${SERVE_LBR}" \
+    -L '["env", "PATH='"${PATH}"'"]'  \
     -C "${CONF}"                      \
     -r "${REMOTE_EXECUTION_ADDRESS}"  \
     ${COMPAT}                         \
@@ -140,7 +141,7 @@ echo
 
 rm "${GENERATOR}"
 
-CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" setup)
+CONF=$("${JUST_MR}" -L '["env", "PATH='"${PATH}"'"]' --norc --local-build-root "${LBR}" setup)
 cat "${CONF}"
 echo
 # test that it fails without using just serve
@@ -151,6 +152,7 @@ echo "failed as expected"
 # one used by just-serve
 "${JUST}" analyse                     \
     --local-build-root "${LBR}"       \
+    -L '["env", "PATH='"${PATH}"'"]'  \
     --remote-serve-address "${SERVE}" \
     -C "${CONF}"                      \
     -r "${SERVE}"                     \
@@ -162,6 +164,7 @@ echo "failed as expected"
 # test that we can successfully compile using just serve
 "${JUST}" build                       \
     --local-build-root "${LBR}"       \
+    -L '["env", "PATH='"${PATH}"'"]'  \
     --remote-serve-address "${SERVE}" \
     -C "${CONF}"                      \
     -r "${REMOTE_EXECUTION_ADDRESS}"  \

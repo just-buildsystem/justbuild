@@ -31,23 +31,23 @@ cat > TARGETS <<'EOF'
 }
 EOF
 
-"${JUST}" build --local-build-root "${BUILDROOT}" --dump-artifacts out.json 2>&1
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" --dump-artifacts out.json 2>&1
 echo
 cat out.json
 # foo/bar is the output artifact, and it is a tree
 [ $(jq -rM '."foo/bar"."file_type"' out.json) = "t" ]
 
 # Therefore, foo is not an output artifact, so requesting -P leaves stdout empty
-"${JUST}" build --local-build-root "${BUILDROOT}" -P foo > foo.txt
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo > foo.txt
 [ -f foo.txt ] && [ -z "$(cat foo.txt)" ]
 
 # Requesting foo/bar gives a human-readable description of the tree
-"${JUST}" build --local-build-root "${BUILDROOT}" -P foo/bar  | grep baz
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo/bar  | grep baz
 
 # going deepter into the tree we stil can get human-readable tree descriptions
-"${JUST}" build --local-build-root "${BUILDROOT}" -P foo/bar/baz/greeting  | grep hello.txt
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo/bar/baz/greeting  | grep hello.txt
 
 # Files inside the tree can be retrieved
-"${JUST}" build --local-build-root "${BUILDROOT}" -P foo/bar/baz/greeting/hello.txt  | grep  World
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo/bar/baz/greeting/hello.txt  | grep  World
 
 echo OK

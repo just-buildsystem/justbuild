@@ -29,6 +29,17 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["target-cache-hit", "artifacts-sync"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["target-cache-hit"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["artifacts-sync"]
+        }
+      ]
+    }
   }
 }

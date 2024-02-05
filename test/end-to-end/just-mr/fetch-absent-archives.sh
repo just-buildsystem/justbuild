@@ -64,12 +64,14 @@ echo
 cat repos.json
 echo
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
+                    -L '["env", "PATH='"${PATH}"'"]' \
                     --remote-serve-address ${SERVE} \
                     -r ${REMOTE_EXECUTION_ADDRESS} \
                     --fetch-absent setup)
 cat $CONF
 echo
 "${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
+          -L '["env", "PATH='"${PATH}"'"]' \
           -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
 grep 42 "${OUT}/out.txt"
 
@@ -77,6 +79,7 @@ grep 42 "${OUT}/out.txt"
 # about the root should now be available locally, so we can build without
 # a serve or remote endpoint with still (logically) fetching absent roots.
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
+             -L '["env", "PATH='"${PATH}"'"]' \
              --fetch-absent install -o "${OUT2}" 2>&1
 grep 42 "${OUT2}/out.txt"
 
@@ -107,6 +110,7 @@ cat > targets/TARGETS <<'EOF'
 }
 EOF
 "${JUST_MR}" --norc --local-build-root "${LBR}" \
+             -L '["env", "PATH='"${PATH}"'"]' \
              --remote-serve-address ${SERVE} \
              -r ${REMOTE_EXECUTION_ADDRESS} \
              --just "${JUST}" \
@@ -145,6 +149,7 @@ echo
 cat repos.json
 echo
 "${JUST_MR}" --norc --local-build-root "${LBR_NON_ABSENT}" \
+             -L '["env", "PATH='"${PATH}"'"]' \
              --remote-serve-address ${SERVE} \
              -r ${REMOTE_EXECUTION_ADDRESS} \
              --just "${JUST}" \

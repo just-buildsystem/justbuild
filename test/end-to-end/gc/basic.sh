@@ -68,14 +68,14 @@ EOF
 cat TARGETS
 
 # Build to fill the cache
-"${JUST}" build ${BUILD_ARGS} \
+"${JUST}" build ${BUILD_ARGS} -L '["env", "PATH='"${PATH}"'"]' \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
 
 # Demonstrate that from now on, we don't build anything any more
 rm -rf "${TOOLS_DIR}"
 
 # Verify the large file is in cache
-"${JUST}" install ${BUILD_ARGS} -o "${OUT}/out-large" \
+"${JUST}" install ${BUILD_ARGS} -L '["env", "PATH='"${PATH}"'"]' -o "${OUT}/out-large" \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' large 2>&1
 wc -c "${OUT}/out-large/out.txt"
 test $(cat "${OUT}/out-large/out.txt" | wc -c) -gt 100000
@@ -84,7 +84,7 @@ test $(cat "${OUT}/out-large/out.txt" | wc -c) -gt 100000
 "${JUST}" gc --local-build-root "${LBR}" 2>&1
 
 # Use the tree
-"${JUST}" build ${BUILD_ARGS} \
+"${JUST}" build ${BUILD_ARGS} -L '["env", "PATH='"${PATH}"'"]' \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' tree 2>&1
 
 # collect garbage again
@@ -96,7 +96,7 @@ wc -c "${OUT}/root.tar"
 test $(cat "${OUT}/root.tar" | wc -c) -lt 100000
 
 # Verify that the tree is fully in cache
-"${JUST}" install ${BUILD_ARGS} -o "${OUT}/out-tree" \
+"${JUST}" install ${BUILD_ARGS} -L '["env", "PATH='"${PATH}"'"]' -o "${OUT}/out-tree" \
           -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' tree 2>&1
 ls -R "${OUT}/out-tree"
 test -f "${OUT}/out-tree/out/hello/world/tree/hello.txt"
