@@ -360,11 +360,17 @@ using ExecProps = std::map<std::string, std::string>;
             bar_path.string());
     };
 
+    auto* path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (path != nullptr) {
+        env.emplace("PATH", path);
+    }
+
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", make_cmd("root")},
                                     {},
                                     {"root"},
-                                    {},
+                                    env,
                                     props);
 
     action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
@@ -426,11 +432,17 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
             bar_path.string());
     };
 
+    auto* path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (path != nullptr) {
+        env.emplace("PATH", path);
+    }
+
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", make_cmd("root")},
                                     {},
                                     {"root"},
-                                    {},
+                                    env,
                                     props);
 
     action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
@@ -488,11 +500,17 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
                            foo_path.string(),
                            link_path.string());
 
+    auto* path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (path != nullptr) {
+        env.emplace("PATH", path);
+    }
+
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", cmd},
                                     {foo_path.string(), link_path.string()},
                                     {bar_path.parent_path().string()},
-                                    {},
+                                    env,
                                     props);
 
     action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
