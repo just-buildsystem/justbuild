@@ -16,9 +16,6 @@
                         "file_type": "f"
                     }
                 }
-            },
-            "env": {
-                "PATH": "/bin:/usr/bin"
             }
         },
         "make_output": {

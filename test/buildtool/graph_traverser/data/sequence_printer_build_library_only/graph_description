@@ -31,10 +31,7 @@
             ],
             "command": [
                 "c++", "-o", "obj.o", "-c", "random_dna_sequence.cpp"
-            ],
-            "env": {
-                "PATH": "/bin:/usr/bin"
-            }
+            ]
         },
         "sequences/fibonacci/compile": {
             "input": {
@@ -65,10 +62,7 @@
             ],
             "command": [
                 "c++", "-o", "obj.o", "-c", "fibonacci.cpp"
-            ],
-            "env": {
-                "PATH": "/bin:/usr/bin"
-            }
+            ]
         },
         "sequences/link": {
             "input": {
@@ -137,10 +131,7 @@
             ],
             "command": [
                 "c++", "-o", "obj.o", "-c", "main.cpp"
-            ],
-            "env": {
-                "PATH": "/bin:/usr/bin"
-            }
+            ]
         },
         "main/link": {
             "input": {
@@ -164,10 +155,7 @@
             ],
             "command": [
                 "c++", "-o", "a.out", "obj1.o", "lib1.a"
-            ],
-            "env": {
-                "PATH": "/bin:/usr/bin"
-            }
+            ]
         }
     }
 }

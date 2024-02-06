@@ -15,9 +15,6 @@
                         "repository": ""
                     }
                 }
-            },
-            "env": {
-                "PATH": "/bin:/usr/bin"
             }
         },
         "make_output": {

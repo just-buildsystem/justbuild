@@ -21,6 +21,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/jsonfs.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -122,12 +123,28 @@ class TestProject {
     }
 };
 
+inline void SetLauncher() {
+    std::vector<std::string> launcher{"env"};
+    auto* env_path = std::getenv("PATH");
+    if (env_path != nullptr) {
+        launcher.emplace_back(std::string{"PATH="} + std::string{env_path});
+    }
+    else {
+        launcher.emplace_back("PATH=/bin:/usr/bin");
+    }
+    if (not LocalExecutionConfig::SetLauncher(launcher)) {
+        Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
+        std::exit(EXIT_FAILURE);
+    }
+}
+
 }  // namespace
 
 [[maybe_unused]] static void TestHelloWorldCopyMessage(
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
+    SetLauncher();
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -178,6 +195,7 @@ class TestProject {
 [[maybe_unused]] static void TestCopyLocalFile(bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
+    SetLauncher();
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -200,6 +218,7 @@ class TestProject {
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
+    SetLauncher();
     auto const clargs = p.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -238,6 +257,7 @@ class TestProject {
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
+    SetLauncher();
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
@@ -283,6 +303,7 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
+    SetLauncher();
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -312,6 +333,7 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
+    SetLauncher();
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -341,6 +363,7 @@ static void TestTreesUsed(bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
+    SetLauncher();
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -370,6 +393,7 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
+    SetLauncher();
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -399,6 +423,7 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
     {
+        SetLauncher();
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{clargs.gtargs,
                                 p.GetRepoConfig(),

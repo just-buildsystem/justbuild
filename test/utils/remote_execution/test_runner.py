@@ -56,9 +56,16 @@ if os.path.exists(REMOTE_INFO):
     print(f"Warning: removing unexpected info file {REMOTE_INFO}")
     os.remove(REMOTE_INFO)
 
+PATH=subprocess.run(
+    ["env", "--", "sh", "-c", "echo -n $PATH"],
+    stdout=subprocess.PIPE,
+).stdout.decode('utf-8')
+
 remote_cmd = [
     "./bin/just",
     "execute",
+    "-L",
+    json.dumps(["env", "PATH=" + PATH]),
     "--info-file",
     REMOTE_INFO,
     "--local-build-root",
