@@ -136,7 +136,7 @@ Alternatively, in a *completely resolved tree*, all relative symbolic links
 confined to the tree (whether upwards or not) get resolved, resulting in a
 `git`-tree free of all symbolic links.
 
-For reasons already described, absolute symbolic are never supported.
+For reasons already described, absolute symbolic links are never supported.
 
 As this process acts directly at the repository level, the resulting roots
 remain cacheable and their trees accessible in constant time. Moreover, to
