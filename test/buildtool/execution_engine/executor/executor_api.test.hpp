@@ -91,12 +91,20 @@ static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
         ArtifactDescription{path{"data/hello_world/main.cpp"}, ""};
     auto const& main_cpp_id = main_cpp_desc.Id();
     std::string const make_hello_id = "make_hello";
+    auto* env_path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (env_path != nullptr) {
+        env.emplace("PATH", env_path);
+    }
+    else {
+        env.emplace("PATH", "/bin:/usr/bin");
+    }
     auto const make_hello_desc = ActionDescription{
         {"out/hello_world"},
         {},
         Action{make_hello_id,
                {"c++", "src/main.cpp", "-o", "out/hello_world"},
-               {{"PATH", "/bin:/usr/bin"}}},
+               env},
         {{"src/main.cpp", main_cpp_desc}}};
     auto const exec_desc =
         ArtifactDescription{make_hello_id, "out/hello_world"};
@@ -155,6 +163,14 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
     auto const& greet_cpp_id = greet_cpp_desc.Id();
 
     std::string const compile_greet_id = "compile_greet";
+    auto* env_path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (env_path != nullptr) {
+        env.emplace("PATH", env_path);
+    }
+    else {
+        env.emplace("PATH", "/bin:/usr/bin");
+    }
     auto const compile_greet_desc =
         ActionDescription{{"out/greet.o"},
                           {},
@@ -166,7 +182,7 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
                                   "include",
                                   "-o",
                                   "out/greet.o"},
-                                 {{"PATH", "/bin:/usr/bin"}}},
+                                 env},
                           {{"include/greet.hpp", greet_hpp_desc},
                            {"src/greet.cpp", greet_cpp_desc}}};
 
@@ -178,7 +194,7 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
     auto const make_lib_desc = ActionDescription{
         {"out/libgreet.a"},
         {},
-        Action{make_lib_id, {"ar", "rcs", "out/libgreet.a", "greet.o"}, {}},
+        Action{make_lib_id, {"ar", "rcs", "out/libgreet.a", "greet.o"}, env},
         {{"greet.o", greet_o_desc}}};
 
     auto const main_cpp_desc =
@@ -203,7 +219,7 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
                                   "-lgreet",
                                   "-o",
                                   "out/greeter"},
-                                 {{"PATH", "/bin:/usr/bin"}}},
+                                 env},
                           {{"src/main.cpp", main_cpp_desc},
                            {"include/greet.hpp", greet_hpp_desc},
                            {"lib/libgreet.a", libgreet_desc}}};
@@ -463,12 +479,19 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
     auto create_action = [&make_tree_id, make_tree_cmd](
                              std::vector<std::string>&& out_files,
                              std::vector<std::string>&& out_dirs) {
-        return ActionDescription{std::move(out_files),
-                                 std::move(out_dirs),
-                                 Action{make_tree_id,
-                                        {"sh", "-c", make_tree_cmd},
-                                        {{"PATH", "/bin:/usr/bin"}}},
-                                 {}};
+        auto* env_path = std::getenv("PATH");
+        std::map<std::string, std::string> env{};
+        if (env_path != nullptr) {
+            env.emplace("PATH", env_path);
+        }
+        else {
+            env.emplace("PATH", "/bin:/usr/bin");
+        }
+        return ActionDescription{
+            std::move(out_files),
+            std::move(out_dirs),
+            Action{make_tree_id, {"sh", "-c", make_tree_cmd}, env},
+            {}};
     };
 
     SECTION("entire action output as directory") {
