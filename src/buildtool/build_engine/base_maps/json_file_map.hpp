@@ -47,6 +47,7 @@ auto CreateJsonFileMap(gsl::not_null<RepositoryConfig*> const& repo_config,
                                           auto /* unused */,
                                           auto const& key) {
         auto const* root = ((*repo_config).*get_root)(key.repository);
+
         auto const* json_file_name = ((*repo_config).*get_name)(key.repository);
         if (root == nullptr or json_file_name == nullptr) {
             (*logger)(fmt::format("Cannot determine root or JSON file name for "
@@ -64,6 +65,20 @@ auto CreateJsonFileMap(gsl::not_null<RepositoryConfig*> const& repo_config,
             return;
         }
         auto json_file_path = module / *json_file_name;
+
+        if (root->IsAbsent()) {
+            std::string missing_root = "[unknown]";
+            auto absent_tree = root->GetAbsentTreeId();
+            if (absent_tree) {
+                missing_root = *absent_tree;
+            }
+            (*logger)(fmt::format(
+                          "Would have to read JSON file {} of absent root {}.",
+                          json_file_path.string(),
+                          missing_root),
+                      true);
+            return;
+        }
 
         if (not root->IsFile(json_file_path)) {
             if constexpr (kMandatory) {
