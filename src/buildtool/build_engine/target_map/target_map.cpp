@@ -1348,8 +1348,10 @@ void withTargetsFile(
                         }),
                     result_map);
             },
-            [logger, target = key.target](auto const& msg, auto fatal) {
-                (*logger)(fmt::format("While looking up rule for {}:\n{}",
+            [logger, rule = *rule_name, target = key.target](auto const& msg,
+                                                             auto fatal) {
+                (*logger)(fmt::format("While looking up rule {} for {}:\n{}",
+                                      rule.ToString(),
                                       target.ToString(),
                                       msg),
                           fatal);
