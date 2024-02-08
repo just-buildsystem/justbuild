@@ -376,16 +376,15 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                     },
                     [logger, id](auto msg, auto fatal) {
                         (*logger)(fmt::format("While reading expression map "
-                                              "for rule {} in {}: {}",
-                                              id.GetNamedTarget().name,
-                                              id.GetNamedTarget().module,
+                                              "for rule {}:\n{}",
+                                              id.GetNamedTarget().ToString(),
                                               msg),
                                   fatal);
                     });
             },
             [logger, id](auto msg, auto fatal) {
-                (*logger)(fmt::format("While reading rule file in {}: {}",
-                                      id.GetNamedTarget().module,
+                (*logger)(fmt::format("While reading rule file for {}:\n{}",
+                                      id.GetNamedTarget().ToString(),
                                       msg),
                           fatal);
             });
