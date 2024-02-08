@@ -68,6 +68,7 @@ struct NamedTarget {
             .parent_path()
             .string();
     }
+    [[nodiscard]] auto ToString() const -> std::string;
     [[nodiscard]] friend auto operator==(NamedTarget const& x,
                                          NamedTarget const& y) -> bool {
         return x.repository == y.repository && x.module == y.module &&
