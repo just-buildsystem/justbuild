@@ -163,7 +163,8 @@ GIT_NOBODY_ENV: Dict[str, str] = {
 }
 
 count = 0
-for repo in os.listdir("data"):
+repo_data = sorted(os.listdir("data"))
+for repo in repo_data:
     target = os.path.join(REPOS_DIR, repo)
     shutil.copytree(
         os.path.join(DATA_DIR, repo),
