@@ -328,6 +328,14 @@ static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
                                               int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
+    auto* env_path = std::getenv("PATH");
+    std::map<std::string, std::string> env{};
+    if (env_path != nullptr) {
+        env.emplace("PATH", env_path);
+    }
+    else {
+        env.emplace("PATH", "/bin:/usr/bin");
+    }
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
@@ -420,8 +428,10 @@ static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
         auto tree_desc = Tree{{{"a", foo_desc}, {"b/a", bar_desc}}};
         auto action_inputs =
             ActionDescription::inputs_t{{".", tree_desc.Output()}};
-        ActionDescription action_desc{
-            {"a", "b/a"}, {}, Action{"action_id", {"echo"}, {}}, action_inputs};
+        ActionDescription action_desc{{"a", "b/a"},
+                                      {},
+                                      Action{"action_id", {"echo"}, env},
+                                      action_inputs};
 
         REQUIRE(AddAndProcessTree(&g, &runner, tree_desc));
         REQUIRE(g.Add({action_desc}));
