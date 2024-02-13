@@ -262,14 +262,15 @@ class LocalApi final : public IExecutionApi {
             location = storage_->CAS().BlobPath(
                 artifact_info.digest, IsExecutableObject(artifact_info.type));
         }
-        if (not location) {
-            return std::nullopt;
+        std::optional<std::string> content = std::nullopt;
+        if (location) {
+            content = FileSystemManager::ReadFile(*location);
         }
-        auto const content = FileSystemManager::ReadFile(*location);
-        if (not content) {
-            return std::nullopt;
+        if ((not content) and repo_config_) {
+            content =
+                GitApi(repo_config_.value()).RetrieveToMemory(artifact_info);
         }
-        return *content;
+        return content;
     }
 
     [[nodiscard]] auto Upload(BlobContainer const& blobs,
