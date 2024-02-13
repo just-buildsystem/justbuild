@@ -19,6 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
@@ -31,6 +32,21 @@ namespace {
     }
     return FileSystemManager::GetCurrentDirectory() /
            "test/buildtool/execution_api/local";
+}
+
+inline void SetLauncher() {
+    std::vector<std::string> launcher{"env"};
+    auto* env_path = std::getenv("PATH");
+    if (env_path != nullptr) {
+        launcher.emplace_back(std::string{"PATH="} + std::string{env_path});
+    }
+    else {
+        launcher.emplace_back("PATH=/bin:/usr/bin");
+    }
+    if (not LocalExecutionConfig::SetLauncher(launcher)) {
+        Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
+        std::exit(EXIT_FAILURE);
+    }
 }
 
 }  // namespace
@@ -46,6 +62,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto action =
         api.CreateAction(*api.UploadTree({}), cmdline, {}, {}, {}, {});
     REQUIRE(action);
+
+    SetLauncher();
 
     SECTION("Cache execution result in action cache") {
         // run execution

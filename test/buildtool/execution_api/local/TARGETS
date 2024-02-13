@@ -7,6 +7,7 @@
     , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["utils", "local_hermeticity"]
     ]
