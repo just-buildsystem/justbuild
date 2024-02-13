@@ -20,10 +20,26 @@
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 using ExecProps = std::map<std::string, std::string>;
+
+inline void SetLauncher() {
+    std::vector<std::string> launcher{"env"};
+    auto* env_path = std::getenv("PATH");
+    if (env_path != nullptr) {
+        launcher.emplace_back(std::string{"PATH="} + std::string{env_path});
+    }
+    else {
+        launcher.emplace_back("PATH=/bin:/usr/bin");
+    }
+    if (not LocalExecutionConfig::SetLauncher(launcher)) {
+        Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
+        std::exit(EXIT_FAILURE);
+    }
+}
 
 [[nodiscard]] static inline auto GetTestDir(std::string const& test_name)
     -> std::filesystem::path {
@@ -45,6 +61,8 @@ using ExecProps = std::map<std::string, std::string>;
 
     auto action = api->CreateAction(
         *api->UploadTree({}), {"echo", "-n", test_content}, {}, {}, {}, props);
+
+    SetLauncher();
 
     SECTION("Cache execution result in action cache") {
         action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);

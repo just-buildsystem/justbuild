@@ -6,6 +6,7 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
