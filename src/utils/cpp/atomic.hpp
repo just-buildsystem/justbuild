@@ -106,16 +106,18 @@ class atomic_shared_ptr {
     auto operator=(atomic_shared_ptr&& other) -> atomic_shared_ptr& = delete;
     auto operator=(ptr_t desired) -> ptr_t {  // NOLINT
         std::shared_lock lock(mutex_);
-        value_ = desired;
+        std::atomic_store(&value_, desired);
         return desired;
     }
-    operator ptr_t() const { value_; }  // NOLINT
+    operator ptr_t() const { return std::atomic_load(&value_); }  // NOLINT
 
     void store(ptr_t desired) {
         std::shared_lock lock(mutex_);
-        value_ = std::move(desired);
+        std::atomic_store(&value_, std::move(desired));
     }
-    [[nodiscard]] auto load() const -> ptr_t { return value_; }
+    [[nodiscard]] auto load() const -> ptr_t {
+        return std::atomic_load(&value_);
+    }
 
     void notify_one() { cv_.notify_one(); }
     void notify_all() { cv_.notify_all(); }
