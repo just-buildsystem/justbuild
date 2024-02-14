@@ -7,7 +7,6 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ARCH"
-    , "BUILD_STATIC_BINARY"
     , "FINAL_LDFLAGS"
     , "CC"
     , "CXX"
@@ -39,13 +38,13 @@
       , "used C and C++ compilers and uses the generic \"cc\" and \"c++\" as"
       , "names for the respective compilers; typically used in conjunction with"
       , "setting \"CC\" and \"CXX\" explicitly and building for host."
+      , ""
+      , "Use field \"BUILD_STATIC\" to specify that binaries should be"
+      , "statically linked. Boolean, default false."
       ]
     , "ENV":
       [ "Map from strings to strings. The build environment ot be used for"
       , "build actions. Typically used to include an unusual value of PATH."
-      ]
-    , "BUILD_STATIC_BINARY":
-      [ "Boolean, default false. If set, try to build a (mainly) static binary."
       ]
     , "FINAL_LDFLAGS": ["Compiler flags for linking the final binary."]
     , "DEBUG": ["Boolean, default false. Whether to build a debug version."]
@@ -85,7 +84,6 @@
     , "ADD_CFLAGS"
     , "AR"
     , "ENV"
-    , "BUILD_STATIC_BINARY"
     , "FINAL_LDFLAGS"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"
@@ -136,7 +134,6 @@
     , "ADD_CFLAGS"
     , "AR"
     , "ENV"
-    , "BUILD_STATIC_BINARY"
     , "FINAL_LDFLAGS"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"

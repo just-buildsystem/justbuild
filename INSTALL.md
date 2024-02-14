@@ -31,9 +31,9 @@ variables. The full list can be obtained via `just-mr describe`.
 | ARCH | x86, x86_64, arm, arm64 | x86_64 |
 | HOST_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
 | TARGET_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
-| TOOLCHAIN_CONFIG["FAMILY"] | gnu, clang, unknown | unknown |
 | DEBUG | true, false | false |
-| BUILD_STATIC_BINARY | true, false | false |
+| TOOLCHAIN_CONFIG["FAMILY"] | gnu, clang, unknown | unknown |
+| TOOLCHAIN_CONFIG["BUILD_STATIC"] | true, false | false |
 
 Note that you can choose a different stack size for resulting binaries by
 adding `"-Wl,-z,stack-size=<size-in-bytes>"` to variable `"FINAL_LDFLAGS"`
