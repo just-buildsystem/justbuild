@@ -76,6 +76,14 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
                 }
                 auto [names, ids] = std::move(*import_aliases).Obtain();
 
+                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                    [logger, id](auto msg, auto fatal) {
+                        (*logger)(
+                            fmt::format("While handling imports of {}:\n{}",
+                                        id.ToString(),
+                                        msg),
+                            fatal);
+                    });
                 (*subcaller)(
                     std::move(ids),
                     [setter = std::move(setter),
@@ -90,13 +98,14 @@ auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
                         (*setter)(std::make_shared<ExpressionFunction>(
                             vars, imports, expr));
                     },
-                    std::move(logger));
+                    wrapped_logger);
             },
             [logger, id](auto msg, auto fatal) {
-                (*logger)(fmt::format("While reading expression file in {}: {}",
-                                      id.GetNamedTarget().module,
-                                      msg),
-                          fatal);
+                (*logger)(
+                    fmt::format("While reading expression file in {}:\n{}",
+                                id.GetNamedTarget().module,
+                                msg),
+                    fatal);
             });
     };
     return ExpressionFunctionMap{expr_func_creator, jobs};
