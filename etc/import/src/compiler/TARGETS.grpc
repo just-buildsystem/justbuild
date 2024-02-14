@@ -54,6 +54,7 @@
   , "name": ["grpc_cpp_plugin"]
   , "srcs": ["cpp_plugin.cc"]
   , "private-deps": ["grpc_plugin_support"]
-  , "private-ldflags": ["-pthread"]
+  , "private-ldflags":
+    ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
   }
 }

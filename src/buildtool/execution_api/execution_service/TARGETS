@@ -19,7 +19,8 @@
     , "operation_cache"
     , ["src/utils/cpp", "verify_hash"]
     ]
-  , "private-ldflags": ["-pthread"]
+  , "private-ldflags":
+    ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
   }
 , "ac_server":
   { "type": ["@", "rules", "CC", "library"]

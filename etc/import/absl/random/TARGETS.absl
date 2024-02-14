@@ -123,7 +123,8 @@
   , "stage": ["absl", "random"]
   , "hdrs": ["internal/pool_urbg.h"]
   , "srcs": ["internal/pool_urbg.cc"]
-  , "private-ldflags": ["-pthread"]
+  , "private-ldflags":
+    ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
   , "deps":
     [ "internal_randen"
     , "internal_seed_material"

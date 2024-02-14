@@ -58,7 +58,8 @@
   , "private-hdrs": ["fips_fragments", "crypto_internal_headers"]
   , "srcs": ["crypto_sources", "crypto_sources_asm"]
   , "pure C": ["YES"]
-  , "private-ldflags": ["-pthread"]
+  , "private-ldflags":
+    ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
   }
 , "ssl-lib":
   { "type": ["@", "rules", "CC", "library"]

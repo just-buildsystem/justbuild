@@ -45,7 +45,7 @@
   , "private-ldflags":
     { "type": "++"
     , "$1":
-      [ ["-pthread"]
+      [ ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
       , { "type": "case"
         , "expr":
           { "type": "var"

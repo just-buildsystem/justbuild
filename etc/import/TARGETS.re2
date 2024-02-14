@@ -66,6 +66,7 @@
     ]
   , "hdrs":
     ["re2/filtered_re2.h", "re2/re2.h", "re2/set.h", "re2/stringpiece.h"]
-  , "private-ldflags": ["-pthread"]
+  , "private-ldflags":
+    ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
   }
 }

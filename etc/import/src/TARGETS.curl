@@ -57,7 +57,11 @@
     , "then":
       { "type": "case*"
       , "expr": {"type": "var", "name": "OS"}
-      , "case": [["linux", ["-pthread"]]]
+      , "case":
+        [ [ "linux"
+          , ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
+          ]
+        ]
       }
     }
   }

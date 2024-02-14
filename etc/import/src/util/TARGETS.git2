@@ -82,7 +82,8 @@
     , "$1":
       [ { "type": "if"
         , "cond": {"type": "var", "name": "USE_THREADS"}
-        , "then": ["-pthread"]
+        , "then":
+          ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
         }
       , { "type": "case"
         , "expr": {"type": "var", "name": "OS"}
