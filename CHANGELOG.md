@@ -2,6 +2,11 @@
 
 Bug fixes on top of release `1.2.4`.
 
+### Fixes
+
+- On errors reading expressions, the full import path is reported
+  in the error message.
+
 ## Release `1.2.4` (2023-12-19)
 
 Bug fixes on top of release `1.2.3`.
