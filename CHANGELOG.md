@@ -12,6 +12,7 @@ Bug fixes on top of release `1.2.4`.
 - `just-mr` now reports the name of the build tool correctly, even
   if not called `just`.
 - Taintedness of "configure" targets is now propagated correctly.
+- Missing atomic primitives added to the source code.
 
 ## Release `1.2.4` (2023-12-19)
 
