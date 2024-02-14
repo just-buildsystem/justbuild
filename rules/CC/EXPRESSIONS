@@ -396,18 +396,26 @@
 , "pkg-prefix-lib-paths":
   { "doc": ["Detect ldflags referring to local libs and prefix them."]
   , "vars": ["pkg-ldflags", "pkg-libs", "flat-libs", "lib-prefix"]
-  , "imports": {"contains": ["", "contains"]}
   , "expression":
     { "type": "let*"
     , "bindings":
-      [["list", {"type": "keys", "$1": {"type": "var", "name": "pkg-libs"}}]]
+      [ [ "libs set"
+        , { "type": "set"
+          , "$1": {"type": "keys", "$1": {"type": "var", "name": "pkg-libs"}}
+          }
+        ]
+      ]
     , "body":
       { "type": "foreach"
       , "var": "item"
       , "range": {"type": "var", "name": "pkg-ldflags"}
       , "body":
         { "type": "if"
-        , "cond": {"type": "CALL_EXPRESSION", "name": "contains"}
+        , "cond":
+          { "type": "lookup"
+          , "key": {"type": "var", "name": "item"}
+          , "map": {"type": "var", "name": "libs set"}
+          }
         , "then":
           { "type": "join"
           , "$1":
@@ -432,14 +440,25 @@
 , "pkg-prefix-flag-paths":
   { "doc": ["Detect flags referring to local flag files and prefix them."]
   , "vars": ["flags", "pkg-flag-files", "flag-prefix"]
-  , "imports": {"contains": ["", "contains"]}
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "list"
-        , {"type": "keys", "$1": {"type": "var", "name": "pkg-flag-files"}}
+      [ [ "pkg-flag-files unprefix map"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "name"
+            , "range":
+              {"type": "keys", "$1": {"type": "var", "name": "pkg-flag-files"}}
+            , "body":
+              { "type": "singleton_map"
+              , "key":
+                {"type": "join", "$1": ["@", {"type": "var", "name": "name"}]}
+              , "value": {"type": "var", "name": "name"}
+              }
+            }
+          }
         ]
-      , ["list_prefix", "@"]
       ]
     , "body":
       { "type": "foreach"
@@ -448,7 +467,13 @@
       , "body":
         { "type": "let*"
         , "bindings":
-          [["flag-file", {"type": "CALL_EXPRESSION", "name": "contains"}]]
+          [ [ "flag-file"
+            , { "type": "lookup"
+              , "map": {"type": "var", "name": "pkg-flag-files unprefix map"}
+              , "key": {"type": "var", "name": "item"}
+              }
+            ]
+          ]
         , "body":
           { "type": "if"
           , "cond": {"type": "var", "name": "flag-file"}
