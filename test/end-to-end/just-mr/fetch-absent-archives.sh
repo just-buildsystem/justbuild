@@ -22,10 +22,12 @@ readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly LBR_NON_ABSENT="${TEST_TMPDIR}/local-build-root-non-absent"
+readonly LBR_FOR_FETCH="${TEST_TMPDIR}/local-build-root-for-fetch"
 readonly OUT="${TEST_TMPDIR}/out"
 readonly OUT2="${TEST_TMPDIR}/out2"
 readonly OUT3="${TEST_TMPDIR}/out3"
 readonly OUT_NON_ABSENT="${TEST_TMPDIR}/out4"
+readonly OUT_DISTDIR="${TEST_TMPDIR}/out4"
 
 ARCHIVE_CONTENT=$(git hash-object src/data.tar)
 echo "Archive has content $ARCHIVE_CONTENT"
@@ -156,5 +158,17 @@ echo
              install -o "${OUT_NON_ABSENT}" 2>&1
 grep 42 "${OUT_NON_ABSENT}/out.txt"
 
+
+## Finally, verify that the archive itself can also be fetched
+echo
+mkdir -p "${OUT_DISTDIR}"
+"${JUST_MR}" --norc --local-build-root "${LBR_FOR_FETCH}" \
+             --remote-serve-address ${SERVE} \
+             -r ${REMOTE_EXECUTION_ADDRESS} \
+             fetch -o "${OUT_DISTDIR}" 2>&1
+FETCHED_CONTENT=$(git hash-object "${OUT_DISTDIR}"/data.tar)
+echo
+echo Fetched content ${FETCHED_CONTENT}
+[ "${ARCHIVE_CONTENT}" = "${FETCHED_CONTENT}" ]
 
 echo DONE
