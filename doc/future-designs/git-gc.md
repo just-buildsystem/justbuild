@@ -54,7 +54,7 @@ following way.
    storage overhead will occur. The promoted commit will be tagged
    in the new-generation repository to ensure it stays there
    persistently. As usual, the tag name is encoding the commit id,
-   so that no conflicts occcur.
+   so that no conflicts occur.
 
  - To promote a `git` tree, a commit is created with this tree as
    tree, a commit message that is a function of the tree id, and
@@ -67,8 +67,8 @@ following way.
 ### New command `just-mr gc-repo`
 
 The multi-repository tool `just-mr` will get a new subcommand `gc-repo`,
-a name chosen to not conflict with the laucher functionality; recall
-that `just-mr gc` will simply call `just gc`. This new `just-rm
+a name chosen to not conflict with the launcher functionality; recall
+that `just-mr gc` will simply call `just gc`. This new `just-mr
 gc-repo` command rotates the generations: the old generation will
 be removed and the new one will become (atomically by a rename)
 the old one.
