@@ -136,6 +136,9 @@
         }
       ]
     }
-  , "dirs": [[["./", "serve-archive-root", "TESTS"], "serve-archive-root"]]
+  , "dirs":
+    [ [["./", "serve-archive-root", "TESTS"], "serve-archive-root"]
+    , [["./", "serve-git-root", "TESTS"], "serve-git-root"]
+    ]
   }
 }
