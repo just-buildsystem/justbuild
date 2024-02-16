@@ -30,6 +30,16 @@ class ConfigurationService final
         const ::justbuild::just_serve::RemoteExecutionEndpointRequest* request,
         ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
         -> ::grpc::Status override;
+
+    // Returns a flag signaling whether the associated remote execution
+    // endpoint uses the standard remote-execution protocol.
+    //
+    // There are no method-specific errors.
+    auto Compatibility(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::CompatibilityRequest* request,
+        ::justbuild::just_serve::CompatibilityResponse* response)
+        -> ::grpc::Status override;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP

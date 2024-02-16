@@ -111,7 +111,10 @@
   , "srcs": ["configuration.cpp"]
   , "proto": ["just_serve_proto"]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
-  , "private-deps": [["src/buildtool/execution_api/remote", "config"]]
+  , "private-deps":
+    [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    ]
   }
 , "target_utils":
   { "type": ["@", "rules", "CC", "library"]

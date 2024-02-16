@@ -111,6 +111,10 @@ class ServeApi final {
         return Instance().cc_->CheckServeRemoteExecution();
     }
 
+    [[nodiscard]] static auto IsCompatible() -> std::optional<bool> {
+        return Instance().cc_->IsCompatible();
+    }
+
   private:
     ServeApi(std::string const& host, Port port) noexcept
         : stc_{std::make_unique<SourceTreeClient>(host, port)},

@@ -448,6 +448,12 @@ message RemoteExecutionEndpointResponse {
   string address = 1;
 }
 
+message CompatibilityRequest {}
+
+message CompatibilityResponse {
+  bool compatible = 1;
+}
+
 // This service can be used by the client to double check the server configuration
 service Configuration {
   // Returns the address of the associated remote endpoint, if set,
@@ -456,4 +462,10 @@ service Configuration {
   //
   // There are no method-specific errors.
   rpc RemoteExecutionEndpoint(RemoteExecutionEndpointRequest) returns (RemoteExecutionEndpointResponse) {}
+
+  // Returns a flag signaling whether the associated remote execution
+  // endpoint uses the standard remote-execution protocol.
+  //
+  // There are no method-specific errors.
+  rpc Compatibility(CompatibilityRequest) returns (CompatibilityResponse) {}
 }

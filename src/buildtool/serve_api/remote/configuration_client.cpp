@@ -87,3 +87,16 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
         client_msg);
     return false;
 }
+
+auto ConfigurationClient::IsCompatible() -> std::optional<bool> {
+    grpc::ClientContext context;
+    justbuild::just_serve::CompatibilityRequest request{};
+    justbuild::just_serve::CompatibilityResponse response{};
+    grpc::Status status = stub_->Compatibility(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Error, status);
+        return std::nullopt;
+    }
+    return response.compatible();
+}

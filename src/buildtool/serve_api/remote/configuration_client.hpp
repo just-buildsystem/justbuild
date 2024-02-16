@@ -36,6 +36,8 @@ class ConfigurationClient {
 
     auto CheckServeRemoteExecution() -> bool;
 
+    [[nodiscard]] auto IsCompatible() -> std::optional<bool>;
+
   private:
     std::unique_ptr<justbuild::just_serve::Configuration::Stub> stub_;
     Logger logger_{"RemoteConfigurationClient"};

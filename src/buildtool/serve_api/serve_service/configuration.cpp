@@ -16,6 +16,7 @@
 
 #include <optional>
 
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
 auto ConfigurationService::RemoteExecutionEndpoint(
@@ -25,5 +26,14 @@ auto ConfigurationService::RemoteExecutionEndpoint(
     -> ::grpc::Status {
     auto address = RemoteExecutionConfig::RemoteAddress();
     response->set_address(address ? address->ToJson().dump() : std::string());
+    return ::grpc::Status::OK;
+}
+
+auto ConfigurationService::Compatibility(
+    ::grpc::ServerContext* /*context*/,
+    const ::justbuild::just_serve::CompatibilityRequest* /*request*/,
+    ::justbuild::just_serve::CompatibilityResponse* response)
+    -> ::grpc::Status {
+    response->set_compatible(Compatibility::IsCompatible());
     return ::grpc::Status::OK;
 }
