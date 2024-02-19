@@ -57,6 +57,13 @@ A feature release on top of `1.2.0`, backwards compatible.
   the upgrade.
 - The taintedness of `"configure"` targets is now propagated
   correctly in analysis.
+- It is no longer incorrectly assumed that every `git` URL not
+  starting with `ssh://`, `http://`, nor `https://` is a file on the
+  local disk. Now, only URLs starting with `/`, `./`, or `file://`
+  are considered file URLs. File URLs, as well as URLs starting
+  with `git://`, `http://`, or `https://`, are handled by `just-mr`
+  using `libgit2`; for every other URL, `just-mr` shells out to
+  `git` for fetching and the URL is passed to `git` unchanged.
 - Improved portability and update of the bundled dependencies.
 - Various minor improvements and typo fixes in the documentation.
 - Fixed a race condition in an internal cache of `just execute`

@@ -15,6 +15,8 @@
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 
 #include <algorithm>
+#include <optional>
+#include <string>
 
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_root.hpp"
@@ -31,13 +33,23 @@
 
 namespace {
 
-[[nodiscard]] auto GitURLIsPath(std::string const& url) noexcept -> bool {
-    auto prefixes = std::vector<std::string>{"ssh://", "http://", "https://"};
-    // return true if no URL prefix exists
-    return std::none_of(
-        prefixes.begin(), prefixes.end(), [url](auto const& prefix) {
-            return (url.rfind(prefix, 0) == 0);
-        });
+[[nodiscard]] auto GitURLIsPath(std::string const& url) noexcept
+    -> std::optional<std::string> {
+    static auto const kAbsPath = std::string{"/"};
+    static auto const kRelPath = std::string{"./"};
+    static auto const kFileScheme = std::string{"file://"};
+
+    if (url.starts_with(kAbsPath)) {
+        return url;
+    }
+    if (url.starts_with(kRelPath)) {
+        return url.substr(kRelPath.length());
+    }
+    if (url.starts_with(kFileScheme)) {
+        return url.substr(kFileScheme.length());
+    }
+
+    return std::nullopt;
 }
 
 /// \brief Helper function for ensuring the serve endpoint, if given, has the
@@ -485,8 +497,9 @@ void EnsureCommit(
         auto local_mirrors =
             MirrorsUtils::GetLocalMirrors(additional_mirrors, fetch_repo);
         for (auto mirror : local_mirrors) {
-            if (GitURLIsPath(mirror)) {
-                mirror = std::filesystem::absolute(mirror).string();
+            auto mirror_path = GitURLIsPath(mirror);
+            if (mirror_path) {
+                mirror = std::filesystem::absolute(*mirror_path).string();
             }
             auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
                 [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
@@ -572,8 +585,10 @@ void EnsureCommit(
                     remotes_buffer.append(fmt::format("\n> {}", fetch_repo));
                     // now try to fetch from mirrors, in order, if given
                     for (auto mirror : repo_info.mirrors) {
-                        if (GitURLIsPath(mirror)) {
-                            mirror = std::filesystem::absolute(mirror).string();
+                        auto mirror_path = GitURLIsPath(mirror);
+                        if (mirror_path) {
+                            mirror = std::filesystem::absolute(*mirror_path)
+                                         .string();
                         }
                         else {
                             // if non-path, try each of the preferred hostnames
@@ -811,8 +826,9 @@ auto CreateCommitGitMap(
         // get root for repo (making sure that if repo is a path, it is
         // absolute)
         std::string fetch_repo = key.repo_url;
-        if (GitURLIsPath(fetch_repo)) {
-            fetch_repo = std::filesystem::absolute(fetch_repo).string();
+        auto fetch_repo_path = GitURLIsPath(fetch_repo);
+        if (fetch_repo_path) {
+            fetch_repo = std::filesystem::absolute(*fetch_repo_path).string();
         }
         std::filesystem::path repo_root =
             StorageUtils::GetGitRoot(just_mr_paths, fetch_repo);
