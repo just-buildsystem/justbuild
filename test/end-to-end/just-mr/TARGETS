@@ -179,6 +179,13 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "git-env":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["git-env"]
+  , "test": ["git-env.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -198,6 +205,7 @@
               , "just_mr_mirrors"
               , "git-tree-verbosity"
               , "git-tree-env"
+              , "git-env"
               , "defaults"
               , "absent-roots"
               ]
