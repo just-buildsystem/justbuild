@@ -106,8 +106,7 @@ void MoveCASTreeToGit(
                 return;
             }
             // backup to remote if needed and in compatibility mode
-            if (backup_to_remote and remote_api != std::nullopt and
-                not Compatibility::IsCompatible()) {
+            if (backup_to_remote and remote_api) {
                 BackupToRemote(tree_id, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
@@ -205,8 +204,7 @@ auto CreateGitTreeFetchMap(
                 }
                 if (*tree_found) {
                     // backup to remote if needed and in native mode
-                    if (backup_to_remote and remote_api != std::nullopt and
-                        not Compatibility::IsCompatible()) {
+                    if (backup_to_remote and remote_api) {
                         BackupToRemote(key.hash, *remote_api, logger);
                     }
                     // success
@@ -471,9 +469,7 @@ auto CreateGitTreeFetchMap(
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     key.origin);
                                 // backup to remote if needed and in native mode
-                                if (backup_to_remote and
-                                    remote_api != std::nullopt and
-                                    not Compatibility::IsCompatible()) {
+                                if (backup_to_remote and remote_api) {
                                     BackupToRemote(
                                         key.hash, *remote_api, logger);
                                 }
