@@ -395,6 +395,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     std::filesystem::path const& tmp_dir,
     std::string const& repo_url,
     std::string const& branch,
+    std::vector<std::string> const& inherit_env,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     anon_logger_ptr const& logger) const noexcept
@@ -442,11 +443,18 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
             "Git commit update for remote {} must shell out. Running:\n{}",
             repo_url,
             nlohmann::json(cmdline).dump());
+        std::map<std::string, std::string> env{};
+        for (auto const& k : inherit_env) {
+            const char* v = std::getenv(k.c_str());
+            if (v != nullptr) {
+                env[k] = std::string(v);
+            }
+        }
         // set up the system command
         SystemCommand system{repo_url};
         auto const command_output =
             system.Execute(cmdline,
-                           {},            // default env
+                           env,
                            GetGitPath(),  // which path is not actually relevant
                            tmp_dir);
         // output file can be read anyway
@@ -510,6 +518,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
 auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                                     std::string const& repo_url,
                                     std::optional<std::string> const& branch,
+                                    std::vector<std::string> const& inherit_env,
                                     std::string const& git_bin,
                                     std::vector<std::string> const& launcher,
                                     anon_logger_ptr const& logger) noexcept
@@ -580,12 +589,17 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                     "Git fetch for remote {} must shell out. Running:\n{}",
                     repo_url,
                     nlohmann::json(cmdline).dump());
+        std::map<std::string, std::string> env{};
+        for (auto const& k : inherit_env) {
+            const char* v = std::getenv(k.c_str());
+            if (v != nullptr) {
+                env[k] = std::string(v);
+            }
+        }
         // run command
         SystemCommand system{repo_url};
-        auto const command_output = system.Execute(cmdline,
-                                                   {},  // caller env
-                                                   GetGitPath(),
-                                                   tmp_dir);
+        auto const command_output =
+            system.Execute(cmdline, env, GetGitPath(), tmp_dir);
         if (not command_output) {
             std::string out_str{};
             std::string err_str{};

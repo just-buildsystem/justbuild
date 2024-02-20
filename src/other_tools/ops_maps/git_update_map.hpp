@@ -23,19 +23,28 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
-using StringPair = std::pair<std::string, std::string>;
+struct RepoDescriptionForUpdating {
+    std::string repo{};
+    std::string branch{};
+    std::vector<std::string> inherit_env{}; /*non-key!*/
+
+    [[nodiscard]] auto operator==(const RepoDescriptionForUpdating& other) const
+        -> bool {
+        return repo == other.repo and branch == other.branch;
+    }
+};
 
 /// \brief Maps a pair of repository url and branch to an updated commit hash.
-using GitUpdateMap = AsyncMapConsumer<StringPair, std::string>;
+using GitUpdateMap = AsyncMapConsumer<RepoDescriptionForUpdating, std::string>;
 
 namespace std {
 template <>
-struct hash<StringPair> {
-    [[nodiscard]] auto operator()(StringPair const& ct) const noexcept
-        -> std::size_t {
+struct hash<RepoDescriptionForUpdating> {
+    [[nodiscard]] auto operator()(
+        RepoDescriptionForUpdating const& ct) const noexcept -> std::size_t {
         size_t seed{};
-        hash_combine<std::string>(&seed, ct.first);
-        hash_combine<std::string>(&seed, ct.second);
+        hash_combine<std::string>(&seed, ct.repo);
+        hash_combine<std::string>(&seed, ct.branch);
         return seed;
     }
 };

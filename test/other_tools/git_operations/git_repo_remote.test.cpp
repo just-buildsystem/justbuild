@@ -247,6 +247,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
             REQUIRE(repo_fetch_all->FetchViaTmpRepo(tmp_path_fetch_all,
                                                     *repo_path,
                                                     std::nullopt,
+                                                    {},
                                                     "git",
                                                     {},
                                                     logger));
@@ -275,6 +276,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
                 repo_fetch_wRefspec->FetchViaTmpRepo(tmp_path_fetch_wRefspec,
                                                      *repo_path,
                                                      "master",
+                                                     {},
                                                      "git",
                                                      {},
                                                      logger));
@@ -295,7 +297,7 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
         REQUIRE(FileSystemManager::CreateDirectory(tmp_path_commit_upd));
         // do remote ls
         auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            tmp_path_commit_upd, *repo_path, "master", "git", {}, logger);
+            tmp_path_commit_upd, *repo_path, "master", {}, "git", {}, logger);
 
         REQUIRE(fetched_commit);
         CHECK(*fetched_commit == kRootCommit);
@@ -363,6 +365,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                 target_repo->FetchViaTmpRepo(tmp_path_fetch_all,
                                                              *remote_repo_path,
                                                              std::nullopt,
+                                                             {},
                                                              "git",
                                                              {},
                                                              logger));
@@ -378,6 +381,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                 tmp_path_fetch_wRefspec,
                                 *remote_repo_path,
                                 "master",
+                                {},
                                 "git",
                                 {},
                                 logger));
@@ -393,6 +397,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                                     tmp_path_commit_upd,
                                     *remote_repo_path,
                                     "master",
+                                    {},
                                     "git",
                                     {},
                                     logger);

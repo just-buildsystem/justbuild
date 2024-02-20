@@ -193,6 +193,7 @@ auto CreateImportToGitMap(
                                 tmp_dir->GetPath(),
                                 target_path.string(),
                                 std::nullopt,
+                                std::vector<std::string>{} /* XXX */,
                                 git_bin,
                                 launcher,
                                 wrapped_logger)) {

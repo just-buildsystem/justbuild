@@ -93,6 +93,7 @@ class GitRepoRemote : public GitRepo {
         std::filesystem::path const& tmp_dir,
         std::string const& repo_url,
         std::string const& branch,
+        std::vector<std::string> const& inherit_env,
         std::string const& git_bin,
         std::vector<std::string> const& launcher,
         anon_logger_ptr const& logger) const noexcept
@@ -108,13 +109,14 @@ class GitRepoRemote : public GitRepo {
     /// Uses either a given branch, or fetches all (with base refspecs).
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
-                                       std::string const& repo_url,
-                                       std::optional<std::string> const& branch,
-                                       std::string const& git_bin,
-                                       std::vector<std::string> const& launcher,
-                                       anon_logger_ptr const& logger) noexcept
-        -> bool;
+    [[nodiscard]] auto FetchViaTmpRepo(
+        std::filesystem::path const& tmp_dir,
+        std::string const& repo_url,
+        std::optional<std::string> const& branch,
+        std::vector<std::string> const& inherit_env,
+        std::string const& git_bin,
+        std::vector<std::string> const& launcher,
+        anon_logger_ptr const& logger) noexcept -> bool;
 
   private:
     /// \brief Open "fake" repository wrapper for existing CAS.

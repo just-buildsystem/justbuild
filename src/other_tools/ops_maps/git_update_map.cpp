@@ -35,7 +35,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         if (not git_repo) {
             (*logger)(
                 fmt::format("Failed to open tmp Git repository for remote {}",
-                            key.first),
+                            key.repo),
                 /*fatal=*/true);
             return;
         }
@@ -43,7 +43,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         if (not tmp_dir) {
             (*logger)(fmt::format("Failed to create commit update tmp dir for "
                                   "remote {}",
-                                  key.first),
+                                  key.repo),
                       /*fatal=*/true);
             return;
         }
@@ -55,11 +55,12 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
                     fatal);
             });
         // update commit
-        auto id = fmt::format("{}:{}", key.first, key.second);
+        auto id = fmt::format("{}:{}", key.repo, key.branch);
         JustMRProgress::Instance().TaskTracker().Start(id);
         auto new_commit = git_repo->UpdateCommitViaTmpRepo(tmp_dir->GetPath(),
-                                                           key.first,
-                                                           key.second,
+                                                           key.repo,
+                                                           key.branch,
+                                                           key.inherit_env,
                                                            git_bin,
                                                            launcher,
                                                            wrapped_logger);
@@ -70,5 +71,6 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         JustMRStatistics::Instance().IncrementExecutedCounter();
         (*setter)(new_commit->c_str());
     };
-    return AsyncMapConsumer<StringPair, std::string>(update_commits, jobs);
+    return AsyncMapConsumer<RepoDescriptionForUpdating, std::string>(
+        update_commits, jobs);
 }

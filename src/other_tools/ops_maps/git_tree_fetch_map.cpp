@@ -423,6 +423,7 @@ auto CreateGitTreeFetchMap(
                                 tmp_dir->GetPath(),
                                 target_path.string(),
                                 std::nullopt,
+                                key.inherit_env,
                                 git_bin,
                                 launcher,
                                 wrapped_logger)) {

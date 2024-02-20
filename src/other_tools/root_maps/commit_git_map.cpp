@@ -511,6 +511,7 @@ void EnsureCommit(
             if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
                                           mirror,
                                           repo_info.branch,
+                                          repo_info.inherit_env,
                                           git_bin,
                                           launcher,
                                           wrapped_logger)) {
@@ -543,6 +544,7 @@ void EnsureCommit(
                         if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
                                                       *preferred_url,
                                                       repo_info.branch,
+                                                      repo_info.inherit_env,
                                                       git_bin,
                                                       launcher,
                                                       wrapped_logger)) {
@@ -575,6 +577,7 @@ void EnsureCommit(
                 if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
                                               fetch_repo,
                                               repo_info.branch,
+                                              repo_info.inherit_env,
                                               git_bin,
                                               launcher,
                                               wrapped_logger)) {
@@ -610,6 +613,7 @@ void EnsureCommit(
                                             tmp_dir->GetPath(),
                                             *preferred_mirror,
                                             repo_info.branch,
+                                            repo_info.inherit_env,
                                             git_bin,
                                             launcher,
                                             wrapped_logger)) {
@@ -645,6 +649,7 @@ void EnsureCommit(
                         if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
                                                       mirror,
                                                       repo_info.branch,
+                                                      repo_info.inherit_env,
                                                       git_bin,
                                                       launcher,
                                                       wrapped_logger)) {

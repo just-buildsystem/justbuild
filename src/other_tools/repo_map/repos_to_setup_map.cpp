@@ -137,12 +137,35 @@ void GitCheckout(ExpressionPtr const& repo_desc,
     auto pragma_absent_value = pragma_absent and
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
+    std::vector<std::string> inherit_env{};
+    auto repo_desc_inherit_env =
+        repo_desc->Get("inherit env", Expression::kEmptyList);
+    if (not repo_desc_inherit_env->IsList()) {
+        (*logger)(fmt::format("GitCheckout: optional field \"inherit env\" "
+                              "should be a list of strings, but found {}",
+                              repo_desc_inherit_env->ToString()),
+                  true);
+        return;
+    }
+    for (auto const& var : repo_desc_inherit_env->List()) {
+        if (not var->IsString()) {
+            (*logger)(
+                fmt::format("GitCheckout: optional field \"inherit env\" "
+                            "should be a list of strings, but found entry {}",
+                            var->ToString()),
+                true);
+            return;
+        }
+        inherit_env.emplace_back(var->String());
+    }
+
     // populate struct
     GitRepoInfo git_repo_info = {
         .hash = repo_desc_commit->get()->String(),
         .repo_url = repo_desc_repository->get()->String(),
         .branch = repo_desc_branch->get()->String(),
         .subdir = subdir.empty() ? "." : subdir.string(),
+        .inherit_env = inherit_env,
         .mirrors = std::move(mirrors),
         .origin = repo_name,
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,

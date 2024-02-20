@@ -98,6 +98,10 @@ The following fields are supported:
    files. This entry is optional. If missing, the root directory of the
    Git repository is used.
 
+ - *`"inherit env"`* provides a list of variables. When `just-mr`
+   shells out to `git`, those variables are inherited from the
+   environment `just-mr` is called within, if set there.
+
 ### *`"git tree"`*
 
 It defines as workspace root as a fixed `git` tree, given by the

@@ -35,6 +35,7 @@ struct GitRepoInfo {
     std::string repo_url{};
     std::string branch{};
     std::string subdir{}; /* key */
+    std::vector<std::string> inherit_env{};
     std::vector<std::string> mirrors{};
     // name of repository for which work is done; used in progress reporting
     std::string origin{};
