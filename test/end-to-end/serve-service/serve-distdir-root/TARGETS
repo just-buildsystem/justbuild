@@ -1,0 +1,48 @@
+{ "serve-distdir (data)":
+  { "type": "install"
+  , "files":
+    { "src.tar": ["end-to-end/serve-service", "serve-tree (archive)"]
+    , "src-syms.tar":
+      [ "end-to-end/serve-service/serve-archive-root"
+      , "serve-tree-syms (archive)"
+      ]
+    }
+  }
+, "present":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["present"]
+  , "test": ["present.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "serve-distdir (data)"
+    ]
+  , "repos": ["serve-distdir (data)"]
+  }
+, "absent":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["absent"]
+  , "test": ["absent.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "serve-distdir (data)"
+    ]
+  , "repos": ["serve-distdir (data)"]
+  }
+, "upload":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["upload"]
+  , "test": ["upload.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "serve-distdir (data)"
+    ]
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["present", "absent", "upload"]
+  }
+}

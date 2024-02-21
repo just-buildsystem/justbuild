@@ -141,6 +141,7 @@
     , [["./", "serve-git-root", "TESTS"], "serve-git-root"]
     , [["./", "serve-file-root", "TESTS"], "serve-file-root"]
     , [["./", "serve-git-tree-root", "TESTS"], "serve-git-tree-root"]
+    , [["./", "serve-distdir-root", "TESTS"], "serve-distdir-root"]
     ]
   }
 }
