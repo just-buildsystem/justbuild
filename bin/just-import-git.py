@@ -125,8 +125,9 @@ def get_base_config(repository_config: Optional[str]) -> Optional[Json]:
     fail('Could not get base config')
 
 
-def clone(url: str, branch: str,
-          mirrors: List[str]) -> Tuple[str, Dict[str, Any], str]:
+def clone(url: str, branch: str, *,
+          mirrors: List[str], inherit_env: List[str],
+          ) -> Tuple[str, Dict[str, Any], str]:
     # clone the given git repository, checkout the specified
     # branch, and return the checkout location
     workdir: str = tempfile.mkdtemp()
@@ -145,6 +146,8 @@ def clone(url: str, branch: str,
     }
     if mirrors:
         repo = dict(repo, **{"mirrors": mirrors})
+    if inherit_env:
+        repo = dict(repo, **{"inherit env": inherit_env})
     return srcdir, repo, workdir
 
 
@@ -258,7 +261,11 @@ def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
 def handle_import(args: Namespace) -> Json:
     base_config: Json = cast(Json, get_base_config(args.repository_config))
     base_repos: Json = base_config.get("repositories", {})
-    srcdir, remote, to_cleanup = clone(args.URL, args.branch, args.mirrors)
+    srcdir, remote, to_cleanup = clone(
+        args.URL, args.branch,
+        mirrors = args.mirrors,
+        inherit_env = args.inherit_env,
+    )
     if args.foreign_repository_config:
         foreign_config_file = args.foreign_repository_config
     else:
@@ -364,6 +371,13 @@ def main():
                         action="append",
                         default=[],
                         metavar="URL")
+    parser.add_argument(
+        "--inherit-env",
+        dest="inherit_env",
+        help="Environment variables to inherit when calling git to fetch",
+        action="append",
+        default=[],
+        metavar="VAR")
     parser.add_argument('URL')
     parser.add_argument('foreign_repository_name', nargs='?')
     args = parser.parse_args()
