@@ -1,0 +1,19 @@
+{ "present":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["present"]
+  , "test": ["present.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "repos": [["end-to-end/serve-service", "serve-tree (data)"]]
+  }
+, "absent":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["absent"]
+  , "test": ["absent.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "repos": [["end-to-end/serve-service", "serve-tree (data)"]]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["present", "absent"]}
+}
