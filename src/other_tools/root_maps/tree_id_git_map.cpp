@@ -177,6 +177,15 @@ auto CreateTreeIdGitMap(
                         std::pair(std::move(root), /*is_cache_hit=*/false));
                     return;
                 }
+                // we cannot continue without a suitable remote set up
+                if (not remote_api) {
+                    (*logger)(
+                        fmt::format("Cannot create workspace root {} as absent "
+                                    "for the provided serve endpoint.",
+                                    key.tree_info.hash),
+                        /*fatal=*/true);
+                    return;
+                }
                 // check if tree in already in remote CAS
                 auto digest =
                     ArtifactDigest{key.tree_info.hash, 0, /*is_tree=*/true};
@@ -316,7 +325,7 @@ auto CreateTreeIdGitMap(
             }
             // give warning that serve endpoint is missing
             (*logger)(fmt::format("Workspace root {} marked absent but no "
-                                  "serve endpoint provided.",
+                                  "suitable serve endpoint provided.",
                                   key.tree_info.hash),
                       /*fatal=*/false);
             // set workspace root as absent

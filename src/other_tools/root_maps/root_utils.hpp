@@ -37,6 +37,8 @@
 /// defined by a given tree by retrieving it from the remote CAS. This method
 /// ensures the respective tree is in the remote CAS prior to the ServeApi call
 /// by uploading it to the remote CAS if it is missing.
+/// IMPORTANT: No check is performed for the compatibility mode of the protocol
+/// used by given remote execution endpoint!
 /// \param tree_id The Git-tree identifier.
 /// \param repo_path Local witnessing Git repository for the tree.
 /// \param remote_api Optional API of the remote-execution endpoint. If nullopt,

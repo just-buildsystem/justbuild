@@ -58,7 +58,6 @@ void EnsureRootAsAbsent(
     ArchiveRepoInfo const& key,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
-    bool is_on_remote,
     bool is_cache_hit,
     ContentGitMap::SetterPtr const& ws_setter,
     ContentGitMap::LoggerPtr const& logger) {
@@ -102,22 +101,22 @@ void EnsureRootAsAbsent(
                               /*fatal=*/true);
                     return;
                 }
-                if (not is_on_remote and not remote_api) {
-                    (*logger)(fmt::format("Missing remote-execution endpoint "
-                                          "needed to sync workspace root {} "
-                                          "with the serve endpoint.",
-                                          tree_id),
-                              /*fatal=*/true);
+                if (not remote_api) {
+                    (*logger)(
+                        fmt::format("Missing or incompatible remote-execution "
+                                    "endpoint needed to sync workspace root {} "
+                                    "with the serve endpoint.",
+                                    tree_id),
+                        /*fatal=*/true);
                     return;
                 }
                 // the tree is known locally, so we can upload it to remote CAS
                 // for the serve endpoint to retrieve it and set up the root
-                if (not EnsureAbsentRootOnServe(
-                        tree_id,
-                        StorageConfig::GitRoot(),
-                        is_on_remote ? std::nullopt : remote_api,
-                        logger,
-                        /*no_sync_is_fatal=*/true)) {
+                if (not EnsureAbsentRootOnServe(tree_id,
+                                                StorageConfig::GitRoot(),
+                                                *remote_api,
+                                                logger,
+                                                /*no_sync_is_fatal=*/true)) {
                     return;
                 }
             }
@@ -125,8 +124,8 @@ void EnsureRootAsAbsent(
     }
     else {
         // give warning
-        (*logger)(fmt::format("Workspace root {} marked absent but no serve "
-                              "endpoint provided.",
+        (*logger)(fmt::format("Workspace root {} marked absent but no suitable "
+                              "serve endpoint provided.",
                               tree_id),
                   /*fatal=*/false);
     }
@@ -147,7 +146,6 @@ void ResolveContentTree(
     bool is_absent,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
-    bool is_on_remote,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& ws_setter,
@@ -173,7 +171,6 @@ void ResolveContentTree(
                                    key,
                                    serve_api_exists,
                                    remote_api,
-                                   is_on_remote,
                                    is_cache_hit,
                                    ws_setter,
                                    logger);
@@ -202,7 +199,6 @@ void ResolveContentTree(
                  is_absent,
                  serve_api_exists,
                  remote_api,
-                 is_on_remote,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -242,7 +238,6 @@ void ResolveContentTree(
                                            key,
                                            serve_api_exists,
                                            remote_api,
-                                           is_on_remote,
                                            is_cache_hit,
                                            ws_setter,
                                            logger);
@@ -274,7 +269,6 @@ void ResolveContentTree(
                                key,
                                serve_api_exists,
                                remote_api,
-                               is_on_remote,
                                is_cache_hit,
                                ws_setter,
                                logger);
@@ -300,7 +294,6 @@ void WriteIdFileAndSetWSRoot(
     bool is_absent,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
-    bool is_on_remote,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& setter,
@@ -343,7 +336,6 @@ void WriteIdFileAndSetWSRoot(
                        is_absent,
                        serve_api_exists,
                        remote_api,
-                       is_on_remote,
                        resolve_symlinks_map,
                        ts,
                        setter,
@@ -423,7 +415,6 @@ void ExtractAndImportToGit(
                                     is_absent,
                                     serve_api_exists,
                                     remote_api,
-                                    false, /*is_on_remote*/
                                     resolve_symlinks_map,
                                     ts,
                                     setter,
@@ -539,7 +530,6 @@ auto CreateContentGitMap(
                         /*is_absent = */ (key.absent and not fetch_absent),
                         serve_api_exists,
                         remote_api,
-                        /*is_on_remote = */ false,
                         resolve_symlinks_map,
                         ts,
                         setter,

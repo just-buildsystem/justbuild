@@ -229,8 +229,9 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 JustMRProgress::Instance().TaskTracker().Start(key.origin);
-                // check if tree is known to remote serve service
-                if (serve_api_exists) {
+                // check if tree is known to remote serve service and can be
+                // made available in remote CAS
+                if (serve_api_exists and remote_api) {
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS

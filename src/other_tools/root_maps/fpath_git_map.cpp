@@ -40,19 +40,34 @@ void CheckServeAndSetRoot(
     FilePathGitMap::SetterPtr const& ws_setter,
     FilePathGitMap::LoggerPtr const& logger) {
     // if serve endpoint is given, try to ensure it has this tree available to
-    // be able to build against it
+    // be able to build against it. If root is not absent, do not fail if we
+    // don't have a suitable remote endpoint, but warn user nonetheless.
     if (serve_api_exists) {
         auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
         if (not has_tree) {
             return;  // fatal
         }
         if (not *has_tree) {
-            if (not EnsureAbsentRootOnServe(tree_id,
-                                            repo_root,
-                                            *remote_api,
-                                            logger,
-                                            /*no_sync_is_fatal=*/absent)) {
-                return;  // fatal
+            // only enforce root setup on the serve endpoint if root is absent
+            if (not remote_api) {
+                (*logger)(
+                    fmt::format("Missing or incompatible remote-execution "
+                                "endpoint needed to sync workspace root {} "
+                                "with the serve endpoint.",
+                                tree_id),
+                    /*fatal=*/absent);
+                if (absent) {
+                    return;
+                }
+            }
+            else {
+                if (not EnsureAbsentRootOnServe(tree_id,
+                                                repo_root,
+                                                *remote_api,
+                                                logger,
+                                                /*no_sync_is_fatal=*/absent)) {
+                    return;  // fatal
+                }
             }
         }
     }
@@ -60,7 +75,7 @@ void CheckServeAndSetRoot(
         if (absent) {
             // give warning
             (*logger)(fmt::format("Workspace root {} marked absent but no "
-                                  "serve endpoint provided.",
+                                  "suitable serve endpoint provided.",
                                   tree_id),
                       /*fatal=*/false);
         }
