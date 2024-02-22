@@ -79,7 +79,6 @@
     , "bytestream_server"
     , "capabilities_server"
     , "operations_server"
-    , "file_chunker"
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/auth", "auth"]
     , ["@", "json", "", "json"]

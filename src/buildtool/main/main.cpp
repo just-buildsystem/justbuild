@@ -28,6 +28,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/execution_api/execution_service/file_chunker.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/main/analyse.hpp"
@@ -309,6 +310,10 @@ void SetupHashFunction() {
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
                                   : HashFunction::JustHash::Native);
+}
+
+void SetupFileChunker() {
+    FileChunker::Initialize();
 }
 
 void SetupRetryConfig(RetryArguments const& args) {
@@ -844,6 +849,7 @@ auto main(int argc, char* argv[]) -> int {
         GitContext::Create();
 
         SetupHashFunction();
+        SetupFileChunker();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
         SetupServeConfig(
