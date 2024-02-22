@@ -28,8 +28,6 @@ constexpr std::uint64_t kMaskL{0x0000d90003530000ULL};  // 11 '1' bits
 
 // Predefined array of 256 random 64-bit integers, needs to be initialized.
 constexpr std::uint32_t kRandomTableSize{256};
-constexpr std::uint64_t kLowerBound{0x1000000000000000ULL};
-constexpr std::uint64_t kUpperBound{0xffffffffffffffffULL};
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::array<std::uint64_t, kRandomTableSize> gear_table{};
 
@@ -37,9 +35,8 @@ std::array<std::uint64_t, kRandomTableSize> gear_table{};
 
 auto FileChunker::Initialize(std::uint32_t seed) noexcept -> void {
     std::mt19937_64 gen64(seed);
-    std::uniform_int_distribution<std::uint64_t> dist(kLowerBound, kUpperBound);
     for (auto& item : gear_table) {
-        item = dist(gen64);
+        item = gen64();
     }
 }
 
