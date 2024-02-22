@@ -52,6 +52,12 @@
   , "test": ["incomplete-retry.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "error-reporting":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["error-reporting"]
+  , "test": ["error-reporting.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -62,6 +68,7 @@
     , "trees"
     , "conflicts"
     , "incomplete-retry"
+    , "error-reporting"
     ]
   }
 }
