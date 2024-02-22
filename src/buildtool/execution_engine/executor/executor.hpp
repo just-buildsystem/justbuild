@@ -21,6 +21,7 @@
 #include <iostream>
 #include <map>
 #include <optional>
+#include <sstream>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -532,7 +533,7 @@ class ExecutorImpl {
                 logger.Emit(LogLevel::Error,
                             "action returned non-zero exit code {}",
                             response->ExitCode());
-                PrintError(logger, action->Command());
+                PrintError(logger, action);
                 return false;
             }
         }
@@ -553,7 +554,7 @@ class ExecutorImpl {
                 }
                 return message;
             });
-            PrintError(logger, action->Command());
+            PrintError(logger, action);
             return false;
         }
 
@@ -596,11 +597,25 @@ class ExecutorImpl {
                     std::move(build_message));
     }
 
-    void static PrintError(Logger const& logger,
-                           std::vector<std::string> const& command) noexcept {
-        logger.Emit(LogLevel::Error,
-                    "Failed to execute command {}",
-                    nlohmann::json(command).dump());
+    void static PrintError(
+        Logger const& logger,
+        gsl::not_null<DependencyGraph::ActionNode const*> const&
+            action) noexcept {
+        std::ostringstream msg{};
+        msg << "Failed to execute command ";
+        msg << nlohmann::json(action->Command()).dump();
+        auto const& origin_map = Progress::Instance().OriginMap();
+        auto origins = origin_map.find(action->Content().Id());
+        if (origins != origin_map.end() and !origins->second.empty()) {
+            msg << "\nrequested by";
+            for (auto const& origin : origins->second) {
+                msg << "\n - ";
+                msg << origin.first.ToString();
+                msg << "#";
+                msg << origin.second;
+            }
+        }
+        logger.Emit(LogLevel::Error, "{}", msg.str());
     }
 
     [[nodiscard]] static inline auto ScaleTime(std::chrono::milliseconds t,
