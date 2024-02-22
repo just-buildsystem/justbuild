@@ -857,7 +857,7 @@ auto SourceTreeService::DistdirImportToGit(
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    auto const& tree_id = std::get<1>(res);
+    auto tree_id = std::get<1>(res);
     // check the committed tree matches what we expect
     if (tree_id != distdir_tree_id) {
         // something is very wrong...
@@ -872,21 +872,30 @@ auto SourceTreeService::DistdirImportToGit(
     }
     // if asked, sync tree (and implicitly all blobs) with remote CAS
     if (sync_tree) {
-        if (not local_api_->RetrieveToCas(
-                {Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigest{distdir_tree_id, 0, /*is_tree=*/true},
-                    .type = ObjectType::Tree}},
-                &(*remote_api_))) {
-            auto str = fmt::format("Failed to sync tree {} from local CAS",
-                                   distdir_tree_id);
+        auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
+        auto repo = RepositoryConfig{};
+        if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
+            auto str = fmt::format("Failed to SetGitCAS at {}",
+                                   StorageConfig::GitRoot().string());
             logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+            return ::grpc::Status::OK;
+        }
+        auto git_api = GitApi{&repo};
+        if (not git_api.RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::Tree}},
+                &(*remote_api_))) {
+            auto str =
+                fmt::format("Failed to sync tree {} from local CAS", tree_id);
+            logger_->Emit(LogLevel::Error, str);
+            *(response->mutable_tree()) = std::move(tree_id);
             response->set_status(ServeDistdirTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
         }
     }
     // set response on success
-    response->set_tree(distdir_tree_id);
+    *(response->mutable_tree()) = std::move(tree_id);
     response->set_status(ServeDistdirTreeResponse::OK);
     return ::grpc::Status::OK;
 }
@@ -919,9 +928,7 @@ auto SourceTreeService::ServeDistdirTree(
         // first check the local CAS itself
         if (blob_found = static_cast<bool>(
                 cas.BlobPath(digest, /*is_executable=*/false));
-            blob_found) {
-        }
-        else {
+            not blob_found) {
             // check local Git cache
             auto res =
                 GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_);
@@ -1009,8 +1016,6 @@ auto SourceTreeService::ServeDistdirTree(
                                 ServeDistdirTreeResponse::INTERNAL_ERROR);
                             return ::grpc::Status::OK;
                         }
-                        // Note: no need to put this digest in the list for
-                        // later sync, as we know the remote already has it
                         blob_found = true;
                     }
                 }
@@ -1076,20 +1081,30 @@ auto SourceTreeService::ServeDistdirTree(
     if (*has_tree) {
         // if asked, sync tree and all blobs with remote CAS
         if (request->sync_tree()) {
-            if (not local_api_->RetrieveToCas(
-                    {Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
-                        .type = ObjectType::Tree}},
+            auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
+            auto repo = RepositoryConfig{};
+            if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
+                auto str = fmt::format("Failed to SetGitCAS at {}",
+                                       StorageConfig::GitRoot().string());
+                logger_->Emit(LogLevel::Error, str);
+                response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+                return ::grpc::Status::OK;
+            }
+            auto git_api = GitApi{&repo};
+            if (not git_api.RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = digest,
+                                          .type = ObjectType::Tree}},
                     &(*remote_api_))) {
                 auto str = fmt::format("Failed to sync tree {} from local CAS",
                                        tree_id);
                 logger_->Emit(LogLevel::Error, str);
+                *(response->mutable_tree()) = std::move(tree_id);
                 response->set_status(ServeDistdirTreeResponse::SYNC_ERROR);
                 return ::grpc::Status::OK;
             }
         }
         // set response on success
-        response->set_tree(tree_id);
+        *(response->mutable_tree()) = std::move(tree_id);
         response->set_status(ServeDistdirTreeResponse::OK);
         return ::grpc::Status::OK;
     }
@@ -1108,21 +1123,31 @@ auto SourceTreeService::ServeDistdirTree(
         if (*has_tree) {
             // if asked, sync tree and all blobs with remote CAS
             if (request->sync_tree()) {
-                if (not local_api_->RetrieveToCas(
-                        {Artifact::ObjectInfo{
-                            .digest =
-                                ArtifactDigest{tree_id, 0, /*is_tree=*/true},
-                            .type = ObjectType::Tree}},
+                auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
+                auto repo = RepositoryConfig{};
+                if (not repo.SetGitCAS(path)) {
+                    auto str =
+                        fmt::format("Failed to SetGitCAS at {}", path.string());
+                    logger_->Emit(LogLevel::Error, str);
+                    response->set_status(
+                        ServeDistdirTreeResponse::INTERNAL_ERROR);
+                    return ::grpc::Status::OK;
+                }
+                auto git_api = GitApi{&repo};
+                if (not git_api.RetrieveToCas(
+                        {Artifact::ObjectInfo{.digest = digest,
+                                              .type = ObjectType::Tree}},
                         &(*remote_api_))) {
                     auto str = fmt::format(
                         "Failed to sync tree {} from local CAS", tree_id);
                     logger_->Emit(LogLevel::Error, str);
+                    *(response->mutable_tree()) = std::move(tree_id);
                     response->set_status(ServeDistdirTreeResponse::SYNC_ERROR);
                     return ::grpc::Status::OK;
                 }
             }
             // set response on success
-            response->set_tree(tree_id);
+            *(response->mutable_tree()) = std::move(tree_id);
             response->set_status(ServeDistdirTreeResponse::OK);
             return ::grpc::Status::OK;
         }
@@ -1223,14 +1248,19 @@ auto SourceTreeService::ServeContent(
         }
     }
     // check also in the local CAS
-    if (local_api_->IsAvailable(digest) and
-        not local_api_->RetrieveToCas(
-            {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::File}},
-            &(*remote_api_))) {
-        auto str =
-            fmt::format("Failed to sync content {} from local CAS", content);
-        logger_->Emit(LogLevel::Error, str);
-        response->set_status(ServeContentResponse::SYNC_ERROR);
+    if (local_api_->IsAvailable(digest)) {
+        if (not local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::File}},
+                &(*remote_api_))) {
+            auto str = fmt::format("Failed to sync content {} from local CAS",
+                                   content);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeContentResponse::SYNC_ERROR);
+            return ::grpc::Status::OK;
+        }
+        // success!
+        response->set_status(ServeContentResponse::OK);
         return ::grpc::Status::OK;
     }
     // content blob not known
@@ -1329,14 +1359,19 @@ auto SourceTreeService::ServeTree(
         }
     }
     // check also in the local CAS
-    if (local_api_->IsAvailable(digest) and
-        not local_api_->RetrieveToCas(
-            {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
-            &(*remote_api_))) {
-        auto str =
-            fmt::format("Failed to sync tree {} from local CAS", tree_id);
-        logger_->Emit(LogLevel::Error, str);
-        response->set_status(ServeTreeResponse::SYNC_ERROR);
+    if (local_api_->IsAvailable(digest)) {
+        if (not local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::Tree}},
+                &(*remote_api_))) {
+            auto str =
+                fmt::format("Failed to sync tree {} from local CAS", tree_id);
+            logger_->Emit(LogLevel::Error, str);
+            response->set_status(ServeTreeResponse::SYNC_ERROR);
+            return ::grpc::Status::OK;
+        }
+        // success!
+        response->set_status(ServeTreeResponse::OK);
         return ::grpc::Status::OK;
     }
     // tree not known
