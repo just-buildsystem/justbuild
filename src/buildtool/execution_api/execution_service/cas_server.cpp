@@ -32,7 +32,7 @@
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
-static constexpr std::size_t kJustHashLength = 42;
+static constexpr std::size_t kGitSHA1Length = 42;
 static constexpr std::size_t kSHA256Length = 64;
 
 static auto IsValidHash(std::string const& x) -> bool {
@@ -40,7 +40,7 @@ static auto IsValidHash(std::string const& x) -> bool {
     auto const& length = x.size();
     return !error_msg and
            ((Compatibility::IsCompatible() and length == kSHA256Length) or
-            length == kJustHashLength);
+            length == kGitSHA1Length);
 }
 
 auto CASServiceImpl::FindMissingBlobs(
