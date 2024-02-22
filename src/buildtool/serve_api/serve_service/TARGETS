@@ -26,6 +26,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
