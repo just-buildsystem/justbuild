@@ -159,8 +159,19 @@ auto BazelNetwork::SplitBlob(bazel_re::Digest const& blob_digest) const noexcept
     return cas_->SplitBlob(instance_name_, blob_digest);
 }
 
+auto BazelNetwork::SpliceBlob(
+    bazel_re::Digest const& blob_digest,
+    std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
+    -> std::optional<bazel_re::Digest> {
+    return cas_->SpliceBlob(instance_name_, blob_digest, chunk_digests);
+}
+
 auto BazelNetwork::BlobSplitSupport() const noexcept -> bool {
     return cas_->BlobSplitSupport(instance_name_);
+}
+
+auto BazelNetwork::BlobSpliceSupport() const noexcept -> bool {
+    return cas_->BlobSpliceSupport(instance_name_);
 }
 
 template <class T_Iter>

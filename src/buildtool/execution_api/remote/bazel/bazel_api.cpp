@@ -599,3 +599,27 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::BlobSplitSupport() const noexcept -> bool {
     return network_->BlobSplitSupport();
 }
+
+[[nodiscard]] auto BazelApi::SpliceBlob(
+    ArtifactDigest const& blob_digest,
+    std::vector<ArtifactDigest> const& chunk_digests) const noexcept
+    -> std::optional<ArtifactDigest> {
+    auto digests = std::vector<bazel_re::Digest>{};
+    digests.reserve(chunk_digests.size());
+    std::transform(chunk_digests.cbegin(),
+                   chunk_digests.cend(),
+                   std::back_inserter(digests),
+                   [](auto const& artifact_digest) {
+                       return static_cast<bazel_re::Digest>(artifact_digest);
+                   });
+    auto digest = network_->SpliceBlob(
+        static_cast<bazel_re::Digest>(blob_digest), digests);
+    if (not digest) {
+        return std::nullopt;
+    }
+    return ArtifactDigest{*digest};
+}
+
+[[nodiscard]] auto BazelApi::BlobSpliceSupport() const noexcept -> bool {
+    return network_->BlobSpliceSupport();
+}

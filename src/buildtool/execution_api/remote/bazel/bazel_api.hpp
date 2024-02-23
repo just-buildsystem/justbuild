@@ -101,6 +101,13 @@ class BazelApi final : public IExecutionApi {
 
     [[nodiscard]] auto BlobSplitSupport() const noexcept -> bool final;
 
+    [[nodiscard]] auto SpliceBlob(
+        ArtifactDigest const& blob_digest,
+        std::vector<ArtifactDigest> const& chunk_digests) const noexcept
+        -> std::optional<ArtifactDigest> final;
+
+    [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final;
+
   private:
     std::shared_ptr<BazelNetwork> network_;
 

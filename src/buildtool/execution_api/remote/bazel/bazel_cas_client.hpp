@@ -136,7 +136,21 @@ class BazelCasClient {
                                  bazel_re::Digest const& blob_digest)
         const noexcept -> std::optional<std::vector<bazel_re::Digest>>;
 
+    /// @brief Splice blob from chunks at the remote side
+    /// @param[in] instance_name    Name of the CAS instance
+    /// @param[in] blob_digest      Expected digest of the spliced blob
+    /// @param[in] chunk_digests    The chunk digests of the splitted blob
+    /// @return Whether the splice call was successful
+    [[nodiscard]] auto SpliceBlob(
+        std::string const& instance_name,
+        bazel_re::Digest const& blob_digest,
+        std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
+        -> std::optional<bazel_re::Digest>;
+
     [[nodiscard]] auto BlobSplitSupport(
+        std::string const& instance_name) const noexcept -> bool;
+
+    [[nodiscard]] auto BlobSpliceSupport(
         std::string const& instance_name) const noexcept -> bool;
 
   private:

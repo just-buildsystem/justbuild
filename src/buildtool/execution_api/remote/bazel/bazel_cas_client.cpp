@@ -14,6 +14,7 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 
+#include <algorithm>
 #include <mutex>
 #include <shared_mutex>
 #include <sstream>
@@ -100,6 +101,72 @@ namespace {
                  supported);
     auto lock = std::unique_lock(mutex);
     blob_split_support_map[instance_name] = supported;
+    return supported;
+}
+
+// In order to determine whether blob splicing is supported at the remote, a
+// trial request to the remote CAS service is issued. This is just a workaround
+// until the blob splice API extension is accepted as part of the official
+// remote execution protocol. Then, the ordinary way to determine server
+// capabilities can be employed by using the capabilities service.
+[[nodiscard]] auto BlobSpliceSupport(
+    std::string const& instance_name,
+    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
+        stub) noexcept -> bool {
+    // Create empty blob.
+    std::string empty_str{};
+    std::string hash = HashFunction::ComputeBlobHash(empty_str).HexString();
+    bazel_re::Digest digest{};
+    digest.set_hash(NativeSupport::Prefix(hash, false));
+    digest.set_size_bytes(empty_str.size());
+
+    // Upload empty blob.
+    grpc::ClientContext update_context{};
+    bazel_re::BatchUpdateBlobsRequest update_request{};
+    bazel_re::BatchUpdateBlobsResponse update_response{};
+    update_request.set_instance_name(instance_name);
+    auto* request = update_request.add_requests();
+    request->mutable_digest()->CopyFrom(digest);
+    request->set_data(empty_str);
+    grpc::Status update_status = stub->BatchUpdateBlobs(
+        &update_context, update_request, &update_response);
+    if (not update_status.ok()) {
+        return false;
+    }
+
+    // Request splicing empty blob.
+    grpc::ClientContext splice_context{};
+    bazel_re::SpliceBlobRequest splice_request{};
+    bazel_re::SpliceBlobResponse splice_response{};
+    splice_request.set_instance_name(instance_name);
+    splice_request.mutable_blob_digest()->CopyFrom(digest);
+    splice_request.add_chunk_digests()->CopyFrom(digest);
+    grpc::Status splice_status =
+        stub->SpliceBlob(&splice_context, splice_request, &splice_response);
+    return splice_status.ok();
+}
+
+// Cached version of blob-splice support request.
+[[nodiscard]] auto BlobSpliceSupportCached(
+    std::string const& instance_name,
+    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
+    Logger const* logger) noexcept -> bool {
+    static auto mutex = std::shared_mutex{};
+    static auto blob_splice_support_map =
+        std::unordered_map<std::string, bool>{};
+    {
+        auto lock = std::shared_lock(mutex);
+        if (blob_splice_support_map.contains(instance_name)) {
+            return blob_splice_support_map[instance_name];
+        }
+    }
+    auto supported = ::BlobSpliceSupport(instance_name, stub);
+    logger->Emit(LogLevel::Debug,
+                 "Blob splice support for \"{}\": {}",
+                 instance_name,
+                 supported);
+    auto lock = std::unique_lock(mutex);
+    blob_splice_support_map[instance_name] = supported;
     return supported;
 }
 
@@ -336,9 +403,45 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
     return ProcessResponseContents<bazel_re::Digest>(response);
 }
 
+auto BazelCasClient::SpliceBlob(
+    std::string const& instance_name,
+    bazel_re::Digest const& blob_digest,
+    std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
+    -> std::optional<bazel_re::Digest> {
+    if (not BlobSpliceSupportCached(instance_name, stub_, &logger_)) {
+        return std::nullopt;
+    }
+    bazel_re::SpliceBlobRequest request{};
+    request.set_instance_name(instance_name);
+    request.mutable_blob_digest()->CopyFrom(blob_digest);
+    std::copy(chunk_digests.cbegin(),
+              chunk_digests.cend(),
+              pb::back_inserter(request.mutable_chunk_digests()));
+    bazel_re::SpliceBlobResponse response{};
+    auto [ok, status] = WithRetry(
+        [this, &response, &request]() {
+            grpc::ClientContext context;
+            return stub_->SpliceBlob(&context, request, &response);
+        },
+        logger_);
+    if (not ok) {
+        LogStatus(&logger_, LogLevel::Error, status, "SpliceBlob");
+        return std::nullopt;
+    }
+    if (not response.has_blob_digest()) {
+        return std::nullopt;
+    }
+    return response.blob_digest();
+}
+
 auto BazelCasClient::BlobSplitSupport(
     std::string const& instance_name) const noexcept -> bool {
     return ::BlobSplitSupportCached(instance_name, stub_, &logger_);
+}
+
+auto BazelCasClient::BlobSpliceSupport(
+    std::string const& instance_name) const noexcept -> bool {
+    return ::BlobSpliceSupportCached(instance_name, stub_, &logger_);
 }
 
 template <class T_ForwardIter>
