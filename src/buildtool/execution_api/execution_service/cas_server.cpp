@@ -123,8 +123,10 @@ auto CASServiceImpl::BatchUpdateBlobs(
             // before storing the actual tree object.
             if (auto err =
                     CASUtils::EnsureTreeInvariant(x.data(), hash, *storage_)) {
+                auto str = fmt::format("BatchUpdateBlobs: {}", *err);
+                logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
-                                      *err};
+                                      str};
             }
             auto const& dgst = storage_->CAS().StoreTree(x.data());
             if (!dgst) {
@@ -134,7 +136,9 @@ auto CASServiceImpl::BatchUpdateBlobs(
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
             if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
-                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
+                auto str = fmt::format("BatchUpdateBlobs: {}", *err);
+                logger_.Emit(LogLevel::Error, str);
+                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
             }
         }
         else {
@@ -146,7 +150,9 @@ auto CASServiceImpl::BatchUpdateBlobs(
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
             if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
-                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, *err};
+                auto str = fmt::format("BatchUpdateBlobs: {}", *err);
+                logger_.Emit(LogLevel::Error, str);
+                return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
             }
         }
     }
