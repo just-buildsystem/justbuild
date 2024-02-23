@@ -38,6 +38,23 @@ static auto IsValidHash(std::string const& x) -> bool {
             length == kGitSHA1Length);
 }
 
+static auto ChunkingAlgorithmToString(::bazel_re::ChunkingAlgorithm_Value type)
+    -> std::string {
+    switch (type) {
+        case ::bazel_re::ChunkingAlgorithm_Value::
+            ChunkingAlgorithm_Value_IDENTITY:
+            return "IDENTITY";
+        case ::bazel_re::ChunkingAlgorithm_Value::
+            ChunkingAlgorithm_Value_RABINCDC_8KB:
+            return "RABINCDC_8KB";
+        case ::bazel_re::ChunkingAlgorithm_Value::
+            ChunkingAlgorithm_Value_FASTCDC_MT0_8KB:
+            return "FASTCDC_MT0_8KB";
+        default:
+            return "[Unknown Chunking Algorithm Type]";
+    }
+}
+
 auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
@@ -224,6 +241,28 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
+    auto chunking_algorithm = request->chunking_algorithm();
+    logger_.Emit(LogLevel::Debug,
+                 "SplitBlob({}, {})",
+                 blob_digest.hash(),
+                 ChunkingAlgorithmToString(chunking_algorithm));
+
+    // Print warning if unsupported chunking algorithm was requested.
+    if (chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
+                                  ChunkingAlgorithm_Value_IDENTITY and
+        chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
+                                  ChunkingAlgorithm_Value_FASTCDC_MT0_8KB) {
+        logger_.Emit(
+            LogLevel::Warning,
+            fmt::format(
+                "SplitBlob: unsupported chunking algorithm {}, will use "
+                "default implementation {}",
+                ChunkingAlgorithmToString(chunking_algorithm),
+                ChunkingAlgorithmToString(
+                    ::bazel_re::ChunkingAlgorithm_Value::
+                        ChunkingAlgorithm_Value_FASTCDC_MT0_8KB)));
+    }
+
     // Acquire garbage collection lock.
     auto lock = GarbageCollector::SharedLock();
     if (not lock) {
@@ -233,16 +272,20 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
-    logger_.Emit(LogLevel::Info, "SplitBlob({})", blob_digest.hash());
-
     // Split blob into chunks.
-    auto split_result = CASUtils::SplitBlob(blob_digest, *storage_);
+    auto split_result =
+        chunking_algorithm == ::bazel_re::ChunkingAlgorithm_Value::
+                                  ChunkingAlgorithm_Value_IDENTITY
+            ? CASUtils::SplitBlobIdentity(blob_digest, *storage_)
+            : CASUtils::SplitBlobFastCDC(blob_digest, *storage_);
+
     if (std::holds_alternative<grpc::Status>(split_result)) {
         auto status = std::get<grpc::Status>(split_result);
         auto str = fmt::format("SplitBlob: {}", status.error_message());
         logger_.Emit(LogLevel::Error, str);
         return ::grpc::Status{status.error_code(), str};
     }
+
     auto chunk_digests = std::get<std::vector<bazel_re::Digest>>(split_result);
     logger_.Emit(LogLevel::Debug, [&blob_digest, &chunk_digests]() {
         std::stringstream ss{};
@@ -256,6 +299,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         ss << "]";
         return ss.str();
     });
+
     std::copy(chunk_digests.cbegin(),
               chunk_digests.cend(),
               pb::back_inserter(response->mutable_chunk_digests()));

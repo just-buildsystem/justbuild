@@ -63,8 +63,47 @@ auto CASUtils::EnsureTreeInvariant(std::string const& data,
     return std::nullopt;
 }
 
-auto CASUtils::SplitBlob(bazel_re::Digest const& blob_digest,
-                         Storage const& storage) noexcept
+auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
+                                 Storage const& storage) noexcept
+    -> std::variant<std::vector<bazel_re::Digest>, grpc::Status> {
+
+    // Check blob existence.
+    auto path = NativeSupport::IsTree(blob_digest.hash())
+                    ? storage.CAS().TreePath(blob_digest)
+                    : storage.CAS().BlobPath(blob_digest, false);
+    if (not path) {
+        return grpc::Status{
+            grpc::StatusCode::NOT_FOUND,
+            fmt::format("blob not found {}", blob_digest.hash())};
+    }
+
+    // The split protocol states that each chunk that is returned by the
+    // operation is stored in (file) CAS. This means for the native mode, if we
+    // return the identity of a tree, we need to put the tree data in file CAS
+    // and return the resulting digest.
+    auto chunk_digests = std::vector<bazel_re::Digest>{};
+    if (NativeSupport::IsTree(blob_digest.hash())) {
+        auto tree_data = FileSystemManager::ReadFile(*path);
+        if (not tree_data) {
+            return grpc::Status{
+                grpc::StatusCode::INTERNAL,
+                fmt::format("could read tree data {}", blob_digest.hash())};
+        }
+        auto digest = storage.CAS().StoreBlob(*tree_data, false);
+        if (not digest) {
+            return grpc::Status{grpc::StatusCode::INTERNAL,
+                                fmt::format("could not store tree as blob {}",
+                                            blob_digest.hash())};
+        }
+        chunk_digests.emplace_back(*digest);
+        return chunk_digests;
+    }
+    chunk_digests.emplace_back(blob_digest);
+    return chunk_digests;
+}
+
+auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
+                                Storage const& storage) noexcept
     -> std::variant<std::vector<bazel_re::Digest>, grpc::Status> {
 
     // Check blob existence.

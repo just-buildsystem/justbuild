@@ -31,8 +31,14 @@ class CASUtils {
         std::string const& hash,
         Storage const& storage) noexcept -> std::optional<std::string>;
 
-    [[nodiscard]] static auto SplitBlob(bazel_re::Digest const& blob_digest,
-                                        Storage const& storage) noexcept
+    [[nodiscard]] static auto SplitBlobIdentity(
+        bazel_re::Digest const& blob_digest,
+        Storage const& storage) noexcept
+        -> std::variant<std::vector<bazel_re::Digest>, grpc::Status>;
+
+    [[nodiscard]] static auto SplitBlobFastCDC(
+        bazel_re::Digest const& blob_digest,
+        Storage const& storage) noexcept
         -> std::variant<std::vector<bazel_re::Digest>, grpc::Status>;
 
     [[nodiscard]] static auto SpliceBlob(

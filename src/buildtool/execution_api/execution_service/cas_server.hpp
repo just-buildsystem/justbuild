@@ -120,17 +120,44 @@ class CASServiceImpl final
         -> ::grpc::Status override;
     // Split a blob into chunks.
     //
+    // This splitting API aims to reduce download traffic between client and
+    // server, e.g., if a client needs to fetch a large blob that just has been
+    // modified slightly since the last built. In this case, there is no need to
+    // fetch the entire blob data, but just the binary differences between the
+    // two blob versions, which are typically determined by deduplication
+    // techniques such as content-defined chunking.
+    //
     // Clients can use this API before downloading a blob to determine which
     // parts of the blob are already present locally and do not need to be
-    // downloaded again.
+    // downloaded again. The server splits the blob into chunks according to a
+    // specified content-defined chunking algorithm and returns a list of the
+    // chunk digests in the order in which the chunks have to be concatenated to
+    // assemble the requested blob.
     //
-    // The blob is split into chunks which are individually stored in the CAS. A
-    // list of the chunk digests is returned in the order in which the chunks
-    // have to be concatenated to assemble the requested blob.
+    // A client can expect the following guarantees from the server if a split
+    // request is answered successfully:
+    //  1. The blob chunks are stored in CAS.
+    //  2. Concatenating the blob chunks in the order of the digest list
+    //     returned by the server results in the original blob.
     //
-    // Using this API is optional but it allows clients to download only the
-    // missing parts of a blob instead of the entire blob data, which in turn
-    // can considerably reduce network traffic.
+    // The usage of this API is optional for clients but it allows them to
+    // download only the missing parts of a large blob instead of the entire
+    // blob data, which in turn can considerably reduce download network
+    // traffic.
+    //
+    // Since the generated chunks are stored as blobs, they underlie the same
+    // lifetimes as other blobs. However, their lifetime is extended if they are
+    // part of the result of a split blob request.
+    //
+    // For the client, it is recommended to verify whether the digest of the
+    // blob assembled by the fetched chunks results in the requested blob
+    // digest.
+    //
+    // If several clients use blob splitting, it is recommended that they
+    // request the same splitting algorithm to benefit from each others chunking
+    // data. In combination with blob splicing, an agreement about the chunking
+    // algorithm is recommended since both client as well as server side can
+    // benefit from each others chunking data.
     //
     // Errors:
     //
