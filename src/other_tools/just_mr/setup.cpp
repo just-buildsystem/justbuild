@@ -170,7 +170,6 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         &resolve_symlinks_map,
         &critical_git_op_map,
         serve_api_exists,
-        &(*local_api),
         remote_api ? std::make_optional(&(*remote_api)) : std::nullopt,
         common_args.fetch_absent,
         common_args.jobs);

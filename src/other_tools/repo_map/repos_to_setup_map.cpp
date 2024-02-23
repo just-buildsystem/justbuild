@@ -297,8 +297,7 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
              .sha512 = repo_desc_sha512->IsString()
                            ? std::make_optional(repo_desc_sha512->String())
                            : std::nullopt,
-             .origin = repo_name,
-             .fetch_only = false},
+             .origin = repo_name},
         .repo_type = repo_type,
         .subdir = subdir.empty() ? "." : subdir.string(),
         .pragma_special = pragma_special_value,
@@ -617,8 +616,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                 .sha512 = repo_desc_sha512->IsString()
                               ? std::make_optional(repo_desc_sha512->String())
                               : std::nullopt,
-                .origin = dist_repo_name,
-                .fetch_only = true};
+                .origin = dist_repo_name};
 
             // add to distdir content map
             auto repo_distfile =

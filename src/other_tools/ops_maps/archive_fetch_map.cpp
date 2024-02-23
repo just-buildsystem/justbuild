@@ -32,14 +32,14 @@ void ProcessContent(
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::string const& content,
-    ArtifactDigest const& digest,
     ArchiveFetchMap::SetterPtr const& setter,
     ArchiveFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     if (remote_api) {
         if (not local_api->RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = digest,
-                                      .type = ObjectType::File}},
+                {Artifact::ObjectInfo{
+                    .digest = ArtifactDigest{content, 0, /*is_tree=*/false},
+                    .type = ObjectType::File}},
                 *remote_api)) {
             // give a warning
             (*logger)(fmt::format("Failed to back up content {} from local CAS "
@@ -87,55 +87,38 @@ auto CreateArchiveFetchMap(
                                         .filename()
                                         .string());
         auto target_name = fetch_dir / distfile;
-        // check if content not already in CAS
-        auto digest = ArtifactDigest(key.archive.content, 0, false);
-        auto const& cas = Storage::Instance().CAS();
-        auto content_path = cas.BlobPath(digest,
-                                         /*is_executable=*/false);
-        if (not content_path) {
-            // make sure content is in CAS
-            content_cas_map->ConsumeAfterKeysReady(
-                ts,
-                {key.archive},
-                [target_name,
-                 local_api,
-                 remote_api,
-                 content = key.archive.content,
-                 digest = std::move(digest),
-                 setter,
-                 logger]([[maybe_unused]] auto const& values) {
-                    auto const& cas = Storage::Instance().CAS();
-                    auto content_path = cas.BlobPath(digest,
-                                                     /*is_executable=*/false)
-                                            .value();
-                    ProcessContent(content_path,
-                                   target_name,
-                                   local_api,
-                                   remote_api,
-                                   content,
-                                   digest,
-                                   setter,
-                                   logger);
-                },
-                [logger, content = key.archive.content](auto const& msg,
-                                                        bool fatal) {
-                    (*logger)(
-                        fmt::format("While ensuring content {} is in CAS:\n{}",
-                                    content,
-                                    msg),
-                        fatal);
-                });
-        }
-        else {
-            ProcessContent(*content_path,
-                           target_name,
-                           local_api,
-                           remote_api,
-                           key.archive.content,
-                           digest,
-                           setter,
-                           logger);
-        }
+        // make sure content is in CAS
+        content_cas_map->ConsumeAfterKeysReady(
+            ts,
+            {key.archive},
+            [target_name,
+             local_api,
+             remote_api,
+             content = key.archive.content,
+             setter,
+             logger]([[maybe_unused]] auto const& values) {
+                // content is in local CAS now
+                auto const& cas = Storage::Instance().CAS();
+                auto content_path =
+                    cas.BlobPath(ArtifactDigest{content, 0, /*is_tree=*/false},
+                                 /*is_executable=*/false)
+                        .value();
+                ProcessContent(content_path,
+                               target_name,
+                               local_api,
+                               remote_api,
+                               content,
+                               setter,
+                               logger);
+            },
+            [logger, content = key.archive.content](auto const& msg,
+                                                    bool fatal) {
+                (*logger)(
+                    fmt::format("While ensuring content {} is in CAS:\n{}",
+                                content,
+                                msg),
+                    fatal);
+            });
     };
     return AsyncMapConsumer<ArchiveRepoInfo, bool>(fetch_archive, jobs);
 }
