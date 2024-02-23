@@ -129,12 +129,15 @@ class BazelCasClient {
         -> std::optional<BazelBlob>;
 
     /// @brief Split single blob into chunks
-    /// @param[in] instance_name Name of the CAS instance
-    /// @param[in] digest        Blob digest to be splitted
+    /// @param[in] instance_name    Name of the CAS instance
+    /// @param[in] blob_digest      Blob digest to be splitted
     /// @return The chunk digests of the splitted blob
     [[nodiscard]] auto SplitBlob(std::string const& instance_name,
-                                 bazel_re::Digest const& digest) noexcept
-        -> std::optional<std::vector<bazel_re::Digest>>;
+                                 bazel_re::Digest const& blob_digest)
+        const noexcept -> std::optional<std::vector<bazel_re::Digest>>;
+
+    [[nodiscard]] auto BlobSplitSupport(
+        std::string const& instance_name) const noexcept -> bool;
 
   private:
     std::unique_ptr<ByteStreamClient> stream_{};

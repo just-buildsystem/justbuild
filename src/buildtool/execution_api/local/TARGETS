@@ -26,6 +26,7 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -36,6 +37,7 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/execution_api/execution_service", "cas_utils"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]
   , "private-deps":

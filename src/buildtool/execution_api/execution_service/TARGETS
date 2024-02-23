@@ -58,12 +58,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "verify_hash"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/file_system", "git_repo"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/utils/cpp", "hex_string"]
-    , "file_chunker"
+    , "cas_utils"
     ]
   }
 , "server_implementation":
@@ -150,5 +145,28 @@
   , "srcs": ["file_chunker.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "private-deps": [["@", "gsl", "", "gsl"]]
+  }
+, "cas_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["cas_utils"]
+  , "hdrs": ["cas_utils.hpp"]
+  , "srcs": ["cas_utils.cpp"]
+  , "stage": ["src", "buildtool", "execution_api", "execution_service"]
+  , "deps":
+    [ ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "private-deps":
+    [ "file_chunker"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
   }
 }

@@ -17,7 +17,8 @@
 #include <algorithm>
 #include <atomic>
 #include <cstdint>
-#include <fstream>
+#include <iterator>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -120,7 +121,7 @@ namespace {
 
     // Fetch unknown chunks.
     auto digest_set = std::unordered_set<bazel_re::Digest>{
-        (*chunk_digests).begin(), (*chunk_digests).end()};
+        chunk_digests->begin(), chunk_digests->end()};
     auto unique_digests =
         std::vector<bazel_re::Digest>{digest_set.begin(), digest_set.end()};
     auto missing_digests = ::IsAvailable(unique_digests, api);
@@ -129,30 +130,24 @@ namespace {
     }
 
     // Assemble blob from chunks.
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("splice");
-    auto tmp_file = tmp_dir->GetPath() / "blob";
-    std::size_t total_size{};
-    {
-        std::ofstream tmp(tmp_file, std::ios::binary);
-        for (auto const& chunk_digest : *chunk_digests) {
-            auto info =
-                Artifact::ObjectInfo{.digest = ArtifactDigest{chunk_digest},
-                                     .type = ObjectType::File};
-            auto chunk_data = api->RetrieveToMemory(info);
-            if (not chunk_data) {
-                Logger::Log(LogLevel::Error,
-                            "could not load blob chunk in memory: ",
-                            chunk_digest.hash());
-                return false;
-            }
-            tmp << *chunk_data;
-            total_size += chunk_data->size();
-        }
+    auto artifact_digests = std::vector<ArtifactDigest>{};
+    artifact_digests.reserve(chunk_digests->size());
+    std::transform(chunk_digests->cbegin(),
+                   chunk_digests->cend(),
+                   std::back_inserter(artifact_digests),
+                   [](auto const& digest) { return ArtifactDigest{digest}; });
+    auto digest = api->SpliceBlob(artifact_info.digest, artifact_digests);
+    if (not digest) {
+        // If blob splicing failed, fall back to regular fetching.
+        return ::RetrieveToCas({artifact_info.digest}, api, network, info_map);
     }
 
     Logger::Log(
         LogLevel::Debug,
-        [&artifact_info, &unique_digests, &missing_digests, &total_size]() {
+        [&artifact_info,
+         &unique_digests,
+         &missing_digests,
+         total_size = digest->size()]() {
             auto missing_digest_set = std::unordered_set<bazel_re::Digest>{
                 missing_digests.begin(), missing_digests.end()};
             std::uint64_t transmitted_bytes{0};
@@ -172,7 +167,7 @@ namespace {
                 artifact_info.ToString());
         });
 
-    return api->UploadFile(tmp_file, artifact_info.type);
+    return true;
 }
 
 }  // namespace
@@ -583,4 +578,24 @@ auto BazelApi::CreateAction(
         result.push_back(digest_map[bazel_digest]);
     }
     return result;
+}
+
+[[nodiscard]] auto BazelApi::SplitBlob(ArtifactDigest const& blob_digest)
+    const noexcept -> std::optional<std::vector<ArtifactDigest>> {
+    auto chunk_digests =
+        network_->SplitBlob(static_cast<bazel_re::Digest>(blob_digest));
+    if (not chunk_digests) {
+        return std::nullopt;
+    }
+    auto artifact_digests = std::vector<ArtifactDigest>{};
+    artifact_digests.reserve(chunk_digests->size());
+    std::transform(chunk_digests->cbegin(),
+                   chunk_digests->cend(),
+                   std::back_inserter(artifact_digests),
+                   [](auto const& digest) { return ArtifactDigest{digest}; });
+    return artifact_digests;
+}
+
+[[nodiscard]] auto BazelApi::BlobSplitSupport() const noexcept -> bool {
+    return network_->BlobSplitSupport();
 }

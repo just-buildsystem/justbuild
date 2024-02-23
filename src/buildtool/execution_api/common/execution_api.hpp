@@ -135,6 +135,26 @@ class IExecutionApi {
     [[nodiscard]] virtual auto IsAvailable(
         std::vector<ArtifactDigest> const& digests) const noexcept
         -> std::vector<ArtifactDigest> = 0;
+
+    [[nodiscard]] virtual auto SplitBlob(ArtifactDigest const& /*blob_digest*/)
+        const noexcept -> std::optional<std::vector<ArtifactDigest>> {
+        return std::nullopt;
+    }
+
+    [[nodiscard]] virtual auto BlobSplitSupport() const noexcept -> bool {
+        return false;
+    }
+
+    [[nodiscard]] virtual auto SpliceBlob(
+        ArtifactDigest const& /*blob_digest*/,
+        std::vector<ArtifactDigest> const& /*chunk_digests*/) const noexcept
+        -> std::optional<ArtifactDigest> {
+        return std::nullopt;
+    }
+
+    [[nodiscard]] virtual auto BlobSpliceSupport() const noexcept -> bool {
+        return false;
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP

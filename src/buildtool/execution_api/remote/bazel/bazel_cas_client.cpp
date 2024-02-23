@@ -93,7 +93,7 @@ namespace {
             return blob_split_support_map[instance_name];
         }
     }
-    auto supported = BlobSplitSupport(instance_name, stub);
+    auto supported = ::BlobSplitSupport(instance_name, stub);
     logger->Emit(LogLevel::Debug,
                  "Blob split support for \"{}\": {}",
                  instance_name,
@@ -312,14 +312,14 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
 }
 
 auto BazelCasClient::SplitBlob(std::string const& instance_name,
-                               bazel_re::Digest const& digest) noexcept
-    -> std::optional<std::vector<bazel_re::Digest>> {
+                               bazel_re::Digest const& blob_digest)
+    const noexcept -> std::optional<std::vector<bazel_re::Digest>> {
     if (not BlobSplitSupportCached(instance_name, stub_, &logger_)) {
         return std::nullopt;
     }
     bazel_re::SplitBlobRequest request{};
     request.set_instance_name(instance_name);
-    request.mutable_blob_digest()->CopyFrom(digest);
+    request.mutable_blob_digest()->CopyFrom(blob_digest);
     bazel_re::SplitBlobResponse response{};
     auto [ok, status] = WithRetry(
         [this, &response, &request]() {
@@ -332,6 +332,11 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
         return std::nullopt;
     }
     return ProcessResponseContents<bazel_re::Digest>(response);
+}
+
+auto BazelCasClient::BlobSplitSupport(
+    std::string const& instance_name) const noexcept -> bool {
+    return ::BlobSplitSupportCached(instance_name, stub_, &logger_);
 }
 
 template <class T_ForwardIter>

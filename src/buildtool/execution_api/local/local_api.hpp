@@ -15,14 +15,18 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 
+#include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "fmt/core.h"
+#include "grpcpp/support/status.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -30,6 +34,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -452,6 +457,38 @@ class LocalApi final : public IExecutionApi {
             }
         }
         return result;
+    }
+
+    [[nodiscard]] auto SpliceBlob(
+        ArtifactDigest const& blob_digest,
+        std::vector<ArtifactDigest> const& chunk_digests) const noexcept
+        -> std::optional<ArtifactDigest> final {
+        Logger::Log(LogLevel::Debug,
+                    "SpliceBlob({}, {} chunks)",
+                    blob_digest.hash(),
+                    chunk_digests.size());
+        auto digests = std::vector<bazel_re::Digest>{};
+        digests.reserve(chunk_digests.size());
+        std::transform(
+            chunk_digests.cbegin(),
+            chunk_digests.cend(),
+            std::back_inserter(digests),
+            [](auto const& artifact_digest) {
+                return static_cast<bazel_re::Digest>(artifact_digest);
+            });
+        auto splice_result = CASUtils::SpliceBlob(
+            static_cast<bazel_re::Digest>(blob_digest), digests, *storage_);
+        if (std::holds_alternative<grpc::Status>(splice_result)) {
+            auto* status = std::get_if<grpc::Status>(&splice_result);
+            Logger::Log(LogLevel::Error, status->error_message());
+            return std::nullopt;
+        }
+        auto* digest = std::get_if<bazel_re::Digest>(&splice_result);
+        return ArtifactDigest{*digest};
+    }
+
+    [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final {
+        return true;
     }
 
   private:

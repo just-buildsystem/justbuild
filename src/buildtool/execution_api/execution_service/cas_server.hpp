@@ -147,10 +147,6 @@ class CASServiceImpl final
                                               bazel_re::Digest const& computed)
         const noexcept -> std::optional<std::string>;
 
-    [[nodiscard]] auto EnsureTreeInvariant(
-        std::string const& data,
-        std::string const& hash) const noexcept -> std::optional<std::string>;
-
     gsl::not_null<Storage const*> storage_ = &Storage::Instance();
     Logger logger_{"execution-service"};
 };
