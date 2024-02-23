@@ -216,7 +216,7 @@ auto CASServiceImpl::BatchReadBlobs(
 auto CASServiceImpl::GetTree(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::GetTreeRequest* /*request*/,
-    ::grpc::ServerWriter< ::bazel_re::GetTreeResponse>* /*writer*/)
+    ::grpc::ServerWriter<::bazel_re::GetTreeResponse>* /*writer*/)
     -> ::grpc::Status {
     auto const* str = "GetTree not implemented";
     logger_.Emit(LogLevel::Error, str);
@@ -303,5 +303,62 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     std::copy(chunk_digests.cbegin(),
               chunk_digests.cend(),
               pb::back_inserter(response->mutable_chunk_digests()));
+    return ::grpc::Status::OK;
+}
+
+auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
+                                const ::bazel_re::SpliceBlobRequest* request,
+                                ::bazel_re::SpliceBlobResponse* response)
+    -> ::grpc::Status {
+    if (not request->has_blob_digest()) {
+        auto str = fmt::format("SpliceBlob: no blob digest provided");
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+
+    auto const& blob_digest = request->blob_digest();
+    if (not IsValidHash(blob_digest.hash())) {
+        auto str = fmt::format("SpliceBlob: unsupported digest {}",
+                               blob_digest.hash());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+
+    logger_.Emit(LogLevel::Debug,
+                 "SpliceBlob({}, {} chunks)",
+                 blob_digest.hash(),
+                 request->chunk_digests().size());
+
+    // Acquire garbage collection lock.
+    auto lock = GarbageCollector::SharedLock();
+    if (not lock) {
+        auto str = fmt::format(
+            "SpliceBlob: could not acquire garbage collection lock");
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+    }
+
+    // Splice blob from chunks.
+    auto chunk_digests = std::vector<bazel_re::Digest>{};
+    std::copy(request->chunk_digests().cbegin(),
+              request->chunk_digests().cend(),
+              std::back_inserter(chunk_digests));
+    auto splice_result = CASUtils::SpliceBlob(blob_digest,
+                                              chunk_digests,
+                                              *storage_,
+                                              /* check_tree_invariant= */ true);
+    if (std::holds_alternative<grpc::Status>(splice_result)) {
+        auto status = std::get<grpc::Status>(splice_result);
+        auto str = fmt::format("SpliceBlob: {}", status.error_message());
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{status.error_code(), str};
+    }
+    auto digest = std::get<bazel_re::Digest>(splice_result);
+    if (auto err = CheckDigestConsistency(blob_digest, digest)) {
+        auto str = fmt::format("SpliceBlob: {}", *err);
+        logger_.Emit(LogLevel::Error, str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+    response->mutable_blob_digest()->CopyFrom(digest);
     return ::grpc::Status::OK;
 }

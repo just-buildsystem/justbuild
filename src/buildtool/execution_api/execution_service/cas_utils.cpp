@@ -145,7 +145,8 @@ auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
 
 auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
                           std::vector<bazel_re::Digest> const& chunk_digests,
-                          Storage const& storage) noexcept
+                          Storage const& storage,
+                          bool check_tree_invariant) noexcept
     -> std::variant<bazel_re::Digest, grpc::Status> {
 
     // Assemble blob from chunks.
@@ -175,6 +176,20 @@ auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
     // Store resulting blob in according CAS.
     auto const& hash = blob_digest.hash();
     if (NativeSupport::IsTree(hash)) {
+        // In native mode: for trees, check whether the tree invariant holds
+        // before storing the actual tree object.
+        if (check_tree_invariant) {
+            auto tree_data = FileSystemManager::ReadFile(tmp_file);
+            if (not tree_data) {
+                return grpc::Status{
+                    grpc::StatusCode::INTERNAL,
+                    fmt::format("could read tree data {}", hash)};
+            }
+            if (auto err = EnsureTreeInvariant(*tree_data, hash, storage)) {
+                return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
+                                    *err};
+            }
+        }
         auto const& digest =
             storage.CAS().StoreTree</* kOwner= */ true>(tmp_file);
         if (not digest) {

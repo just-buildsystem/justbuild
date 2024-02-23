@@ -44,7 +44,8 @@ class CASUtils {
     [[nodiscard]] static auto SpliceBlob(
         bazel_re::Digest const& blob_digest,
         std::vector<bazel_re::Digest> const& chunk_digests,
-        Storage const& storage) noexcept
+        Storage const& storage,
+        bool check_tree_invariant) noexcept
         -> std::variant<bazel_re::Digest, grpc::Status>;
 };
 

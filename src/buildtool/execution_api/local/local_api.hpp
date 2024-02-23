@@ -476,8 +476,11 @@ class LocalApi final : public IExecutionApi {
             [](auto const& artifact_digest) {
                 return static_cast<bazel_re::Digest>(artifact_digest);
             });
-        auto splice_result = CASUtils::SpliceBlob(
-            static_cast<bazel_re::Digest>(blob_digest), digests, *storage_);
+        auto splice_result =
+            CASUtils::SpliceBlob(static_cast<bazel_re::Digest>(blob_digest),
+                                 digests,
+                                 *storage_,
+                                 /* check_tree_invariant= */ false);
         if (std::holds_alternative<grpc::Status>(splice_result)) {
             auto* status = std::get_if<grpc::Status>(&splice_result);
             Logger::Log(LogLevel::Error, status->error_message());

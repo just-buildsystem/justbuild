@@ -116,7 +116,7 @@ class CASServiceImpl final
     // * `NOT_FOUND`: The requested tree root is not present in the CAS.
     auto GetTree(::grpc::ServerContext* context,
                  const ::bazel_re::GetTreeRequest* request,
-                 ::grpc::ServerWriter< ::bazel_re::GetTreeResponse>* writer)
+                 ::grpc::ServerWriter<::bazel_re::GetTreeResponse>* writer)
         -> ::grpc::Status override;
     // Split a blob into chunks.
     //
@@ -167,6 +167,47 @@ class CASServiceImpl final
     auto SplitBlob(::grpc::ServerContext* context,
                    const ::bazel_re::SplitBlobRequest* request,
                    ::bazel_re::SplitBlobResponse* response)
+        -> ::grpc::Status override;
+    // Splice a blob from chunks.
+    //
+    // This is the complementary operation to the
+    // [ContentAddressableStorage.SplitBlob][build.bazel.remote.execution.v2.ContentAddressableStorage.SplitBlob]
+    // function to handle the splitted upload of large blobs to save upload
+    // traffic.
+    //
+    // If a client needs to upload a large blob and is able to split a blob into
+    // chunks locally according to some content-defined chunking algorithm, it
+    // can first determine which parts of the blob are already available in the
+    // remote CAS and upload the missing chunks, and then use this API to
+    // instruct the server to splice the original blob from the remotely
+    // available blob chunks.
+    //
+    // In order to ensure data consistency of the CAS, the server will verify
+    // the spliced result whether digest calculation results in the provided
+    // digest from the request and will reject a splice request if this check
+    // fails.
+    //
+    // The usage of this API is optional for clients but it allows them to
+    // upload only the missing parts of a large blob instead of the entire blob
+    // data, which in turn can considerably reduce upload network traffic.
+    //
+    // In order to split a blob into chunks, it is recommended for the client to
+    // use one of the servers' advertised chunking algorithms by
+    // [CacheCapabilities.supported_chunking_algorithms][build.bazel.remote.execution.v2.CacheCapabilities.supported_chunking_algorithms]
+    // to benefit from each others chunking data. If several clients use blob
+    // splicing, it is recommended that they use the same splitting algorithm to
+    // split their blobs into chunk.
+    //
+    // Errors:
+    //
+    // * `NOT_FOUND`: At least one of the blob chunks is not present in the CAS.
+    // * `RESOURCE_EXHAUSTED`: There is insufficient disk quota to store the
+    //   spliced blob.
+    // * `INVALID_ARGUMENT`: The digest of the spliced blob is different from
+    //   the provided expected digest.
+    auto SpliceBlob(::grpc::ServerContext* context,
+                    const ::bazel_re::SpliceBlobRequest* request,
+                    ::bazel_re::SpliceBlobResponse* response)
         -> ::grpc::Status override;
 
   private:
