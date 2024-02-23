@@ -405,12 +405,9 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             CHECK_FALSE(
                 *repo_fetch_all->CheckCommitExists(kRootCommit, logger));
 
-            // create tmp dir to use for fetch
-            auto tmp_path_fetch_all = TestUtils::GetRepoPath();
-            REQUIRE(FileSystemManager::CreateDirectory(tmp_path_fetch_all));
             // fetch all with base refspecs
             REQUIRE(repo_fetch_all->LocalFetchViaTmpRepo(
-                tmp_path_fetch_all, *repo_path, std::nullopt, logger));
+                *repo_path, std::nullopt, logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
@@ -427,12 +424,9 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
             CHECK_FALSE(
                 *repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
 
-            // create tmp dir to use for fetch
-            auto tmp_path_fetch_branch = TestUtils::GetRepoPath();
-            REQUIRE(FileSystemManager::CreateDirectory(tmp_path_fetch_branch));
             // fetch branch
             REQUIRE(repo_fetch_branch->LocalFetchViaTmpRepo(
-                tmp_path_fetch_branch, *repo_path, "master", logger));
+                *repo_path, "master", logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
@@ -532,18 +526,9 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
-                            // set up tmp dir
-                            // create tmp dir to use for fetch
-                            auto tmp_path_fetch_branch =
-                                TestUtils::GetRepoPath();
-                            REQUIRE(FileSystemManager::CreateDirectory(
-                                tmp_path_fetch_branch));
                             // fetch all
                             REQUIRE(remote_repo->LocalFetchViaTmpRepo(
-                                tmp_path_fetch_branch,
-                                *remote_repo_path,
-                                std::nullopt,
-                                logger));
+                                *remote_repo_path, std::nullopt, logger));
                         } break;
                     }
                 },

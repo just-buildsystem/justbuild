@@ -48,7 +48,6 @@
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/utils/cpp", "tmp_dir"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]

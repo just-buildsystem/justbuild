@@ -20,6 +20,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -392,7 +393,6 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
 }
 
 auto GitRepoRemote::UpdateCommitViaTmpRepo(
-    std::filesystem::path const& tmp_dir,
     std::string const& repo_url,
     std::string const& branch,
     std::vector<std::string> const& inherit_env,
@@ -401,6 +401,13 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     anon_logger_ptr const& logger) const noexcept
     -> std::optional<std::string> {
     try {
+        auto tmp_dir = TmpDir::Create("update");
+        if (not tmp_dir) {
+            (*logger)("Failed to create temp dir for running 'git ls-remote'",
+                      /*fatal=*/true);
+            return std::nullopt;
+        }
+        auto const& tmp_path = tmp_dir->GetPath();
         // check for internally supported protocols
         if (IsSupported(repo_url)) {
             // preferably with a "fake" repository!
@@ -410,7 +417,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
             }
             // create the temporary real repository
             auto tmp_repo =
-                GitRepoRemote::InitAndOpen(tmp_dir, /*is_bare=*/true);
+                GitRepoRemote::InitAndOpen(tmp_path / "git", /*is_bare=*/true);
             if (tmp_repo == std::nullopt) {
                 return std::nullopt;
             }
@@ -456,7 +463,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
             system.Execute(cmdline,
                            env,
                            GetGitPath(),  // which path is not actually relevant
-                           tmp_dir);
+                           tmp_path);
 
         if (not command_output) {
             (*logger)(fmt::format("exec() on command failed."),
@@ -522,8 +529,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     }
 }
 
-auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
-                                    std::string const& repo_url,
+auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
                                     std::optional<std::string> const& branch,
                                     std::vector<std::string> const& inherit_env,
                                     std::string const& git_bin,
@@ -531,6 +537,13 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
     try {
+        auto tmp_dir = TmpDir::Create("fetch");
+        if (not tmp_dir) {
+            (*logger)("Failed to create temp dir for running 'git fetch'",
+                      /*fatal=*/true);
+            return false;
+        }
+        auto const& tmp_path = tmp_dir->GetPath();
         // check for internally supported protocols
         if (IsSupported(repo_url)) {
             // preferably with a "fake" repository!
@@ -542,7 +555,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
             // it can be bare, as the refspecs for this fetch will be given
             // explicitly.
             auto tmp_repo =
-                GitRepoRemote::InitAndOpen(tmp_dir, /*is_bare=*/true);
+                GitRepoRemote::InitAndOpen(tmp_path / "git", /*is_bare=*/true);
             if (tmp_repo == std::nullopt) {
                 return false;
             }
@@ -606,7 +619,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         // run command
         SystemCommand system{repo_url};
         auto const command_output =
-            system.Execute(cmdline, env, GetGitPath(), tmp_dir);
+            system.Execute(cmdline, env, GetGitPath(), tmp_path);
 
         if (not command_output) {
             (*logger)(fmt::format("exec() on command failed."),

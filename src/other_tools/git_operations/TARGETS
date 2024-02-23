@@ -36,6 +36,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/system", "system_command"]
     , "git_config_settings"
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   }
 , "git_config_settings":

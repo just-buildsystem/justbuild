@@ -82,15 +82,11 @@ class GitRepoRemote : public GitRepo {
     /// \brief Get commit from given branch on the remote. If URL is SSH, shells
     /// out to system git to perform an ls-remote call, ensuring correct
     /// handling of the remote connection settings (in particular proxy and
-    /// SSH). A temporary directory is needed to pipe the stdout and stderr to.
-    /// If URL is non-SSH, uses tmp dir to connect to remote and retrieve the
-    /// commit of a branch asynchronously using libgit2.
-    /// Caller needs to make sure the temporary directory exists and that the
-    /// given path is thread- and process-safe!
+    /// SSH). For non-SSH URLs, the branch commit is retrieved asynchronously
+    /// using libgit2.
     /// Returns the commit hash, as a string, or nullopt if failure.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto UpdateCommitViaTmpRepo(
-        std::filesystem::path const& tmp_dir,
         std::string const& repo_url,
         std::string const& branch,
         std::vector<std::string> const& inherit_env,
@@ -101,16 +97,12 @@ class GitRepoRemote : public GitRepo {
 
     /// \brief Fetch from a remote. If URL is SSH, shells out to system git to
     /// retrieve packs in a safe manner, with the only side-effect being that
-    /// there can be some redundancy in the fetched packs. The tmp dir is used
-    /// to pipe the stdout and stderr to.
-    /// If URL is non-SSH, uses tmp dir to fetch asynchronously using libgit2.
-    /// Caller needs to make sure the temporary directory exists and that the
-    /// given path is thread- and process-safe!
+    /// there can be some redundancy in the fetched packs.
+    /// For non-SSH URLs an asynchronous fetch is performed using libgit2.
     /// Uses either a given branch, or fetches all (with base refspecs).
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto FetchViaTmpRepo(
-        std::filesystem::path const& tmp_dir,
         std::string const& repo_url,
         std::optional<std::string> const& branch,
         std::vector<std::string> const& inherit_env,

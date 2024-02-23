@@ -19,7 +19,6 @@
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/utils/cpp/tmp_dir.hpp"
 
 auto CreateGitUpdateMap(GitCASPtr const& git_cas,
                         std::string const& git_bin,
@@ -39,14 +38,6 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
                 /*fatal=*/true);
             return;
         }
-        auto tmp_dir = StorageUtils::CreateTypedTmpDir("update");
-        if (not tmp_dir) {
-            (*logger)(fmt::format("Failed to create commit update tmp dir for "
-                                  "remote {}",
-                                  key.repo),
-                      /*fatal=*/true);
-            return;
-        }
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [logger](auto const& msg, bool fatal) {
@@ -57,8 +48,7 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         // update commit
         auto id = fmt::format("{}:{}", key.repo, key.branch);
         JustMRProgress::Instance().TaskTracker().Start(id);
-        auto new_commit = git_repo->UpdateCommitViaTmpRepo(tmp_dir->GetPath(),
-                                                           key.repo,
+        auto new_commit = git_repo->UpdateCommitViaTmpRepo(key.repo,
                                                            key.branch,
                                                            key.inherit_env,
                                                            git_bin,

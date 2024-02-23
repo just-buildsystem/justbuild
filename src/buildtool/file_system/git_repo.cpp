@@ -23,6 +23,7 @@
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 extern "C" {
 #include <git2.h>
@@ -1541,8 +1542,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-auto GitRepo::LocalFetchViaTmpRepo(std::filesystem::path const& tmp_dir,
-                                   std::string const& repo_path,
+auto GitRepo::LocalFetchViaTmpRepo(std::string const& repo_path,
                                    std::optional<std::string> const& branch,
                                    anon_logger_ptr const& logger) noexcept
     -> bool {
@@ -1555,10 +1555,17 @@ auto GitRepo::LocalFetchViaTmpRepo(std::filesystem::path const& tmp_dir,
             Logger::Log(LogLevel::Debug,
                         "Branch local fetch called on a real repository");
         }
+        auto tmp_dir = TmpDir::Create("local_fetch");
+        if (not tmp_dir) {
+            (*logger)("Failed to create temp dir for Git repository",
+                      /*fatal=*/true);
+            return false;
+        }
+        auto const& tmp_path = tmp_dir->GetPath();
         // create the temporary real repository
         // it can be bare, as the refspecs for this fetch will be given
         // explicitly.
-        auto tmp_repo = GitRepo::InitAndOpen(tmp_dir, /*is_bare=*/true);
+        auto tmp_repo = GitRepo::InitAndOpen(tmp_path, /*is_bare=*/true);
         if (tmp_repo == std::nullopt) {
             return false;
         }

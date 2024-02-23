@@ -167,17 +167,6 @@ auto CreateImportToGitMap(
                                       /*fatal=*/true);
                             return;
                         }
-                        // create tmp directory
-                        auto tmp_dir =
-                            StorageUtils::CreateTypedTmpDir("import-to-git");
-                        if (not tmp_dir) {
-                            (*logger)(
-                                fmt::format("Could not create unique path "
-                                            "for target {}",
-                                            target_path.string()),
-                                /*fatal=*/true);
-                            return;
-                        }
                         auto wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
                                 [logger, target_path](auto const& msg,
@@ -190,7 +179,6 @@ auto CreateImportToGitMap(
                                         fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
-                                tmp_dir->GetPath(),
                                 target_path.string(),
                                 std::nullopt,
                                 std::vector<std::string>{} /* XXX */,

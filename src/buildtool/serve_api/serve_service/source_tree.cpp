@@ -477,13 +477,6 @@ auto SourceTreeService::CommonImportToGit(
     if (not commit_hash) {
         return result_t(std::in_place_index<0>, err);
     }
-    // create a tmp directory for the fetch to Git CAS
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("import-to-git");
-    if (not tmp_dir) {
-        return result_t(
-            std::in_place_index<0>,
-            std::string("Failed to create tmp path for git import"));
-    }
     // open the Git CAS repo
     auto just_git_cas = GitCAS::Open(StorageConfig::GitRoot());
     if (not just_git_cas) {
@@ -509,8 +502,7 @@ auto SourceTreeService::CommonImportToGit(
         });
     // fetch the new commit into the Git CAS via tmp directory; the call is
     // thread-safe, so it needs no guarding
-    if (not just_git_repo->LocalFetchViaTmpRepo(tmp_dir->GetPath(),
-                                                root_path.string(),
+    if (not just_git_repo->LocalFetchViaTmpRepo(root_path.string(),
                                                 /*branch=*/std::nullopt,
                                                 wrapped_logger)) {
         return result_t(std::in_place_index<0>, err);

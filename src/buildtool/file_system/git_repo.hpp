@@ -272,13 +272,10 @@ class GitRepo {
 
     /// \brief Fetch from given local repository via a temporary location. Uses
     /// tmp dir to fetch asynchronously using libgit2.
-    /// Caller needs to make sure the temporary directory exists and that the
-    /// given path is thread- and process-safe!
     /// Uses either a given branch, or fetches all (with base refspecs).
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto LocalFetchViaTmpRepo(
-        std::filesystem::path const& tmp_dir,
         std::string const& repo_path,
         std::optional<std::string> const& branch,
         anon_logger_ptr const& logger) noexcept -> bool;

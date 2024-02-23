@@ -419,7 +419,6 @@ auto CreateGitTreeFetchMap(
                                         fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
-                                tmp_dir->GetPath(),
                                 target_path.string(),
                                 std::nullopt,
                                 key.inherit_env,
@@ -454,12 +453,8 @@ auto CreateGitTreeFetchMap(
                         critical_git_op_map->ConsumeAfterKeysReady(
                             ts,
                             {std::move(op_key)},
-                            [tmp_dir,  // keep tmp_dir alive
-                             remote_api,
-                             backup_to_remote,
-                             key,
-                             setter,
-                             logger](auto const& values) {
+                            [remote_api, backup_to_remote, key, setter, logger](
+                                auto const& values) {
                                 GitOpValue op_result = *values[0];
                                 // check flag
                                 if (not op_result.result) {
@@ -477,28 +472,21 @@ auto CreateGitTreeFetchMap(
                                 // success
                                 (*setter)(false /*no cache hit*/);
                             },
-                            [logger,
-                             commit = *op_result.result,
-                             target_path = tmp_dir->GetPath()](auto const& msg,
-                                                               bool fatal) {
+                            [logger, commit = *op_result.result](
+                                auto const& msg, bool fatal) {
                                 (*logger)(
                                     fmt::format("While running critical Git op "
-                                                "KEEP_TAG for commit {} in "
-                                                "target {}:\n{}",
+                                                "KEEP_TAG for commit {}:\n{}",
                                                 commit,
-                                                target_path.string(),
                                                 msg),
                                     fatal);
                             });
                     },
-                    [logger, target_path = tmp_dir->GetPath()](auto const& msg,
-                                                               bool fatal) {
-                        (*logger)(
-                            fmt::format("While running critical Git op "
-                                        "INITIAL_COMMIT for target {}:\n{}",
-                                        target_path.string(),
-                                        msg),
-                            fatal);
+                    [logger](auto const& msg, bool fatal) {
+                        (*logger)(fmt::format("While running critical Git op "
+                                              "INITIAL_COMMIT:\n{}",
+                                              msg),
+                                  fatal);
                     });
             },
             [logger, target_path = StorageConfig::GitRoot()](auto const& msg,

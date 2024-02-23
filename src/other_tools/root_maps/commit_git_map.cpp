@@ -29,7 +29,6 @@
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
-#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 
@@ -224,13 +223,6 @@ void NetworkFetchAndSetPresentRoot(
         return;
     }
 
-    // default to fetching from network
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch");
-    if (not tmp_dir) {
-        (*logger)("Failed to create fetch tmp directory!",
-                  /*fatal=*/true);
-        return;
-    }
     // store failed attempts for subsequent logging
     bool fetched{false};
     std::string err_messages{};
@@ -251,8 +243,7 @@ void NetworkFetchAndSetPresentRoot(
                     mirror,
                     msg);
             });
-        if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                      mirror,
+        if (git_repo->FetchViaTmpRepo(mirror,
                                       repo_info.branch,
                                       repo_info.inherit_env,
                                       git_bin,
@@ -284,8 +275,7 @@ void NetworkFetchAndSetPresentRoot(
                                     *preferred_url,
                                     msg);
                             });
-                    if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                                  *preferred_url,
+                    if (git_repo->FetchViaTmpRepo(*preferred_url,
                                                   repo_info.branch,
                                                   repo_info.inherit_env,
                                                   git_bin,
@@ -316,8 +306,7 @@ void NetworkFetchAndSetPresentRoot(
                         fetch_repo,
                         msg);
                 });
-            if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                          fetch_repo,
+            if (git_repo->FetchViaTmpRepo(fetch_repo,
                                           repo_info.branch,
                                           repo_info.inherit_env,
                                           git_bin,
@@ -352,7 +341,6 @@ void NetworkFetchAndSetPresentRoot(
                                                 msg);
                                         });
                                 if (git_repo->FetchViaTmpRepo(
-                                        tmp_dir->GetPath(),
                                         *preferred_mirror,
                                         repo_info.branch,
                                         repo_info.inherit_env,
@@ -386,8 +374,7 @@ void NetworkFetchAndSetPresentRoot(
                                 mirror,
                                 msg);
                         });
-                    if (git_repo->FetchViaTmpRepo(tmp_dir->GetPath(),
-                                                  mirror,
+                    if (git_repo->FetchViaTmpRepo(mirror,
                                                   repo_info.branch,
                                                   repo_info.inherit_env,
                                                   git_bin,
