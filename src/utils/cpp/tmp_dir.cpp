@@ -53,7 +53,7 @@ auto TmpDir::Create(std::filesystem::path const& prefix,
     }
 }
 
-auto TmpDir::GetPath() const noexcept -> std::filesystem::path {
+auto TmpDir::GetPath() const& noexcept -> std::filesystem::path const& {
     return tmp_dir_;
 }
 

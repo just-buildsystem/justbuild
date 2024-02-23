@@ -33,13 +33,15 @@ class TmpDir {
     /// \brief Destroy the TmpDir object. It tries to remove the tmp folder.
     ~TmpDir() noexcept;
 
-    // no copies, only moves
+    // no copies, no moves
     TmpDir(TmpDir const&) = delete;
-    TmpDir(TmpDir&& other) noexcept = default;
+    TmpDir(TmpDir&& other) noexcept = delete;
     auto operator=(TmpDir const&) = delete;
-    auto operator=(TmpDir&& other) noexcept -> TmpDir& = default;
+    auto operator=(TmpDir&& other) noexcept -> TmpDir& = delete;
 
-    [[nodiscard]] auto GetPath() const noexcept -> std::filesystem::path;
+    [[nodiscard]] auto GetPath() const& noexcept
+        -> std::filesystem::path const&;
+    [[nodiscard]] auto GetPath() && = delete;
 
     /// \brief Creates a completely unique directory in a given prefix path.
     [[nodiscard]] static auto Create(
