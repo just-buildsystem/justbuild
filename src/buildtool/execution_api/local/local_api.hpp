@@ -459,6 +459,44 @@ class LocalApi final : public IExecutionApi {
         return result;
     }
 
+    [[nodiscard]] auto SplitBlob(ArtifactDigest const& blob_digest)
+        const noexcept -> std::optional<std::vector<ArtifactDigest>> final {
+        Logger::Log(LogLevel::Debug, "SplitBlob({})", blob_digest.hash());
+        auto split_result = CASUtils::SplitBlobFastCDC(
+            static_cast<bazel_re::Digest>(blob_digest), *storage_);
+        if (std::holds_alternative<grpc::Status>(split_result)) {
+            auto* status = std::get_if<grpc::Status>(&split_result);
+            Logger::Log(LogLevel::Error, status->error_message());
+            return std::nullopt;
+        }
+        auto* chunk_digests =
+            std::get_if<std::vector<bazel_re::Digest>>(&split_result);
+        Logger::Log(LogLevel::Debug, [&blob_digest, &chunk_digests]() {
+            std::stringstream ss{};
+            ss << "Split blob " << blob_digest.hash() << ":"
+               << blob_digest.size() << " into " << chunk_digests->size()
+               << " chunks: [ ";
+            for (auto const& chunk_digest : *chunk_digests) {
+                ss << chunk_digest.hash() << ":" << chunk_digest.size_bytes()
+                   << " ";
+            }
+            ss << "]";
+            return ss.str();
+        });
+        auto artifact_digests = std::vector<ArtifactDigest>{};
+        artifact_digests.reserve(chunk_digests->size());
+        std::transform(
+            chunk_digests->cbegin(),
+            chunk_digests->cend(),
+            std::back_inserter(artifact_digests),
+            [](auto const& digest) { return ArtifactDigest{digest}; });
+        return artifact_digests;
+    }
+
+    [[nodiscard]] auto BlobSplitSupport() const noexcept -> bool final {
+        return true;
+    }
+
     [[nodiscard]] auto SpliceBlob(
         ArtifactDigest const& blob_digest,
         std::vector<ArtifactDigest> const& chunk_digests) const noexcept
