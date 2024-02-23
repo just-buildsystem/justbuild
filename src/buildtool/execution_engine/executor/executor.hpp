@@ -102,10 +102,12 @@ class ExecutorImpl {
         auto alternative_api =
             GetAlternativeEndpoint(properties, dispatch_list);
         if (alternative_api) {
-            if (not api->RetrieveToCas(
+            if (not api->ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
-                        *root_digest, ObjectType::Tree, false}},
-                    &(*alternative_api))) {
+                        *root_digest, ObjectType::Tree, /* failed= */ false}},
+                    &(*alternative_api),
+                    /* jobs= */ 1,
+                    /* use_blob_splitting= */ true)) {
                 Logger::Log(LogLevel::Error,
                             "Failed to sync tree {} to dispatch endpoint",
                             root_digest->hash());

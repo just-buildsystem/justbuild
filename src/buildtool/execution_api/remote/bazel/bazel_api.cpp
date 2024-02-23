@@ -404,7 +404,8 @@ auto BazelApi::CreateAction(
             // no need to regenerate the digest.
             ts.QueueTask(
                 [this, &info, &api, &failure, &info_map, use_blob_splitting]() {
-                    if (use_blob_splitting
+                    if (use_blob_splitting and network_->BlobSplitSupport() and
+                                api->BlobSpliceSupport()
                             ? ::RetrieveToCasSplitted(
                                   info, api, network_, info_map)
                             : ::RetrieveToCas(
