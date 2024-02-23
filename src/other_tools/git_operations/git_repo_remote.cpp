@@ -457,6 +457,13 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
                            env,
                            GetGitPath(),  // which path is not actually relevant
                            tmp_dir);
+
+        if (not command_output) {
+            (*logger)(fmt::format("exec() on command failed."),
+                      /*fatal=*/true);
+            return std::nullopt;
+        }
+
         // output file can be read anyway
         std::string out_str{};
         auto cmd_out = FileSystemManager::ReadFile(command_output->stdout_file);
@@ -464,7 +471,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
             out_str = *cmd_out;
         }
         // check for command failure
-        if (not command_output) {
+        if (command_output->return_value != 0) {
             std::string err_str{};
             auto cmd_err =
                 FileSystemManager::ReadFile(command_output->stderr_file);
@@ -600,7 +607,14 @@ auto GitRepoRemote::FetchViaTmpRepo(std::filesystem::path const& tmp_dir,
         SystemCommand system{repo_url};
         auto const command_output =
             system.Execute(cmdline, env, GetGitPath(), tmp_dir);
+
         if (not command_output) {
+            (*logger)(fmt::format("exec() on command failed."),
+                      /*fatal=*/true);
+            return false;
+        }
+
+        if (command_output->return_value != 0) {
             std::string out_str{};
             std::string err_str{};
             auto cmd_out =
