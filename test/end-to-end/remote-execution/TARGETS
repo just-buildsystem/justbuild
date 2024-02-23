@@ -41,6 +41,12 @@
   , "test": ["dispatch.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "split-splice":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["split-splice"]
+  , "test": ["split-splice.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -51,6 +57,7 @@
     , "install"
     , "install-cas"
     , "dispatch"
+    , "split-splice"
     ]
   }
 }
