@@ -712,6 +712,11 @@ by a JSON object with their intensional description. Therefore, the
 dumped JSON is not uniquely readable, but requires an out-of-band
 understanding where artifacts are to be expected.
 
+**`--dump-result`** *`PATH`*  
+Dump the result of the analysis for the requested target to
+file. *`-`* is treated as stdout. The output is a JSON object with the
+keys *`"artifacts"`*, *`"provides"`*, and *`"runfiles"`*.
+
 **`rebuild`** specific options
 ------------------------------
 

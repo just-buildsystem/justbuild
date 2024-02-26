@@ -91,6 +91,7 @@ struct DiagnosticArguments {
     std::optional<std::string> dump_targets_graph{std::nullopt};
     std::optional<std::string> dump_anonymous{std::nullopt};
     std::optional<std::string> dump_nodes{std::nullopt};
+    std::optional<std::string> dump_result{std::nullopt};
 };
 
 /// \brief Arguments required for specifying build endpoint.
@@ -397,6 +398,10 @@ static inline auto SetupDiagnosticArguments(
     app->add_option("--dump-nodes",
                     clargs->dump_nodes,
                     "Dump nodes of target to file (use - for stdout).")
+        ->type_name("PATH");
+    app->add_option("--dump-result",
+                    clargs->dump_result,
+                    "Dump the result of analyse to file (use - for stdout).")
         ->type_name("PATH");
 }
 

@@ -41,6 +41,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 - The expression language has been extended and, in particular,
   allows indexed access to an arry (basically using it as a tuple)
   and a generic form of assertion (to report user errors).
+- The `analyse` subcommand supports a new flag `--dump-result` to dump
+  the analysis result to a file or stdout (if `-` is given).
 
 ### Fixes
 

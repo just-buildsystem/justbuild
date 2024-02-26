@@ -290,6 +290,23 @@ void DumpNodes(std::string const& file_path, AnalysisResult const& result) {
         os << dump_string << std::endl;
     }
 }
+
+void DumpResult(std::string const& file_path, AnalysisResult const& result) {
+    auto const dump_string = ResultToJson(result.target->Result()).dump();
+    if (file_path == "-") {
+        Logger::Log(
+            LogLevel::Info, "Result of target {}:", result.id.ToString());
+        std::cout << dump_string << std::endl;
+    }
+    else {
+        Logger::Log(LogLevel::Info,
+                    "Dumping result of target {} to file '{}'.",
+                    result.id.ToString(),
+                    file_path);
+        std::ofstream os{file_path};
+        os << dump_string << std::endl;
+    }
+}
 }  // namespace
 
 void DiagnoseResults(AnalysisResult const& result,
@@ -307,6 +324,9 @@ void DiagnoseResults(AnalysisResult const& result,
             2,
             2,
             std::unordered_map<std::string, std::size_t>{{"/provides", 3}}));
+    if (clargs.dump_result) {
+        DumpResult(*clargs.dump_result, result);
+    }
     if (clargs.dump_actions) {
         DumpActions(*clargs.dump_actions, result);
     }

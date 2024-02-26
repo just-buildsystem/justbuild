@@ -49,6 +49,12 @@ cat > TARGETS <<'EOF'
 {"provides": {"type": "provides"}}
 EOF
 
+"${TOOL}" analyse --local-build-root "${BUILDROOT}" \
+          --dump-result "${OUT}/result.json" 2>&1
+cat "${OUT}/result.json"
+[ "$(jq 'has("artifacts")' "${OUT}/result.json")" = true ]
+[ "$(jq 'has("provides")' "${OUT}/result.json")" = true ]
+[ "$(jq 'has("runfiles")' "${OUT}/result.json")" = true ]
 
 "${TOOL}" analyse --local-build-root "${BUILDROOT}" \
           --dump-provides "${OUT}/plain.json" 2>&1
