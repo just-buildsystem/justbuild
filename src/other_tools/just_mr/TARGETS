@@ -113,6 +113,7 @@
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/other_tools/utils", "parse_archive"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "local"]

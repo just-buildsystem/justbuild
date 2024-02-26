@@ -22,6 +22,7 @@
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
+#include "src/other_tools/utils/parse_archive.hpp"
 
 namespace {
 
@@ -206,106 +207,15 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
-    // enforce mandatory fields
-    auto repo_desc_content = repo_desc->At("content");
-    if (not repo_desc_content) {
-        (*logger)("ArchiveCheckout: Mandatory field \"content\" is missing",
-                  /*fatal=*/true);
+    auto archive_repo_info =
+        ParseArchiveDescription(repo_desc, repo_type, repo_name, logger);
+    if (not archive_repo_info) {
         return;
     }
-    if (not repo_desc_content->get()->IsString()) {
-        (*logger)(fmt::format("ArchiveCheckout: Unsupported value {} for "
-                              "mandatory field \"content\"",
-                              repo_desc_content->get()->ToString()),
-                  /*fatal=*/true);
-        return;
-    }
-    auto repo_desc_fetch = repo_desc->At("fetch");
-    if (not repo_desc_fetch) {
-        (*logger)("ArchiveCheckout: Mandatory field \"fetch\" is missing",
-                  /*fatal=*/true);
-        return;
-    }
-    if (not repo_desc_fetch->get()->IsString()) {
-        (*logger)(fmt::format("ArchiveCheckout: Unsupported value {} for "
-                              "mandatory field \"fetch\"",
-                              repo_desc_fetch->get()->ToString()),
-                  /*fatal=*/true);
-        return;
-    }
-    auto repo_desc_subdir = repo_desc->Get("subdir", Expression::none_t{});
-    auto subdir = std::filesystem::path(repo_desc_subdir->IsString()
-                                            ? repo_desc_subdir->String()
-                                            : "")
-                      .lexically_normal();
-    auto repo_desc_distfile = repo_desc->Get("distfile", Expression::none_t{});
-    auto repo_desc_sha256 = repo_desc->Get("sha256", Expression::none_t{});
-    auto repo_desc_sha512 = repo_desc->Get("sha512", Expression::none_t{});
-    // check optional mirrors
-    auto repo_desc_mirrors = repo_desc->Get("mirrors", Expression::list_t{});
-    std::vector<std::string> mirrors{};
-    if (repo_desc_mirrors->IsList()) {
-        mirrors.reserve(repo_desc_mirrors->List().size());
-        for (auto const& elem : repo_desc_mirrors->List()) {
-            if (not elem->IsString()) {
-                (*logger)(fmt::format("ArchiveCheckout: Unsupported list entry "
-                                      "{} in optional field \"mirrors\"",
-                                      elem->ToString()),
-                          /*fatal=*/true);
-                return;
-            }
-            mirrors.emplace_back(elem->String());
-        }
-    }
-    else {
-        (*logger)(fmt::format("ArchiveCheckout: Optional field \"mirrors\" "
-                              "should be a list of strings, but found: {}",
-                              repo_desc_mirrors->ToString()),
-                  /*fatal=*/true);
-        return;
-    }
-    // check "special" pragma
-    auto repo_desc_pragma = repo_desc->At("pragma");
-    bool const& pragma_is_map =
-        repo_desc_pragma and repo_desc_pragma->get()->IsMap();
-    auto pragma_special =
-        pragma_is_map ? repo_desc_pragma->get()->At("special") : std::nullopt;
-    auto pragma_special_value =
-        pragma_special and pragma_special->get()->IsString() and
-                kPragmaSpecialMap.contains(pragma_special->get()->String())
-            ? std::make_optional(
-                  kPragmaSpecialMap.at(pragma_special->get()->String()))
-            : std::nullopt;
-    // check "absent" pragma
-    auto pragma_absent =
-        pragma_is_map ? repo_desc_pragma->get()->At("absent") : std::nullopt;
-    auto pragma_absent_value = pragma_absent and
-                               pragma_absent->get()->IsBool() and
-                               pragma_absent->get()->Bool();
-    // populate struct
-    ArchiveRepoInfo archive_repo_info = {
-        .archive =
-            {.content = repo_desc_content->get()->String(),
-             .distfile = repo_desc_distfile->IsString()
-                             ? std::make_optional(repo_desc_distfile->String())
-                             : std::nullopt,
-             .fetch_url = repo_desc_fetch->get()->String(),
-             .mirrors = std::move(mirrors),
-             .sha256 = repo_desc_sha256->IsString()
-                           ? std::make_optional(repo_desc_sha256->String())
-                           : std::nullopt,
-             .sha512 = repo_desc_sha512->IsString()
-                           ? std::make_optional(repo_desc_sha512->String())
-                           : std::nullopt,
-             .origin = repo_name},
-        .repo_type = repo_type,
-        .subdir = subdir.empty() ? "." : subdir.string(),
-        .pragma_special = pragma_special_value,
-        .absent = pragma_absent_value};
     // get the WS root as git tree
     content_git_map->ConsumeAfterKeysReady(
         ts,
-        {std::move(archive_repo_info)},
+        {std::move(*archive_repo_info)},
         [repos = std::move(repos), repo_name, setter](auto const& values) {
             auto ws_root = values[0]->first;
             nlohmann::json cfg({});

@@ -32,6 +32,7 @@
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
+#include "src/other_tools/utils/parse_archive.hpp"
 
 auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
@@ -196,119 +197,27 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
             // only do work if repo is archive or git tree type
             switch (kCheckoutTypeMap.at(repo_type_str)) {
                 case CheckoutType::Archive: {
-                    // check "absent" pragma
-                    auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
-                    auto pragma_absent =
-                        (repo_desc_pragma and repo_desc_pragma->get()->IsMap())
-                            ? repo_desc_pragma->get()->At("absent")
-                            : std::nullopt;
-                    auto pragma_absent_value =
-                        pragma_absent and pragma_absent->get()->IsBool() and
-                        pragma_absent->get()->Bool();
+                    auto logger = std::make_shared<AsyncMapConsumerLogger>(
+                        [&repo_name](std::string const& msg, bool fatal) {
+                            Logger::Log(
+                                fatal ? LogLevel::Error : LogLevel::Warning,
+                                "While parsing description of repository "
+                                "{}:\n{}",
+                                nlohmann::json(repo_name).dump(),
+                                msg);
+                        });
+
+                    auto archive_repo_info = ParseArchiveDescription(
+                        *resolved_repo_desc, repo_type_str, repo_name, logger);
+                    if (not archive_repo_info) {
+                        return kExitFetchError;
+                    }
                     // only fetch if either archive is not marked absent, or if
                     // explicitly told to fetch absent archives
-                    if (not pragma_absent_value or common_args.fetch_absent) {
-                        // check mandatory fields
-                        auto repo_desc_content =
-                            (*resolved_repo_desc)->At("content");
-                        if (not repo_desc_content) {
-                            Logger::Log(LogLevel::Error,
-                                        "Config: Mandatory field \"content\" "
-                                        "is missing");
-                            return kExitFetchError;
-                        }
-                        if (not repo_desc_content->get()->IsString()) {
-                            Logger::Log(LogLevel::Error,
-                                        "Config: Unsupported value {} for "
-                                        "mandatory field \"content\"",
-                                        repo_desc_content->get()->ToString());
-                            return kExitFetchError;
-                        }
-                        auto repo_desc_fetch =
-                            (*resolved_repo_desc)->At("fetch");
-                        if (not repo_desc_fetch) {
-                            Logger::Log(
-                                LogLevel::Error,
-                                "Config: Mandatory field \"fetch\" is missing");
-                            return kExitFetchError;
-                        }
-                        if (not repo_desc_fetch->get()->IsString()) {
-                            Logger::Log(LogLevel::Error,
-                                        "Config: Unsupported value {} for "
-                                        "mandatory field \"fetch\"",
-                                        repo_desc_fetch->get()->ToString());
-                            return kExitFetchError;
-                        }
-                        auto repo_desc_subdir =
-                            (*resolved_repo_desc)
-                                ->Get("subdir", Expression::none_t{});
-                        auto subdir = std::filesystem::path(
-                                          repo_desc_subdir->IsString()
-                                              ? repo_desc_subdir->String()
-                                              : "")
-                                          .lexically_normal();
-                        auto repo_desc_distfile =
-                            (*resolved_repo_desc)
-                                ->Get("distfile", Expression::none_t{});
-                        auto repo_desc_sha256 =
-                            (*resolved_repo_desc)
-                                ->Get("sha256", Expression::none_t{});
-                        auto repo_desc_sha512 =
-                            (*resolved_repo_desc)
-                                ->Get("sha512", Expression::none_t{});
-                        auto repo_desc_mirrors =
-                            (*resolved_repo_desc)
-                                ->Get("mirrors", Expression::list_t{});
-                        std::vector<std::string> mirrors{};
-                        if (repo_desc_mirrors->IsList()) {
-                            mirrors.reserve(repo_desc_mirrors->List().size());
-                            for (auto const& elem : repo_desc_mirrors->List()) {
-                                if (not elem->IsString()) {
-                                    Logger::Log(
-                                        LogLevel::Error,
-                                        "Config: Unsupported list entry {} in "
-                                        "optional field \"mirrors\"",
-                                        elem->ToString());
-                                    return kExitFetchError;
-                                }
-                                mirrors.emplace_back(elem->String());
-                            }
-                        }
-                        else {
-                            Logger::Log(LogLevel::Error,
-                                        "Config: Optional field \"mirrors\" "
-                                        "should be a list of strings, but "
-                                        "found: {}",
-                                        repo_desc_mirrors->ToString());
-                            return kExitFetchError;
-                        }
-
-                        ArchiveRepoInfo archive_info = {
-                            .archive =
-                                {.content = repo_desc_content->get()->String(),
-                                 .distfile =
-                                     repo_desc_distfile->IsString()
-                                         ? std::make_optional(
-                                               repo_desc_distfile->String())
-                                         : std::nullopt,
-                                 .fetch_url = repo_desc_fetch->get()->String(),
-                                 .mirrors = std::move(mirrors),
-                                 .sha256 = repo_desc_sha256->IsString()
-                                               ? std::make_optional(
-                                                     repo_desc_sha256->String())
-                                               : std::nullopt,
-                                 .sha512 = repo_desc_sha512->IsString()
-                                               ? std::make_optional(
-                                                     repo_desc_sha512->String())
-                                               : std::nullopt,
-                                 .origin = repo_name},
-                            .repo_type = repo_type_str,
-                            .subdir = subdir.empty() ? "." : subdir.string(),
-                            .pragma_special = std::nullopt,  // not used
-                            .absent = false                  // not used
-                        };
-                        // add to list
-                        archives_to_fetch.emplace_back(std::move(archive_info));
+                    if (not archive_repo_info->absent or
+                        common_args.fetch_absent) {
+                        archives_to_fetch.emplace_back(
+                            std::move(*archive_repo_info));
                     }
                 } break;
                 case CheckoutType::GitTree: {

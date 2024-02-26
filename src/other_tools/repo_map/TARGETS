@@ -22,6 +22,7 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
+    , ["src/other_tools/utils", "parse_archive"]
     ]
   }
 }

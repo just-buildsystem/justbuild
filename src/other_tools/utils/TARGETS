@@ -46,4 +46,15 @@
     ]
   , "stage": ["src", "other_tools", "utils"]
   }
+, "parse_archive":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["parse_archive"]
+  , "hdrs": ["parse_archive.hpp"]
+  , "srcs": ["parse_archive.cpp"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/other_tools/ops_maps", "content_cas_map"]
+    ]
+  , "stage": ["src", "other_tools", "utils"]
+  }
 }
