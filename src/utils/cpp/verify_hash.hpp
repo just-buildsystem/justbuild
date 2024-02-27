@@ -24,6 +24,7 @@
 /// \brief Check if the passed string \p s is a hash.
 /// This function is mainly used to check that the hash of a Digest received
 /// over the wire is a real hash, to prevent a malicious attack.
+/// \returns Nullopt on success, error message on failure.
 [[nodiscard]] static inline auto IsAHash(std::string const& s) noexcept
     -> std::optional<std::string> {
     if (!std::all_of(s.begin(), s.end(), [](unsigned char c) {
