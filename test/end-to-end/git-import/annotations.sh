@@ -85,6 +85,7 @@ echo
 echo Sanity check: can build
 echo
 "${JUST_MR}" --norc --just "${JUST}" \
+             -L '["env", "PATH='"${PATH}"'"]' \
              -C repos.json \
              --local-build-root "${LBR}" \
              install -o "${OUT}" 2>&1
