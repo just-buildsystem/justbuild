@@ -155,13 +155,21 @@ nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
      {{"root", "system"}, {"path", "etc/just-repos.json"}}});
 
 /// \brief Checkout type enum
-enum class CheckoutType : std::uint8_t { Git, Archive, File, Distdir, GitTree };
+enum class CheckoutType : std::uint8_t {
+    Git,
+    Archive,
+    ForeignFile,
+    File,
+    Distdir,
+    GitTree
+};
 
 /// \brief Checkout type map
 std::unordered_map<std::string, CheckoutType> const kCheckoutTypeMap = {
     {"git", CheckoutType::Git},
     {"archive", CheckoutType::Archive},
     {"zip", CheckoutType::Archive},  // treated the same as "archive"
+    {"foreign file", CheckoutType::ForeignFile},
     {"file", CheckoutType::File},
     {"distdir", CheckoutType::Distdir},
     {"git tree", CheckoutType::GitTree}};

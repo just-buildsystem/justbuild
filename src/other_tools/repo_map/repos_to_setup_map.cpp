@@ -239,6 +239,47 @@ void ArchiveCheckout(ExpressionPtr const& repo_desc,
         });
 }
 
+/// \brief Perform checkout for an archive type repository.
+/// Guarantees the logger is called exactly once with fatal if a failure occurs.
+void ForeignFileCheckout(
+    ExpressionPtr const& repo_desc,
+    ExpressionPtr&& repos,
+    std::string const& repo_name,
+    gsl::not_null<ForeignFileGitMap*> const& foreign_file_git_map,
+    gsl::not_null<TaskSystem*> const& ts,
+    ReposToSetupMap::SetterPtr const& setter,
+    ReposToSetupMap::LoggerPtr const& logger) {
+    auto foreign_file_repo_info =
+        ParseForeignFileDescription(repo_desc, repo_name, logger);
+    if (not foreign_file_repo_info) {
+        return;
+    }
+    // get the WS root as git tree
+    foreign_file_git_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(*foreign_file_repo_info)},
+        [repos = std::move(repos), repo_name, setter](auto const& values) {
+            auto ws_root = values[0]->first;
+            nlohmann::json cfg({});
+            cfg["workspace_root"] = ws_root;
+            SetReposTakeOver(&cfg, repos, repo_name);
+            if (values[0]->second) {
+                JustMRStatistics::Instance().IncrementCacheHitsCounter();
+            }
+            else {
+                JustMRStatistics::Instance().IncrementExecutedCounter();
+            }
+            (*setter)(std::move(cfg));
+        },
+        [logger, repo_name](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While setting the workspace root for "
+                                  "foreign-file repository {}:\n{}",
+                                  nlohmann::json(repo_name).dump(),
+                                  msg),
+                      fatal);
+        });
+}
+
 /// \brief Perform checkout for a file type repository.
 /// Guarantees the logger is called exactly once with fatal if a failure occurs.
 void FileCheckout(ExpressionPtr const& repo_desc,
@@ -719,21 +760,24 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
 
 }  // namespace
 
-auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
-                           std::optional<std::string> const& main,
-                           bool interactive,
-                           gsl::not_null<CommitGitMap*> const& commit_git_map,
-                           gsl::not_null<ContentGitMap*> const& content_git_map,
-                           gsl::not_null<FilePathGitMap*> const& fpath_git_map,
-                           gsl::not_null<DistdirGitMap*> const& distdir_git_map,
-                           gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
-                           bool fetch_absent,
-                           std::size_t jobs) -> ReposToSetupMap {
+auto CreateReposToSetupMap(
+    std::shared_ptr<Configuration> const& config,
+    std::optional<std::string> const& main,
+    bool interactive,
+    gsl::not_null<CommitGitMap*> const& commit_git_map,
+    gsl::not_null<ContentGitMap*> const& content_git_map,
+    gsl::not_null<ForeignFileGitMap*> const& foreign_file_git_map,
+    gsl::not_null<FilePathGitMap*> const& fpath_git_map,
+    gsl::not_null<DistdirGitMap*> const& distdir_git_map,
+    gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+    bool fetch_absent,
+    std::size_t jobs) -> ReposToSetupMap {
     auto setup_repo = [config,
                        main,
                        interactive,
                        commit_git_map,
                        content_git_map,
+                       foreign_file_git_map,
                        fpath_git_map,
                        distdir_git_map,
                        tree_id_git_map,
@@ -846,6 +890,16 @@ auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
                                     ts,
                                     setter,
                                     wrapped_logger);
+                    break;
+                }
+                case CheckoutType::ForeignFile: {
+                    ForeignFileCheckout(*resolved_repo_desc,
+                                        std::move(repos),
+                                        key,
+                                        foreign_file_git_map,
+                                        ts,
+                                        setter,
+                                        wrapped_logger);
                     break;
                 }
                 case CheckoutType::File: {

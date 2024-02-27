@@ -208,6 +208,13 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             common_args.fetch_absent,
                             common_args.jobs);
 
+    auto foreign_file_git_map =
+        CreateForeignFileGitMap(&content_cas_map,
+                                &import_to_git_map,
+                                serve_api_exists,
+                                common_args.fetch_absent,
+                                common_args.jobs);
+
     auto fpath_git_map = CreateFilePathGitMap(
         just_cmd_args.subcmd_name,
         &critical_git_op_map,
@@ -250,6 +257,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                                     interactive,
                                                     &commit_git_map,
                                                     &content_git_map,
+                                                    &foreign_file_git_map,
                                                     &fpath_git_map,
                                                     &distdir_git_map,
                                                     &tree_id_git_map,

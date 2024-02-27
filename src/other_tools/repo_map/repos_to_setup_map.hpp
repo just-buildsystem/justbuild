@@ -24,6 +24,7 @@
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 #include "src/other_tools/root_maps/content_git_map.hpp"
 #include "src/other_tools/root_maps/distdir_git_map.hpp"
+#include "src/other_tools/root_maps/foreign_file_git_map.hpp"
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 #include "src/other_tools/root_maps/tree_id_git_map.hpp"
 
@@ -31,15 +32,17 @@
 /// root and the TAKE_OVER fields.
 using ReposToSetupMap = AsyncMapConsumer<std::string, nlohmann::json>;
 
-auto CreateReposToSetupMap(std::shared_ptr<Configuration> const& config,
-                           std::optional<std::string> const& main,
-                           bool interactive,
-                           gsl::not_null<CommitGitMap*> const& commit_git_map,
-                           gsl::not_null<ContentGitMap*> const& content_git_map,
-                           gsl::not_null<FilePathGitMap*> const& fpath_git_map,
-                           gsl::not_null<DistdirGitMap*> const& distdir_git_map,
-                           gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
-                           bool fetch_absent,
-                           std::size_t jobs) -> ReposToSetupMap;
+auto CreateReposToSetupMap(
+    std::shared_ptr<Configuration> const& config,
+    std::optional<std::string> const& main,
+    bool interactive,
+    gsl::not_null<CommitGitMap*> const& commit_git_map,
+    gsl::not_null<ContentGitMap*> const& content_git_map,
+    gsl::not_null<ForeignFileGitMap*> const& foreign_file_git_map,
+    gsl::not_null<FilePathGitMap*> const& fpath_git_map,
+    gsl::not_null<DistdirGitMap*> const& distdir_git_map,
+    gsl::not_null<TreeIdGitMap*> const& tree_id_git_map,
+    bool fetch_absent,
+    std::size_t jobs) -> ReposToSetupMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP
