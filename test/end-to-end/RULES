@@ -12,6 +12,7 @@
     , "TEST_ENV"
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
+    , "TIMEOUT_SCALE"
     ]
   , "field_doc":
     { "test":
@@ -50,6 +51,8 @@
       , "If the remote execution service requires additional arguments, they can be listed"
       , "in the list of strings named \"args\"."
       ]
+    , "TIMEOUT_SCALE":
+      ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
@@ -222,6 +225,7 @@
     , "RUNS_PER_TEST"
     , "TEST_ENV"
     , "TEST_COMPATIBLE_REMOTE"
+    , "TIMEOUT_SCALE"
     ]
   , "field_doc":
     { "test":
@@ -263,6 +267,8 @@
     , "TEST_ENV": ["The environment for executing the test runner."]
     , "TEST_COMPATIBLE_REMOTE":
       ["If true, run the remote execution in compatible mode."]
+    , "TIMEOUT_SCALE":
+      ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
     }
   , "tainted": ["test"]
   , "artifacts_doc":

@@ -11,6 +11,7 @@
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
+    , "TIMEOUT_SCALE"
     ]
   , "imports":
     { "artifacts_list": ["@", "rules", "", "field_artifacts_list"]
@@ -127,6 +128,8 @@
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
+        , "timeout scaling":
+          {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}
         , "may_fail": ["test"]
         , "fail_message":
           { "type": "join"
@@ -151,6 +154,8 @@
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
+        , "timeout scaling":
+          {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}
         , "may_fail": ["test"]
         , "no_cache": ["test"]
         , "fail_message":
@@ -181,6 +186,7 @@
     , "transition"
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
+    , "TIMEOUT_SCALE"
     ]
   , "imports": {"action": "test-action"}
   , "expression":
