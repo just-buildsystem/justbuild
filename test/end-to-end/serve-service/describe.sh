@@ -15,6 +15,8 @@
 
 set -eu
 
+env
+
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR1="${TEST_TMPDIR}/local-build-root-1"

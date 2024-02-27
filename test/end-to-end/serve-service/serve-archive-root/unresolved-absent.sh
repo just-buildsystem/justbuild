@@ -23,6 +23,8 @@
 
 set -eu
 
+env
+
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly DISTDIR="${TEST_TMPDIR}/distfiles"
