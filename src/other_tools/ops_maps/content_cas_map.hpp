@@ -61,6 +61,18 @@ struct ArchiveRepoInfo {
     }
 };
 
+struct ForeignFileInfo {
+    ArchiveContent archive{}; /* key */
+    std::string name{};       /* key */
+    bool executable{};        /* key */
+    bool absent{};            /* key */
+
+    [[nodiscard]] auto operator==(const ForeignFileInfo& other) const -> bool {
+        return archive == other.archive and name == other.name and
+               executable == other.executable and absent == other.absent;
+    }
+};
+
 /// \brief Maps the content hash of an archive to nullptr, as we only care if
 /// the map fails or not.
 using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
@@ -94,6 +106,19 @@ struct hash<ArchiveRepoInfo> {
         hash_combine<std::string>(&seed, ct.repo_type);
         hash_combine<std::string>(&seed, ct.subdir);
         hash_combine<std::optional<PragmaSpecial>>(&seed, ct.pragma_special);
+        hash_combine<bool>(&seed, ct.absent);
+        return seed;
+    }
+};
+
+template <>
+struct hash<ForeignFileInfo> {
+    [[nodiscard]] auto operator()(const ForeignFileInfo& ct) const noexcept
+        -> std::size_t {
+        size_t seed{};
+        hash_combine<ArchiveContent>(&seed, ct.archive);
+        hash_combine<std::string>(&seed, ct.name);
+        hash_combine<bool>(&seed, ct.executable);
         hash_combine<bool>(&seed, ct.absent);
         return seed;
     }

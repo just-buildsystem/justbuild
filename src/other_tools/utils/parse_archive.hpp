@@ -30,4 +30,12 @@ auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
                              const AsyncMapConsumerLoggerPtr& logger)
     -> std::optional<ArchiveRepoInfo>;
 
+// Parse the description of a foreign-file repository; if an error
+// occurs, call the logger with fatal set to true and return std::nullopt
+// instead.
+auto ParseForeignFileDescription(ExpressionPtr const& repo_desc,
+                                 std::string const& origin,
+                                 const AsyncMapConsumerLoggerPtr& logger)
+    -> std::optional<ForeignFileInfo>;
+
 #endif

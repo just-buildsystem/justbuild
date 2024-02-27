@@ -55,6 +55,7 @@
     [ ["src/buildtool/build_engine/expression", "expression"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     ]
+  , "private-deps": [["@", "fmt", "", "fmt"]]
   , "stage": ["src", "other_tools", "utils"]
   }
 }

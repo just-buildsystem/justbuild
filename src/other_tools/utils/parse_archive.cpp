@@ -14,6 +14,8 @@
 
 #include "src/other_tools/utils/parse_archive.hpp"
 
+#include "fmt/core.h"
+
 namespace {
 auto ParseArchiveContent(ExpressionPtr const& repo_desc,
                          std::string const& origin,
@@ -89,6 +91,17 @@ auto ParseArchiveContent(ExpressionPtr const& repo_desc,
                       : std::nullopt,
         .origin = origin};
 }
+
+auto IsValidFileName(const std::string& s) -> bool {
+    if (s.find_first_of("/\0") != std::string::npos) {
+        return false;
+    }
+    if (s.empty() or s == "." or s == "..") {
+        return false;
+    }
+    return true;
+}
+
 }  // namespace
 
 auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
@@ -130,4 +143,56 @@ auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
                            .subdir = subdir.empty() ? "." : subdir.string(),
                            .pragma_special = pragma_special_value,
                            .absent = pragma_absent_value};
+}
+
+auto ParseForeignFileDescription(ExpressionPtr const& repo_desc,
+                                 std::string const& origin,
+                                 const AsyncMapConsumerLoggerPtr& logger)
+    -> std::optional<ForeignFileInfo> {
+    auto archive_content = ParseArchiveContent(repo_desc, origin, logger);
+    if (not archive_content) {
+        return std::nullopt;
+    }
+    auto name = repo_desc->At("name");
+    if (not name) {
+        (*logger)(
+            "Mandatory field \"name\" for foreign file repository is missing",
+            true);
+        return std::nullopt;
+    }
+    if (not name->get()->IsString()) {
+        (*logger)(fmt::format("Field \"name\" has to be a file name, given as "
+                              "string, but found {}",
+                              name->get()->ToString()),
+                  true);
+        return std::nullopt;
+    }
+    if (not IsValidFileName(name->get()->String())) {
+        (*logger)(fmt::format("Field \"name\" has to be valid a file name, but "
+                              "found {}",
+                              name->get()->ToString()),
+                  true);
+        return std::nullopt;
+    }
+    auto executable = repo_desc->Get("executable", Expression::kFalse);
+    if (not executable->IsBool()) {
+        (*logger)(fmt::format(
+                      "Field \"executable\" has to be a boolean, but found {}",
+                      executable->ToString()),
+                  true);
+        return std::nullopt;
+    }
+    bool absent{};
+    auto pragma = repo_desc->Get("pragma", Expression::kEmptyMap);
+    if (pragma->IsMap()) {
+        auto pragma_absent = pragma->Get("absent", Expression::kFalse);
+        if (pragma_absent->IsBool()) {
+            absent = pragma_absent->Bool();
+        }
+    }
+
+    return ForeignFileInfo{.archive = *archive_content,
+                           .name = name->get()->String(),
+                           .executable = executable->Bool(),
+                           .absent = absent};
 }
