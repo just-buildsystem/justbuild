@@ -41,11 +41,22 @@
   , "test": ["dispatch.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
-, "split-splice":
+, "split-splice (raw)":
   { "type": ["end-to-end", "with remote"]
   , "name": ["split-splice"]
   , "test": ["split-splice.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
+  }
+, "split-splice":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "split-splice (raw)"
+  , "arguments_config": ["TIMEOUT_SCALE"]
+  , "config":
+    { "type": "singleton_map"
+    , "key": "TIMEOUT_SCALE"
+    , "value": {"type": "var", "name": "TIMEOUT_SCALE", "default": 10}
+    }
   }
 , "TESTS":
   { "type": "install"
