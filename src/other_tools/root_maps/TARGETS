@@ -131,6 +131,29 @@
     , ["src/utils/archive", "archive_ops"]
     ]
   }
+, "foreign_file_git_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["foreign_file_git_map"]
+  , "hdrs": ["foreign_file_git_map.hpp"]
+  , "srcs": ["foreign_file_git_map.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
+    , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
+    ]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "tmp_dir"]
+    , "root_utils"
+    ]
+  , "stage": ["src", "other_tools", "root_maps"]
+  }
 , "tree_id_git_map":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["tree_id_git_map"]
