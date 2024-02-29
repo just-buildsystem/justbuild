@@ -23,7 +23,7 @@
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 /// \brief Maps an archive content hash to a status flag.
-using ArchiveFetchMap = AsyncMapConsumer<ArchiveRepoInfo, bool>;
+using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
 
 [[nodiscard]] auto CreateArchiveFetchMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,

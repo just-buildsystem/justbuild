@@ -132,7 +132,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     Logger::Log(LogLevel::Info, "Fetching to {}", fetch_dir->string());
 
     // gather all repos to be fetched
-    std::vector<ArchiveRepoInfo> archives_to_fetch{};
+    std::vector<ArchiveContent> archives_to_fetch{};
     std::vector<GitTreeInfo> git_trees_to_fetch{};
     archives_to_fetch.reserve(
         fetch_repos->to_include.size());  // pre-reserve a maximum size
@@ -217,7 +217,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     if (not archive_repo_info->absent or
                         common_args.fetch_absent) {
                         archives_to_fetch.emplace_back(
-                            std::move(*archive_repo_info));
+                            archive_repo_info->archive);
                     }
                 } break;
                 case CheckoutType::GitTree: {

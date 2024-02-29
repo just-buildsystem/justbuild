@@ -82,19 +82,18 @@ auto CreateArchiveFetchMap(
                              auto const& key) {
         // get corresponding distfile
         auto distfile =
-            (key.archive.distfile ? key.archive.distfile.value()
-                                  : std::filesystem::path(key.archive.fetch_url)
-                                        .filename()
-                                        .string());
+            (key.distfile
+                 ? key.distfile.value()
+                 : std::filesystem::path(key.fetch_url).filename().string());
         auto target_name = fetch_dir / distfile;
         // make sure content is in CAS
         content_cas_map->ConsumeAfterKeysReady(
             ts,
-            {key.archive},
+            {key},
             [target_name,
              local_api,
              remote_api,
-             content = key.archive.content,
+             content = key.content,
              setter,
              logger]([[maybe_unused]] auto const& values) {
                 // content is in local CAS now
@@ -111,8 +110,7 @@ auto CreateArchiveFetchMap(
                                setter,
                                logger);
             },
-            [logger, content = key.archive.content](auto const& msg,
-                                                    bool fatal) {
+            [logger, content = key.content](auto const& msg, bool fatal) {
                 (*logger)(
                     fmt::format("While ensuring content {} is in CAS:\n{}",
                                 content,
@@ -120,5 +118,5 @@ auto CreateArchiveFetchMap(
                     fatal);
             });
     };
-    return AsyncMapConsumer<ArchiveRepoInfo, bool>(fetch_archive, jobs);
+    return AsyncMapConsumer<ArchiveContent, bool>(fetch_archive, jobs);
 }
