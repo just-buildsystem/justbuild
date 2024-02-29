@@ -32,7 +32,7 @@
 
 namespace {
 
-void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) {
+void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
     bool use_tls{false};
     if (authargs.tls_ca_cert) {
         use_tls = true;
@@ -237,7 +237,7 @@ auto ReadConfiguration(
 
 auto GetRemoteApi(std::optional<std::string> const& remote_exec_addr,
                   std::optional<std::string> const& remote_serve_addr,
-                  MultiRepoRemoteAuthArguments const& auth)
+                  MultiRepoRemoteAuthArguments const& auth) noexcept
     -> IExecutionApi::Ptr {
     // if only a serve endpoint address is given, we assume it is one that acts
     // also as remote-execution
@@ -262,7 +262,7 @@ auto GetRemoteApi(std::optional<std::string> const& remote_exec_addr,
 }
 
 auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
-                   MultiRepoRemoteAuthArguments const& auth) -> bool {
+                   MultiRepoRemoteAuthArguments const& auth) noexcept -> bool {
     if (remote_serve_addr) {
         // setup authentication
         SetupAuthConfig(auth);

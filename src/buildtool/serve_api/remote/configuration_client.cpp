@@ -14,13 +14,14 @@
 
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 
+#include <exception>
 #include <optional>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 
-auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
+auto ConfigurationClient::CheckServeRemoteExecution() noexcept -> bool {
     auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
     if (!client_remote_address) {
         logger_.Emit(LogLevel::Error,
@@ -46,49 +47,60 @@ auto ConfigurationClient::CheckServeRemoteExecution() -> bool {
         LogStatus(&logger_, LogLevel::Error, status);
         return false;
     }
-    auto client_msg = client_remote_address->ToJson().dump();
-    std::string serve_msg{};
 
-    if (response.address().empty()) {
-        // just serve acts as just execute, so from the server's perspective
-        // there is nothing to be checked and it's the client's job to ensure
-        // that its remote execution and serve endpoints match
-        //
-        // NOTE: This check might make sense to be removed altogether in the
-        // future, or updated to (at most) a warning.
-        if (client_remote_address->ToJson() == client_serve_address->ToJson()) {
-            return true;
+    try {
+        auto client_msg = client_remote_address->ToJson().dump();
+        std::string serve_msg{};
+
+        if (response.address().empty()) {
+            // just serve acts as just execute, so from the server's perspective
+            // there is nothing to be checked and it's the client's job to
+            // ensure that its remote execution and serve endpoints match
+            //
+            // NOTE: This check might make sense to be removed altogether in the
+            // future, or updated to (at most) a warning.
+            if (client_remote_address->ToJson() ==
+                client_serve_address->ToJson()) {
+                return true;
+            }
+            serve_msg = client_serve_address->ToJson().dump();
         }
-        serve_msg = client_serve_address->ToJson().dump();
+        else {
+            nlohmann::json serve_remote_endpoint{};
+            try {
+                serve_remote_endpoint =
+                    nlohmann::json::parse(response.address());
+            } catch (std::exception const& ex) {
+                logger_.Emit(
+                    LogLevel::Error,
+                    "Parsing configured address from response failed with:\n{}",
+                    ex.what());
+            }
+            if (serve_remote_endpoint == client_remote_address->ToJson()) {
+                return true;
+            }
+            serve_msg = serve_remote_endpoint.dump();
+        }
+        // log any mismatch found
+        logger_.Emit(
+            LogLevel::Error,
+            "Different execution endpoint detected!\nIn order to correctly use "
+            "the serve service, its remote execution endpoint must be the same "
+            "used by the client.\nserve remote endpoint:  {}\nclient remote "
+            "endpoint: {}",
+            serve_msg,
+            client_msg);
+
+    } catch (std::exception const& ex) {
+        logger_.Emit(
+            LogLevel::Error,
+            "parsing response for remote endpoint request failed with:\n{}",
+            ex.what());
     }
-    else {
-        nlohmann::json serve_remote_endpoint{};
-        try {
-            serve_remote_endpoint = nlohmann::json::parse(response.address());
-        } catch (std::exception const& ex) {
-            logger_.Emit(
-                LogLevel::Error,
-                "Parsing configured address from response failed with:\n{}",
-                ex.what());
-        }
-        if (serve_remote_endpoint == client_remote_address->ToJson()) {
-            return true;
-        }
-        serve_msg = serve_remote_endpoint.dump();
-    }
-    // log any mismatch found
-    logger_.Emit(
-        LogLevel::Error,
-        "Different execution endpoint detected!\nIn order to correctly use "
-        "the serve service, its remote execution endpoint must be the same "
-        "used by the client.\nserve remote endpoint:  {}\nclient remote "
-        "endpoint: {}",
-        serve_msg,
-        client_msg);
     return false;
 }
 
-auto ConfigurationClient::IsCompatible() -> std::optional<bool> {
+auto ConfigurationClient::IsCompatible() noexcept -> std::optional<bool> {
     grpc::ClientContext context;
     justbuild::just_serve::CompatibilityRequest request{};
     justbuild::just_serve::CompatibilityResponse response{};

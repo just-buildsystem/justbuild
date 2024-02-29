@@ -66,13 +66,13 @@ void DefaultReachableRepositories(
 [[nodiscard]] auto GetRemoteApi(
     std::optional<std::string> const& remote_exec_addr,
     std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) -> IExecutionApi::Ptr;
+    MultiRepoRemoteAuthArguments const& auth) noexcept -> IExecutionApi::Ptr;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
 /// \returns Flag stating whether a serve API is available or not.
 [[nodiscard]] auto SetupServeApi(
     std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) -> bool;
+    MultiRepoRemoteAuthArguments const& auth) noexcept -> bool;
 
 }  // namespace Utils
 

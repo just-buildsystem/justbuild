@@ -14,6 +14,7 @@
 
 #include "src/buildtool/serve_api/remote/target_client.hpp"
 
+#include <exception>
 #include <utility>
 
 #include "nlohmann/json.hpp"
@@ -26,7 +27,7 @@ TargetClient::TargetClient(std::string const& server, Port port) noexcept {
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,
-                               const std::string& repo_key)
+                               const std::string& repo_key) noexcept
     -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
     // make sure the blob containing the key is in the remote cas
     if (!local_api_->RetrieveToCas({key.Id()}, &*remote_api_)) {
@@ -58,15 +59,22 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
         prop->set_value(v);
     }
 
-    // add dispatch information to request, while ensuring blob is uploaded to
-    // remote cas
+    // add dispatch information to request, while ensuring blob is uploaded
+    // to remote cas
     auto dispatch_list = nlohmann::json::array();
-    for (auto const& [props, endpoint] :
-         RemoteExecutionConfig::DispatchList()) {
-        auto entry = nlohmann::json::array();
-        entry.push_back(nlohmann::json(props));
-        entry.push_back(endpoint.ToJson());
-        dispatch_list.push_back(entry);
+    try {
+        for (auto const& [props, endpoint] :
+             RemoteExecutionConfig::DispatchList()) {
+            auto entry = nlohmann::json::array();
+            entry.push_back(nlohmann::json(props));
+            entry.push_back(endpoint.ToJson());
+            dispatch_list.push_back(entry);
+        }
+    } catch (std::exception const& ex) {
+        logger_.Emit(LogLevel::Performance,
+                     "populating dispatch JSON array failed with:\n{}",
+                     ex.what());
+        return std::nullopt;
     }
 
     auto dispatch_dgst =
@@ -95,6 +103,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
         LogStatus(&logger_, LogLevel::Performance, status);
         return std::nullopt;
     }
+
     auto const& target_value_dgst = ArtifactDigest{response.target_value()};
     auto const& obj_info = Artifact::ObjectInfo{.digest = target_value_dgst,
                                                 .type = ObjectType::File};
@@ -114,15 +123,21 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                      obj_info.ToString());
         return std::nullopt;
     }
-    auto const& result =
-        TargetCacheEntry::FromJson(nlohmann::json::parse(*target_value_str));
-
-    return std::make_pair(result, obj_info);
+    try {
+        auto const& result = TargetCacheEntry::FromJson(
+            nlohmann::json::parse(*target_value_str));
+        return std::make_pair(result, obj_info);
+    } catch (std::exception const& ex) {
+        logger_.Emit(LogLevel::Performance,
+                     "parsing target cache value failed with:\n{}",
+                     ex.what());
+        return std::nullopt;
+    }
 }
 
 auto TargetClient::ServeTargetVariables(std::string const& target_root_id,
                                         std::string const& target_file,
-                                        std::string const& target)
+                                        std::string const& target) noexcept
     -> std::optional<std::vector<std::string>> {
     justbuild::just_serve::ServeTargetVariablesRequest request{};
     request.set_root_tree(target_root_id);
@@ -152,7 +167,7 @@ auto TargetClient::ServeTargetVariables(std::string const& target_root_id,
 
 auto TargetClient::ServeTargetDescription(std::string const& target_root_id,
                                           std::string const& target_file,
-                                          std::string const& target)
+                                          std::string const& target) noexcept
     -> std::optional<ArtifactDigest> {
     justbuild::just_serve::ServeTargetDescriptionRequest request{};
     request.set_root_tree(target_root_id);

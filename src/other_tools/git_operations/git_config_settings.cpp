@@ -67,8 +67,8 @@ struct ConfigKeyMatchCompare {
 /// in a more permissive way, mirroring what git and curl internally do, then
 /// returns the reconstructed URL if parsing succeeded, or a nullopt ProxyInfo.
 /// Returns nullopt on unexpected errors.
-[[nodiscard]] auto GetProxyAsPermissiveUrl(std::string const& proxy_url)
-    -> std::optional<ProxyInfo> {
+[[nodiscard]] auto GetProxyAsPermissiveUrl(
+    std::string const& proxy_url) noexcept -> std::optional<ProxyInfo> {
     // parse proxy string with permissive options:
     // use_non_support_scheme allows for non-standard schemes to be parsed;
     // use_guess_scheme tries to figure out the scheme from the hostname if none

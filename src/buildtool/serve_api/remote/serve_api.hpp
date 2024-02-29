@@ -44,7 +44,7 @@ class ServeApi final {
     [[nodiscard]] static auto RetrieveTreeFromCommit(
         std::string const& commit,
         std::string const& subdir = ".",
-        bool sync_tree = false) -> std::variant<bool, std::string> {
+        bool sync_tree = false) noexcept -> std::variant<bool, std::string> {
         return Instance().stc_->ServeCommitTree(commit, subdir, sync_tree);
     }
 
@@ -53,7 +53,7 @@ class ServeApi final {
         std::string const& archive_type = "archive",
         std::string const& subdir = ".",
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
-        bool sync_tree = false) -> std::variant<bool, std::string> {
+        bool sync_tree = false) noexcept -> std::variant<bool, std::string> {
         return Instance().stc_->ServeArchiveTree(
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
@@ -61,34 +61,35 @@ class ServeApi final {
     [[nodiscard]] static auto RetrieveTreeFromDistdir(
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,
-        bool sync_tree = false) -> std::variant<bool, std::string> {
+        bool sync_tree = false) noexcept -> std::variant<bool, std::string> {
         return Instance().stc_->ServeDistdirTree(distfiles, sync_tree);
     }
 
-    [[nodiscard]] static auto ContentInRemoteCAS(std::string const& content)
-        -> bool {
+    [[nodiscard]] static auto ContentInRemoteCAS(
+        std::string const& content) noexcept -> bool {
         return Instance().stc_->ServeContent(content);
     }
 
-    [[nodiscard]] static auto TreeInRemoteCAS(std::string const& tree_id)
-        -> bool {
+    [[nodiscard]] static auto TreeInRemoteCAS(
+        std::string const& tree_id) noexcept -> bool {
         return Instance().stc_->ServeTree(tree_id);
     }
 
-    [[nodiscard]] static auto CheckRootTree(std::string const& tree_id)
+    [[nodiscard]] static auto CheckRootTree(std::string const& tree_id) noexcept
         -> std::optional<bool> {
         return Instance().stc_->CheckRootTree(tree_id);
     }
 
-    [[nodiscard]] static auto GetTreeFromRemote(std::string const& tree_id)
-        -> bool {
+    [[nodiscard]] static auto GetTreeFromRemote(
+        std::string const& tree_id) noexcept -> bool {
         return Instance().stc_->GetRemoteTree(tree_id);
     }
 
     [[nodiscard]] static auto ServeTargetVariables(
         std::string const& target_root_id,
         std::string const& target_file,
-        std::string const& target) -> std::optional<std::vector<std::string>> {
+        std::string const& target) noexcept
+        -> std::optional<std::vector<std::string>> {
         return Instance().tc_->ServeTargetVariables(
             target_root_id, target_file, target);
     }
@@ -96,22 +97,22 @@ class ServeApi final {
     [[nodiscard]] static auto ServeTargetDescription(
         std::string const& target_root_id,
         std::string const& target_file,
-        std::string const& target) -> std::optional<ArtifactDigest> {
+        std::string const& target) noexcept -> std::optional<ArtifactDigest> {
         return Instance().tc_->ServeTargetDescription(
             target_root_id, target_file, target);
     }
 
     [[nodiscard]] static auto ServeTarget(const TargetCacheKey& key,
-                                          const std::string& repo_key)
+                                          const std::string& repo_key) noexcept
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
         return Instance().tc_->ServeTarget(key, repo_key);
     }
 
-    [[nodiscard]] static auto CheckServeRemoteExecution() -> bool {
+    [[nodiscard]] static auto CheckServeRemoteExecution() noexcept -> bool {
         return Instance().cc_->CheckServeRemoteExecution();
     }
 
-    [[nodiscard]] static auto IsCompatible() -> std::optional<bool> {
+    [[nodiscard]] static auto IsCompatible() noexcept -> std::optional<bool> {
         return Instance().cc_->IsCompatible();
     }
 

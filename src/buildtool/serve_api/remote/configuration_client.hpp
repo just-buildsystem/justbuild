@@ -34,9 +34,9 @@ class ConfigurationClient {
         : stub_{justbuild::just_serve::Configuration::NewStub(
               CreateChannelWithCredentials(server, port))} {}
 
-    auto CheckServeRemoteExecution() -> bool;
+    [[nodiscard]] auto CheckServeRemoteExecution() noexcept -> bool;
 
-    [[nodiscard]] auto IsCompatible() -> std::optional<bool>;
+    [[nodiscard]] auto IsCompatible() noexcept -> std::optional<bool>;
 
   private:
     std::unique_ptr<justbuild::just_serve::Configuration::Stub> stub_;

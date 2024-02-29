@@ -42,7 +42,7 @@ class TargetClient {
     /// \param[in] repo_key The RepositoryKey to upload as precondition
     /// \returns Pair of cache entry and its object info on success or nullopt.
     [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
-                                   const std::string& repo_key)
+                                   const std::string& repo_key) noexcept
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
 
     /// \brief Retrieve the flexible config variables of an export target.
@@ -52,7 +52,7 @@ class TargetClient {
     /// \returns The list of flexible config variables, or nullopt on errors.
     [[nodiscard]] auto ServeTargetVariables(std::string const& target_root_id,
                                             std::string const& target_file,
-                                            std::string const& target)
+                                            std::string const& target) noexcept
         -> std::optional<std::vector<std::string>>;
 
     /// \brief Retrieve the artifact digest of the blob containing the export
@@ -61,10 +61,10 @@ class TargetClient {
     /// \param[in] target_file Relative path of the target file.
     /// \param[in] target Name of the target to interrogate.
     /// \returns The artifact digest, or nullopt on errors.
-    [[nodiscard]] auto ServeTargetDescription(std::string const& target_root_id,
-                                              std::string const& target_file,
-                                              std::string const& target)
-        -> std::optional<ArtifactDigest>;
+    [[nodiscard]] auto ServeTargetDescription(
+        std::string const& target_root_id,
+        std::string const& target_file,
+        std::string const& target) noexcept -> std::optional<ArtifactDigest>;
 
   private:
     std::unique_ptr<justbuild::just_serve::Target::Stub> stub_;
