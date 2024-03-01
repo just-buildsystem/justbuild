@@ -70,7 +70,8 @@
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "path"]
     , "config"
     , "storage"

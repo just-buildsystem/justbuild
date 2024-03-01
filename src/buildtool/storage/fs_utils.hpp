@@ -49,6 +49,13 @@ namespace StorageUtils {
                                         std::string const& content) noexcept
     -> std::filesystem::path;
 
+/// \brief Get the path to the file storing the tree id of an archive
+/// content.
+[[nodiscard]] auto GetForeignFileTreeIDFile(std::string const& content,
+                                            std::string const& name,
+                                            bool executable) noexcept
+    -> std::filesystem::path;
+
 /// \brief Get the path to the file storing the tree id of a distdir list
 /// content.
 [[nodiscard]] auto GetDistdirTreeIDFile(std::string const& content) noexcept

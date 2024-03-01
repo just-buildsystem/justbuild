@@ -14,6 +14,10 @@
 
 #include "src/buildtool/storage/fs_utils.hpp"
 
+#include <unordered_map>
+#include <utility>
+
+#include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -61,6 +65,19 @@ auto GetArchiveTreeIDFile(std::string const& repo_type,
                           std::string const& content) noexcept
     -> std::filesystem::path {
     return StorageConfig::BuildRoot() / "tree-map" / repo_type / content;
+}
+
+auto GetForeignFileTreeIDFile(std::string const& content,
+                              std::string const& name,
+                              bool executable) noexcept
+    -> std::filesystem::path {
+    return GetDistdirTreeIDFile(
+        HashFunction::ComputeBlobHash(
+            nlohmann::json(
+                std::unordered_map<std::string, std::pair<std::string, bool>>{
+                    {name, {content, executable}}})
+                .dump())
+            .HexString());
 }
 
 auto GetDistdirTreeIDFile(std::string const& content) noexcept
