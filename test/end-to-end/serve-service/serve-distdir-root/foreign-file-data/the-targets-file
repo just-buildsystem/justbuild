@@ -1,0 +1,8 @@
+{ "": {"type": "export", "target": "to_upper"}
+, "to_upper":
+  { "type": "generic"
+  , "outs": ["out.txt"]
+  , "cmds": ["cat hello.txt | tr a-z A-Z > out.txt"]
+  , "deps": ["hello.txt"]
+  }
+}
