@@ -167,7 +167,8 @@ auto CurlURLHandle::Create(std::string const& url) noexcept
         auto rc = curl_url_set(handle, CURLUPART_URL, url.c_str(), 0U);
         if (rc != CURLUE_OK) {
             Logger::Log(LogLevel::Debug,
-                        "CurlURLHandle: parsing URL failed with:\n{}",
+                        "CurlURLHandle: parsing URL {} failed with:\n{}",
+                        url,
                         curl_url_strerror(rc));
             curl_url_cleanup(handle);
             return nullptr;

@@ -545,6 +545,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
         auto const& tmp_path = tmp_dir->GetPath();
         // check for internally supported protocols
         if (IsSupported(repo_url)) {
+            Logger::Log(LogLevel::Debug, "Try fetch from URL {}", repo_url);
             // preferably with a "fake" repository!
             if (not IsRepoFake()) {
                 Logger::Log(LogLevel::Debug,
