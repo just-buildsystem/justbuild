@@ -220,6 +220,28 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             archive_repo_info->archive);
                     }
                 } break;
+                case CheckoutType::ForeignFile: {
+                    auto logger = std::make_shared<AsyncMapConsumerLogger>(
+                        [&repo_name](std::string const& msg, bool fatal) {
+                            Logger::Log(
+                                fatal ? LogLevel::Error : LogLevel::Warning,
+                                "While parsing description of repository "
+                                "{}:\n{}",
+                                nlohmann::json(repo_name).dump(),
+                                msg);
+                        });
+
+                    auto repo_info = ParseForeignFileDescription(
+                        *resolved_repo_desc, repo_name, logger);
+                    if (not repo_info) {
+                        return kExitFetchError;
+                    }
+                    // only fetch if either archive is not marked absent, or if
+                    // explicitly told to fetch absent archives
+                    if (not repo_info->absent or common_args.fetch_absent) {
+                        archives_to_fetch.emplace_back(repo_info->archive);
+                    }
+                } break;
                 case CheckoutType::GitTree: {
                     // check "absent" pragma
                     auto repo_desc_pragma = (*resolved_repo_desc)->At("pragma");
