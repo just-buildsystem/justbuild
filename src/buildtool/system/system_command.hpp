@@ -39,31 +39,26 @@
 /// commands. This class is not thread-safe.
 class SystemCommand {
   public:
-    struct ExecOutput {
-        int return_value{};
-        std::filesystem::path stdout_file{};
-        std::filesystem::path stderr_file{};
-    };
-
     /// \brief Create execution system with name.
     explicit SystemCommand(std::string name) : logger_{std::move(name)} {}
 
     /// \brief Execute command and arguments.
+    /// Stdout and stderr can be read from files named 'stdout' and 'stderr'
+    /// created in `outdir`. Those files must not exist before the execution.
     /// \param argv     argv vector with the command to execute
     /// \param env      Environment variables set for execution.
     /// \param cwd      Working directory for execution.
-    /// \param tmpdir   Temporary directory for storing stdout/stderr files.
-    /// \returns std::nullopt if there was an error in the execution setup
-    /// outside running the command itself, SystemCommand::ExecOutput otherwise.
+    /// \param outdir   Directory for storing stdout/stderr files.
+    /// \returns The command's exit code, or std::nullopt on execution error.
     [[nodiscard]] auto Execute(std::vector<std::string> argv,
                                std::map<std::string, std::string> env,
                                std::filesystem::path const& cwd,
-                               std::filesystem::path const& tmpdir) noexcept
-        -> std::optional<ExecOutput> {
-        if (not FileSystemManager::IsDirectory(tmpdir)) {
+                               std::filesystem::path const& outdir) noexcept
+        -> std::optional<int> {
+        if (not FileSystemManager::IsDirectory(outdir)) {
             logger_.Emit(LogLevel::Error,
-                         "Temporary directory does not exist {}",
-                         tmpdir.string());
+                         "Output directory does not exist {}",
+                         outdir.string());
             return std::nullopt;
         }
 
@@ -82,7 +77,7 @@ class SystemCommand {
                            return name_value.first + "=" + name_value.second;
                        });
         std::vector<char*> envp = UnwrapStrings(&env_string);
-        return ExecuteCommand(cmd.data(), envp.data(), cwd, tmpdir);
+        return ExecuteCommand(cmd.data(), envp.data(), cwd, outdir);
     }
 
   private:
@@ -104,24 +99,21 @@ class SystemCommand {
     /// \param cmd      Command arguments as char pointer array.
     /// \param envp     Environment variables as char pointer array.
     /// \param cwd      Working directory for execution.
-    /// \param tmpdir   Temporary directory for storing stdout/stderr files.
+    /// \param outdir   Directory for storing stdout/stderr files.
     /// \returns ExecOutput if command was successfully submitted to the system.
     /// \returns std::nullopt on internal failure.
     [[nodiscard]] auto ExecuteCommand(
         char* const* cmd,
         char* const* envp,
         std::filesystem::path const& cwd,
-        std::filesystem::path const& tmpdir) noexcept
-        -> std::optional<ExecOutput> {
-        auto stdout_file = tmpdir / "stdout";
-        auto stderr_file = tmpdir / "stderr";
+        std::filesystem::path const& outdir) noexcept -> std::optional<int> {
+        auto stdout_file = outdir / "stdout";
+        auto stderr_file = outdir / "stderr";
         if (auto const out = OpenFile(stdout_file)) {
             if (auto const err = OpenFile(stderr_file)) {
                 if (auto retval = ForkAndExecute(
                         cmd, envp, cwd, fileno(out.get()), fileno(err.get()))) {
-                    return ExecOutput{.return_value = *retval,
-                                      .stdout_file = std::move(stdout_file),
-                                      .stderr_file = std::move(stderr_file)};
+                    return *retval;
                 }
             }
             else {

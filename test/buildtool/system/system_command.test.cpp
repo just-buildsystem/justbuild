@@ -53,9 +53,9 @@ TEST_CASE("SystemCommand", "[filesystem]") {
         auto output = system.Execute(
             {"echo"}, {}, FileSystemManager::GetCurrentDirectory(), tmpdir);
         REQUIRE(output.has_value());
-        CHECK(output->return_value == 0);
-        CHECK(*FileSystemManager::ReadFile(output->stdout_file) == "\n");
-        CHECK(FileSystemManager::ReadFile(output->stderr_file)->empty());
+        CHECK(*output == 0);
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stdout") == "\n");
+        CHECK(FileSystemManager::ReadFile(tmpdir / "stderr")->empty());
     }
 
     SECTION(
@@ -68,10 +68,10 @@ TEST_CASE("SystemCommand", "[filesystem]") {
                                      FileSystemManager::GetCurrentDirectory(),
                                      tmpdir);
         REQUIRE(output.has_value());
-        CHECK(output->return_value == 0);
-        CHECK(*FileSystemManager::ReadFile(output->stdout_file) ==
+        CHECK(*output == 0);
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stdout") ==
               "${MY_MESSAGE}\n");
-        CHECK(FileSystemManager::ReadFile(output->stderr_file)->empty());
+        CHECK(FileSystemManager::ReadFile(tmpdir / "stderr")->empty());
 
         tmpdir = testdir / "simple_env1";
         REQUIRE(FileSystemManager::CreateDirectoryExclusive(tmpdir));
@@ -81,11 +81,9 @@ TEST_CASE("SystemCommand", "[filesystem]") {
                            FileSystemManager::GetCurrentDirectory(),
                            tmpdir);
         REQUIRE(output_wrapped.has_value());
-        CHECK(output_wrapped->return_value == 0);
-        CHECK(*FileSystemManager::ReadFile(output_wrapped->stdout_file) ==
-              "hello\n");
-        CHECK(
-            FileSystemManager::ReadFile(output_wrapped->stderr_file)->empty());
+        CHECK(*output_wrapped == 0);
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stdout") == "hello\n");
+        CHECK(FileSystemManager::ReadFile(tmpdir / "stderr")->empty());
     }
 
     SECTION("executable, producing std output, std error and return value") {
@@ -99,10 +97,10 @@ TEST_CASE("SystemCommand", "[filesystem]") {
             FileSystemManager::GetCurrentDirectory(),
             tmpdir);
         REQUIRE(output.has_value());
-        CHECK(output->return_value == 5);
-        CHECK(*FileSystemManager::ReadFile(output->stdout_file) ==
+        CHECK(*output == 5);
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stdout") ==
               "this is stdout\n");
-        CHECK(*FileSystemManager::ReadFile(output->stderr_file) ==
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stderr") ==
               "this is stderr\n");
     }
 
@@ -121,10 +119,8 @@ TEST_CASE("SystemCommand", "[filesystem]") {
             FileSystemManager::GetCurrentDirectory(),
             tmpdir);
         REQUIRE(output.has_value());
-        CHECK(output->return_value == 5);
-        CHECK(*FileSystemManager::ReadFile(output->stdout_file) ==
-              stdout + '\n');
-        CHECK(*FileSystemManager::ReadFile(output->stderr_file) ==
-              stderr + '\n');
+        CHECK(*output == 5);
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stdout") == stdout + '\n');
+        CHECK(*FileSystemManager::ReadFile(tmpdir / "stderr") == stderr + '\n');
     }
 }

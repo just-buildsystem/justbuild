@@ -459,13 +459,13 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
         }
         // set up the system command
         SystemCommand system{repo_url};
-        auto const command_output =
+        auto const exit_code =
             system.Execute(cmdline,
                            env,
                            GetGitPath(),  // which path is not actually relevant
                            tmp_path);
 
-        if (not command_output) {
+        if (not exit_code) {
             (*logger)(fmt::format("exec() on command failed."),
                       /*fatal=*/true);
             return std::nullopt;
@@ -473,15 +473,14 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
 
         // output file can be read anyway
         std::string out_str{};
-        auto cmd_out = FileSystemManager::ReadFile(command_output->stdout_file);
+        auto cmd_out = FileSystemManager::ReadFile(tmp_path / "stdout");
         if (cmd_out) {
             out_str = *cmd_out;
         }
         // check for command failure
-        if (command_output->return_value != 0) {
+        if (*exit_code != 0) {
             std::string err_str{};
-            auto cmd_err =
-                FileSystemManager::ReadFile(command_output->stderr_file);
+            auto cmd_err = FileSystemManager::ReadFile(tmp_path / "stderr");
 
             if (cmd_err) {
                 err_str = *cmd_err;
@@ -618,22 +617,20 @@ auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
         }
         // run command
         SystemCommand system{repo_url};
-        auto const command_output =
+        auto const exit_code =
             system.Execute(cmdline, env, GetGitPath(), tmp_path);
 
-        if (not command_output) {
+        if (not exit_code) {
             (*logger)(fmt::format("exec() on command failed."),
                       /*fatal=*/true);
             return false;
         }
 
-        if (command_output->return_value != 0) {
+        if (*exit_code != 0) {
             std::string out_str{};
             std::string err_str{};
-            auto cmd_out =
-                FileSystemManager::ReadFile(command_output->stdout_file);
-            auto cmd_err =
-                FileSystemManager::ReadFile(command_output->stderr_file);
+            auto cmd_out = FileSystemManager::ReadFile(tmp_path / "stdout");
+            auto cmd_err = FileSystemManager::ReadFile(tmp_path / "stderr");
             if (cmd_out) {
                 out_str = *cmd_out;
             }

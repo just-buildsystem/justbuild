@@ -145,17 +145,17 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     std::copy(cmdline_.begin(), cmdline_.end(), std::back_inserter(cmdline));
 
     SystemCommand system{"LocalExecution"};
-    auto const command_output =
+    auto const exit_code =
         system.Execute(cmdline, env_vars_, build_root, *exec_path);
-    if (command_output.has_value()) {
+    if (exit_code.has_value()) {
         Output result{};
-        result.action.set_exit_code(command_output->return_value);
+        result.action.set_exit_code(*exit_code);
         if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromOwnedFile(command_output->stdout_file)) {
+                DigestFromOwnedFile(*exec_path / "stdout")) {
             result.action.set_allocated_stdout_digest(digest_ptr);
         }
         if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromOwnedFile(command_output->stderr_file)) {
+                DigestFromOwnedFile(*exec_path / "stderr")) {
             result.action.set_allocated_stderr_digest(digest_ptr);
         }
 

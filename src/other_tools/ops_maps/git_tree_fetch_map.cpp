@@ -289,9 +289,9 @@ auto CreateGitTreeFetchMap(
                         env[k] = std::string(v);
                     }
                 }
-                auto const command_output = system.Execute(
+                auto const exit_code = system.Execute(
                     cmdline, env, tmp_dir->GetPath(), out_dir->GetPath());
-                if (not command_output) {
+                if (not exit_code) {
                     (*logger)(fmt::format("Failed to execute command:\n{}",
                                           nlohmann::json(cmdline).dump()),
                               /*fatal=*/true);
@@ -315,7 +315,6 @@ auto CreateGitTreeFetchMap(
                      critical_git_op_map,
                      just_git_cas = op_result.git_cas,
                      cmdline,
-                     command_output,
                      key,
                      git_bin,
                      launcher,
@@ -361,9 +360,9 @@ auto CreateGitTreeFetchMap(
                             std::string out_str{};
                             std::string err_str{};
                             auto cmd_out = FileSystemManager::ReadFile(
-                                command_output->stdout_file);
+                                out_dir->GetPath() / "stdout");
                             auto cmd_err = FileSystemManager::ReadFile(
-                                command_output->stderr_file);
+                                out_dir->GetPath() / "stderr");
                             if (cmd_out) {
                                 out_str = *cmd_out;
                             }
