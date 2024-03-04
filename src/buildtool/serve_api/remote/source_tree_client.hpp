@@ -79,6 +79,14 @@ class SourceTreeClient {
             distfiles,
         bool sync_tree) noexcept -> result_t;
 
+    /// \brief Retrieve the Git tree of a foreign-file directory, if all content
+    /// blobs are known to the end point and, as a side effect, make that tree
+    /// known to the serve endpoint.
+    [[nodiscard]] auto ServeForeignFileTree(const std::string& content,
+                                            const std::string& name,
+                                            bool executable) noexcept
+        -> result_t;
+
     /// \brief Make a given content blob available in remote CAS, if known by
     /// serve remote.
     /// \param[in] content Hash of the archive content to look up.

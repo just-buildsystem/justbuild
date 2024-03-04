@@ -65,6 +65,13 @@ class ServeApi final {
         return Instance().stc_->ServeDistdirTree(distfiles, sync_tree);
     }
 
+    [[nodiscard]] static auto RetrieveTreeFromForeignFile(
+        const std::string& content,
+        const std::string& name,
+        bool executable) noexcept -> std::variant<bool, std::string> {
+        return Instance().stc_->ServeForeignFileTree(content, name, executable);
+    }
+
     [[nodiscard]] static auto ContentInRemoteCAS(
         std::string const& content) noexcept -> bool {
         return Instance().stc_->ServeContent(content);

@@ -157,6 +157,37 @@ auto SourceTreeClient::ServeDistdirTree(
     return response.tree();  // success
 }
 
+auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
+                                            const std::string& name,
+                                            bool executable) noexcept
+    -> result_t {
+    justbuild::just_serve::ServeDistdirTreeRequest request{};
+    auto* distfile = request.add_distfiles();
+    distfile->set_name(name);
+    distfile->set_content(content);
+    distfile->set_executable(executable);
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ServeDistdirTreeResponse response;
+    grpc::Status status = stub_->ServeDistdirTree(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return true;  // fatal failure
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::ServeDistdirTreeResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ServeDistdirTree called for foreign file response "
+                     "returned with {}",
+                     static_cast<int>(response.status()));
+        return /*fatal = */ (
+            response.status() !=
+            ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND);
+    }
+    return response.tree();  // success
+}
+
 auto SourceTreeClient::ServeContent(std::string const& content) noexcept
     -> bool {
     justbuild::just_serve::ServeContentRequest request{};
