@@ -24,6 +24,7 @@ A feature release on top of `1.2.0`, backwards compatible.
   allowing to specify the invocation of the shell (defaulting to
   `["sh", "-c"]`).
 - `just describe` also shows the values of the implicit dependencies.
+- `just-mr` supports a new form of root, called `"foreign file"`.
 - When `just-mr` executes the action to generate the desired tree of a
   `"git tree"` repository, it can be specified that certain variables
   of the environment can be inherited.
