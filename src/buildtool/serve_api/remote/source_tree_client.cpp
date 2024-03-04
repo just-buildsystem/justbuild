@@ -133,6 +133,7 @@ auto SourceTreeClient::ServeDistdirTree(
         auto* distfile = request.add_distfiles();
         distfile->set_name(k);
         distfile->set_content(v);
+        distfile->set_executable(false);
     }
     request.set_sync_tree(sync_tree);
 

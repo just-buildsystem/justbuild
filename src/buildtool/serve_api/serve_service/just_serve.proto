@@ -138,6 +138,10 @@ message ServeDistdirTreeRequest {
 
     // The git blob identifier of the distfile content.
     string content = 2;
+
+    // Whether the blob should occur executable in the resulting
+    // directory.
+    bool executable = 3;
   }
 
   // The list of distfiles.

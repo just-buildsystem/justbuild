@@ -847,7 +847,8 @@ auto SourceTreeService::ServeArchiveTree(
 auto SourceTreeService::DistdirImportToGit(
     std::string const& distdir_tree_id,
     std::string const& content_id,
-    std::unordered_map<std::string, std::string> const& content_list,
+    std::unordered_map<std::string, std::pair<std::string, bool>> const&
+        content_list,
     bool sync_tree,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
     // create tmp directory for the distdir
@@ -866,8 +867,9 @@ auto SourceTreeService::DistdirImportToGit(
                         content_list.end(),
                         [&cas, tmp_path](auto const& kv) {
                             auto content_path = cas.BlobPath(
-                                ArtifactDigest(kv.second, 0, /*is_tree=*/false),
-                                /*is_executable=*/false);
+                                ArtifactDigest(
+                                    kv.second.first, 0, /*is_tree=*/false),
+                                kv.second.second);
                             if (content_path) {
                                 return FileSystemManager::CreateFileHardlink(
                                     *content_path,  // from: cas_path/content_id
@@ -962,7 +964,8 @@ auto SourceTreeService::ServeDistdirTree(
 
     bool blob_found{};
     auto const& cas = Storage::Instance().CAS();
-    std::unordered_map<std::string, std::string> content_list{};
+    std::unordered_map<std::string, std::pair<std::string, bool>>
+        content_list{};
     content_list.reserve(request->distfiles().size());
 
     for (auto const& kv : request->distfiles()) {
@@ -970,8 +973,8 @@ auto SourceTreeService::ServeDistdirTree(
         // check content blob is known
         auto digest = ArtifactDigest(content, 0, /*is_tree=*/false);
         // first check the local CAS itself
-        if (blob_found = static_cast<bool>(
-                cas.BlobPath(digest, /*is_executable=*/false));
+        if (blob_found =
+                static_cast<bool>(cas.BlobPath(digest, kv.executable()));
             not blob_found) {
             // check local Git cache
             auto res =
@@ -979,7 +982,7 @@ auto SourceTreeService::ServeDistdirTree(
             if (std::holds_alternative<std::string>(res)) {
                 // add content to local CAS
                 if (not cas.StoreBlob(std::get<std::string>(res),
-                                      /*is_executable=*/false)) {
+                                      kv.executable())) {
                     auto str = fmt::format(
                         "Failed to store content {} from local Git cache to "
                         "local CAS",
@@ -1010,7 +1013,7 @@ auto SourceTreeService::ServeDistdirTree(
                     if (std::holds_alternative<std::string>(res)) {
                         // add content to local CAS
                         if (not cas.StoreBlob(std::get<std::string>(res),
-                                              /*is_executable=*/false)) {
+                                              kv.executable())) {
                             auto str = fmt::format(
                                 "Failed to store content {} from known "
                                 "repository {} to local CAS",
@@ -1049,7 +1052,9 @@ auto SourceTreeService::ServeDistdirTree(
                         if (not remote_api_->RetrieveToCas(
                                 {Artifact::ObjectInfo{
                                     .digest = digest_clone,
-                                    .type = ObjectType::File}},
+                                    .type = kv.executable()
+                                                ? ObjectType::Executable
+                                                : ObjectType::File}},
                                 &(*local_api_))) {
                             auto str = fmt::format(
                                 "Failed to retrieve content {} from remote to "
@@ -1074,7 +1079,9 @@ auto SourceTreeService::ServeDistdirTree(
         }
         // store content blob to the entries list, using the expected raw id
         if (auto raw_id = FromHexString(content)) {
-            entries[*raw_id].emplace_back(kv.name(), ObjectType::File);
+            entries[*raw_id].emplace_back(
+                kv.name(),
+                kv.executable() ? ObjectType::Executable : ObjectType::File);
         }
         else {
             auto str = fmt::format(
@@ -1085,7 +1092,8 @@ auto SourceTreeService::ServeDistdirTree(
             return ::grpc::Status::OK;
         }
         // store to content_list for import-to-git hardlinking
-        content_list.insert_or_assign(kv.name(), kv.content());
+        content_list.insert_or_assign(
+            kv.name(), std::make_pair(kv.content(), kv.executable()));
     }
     // get hash of distdir content; this must match with that in just-mr
     auto content_id =

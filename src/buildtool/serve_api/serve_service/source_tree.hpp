@@ -20,6 +20,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -207,7 +208,8 @@ class SourceTreeService final
     [[nodiscard]] auto DistdirImportToGit(
         std::string const& tree_id,
         std::string const& content_id,
-        std::unordered_map<std::string, std::string> const& content_list,
+        std::unordered_map<std::string, std::pair<std::string, bool>> const&
+            content_list,
         bool sync_tree,
         ServeDistdirTreeResponse* response) -> ::grpc::Status;
 };

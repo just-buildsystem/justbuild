@@ -367,6 +367,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                                pragma_absent->get()->IsBool() and
                                pragma_absent->get()->Bool();
     // map of distfile to content
+    auto distdir_content_for_id = std::make_shared<
+        std::unordered_map<std::string, std::pair<std::string, bool>>>();
     auto distdir_content =
         std::make_shared<std::unordered_map<std::string, std::string>>();
     // get distdir list
@@ -534,6 +536,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                                   : std::filesystem::path(archive.fetch_url)
                                         .filename()
                                         .string());
+            distdir_content_for_id->insert_or_assign(
+                repo_distfile, std::make_pair(archive.content, false));
             distdir_content->insert_or_assign(repo_distfile, archive.content);
             // add to fetch list
             dist_repos_to_fetch->emplace_back(std::move(archive));
@@ -541,7 +545,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     }
     // get hash of distdir content
     auto distdir_content_id =
-        HashFunction::ComputeBlobHash(nlohmann::json(*distdir_content).dump())
+        HashFunction::ComputeBlobHash(
+            nlohmann::json(*distdir_content_for_id).dump())
             .HexString();
     // get the WS root as git tree
     DistdirInfo distdir_info = {
