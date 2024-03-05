@@ -215,8 +215,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
 
-        *(response->mutable_target_value()) =
-            std::move(target_entry->second.digest);
+        response->mutable_target_value()->CopyFrom(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
 
@@ -506,8 +505,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
         // set response
-        *(response->mutable_target_value()) =
-            std::move(target_entry->second.digest);
+        response->mutable_target_value()->CopyFrom(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
 
@@ -841,7 +839,7 @@ auto TargetService::ServeTargetDescription(
         }
 
         // populate response
-        *(response->mutable_description_id()) = *dgst;
+        response->mutable_description_id()->CopyFrom(*dgst);
         return ::grpc::Status::OK;
     }
     // failed to store blob

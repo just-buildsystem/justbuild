@@ -50,7 +50,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     // add target cache key to request
     bazel_re::Digest key_dgst{key.Id().digest};
     justbuild::just_serve::ServeTargetRequest request{};
-    *(request.mutable_target_cache_key_id()) = std::move(key_dgst);
+    request.mutable_target_cache_key_id()->CopyFrom(key_dgst);
 
     // add execution properties to request
     for (auto const& [k, v] : RemoteExecutionConfig::PlatformProperties()) {
@@ -93,7 +93,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                      dispatch_info.ToString());
         return std::nullopt;
     }
-    *(request.mutable_dispatch_info()) = std::move(*dispatch_dgst);
+    request.mutable_dispatch_info()->CopyFrom(*dispatch_dgst);
 
     // call rpc
     grpc::ClientContext context;
