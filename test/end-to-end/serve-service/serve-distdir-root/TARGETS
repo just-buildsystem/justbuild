@@ -58,16 +58,6 @@
   { "type": "install"
   , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
   , "tainted": ["test"]
-  , "deps":
-    { "type": "++"
-    , "$1":
-      [ ["present", "absent", "upload"]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
-        , "then": []
-        , "else": ["foreign-file"]
-        }
-      ]
-    }
+  , "deps": ["present", "absent", "upload", "foreign-file"]
   }
 }

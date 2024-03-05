@@ -24,7 +24,12 @@ readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly DATA_DIR="${PWD}/foreign-file-data"
 readonly OUT="${TEST_TMPDIR}/out"
 
-ENDPOINT_ARGS="-r ${REMOTE_EXECUTION_ADDRESS} -R ${SERVE}"
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
+ENDPOINT_ARGS="-r ${REMOTE_EXECUTION_ADDRESS} -R ${SERVE} ${COMPAT}"
 echo
 echo Will use endpoint arguments ${ENDPOINT_ARGS}
 
