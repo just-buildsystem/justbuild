@@ -54,8 +54,6 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool supports_remote_properties{false};
     bool supports_serve{false};
     bool supports_dispatch{false};
-    bool supports_cacert{false};
-    bool supports_client_auth{false};
     std::optional<std::filesystem::path> mr_config_path{std::nullopt};
 
     std::optional<LockFile> lock{};
@@ -95,9 +93,6 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             kKnownJustSubcommands.at(*subcommand).remote_props;
         supports_serve = kKnownJustSubcommands.at(*subcommand).serve;
         supports_dispatch = kKnownJustSubcommands.at(*subcommand).dispatch;
-        supports_cacert = kKnownJustSubcommands.at(*subcommand).cacert;
-        supports_client_auth =
-            kKnownJustSubcommands.at(*subcommand).client_auth;
     }
     // build just command
     std::vector<std::string> cmd = {common_args.just_path->string()};
@@ -163,28 +158,19 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back(overlay_config.ToString());
         }
     }
-    // forward remote execution arguments
-    if (supports_remote and (common_args.compatible == true)) {
-        cmd.emplace_back("--compatible");
-    }
-    if (supports_remote and common_args.remote_execution_address) {
-        cmd.emplace_back("-r");
-        cmd.emplace_back(*common_args.remote_execution_address);
-    }
-    if (supports_dispatch and just_cmd_args.endpoint_configuration) {
-        cmd.emplace_back("--endpoint-configuration");
-        cmd.emplace_back(*just_cmd_args.endpoint_configuration);
-    }
-    if (supports_serve and common_args.remote_serve_address) {
-        cmd.emplace_back("-R");
-        cmd.emplace_back(*common_args.remote_serve_address);
-    }
-    // forward mutual TLS arguments
-    if (supports_cacert and auth_args.tls_ca_cert) {
-        cmd.emplace_back("--tls-ca-cert");
-        cmd.emplace_back(auth_args.tls_ca_cert->string());
-    }
-    if (supports_client_auth) {
+    // forward remote execution and mutual TLS arguments
+    if (supports_remote) {
+        if (common_args.compatible == true) {
+            cmd.emplace_back("--compatible");
+        }
+        if (common_args.remote_execution_address) {
+            cmd.emplace_back("-r");
+            cmd.emplace_back(*common_args.remote_execution_address);
+        }
+        if (auth_args.tls_ca_cert) {
+            cmd.emplace_back("--tls-ca-cert");
+            cmd.emplace_back(auth_args.tls_ca_cert->string());
+        }
         if (auth_args.tls_client_cert) {
             cmd.emplace_back("--tls-client-cert");
             cmd.emplace_back(auth_args.tls_client_cert->string());
@@ -193,6 +179,14 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back("--tls-client-key");
             cmd.emplace_back(auth_args.tls_client_key->string());
         }
+    }
+    if (supports_dispatch and just_cmd_args.endpoint_configuration) {
+        cmd.emplace_back("--endpoint-configuration");
+        cmd.emplace_back(*just_cmd_args.endpoint_configuration);
+    }
+    if (supports_serve and common_args.remote_serve_address) {
+        cmd.emplace_back("-R");
+        cmd.emplace_back(*common_args.remote_serve_address);
     }
     // forward-only arguments, still to come before the just-arguments
     if (supports_remote_properties) {

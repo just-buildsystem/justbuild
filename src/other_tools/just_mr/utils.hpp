@@ -49,12 +49,10 @@ struct JustSubCmdFlags {
     bool build_root;    // supports the local build root arg
     bool launch;        // supports the local launcher arg
     bool defines;       // supports defines arg
-    bool remote;        // supports remote exec args
+    bool remote;        // supports remote exec args, including client-side auth
     bool remote_props;  // supports remote-execution properties
     bool serve;         // supports a serve endpoint
     bool dispatch;      // supports dispatching of the remote-execution endpoint
-    bool cacert;        // supports CA cert arg
-    bool client_auth;   // supports client auth args
 };
 
 // ordered, so that we have replicability
@@ -67,9 +65,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = false,
       .remote_props = false,
       .serve = false,
-      .dispatch = false,
-      .cacert = false,
-      .client_auth = false}},
+      .dispatch = false}},
     {"describe",
      {.config = true,
       .build_root = true,
@@ -78,9 +74,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = false,
       .serve = true,
-      .dispatch = false,
-      .cacert = false,
-      .client_auth = false}},
+      .dispatch = false}},
     {"analyse",
      {.config = true,
       .build_root = true,
@@ -89,9 +83,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = true,
       .serve = true,
-      .dispatch = true,
-      .cacert = false,
-      .client_auth = false}},
+      .dispatch = true}},
     {"build",
      {.config = true,
       .build_root = true,
@@ -100,9 +92,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = true,
       .serve = true,
-      .dispatch = true,
-      .cacert = true,
-      .client_auth = true}},
+      .dispatch = true}},
     {"install",
      {.config = true,
       .build_root = true,
@@ -111,9 +101,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = true,
       .serve = true,
-      .dispatch = true,
-      .cacert = true,
-      .client_auth = true}},
+      .dispatch = true}},
     {"rebuild",
      {.config = true,
       .build_root = true,
@@ -122,9 +110,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = true,
       .serve = true,
-      .dispatch = true,
-      .cacert = true,
-      .client_auth = true}},
+      .dispatch = true}},
     {"install-cas",
      {.config = false,
       .build_root = true,
@@ -133,9 +119,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = true,
       .remote_props = false,
       .serve = false,
-      .dispatch = false,
-      .cacert = true,
-      .client_auth = true}},
+      .dispatch = false}},
     {"gc",
      {.config = false,
       .build_root = true,
@@ -144,9 +128,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
       .remote = false,
       .remote_props = false,
       .serve = false,
-      .dispatch = false,
-      .cacert = false,
-      .client_auth = false}}};
+      .dispatch = false}}};
 
 nlohmann::json const kDefaultConfigLocations = nlohmann::json::array(
     {{{"root", "workspace"}, {"path", "repos.json"}},
