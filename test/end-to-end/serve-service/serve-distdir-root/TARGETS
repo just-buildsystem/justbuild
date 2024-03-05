@@ -6,8 +6,11 @@
       [ "end-to-end/serve-service/serve-archive-root"
       , "serve-tree-syms (archive)"
       ]
+    , "unrelated.txt": "unrelated file"
     }
   }
+, "unrelated file":
+  {"type": "file_gen", "name": "unrelated", "data": "unrelated content"}
 , "present":
   { "type": ["end-to-end", "with serve"]
   , "name": ["present"]
