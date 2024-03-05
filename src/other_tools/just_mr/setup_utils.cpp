@@ -230,8 +230,11 @@ auto ReadConfiguration(
 
     try {
         return std::make_shared<Configuration>(Expression::FromJson(config));
-    } catch (...) {
-        return nullptr;
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Error,
+                    "Parsing configuration file failed with error:\n{}",
+                    e.what());
+        std::exit(kExitConfigError);
     }
 }
 

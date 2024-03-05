@@ -118,7 +118,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     /// also ensures the content has the expected format.
     /// \returns An error + data union, with a pair of grpc status at index 0
     /// and the dispatch list stored as a JSON object at index 1.
-    auto GetDispatchList(ArtifactDigest const& dispatch_digest)
+    auto GetDispatchList(ArtifactDigest const& dispatch_digest) noexcept
         -> std::variant<::grpc::Status, dispatch_t>;
 };
 

@@ -36,7 +36,8 @@
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
-auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
+auto TargetService::GetDispatchList(
+    ArtifactDigest const& dispatch_digest) noexcept
     -> std::variant<::grpc::Status, dispatch_t> {
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
@@ -44,8 +45,8 @@ auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
     if (!local_api_->IsAvailable(dispatch_digest) and
         !remote_api_->RetrieveToCas({dispatch_info}, &*local_api_)) {
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              fmt::format("Could not retrieve from "
-                                          "remote-execution endpoint blob {}",
+                              fmt::format("Could not retrieve blob {} from "
+                                          "remote-execution endpoint",
                                           dispatch_info.ToString())};
     }
     // get blob content
@@ -54,17 +55,25 @@ auto TargetService::GetDispatchList(ArtifactDigest const& dispatch_digest)
         // this should not fail unless something really broke...
         return ::grpc::Status{
             ::grpc::StatusCode::INTERNAL,
-            fmt::format("Unexpected failure in retrieving blob {} from CAS",
+            fmt::format("Unexpected failure in reading blob {} from CAS",
                         dispatch_info.ToString())};
     }
     // parse content
-    auto parsed = ParseDispatch(*dispatch_str);
-    if (parsed.index() == 0) {
-        // pass the parsing error forward
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              std::get<0>(parsed)};
+    try {
+        auto parsed = ParseDispatch(*dispatch_str);
+        if (parsed.index() == 0) {
+            // pass the parsing error forward
+            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                                  std::get<0>(parsed)};
+        }
+        return std::get<1>(parsed);
+    } catch (std::exception const& e) {
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL,
+                              fmt::format("Parsing dispatch blob {} "
+                                          "unexpectedly failed with:\n{}",
+                                          dispatch_digest.hash(),
+                                          e.what())};
     }
-    return std::get<1>(parsed);
 }
 
 auto TargetService::ServeTarget(
@@ -141,17 +150,23 @@ auto TargetService::ServeTarget(
     // fields with invalid UTF-8 characters to be considered for the serialized
     // JSON description, but using the UTF-8 replacement character to solve any
     // decoding errors.
-    auto const description_str = description.dump(
-        2, ' ', false, nlohmann::json::error_handler_t::replace);
+    std::string description_str;
+    try {
+        description_str = description.dump(
+            2, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (std::exception const& ex) {
+        // normally shouldn't happen
+        std::string err{"Failed to dump backend JSON description to string"};
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
+    }
     auto execution_backend_dgst =
         Storage::Instance().CAS().StoreBlob(description_str);
     if (not execution_backend_dgst) {
-        logger_->Emit(
-            LogLevel::Error,
-            "Failed to store execution backend description in local CAS");
-        return ::grpc::Status{
-            ::grpc::StatusCode::INTERNAL,
+        std::string err{
             "Failed to store execution backend description in local CAS"};
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
     }
     auto untagged_execution_backend = ArtifactDigest{*execution_backend_dgst};
     auto const& execution_info = Artifact::ObjectInfo{
@@ -800,9 +815,19 @@ auto TargetService::ServeTargetDescription(
     // we keep the documentation strings as close to actual as possible, so we
     // do not fail if they contain invalid UTF-8 characters, instead we use the
     // UTF-8 replacement character to solve any decoding errors.
-    if (auto dgst = Storage::Instance().CAS().StoreBlob(
-            desc.dump(2, ' ', false, nlohmann::json::error_handler_t::replace),
-            /*is_executable=*/false)) {
+    std::string description_str;
+    try {
+        description_str =
+            desc.dump(2, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (std::exception const& ex) {
+        // normally shouldn't happen
+        std::string err{"Failed to dump backend JSON description to string"};
+        logger_->Emit(LogLevel::Error, err);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
+    }
+    if (auto dgst =
+            Storage::Instance().CAS().StoreBlob(description_str,
+                                                /*is_executable=*/false)) {
         auto const& artifact_dgst = ArtifactDigest{*dgst};
         if (not local_api_->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = artifact_dgst,
