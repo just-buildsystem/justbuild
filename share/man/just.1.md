@@ -573,17 +573,17 @@ Only TLS and mutual TLS (mTLS) are supported.
 **`--tls-ca-cert`** *`PATH`*  
 Path to a TLS CA certificate that is trusted to sign the server
 certificate.  
-Supported by: build|install-cas|install|rebuild|traverse|execute.
+Supported by: analyse|build|describe|install-cas|install|rebuild|traverse|execute.
 
 **`--tls-client-cert`** *`PATH`*  
 Path to a TLS client certificate to enable mTLS. It must be passed in
 conjunction with **`--tls-client-key`** and **`--tls-ca-cert`**.  
-Supported by: build|install-cas|install|rebuild|traverse.
+Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`--tls-client-key`** *`PATH`*  
 Path to a TLS client key to enable mTLS. It must be passed in
 conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**.  
-Supported by: build|install-cas|install|rebuild|traverse.
+Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`analyse`** specific options
 ------------------------------

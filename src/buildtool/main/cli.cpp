@@ -28,6 +28,8 @@ auto SetupDescribeCommandArguments(
     SetupAnalysisArguments(app, &clargs->analysis, false);
     SetupLogArguments(app, &clargs->log);
     SetupServeEndpointArguments(app, &clargs->serve);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupCompatibilityArguments(app);
     SetupDescribeArguments(app, &clargs->describe);
@@ -44,6 +46,8 @@ auto SetupAnalyseCommandArguments(
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupExecutionPropertiesArguments(app, &clargs->endpoint);
     SetupServeEndpointArguments(app, &clargs->serve);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupCompatibilityArguments(app);
     SetupRetryArguments(app, &clargs->retry);
