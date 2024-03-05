@@ -49,7 +49,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             key.target.GetNamedTarget().name);
         if (!flexible_vars) {
             (*logger)(fmt::format("Failed to obtain flexible config variables "
-                                  "for target \"{}\"",
+                                  "for absent target \"{}\"",
                                   key.target.ToString()),
                       /*fatal=*/true);
             return;
@@ -80,7 +80,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
         bool from_just_serve = false;
         if (!target_cache_value) {
             Logger::Log(LogLevel::Debug,
-                        "Querying serve endpoint for export target {}",
+                        "Querying serve endpoint for absent export target {}",
                         key.target.ToString());
             ServeServiceProgress::Instance().TaskTracker().Start(
                 target_cache_key->Id().ToString());
@@ -130,7 +130,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                                               true);
 
             Logger::Log(LogLevel::Performance,
-                        "Export target {} taken from {}: {} -> {}",
+                        "Absent export target {} taken from {}: {} -> {}",
                         key.target.ToString(),
                         (from_just_serve ? "serve endpoint" : "cache"),
                         target_cache_key->Id().ToString(),
