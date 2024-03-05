@@ -21,6 +21,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -962,27 +963,39 @@ auto SourceTreeService::ServeDistdirTree(
     GitRepo::tree_entries_t entries{};
     entries.reserve(request->distfiles().size());
 
-    bool blob_found{};
     auto const& cas = Storage::Instance().CAS();
     std::unordered_map<std::string, std::pair<std::string, bool>>
         content_list{};
     content_list.reserve(request->distfiles().size());
 
     for (auto const& kv : request->distfiles()) {
+        bool blob_found{};
+        std::string blob_digest;  // The digest of the requested distfile, taken
+                                  // by the hash applicable for our CAS; this
+                                  // might be different from content, if our CAS
+                                  // ist not based on git blob identifiers
+                                  // (i.e., if we're not in native mode).
         auto const& content = kv.content();
         // check content blob is known
         auto digest = ArtifactDigest(content, 0, /*is_tree=*/false);
-        // first check the local CAS itself
-        if (blob_found =
+        // first check the local CAS itself, provided it uses the same type
+        // of identifier
+        if (not Compatibility::IsCompatible()) {
+            blob_found =
                 static_cast<bool>(cas.BlobPath(digest, kv.executable()));
-            not blob_found) {
+        }
+        if (blob_found) {
+            blob_digest = content;
+        }
+        else {
             // check local Git cache
             auto res =
                 GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_);
             if (std::holds_alternative<std::string>(res)) {
                 // add content to local CAS
-                if (not cas.StoreBlob(std::get<std::string>(res),
-                                      kv.executable())) {
+                auto stored_blob =
+                    cas.StoreBlob(std::get<std::string>(res), kv.executable());
+                if (not stored_blob) {
                     auto str = fmt::format(
                         "Failed to store content {} from local Git cache to "
                         "local CAS",
@@ -993,6 +1006,7 @@ auto SourceTreeService::ServeDistdirTree(
                     return ::grpc::Status::OK;
                 }
                 blob_found = true;
+                blob_digest = NativeSupport::Unprefix(stored_blob->hash());
             }
             else {
                 if (std::get<bool>(res)) {
@@ -1012,8 +1026,9 @@ auto SourceTreeService::ServeDistdirTree(
                     auto res = GetBlobFromRepo(path, content, logger_);
                     if (std::holds_alternative<std::string>(res)) {
                         // add content to local CAS
-                        if (not cas.StoreBlob(std::get<std::string>(res),
-                                              kv.executable())) {
+                        auto stored_blob = cas.StoreBlob(
+                            std::get<std::string>(res), kv.executable());
+                        if (not stored_blob) {
                             auto str = fmt::format(
                                 "Failed to store content {} from known "
                                 "repository {} to local CAS",
@@ -1025,6 +1040,8 @@ auto SourceTreeService::ServeDistdirTree(
                             return ::grpc::Status::OK;
                         }
                         blob_found = true;
+                        blob_digest =
+                            NativeSupport::Unprefix(stored_blob->hash());
                         break;
                     }
                     if (std::get<bool>(res)) {
@@ -1047,7 +1064,8 @@ auto SourceTreeService::ServeDistdirTree(
                     auto digest_clone =
                         ArtifactDigest(content, 0, /*is_tree=*/false);
                     // check remote CAS
-                    if (remote_api_->IsAvailable(digest_clone)) {
+                    if ((not Compatibility::IsCompatible()) and
+                        remote_api_->IsAvailable(digest_clone)) {
                         // retrieve content to local CAS
                         if (not remote_api_->RetrieveToCas(
                                 {Artifact::ObjectInfo{
@@ -1066,6 +1084,7 @@ auto SourceTreeService::ServeDistdirTree(
                             return ::grpc::Status::OK;
                         }
                         blob_found = true;
+                        blob_digest = content;
                     }
                 }
             }
@@ -1093,7 +1112,7 @@ auto SourceTreeService::ServeDistdirTree(
         }
         // store to content_list for import-to-git hardlinking
         content_list.insert_or_assign(
-            kv.name(), std::make_pair(kv.content(), kv.executable()));
+            kv.name(), std::make_pair(blob_digest, kv.executable()));
     }
     // get hash of distdir content; this must match with that in just-mr
     auto content_id =
