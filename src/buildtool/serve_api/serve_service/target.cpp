@@ -535,7 +535,8 @@ auto TargetService::ServeTargetVariables(
             if (not res->second) {
                 // tree exists, but does not contain target file
                 auto err = fmt::format(
-                    "Target-root {} found, but does not contain target file {}",
+                    "Target-root {} found, but does not contain targets file "
+                    "{}",
                     root_tree,
                     target_file);
                 return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
@@ -554,8 +555,8 @@ auto TargetService::ServeTargetVariables(
                     if (not res->second) {
                         // tree exists, but does not contain target file
                         auto err = fmt::format(
-                            "Target-root {} found, but does not contain target "
-                            "file {}",
+                            "Target-root {} found, but does not contain "
+                            "targets file {}",
                             root_tree,
                             target_file);
                         return ::grpc::Status{
@@ -572,7 +573,7 @@ auto TargetService::ServeTargetVariables(
         if (tree_found) {
             // something went wrong trying to read the target file blob
             auto err =
-                fmt::format("Could not read target file {}", target_file);
+                fmt::format("Could not read targets file {}", target_file);
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
         }
         // tree not found
@@ -585,7 +586,7 @@ auto TargetService::ServeTargetVariables(
         map = Expression::FromJson(nlohmann::json::parse(*target_file_content));
     } catch (std::exception const& e) {
         auto err = fmt::format(
-            "Failed to parse target file {} as json with error:\n{}",
+            "Failed to parse targets file {} as json with error:\n{}",
             target_file,
             e.what());
         logger_->Emit(LogLevel::Error, err);
@@ -593,7 +594,7 @@ auto TargetService::ServeTargetVariables(
     }
     if (not map->IsMap()) {
         auto err =
-            fmt::format("Target file {} should contain a map, but found:\n{}",
+            fmt::format("Targets file {} should contain a map, but found:\n{}",
                         target_file,
                         map->ToString());
         logger_->Emit(LogLevel::Error, err);
@@ -603,24 +604,25 @@ auto TargetService::ServeTargetVariables(
     auto target_desc = map->At(target);
     if (not target_desc) {
         // target is not present
-        auto err = fmt::format(
-            "Missing target {} in target file {}", target, target_file);
+        auto err = fmt::format("Missing target {} in targets file {}",
+                               nlohmann::json(target).dump(),
+                               target_file);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     auto export_desc = target_desc->get()->At("type");
     if (not export_desc) {
         auto err = fmt::format(
-            "Missing \"type\" field for target {} in target file {}.",
-            target,
+            "Missing \"type\" field for target {} in targets file {}.",
+            nlohmann::json(target).dump(),
             target_file);
         logger_->Emit(LogLevel::Error, err);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     if (not export_desc->get()->IsString()) {
         auto err = fmt::format(
-            "Field \"type\" for target {} in target file {} should be a "
+            "Expected field \"type\" for target {} in targets file {} to be a "
             "string, but found:\n{}",
-            target,
+            nlohmann::json(target).dump(),
             target_file,
             export_desc->get()->ToString());
         logger_->Emit(LogLevel::Error, err);
@@ -628,8 +630,8 @@ auto TargetService::ServeTargetVariables(
     }
     if (export_desc->get()->String() != "export") {
         // target is not of "type" : "export"
-        auto err =
-            fmt::format(R"(target {} is not of "type" : "export")", target);
+        auto err = fmt::format(R"(target {} is not of "type" : "export")",
+                               nlohmann::json(target).dump());
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     auto flexible_config = target_desc->get()->At("flexible_config");
@@ -639,9 +641,9 @@ auto TargetService::ServeTargetVariables(
     }
     if (not flexible_config->get()->IsList()) {
         auto err = fmt::format(
-            "Field \"flexible_config\" for target {} in target file {} should "
+            "Field \"flexible_config\" for target {} in targets file {} should "
             "be a list, but found {}",
-            target,
+            nlohmann::json(target).dump(),
             target_file,
             flexible_config->get()->ToString());
         logger_->Emit(LogLevel::Error, err);
@@ -653,9 +655,9 @@ auto TargetService::ServeTargetVariables(
     for (auto const& elem : flexible_config_list) {
         if (not elem->IsString()) {
             auto err = fmt::format(
-                "Field \"flexible_config\" for target {} in target file {} has "
-                "non-string entry {}",
-                target,
+                "Field \"flexible_config\" for target {} in targets file {} "
+                "has non-string entry {}",
+                nlohmann::json(target).dump(),
                 target_file,
                 elem->ToString());
             logger_->Emit(LogLevel::Error, err);
@@ -687,7 +689,8 @@ auto TargetService::ServeTargetDescription(
             if (not res->second) {
                 // tree exists, but does not contain target file
                 auto err = fmt::format(
-                    "Target-root {} found, but does not contain target file {}",
+                    "Target-root {} found, but does not contain targets file "
+                    "{}",
                     root_tree,
                     target_file);
                 return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
@@ -706,8 +709,8 @@ auto TargetService::ServeTargetDescription(
                     if (not res->second) {
                         // tree exists, but does not contain target file
                         auto err = fmt::format(
-                            "Target-root {} found, but does not contain target "
-                            "file {}",
+                            "Target-root {} found, but does not contain "
+                            "targets file {}",
                             root_tree,
                             target_file);
                         return ::grpc::Status{
@@ -724,7 +727,7 @@ auto TargetService::ServeTargetDescription(
         if (tree_found) {
             // something went wrong trying to read the target file blob
             auto err =
-                fmt::format("Could not read target file {}", target_file);
+                fmt::format("Could not read targets file {}", target_file);
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
         }
         // tree not found
@@ -737,7 +740,7 @@ auto TargetService::ServeTargetDescription(
         map = Expression::FromJson(nlohmann::json::parse(*target_file_content));
     } catch (std::exception const& e) {
         auto err = fmt::format(
-            "Failed to parse target file {} as json with error:\n{}",
+            "Failed to parse targets file {} as json with error:\n{}",
             target_file,
             e.what());
         logger_->Emit(LogLevel::Error, err);
@@ -745,7 +748,7 @@ auto TargetService::ServeTargetDescription(
     }
     if (not map->IsMap()) {
         auto err =
-            fmt::format("Target file {} should contain a map, but found:\n{}",
+            fmt::format("Targets file {} should contain a map, but found:\n{}",
                         target_file,
                         map->ToString());
         logger_->Emit(LogLevel::Error, err);
@@ -755,24 +758,25 @@ auto TargetService::ServeTargetDescription(
     auto target_desc = map->At(target);
     if (not target_desc) {
         // target is not present
-        auto err = fmt::format(
-            "Missing target {} in target file {}", target, target_file);
+        auto err = fmt::format("Missing target {} in targets file {}",
+                               nlohmann::json(target).dump(),
+                               target_file);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     auto export_desc = target_desc->get()->At("type");
     if (not export_desc) {
         auto err = fmt::format(
-            "Missing \"type\" field for target {} in target file {}.",
-            target,
+            "Missing \"type\" field for target {} in targets file {}.",
+            nlohmann::json(target).dump(),
             target_file);
         logger_->Emit(LogLevel::Error, err);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     if (not export_desc->get()->IsString()) {
         auto err = fmt::format(
-            "Field \"type\" for target {} in target file {} should be a "
+            "Expected field \"type\" for target {} in targets file {} to be a "
             "string, but found:\n{}",
-            target,
+            nlohmann::json(target).dump(),
             target_file,
             export_desc->get()->ToString());
         logger_->Emit(LogLevel::Error, err);
@@ -780,8 +784,8 @@ auto TargetService::ServeTargetDescription(
     }
     if (export_desc->get()->String() != "export") {
         // target is not of "type" : "export"
-        auto err =
-            fmt::format(R"(target {} is not of "type" : "export")", target);
+        auto err = fmt::format(R"(target {} is not of "type" : "export")",
+                               nlohmann::json(target).dump());
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     // populate response description object with fields as-is
