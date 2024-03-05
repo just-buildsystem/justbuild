@@ -19,12 +19,14 @@ import time
 from typing import Any, Dict, List
 
 g_RESULTS: Dict[str, List[Any]] = {}
+g_COUNT: float = 0
 
 time_start: float = time.time()
 time_stop: float = 0
 
 for attempt in os.listdir("."):
     if os.path.isdir(attempt):
+        g_COUNT += 1
         with open(os.path.join(attempt, "result")) as f:
             result = f.read().strip()
         g_RESULTS[result] = g_RESULTS.get(result, []) + [int(attempt)]
@@ -58,11 +60,14 @@ with open("time-stop", "w") as f:
 with open("stdout", "w") as f:
     f.write("Summary: %s\n\n" % (result, ))
     f.write("PASS: %s\n" % (sorted(g_RESULTS.get("PASS", [])), ))
-    f.write("FAIL: %s\n" % (sorted(g_RESULTS.get("FAIL", [])), ))
+    failures =sorted(g_RESULTS.get("FAIL", []))
+    f.write("FAIL: %s\n" % (failures, ))
     g_RESULTS.pop("PASS", None)
     g_RESULTS.pop("FAIL", None)
     if g_RESULTS:
         f.write("\nother results: %r\n" % (g_RESULTS, ))
+    if result == "FLAKY":
+        f.write("\nFailure rate %5.2f%%\n" % (100.0 * len(failures) / g_COUNT))
 
 with open("stderr", "w") as f:
     pass
