@@ -377,11 +377,16 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     auto str_a = fmt::format("{} {}", nr_a, nr_a == 1 ? "archive" : "archives");
     auto str_gt =
         fmt::format("{} git {}", nr_gt, nr_gt == 1 ? "tree" : "trees");
-    Logger::Log(LogLevel::Info,
-                "Found {}{}{} to fetch",
-                nr_a != 0 ? str_a : std::string(),
-                nr_a != 0 and nr_gt != 0 ? " and " : "",
-                nr_gt != 0 ? str_gt : std::string());
+    auto fetchables = fmt::format("{}{}{}",
+                                  nr_a != 0 ? str_a : std::string(),
+                                  nr_a != 0 and nr_gt != 0 ? " and " : "",
+                                  nr_gt != 0 ? str_gt : std::string());
+    if (fetchables.empty()) {
+        Logger::Log(LogLevel::Info, "No fetch required");
+    }
+    else {
+        Logger::Log(LogLevel::Info, "Found {} to fetch", fetchables);
+    }
 
     // setup the APIs for archive fetches; only happens if in native mode
     auto remote_api =
