@@ -207,6 +207,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
             auto const& key) {
             if (key.absent and not fetch_absent) {
                 HandleAbsentForeignFile(key, serve_api_exists, setter, logger);
+                return;
             }
             auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(
                 key.archive.content, key.name, key.executable);
