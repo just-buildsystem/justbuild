@@ -53,78 +53,32 @@
     -> std::variant<std::string, std::string> {
     // keep all remotes tried, to report in case fetch fails
     std::string remotes_buffer{};
-    // first, try the local mirrors
     std::optional<std::string> data{std::nullopt};
+
+    // try repo url
+    auto all_mirrors = std::vector<std::string>({fetch_url});
+    // try repo mirrors afterwards
+    all_mirrors.insert(all_mirrors.end(), mirrors.begin(), mirrors.end());
+
+    if (auto preferred_hostnames =
+            MirrorsUtils::GetPreferredHostnames(additional_mirrors);
+        not preferred_hostnames.empty()) {
+        all_mirrors =
+            MirrorsUtils::SortByHostname(all_mirrors, preferred_hostnames);
+    }
+
+    // always try local mirrors first
     auto local_mirrors =
         MirrorsUtils::GetLocalMirrors(additional_mirrors, fetch_url);
-    for (auto const& mirror : local_mirrors) {
+    all_mirrors.insert(
+        all_mirrors.begin(), local_mirrors.begin(), local_mirrors.end());
+
+    for (auto const& mirror : all_mirrors) {
         if (data = NetworkFetch(mirror, ca_info); data) {
             break;
         }
         // add local mirror to buffer
         remotes_buffer.append(fmt::format("\n> {}", mirror));
-    }
-    if (not data) {
-        // get preferred hostnames list
-        auto preferred_hostnames =
-            MirrorsUtils::GetPreferredHostnames(additional_mirrors);
-        // try the main fetch URL, but with each of the preferred hostnames
-        for (auto const& hostname : preferred_hostnames) {
-            if (auto preferred_url =
-                    CurlURLHandle::ReplaceHostname(fetch_url, hostname)) {
-                if (data = NetworkFetch(*preferred_url, ca_info); data) {
-                    break;
-                }
-                // add preferred URL to buffer
-                remotes_buffer.append(fmt::format("\n> {}", *preferred_url));
-            }
-            else {
-                // report failed hostname
-                remotes_buffer.append(
-                    fmt::format("\n> {} (failed hostname replace: {})",
-                                fetch_url,
-                                hostname));
-            }
-        }
-        if (not data) {
-            // now try the main fetch URL
-            if (data = NetworkFetch(fetch_url, ca_info); not data) {
-                // add main fetch URL to buffer
-                remotes_buffer.append(fmt::format("\n> {}", fetch_url));
-                // try the mirrors, in order, if given
-                for (auto const& mirror : mirrors) {
-                    // first use with preferred hostnames...
-                    for (auto const& hostname : preferred_hostnames) {
-                        if (auto preferred_mirror =
-                                CurlURLHandle::ReplaceHostname(mirror,
-                                                               hostname)) {
-                            if (data = NetworkFetch(*preferred_mirror, ca_info);
-                                data) {
-                                break;
-                            }
-                            // add preferred mirror to buffer
-                            remotes_buffer.append(
-                                fmt::format("\n> {}", *preferred_mirror));
-                        }
-                        else {
-                            // report failed hostname
-                            remotes_buffer.append(fmt::format(
-                                "\n> {} (failed hostname replace: {})",
-                                mirror,
-                                hostname));
-                        }
-                    }
-                    // ...then the original mirror
-                    if (not data) {
-                        if (data = NetworkFetch(mirror, ca_info); data) {
-                            break;
-                        }
-                        // add mirror to buffer
-                        remotes_buffer.append(fmt::format("\n> {}", mirror));
-                    }
-                }
-            }
-        }
     }
     return data ? std::variant<std::string, std::string>(std::in_place_index<1>,
                                                          *data)

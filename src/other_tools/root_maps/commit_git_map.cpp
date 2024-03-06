@@ -226,10 +226,27 @@ void NetworkFetchAndSetPresentRoot(
     std::string err_messages{};
     // keep all remotes checked to report them in case fetch fails
     std::string remotes_buffer{};
-    // try local mirrors first
+
+    // try repo url
+    auto all_mirrors = std::vector<std::string>({fetch_repo});
+    // try repo mirrors afterwards
+    all_mirrors.insert(
+        all_mirrors.end(), repo_info.mirrors.begin(), repo_info.mirrors.end());
+
+    if (auto preferred_hostnames =
+            MirrorsUtils::GetPreferredHostnames(additional_mirrors);
+        not preferred_hostnames.empty()) {
+        all_mirrors =
+            MirrorsUtils::SortByHostname(all_mirrors, preferred_hostnames);
+    }
+
+    // always try local mirrors first
     auto local_mirrors =
         MirrorsUtils::GetLocalMirrors(additional_mirrors, fetch_repo);
-    for (auto mirror : local_mirrors) {
+    all_mirrors.insert(
+        all_mirrors.begin(), local_mirrors.begin(), local_mirrors.end());
+
+    for (auto mirror : all_mirrors) {
         auto mirror_path = GitURLIsPath(mirror);
         if (mirror_path) {
             mirror = std::filesystem::absolute(*mirror_path).string();
@@ -237,9 +254,7 @@ void NetworkFetchAndSetPresentRoot(
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [mirror, &err_messages](auto const& msg, bool /*fatal*/) {
                 err_messages += fmt::format(
-                    "While attempting fetch from local mirror {}:\n{}\n",
-                    mirror,
-                    msg);
+                    "While attempting fetch from URL {}:\n{}\n", mirror, msg);
             });
         if (git_repo->FetchViaTmpRepo(mirror,
                                       repo_info.branch,
@@ -252,140 +267,6 @@ void NetworkFetchAndSetPresentRoot(
         }
         // add local mirror to buffer
         remotes_buffer.append(fmt::format("\n> {}", mirror));
-    }
-    if (not fetched) {
-        // get preferred hostnames list
-        auto preferred_hostnames =
-            MirrorsUtils::GetPreferredHostnames(additional_mirrors);
-        // try first the main URL, but with each of the preferred hostnames, if
-        // URL is not a path
-        if (not GitURLIsPath(fetch_repo)) {
-            for (auto const& hostname : preferred_hostnames) {
-                if (auto preferred_url =
-                        CurlURLHandle::ReplaceHostname(fetch_repo, hostname)) {
-                    auto wrapped_logger =
-                        std::make_shared<AsyncMapConsumerLogger>(
-                            [preferred_url, &err_messages](auto const& msg,
-                                                           bool /*fatal*/) {
-                                err_messages += fmt::format(
-                                    "While attempting fetch from remote "
-                                    "{}:\n{}\n",
-                                    *preferred_url,
-                                    msg);
-                            });
-                    if (git_repo->FetchViaTmpRepo(*preferred_url,
-                                                  repo_info.branch,
-                                                  repo_info.inherit_env,
-                                                  git_bin,
-                                                  launcher,
-                                                  wrapped_logger)) {
-                        fetched = true;
-                        break;
-                    }
-                    // add preferred  to buffer
-                    remotes_buffer.append(
-                        fmt::format("\n> {}", *preferred_url));
-                }
-                else {
-                    // report failed hostname
-                    remotes_buffer.append(
-                        fmt::format("\n> {} (failed hostname replace: {})",
-                                    fetch_repo,
-                                    hostname));
-                }
-            }
-        }
-        if (not fetched) {
-            // now try the original main fetch URL
-            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                [fetch_repo, &err_messages](auto const& msg, bool /*fatal*/) {
-                    err_messages += fmt::format(
-                        "While attempting fetch from remote {}:\n{}\n",
-                        fetch_repo,
-                        msg);
-                });
-            if (git_repo->FetchViaTmpRepo(fetch_repo,
-                                          repo_info.branch,
-                                          repo_info.inherit_env,
-                                          git_bin,
-                                          launcher,
-                                          wrapped_logger)) {
-                fetched = true;
-            }
-            else {
-                // add main fetch URL to buffer
-                remotes_buffer.append(fmt::format("\n> {}", fetch_repo));
-                // now try to fetch from mirrors, in order, if given
-                for (auto mirror : repo_info.mirrors) {
-                    auto mirror_path = GitURLIsPath(mirror);
-                    if (mirror_path) {
-                        mirror =
-                            std::filesystem::absolute(*mirror_path).string();
-                    }
-                    else {
-                        // if non-path, try each of the preferred hostnames
-                        for (auto const& hostname : preferred_hostnames) {
-                            if (auto preferred_mirror =
-                                    CurlURLHandle::ReplaceHostname(mirror,
-                                                                   hostname)) {
-                                wrapped_logger =
-                                    std::make_shared<AsyncMapConsumerLogger>(
-                                        [preferred_mirror, &err_messages](
-                                            auto const& msg, bool /*fatal*/) {
-                                            err_messages += fmt::format(
-                                                "While attempting fetch from "
-                                                "mirror {}:\n{}\n",
-                                                *preferred_mirror,
-                                                msg);
-                                        });
-                                if (git_repo->FetchViaTmpRepo(
-                                        *preferred_mirror,
-                                        repo_info.branch,
-                                        repo_info.inherit_env,
-                                        git_bin,
-                                        launcher,
-                                        wrapped_logger)) {
-                                    fetched = true;
-                                    break;
-                                }
-                                // add preferred mirror to buffer
-                                remotes_buffer.append(
-                                    fmt::format("\n> {}", *preferred_mirror));
-                            }
-                            else {
-                                // report failed hostname
-                                remotes_buffer.append(fmt::format(
-                                    "\n> {} (failed hostname replace: {})",
-                                    mirror,
-                                    hostname));
-                            }
-                        }
-                    }
-                    if (fetched) {
-                        break;
-                    }
-                    wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                        [mirror, &err_messages](auto const& msg,
-                                                bool /*fatal*/) {
-                            err_messages += fmt::format(
-                                "While attempting fetch from mirror {}:\n{}\n",
-                                mirror,
-                                msg);
-                        });
-                    if (git_repo->FetchViaTmpRepo(mirror,
-                                                  repo_info.branch,
-                                                  repo_info.inherit_env,
-                                                  git_bin,
-                                                  launcher,
-                                                  wrapped_logger)) {
-                        fetched = true;
-                        break;
-                    }
-                    // add mirror to buffer
-                    remotes_buffer.append(fmt::format("\n> {}", mirror));
-                }
-            }
-        }
     }
     if (not fetched) {
         // log fetch failure and list the remotes tried

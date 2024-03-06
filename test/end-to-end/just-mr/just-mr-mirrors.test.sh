@@ -234,6 +234,10 @@ cat > just-local.json <<EOF
     [ "http://non-existent.example.org/zip_repo.zip"
     , "http://127.0.0.1:${port_num}/zip_repo.zip"
     ]
+  , "http://non-existent.example.org:${port_num}/tgz_repo.tar.gz":
+    [ "http://non-existent.example.org/tgz_repo.tar.gz"
+    , "http://127.0.0.1:${port_num}/tgz_repo.tar.gz"
+    ]
   }
 , "preferred hostnames":
   ["non-existent.example.org", "127.0.0.1"]
