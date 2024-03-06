@@ -193,6 +193,16 @@
   , "deps":
     [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
   }
+, "reporting-verbosity":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["reporting-verbosity"]
+  , "test": ["reporting-verbosity.sh"]
+  , "deps":
+    [ ["end-to-end", "tool-under-test"]
+    , ["end-to-end", "mr-tool-under-test"]
+    , "fetch-absent (data)"
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -216,6 +226,7 @@
               , "defaults"
               , "absent-roots"
               , "foreign-file"
+              , "reporting-verbosity"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
