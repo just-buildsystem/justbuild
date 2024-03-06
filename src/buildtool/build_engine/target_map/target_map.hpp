@@ -29,6 +29,7 @@
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
 
 namespace BuildMaps::Target {
 
@@ -39,9 +40,10 @@ auto CreateTargetMap(
     const gsl::not_null<BuildMaps::Base::TargetsFileMap*>&,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>&,
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&,
-    [[maybe_unused]] const gsl::not_null<AbsentTargetMap*>&,
+    const gsl::not_null<AbsentTargetMap*>&,
     const gsl::not_null<ResultTargetMap*>&,
-    [[maybe_unused]] const gsl::not_null<RepositoryConfig*>&,
+    const gsl::not_null<RepositoryConfig*>&,
+    const ActiveTargetCache&,
     std::size_t jobs = 0) -> TargetMap;
 
 // use explicit cast to std::function to allow template deduction when used

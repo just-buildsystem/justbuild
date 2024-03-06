@@ -117,6 +117,7 @@
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":

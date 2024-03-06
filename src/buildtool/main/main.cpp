@@ -40,6 +40,7 @@
 #include "src/buildtool/main/install_cas.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/auth/authentication.hpp"
@@ -997,6 +998,7 @@ auto main(int argc, char* argv[]) -> int {
                 AnalyseTarget(id,
                               &result_map,
                               &repo_config,
+                              Storage::Instance().TargetCache(),
                               arguments.common.jobs,
                               arguments.analysis.request_action_input);
             if (result) {

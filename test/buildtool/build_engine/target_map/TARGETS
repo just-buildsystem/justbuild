@@ -23,6 +23,8 @@
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["@", "src", "src/buildtool/build_engine/target_map", "target_map"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }

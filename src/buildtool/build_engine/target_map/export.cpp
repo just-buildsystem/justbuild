@@ -97,6 +97,7 @@ void ExportRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    const ActiveTargetCache& target_cache,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -117,8 +118,7 @@ void ExportRule(
 
     if (target_cache_key) {
         // first try to get value from local target cache
-        auto target_cache_value =
-            Storage::Instance().TargetCache().Read(*target_cache_key);
+        auto target_cache_value = target_cache.Read(*target_cache_key);
         bool from_just_serve{false};
 
 #ifndef BOOTSTRAP_BUILD_TOOL

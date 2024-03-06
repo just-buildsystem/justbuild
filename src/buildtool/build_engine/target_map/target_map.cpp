@@ -1237,6 +1237,7 @@ void withRuleDefinition(
 void withTargetsFile(
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    const ActiveTargetCache& target_cache,
     const nlohmann::json& targets_file,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
@@ -1275,6 +1276,7 @@ void withTargetsFile(
                                                                    desc,
                                                                    key,
                                                                    repo_config,
+                                                                   target_cache,
                                                                    subcaller,
                                                                    setter,
                                                                    logger,
@@ -1657,6 +1659,7 @@ auto CreateTargetMap(
     const gsl::not_null<AbsentTargetMap*>& absent_target_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    const ActiveTargetCache& target_cache,
     std::size_t jobs) -> TargetMap {
     auto target_reader = [source_target_map,
                           targets_file_map,
@@ -1664,11 +1667,12 @@ auto CreateTargetMap(
                           directory_entries_map,
                           absent_target_map,
                           result_map,
-                          repo_config](auto ts,
-                                       auto setter,
-                                       auto logger,
-                                       auto subcaller,
-                                       auto key) {
+                          repo_config,
+                          target_cache](auto ts,
+                                        auto setter,
+                                        auto logger,
+                                        auto subcaller,
+                                        auto key) {
         if (key.target.IsAnonymousTarget()) {
             withTargetNode(key,
                            repo_config,
@@ -1803,6 +1807,7 @@ auto CreateTargetMap(
                 {key.target.ToModule()},
                 [key,
                  repo_config,
+                 target_cache,
                  source_target_map,
                  rule_map,
                  ts,
@@ -1812,6 +1817,7 @@ auto CreateTargetMap(
                  result_map](auto values) {
                     withTargetsFile(key,
                                     repo_config,
+                                    target_cache,
                                     *values[0],
                                     source_target_map,
                                     rule_map,

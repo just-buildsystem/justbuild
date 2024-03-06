@@ -405,6 +405,7 @@ auto TargetService::ServeTarget(
     auto result = AnalyseTarget(configured_target,
                                 &result_map,
                                 &repository_config,
+                                *tc,
                                 RemoteServeConfig::Jobs(),
                                 std::nullopt /*request_action_input*/);
 

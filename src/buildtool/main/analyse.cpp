@@ -96,6 +96,7 @@ namespace Target = BuildMaps::Target;
     const Target::ConfiguredTarget& id,
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
+    ActiveTargetCache const& target_cache,
     std::size_t jobs,
     std::optional<std::string> const& request_action_input)
     -> std::optional<AnalysisResult> {
@@ -119,6 +120,7 @@ namespace Target = BuildMaps::Target;
                                               &absent_target_map,
                                               result_map,
                                               repo_config,
+                                              target_cache,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};

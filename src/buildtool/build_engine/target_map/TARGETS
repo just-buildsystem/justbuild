@@ -47,6 +47,7 @@
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/storage", "storage"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     ]

@@ -21,6 +21,7 @@
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
 
 namespace BuildMaps::Target {
 auto HandleBuiltin(
@@ -28,6 +29,7 @@ auto HandleBuiltin(
     const nlohmann::json& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    const ActiveTargetCache& target_cache,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,

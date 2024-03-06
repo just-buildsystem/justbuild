@@ -339,6 +339,7 @@ void FileGenRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -357,6 +358,7 @@ void SymlinkRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -484,6 +486,7 @@ void TreeRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -732,6 +735,7 @@ void InstallRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1317,6 +1321,7 @@ void GenericRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1394,6 +1399,7 @@ void ConfigureRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1533,7 +1539,8 @@ auto const kBuiltIns = std::unordered_map<
     std::function<void(
         const nlohmann::json&,
         const BuildMaps::Target::ConfiguredTarget&,
-        [[maybe_unused]] const gsl::not_null<RepositoryConfig*>&,
+        const gsl::not_null<RepositoryConfig*>&,
+        const ActiveTargetCache&,
         const BuildMaps::Target::TargetMap::SubCallerPtr&,
         const BuildMaps::Target::TargetMap::SetterPtr&,
         const BuildMaps::Target::TargetMap::LoggerPtr&,
@@ -1564,6 +1571,7 @@ auto HandleBuiltin(
     const nlohmann::json& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
+    const ActiveTargetCache& target_cache,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1586,8 +1594,14 @@ auto HandleBuiltin(
                                   msg),
                       fatal);
         });
-    (it->second)(
-        desc, key, repo_config, subcaller, setter, target_logger, result_map);
+    (it->second)(desc,
+                 key,
+                 repo_config,
+                 target_cache,
+                 subcaller,
+                 setter,
+                 target_logger,
+                 result_map);
     return true;
 }
 }  // namespace BuildMaps::Target
