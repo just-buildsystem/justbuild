@@ -29,6 +29,7 @@
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 
@@ -38,14 +39,11 @@ namespace {
     static auto const kRelPath = std::string{"./"};
     static auto const kFileScheme = std::string{"file://"};
 
-    if (url.starts_with(kAbsPath)) {
-        return url;
-    }
-    if (url.starts_with(kRelPath)) {
-        return url.substr(kRelPath.length());
+    if (url.starts_with(kAbsPath) or url.starts_with(kRelPath)) {
+        return ToNormalPath(url).string();
     }
     if (url.starts_with(kFileScheme)) {
-        return url.substr(kFileScheme.length());
+        return ToNormalPath(url.substr(kFileScheme.length())).string();
     }
 
     return std::nullopt;

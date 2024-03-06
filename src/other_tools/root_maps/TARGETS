@@ -47,6 +47,7 @@
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "path"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
