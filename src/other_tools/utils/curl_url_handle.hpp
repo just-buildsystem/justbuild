@@ -165,6 +165,11 @@ class CurlURLHandle {
         std::string const& url,
         std::string const& hostname) noexcept -> std::optional<std::string>;
 
+    /// \brief Gets the hostname from URL.
+    /// \returns The host name or std::nullopt if missing or on errors.
+    [[nodiscard]] static auto GetHostname(std::string const& url) noexcept
+        -> std::optional<std::string>;
+
   private:
     // IMPORTANT: the CurlContext must be initialized before any curl
     // object!

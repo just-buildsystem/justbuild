@@ -835,3 +835,50 @@ auto CurlURLHandle::ReplaceHostname(std::string const& url,
     }
     return std::nullopt;
 }
+
+auto CurlURLHandle::GetHostname(std::string const& url) noexcept
+    -> std::optional<std::string> {
+    try {
+        // Allow parsing spaces in path (we only care about hostname), and do
+        // not log error on failure.
+        if (auto parsed_url = CreatePermissive(url,
+                                               false /*use_guess_scheme*/,
+                                               false /*use_default_scheme*/,
+                                               false /*use_non_support_scheme*/,
+                                               false /*use_no_authority*/,
+                                               false /*use_path_as_is*/,
+                                               true /*use_allow_space*/,
+                                               true /*ignore_fatal*/)) {
+            if (*parsed_url == nullptr) {
+                return std::nullopt;
+            }
+
+            char* buffer{nullptr};  // NOLINT
+            auto rc = curl_url_get(
+                parsed_url.value()->handle_.get(), CURLUPART_HOST, &buffer, 0U);
+
+            std::string hostname{};
+            if (buffer != nullptr) {
+                hostname = std::string{buffer};
+                curl_free(buffer);
+            }
+
+            if (rc != CURLUE_OK) {
+                Logger::Log(LogLevel::Debug,
+                            "CurlURLHandle: getting hostname from URL {} "
+                            "failed with:\n{}",
+                            url,
+                            curl_url_strerror(rc));
+                return std::nullopt;
+            }
+            return hostname;
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Debug,
+            "CurlURLHandle: Getting hostname from URL failed unexpectedly "
+            "with:\n{}",
+            ex.what());
+    }
+    return std::nullopt;
+}
