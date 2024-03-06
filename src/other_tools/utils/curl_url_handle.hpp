@@ -154,17 +154,6 @@ class CurlURLHandle {
     [[nodiscard]] auto NoproxyStringMatches(
         std::string const& no_proxy) noexcept -> std::optional<bool>;
 
-    /// \brief Tries to replace the hostname of a given URL. This is done by
-    /// parsing the URL with minimal validity checks, replacing the original
-    /// hostname with the one given, then putting the new URL back together.
-    /// \note The given URL MUST have a hostname for this to succeed.
-    /// \note A missing scheme field will be set to "https://" and a missing
-    /// path field will be set to "/".
-    /// \returns The new URL or nullopt on errors. This method is never fatal.
-    [[nodiscard]] static auto ReplaceHostname(
-        std::string const& url,
-        std::string const& hostname) noexcept -> std::optional<std::string>;
-
     /// \brief Gets the hostname from URL.
     /// \returns The host name or std::nullopt if missing or on errors.
     [[nodiscard]] static auto GetHostname(std::string const& url) noexcept

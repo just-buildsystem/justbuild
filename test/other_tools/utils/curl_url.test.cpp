@@ -135,30 +135,6 @@ TEST_CASE("Curl URL handle basics", "[curl_url_handle_basics]") {
         CHECK(key_h.value()->port.value() == "80");  // default http port
         CHECK(key_h.value()->path.string() == "/foo/bar?query#fragment/");
     }
-
-    SECTION("Replace hostname") {
-        // full syntax check
-        auto new_url_full = CurlURLHandle::ReplaceHostname(
-            "https://user:pass@example.com:50000/some/"
-            "pa.th?what=what&who=who#fragment",
-            "example.org");
-        CHECK(new_url_full);
-        CHECK(*new_url_full ==
-              "https://user:pass@example.org:50000/some/"
-              "pa.th?what=what&who=who#fragment");
-
-        // non-supported scheme, path not normalized, spaces allowed
-        auto new_url_special = CurlURLHandle::ReplaceHostname(
-            "socks5://example.com/f oo/. ./ba r # b oo", "example.org");
-        REQUIRE(new_url_special);
-        CHECK(*new_url_special == "socks5://example.org/f oo/. ./ba r # b oo");
-
-        // missing scheme does not fail, but new URL does contain default https
-        auto new_url_default_scheme =
-            CurlURLHandle::ReplaceHostname("192.0.2.1", "192.0.2.10");
-        REQUIRE(new_url_default_scheme);
-        CHECK(*new_url_default_scheme == "https://192.0.2.10/");
-    }
 }
 
 TEST_CASE("Curl URL match config key", "[curl_url_match_config_key]") {
