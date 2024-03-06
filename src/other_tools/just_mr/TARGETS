@@ -195,7 +195,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["mirrors"]
   , "hdrs": ["mirrors.hpp"]
-  , "deps": [["@", "json", "", "json"], ["src/buildtool/logging", "logging"]]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/other_tools/utils", "curl_url_handle"]
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   }
 , "rc":

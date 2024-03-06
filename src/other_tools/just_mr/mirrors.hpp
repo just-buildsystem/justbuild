@@ -18,10 +18,13 @@
 #include <exception>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/other_tools/utils/curl_url_handle.hpp"
 
 struct Mirrors {
     nlohmann::json local_mirrors{};        // maps URLs to list of local mirrors
@@ -95,6 +98,65 @@ namespace MirrorsUtils {
                     ex.what());
         return {};
     };
+}
+
+/// \brief Sort mirrors by the order of given hostnames.
+[[nodiscard]] static inline auto SortByHostname(
+    std::vector<std::string> const& mirrors,
+    std::vector<std::string> const& hostnames) -> std::vector<std::string> {
+    using map_t = std::unordered_map<std::string, std::vector<std::string>>;
+    map_t mirrors_by_hostname{};
+    mirrors_by_hostname.reserve(hostnames.size() + 1);
+
+    // initialize map with known hostnames
+    std::transform(
+        hostnames.begin(),
+        hostnames.end(),
+        std::inserter(mirrors_by_hostname, mirrors_by_hostname.end()),
+        [](auto const& hostname) -> typename map_t::value_type {
+            return {hostname, {/*empty*/}};
+        });
+
+    // fill mirrors list per hostname
+    for (auto const& mirror : mirrors) {
+        auto hostname =
+            CurlURLHandle::GetHostname(mirror).value_or(std::string{});
+        auto it = mirrors_by_hostname.find(hostname);
+        if (it != mirrors_by_hostname.end()) {
+            mirrors_by_hostname.at(hostname).emplace_back(mirror);
+        }
+        else {
+            // add missing or unknown hostnames to fallback list with key ""
+            mirrors_by_hostname[""].emplace_back(mirror);
+        }
+    }
+
+    std::vector<std::string> ordered{};
+    ordered.reserve(mirrors.size());
+
+    // first, add mirrors in the order defined by hostnames
+    for (auto const& hostname : hostnames) {
+        auto it = mirrors_by_hostname.find(hostname);
+        if (it != mirrors_by_hostname.end()) {
+            auto& list = it->second;
+            ordered.insert(ordered.end(),
+                           std::make_move_iterator(list.begin()),
+                           std::make_move_iterator(list.end()));
+            // clear for safe revisit in case hostnames contains any duplicates
+            list.clear();
+        }
+    }
+
+    // second, append remaining mirrors from fallback list with key ""
+    auto it = mirrors_by_hostname.find("");
+    if (it != mirrors_by_hostname.end()) {
+        auto& list = it->second;
+        ordered.insert(ordered.end(),
+                       std::make_move_iterator(list.begin()),
+                       std::make_move_iterator(list.end()));
+    }
+
+    return ordered;
 }
 
 }  // namespace MirrorsUtils
