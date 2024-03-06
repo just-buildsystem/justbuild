@@ -100,7 +100,8 @@ It defines as workspace root a part of a Git repository.
 The following fields are supported:
 
  - *`"repository"`* provides the URL of the Git repository. This entry
-   is mandatory.
+   is mandatory. Note that only URLs starting with `/`, `./`, or `file://`
+   are considered file URLs.
 
  - *`"commit"`* contains the commit hash. This has to be specified in
    hex encoding. This entry is mandatory.
