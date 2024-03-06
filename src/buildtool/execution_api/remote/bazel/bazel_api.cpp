@@ -76,7 +76,8 @@ namespace {
     BlobContainer container{};
     while (not blobs.empty()) {
         if (count + blobs.size() > size) {
-            Logger::Log(LogLevel::Error, "received more blobs than requested.");
+            Logger::Log(LogLevel::Warning,
+                        "received more blobs than requested.");
             return false;
         }
         for (auto const& blob : blobs) {
@@ -88,7 +89,7 @@ namespace {
                 container.Emplace(BazelBlob{blob.digest, blob.data, exec});
             } catch (std::exception const& ex) {
                 Logger::Log(
-                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+                    LogLevel::Warning, "failed to emplace blob: ", ex.what());
                 return false;
             }
         }
@@ -97,7 +98,7 @@ namespace {
     }
 
     if (count != size) {
-        Logger::Log(LogLevel::Error, "could not retrieve all requested blobs.");
+        Logger::Log(LogLevel::Debug, "could not retrieve all requested blobs.");
         return false;
     }
 
@@ -210,7 +211,7 @@ auto BazelApi::CreateAction(
     std::optional<gsl::not_null<IExecutionApi*>> const& alternative) noexcept
     -> bool {
     if (artifacts_info.size() != output_paths.size()) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(LogLevel::Warning,
                     "different number of digests and output paths.");
         return false;
     }
@@ -250,7 +251,8 @@ auto BazelApi::CreateAction(
     std::size_t count{};
     while (not blobs.empty()) {
         if (count + blobs.size() > size) {
-            Logger::Log(LogLevel::Error, "received more blobs than requested.");
+            Logger::Log(LogLevel::Warning,
+                        "received more blobs than requested.");
             return false;
         }
         for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
@@ -259,7 +261,7 @@ auto BazelApi::CreateAction(
             if (not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
                                                    /*kSetWritable=*/true>(
                     blobs[pos].data, output_paths[gpos], type)) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Warning,
                             "staging to output path {} failed.",
                             output_paths[gpos].string());
                 return false;
@@ -270,7 +272,8 @@ auto BazelApi::CreateAction(
     }
 
     if (count != size) {
-        Logger::Log(LogLevel::Error, "could not retrieve all requested blobs.");
+        Logger::Log(LogLevel::Warning,
+                    "could not retrieve all requested blobs.");
         return false;
     }
 
@@ -282,7 +285,7 @@ auto BazelApi::CreateAction(
     std::vector<int> const& fds,
     bool raw_tree) noexcept -> bool {
     if (artifacts_info.size() != fds.size()) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(LogLevel::Warning,
                     "different number of digests and file descriptors.");
         return false;
     }
@@ -295,7 +298,7 @@ auto BazelApi::CreateAction(
             auto const success = network_->DumpToStream(info, out, raw_tree);
             std::fclose(out);
             if (not success) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Warning,
                             "dumping {} {} to file descriptor {} failed.",
                             IsTreeObject(info.type) ? "tree" : "blob",
                             info.ToString(),
@@ -305,7 +308,7 @@ auto BazelApi::CreateAction(
         }
         else {
             Logger::Log(
-                LogLevel::Error, "opening file descriptor {} failed.", fd);
+                LogLevel::Warning, "opening file descriptor {} failed.", fd);
             return false;
         }
     }
@@ -416,8 +419,9 @@ auto BazelApi::CreateAction(
                 });
         }
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "Artifact synchronization failed: {}", ex.what());
+        Logger::Log(LogLevel::Warning,
+                    "Artifact synchronization failed: {}",
+                    ex.what());
         return false;
     }
 

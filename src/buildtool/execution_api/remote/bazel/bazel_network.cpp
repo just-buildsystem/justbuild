@@ -30,7 +30,7 @@ namespace {
         return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
             blobs.at(0).data);
     }
-    Logger::Log(LogLevel::Error,
+    Logger::Log(LogLevel::Debug,
                 "Directory {} not found in CAS",
                 NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
@@ -71,7 +71,7 @@ namespace {
             check_symlinks,
             /*is_hex_id=*/false);
     }
-    Logger::Log(LogLevel::Error,
+    Logger::Log(LogLevel::Debug,
                 "Tree {} not found in CAS",
                 NativeSupport::Unprefix(digest.hash()));
     return std::nullopt;
@@ -85,7 +85,7 @@ namespace {
     if (raw_tree) {
         auto blobs = network->ReadBlobs({tree_digest}).Next();
         if (blobs.size() != 1) {
-            Logger::Log(LogLevel::Error,
+            Logger::Log(LogLevel::Debug,
                         "Object {} not found in CAS",
                         NativeSupport::Unprefix(tree_digest.hash()));
             return false;
@@ -197,7 +197,7 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
                    return cas_->UpdateSingleBlob(instance_name_, x);
                });
     } catch (...) {
-        Logger::Log(LogLevel::Error, "Unknown exception");
+        Logger::Log(LogLevel::Warning, "Unknown exception");
         return false;
     }
 }
@@ -229,7 +229,7 @@ auto BazelNetwork::ExecuteBazelActionSync(
     if (response.state !=
             BazelExecutionClient::ExecutionResponse::State::Finished or
         not response.output) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(LogLevel::Warning,
                     "Failed to execute action with execution id {}.",
                     action.hash());
         return std::nullopt;
@@ -271,7 +271,8 @@ auto BazelNetwork::BlobReader::Next() noexcept -> std::vector<BazelBlob> {
             begin_ = current_;
         }
     } catch (std::exception const& e) {
-        Logger::Log(LogLevel::Error, "Reading blobs failed with: {}", e.what());
+        Logger::Log(
+            LogLevel::Warning, "Reading blobs failed with: {}", e.what());
         Ensures(false);
     }
 

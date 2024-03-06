@@ -47,7 +47,7 @@ class ByteStreamClient {
             if (not finished_) {
                 auto status = reader_->Finish();
                 if (not status.ok()) {
-                    logger_->Emit(LogLevel::Error,
+                    logger_->Emit(LogLevel::Debug,
                                   "{}: {}",
                                   static_cast<int>(status.error_code()),
                                   status.error_message());
@@ -130,7 +130,7 @@ class ByteStreamClient {
                     auto const committed_size = QueryWriteStatus(resource_name);
                     if (committed_size <= 0) {
                         logger_.Emit(
-                            LogLevel::Error,
+                            LogLevel::Warning,
                             "broken stream for upload to resource name {}",
                             resource_name);
                         return false;
@@ -142,7 +142,7 @@ class ByteStreamClient {
                 }
             } while (pos < data.size());
             if (not writer->WritesDone()) {
-                logger_.Emit(LogLevel::Error,
+                logger_.Emit(LogLevel::Warning,
                              "broken stream for upload to resource name {}",
                              resource_name);
                 return false;
@@ -150,13 +150,13 @@ class ByteStreamClient {
 
             auto status = writer->Finish();
             if (not status.ok()) {
-                LogStatus(&logger_, LogLevel::Error, status);
+                LogStatus(&logger_, LogLevel::Debug, status);
                 return false;
             }
             if (gsl::narrow<std::size_t>(response.committed_size()) !=
                 data.size()) {
                 logger_.Emit(
-                    LogLevel::Error,
+                    LogLevel::Warning,
                     "Commited size {} is different from the original one {}.",
                     response.committed_size(),
                     data.size());
@@ -164,7 +164,7 @@ class ByteStreamClient {
             }
             return true;
         } catch (...) {
-            logger_.Emit(LogLevel::Error, "Caught exception in Write");
+            logger_.Emit(LogLevel::Warning, "Caught exception in Write");
             return false;
         }
     }
