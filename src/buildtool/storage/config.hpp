@@ -170,11 +170,18 @@ class StorageConfig {
         }
     }
 
+    /// \brief Root directory for all ephemeral directories, i.e., directories
+    /// that can (and should) be removed immediately by garbage collection.
+    [[nodiscard]] static auto EphemeralRoot() noexcept
+        -> std::filesystem::path {
+        return GenerationCacheRoot(0) / "ephemeral";
+    }
+
     /// \brief Root directory for local action executions; individual actions
     /// create a working directory below this root.
     [[nodiscard]] static auto ExecutionRoot() noexcept
         -> std::filesystem::path {
-        return GenerationCacheRoot(0) / "exec_root";
+        return EphemeralRoot() / "exec_root";
     }
 
   private:
