@@ -139,6 +139,13 @@ class TargetCache {
         ArtifactDownloader const& downloader) const noexcept -> bool;
 };
 
+#ifdef BOOTSTRAP_BUILD_TOOL
+using ActiveTargetCache = TargetCache<false>;
+#else
+// TargetCache type aware of bootstrapping
+using ActiveTargetCache = TargetCache<true>;
+#endif  // BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/storage/target_cache.tpp"
 
 namespace std {
