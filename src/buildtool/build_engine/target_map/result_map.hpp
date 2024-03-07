@@ -170,7 +170,9 @@ class ResultTargetMap {
     }
 
     template <bool kIncludeOrigins = false>
-    [[nodiscard]] auto ToResult() const -> ResultType<kIncludeOrigins> {
+    [[nodiscard]] auto ToResult(gsl::not_null<Statistics const*> const& stats,
+                                gsl::not_null<Progress*> const& progress) const
+        -> ResultType<kIncludeOrigins> {
         ResultType<kIncludeOrigins> result{};
         size_t na = 0;
         size_t nb = 0;
@@ -184,7 +186,7 @@ class ResultTargetMap {
         result.blobs.reserve(nb);
         result.trees.reserve(nt);
 
-        auto& origin_map = Progress::Instance().OriginMap();
+        auto& origin_map = progress->OriginMap();
         origin_map.clear();
         origin_map.reserve(na);
         for (const auto& target : targets_) {
@@ -298,7 +300,7 @@ class ResultTargetMap {
                         });
         result.actions.erase(lastaction, result.actions.end());
 
-        int trees_traversed = Statistics::Instance().TreesAnalysedCounter();
+        int trees_traversed = stats->TreesAnalysedCounter();
         if (trees_traversed > 0) {
             Logger::Log(LogLevel::Performance,
                         "Analysed {} non-known source trees",
@@ -314,8 +316,10 @@ class ResultTargetMap {
     }
 
     template <bool kIncludeOrigins = false>
-    [[nodiscard]] auto ToJson() const -> nlohmann::json {
-        auto const result = ToResult<kIncludeOrigins>();
+    [[nodiscard]] auto ToJson(gsl::not_null<Statistics const*> const& stats,
+                              gsl::not_null<Progress*> const& progress) const
+        -> nlohmann::json {
+        auto const result = ToResult<kIncludeOrigins>(stats, progress);
         auto actions = nlohmann::json::object();
         auto trees = nlohmann::json::object();
         std::for_each(result.actions.begin(),
@@ -340,11 +344,15 @@ class ResultTargetMap {
     }
 
     template <bool kIncludeOrigins = true>
-    auto ToFile(std::string const& graph_file, int indent = 2) const -> void {
+    auto ToFile(std::string const& graph_file,
+                gsl::not_null<Statistics const*> const& stats,
+                gsl::not_null<Progress*> const& progress,
+                int indent = 2) const -> void {
         Logger::Log(
             LogLevel::Info, "Dumping action graph to file {}.", graph_file);
         std::ofstream os(graph_file);
-        os << std::setw(indent) << ToJson<kIncludeOrigins>() << std::endl;
+        os << std::setw(indent) << ToJson<kIncludeOrigins>(stats, progress)
+           << std::endl;
     }
 
     void Clear(gsl::not_null<TaskSystem*> const& ts) {

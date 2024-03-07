@@ -25,7 +25,6 @@ class HermeticLocalTestFixture {
   public:
     HermeticLocalTestFixture() noexcept {
         static int id{};
-        Statistics::Instance().Reset();
         CreateAndSetCleanDiskCache(id++);
     }
 

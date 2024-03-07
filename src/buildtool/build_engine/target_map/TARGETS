@@ -45,6 +45,7 @@
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/storage", "storage"]
@@ -97,6 +98,7 @@
     [ "configured_target"
     , "result_map"
     , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["@", "gsl", "", "gsl"]

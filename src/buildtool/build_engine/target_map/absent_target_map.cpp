@@ -23,13 +23,15 @@
 auto BuildMaps::Target::CreateAbsentTargetMap(
     const gsl::not_null<ResultTargetMap*>& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<Statistics*> const& local_stats,
     std::size_t jobs) -> AbsentTargetMap {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    auto target_reader = [result_map, repo_config](auto /*ts*/,
-                                                   auto setter,
-                                                   auto logger,
-                                                   auto /*subcaller*/,
-                                                   auto key) {
+    auto target_reader = [result_map, repo_config, local_stats](
+                             auto /*ts*/,
+                             auto setter,
+                             auto logger,
+                             auto /*subcaller*/,
+                             auto key) {
         // assumptions:
         // - target with absent targets file requested
         // - ServeApi correctly configured
@@ -137,7 +139,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                         info.ToString());
 
             (*setter)(std::move(analysis_result));
-            Statistics::Instance().IncrementExportsCachedCounter();
+            local_stats->IncrementExportsCachedCounter();
             return;
         }
         (*logger)(fmt::format("Reading target entry for key {} failed",

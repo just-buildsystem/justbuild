@@ -55,6 +55,7 @@
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
@@ -62,6 +63,7 @@
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/concepts.hpp"
 #include "src/utils/cpp/json.hpp"
 
@@ -913,6 +915,11 @@ auto main(int argc, char* argv[]) -> int {
                 ? std::make_optional(std::move(arguments.rebuild))
                 : std::nullopt;
 
+        // statistics and progress instances; need to be kept alive
+        // used also in bootstrapped just
+        Statistics stats{};
+        Progress progress{};
+
 #ifndef BOOTSTRAP_BUILD_TOOL
         SetupRetryConfig(arguments.retry);
         GraphTraverser const traverser{
@@ -923,7 +930,9 @@ auto main(int argc, char* argv[]) -> int {
             &repo_config,
             RemoteExecutionConfig::PlatformProperties(),
             RemoteExecutionConfig::DispatchList(),
-            ProgressReporter::Reporter()};
+            &stats,
+            &progress,
+            ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             if (not repo_config.SetGitCAS(StorageConfig::GitRoot())) {
@@ -999,11 +1008,13 @@ auto main(int argc, char* argv[]) -> int {
                               &result_map,
                               &repo_config,
                               Storage::Instance().TargetCache(),
+                              &stats,
                               arguments.common.jobs,
                               arguments.analysis.request_action_input);
             if (result) {
                 if (arguments.analysis.graph_file) {
-                    result_map.ToFile(*arguments.analysis.graph_file);
+                    result_map.ToFile(
+                        *arguments.analysis.graph_file, &stats, &progress);
                 }
                 auto const [artifacts, runfiles] =
                     ReadOutputArtifacts(result->target);
@@ -1028,11 +1039,10 @@ auto main(int argc, char* argv[]) -> int {
                             "Analysed target {}",
                             result->id.ToString());
 
-                auto const& stat = Statistics::Instance();
                 {
-                    auto cached = stat.ExportsCachedCounter();
-                    auto uncached = stat.ExportsUncachedCounter();
-                    auto not_eligible = stat.ExportsNotEligibleCounter();
+                    auto cached = stats.ExportsCachedCounter();
+                    auto uncached = stats.ExportsUncachedCounter();
+                    auto not_eligible = stats.ExportsNotEligibleCounter();
                     Logger::Log(cached + uncached + not_eligible > 0
                                     ? LogLevel::Info
                                     : LogLevel::Debug,
@@ -1044,7 +1054,8 @@ auto main(int argc, char* argv[]) -> int {
                 }
 
                 ReportTaintedness(*result);
-                auto const& [actions, blobs, trees] = result_map.ToResult();
+                auto const& [actions, blobs, trees] =
+                    result_map.ToResult(&stats, &progress);
 
                 // collect cache targets and artifacts for target-level caching
                 auto const cache_targets = result_map.CacheTargets();

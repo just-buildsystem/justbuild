@@ -18,15 +18,18 @@
 #include <functional>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/utils/test_env.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
@@ -80,11 +83,14 @@ template <class Executor>
     return tree_artifact->Content().Info();
 }
 
-static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
-                                            ApiFactory const& factory,
-                                            bool is_hermetic = true,
-                                            int expected_queued = 0,
-                                            int expected_cached = 0) {
+static inline void RunHelloWorldCompilation(
+    RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
+    ApiFactory const& factory,
+    bool is_hermetic = true,
+    int expected_queued = 0,
+    int expected_cached = 0) {
     using path = std::filesystem::path;
     SetupConfig(repo_config);
     auto const main_cpp_desc =
@@ -119,7 +125,9 @@ static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
                     api.get(),
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList()};
+                    RemoteExecutionConfig::DispatchList(),
+                    stats,
+                    progress};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -129,8 +137,8 @@ static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
     // process action
     CHECK(runner.Process(g.ArtifactNodeWithId(exec_id)->BuilderActionNode()));
     if (is_hermetic) {
-        CHECK(Statistics::Instance().ActionsQueuedCounter() == expected_queued);
-        CHECK(Statistics::Instance().ActionsCachedCounter() == expected_cached);
+        CHECK(stats->ActionsQueuedCounter() == expected_queued);
+        CHECK(stats->ActionsCachedCounter() == expected_cached);
     }
 
     auto tmpdir = GetTestDir();
@@ -147,12 +155,15 @@ static inline void RunHelloWorldCompilation(RepositoryConfig* repo_config,
     }
 }
 
-static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
-                                         ApiFactory const& factory,
-                                         std::string const& greetcpp,
-                                         bool is_hermetic = true,
-                                         int expected_queued = 0,
-                                         int expected_cached = 0) {
+static inline void RunGreeterCompilation(
+    RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
+    ApiFactory const& factory,
+    std::string const& greetcpp,
+    bool is_hermetic = true,
+    int expected_queued = 0,
+    int expected_cached = 0) {
     using path = std::filesystem::path;
     SetupConfig(repo_config);
     auto const greet_hpp_desc =
@@ -234,7 +245,9 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
                     api.get(),
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList()};
+                    RemoteExecutionConfig::DispatchList(),
+                    stats,
+                    progress};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -250,8 +263,8 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
         runner.Process(g.ArtifactNodeWithId(libgreet_id)->BuilderActionNode()));
     CHECK(runner.Process(g.ArtifactNodeWithId(exec_id)->BuilderActionNode()));
     if (is_hermetic) {
-        CHECK(Statistics::Instance().ActionsQueuedCounter() == expected_queued);
-        CHECK(Statistics::Instance().ActionsCachedCounter() == expected_cached);
+        CHECK(stats->ActionsQueuedCounter() == expected_queued);
+        CHECK(stats->ActionsCachedCounter() == expected_cached);
     }
 
     auto tmpdir = GetTestDir();
@@ -277,32 +290,41 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
 
 [[maybe_unused]] static void TestHelloWorldCompilation(
     RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 1 action queued, 0 results from cache
     // NOLINTNEXTLINE
-    RunHelloWorldCompilation(repo_config, factory, is_hermetic, 1, 0);
+    RunHelloWorldCompilation(
+        repo_config, stats, progress, factory, is_hermetic, 1, 0);
 
     SECTION("Running same compilation again") {
         // expecting 2 actions queued, 1 result from cache
         // NOLINTNEXTLINE
-        RunHelloWorldCompilation(repo_config, factory, is_hermetic, 2, 1);
+        RunHelloWorldCompilation(
+            repo_config, stats, progress, factory, is_hermetic, 2, 1);
     }
 }
 
 [[maybe_unused]] static void TestGreeterCompilation(
     RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 3 action queued, 0 results from cache
     // NOLINTNEXTLINE
-    RunGreeterCompilation(repo_config, factory, "greet.cpp", is_hermetic, 3, 0);
+    RunGreeterCompilation(
+        repo_config, stats, progress, factory, "greet.cpp", is_hermetic, 3, 0);
 
     SECTION("Running same compilation again") {
         // expecting 6 actions queued, 3 results from cache
         RunGreeterCompilation(repo_config,
+                              stats,
+                              progress,
                               factory,
                               "greet.cpp",
                               is_hermetic,
@@ -313,6 +335,8 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
     SECTION("Running modified compilation") {
         // expecting 6 actions queued, 2 results from cache
         RunGreeterCompilation(repo_config,
+                              stats,
+                              progress,
                               factory,
                               "greet_mod.cpp",
                               is_hermetic,
@@ -321,11 +345,14 @@ static inline void RunGreeterCompilation(RepositoryConfig* repo_config,
     }
 }
 
-static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
-                                              ApiFactory const& factory,
-                                              bool /*is_hermetic*/ = true,
-                                              int /*expected_queued*/ = 0,
-                                              int /*expected_cached*/ = 0) {
+static inline void TestUploadAndDownloadTrees(
+    RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
+    ApiFactory const& factory,
+    bool /*is_hermetic*/ = true,
+    int /*expected_queued*/ = 0,
+    int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
     auto* env_path = std::getenv("PATH");
@@ -366,7 +393,9 @@ static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
                     api.get(),
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList()};
+                    RemoteExecutionConfig::DispatchList(),
+                    stats,
+                    progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -468,11 +497,14 @@ static inline void TestUploadAndDownloadTrees(RepositoryConfig* repo_config,
     }
 }
 
-static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
-                                                 ApiFactory const& factory,
-                                                 bool /*is_hermetic*/ = true,
-                                                 int /*expected_queued*/ = 0,
-                                                 int /*expected_cached*/ = 0) {
+static inline void TestRetrieveOutputDirectories(
+    RepositoryConfig* repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress,
+    ApiFactory const& factory,
+    bool /*is_hermetic*/ = true,
+    int /*expected_queued*/ = 0,
+    int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
 
@@ -522,7 +554,9 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
                         api.get(),
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList()};
+                        RemoteExecutionConfig::DispatchList(),
+                        stats,
+                        progress};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -570,7 +604,9 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
                         api.get(),
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList()};
+                        RemoteExecutionConfig::DispatchList(),
+                        stats,
+                        progress};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -634,7 +670,9 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
                         api.get(),
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList()};
+                        RemoteExecutionConfig::DispatchList(),
+                        stats,
+                        progress};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -703,7 +741,9 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
                             api.get(),
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList()};
+                            RemoteExecutionConfig::DispatchList(),
+                            stats,
+                            progress};
             CHECK_FALSE(runner.Process(action));
         }
 
@@ -725,7 +765,9 @@ static inline void TestRetrieveOutputDirectories(RepositoryConfig* repo_config,
                             api.get(),
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList()};
+                            RemoteExecutionConfig::DispatchList(),
+                            stats,
+                            progress};
             CHECK_FALSE(runner.Process(action));
         }
     }

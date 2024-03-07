@@ -97,6 +97,7 @@ namespace Target = BuildMaps::Target;
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
     ActiveTargetCache const& target_cache,
+    gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,
     std::optional<std::string> const& request_action_input)
     -> std::optional<AnalysisResult> {
@@ -112,7 +113,7 @@ namespace Target = BuildMaps::Target;
     auto source_targets =
         Base::CreateSourceTargetMap(&directory_entries, repo_config, jobs);
     auto absent_target_map =
-        Target::CreateAbsentTargetMap(result_map, repo_config, jobs);
+        Target::CreateAbsentTargetMap(result_map, repo_config, stats, jobs);
     auto target_map = Target::CreateTargetMap(&source_targets,
                                               &targets_file_map,
                                               &rule_map,
@@ -121,6 +122,7 @@ namespace Target = BuildMaps::Target;
                                               result_map,
                                               repo_config,
                                               target_cache,
+                                              stats,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};

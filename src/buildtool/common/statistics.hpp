@@ -19,11 +19,6 @@
 
 class Statistics {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> Statistics& {
-        static Statistics instance{};
-        return instance;
-    }
-
     void Reset() noexcept {
         num_actions_queued_ = 0;
         num_actions_executed_ = 0;

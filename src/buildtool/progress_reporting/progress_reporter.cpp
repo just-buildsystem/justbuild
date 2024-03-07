@@ -17,25 +17,23 @@
 #include <string>
 
 #include "fmt/core.h"
-#include "gsl/gsl"
-#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/progress_reporting/progress.hpp"
 
-auto ProgressReporter::Reporter() noexcept -> progress_reporter_t {
-    return BaseProgressReporter::Reporter([]() {
-        int total = gsl::narrow<int>(Progress::Instance().OriginMap().size());
+auto ProgressReporter::Reporter(
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& progress) noexcept -> progress_reporter_t {
+    return BaseProgressReporter::Reporter([stats, progress]() {
+        int total = gsl::narrow<int>(progress->OriginMap().size());
         // Note: order matters; queued has to be queried last
-        auto const& sample = Progress::Instance().TaskTracker().Sample();
-        auto const& stats = Statistics::Instance();
-        int cached = stats.ActionsCachedCounter();
-        int run = stats.ActionsExecutedCounter();
-        int queued = stats.ActionsQueuedCounter();
+        auto const& sample = progress->TaskTracker().Sample();
+        int cached = stats->ActionsCachedCounter();
+        int run = stats->ActionsExecutedCounter();
+        int queued = stats->ActionsQueuedCounter();
         int active = queued - run - cached;
         std::string now_msg;
         if (active > 0 and !sample.empty()) {
-            auto const& origin_map = Progress::Instance().OriginMap();
+            auto const& origin_map = progress->OriginMap();
             auto origins = origin_map.find(sample);
             if (origins != origin_map.end() and !origins->second.empty()) {
                 auto const& origin = origins->second[0];

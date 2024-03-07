@@ -4,11 +4,13 @@
   , "name": ["just"]
   , "srcs": ["main.cpp"]
   , "private-deps":
-    [ ["src/buildtool/common", "config"]
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/progress_reporting", "progress_reporter"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
@@ -113,6 +115,7 @@
   , "srcs": ["analyse.cpp"]
   , "deps":
     [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/analysed_target", "target"]

@@ -14,9 +14,11 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 
 TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
@@ -32,6 +34,8 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
 
 TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
     RepositoryConfig repo_config{};
+    Statistics stats{};
+    Progress progress{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
@@ -39,6 +43,8 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     TestHelloWorldCompilation(
         &repo_config,
+        &stats,
+        &progress,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -48,6 +54,8 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
 TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
     RepositoryConfig repo_config{};
+    Statistics stats{};
+    Progress progress{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
@@ -55,6 +63,8 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     TestGreeterCompilation(
         &repo_config,
+        &stats,
+        &progress,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -64,6 +74,8 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
 TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
     RepositoryConfig repo_config{};
+    Statistics stats{};
+    Progress progress{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
@@ -71,6 +83,8 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     TestUploadAndDownloadTrees(
         &repo_config,
+        &stats,
+        &progress,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};
@@ -80,6 +94,8 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
 TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
     RepositoryConfig repo_config{};
+    Statistics stats{};
+    Progress progress{};
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
@@ -87,6 +103,8 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     TestRetrieveOutputDirectories(
         &repo_config,
+        &stats,
+        &progress,
         [&] {
             return BazelApi::Ptr{new BazelApi{
                 "remote-execution", info->host, info->port, config}};

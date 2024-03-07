@@ -28,6 +28,7 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
@@ -44,6 +45,7 @@ auto CreateTargetMap(
     const gsl::not_null<ResultTargetMap*>&,
     const gsl::not_null<RepositoryConfig*>&,
     const ActiveTargetCache&,
+    const gsl::not_null<Statistics*>& stats,
     std::size_t jobs = 0) -> TargetMap;
 
 // use explicit cast to std::function to allow template deduction when used

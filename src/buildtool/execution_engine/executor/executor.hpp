@@ -55,7 +55,9 @@ class ExecutorImpl {
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> const& dispatch_list,
         std::chrono::milliseconds const& timeout,
-        IExecutionAction::CacheFlag cache_flag)
+        IExecutionAction::CacheFlag cache_flag,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress)
         -> std::optional<IExecutionResponse::Ptr> {
         auto const& inputs = action->Dependencies();
         auto const tree_action = action->Content().IsTreeAction();
@@ -95,8 +97,8 @@ class ExecutorImpl {
 
         // do not count statistics for rebuilder fetching from cache
         if (cache_flag != IExecutionAction::CacheFlag::FromCacheOnly) {
-            Progress::Instance().TaskTracker().Start(action->Content().Id());
-            Statistics::Instance().IncrementActionsQueuedCounter();
+            progress->TaskTracker().Start(action->Content().Id());
+            stats->IncrementActionsQueuedCounter();
         }
 
         auto alternative_api =
@@ -501,6 +503,8 @@ class ExecutorImpl {
         Logger const& logger,
         IExecutionResponse::Ptr const& response,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress,
         bool count_as_executed = false) -> bool {
         logger.Emit(LogLevel::Trace, "finished execution");
 
@@ -511,12 +515,12 @@ class ExecutorImpl {
 
         if (not count_as_executed and response->IsCached()) {
             logger.Emit(LogLevel::Trace, " - served from cache");
-            Statistics::Instance().IncrementActionsCachedCounter();
+            stats->IncrementActionsCachedCounter();
         }
         else {
-            Statistics::Instance().IncrementActionsExecutedCounter();
+            stats->IncrementActionsExecutedCounter();
         }
-        Progress::Instance().TaskTracker().Stop(action->Content().Id());
+        progress->TaskTracker().Stop(action->Content().Id());
 
         PrintInfo(logger, action->Command(), response);
         bool should_fail_outputs = false;
@@ -535,7 +539,7 @@ class ExecutorImpl {
                 logger.Emit(LogLevel::Error,
                             "action returned non-zero exit code {}",
                             response->ExitCode());
-                PrintError(logger, action);
+                PrintError(logger, action, progress);
                 return false;
             }
         }
@@ -556,7 +560,7 @@ class ExecutorImpl {
                 }
                 return message;
             });
-            PrintError(logger, action);
+            PrintError(logger, action, progress);
             return false;
         }
 
@@ -601,12 +605,12 @@ class ExecutorImpl {
 
     void static PrintError(
         Logger const& logger,
-        gsl::not_null<DependencyGraph::ActionNode const*> const&
-            action) noexcept {
+        gsl::not_null<DependencyGraph::ActionNode const*> const& action,
+        gsl::not_null<Progress*> const& progress) noexcept {
         std::ostringstream msg{};
         msg << "Failed to execute command ";
         msg << nlohmann::json(action->Command()).dump();
-        auto const& origin_map = Progress::Instance().OriginMap();
+        auto const& origin_map = progress->OriginMap();
         auto origins = origin_map.find(action->Content().Id());
         if (origins != origin_map.end() and !origins->second.empty()) {
             msg << "\nrequested by";
@@ -680,12 +684,16 @@ class Executor {
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
           local_api_{local_api},
           remote_api_{remote_api},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
+          stats_{stats},
+          progress_{progress},
           timeout_{timeout} {}
 
     /// \brief Run an action in a blocking manner
@@ -704,10 +712,14 @@ class Executor {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
-            action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput);
+            action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
+            stats_,
+            progress_);
 
         // check response and save digests of results
-        return not response or Impl::ParseResponse(logger, *response, action);
+        return not response or
+               Impl::ParseResponse(
+                   logger, *response, action, stats_, progress_);
     }
 
     /// \brief Check artifact is available to the CAS or upload it.
@@ -729,6 +741,8 @@ class Executor {
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
+    gsl::not_null<Statistics*> stats_;
+    gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;
 };
 
@@ -751,6 +765,8 @@ class Rebuilder {
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
           local_api_{local_api},
@@ -758,6 +774,8 @@ class Rebuilder {
           api_cached_{api_cached},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
+          stats_{stats},
+          progress_{progress},
           timeout_{timeout} {}
 
     [[nodiscard]] auto Process(
@@ -772,7 +790,9 @@ class Rebuilder {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
-            CF::PretendCached);
+            CF::PretendCached,
+            stats_,
+            progress_);
 
         if (not response) {
             return true;  // action without response (e.g., tree action)
@@ -786,7 +806,9 @@ class Rebuilder {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
-            CF::FromCacheOnly);
+            CF::FromCacheOnly,
+            stats_,
+            progress_);
 
         if (not response_cached) {
             logger_cached.Emit(LogLevel::Error,
@@ -795,8 +817,12 @@ class Rebuilder {
         }
 
         DetectFlakyAction(*response, *response_cached, action->Content());
-        return Impl::ParseResponse(
-            logger, *response, action, /*count_as_executed=*/true);
+        return Impl::ParseResponse(logger,
+                                   *response,
+                                   action,
+                                   stats_,
+                                   progress_,
+                                   /*count_as_executed=*/true);
     }
 
     [[nodiscard]] auto Process(
@@ -827,6 +853,8 @@ class Rebuilder {
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
+    gsl::not_null<Statistics*> stats_;
+    gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;
     mutable std::mutex m_;
     mutable std::vector<std::string> cache_misses_{};
@@ -842,7 +870,7 @@ class Rebuilder {
                            Action const& action) const noexcept {
         if (response and response_cached and
             response_cached->ActionDigest() == response->ActionDigest()) {
-            Statistics::Instance().IncrementRebuiltActionComparedCounter();
+            stats_->IncrementRebuiltActionComparedCounter();
             auto artifacts = response->Artifacts();
             auto artifacts_cached = response_cached->Artifacts();
             std::ostringstream msg{};
@@ -853,11 +881,10 @@ class Rebuilder {
                 }
             }
             if (msg.tellp() > 0) {
-                Statistics::Instance().IncrementActionsFlakyCounter();
+                stats_->IncrementActionsFlakyCounter();
                 bool tainted = action.MayFail() or action.NoCache();
                 if (tainted) {
-                    Statistics::Instance()
-                        .IncrementActionsFlakyTaintedCounter();
+                    stats_->IncrementActionsFlakyTaintedCounter();
                 }
                 Logger::Log(tainted ? LogLevel::Debug : LogLevel::Warning,
                             "{}",
@@ -865,7 +892,7 @@ class Rebuilder {
             }
         }
         else {
-            Statistics::Instance().IncrementRebuiltActionMissingCounter();
+            stats_->IncrementRebuiltActionMissingCounter();
             std::unique_lock lock{m_};
             cache_misses_.emplace_back(action.Id());
         }

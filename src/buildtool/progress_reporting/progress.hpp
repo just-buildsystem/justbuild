@@ -26,11 +26,6 @@
 
 class Progress {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> Progress& {
-        static Progress instance{};
-        return instance;
-    }
-
     [[nodiscard]] auto TaskTracker() noexcept -> TaskTracker& {
         return task_tracker_;
     }

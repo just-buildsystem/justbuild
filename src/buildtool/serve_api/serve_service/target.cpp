@@ -401,11 +401,17 @@ auto TargetService::ServeTarget(
     auto configured_target = BuildMaps::Target::ConfiguredTarget{
         .target = std::move(*entity), .config = std::move(config)};
 
+    // setup progress reporting; these instances need to be kept alive for
+    // graph traversal, analysis, and build
+    Statistics stats;
+    Progress progress;
+
     // analyse the configured target
     auto result = AnalyseTarget(configured_target,
                                 &result_map,
                                 &repository_config,
                                 *tc,
+                                &stats,
                                 RemoteServeConfig::Jobs(),
                                 std::nullopt /*request_action_input*/);
 
@@ -420,7 +426,8 @@ auto TargetService::ServeTarget(
     auto const [artifacts, runfiles] = ReadOutputArtifacts(result->target);
 
     // get the result map outputs
-    auto const& [actions, blobs, trees] = result_map.ToResult();
+    auto const& [actions, blobs, trees] =
+        result_map.ToResult(&stats, &progress);
 
     // collect cache targets and artifacts for target-level caching
     auto const cache_targets = result_map.CacheTargets();
@@ -443,11 +450,14 @@ auto TargetService::ServeTarget(
     traverser_args.build.timeout = RemoteServeConfig::ActionTimeout();
     traverser_args.stage = std::nullopt;
     traverser_args.rebuild = std::nullopt;
-    GraphTraverser const traverser{std::move(traverser_args),
-                                   &repository_config,
-                                   std::move(platform_properties),
-                                   std::move(dispatch_list),
-                                   ProgressReporter::Reporter()};
+    GraphTraverser const traverser{
+        std::move(traverser_args),
+        &repository_config,
+        std::move(platform_properties),
+        std::move(dispatch_list),
+        &stats,
+        &progress,
+        ProgressReporter::Reporter(&stats, &progress)};
 
     // perform build
     auto build_result = traverser.BuildAndStage(

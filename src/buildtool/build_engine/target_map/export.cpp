@@ -98,6 +98,7 @@ void ExportRule(
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
+    const gsl::not_null<Statistics*>& stats,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -134,7 +135,7 @@ void ExportRule(
 #endif  // BOOTSTRAP_BUILD_TOOL
 
         if (not target_cache_value) {
-            Statistics::Instance().IncrementExportsUncachedCounter();
+            stats->IncrementExportsUncachedCounter();
             Logger::Log(LogLevel::Performance,
                         "Export target {} registered for caching: {}",
                         key.target.ToString(),
@@ -176,7 +177,7 @@ void ExportRule(
                             info.ToString());
 
                 (*setter)(std::move(analysis_result));
-                Statistics::Instance().IncrementExportsCachedCounter();
+                stats->IncrementExportsCachedCounter();
                 return;
             }
             (*logger)(fmt::format("Reading target entry for key {} failed",
@@ -185,7 +186,7 @@ void ExportRule(
         }
     }
     else {
-        Statistics::Instance().IncrementExportsNotEligibleCounter();
+        stats->IncrementExportsNotEligibleCounter();
         Logger::Log(LogLevel::Performance,
                     "Export target {} is not eligible for target caching",
                     key.target.ToString());

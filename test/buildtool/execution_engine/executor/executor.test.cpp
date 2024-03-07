@@ -19,9 +19,11 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 
 /// \brief Mockup API test config.
 struct TestApiConfig {
@@ -267,7 +269,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -277,7 +282,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["local.cpp"].uploads = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -287,7 +295,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         config.artifacts["known.cpp"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(not runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -320,7 +331,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -333,7 +347,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.cached = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -346,7 +363,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.artifacts["output2.exe"].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -362,7 +382,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.failed = true;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -375,7 +398,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.response.exit_code = 1;
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -391,7 +417,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
         auto api = TestApi::Ptr{new TestApi{config}};
-        Executor runner{&repo_config, api.get(), api.get(), {}, {}};
+        Statistics stats{};
+        Progress progress{};
+        Executor runner{
+            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));

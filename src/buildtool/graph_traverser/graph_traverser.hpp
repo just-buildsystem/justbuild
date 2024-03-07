@@ -75,11 +75,15 @@ class GraphTraverser {
         gsl::not_null<RepositoryConfig*> const& repo_config,
         std::map<std::string, std::string> platform_properties,
         std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch_list)
+                              ServerAddress>> dispatch_list,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
           platform_properties_{std::move(platform_properties)},
           dispatch_list_{std::move(dispatch_list)},
+          stats_{stats},
+          progress_{progress},
           local_api_{CreateExecutionApi(std::nullopt,
                                         std::make_optional(repo_config))},
           remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
@@ -92,11 +96,15 @@ class GraphTraverser {
         std::map<std::string, std::string> platform_properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
+        gsl::not_null<Statistics*> const& stats,
+        gsl::not_null<Progress*> const& progress,
         progress_reporter_t reporter)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
           platform_properties_{std::move(platform_properties)},
           dispatch_list_{std::move(dispatch_list)},
+          stats_{stats},
+          progress_{progress},
           local_api_{CreateExecutionApi(std::nullopt,
                                         std::make_optional(repo_config))},
           remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
@@ -246,6 +254,8 @@ class GraphTraverser {
     std::map<std::string, std::string> platform_properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
+    gsl::not_null<Statistics*> stats_;
+    gsl::not_null<Progress*> progress_;
     gsl::not_null<IExecutionApi::Ptr> const local_api_;
     gsl::not_null<IExecutionApi::Ptr> const remote_api_;
     progress_reporter_t reporter_;
@@ -368,6 +378,8 @@ class GraphTraverser {
                           &(*remote_api_),
                           platform_properties_,
                           dispatch_list_,
+                          stats_,
+                          progress_,
                           clargs_.build.timeout};
         bool traversing{};
         std::atomic<bool> done = false;
@@ -399,6 +411,8 @@ class GraphTraverser {
                            &(*api_cached),
                            platform_properties_,
                            dispatch_list_,
+                           stats_,
+                           progress_,
                            clargs_.build.timeout};
         bool traversing{false};
         std::atomic<bool> done = false;
@@ -444,20 +458,19 @@ class GraphTraverser {
     }
 
     void LogStatistics() const noexcept {
-        auto const& stats = Statistics::Instance();
         if (clargs_.rebuild) {
             std::stringstream ss{};
-            ss << stats.RebuiltActionComparedCounter()
+            ss << stats_->RebuiltActionComparedCounter()
                << " actions compared with cache";
-            if (stats.ActionsFlakyCounter() > 0) {
-                ss << ", " << stats.ActionsFlakyCounter()
+            if (stats_->ActionsFlakyCounter() > 0) {
+                ss << ", " << stats_->ActionsFlakyCounter()
                    << " flaky actions found";
-                ss << " (" << stats.ActionsFlakyTaintedCounter()
+                ss << " (" << stats_->ActionsFlakyTaintedCounter()
                    << " of which tainted)";
             }
-            if (stats.RebuiltActionMissingCounter() > 0) {
+            if (stats_->RebuiltActionMissingCounter() > 0) {
                 ss << ", no cache entry found for "
-                   << stats.RebuiltActionMissingCounter() << " actions";
+                   << stats_->RebuiltActionMissingCounter() << " actions";
             }
             ss << ".";
             Logger::Log(LogLevel::Info, ss.str());
@@ -465,8 +478,8 @@ class GraphTraverser {
         else {
             Logger::Log(LogLevel::Info,
                         "Processed {} actions, {} cache hits.",
-                        stats.ActionsQueuedCounter(),
-                        stats.ActionsCachedCounter());
+                        stats_->ActionsQueuedCounter(),
+                        stats_->ActionsCachedCounter());
         }
     }
 
