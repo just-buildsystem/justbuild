@@ -203,6 +203,17 @@
     , "fetch-absent (data)"
     ]
   }
+, "stay-local":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["stay-local"]
+  , "test": ["stay-local.sh"]
+  , "deps":
+    [ ["end-to-end", "tool-under-test"]
+    , ["end-to-end", "mr-tool-under-test"]
+    , "fetch-absent (data)"
+    , ["utils", "null server"]
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -240,6 +251,7 @@
                 , "fetch-absent-archives"
                 , "fetch-absent-archives-symlinks"
                 , "fetch-absent-distdir-archive"
+                , "stay-local"
                 ]
               }
             ]

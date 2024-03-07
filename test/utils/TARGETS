@@ -83,6 +83,11 @@
   , "tainted": ["test"]
   , "files": {"utils/run_test_server.py": "run_test_server.py"}
   }
+, "null server":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "files": {"utils/null-server": "connection_documenting_server.py"}
+  }
 , "shell_quoting":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["shell_quoting"]
