@@ -17,11 +17,14 @@ set -eu
 
 # cleanup of http.server; pass server_pid as arg
 server_cleanup() {
-  echo "Shut down HTTP server"
-  # send SIGTERM
-  kill ${1} & res=$!
-  wait ${res}
-  echo "done"
+  echo "Shut down HTTP server(s)"
+  while [ -n "${1:-}" ]; do
+    # send SIGTERM
+    kill ${1} & res=$!
+    wait ${res}
+    echo "done ${1}"
+    shift
+  done
 }
 
 readonly ROOT=`pwd`
@@ -165,9 +168,11 @@ cat > test-repos.json <<EOF
 }
 EOF
 
+echo "Test mirrors fetch"
 rm -rf ${BUILDROOT} ${DISTFILES}/*
 ${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 fetch --all -o ${DISTFILES}
 
+echo "Test mirrors setup"
 rm -rf ${BUILDROOT} ${DISTFILES}/*
 CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} ${DISTDIR_ARGS} -j 32 setup --all)
 if [ ! -s "${CONFIG_CPP}" ]; then
@@ -239,17 +244,104 @@ cat > just-local.json <<EOF
     , "http://127.0.0.1:${port_num}/tgz_repo.tar.gz"
     ]
   }
-, "preferred hostnames":
-  ["non-existent.example.org", "127.0.0.1"]
 }
 EOF
 
+echo "Test 'local mirrors' fetch"
 rm -rf ${BUILDROOT} ${DISTFILES}/*
 ${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 fetch --all -o ${DISTFILES}
 
+echo "Test 'local mirrors' setup"
 rm -rf ${BUILDROOT} ${DISTFILES}/*
 CONFIG_CPP=$(${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 setup --all)
 if [ ! -s "${CONFIG_CPP}" ]; then
+    exit 1
+fi
+
+### Create second "state server" that writes access file if used
+
+readonly STATE_SERVER="${ROOT}/utils/null-server"
+readonly STATE_SERVER_ROOT="${TEST_TMPDIR}/state-server-root"
+
+mkdir -p "${STATE_SERVER_ROOT}"
+"${STATE_SERVER}" "${STATE_SERVER_ROOT}/port" "${STATE_SERVER_ROOT}/access" & state_server_pid=$!
+trap "kill $server_pid" INT TERM EXIT
+trap "server_cleanup ${server_pid} ${state_server_pid}" INT TERM EXIT
+while [ '!' -f "${STATE_SERVER_ROOT}/port" ]
+do
+    sleep 1s
+done
+# get port of "state server"
+state_port_num="$(cat ${STATE_SERVER_ROOT}/port)"
+if [ -z "${state_port_num}" ]; then
+    exit 1
+fi
+
+### Use .just-local with 'preferred hostnames' favoring host '127.0.0.1' over
+### 'localhost' aka the "state server".
+
+cat > test-repos.json <<EOF
+{ "repositories":
+  { "git_repo_1":
+    { "repository":
+      { "type": "git"
+      , "repository": "http://localhost:${state_port_num}/dummy.git"
+      , "branch": "test"
+      , "commit": "${GIT_REPO_COMMIT}"
+      , "subdir": "foo"
+      }
+    }
+  , "git_repo_2":
+    { "repository":
+      { "type": "git"
+      , "repository": "http://localhost:${state_port_num}/dummy.git"
+      , "branch": "test"
+      , "commit": "${GIT_REPO_COMMIT}"
+      , "subdir": "."
+      }
+    }
+  , "zip_repo":
+    { "repository":
+      { "type": "zip"
+      , "content": "${ZIP_REPO_CONTENT}"
+      , "distfile": "zip_repo.zip"
+      , "fetch": "http://localhost:${state_port_num}/zip_repo.zip"
+      , "mirrors": ["http://127.0.0.1:${port_num}/zip_repo.zip"]
+      , "sha256": "${ZIP_REPO_SHA256}"
+      , "sha512": "${ZIP_REPO_SHA512}"
+      , "subdir": "root"
+      , "pragma": {"special": "resolve-partially"}
+      }
+    }
+  , "tgz_repo":
+    { "repository":
+      { "type": "archive"
+      , "content": "${TGZ_REPO_CONTENT}"
+      , "distfile": "tgz_repo.tar.gz"
+      , "fetch": "http://localhost:${state_port_num}/tgz_repo.tar.gz"
+      , "mirrors": ["http://127.0.0.1:${port_num}/tgz_repo.tar.gz"]
+      , "sha256": "${TGZ_REPO_SHA256}"
+      , "sha512": "${TGZ_REPO_SHA512}"
+      , "subdir": "root/baz"
+      , "pragma": {"special": "ignore"}
+      }
+    }
+  }
+}
+EOF
+
+cat > just-local.json <<EOF
+{ "local mirrors":
+  {"http://localhost:${state_port_num}/dummy.git": ["${GIT_ROOT}"]}
+, "preferred hostnames": ["127.0.0.1", "localhost"]
+}
+EOF
+
+echo "Test 'preferred hostnames' fetch"
+rm -rf ${BUILDROOT} ${DISTFILES}/*
+${JUST_MR_CPP} -C test-repos.json --norc --local-build-root ${BUILDROOT} --checkout-locations just-local.json -j 32 fetch --all -o ${DISTFILES}
+if [ -f "${STATE_SERVER_ROOT}/access" ]; then
+    cat "${STATE_SERVER_ROOT}/access"
     exit 1
 fi
 

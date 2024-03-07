@@ -48,6 +48,7 @@
   , "deps":
     [ "create_test_archives"
     , ["utils", "test_utils_install"]
+    , ["utils", "null server"]
     , ["end-to-end", "mr-tool-under-test"]
     ]
   }
