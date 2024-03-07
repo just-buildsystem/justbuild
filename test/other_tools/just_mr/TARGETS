@@ -9,5 +9,17 @@
     ]
   , "stage": ["test", "other_tools", "just_mr"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["rc_merge"]}
+, "mirrors":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["mirrors"]
+  , "srcs": ["mirrors.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/other_tools/just_mr", "mirrors"]
+    ]
+  , "stage": ["test", "other_tools", "just_mr"]
+  }
+, "TESTS":
+  {"type": "install", "tainted": ["test"], "deps": ["rc_merge", "mirrors"]}
 }
