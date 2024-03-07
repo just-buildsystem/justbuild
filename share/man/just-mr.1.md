@@ -86,7 +86,7 @@ This file contains a JSON object with several known keys:
    URLs to a list of local (non-public) mirrors. These mirrors are always
    tried first (in the given order) before any other URL is contacted.
  - the key *`"preferred hostnames"`*, if given, is a list of strings
-   specifying known hostnames. When fetching from a non-local URL, URLs
+   specifying known hostnames. When fetching from a non-local mirror, URLs
    with hostnames in the given list are preferred (in the order given)
    over URLs with other hostnames.
 

@@ -54,7 +54,7 @@ keys in its JSON object.
   mirrors. Those mirrors are always tried first (in the given order)
   before any other URL is contacted.
 - For the optional key `"preferred hostnames"`, if given, a list of
-  host names is specified. When fetching from a non-local URL, URLs
+  host names is specified. When fetching from a non-local mirror, URLs
   with host names in the given list are preferred (in the order
   given) over URLs with other host names.
 
