@@ -515,21 +515,6 @@ auto CreateDistdirGitMap(
                     }
                 }
             }
-            // check the remote CAS for the tree
-            if (remote_api and
-                remote_api.value()->RetrieveToCas(
-                    {Artifact::ObjectInfo{.digest = digest,
-                                          .type = ObjectType::Tree}},
-                    local_api)) {
-                ImportFromCASAndSetRoot(key,
-                                        distdir_tree_id_file,
-                                        import_to_git_map,
-                                        ts,
-                                        setter,
-                                        logger);
-                // done!
-                return;
-            }
 
             // we could not set the root as present using the CAS tree
             // invariant, so now we need to ensure we have all individual blobs
