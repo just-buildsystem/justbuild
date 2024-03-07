@@ -16,6 +16,7 @@
 
 #include "src/buildtool/storage/garbage_collector.hpp"
 
+#include <filesystem>
 #include <vector>
 
 #include "nlohmann/json.hpp"
@@ -33,6 +34,27 @@
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+
+namespace {
+
+auto RemoveDirs(const std::vector<std::filesystem::path>& directories) -> bool {
+    bool success = true;
+    for (auto const& d : directories) {
+        if (FileSystemManager::IsDirectory(d)) {
+            if (not FileSystemManager::RemoveDirectory(d,
+                                                       /*recursively=*/true)) {
+                Logger::Log(LogLevel::Warning,
+                            "Failed to remove directory {}",
+                            d.string());
+                success = false;  // We failed to remove all, but still try the
+                                  // others to clean up as much as possible
+            }
+        }
+    }
+    return success;
+}
+
+}  // namespace
 
 auto GarbageCollector::GlobalUplinkBlob(bazel_re::Digest const& digest,
                                         bool is_executable) noexcept -> bool {
@@ -99,56 +121,137 @@ auto GarbageCollector::LockFilePath() noexcept -> std::filesystem::path {
     return StorageConfig::CacheRoot() / "gc.lock";
 }
 
-auto GarbageCollector::TriggerGarbageCollection() noexcept -> bool {
+auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
+    -> bool {
+    auto const kRemoveMe = std::string{"remove-me"};
+
     auto pid = CreateProcessUniqueId();
     if (not pid) {
         return false;
     }
-    auto remove_me = std::string{"remove-me-"} + *pid;
-    auto remove_me_dir = StorageConfig::CacheRoot() / remove_me;
-    if (FileSystemManager::IsDirectory(remove_me_dir)) {
-        if (not FileSystemManager::RemoveDirectory(remove_me_dir,
-                                                   /*recursively=*/true)) {
+    auto remove_me_prefix = kRemoveMe + *pid + std::string{"-"};
+    std::vector<std::filesystem::path> to_remove{};
+
+    // With a shared lock, we can remove all directories with the given prefix,
+    // as we own the process id.
+    {
+        auto lock = SharedLock();
+        if (not lock) {
             Logger::Log(LogLevel::Error,
-                        "Failed to remove directory {}",
-                        remove_me_dir.string());
+                        "Failed to get a shared lock the local build root");
+            return false;
+        }
+
+        for (auto const& entry :
+             std::filesystem::directory_iterator(StorageConfig::CacheRoot())) {
+            if (entry.path().filename().string().find(remove_me_prefix) == 0) {
+                to_remove.emplace_back(entry.path());
+            }
+        }
+        if (not RemoveDirs(to_remove)) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to clean up left-over directories under my "
+                        "pid. Will not continue");
             return false;
         }
     }
-    {  // Create scope for critical renaming section protected by advisory lock.
+
+    to_remove.clear();
+    int remove_me_counter{};
+
+    // after releasing the shared lock, wait to get an exclusive lock for doing
+    // the critical renamings
+    {
         auto lock = ExclusiveLock();
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to exclusively lock the local build root");
             return false;
         }
-        for (std::size_t i = StorageConfig::NumGenerations(); i > 0; --i) {
-            auto cache_root = StorageConfig::GenerationCacheRoot(i - 1);
-            if (FileSystemManager::IsDirectory(cache_root)) {
-                auto new_cache_root =
-                    (i == StorageConfig::NumGenerations())
-                        ? remove_me_dir
-                        : StorageConfig::GenerationCacheRoot(i);
-                if (not FileSystemManager::Rename(cache_root, new_cache_root)) {
-                    Logger::Log(LogLevel::Error,
-                                "Failed to rename {} to {}.",
-                                cache_root.string(),
-                                new_cache_root.string());
-                    return false;
+
+        // Frirst, while he have not yet created any to-remove directories, grab
+        // all existing remove-me directories; they're left overs, as the clean
+        // up of owned directories is done with a shared lock.
+        std::vector<std::filesystem::path> left_over{};
+        for (auto const& entry :
+             std::filesystem::directory_iterator(StorageConfig::CacheRoot())) {
+            if (entry.path().filename().string().find(kRemoveMe) == 0) {
+                left_over.emplace_back(entry.path());
+            }
+        }
+        for (auto const& d : left_over) {
+            auto new_name =
+                StorageConfig::CacheRoot() /
+                fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
+            if (FileSystemManager::Rename(d, new_name)) {
+                to_remove.emplace_back(new_name);
+            }
+            else {
+                Logger::Log(LogLevel::Warning,
+                            "Failed to rename {} to {}",
+                            d.string(),
+                            new_name.string());
+            }
+        }
+
+        // Now that the have to exclusive lock, try to move out ephemeral data;
+        // as it is still under the generation regime, it is not a huge problem
+        // if that fails.
+        auto ephemeral = StorageConfig::EphemeralRoot();
+        if (FileSystemManager::IsDirectory(ephemeral)) {
+            auto remove_me_dir =
+                StorageConfig::CacheRoot() /
+                fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
+            if (FileSystemManager::Rename(ephemeral, remove_me_dir)) {
+                to_remove.emplace_back(remove_me_dir);
+            }
+            else {
+                Logger::Log(LogLevel::Warning,
+                            "Failed to rename {} to {}.",
+                            ephemeral.string(),
+                            remove_me_dir.string());
+            }
+        }
+        // Rotate generations unless told not to do so
+        if (not no_rotation) {
+            auto remove_me_dir =
+                StorageConfig::CacheRoot() /
+                fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
+            to_remove.emplace_back(remove_me_dir);
+            for (std::size_t i = StorageConfig::NumGenerations(); i > 0; --i) {
+                auto cache_root = StorageConfig::GenerationCacheRoot(i - 1);
+                if (FileSystemManager::IsDirectory(cache_root)) {
+                    auto new_cache_root =
+                        (i == StorageConfig::NumGenerations())
+                            ? remove_me_dir
+                            : StorageConfig::GenerationCacheRoot(i);
+                    if (not FileSystemManager::Rename(cache_root,
+                                                      new_cache_root)) {
+                        Logger::Log(LogLevel::Error,
+                                    "Failed to rename {} to {}.",
+                                    cache_root.string(),
+                                    new_cache_root.string());
+                        return false;
+                    }
                 }
             }
         }
     }
-    if (FileSystemManager::IsDirectory(remove_me_dir)) {
-        if (not FileSystemManager::RemoveDirectory(remove_me_dir,
-                                                   /*recursively=*/true)) {
-            Logger::Log(LogLevel::Warning,
-                        "Failed to remove directory {}",
-                        remove_me_dir.string());
+
+    // After releasing the exlusive lock, get a shared lock and remove what we
+    // have to remove
+    bool success{};
+    {
+        auto lock = SharedLock();
+        if (not lock) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to get a shared lock the local build root");
             return false;
         }
+        success = RemoveDirs(to_remove);
     }
-    return true;
+
+    return success;
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL

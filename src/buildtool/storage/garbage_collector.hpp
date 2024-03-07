@@ -64,9 +64,11 @@ class GarbageCollector {
     [[nodiscard]] auto static GlobalUplinkTargetCacheEntry(
         TargetCacheKey const& key) noexcept -> bool;
 
-    /// \brief Trigger deletion of oldest generation.
+    /// \brief Trigger gargabe collection; unless no_rotation is given, this
+    /// will include rotation of generations and deleting the oldest generation.
     /// \returns true on success.
-    [[nodiscard]] auto static TriggerGarbageCollection() noexcept -> bool;
+    [[nodiscard]] auto static TriggerGarbageCollection(
+        bool no_rotation = false) noexcept -> bool;
 
     /// \brief Acquire shared lock to prevent garbage collection from running.
     /// \returns The acquired lock file on success or nullopt otherwise.
