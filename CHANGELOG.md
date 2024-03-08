@@ -34,6 +34,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 - Support for fetching archives from FTP and TFTP was added to `just-mr`
   if it was built with bundled curl. For package builds, libcurl has
   enabled whatever the distro considers suitable.
+- The `gc` subcommand supports an option `--no-rotate` to carry out
+  only local clean up.
 
 ### Fixes
 

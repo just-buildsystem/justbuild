@@ -127,6 +127,7 @@ auto SetupGcCommandArguments(
     gsl::not_null<CommandLineArguments*> const& clargs) {
     SetupLogArguments(app, &clargs->log);
     SetupCacheArguments(app, &clargs->endpoint);
+    SetupGcArguments(app, &clargs->gc);
 }
 
 /// \brief Setup arguments for sub command "just execute".

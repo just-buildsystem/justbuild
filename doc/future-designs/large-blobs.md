@@ -111,6 +111,5 @@ a blob via `grpc` without having to use the streaming interface,
 i.e, we chose 2MB. In this way, we already have correct blobs split
 for transfer to an end point that supports blob splicing.
 
-Additionally, the `gc` will get an option `--compactify-only`
-instructing `gc` to only perform the compactification step, without
-rotating generations.
+The compactification step will also be carried out if the `--no-rotate`
+option is given to `gc`.

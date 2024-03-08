@@ -52,6 +52,7 @@ struct CommandLineArguments {
     ServiceArguments service;
     ServeArguments serve;
     RetryArguments retry;
+    GcArguments gc;
 };
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)

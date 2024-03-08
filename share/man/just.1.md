@@ -738,6 +738,14 @@ is given by the option **`--log-operations-threshold`**, at most *`2^n`*
 operations will be removed, in a FIFO scheme. If unset, defaults to
 14. Must be in the range \[0,255\].
 
+**`gc`** specific options
+-------------------------
+
+**`--no-rotate`**  
+Do not rotate gargabe-collection generations. Instead, only carry
+out clean up tasks that do not affect what is stored in the cache.
+
+
 EXIT STATUS
 ===========
 

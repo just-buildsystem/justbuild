@@ -857,7 +857,8 @@ auto main(int argc, char* argv[]) -> int {
         SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {
-            if (GarbageCollector::TriggerGarbageCollection()) {
+            if (GarbageCollector::TriggerGarbageCollection(
+                    arguments.gc.no_rotate)) {
                 return kExitSuccess;
             }
             return kExitFailure;

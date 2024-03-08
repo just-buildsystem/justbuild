@@ -180,6 +180,10 @@ struct ServeArguments {
     std::vector<std::filesystem::path> repositories{};
 };
 
+struct GcArguments {
+    bool no_rotate{};
+};
+
 static inline auto SetupCommonArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommonArguments*> const& clargs) {
@@ -721,6 +725,14 @@ static inline void SetupRetryArguments(
                     "The backoff time cannot be bigger than this parameter. "
                     "Note that some jitter is still added to avoid to overload "
                     "the resources that survived the outage. (Default: 60)");
+}
+
+static inline void SetupGcArguments(gsl::not_null<CLI::App*> const& app,
+                                    gsl::not_null<GcArguments*> const& args) {
+    app->add_flag("--no-rotate",
+                  args->no_rotate,
+                  "Do not rotate cache generations, only clean up what can be "
+                  "done without losing cache.");
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
