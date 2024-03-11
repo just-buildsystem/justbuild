@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/serve_api/progress_reporting/progress_reporter.hpp"
+#include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
 
 #include <string>
 
@@ -20,24 +20,29 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/serve_api/progress_reporting/progress.hpp"
-#include "src/buildtool/serve_api/progress_reporting/statistics.hpp"
 
-auto ServeServiceProgressReporter::Reporter() noexcept -> progress_reporter_t {
-    return BaseProgressReporter::Reporter([]() {
-        auto const& stats = ServeServiceStatistics::Instance();
-        // get served counter before dispatched counter, to ensure we never
-        // undercount the amount of builds in flight
-        int served = stats.ServedCounter();
-        int dispatched = stats.DispatchedCounter();
-        int processing = dispatched - served;
-        int cached = stats.CacheHitsCounter();
+auto ExportsProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
+                                       gsl::not_null<Progress*> const& progress,
+                                       bool has_serve) noexcept
+    -> progress_reporter_t {
+    return BaseProgressReporter::Reporter([stats, progress, has_serve]() {
+        // get 'found' counter last to ensure we never undercount the amount of
+        // work not yet done
+        auto cached = stats->ExportsCachedCounter();
+        auto served = stats->ExportsServedCounter();
+        auto uncached = stats->ExportsUncachedCounter();
+        auto not_eligible = stats->ExportsNotEligibleCounter();
+        auto found = stats->ExportsFoundCounter();
 
-        auto active = ServeServiceProgress::Instance().TaskTracker().Active();
-        auto sample = ServeServiceProgress::Instance().TaskTracker().Sample();
+        auto active = progress->TaskTracker().Active();
+        auto sample = progress->TaskTracker().Sample();
 
         auto msg = fmt::format(
-            "{} cached, {} served, {} processing", cached, served, processing);
+            "Export targets: {} found [{} cached{}, {} analysed locally]",
+            found,
+            cached,
+            has_serve ? fmt::format(", {} served", served) : "",
+            uncached + not_eligible);
 
         if ((active > 0) && !sample.empty()) {
             msg = fmt::format("{} ({}{})",

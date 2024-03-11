@@ -41,4 +41,22 @@
   , "stage": ["src", "buildtool", "progress_reporting"]
   , "private-deps": [["src/buildtool/logging", "logging"]]
   }
+, "exports_progress_reporter":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["exports_progress_reporter"]
+  , "hdrs": ["exports_progress_reporter.hpp"]
+  , "srcs": ["exports_progress_reporter.cpp"]
+  , "stage": ["src", "buildtool", "progress_reporting"]
+  , "deps":
+    [ "base_progress_reporter"
+    , "progress"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
+    ]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  }
 }

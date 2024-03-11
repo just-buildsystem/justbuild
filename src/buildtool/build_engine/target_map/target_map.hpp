@@ -30,6 +30,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 namespace BuildMaps::Target {
@@ -46,6 +47,7 @@ auto CreateTargetMap(
     const gsl::not_null<RepositoryConfig*>&,
     const ActiveTargetCache&,
     const gsl::not_null<Statistics*>& stats,
+    const gsl::not_null<Progress*>& exports_progress,
     std::size_t jobs = 0) -> TargetMap;
 
 // use explicit cast to std::function to allow template deduction when used

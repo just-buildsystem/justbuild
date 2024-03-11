@@ -135,7 +135,9 @@
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "absent_target_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
-    , ["src/buildtool/serve_api/progress_reporting", "progress_reporter"]
+    , ["src/buildtool/progress_reporting", "exports_progress_reporter"]
+    , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   }
 , "diagnose":

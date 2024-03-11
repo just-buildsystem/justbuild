@@ -85,8 +85,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -96,7 +97,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -436,8 +438,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -447,7 +450,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     std::vector<AnalysedTargetPtr> result;
     bool error{false};
@@ -510,8 +514,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -521,7 +526,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -594,8 +600,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -605,7 +612,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
     AnalysedTargetPtr result;
     bool error{false};
     std::string error_msg;
@@ -788,8 +796,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -799,7 +808,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -915,8 +925,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -926,7 +937,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1008,8 +1020,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -1019,7 +1032,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1158,8 +1172,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
         BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
+    Progress exports_progress{};
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
-        &result_map, &repo_config, &stats, 0);
+        &result_map, &repo_config, &stats, &exports_progress, 0);
     auto target_map =
         BuildMaps::Target::CreateTargetMap(&source,
                                            &targets_file_map,
@@ -1169,7 +1184,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
                                            &result_map,
                                            &repo_config,
                                            Storage::Instance().TargetCache(),
-                                           &stats);
+                                           &stats,
+                                           &exports_progress);
 
     AnalysedTargetPtr result;
     bool error{false};

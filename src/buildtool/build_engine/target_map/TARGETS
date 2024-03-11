@@ -48,6 +48,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/storage", "storage"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
@@ -56,7 +57,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "gsl"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "field_reader"]
@@ -101,15 +101,13 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/progress_reporting", "progress"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   , "private-deps":
-    [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/storage", "storage"]
+    [ ["src/buildtool/storage", "storage"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/serve_api/progress_reporting", "progress"]
-    , ["src/buildtool/serve_api/progress_reporting", "statistics"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   }

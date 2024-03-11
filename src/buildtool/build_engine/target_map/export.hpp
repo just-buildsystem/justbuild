@@ -22,6 +22,7 @@
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 void ExportRule(const nlohmann::json& desc_json,
@@ -29,6 +30,7 @@ void ExportRule(const nlohmann::json& desc_json,
                 const gsl::not_null<RepositoryConfig*>& repo_config,
                 const ActiveTargetCache& target_cache,
                 const gsl::not_null<Statistics*>& stats,
+                const gsl::not_null<Progress*>& exports_progress,
                 const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
                 const BuildMaps::Target::TargetMap::SetterPtr& setter,
                 const BuildMaps::Target::TargetMap::LoggerPtr& logger,

@@ -30,7 +30,6 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
-#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -1239,6 +1238,7 @@ void withTargetsFile(
     const gsl::not_null<RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
+    const gsl::not_null<Progress*>& exports_progress,
     const nlohmann::json& targets_file,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
@@ -1273,16 +1273,18 @@ void withTargetsFile(
             return;
         }
         // Handle built-in rule, if it is
-        auto handled_as_builtin = BuildMaps::Target::HandleBuiltin(*rule_it,
-                                                                   desc,
-                                                                   key,
-                                                                   repo_config,
-                                                                   target_cache,
-                                                                   stats,
-                                                                   subcaller,
-                                                                   setter,
-                                                                   logger,
-                                                                   result_map);
+        auto handled_as_builtin =
+            BuildMaps::Target::HandleBuiltin(*rule_it,
+                                             desc,
+                                             key,
+                                             repo_config,
+                                             target_cache,
+                                             stats,
+                                             exports_progress,
+                                             subcaller,
+                                             setter,
+                                             logger,
+                                             result_map);
         if (handled_as_builtin) {
             return;
         }
@@ -1664,6 +1666,7 @@ auto CreateTargetMap(
     const gsl::not_null<RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
+    const gsl::not_null<Progress*>& exports_progress,
     std::size_t jobs) -> TargetMap {
     auto target_reader = [source_target_map,
                           targets_file_map,
@@ -1673,11 +1676,12 @@ auto CreateTargetMap(
                           result_map,
                           repo_config,
                           target_cache,
-                          stats](auto ts,
-                                 auto setter,
-                                 auto logger,
-                                 auto subcaller,
-                                 auto key) {
+                          stats,
+                          exports_progress](auto ts,
+                                            auto setter,
+                                            auto logger,
+                                            auto subcaller,
+                                            auto key) {
         if (key.target.IsAnonymousTarget()) {
             withTargetNode(key,
                            repo_config,
@@ -1815,6 +1819,7 @@ auto CreateTargetMap(
                  repo_config,
                  target_cache,
                  stats,
+                 exports_progress,
                  source_target_map,
                  rule_map,
                  ts,
@@ -1826,6 +1831,7 @@ auto CreateTargetMap(
                                     repo_config,
                                     target_cache,
                                     stats,
+                                    exports_progress,
                                     *values[0],
                                     source_target_map,
                                     rule_map,

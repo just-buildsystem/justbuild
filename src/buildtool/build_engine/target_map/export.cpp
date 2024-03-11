@@ -99,10 +99,12 @@ void ExportRule(
     const gsl::not_null<RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
+    const gsl::not_null<Progress*>& exports_progress,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
+    stats->IncrementExportsFoundCounter();
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "export target", logger);
     auto flexible_vars = desc->ReadStringList("flexible_config");
@@ -128,8 +130,12 @@ void ExportRule(
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());
+            exports_progress->TaskTracker().Start(
+                target_cache_key->Id().ToString());
             target_cache_value =
                 ServeApi::ServeTarget(*target_cache_key, *repo_key);
+            exports_progress->TaskTracker().Stop(
+                target_cache_key->Id().ToString());
             from_just_serve = true;
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -177,7 +183,12 @@ void ExportRule(
                             info.ToString());
 
                 (*setter)(std::move(analysis_result));
-                stats->IncrementExportsCachedCounter();
+                if (from_just_serve) {
+                    stats->IncrementExportsServedCounter();
+                }
+                else {
+                    stats->IncrementExportsCachedCounter();
+                }
                 return;
             }
             (*logger)(fmt::format("Reading target entry for key {} failed",

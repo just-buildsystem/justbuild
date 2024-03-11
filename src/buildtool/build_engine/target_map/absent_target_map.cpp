@@ -14,8 +14,6 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/serve_api/progress_reporting/progress.hpp"
-#include "src/buildtool/serve_api/progress_reporting/statistics.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #endif
@@ -23,10 +21,11 @@
 auto BuildMaps::Target::CreateAbsentTargetMap(
     const gsl::not_null<ResultTargetMap*>& result_map,
     gsl::not_null<RepositoryConfig*> const& repo_config,
-    gsl::not_null<Statistics*> const& local_stats,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& exports_progress,
     std::size_t jobs) -> AbsentTargetMap {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    auto target_reader = [result_map, repo_config, local_stats](
+    auto target_reader = [result_map, repo_config, stats, exports_progress](
                              auto /*ts*/,
                              auto setter,
                              auto logger,
@@ -56,6 +55,8 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                       /*fatal=*/true);
             return;
         }
+        // we know now that this target is an export target
+        stats->IncrementExportsFoundCounter();
         // TODO(asartori): avoid code duplication in export.cpp
         auto effective_config = key.config.Prune(*flexible_vars);
         auto target_name = key.target.GetNamedTarget();
@@ -84,18 +85,13 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for absent export target {}",
                         key.target.ToString());
-            ServeServiceProgress::Instance().TaskTracker().Start(
+            exports_progress->TaskTracker().Start(
                 target_cache_key->Id().ToString());
-            ServeServiceStatistics::Instance().IncrementDispatchedCounter();
             target_cache_value =
                 ServeApi::ServeTarget(*target_cache_key, *repo_key);
-            ServeServiceStatistics::Instance().IncrementServedCounter();
-            ServeServiceProgress::Instance().TaskTracker().Stop(
+            exports_progress->TaskTracker().Stop(
                 target_cache_key->Id().ToString());
             from_just_serve = true;
-        }
-        else {
-            ServeServiceStatistics::Instance().IncrementCacheHitsCounter();
         }
 
         if (!target_cache_value) {
@@ -139,7 +135,12 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                         info.ToString());
 
             (*setter)(std::move(analysis_result));
-            local_stats->IncrementExportsCachedCounter();
+            if (from_just_serve) {
+                stats->IncrementExportsServedCounter();
+            }
+            else {
+                stats->IncrementExportsCachedCounter();
+            }
             return;
         }
         (*logger)(fmt::format("Reading target entry for key {} failed",

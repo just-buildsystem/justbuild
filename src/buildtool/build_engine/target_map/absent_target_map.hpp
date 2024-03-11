@@ -21,13 +21,15 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 
 namespace BuildMaps::Target {
 using AbsentTargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 
 auto CreateAbsentTargetMap(const gsl::not_null<ResultTargetMap*>&,
                            gsl::not_null<RepositoryConfig*> const& repo_config,
-                           gsl::not_null<Statistics*> const& local_stats,
+                           gsl::not_null<Statistics*> const& stats,
+                           gsl::not_null<Progress*> const& exports_progress,
                            std::size_t jobs = 0) -> AbsentTargetMap;
 
 }  // namespace BuildMaps::Target

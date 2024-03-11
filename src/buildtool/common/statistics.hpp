@@ -47,6 +47,8 @@ class Statistics {
     void IncrementExportsNotEligibleCounter() noexcept {
         ++num_exports_not_eligible_;
     }
+    void IncrementExportsFoundCounter() noexcept { ++num_exports_found_; }
+    void IncrementExportsServedCounter() noexcept { ++num_exports_served_; }
     void IncrementTreesAnalysedCounter() noexcept { ++num_trees_analysed_; }
     [[nodiscard]] auto ActionsQueuedCounter() const noexcept -> int {
         return num_actions_queued_;
@@ -78,6 +80,12 @@ class Statistics {
     [[nodiscard]] auto ExportsNotEligibleCounter() const noexcept -> int {
         return num_exports_not_eligible_;
     }
+    [[nodiscard]] auto ExportsFoundCounter() const noexcept -> int {
+        return num_exports_found_;
+    }
+    [[nodiscard]] auto ExportsServedCounter() const noexcept -> int {
+        return num_exports_served_;
+    }
     [[nodiscard]] auto TreesAnalysedCounter() const noexcept -> int {
         return num_trees_analysed_;
     }
@@ -93,6 +101,8 @@ class Statistics {
     std::atomic<int> num_exports_cached_{};
     std::atomic<int> num_exports_uncached_{};
     std::atomic<int> num_exports_not_eligible_{};
+    std::atomic<int> num_exports_found_{};
+    std::atomic<int> num_exports_served_{};
     std::atomic<int> num_trees_analysed_{};
 };
 

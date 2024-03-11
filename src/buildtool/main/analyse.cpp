@@ -14,11 +14,9 @@
 
 #include "src/buildtool/main/analyse.hpp"
 
-#ifndef BOOTSTRAP_BUILD_TOOL
 #include <atomic>
 #include <condition_variable>
 #include <thread>
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
@@ -31,8 +29,10 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/serve_api/progress_reporting/progress_reporter.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
@@ -101,6 +101,9 @@ namespace Target = BuildMaps::Target;
     std::size_t jobs,
     std::optional<std::string> const& request_action_input)
     -> std::optional<AnalysisResult> {
+    // create progress tracker for export targets
+    Progress exports_progress{};
+    // create async maps
     auto directory_entries = Base::CreateDirectoryEntriesMap(repo_config, jobs);
     auto expressions_file_map =
         Base::CreateExpressionFileMap(repo_config, jobs);
@@ -112,8 +115,8 @@ namespace Target = BuildMaps::Target;
         Base::CreateRuleMap(&rule_file_map, &expr_map, repo_config, jobs);
     auto source_targets =
         Base::CreateSourceTargetMap(&directory_entries, repo_config, jobs);
-    auto absent_target_map =
-        Target::CreateAbsentTargetMap(result_map, repo_config, stats, jobs);
+    auto absent_target_map = Target::CreateAbsentTargetMap(
+        result_map, repo_config, stats, &exports_progress, jobs);
     auto target_map = Target::CreateTargetMap(&source_targets,
                                               &targets_file_map,
                                               &rule_map,
@@ -123,17 +126,25 @@ namespace Target = BuildMaps::Target;
                                               repo_config,
                                               target_cache,
                                               stats,
+                                              &exports_progress,
                                               jobs);
     Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};
 
+    // we should only report served export targets if a serve endpoint exists
+    bool has_serve{false};
 #ifndef BOOTSTRAP_BUILD_TOOL
+    if (RemoteServeConfig::RemoteAddress()) {
+        has_serve = true;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter = ServeServiceProgressReporter::Reporter();
+    auto reporter =
+        ExportsProgressReporter::Reporter(stats, &exports_progress, has_serve);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
-#endif  // BOOTSTRAP_BUILD_TOOL
 
     bool failed{false};
     {
@@ -150,12 +161,10 @@ namespace Target = BuildMaps::Target;
             });
     }
 
-#ifndef BOOTSTRAP_BUILD_TOOL
-    // close progress observer
+    // close analysis progress observer
     done = true;
     cv.notify_all();
     observer.join();
-#endif  // BOOTSTRAP_BUILD_TOOL
 
     if (failed) {
         return std::nullopt;
