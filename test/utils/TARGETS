@@ -50,6 +50,17 @@
     ]
   , "stage": ["test", "utils"]
   }
+, "large_object_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["large_object_utils"]
+  , "hdrs": ["large_objects/large_object_utils.hpp"]
+  , "srcs": ["large_objects/large_object_utils.cpp"]
+  , "private-deps":
+    [ ["@", "src", "src/utils/cpp", "gsl"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    ]
+  , "stage": ["test", "utils"]
+  }
 , "catch-main-remote-execution":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["catch-main-remote-execution"]
