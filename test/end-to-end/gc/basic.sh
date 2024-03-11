@@ -80,6 +80,26 @@ rm -rf "${TOOLS_DIR}"
 wc -c "${OUT}/out-large/out.txt"
 test $(cat "${OUT}/out-large/out.txt" | wc -c) -gt 100000
 
+# Now test non-rotating gc; this does not affect how far the
+# cache. At the end, we also repeat it serveral time to demontstrate
+# that things don't fall out of cache.
+
+LEFT_OVER_REMOVE_DIR="${LBR}/protocol-dependent/remove-me-$$-xxx"
+EPHEMERAL_DIR="${LBR}/protocol-dependent/generation-0/ephemeral"
+
+mkdir -p "${LEFT_OVER_REMOVE_DIR}/xxx"
+mkdir -p "${EPHEMERAL_DIR}/xxx"
+
+"${JUST}" gc --local-build-root "${LBR}" --no-rotate 2>&1
+
+echo "Checking that ${EPHEMERAL_DIR} was removed"
+[ -e "${EPHEMERAL_DIR}" ] && exit 1 || :
+echo "Checking that ${LEFT_OVER_REMOVE_DIR} was removed"
+[ -e "${LEFT_OVER_REMOVE_DIR}" ] && exit 1 || :
+
+"${JUST}" gc --local-build-root "${LBR}" --no-rotate 2>&1
+"${JUST}" gc --local-build-root "${LBR}" --no-rotate 2>&1
+
 # collect garbage
 "${JUST}" gc --local-build-root "${LBR}" 2>&1
 
