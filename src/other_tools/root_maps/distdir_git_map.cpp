@@ -71,7 +71,7 @@ void ImportFromCASAndSetRoot(
     DistdirGitMap::SetterPtr const& setter,
     DistdirGitMap::LoggerPtr const& logger) {
     // create the links to CAS
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("distdir");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("distdir");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for "
                               "distdir target {}",

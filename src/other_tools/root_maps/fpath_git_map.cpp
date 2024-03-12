@@ -346,7 +346,7 @@ auto CreateFilePathGitMap(
                           /*fatal=*/false);
             }
             // it's not a git repo, so import it to git cache
-            auto tmp_dir = StorageUtils::CreateTypedTmpDir("file");
+            auto tmp_dir = StorageConfig::CreateTypedTmpDir("file");
             if (not tmp_dir) {
                 (*logger)("Failed to create import-to-git tmp directory!",
                           /*fatal=*/true);

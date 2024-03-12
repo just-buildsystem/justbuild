@@ -727,7 +727,7 @@ void EnsureCommit(
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     repo_info.origin);
                                 // Move tree from local CAS to local Git storage
-                                auto tmp_dir = StorageUtils::CreateTypedTmpDir(
+                                auto tmp_dir = StorageConfig::CreateTypedTmpDir(
                                     "fetch-absent-root");
                                 if (not tmp_dir) {
                                     (*logger)(

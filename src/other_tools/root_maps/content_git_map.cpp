@@ -359,7 +359,7 @@ void ExtractAndImportToGit(
     ContentGitMap::SetterPtr const& setter,
     ContentGitMap::LoggerPtr const& logger) {
     // extract archive
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir(key.repo_type);
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir(key.repo_type);
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for {} target {}",
                               key.repo_type,

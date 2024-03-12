@@ -19,7 +19,6 @@
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 
@@ -84,7 +83,7 @@ void MoveCASTreeToGitAndProcess(
     TreeIdGitMap::SetterPtr const& setter,
     TreeIdGitMap::LoggerPtr const& logger) {
     // Move tree from CAS to local Git storage
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch-remote-git-tree");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("fetch-remote-git-tree");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp directory for copying "
                               "git-tree {} from remote CAS",

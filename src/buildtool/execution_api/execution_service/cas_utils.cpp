@@ -23,7 +23,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
-#include "src/buildtool/storage/fs_utils.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 auto CASUtils::EnsureTreeInvariant(std::string const& data,
@@ -150,7 +150,7 @@ auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
     -> std::variant<bazel_re::Digest, grpc::Status> {
 
     // Assemble blob from chunks.
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("splice");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("splice");
     auto tmp_file = tmp_dir->GetPath() / "blob";
     {
         std::ofstream tmp(tmp_file, std::ios::binary);

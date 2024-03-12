@@ -19,6 +19,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
@@ -55,7 +56,7 @@ void WithFetchedFile(ForeignFileInfo const& key,
                      gsl::not_null<TaskSystem*> const& ts,
                      ForeignFileGitMap::SetterPtr const& setter,
                      ForeignFileGitMap::LoggerPtr const& logger) {
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("foreign-file");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("foreign-file");
     auto const& cas = Storage::Instance().CAS();
     auto digest = ArtifactDigest(key.archive.content, 0, key.executable);
     auto content_cas_path = cas.BlobPath(digest, key.executable);

@@ -24,7 +24,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
@@ -73,7 +72,7 @@ void MoveCASTreeToGit(
     GitTreeFetchMap::SetterPtr const& setter,
     GitTreeFetchMap::LoggerPtr const& logger) {
     // Move tree from CAS to local Git storage
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir("fetch-remote-git-tree");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("fetch-remote-git-tree");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp directory for copying "
                               "git-tree {} from remote CAS",
@@ -259,7 +258,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for command execution root
-                auto tmp_dir = StorageUtils::CreateTypedTmpDir("git-tree");
+                auto tmp_dir = StorageConfig::CreateTypedTmpDir("git-tree");
                 if (not tmp_dir) {
                     (*logger)(
                         "Failed to create execution root tmp directory for "
@@ -268,7 +267,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for storing command result files
-                auto out_dir = StorageUtils::CreateTypedTmpDir("git-tree");
+                auto out_dir = StorageConfig::CreateTypedTmpDir("git-tree");
                 if (not out_dir) {
                     (*logger)(
                         "Failed to create results tmp directory for tree id "
@@ -397,7 +396,7 @@ auto CreateGitTreeFetchMap(
                         }
                         // define temp repo path
                         auto tmp_dir =
-                            StorageUtils::CreateTypedTmpDir("git-tree");
+                            StorageConfig::CreateTypedTmpDir("git-tree");
                         ;
                         if (not tmp_dir) {
                             (*logger)(fmt::format("Could not create unique "

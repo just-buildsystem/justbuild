@@ -148,6 +148,7 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "tmp_dir"]
@@ -177,7 +178,6 @@
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
     ]
   }

@@ -806,7 +806,7 @@ auto SourceTreeService::ServeArchiveTree(
         }
     }
     // extract archive
-    auto tmp_dir = StorageUtils::CreateTypedTmpDir(archive_type);
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir(archive_type);
     if (not tmp_dir) {
         auto str = fmt::format(
             "Failed to create tmp path for {} archive with content {}",
@@ -845,7 +845,7 @@ auto SourceTreeService::DistdirImportToGit(
     bool sync_tree,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
     // create tmp directory for the distdir
-    auto distdir_tmp_dir = StorageUtils::CreateTypedTmpDir("distdir");
+    auto distdir_tmp_dir = StorageConfig::CreateTypedTmpDir("distdir");
     if (not distdir_tmp_dir) {
         auto str = fmt::format(
             "Failed to create tmp path for distdir target {}", content_id);
@@ -1546,7 +1546,7 @@ auto SourceTreeService::CheckRootTree(
         // As we currently build only against roots in Git repositories, we need
         // to move the tree from CAS to local Git storage
         auto tmp_dir =
-            StorageUtils::CreateTypedTmpDir("source-tree-check-root-tree");
+            StorageConfig::CreateTypedTmpDir("source-tree-check-root-tree");
         if (not tmp_dir) {
             auto str = fmt::format(
                 "Failed to create tmp directory for copying "
@@ -1621,7 +1621,7 @@ auto SourceTreeService::GetRemoteTree(
         return ::grpc::Status::OK;
     }
     auto tmp_dir =
-        StorageUtils::CreateTypedTmpDir("source-tree-get-remote-tree");
+        StorageConfig::CreateTypedTmpDir("source-tree-get-remote-tree");
     if (not tmp_dir) {
         auto str = fmt::format(
             "Failed to create tmp directory for copying git-tree {} from "

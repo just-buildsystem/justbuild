@@ -13,6 +13,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   }
@@ -65,7 +66,6 @@
   , "deps":
     [ ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
-    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":

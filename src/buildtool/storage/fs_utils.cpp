@@ -49,12 +49,6 @@ auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
     return StorageConfig::GitRoot();
 }
 
-auto CreateTypedTmpDir(std::string const& type) noexcept -> TmpDirPtr {
-    // try to create parent dir
-    auto parent_path = StorageConfig::EphemeralRoot() / "tmp-workspaces" / type;
-    return TmpDir::Create(parent_path);
-}
-
 auto GetCommitTreeIDFile(std::string const& commit) noexcept
     -> std::filesystem::path {
     return StorageConfig::BuildRoot() / "commit-tree-map" / commit;

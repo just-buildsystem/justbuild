@@ -131,7 +131,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/storage", "config"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]

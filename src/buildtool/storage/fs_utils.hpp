@@ -21,7 +21,6 @@
 
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
-#include "src/utils/cpp/tmp_dir.hpp"
 
 /* Utilities related to CAS and paths therein */
 
@@ -32,11 +31,6 @@ namespace StorageUtils {
 [[nodiscard]] auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
                               std::string const& repo_url) noexcept
     -> std::filesystem::path;
-
-/// \brief Create a tmp directory with controlled lifetime for specific
-/// operations (archive, zip, file, distdir checkouts; fetch; update).
-[[nodiscard]] auto CreateTypedTmpDir(std::string const& type) noexcept
-    -> TmpDirPtr;
 
 /// \brief Get the path to the file storing the tree id associated with
 /// a given commit.

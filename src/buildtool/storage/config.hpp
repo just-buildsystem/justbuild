@@ -38,6 +38,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief Global storage configuration.
 class StorageConfig {
@@ -182,6 +183,15 @@ class StorageConfig {
     [[nodiscard]] static auto ExecutionRoot() noexcept
         -> std::filesystem::path {
         return EphemeralRoot() / "exec_root";
+    }
+
+    /// \brief Create a tmp directory with controlled lifetime for specific
+    /// operations (archive, zip, file, distdir checkouts; fetch; update).
+    [[nodiscard]] static auto CreateTypedTmpDir(
+        std::string const& type) noexcept -> TmpDirPtr {
+        // try to create parent dir
+        auto parent_path = EphemeralRoot() / "tmp-workspaces" / type;
+        return TmpDir::Create(parent_path);
     }
 
   private:
