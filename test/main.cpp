@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
+#include <filesystem>
+
 #include "catch2/catch_session.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/utils/logging/log_config.hpp"
 
 auto main(int argc, char* argv[]) -> int {
@@ -26,6 +30,18 @@ auto main(int argc, char* argv[]) -> int {
      * git_libgit2_init. Future versions of libgit2 will hopefully fix this.
      */
     GitContext::Create();
+
+    /**
+     * Test must not assume the existence of a home directory, nor write there.
+     * Hence we set the storage root to a fixed location under TEST_TMPDIR which
+     * is set by the test launcher.
+     */
+    auto setup_ok = StorageConfig::SetBuildRoot(
+        std::filesystem::path{std::string{std::getenv("TEST_TMPDIR")}} /
+        ".test_build_root");
+    if (not setup_ok) {
+        return 1;
+    }
 
     return Catch::Session().run(argc, argv);
 }
