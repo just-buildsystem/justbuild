@@ -15,7 +15,6 @@
     , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "storage"]
-  , "private-deps": [["src/buildtool/file_system", "file_storage"]]
   }
 , "storage":
   { "type": ["@", "rules", "CC", "library"]
