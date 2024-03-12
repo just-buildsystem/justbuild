@@ -141,8 +141,8 @@ auto CASServiceImpl::BatchUpdateBlobs(
         if (NativeSupport::IsTree(hash)) {
             // In native mode: for trees, check whether the tree invariant holds
             // before storing the actual tree object.
-            if (auto err =
-                    CASUtils::EnsureTreeInvariant(x.data(), hash, *storage_)) {
+            if (auto err = CASUtils::EnsureTreeInvariant(
+                    x.digest(), x.data(), *storage_)) {
                 auto str = fmt::format("BatchUpdateBlobs: {}", *err);
                 logger_.Emit(LogLevel::Error, str);
                 return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
@@ -346,10 +346,8 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
     std::copy(request->chunk_digests().cbegin(),
               request->chunk_digests().cend(),
               std::back_inserter(chunk_digests));
-    auto splice_result = CASUtils::SpliceBlob(blob_digest,
-                                              chunk_digests,
-                                              *storage_,
-                                              /* check_tree_invariant= */ true);
+    auto splice_result =
+        CASUtils::SpliceBlob(blob_digest, chunk_digests, *storage_);
     if (std::holds_alternative<grpc::Status>(splice_result)) {
         auto status = std::get<grpc::Status>(splice_result);
         auto str = fmt::format("SpliceBlob: {}", status.error_message());

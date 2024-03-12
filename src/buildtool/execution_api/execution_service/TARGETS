@@ -164,14 +164,8 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/file_system", "git_repo"]
-    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/utils/cpp", "hex_string"]
-    , ["src/buildtool/storage", "file_chunker"]
     ]
   }
 }

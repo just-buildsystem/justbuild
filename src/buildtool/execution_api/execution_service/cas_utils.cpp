@@ -14,51 +14,33 @@
 
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 
-#include <fstream>
-
 #include "fmt/core.h"
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/file_chunker.hpp"
-#include "src/utils/cpp/hex_string.hpp"
 
-auto CASUtils::EnsureTreeInvariant(std::string const& data,
-                                   std::string const& hash,
+static auto ToGrpc(LargeObjectError&& error) noexcept -> grpc::Status {
+    switch (error.Code()) {
+        case LargeObjectErrorCode::Internal:
+            return grpc::Status{grpc::StatusCode::INTERNAL,
+                                std::move(error).Message()};
+        case LargeObjectErrorCode::FileNotFound:
+            return grpc::Status{grpc::StatusCode::NOT_FOUND,
+                                std::move(error).Message()};
+        case LargeObjectErrorCode::InvalidResult:
+        case LargeObjectErrorCode::InvalidTree:
+            return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
+                                std::move(error).Message()};
+    }
+    return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
+}
+
+auto CASUtils::EnsureTreeInvariant(bazel_re::Digest const& digest,
+                                   std::string const& tree_data,
                                    Storage const& storage) noexcept
     -> std::optional<std::string> {
-    auto entries = GitRepo::ReadTreeData(
-        data,
-        NativeSupport::Unprefix(hash),
-        [](auto const& /*unused*/) { return true; },
-        /*is_hex_id=*/true);
-    if (not entries) {
-        return fmt::format("could not read tree data {}", hash);
-    }
-    for (auto const& entry : *entries) {
-        for (auto const& item : entry.second) {
-            auto digest = static_cast<bazel_re::Digest>(
-                ArtifactDigest{ToHexString(entry.first),
-                               /*size is unknown*/ 0,
-                               IsTreeObject(item.type)});
-            if (not(IsTreeObject(item.type)
-                        ? storage.CAS().TreePath(digest)
-                        : storage.CAS().BlobPath(digest, false))) {
-                return fmt::format(
-                    "tree invariant violated {}: missing element {}",
-                    hash,
-                    digest.hash());
-            }
-            // The GitRepo::tree_entries_t data structure maps the object id to
-            // a list of entries of that object in possibly multiple trees. It
-            // is sufficient to check the existence of only one of these entries
-            // to be sure that the object is in CAS since they all have the same
-            // content.
-            break;
-        }
+    auto error = storage.CAS().CheckTreeInvariant(digest, tree_data);
+    if (error) {
+        return std::move(*error).Message();
     }
     return std::nullopt;
 }
@@ -105,105 +87,39 @@ auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
 auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
                                 Storage const& storage) noexcept
     -> std::variant<std::vector<bazel_re::Digest>, grpc::Status> {
+    // Split blob into chunks:
+    auto split = NativeSupport::IsTree(blob_digest.hash())
+                     ? storage.CAS().SplitTree(blob_digest)
+                     : storage.CAS().SplitBlob(blob_digest);
 
-    // Check blob existence.
-    auto path = NativeSupport::IsTree(blob_digest.hash())
-                    ? storage.CAS().TreePath(blob_digest)
-                    : storage.CAS().BlobPath(blob_digest, false);
-    if (not path) {
-        return grpc::Status{
-            grpc::StatusCode::NOT_FOUND,
-            fmt::format("blob not found {}", blob_digest.hash())};
+    // Process result:
+    if (auto* result = std::get_if<std::vector<bazel_re::Digest>>(&split)) {
+        return std::move(*result);
     }
-
-    // Split blob into chunks, store each chunk in CAS, and collect chunk
-    // digests.
-    auto chunker = FileChunker{*path};
-    if (not chunker.IsOpen()) {
-        return grpc::Status{
-            grpc::StatusCode::INTERNAL,
-            fmt::format("could not open blob {}", blob_digest.hash())};
+    // Process errors
+    if (auto* error = std::get_if<LargeObjectError>(&split)) {
+        return ToGrpc(std::move(*error));
     }
-    auto chunk_digests = std::vector<bazel_re::Digest>{};
-    while (auto chunk = chunker.NextChunk()) {
-        auto chunk_digest = storage.CAS().StoreBlob(*chunk, false);
-        if (not chunk_digest) {
-            return grpc::Status{grpc::StatusCode::INTERNAL,
-                                fmt::format("could not store chunk of blob {}",
-                                            blob_digest.hash())};
-        }
-        chunk_digests.emplace_back(*chunk_digest);
-    }
-    if (not chunker.Finished()) {
-        return grpc::Status{
-            grpc::StatusCode::INTERNAL,
-            fmt::format("could not split blob {}", blob_digest.hash())};
-    }
-
-    return chunk_digests;
+    return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
 }
 
 auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
                           std::vector<bazel_re::Digest> const& chunk_digests,
-                          Storage const& storage,
-                          bool check_tree_invariant) noexcept
+                          Storage const& storage) noexcept
     -> std::variant<bazel_re::Digest, grpc::Status> {
+    // Splice blob from chunks:
+    auto splice =
+        NativeSupport::IsTree(blob_digest.hash())
+            ? storage.CAS().SpliceTree(blob_digest, chunk_digests)
+            : storage.CAS().SpliceBlob(blob_digest, chunk_digests, false);
 
-    // Assemble blob from chunks.
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir("splice");
-    auto tmp_file = tmp_dir->GetPath() / "blob";
-    {
-        std::ofstream tmp(tmp_file, std::ios::binary);
-        for (auto const& chunk_digest : chunk_digests) {
-            // Check chunk existence (only check file CAS).
-            auto path = storage.CAS().BlobPath(chunk_digest, false);
-            if (not path) {
-                return grpc::Status{
-                    grpc::StatusCode::NOT_FOUND,
-                    fmt::format("chunk not found {}", chunk_digest.hash())};
-            }
-            // Load chunk data.
-            auto chunk_data = FileSystemManager::ReadFile(*path);
-            if (not chunk_data) {
-                return grpc::Status{grpc::StatusCode::INTERNAL,
-                                    fmt::format("could read chunk data {}",
-                                                chunk_digest.hash())};
-            }
-            tmp << *chunk_data;
-        }
+    // Process result:
+    if (auto* result = std::get_if<bazel_re::Digest>(&splice)) {
+        return std::move(*result);
     }
-
-    // Store resulting blob in according CAS.
-    auto const& hash = blob_digest.hash();
-    if (NativeSupport::IsTree(hash)) {
-        // In native mode: for trees, check whether the tree invariant holds
-        // before storing the actual tree object.
-        if (check_tree_invariant) {
-            auto tree_data = FileSystemManager::ReadFile(tmp_file);
-            if (not tree_data) {
-                return grpc::Status{
-                    grpc::StatusCode::INTERNAL,
-                    fmt::format("could read tree data {}", hash)};
-            }
-            if (auto err = EnsureTreeInvariant(*tree_data, hash, storage)) {
-                return grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
-                                    *err};
-            }
-        }
-        auto const& digest =
-            storage.CAS().StoreTree</* kOwner= */ true>(tmp_file);
-        if (not digest) {
-            return grpc::Status{grpc::StatusCode::INTERNAL,
-                                fmt::format("could not store tree {}", hash)};
-        }
-        return *digest;
+    // Process errors
+    if (auto* error = std::get_if<LargeObjectError>(&splice)) {
+        return ToGrpc(std::move(*error));
     }
-
-    auto const& digest =
-        storage.CAS().StoreBlob</* kOwner= */ true>(tmp_file, false);
-    if (not digest) {
-        return grpc::Status{grpc::StatusCode::INTERNAL,
-                            fmt::format("could not store blob {}", hash)};
-    }
-    return *digest;
+    return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
 }

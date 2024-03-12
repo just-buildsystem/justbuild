@@ -27,8 +27,8 @@
 class CASUtils {
   public:
     [[nodiscard]] static auto EnsureTreeInvariant(
-        std::string const& data,
-        std::string const& hash,
+        bazel_re::Digest const& digest,
+        std::string const& tree_data,
         Storage const& storage) noexcept -> std::optional<std::string>;
 
     [[nodiscard]] static auto SplitBlobIdentity(
@@ -44,8 +44,7 @@ class CASUtils {
     [[nodiscard]] static auto SpliceBlob(
         bazel_re::Digest const& blob_digest,
         std::vector<bazel_re::Digest> const& chunk_digests,
-        Storage const& storage,
-        bool check_tree_invariant) noexcept
+        Storage const& storage) noexcept
         -> std::variant<bazel_re::Digest, grpc::Status>;
 };
 
