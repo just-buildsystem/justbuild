@@ -130,12 +130,13 @@ void ExportRule(
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());
-            exports_progress->TaskTracker().Start(
-                target_cache_key->Id().ToString());
+            auto task = fmt::format(
+                "[{},{}]", key.target.ToString(), effective_config.ToString());
+            exports_progress->TaskTracker().Start(task);
+
             target_cache_value =
                 ServeApi::ServeTarget(*target_cache_key, *repo_key);
-            exports_progress->TaskTracker().Stop(
-                target_cache_key->Id().ToString());
+            exports_progress->TaskTracker().Stop(task);
             from_just_serve = true;
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
