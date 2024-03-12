@@ -421,6 +421,7 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
+    logger_->Emit(LogLevel::Info, "Analysed target {}", result->id.ToString());
 
     // get the output artifacts
     auto const [artifacts, runfiles] = ReadOutputArtifacts(result->target);
