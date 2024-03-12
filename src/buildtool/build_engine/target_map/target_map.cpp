@@ -1035,6 +1035,9 @@ void withRuleDefinition(
                                 msg),
                     true);
             });
+        if (not deps_names) {
+            return;
+        }
         if (not deps_names->IsList()) {
             (*logger)(fmt::format("Target parameter {} should evaluate to a "
                                   "list, but got {}",
