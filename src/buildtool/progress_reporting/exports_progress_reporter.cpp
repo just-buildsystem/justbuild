@@ -45,10 +45,8 @@ auto ExportsProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
             uncached + not_eligible);
 
         if ((active > 0) && !sample.empty()) {
-            msg = fmt::format("{} ({}{})",
-                              msg,
-                              nlohmann::json(sample).dump(),
-                              active > 1 ? ", ..." : "");
+            msg = fmt::format(
+                "{} ({}{})", msg, sample, active > 1 ? ", ..." : "");
         }
         Logger::Log(LogLevel::Progress, "{}", msg);
     });
