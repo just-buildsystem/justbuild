@@ -31,12 +31,12 @@
   , "private-deps":
     [ ["src/buildtool/logging", "logging"]
     , ["src/buildtool/file_system", "git_utils"]
+    , ["src/buildtool/storage", "config"]
     , ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/system", "system_command"]
     , "git_config_settings"
-    , ["src/utils/cpp", "tmp_dir"]
     ]
   }
 , "git_config_settings":

@@ -108,9 +108,9 @@
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "gsl"]
-    , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "cflags": ["-pthread"]
   }
