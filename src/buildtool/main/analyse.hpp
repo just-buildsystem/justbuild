@@ -25,6 +25,7 @@
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 struct AnalysisResult {
@@ -40,6 +41,6 @@ struct AnalysisResult {
     ActiveTargetCache const& target_cache,
     gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,
-    std::optional<std::string> const& request_action_input)
-    -> std::optional<AnalysisResult>;
+    std::optional<std::string> const& request_action_input,
+    Logger const* logger = nullptr) -> std::optional<AnalysisResult>;
 #endif

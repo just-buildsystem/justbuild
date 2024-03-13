@@ -27,7 +27,6 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -101,8 +100,8 @@ namespace Target = BuildMaps::Target;
     ActiveTargetCache const& target_cache,
     gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,
-    std::optional<std::string> const& request_action_input)
-    -> std::optional<AnalysisResult> {
+    std::optional<std::string> const& request_action_input,
+    Logger const* logger) -> std::optional<AnalysisResult> {
     // create progress tracker for export targets
     Progress exports_progress{};
     // create async maps
@@ -130,7 +129,8 @@ namespace Target = BuildMaps::Target;
                                               stats,
                                               &exports_progress,
                                               jobs);
-    Logger::Log(LogLevel::Info, "Requested target is {}", id.ToString());
+    Logger::Log(
+        logger, LogLevel::Info, "Requested target is {}", id.ToString());
     AnalysedTargetPtr target{};
 
     // we should only report served export targets if a serve endpoint exists
@@ -143,8 +143,8 @@ namespace Target = BuildMaps::Target;
 
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter =
-        ExportsProgressReporter::Reporter(stats, &exports_progress, has_serve);
+    auto reporter = ExportsProgressReporter::Reporter(
+        stats, &exports_progress, has_serve, logger);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 
@@ -155,8 +155,9 @@ namespace Target = BuildMaps::Target;
             &ts,
             {id},
             [&target](auto values) { target = *values[0]; },
-            [&failed](auto const& msg, bool fatal) {
-                Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
+            [&failed, logger](auto const& msg, bool fatal) {
+                Logger::Log(logger,
+                            fatal ? LogLevel::Error : LogLevel::Warning,
                             "While processing targets:\n{}",
                             msg);
                 failed = failed or fatal;
@@ -173,22 +174,24 @@ namespace Target = BuildMaps::Target;
     }
 
     if (not target) {
-        Logger::Log(
-            LogLevel::Error, "Failed to analyse target: {}", id.ToString());
+        Logger::Log(logger,
+                    LogLevel::Error,
+                    "Failed to analyse target: {}",
+                    id.ToString());
         if (auto error_msg = DetectAndReportCycle(
                 "expression imports", expr_map, Base::kEntityNamePrinter)) {
-            Logger::Log(LogLevel::Error, *error_msg);
+            Logger::Log(logger, LogLevel::Error, *error_msg);
             return std::nullopt;
         }
         if (auto error_msg =
                 DetectAndReportCycle("target dependencies",
                                      target_map,
                                      Target::kConfiguredTargetPrinter)) {
-            Logger::Log(LogLevel::Error, *error_msg);
+            Logger::Log(logger, LogLevel::Error, *error_msg);
             return std::nullopt;
         }
-        DetectAndReportPending("expressions", expr_map);
-        DetectAndReportPending("targets", expr_map);
+        DetectAndReportPending("expressions", expr_map, logger);
+        DetectAndReportPending("targets", expr_map, logger);
         return std::nullopt;
     }
 
@@ -211,14 +214,16 @@ namespace Target = BuildMaps::Target;
             auto action_id = request_action_input->substr(1);
             auto action = result_map->GetAction(action_id);
             if (action) {
-                Logger::Log(LogLevel::Info,
+                Logger::Log(logger,
+                            LogLevel::Info,
                             "Request is input of action %{}",
                             action_id);
                 target = SwitchToActionInput(target, *action);
                 modified = fmt::format("%{}", action_id);
             }
             else {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "Action {} not part of the action graph of the "
                             "requested target",
                             action_id);
@@ -229,13 +234,16 @@ namespace Target = BuildMaps::Target;
             auto number = std::atoi(request_action_input->substr(1).c_str());
             auto action = GetActionNumber(*target, number);
             if (action) {
-                Logger::Log(
-                    LogLevel::Info, "Request is input of action #{}", number);
+                Logger::Log(logger,
+                            LogLevel::Info,
+                            "Request is input of action #{}",
+                            number);
                 target = SwitchToActionInput(target, *action);
                 modified = fmt::format("#{}", number);
             }
             else {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "Action #{} out of range for the requested target",
                             number);
                 return std::nullopt;
@@ -244,7 +252,8 @@ namespace Target = BuildMaps::Target;
         else {
             auto action = result_map->GetAction(*request_action_input);
             if (action) {
-                Logger::Log(LogLevel::Info,
+                Logger::Log(logger,
+                            LogLevel::Info,
                             "Request is input of action %{}",
                             *request_action_input);
                 target = SwitchToActionInput(target, *action);
@@ -254,7 +263,8 @@ namespace Target = BuildMaps::Target;
                 auto number = std::atoi(request_action_input->c_str());
                 auto action = GetActionNumber(*target, number);
                 if (action) {
-                    Logger::Log(LogLevel::Info,
+                    Logger::Log(logger,
+                                LogLevel::Info,
                                 "Request is input of action #{}",
                                 number);
                     target = SwitchToActionInput(target, *action);
@@ -262,6 +272,7 @@ namespace Target = BuildMaps::Target;
                 }
                 else {
                     Logger::Log(
+                        logger,
                         LogLevel::Error,
                         "Action #{} out of range for the requested target",
                         number);

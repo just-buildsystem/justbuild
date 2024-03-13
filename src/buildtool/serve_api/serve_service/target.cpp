@@ -404,8 +404,8 @@ auto TargetService::ServeTarget(
 
     // setup progress reporting; these instances need to be kept alive for
     // graph traversal, analysis, and build
-    Statistics stats;
-    Progress progress;
+    Statistics stats{};
+    Progress progress{};
 
     // analyse the configured target
     auto result = AnalyseTarget(configured_target,

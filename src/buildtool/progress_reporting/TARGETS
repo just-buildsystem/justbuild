@@ -52,11 +52,12 @@
     , "progress"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 }

@@ -17,6 +17,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 
@@ -25,7 +26,8 @@ class ExportsProgressReporter {
   public:
     [[nodiscard]] static auto Reporter(gsl::not_null<Statistics*> const& stats,
                                        gsl::not_null<Progress*> const& progress,
-                                       bool has_serve) noexcept
+                                       bool has_serve,
+                                       Logger const* logger = nullptr) noexcept
         -> progress_reporter_t;
 };
 
