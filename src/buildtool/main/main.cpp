@@ -1048,16 +1048,18 @@ auto main(int argc, char* argv[]) -> int {
 
                 {
                     auto cached = stats.ExportsCachedCounter();
+                    auto served = stats.ExportsServedCounter();
                     auto uncached = stats.ExportsUncachedCounter();
                     auto not_eligible = stats.ExportsNotEligibleCounter();
-                    Logger::Log(cached + uncached + not_eligible > 0
-                                    ? LogLevel::Info
-                                    : LogLevel::Debug,
-                                "Export targets found: {} cached, {} uncached, "
-                                "{} not eligible for caching",
-                                cached,
-                                uncached,
-                                not_eligible);
+                    Logger::Log(
+                        cached + uncached + not_eligible > 0 ? LogLevel::Info
+                                                             : LogLevel::Debug,
+                        "Export targets found: {} cached, {}{} uncached, "
+                        "{} not eligible for caching",
+                        cached,
+                        served > 0 ? fmt::format("{} served, ", served) : "",
+                        uncached,
+                        not_eligible);
                 }
 
                 ReportTaintedness(*result);
