@@ -129,8 +129,7 @@ auto BytestreamServiceImpl::Write(
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    auto tmp_dir = TmpDir::Create(StorageConfig::GenerationCacheRoot(0) /
-                                  "execution-service");
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("execution-service");
     if (!tmp_dir) {
         return ::grpc::Status{::grpc::StatusCode::INTERNAL,
                               "could not create TmpDir"};
