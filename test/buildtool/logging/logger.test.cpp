@@ -342,3 +342,75 @@ TEST_CASE_METHOD(TwoGlobalSinksFixture,
         }
     }
 }
+
+TEST_CASE_METHOD(OneGlobalSinkFixture,
+                 "Common interface for global and local named loggers"
+                 "[logger]") {
+    // global logs will be forwarded to instance: 0
+    int global_instance = 0;
+
+    // create local logger with separate sink instance
+    Logger logger("OwnSinkLogger", {LogSinkTest::CreateFactory()});
+    // local logs should be forwarded to new sink instance: 1
+    int local_instance = 1;
+
+    SECTION("global instance") {
+        // create log outside of log limit
+        Logger::Log(nullptr, LogLevel::Trace, "first");
+        CHECK(TestPrints::Read(global_instance).empty());
+
+        SECTION("create log within log limit") {
+            Logger::Log(nullptr, LogLevel::Info, "second");
+            auto prints = TestPrints::Read(global_instance);
+            REQUIRE(prints.size() == 1);
+            CHECK(prints[0] == "INFO: second");
+
+            SECTION("increase log limit create log within log limit") {
+                LogConfig::SetLogLimit(LogLevel::Trace);
+                Logger::Log(nullptr, LogLevel::Trace, "third");
+                auto prints = TestPrints::Read(global_instance);
+                REQUIRE(prints.size() == 2);
+                CHECK(prints[1] == "TRACE: third");
+
+                SECTION("log via lambda function") {
+                    Logger::Log(nullptr, LogLevel::Trace, [] {
+                        return std::string{"forth"};
+                    });
+                    auto prints = TestPrints::Read(global_instance);
+                    REQUIRE(prints.size() == 3);
+                    CHECK(prints[2] == "TRACE: forth");
+                }
+            }
+        }
+    }
+
+    SECTION("named instance") {
+        // create log outside of log limit
+        Logger::Log(&logger, LogLevel::Trace, "first");
+        CHECK(TestPrints::Read(local_instance).empty());
+
+        SECTION("create log within log limit") {
+            Logger::Log(&logger, LogLevel::Info, "second");
+            auto prints = TestPrints::Read(local_instance);
+            REQUIRE(prints.size() == 1);
+            CHECK(prints[0] == "INFO (OwnSinkLogger): second");
+
+            SECTION("increase log limit create log within log limit") {
+                logger.SetLogLimit(LogLevel::Trace);
+                Logger::Log(&logger, LogLevel::Trace, "third");
+                auto prints = TestPrints::Read(local_instance);
+                REQUIRE(prints.size() == 2);
+                CHECK(prints[1] == "TRACE (OwnSinkLogger): third");
+
+                SECTION("log via lambda function") {
+                    Logger::Log(&logger, LogLevel::Trace, [] {
+                        return std::string{"forth"};
+                    });
+                    auto prints = TestPrints::Read(local_instance);
+                    REQUIRE(prints.size() == 3);
+                    CHECK(prints[2] == "TRACE (OwnSinkLogger): forth");
+                }
+            }
+        }
+    }
+}

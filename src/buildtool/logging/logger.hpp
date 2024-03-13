@@ -107,6 +107,44 @@ class Logger {
         }
     }
 
+    /// \brief Generic logging method. Provides a common interface between the
+    /// global logger and named instances, hidden from the outside caller.
+    /// For named instances no global configuration is used.
+    template <class... T_Args>
+    static void Log(Logger const* logger,
+                    LogLevel level,
+                    std::string const& msg,
+                    T_Args&&... args) noexcept {
+        if (static_cast<int>(level) <=
+            static_cast<int>(logger != nullptr ? logger->log_limit_
+                                               : LogConfig::LogLimit())) {
+            FormatAndForward(
+                logger,
+                logger != nullptr ? logger->sinks_ : LogConfig::Sinks(),
+                level,
+                msg,
+                std::forward<T_Args>(args)...);
+        }
+    }
+
+    /// \brief Generic logging method with provided message creator. Provides a
+    /// common interface between the global logger and named instances, hidden
+    /// from the outside caller.
+    /// For named instances no global configuration is used.
+    static void Log(Logger const* logger,
+                    LogLevel level,
+                    MessageCreateFunc const& msg_creator) noexcept {
+        if (static_cast<int>(level) <=
+            static_cast<int>(logger != nullptr ? logger->log_limit_
+                                               : LogConfig::LogLimit())) {
+            FormatAndForward(
+                logger,
+                logger != nullptr ? logger->sinks_ : LogConfig::Sinks(),
+                level,
+                msg_creator());
+        }
+    }
+
   private:
     std::string name_{};
     LogLevel log_limit_{};
