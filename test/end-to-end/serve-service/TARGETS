@@ -113,6 +113,18 @@
   , "repos": ["describe (data)"]
   , "keep": ["out/describe.orig", "out/describe"]
   }
+, "serve-many-targets (data)":
+  { "type": "install"
+  , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.transform"}
+  }
+, "serve-many-targets":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-many-targets"]
+  , "test": ["serve_many_targets.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "repos": ["serve-many-targets (data)"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -122,6 +134,7 @@
     , "$1":
       [ [ "serve-target-remote-build"
         , "serve-target-remote-build-dispatch"
+        , "serve-many-targets"
         , "serve-target-cache-hit"
         , "serve-start-execute"
         , "serve-start-execute-sharding"

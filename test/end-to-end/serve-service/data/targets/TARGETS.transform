@@ -1,0 +1,21 @@
+{ "":
+  {"type": "export", "target": "multiple, upper", "flexible_config": ["DATA"]}
+, "blob":
+  { "type": "file_gen"
+  , "arguments_config": ["DATA"]
+  , "name": "data.orig"
+  , "data": {"type": "var", "name": "DATA"}
+  }
+, "multiple":
+  { "type": "generic"
+  , "outs": ["data.tripple"]
+  , "cmds": ["cat data.orig data.orig data.orig > data.tripple"]
+  , "deps": ["blob"]
+  }
+, "multiple, upper":
+  { "type": "generic"
+  , "outs": ["data.txt"]
+  , "cmds": ["cat data.tripple | tr a-z A-Z > data.txt"]
+  , "deps": ["multiple"]
+  }
+}
