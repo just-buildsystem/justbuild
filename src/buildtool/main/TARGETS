@@ -249,14 +249,14 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/multithreading", "async_map_utils"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 }

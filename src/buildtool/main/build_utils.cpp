@@ -15,9 +15,7 @@
 #include "src/buildtool/main/build_utils.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
@@ -162,12 +160,15 @@ void WriteTargetCacheEntries(
     gsl::not_null<IExecutionApi*> const& local_api,
     gsl::not_null<IExecutionApi*> const& remote_api,
     TargetCacheWriteStrategy strategy,
-    TargetCache<true> const& tc) {
+    TargetCache<true> const& tc,
+    Logger const* logger,
+    bool strict_logging) {
     if (strategy == TargetCacheWriteStrategy::Disable) {
         return;
     }
     if (!cache_targets.empty()) {
-        Logger::Log(LogLevel::Info,
+        Logger::Log(logger,
+                    LogLevel::Info,
                     "Backing up artifacts of {} export targets",
                     cache_targets.size());
     }
@@ -187,10 +188,12 @@ void WriteTargetCacheEntries(
             &ts,
             cache_targets_ids,
             []([[maybe_unused]] auto _) {},  // map doesn't set anything
-            [&failed](auto const& msg, bool fatal) {
-                Logger::Log(LogLevel::Warning,
-                            "While writing target cache entries:\n{}",
-                            msg);
+            [&failed, logger, strict_logging](auto const& msg, bool fatal) {
+                Logger::Log(
+                    logger,
+                    strict_logging ? LogLevel::Error : LogLevel::Warning,
+                    "While writing target cache entries:\n{}",
+                    msg);
                 failed = failed or fatal;
             });
     }
@@ -200,11 +203,14 @@ void WriteTargetCacheEntries(
     }
     if (auto error = DetectAndReportCycle(
             "writing cache targets", tc_writer_map, kObjectInfoPrinter)) {
-        Logger::Log(LogLevel::Warning, *error);
+        Logger::Log(logger,
+                    strict_logging ? LogLevel::Error : LogLevel::Warning,
+                    *error);
         return;
     }
 
-    Logger::Log(LogLevel::Debug,
+    Logger::Log(logger,
+                LogLevel::Debug,
                 "Finished backing up artifacts of export targets");
 }
 #endif  // BOOTSTRAP_BUILD_TOOL
