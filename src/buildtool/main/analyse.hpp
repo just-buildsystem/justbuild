@@ -15,6 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_HPP
 
+#include <optional>
+#include <string>
+
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"

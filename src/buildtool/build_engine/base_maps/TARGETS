@@ -113,6 +113,7 @@
   , "hdrs": ["expression_function.hpp"]
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "gsl"]
     , ["@", "gsl", "", "gsl"]

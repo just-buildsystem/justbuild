@@ -17,6 +17,7 @@
   , "deps":
     [ "linked_map"
     , ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
@@ -54,7 +55,8 @@
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
   , "private-deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "path"]
     ]

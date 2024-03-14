@@ -14,6 +14,7 @@
 
 #include "src/other_tools/utils/curl_context.hpp"
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 extern "C" {

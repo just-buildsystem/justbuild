@@ -62,6 +62,7 @@
     , ["src/buildtool/build_engine/base_maps", "field_reader"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]
@@ -107,6 +108,7 @@
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
   , "private-deps":
     [ ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]

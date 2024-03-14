@@ -4,7 +4,8 @@
   , "hdrs": ["dfa_minimizer.hpp"]
   , "stage": ["src", "utils", "automata"]
   , "deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "hash_combine"]
     ]

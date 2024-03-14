@@ -16,6 +16,7 @@
 #define EXECUTION_SERVER_HPP
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/logging/logger.hpp"

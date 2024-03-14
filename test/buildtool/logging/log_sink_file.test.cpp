@@ -21,6 +21,7 @@
 #include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 

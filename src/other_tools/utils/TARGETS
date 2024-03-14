@@ -4,21 +4,22 @@
   , "hdrs": ["curl_context.hpp"]
   , "srcs": ["curl_context.cpp"]
   , "stage": ["src", "other_tools", "utils"]
-  , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["", "libcurl"]
+    ]
   }
 , "curl_easy_handle":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["curl_easy_handle"]
   , "hdrs": ["curl_easy_handle.hpp"]
   , "srcs": ["curl_easy_handle.cpp"]
-  , "deps":
-    [ "curl_context"
-    , ["src/buildtool/logging", "log_level"]
-    , ["@", "gsl", "", "gsl"]
-    ]
+  , "deps": ["curl_context", ["src/buildtool/logging", "log_level"]]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
     , ["", "libcurl"]
     ]
@@ -30,7 +31,11 @@
   , "srcs": ["curl_url_handle.cpp"]
   , "deps": ["curl_context", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "other_tools", "utils"]
-  , "private-deps": [["src/buildtool/logging", "logging"], ["", "libcurl"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["", "libcurl"]
+    ]
   }
 , "content":
   { "type": ["@", "rules", "CC", "library"]

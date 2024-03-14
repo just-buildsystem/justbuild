@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MAIN_DESCRIBE_HPP
 #define INCLUDED_SRC_BUILDTOOL_MAIN_DESCRIBE_HPP
 
+#include "gsl/gsl"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/repository_config.hpp"

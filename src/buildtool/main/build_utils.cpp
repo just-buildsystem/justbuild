@@ -14,6 +14,7 @@
 
 #include "src/buildtool/main/build_utils.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"

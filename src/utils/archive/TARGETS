@@ -6,6 +6,10 @@
   , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "archive"]
   , "private-deps":
-    [["src/buildtool/file_system", "file_system_manager"], ["", "libarchive"]]
+    [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["", "libarchive"]
+    ]
   }
 }

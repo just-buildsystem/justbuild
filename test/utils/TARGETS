@@ -19,7 +19,10 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_config"]
   , "hdrs": ["logging/log_config.hpp"]
-  , "deps": [["@", "src", "src/buildtool/logging", "logging"]]
+  , "deps":
+    [ ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    ]
   , "stage": ["test", "utils"]
   }
 , "test_env":
@@ -42,6 +45,7 @@
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     ]
   , "stage": ["test", "utils"]
@@ -53,6 +57,8 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]
@@ -69,6 +75,8 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]

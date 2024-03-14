@@ -14,6 +14,9 @@
 
 #include "src/other_tools/just_mr/utils.hpp"
 
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
+
 namespace JustMR::Utils {
 
 // NOLINTNEXTLINE(misc-no-recursion)

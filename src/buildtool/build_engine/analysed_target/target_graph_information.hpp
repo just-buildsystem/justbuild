@@ -16,6 +16,8 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_ANALYSED_TARGET_TARGET_GRAPH_INFORMATION_HPP
 
 #include <optional>
+#include <string>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"

@@ -14,7 +14,10 @@
 
 #include "src/buildtool/main/diagnose.hpp"
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/json.hpp"
 
 namespace {

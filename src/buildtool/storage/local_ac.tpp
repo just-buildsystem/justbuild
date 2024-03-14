@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_TPP
 
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
 
 template <bool kDoGlobalUplink>

@@ -56,7 +56,10 @@
     , ["src/buildtool/common", "artifact_description"]
     ]
   , "stage": ["src", "buildtool", "storage"]
-  , "private-deps": [["src/buildtool/execution_api/remote", "config"]]
+  , "private-deps":
+    [ ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/logging", "log_level"]
+    ]
   }
 , "fs_utils":
   { "type": ["@", "rules", "CC", "library"]
@@ -71,6 +74,8 @@
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
     , "config"
     , "storage"

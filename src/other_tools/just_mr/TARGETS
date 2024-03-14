@@ -44,6 +44,10 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
+  , "private-deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   }
 , "exit_codes":
   { "type": ["@", "rules", "CC", "library"]
@@ -85,6 +89,7 @@
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , "exit_codes"
     , ["src/buildtool/auth", "auth"]
@@ -197,6 +202,7 @@
   , "hdrs": ["mirrors.hpp"]
   , "deps":
     [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/other_tools/utils", "curl_url_handle"]
     ]

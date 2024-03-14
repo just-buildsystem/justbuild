@@ -27,6 +27,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"

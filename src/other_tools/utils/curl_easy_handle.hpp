@@ -21,7 +21,6 @@
 #include <optional>
 #include <string>
 
-#include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/utils/curl_context.hpp"
 

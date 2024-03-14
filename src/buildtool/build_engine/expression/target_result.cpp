@@ -20,6 +20,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 namespace {

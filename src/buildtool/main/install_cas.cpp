@@ -16,10 +16,12 @@
 
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #endif
-#include "src/buildtool/execution_api/remote/config.hpp"
 
 namespace {
 

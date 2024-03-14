@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "concepts"]
     , ["@", "gsl", "", "gsl"]

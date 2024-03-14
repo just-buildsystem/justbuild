@@ -30,6 +30,8 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/concepts.hpp"
 
 /// FilteredIterator is an helper class to allow for iteration over

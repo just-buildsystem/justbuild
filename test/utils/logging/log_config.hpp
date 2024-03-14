@@ -18,6 +18,7 @@
 #include <cstdlib>
 
 #include "src/buildtool/logging/log_config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 
 static auto ReadLogLevelFromEnv() -> LogLevel {

@@ -19,6 +19,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/utils/cpp/concepts.hpp"

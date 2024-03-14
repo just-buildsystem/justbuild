@@ -31,6 +31,8 @@
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 /// \brief Factory for creating Bazel API protobuf messages.
 /// Responsible for creating protobuf messages necessary for Bazel API server

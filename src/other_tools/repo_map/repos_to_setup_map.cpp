@@ -17,6 +17,8 @@
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"

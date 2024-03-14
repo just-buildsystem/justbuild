@@ -23,6 +23,7 @@
 
 #include "fmt/color.h"
 #include "fmt/core.h"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

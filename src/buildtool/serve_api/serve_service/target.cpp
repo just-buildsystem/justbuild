@@ -25,6 +25,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/main/analyse.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"

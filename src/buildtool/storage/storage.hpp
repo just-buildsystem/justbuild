@@ -15,8 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_STORAGE_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_STORAGE_HPP
 
+#include <filesystem>
 #include <optional>
+#include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/storage/config.hpp"

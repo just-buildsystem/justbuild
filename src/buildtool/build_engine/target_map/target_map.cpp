@@ -30,6 +30,7 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"

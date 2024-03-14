@@ -3,7 +3,8 @@
   , "name": ["executor"]
   , "hdrs": ["executor.hpp"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "tree"]
     , ["src/buildtool/compatibility", "compatibility"]

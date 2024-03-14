@@ -18,6 +18,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 BazelAction::BazelAction(
     std::shared_ptr<BazelNetwork> network,

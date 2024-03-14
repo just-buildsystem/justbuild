@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
 auto OperarationsServiceImpl::GetOperation(

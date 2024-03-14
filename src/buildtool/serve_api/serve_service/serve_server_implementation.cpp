@@ -33,7 +33,7 @@
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
-#include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 #include "src/buildtool/serve_api/serve_service/target.hpp"

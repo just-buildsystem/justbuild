@@ -17,6 +17,7 @@
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"

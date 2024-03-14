@@ -29,6 +29,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 namespace {
 

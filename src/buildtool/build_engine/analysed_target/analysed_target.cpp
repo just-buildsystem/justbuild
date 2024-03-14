@@ -14,6 +14,8 @@
 
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 
+#include "gsl/gsl"
+
 namespace {
 
 // NOLINTNEXTLINE(misc-no-recursion)

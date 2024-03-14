@@ -16,12 +16,16 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_TREE_HPP
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 
 // Describes tree, its inputs, output (tree artifact), and action (tree action).
 class Tree {

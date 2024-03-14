@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/identifier.hpp"

@@ -16,6 +16,7 @@
 #define BYTESTREAM_SERVER_HPP
 
 #include "google/bytestream/bytestream.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 

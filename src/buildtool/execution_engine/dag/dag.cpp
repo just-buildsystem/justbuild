@@ -14,9 +14,6 @@
 
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 
-#include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/logging/logger.hpp"
-
 auto DependencyGraph::CreateOutputArtifactNodes(
     std::string const& action_id,
     std::vector<std::string> const& file_paths,

@@ -19,6 +19,7 @@
   , "deps":
     [ "system"
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "gsl", "", "gsl"]
     ]

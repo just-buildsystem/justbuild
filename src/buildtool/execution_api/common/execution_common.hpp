@@ -32,6 +32,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"

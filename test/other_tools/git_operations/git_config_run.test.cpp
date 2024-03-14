@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <exception>
 #include <filesystem>
+#include <functional>
+#include <string>
 
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
 #include "test/utils/logging/log_config.hpp"

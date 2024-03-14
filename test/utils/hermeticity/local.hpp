@@ -17,6 +17,7 @@
 
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"

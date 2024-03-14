@@ -18,6 +18,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 namespace bazel_re = build::bazel::remote::execution::v2;
 

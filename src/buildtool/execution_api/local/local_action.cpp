@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <filesystem>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -25,6 +24,7 @@
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
 

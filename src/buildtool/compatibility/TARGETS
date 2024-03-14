@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/crypto", "hash_function"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "gsl"]
     ]

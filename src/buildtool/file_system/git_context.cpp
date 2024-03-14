@@ -14,6 +14,7 @@
 
 #include "src/buildtool/file_system/git_context.hpp"
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 

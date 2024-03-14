@@ -14,6 +14,8 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #endif

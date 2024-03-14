@@ -19,6 +19,8 @@
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/remote/config.hpp"

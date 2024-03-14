@@ -3,10 +3,12 @@
   , "name": ["client_common"]
   , "hdrs": ["client_common.hpp"]
   , "deps":
-    [ ["@", "grpc", "", "grpc++"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , "port"
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
@@ -17,6 +19,7 @@
   , "hdrs": ["port.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
     ]
@@ -33,7 +36,10 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["retry_parameters"]
   , "hdrs": ["retry_parameters.hpp"]
-  , "deps": [["src/buildtool/logging", "logging"]]
+  , "deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
 , "retry":
@@ -41,7 +47,8 @@
   , "name": ["retry"]
   , "hdrs": ["retry.hpp"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["@", "grpc", "", "grpc++"]
     , "retry_parameters"
     ]

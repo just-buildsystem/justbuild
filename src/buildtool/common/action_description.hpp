@@ -25,6 +25,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 class ActionDescription {
   public:

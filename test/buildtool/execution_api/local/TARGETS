@@ -9,6 +9,8 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
     , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]

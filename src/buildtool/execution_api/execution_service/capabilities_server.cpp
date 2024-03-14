@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
 
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 auto CapabilitiesServiceImpl::GetCapabilities(

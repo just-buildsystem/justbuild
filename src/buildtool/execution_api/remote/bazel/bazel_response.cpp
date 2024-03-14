@@ -17,6 +17,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 

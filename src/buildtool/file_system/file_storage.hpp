@@ -17,9 +17,13 @@
 
 #include <filesystem>
 #include <string>
+#include <utility>
 
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 enum class StoreMode {
     // First thread to write conflicting file wins.

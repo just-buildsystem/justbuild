@@ -27,6 +27,8 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
@@ -48,6 +50,7 @@
     ]
   , "private-deps":
     [ ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]

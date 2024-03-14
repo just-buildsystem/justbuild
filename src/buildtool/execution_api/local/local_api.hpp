@@ -38,6 +38,7 @@
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 

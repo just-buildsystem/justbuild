@@ -23,6 +23,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/expression/linked_map.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 class Configuration;

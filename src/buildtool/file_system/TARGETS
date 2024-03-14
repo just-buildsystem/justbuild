@@ -10,8 +10,11 @@
   , "name": ["file_storage"]
   , "hdrs": ["file_storage.hpp"]
   , "deps":
-    [ ["src/buildtool/execution_api/common", "common"]
+    [ "object_type"
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
@@ -23,10 +26,10 @@
     [ "file_storage"
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
-  , "private-deps": [["src/buildtool/execution_api/common", "common"]]
   }
 , "file_system_manager":
   { "type": ["@", "rules", "CC", "library"]
@@ -34,6 +37,7 @@
   , "hdrs": ["file_system_manager.hpp"]
   , "deps":
     [ "object_type"
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system"]
     , ["src/utils/cpp", "path"]
@@ -45,7 +49,13 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["jsonfs"]
   , "hdrs": ["jsonfs.hpp"]
-  , "deps": ["object_type", "file_system_manager", ["src/utils/cpp", "json"]]
+  , "deps":
+    [ "object_type"
+    , "file_system_manager"
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "json"]
+    ]
   , "stage": ["src", "buildtool", "file_system"]
   }
 , "git_cas":
@@ -56,7 +66,8 @@
   , "deps": ["git_context", "git_utils", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
     , ["", "libgit2"]
@@ -78,6 +89,7 @@
   , "private-deps":
     [ ["", "libgit2"]
     , "file_system_manager"
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
     , ["src/buildtool/common", "common"]
@@ -90,7 +102,8 @@
   , "srcs": ["git_context.cpp"]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["", "libgit2"]
     , ["src/utils/cpp", "gsl"]
     ]
@@ -103,7 +116,8 @@
   , "deps": ["git_cas", ["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["", "libgit2"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "hex_string"]
@@ -124,6 +138,7 @@
   , "private-deps":
     [ ["", "libgit2"]
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
     ]
@@ -137,6 +152,8 @@
     , "file_system_manager"
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "concepts"]

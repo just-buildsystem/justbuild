@@ -32,6 +32,7 @@
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 namespace {

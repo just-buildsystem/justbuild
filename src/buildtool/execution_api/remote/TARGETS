@@ -20,6 +20,7 @@
     ]
   , "deps":
     [ "config"
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["@", "gsl", "", "gsl"]
@@ -72,6 +73,7 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "fs_utils"]
     ]
   }

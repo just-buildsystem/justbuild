@@ -15,9 +15,15 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 
+#include <string>
+#include <utility>
+
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 /// \brief Response of a LocalAction.

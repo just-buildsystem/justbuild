@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"

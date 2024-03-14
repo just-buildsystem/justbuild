@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 class Compatibility {
     using git_hash = std::string;

@@ -33,6 +33,9 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
 
 /// \brief Plain DirectedAcyclicGraph.

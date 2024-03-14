@@ -15,6 +15,8 @@
 #include "src/buildtool/main/cli.hpp"
 
 #include "gsl/gsl"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
 
 namespace {

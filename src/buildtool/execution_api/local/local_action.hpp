@@ -21,9 +21,11 @@
 #include <string>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 class LocalApi;

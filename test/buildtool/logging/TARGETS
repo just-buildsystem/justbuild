@@ -5,6 +5,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     ]
   , "stage": ["test", "buildtool", "logging"]
@@ -16,6 +17,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]

@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_HPP
 
+#include <filesystem>
 #include <optional>
 #include <unordered_set>
 
+#include "gsl/gsl"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"

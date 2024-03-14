@@ -17,6 +17,7 @@
 #include <regex>
 #include <sstream>
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 extern "C" {

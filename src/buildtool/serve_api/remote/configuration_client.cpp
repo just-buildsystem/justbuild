@@ -19,6 +19,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 
 auto ConfigurationClient::CheckServeRemoteExecution() noexcept -> bool {

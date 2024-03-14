@@ -15,7 +15,10 @@
     ]
   , "stage": ["src", "buildtool", "crypto"]
   , "deps":
-    [["src/buildtool/logging", "logging"], ["src/utils/cpp", "hex_string"]]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
   , "private-deps": [["@", "ssl", "", "crypto"]]
   }
 , "hash_function":

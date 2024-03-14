@@ -22,9 +22,9 @@
 
 #include "execution_server.hpp"
 #include "fmt/core.h"
-#include "gsl/gsl"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 

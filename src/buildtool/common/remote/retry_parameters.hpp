@@ -15,6 +15,7 @@
 #include <mutex>
 #include <random>
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 constexpr unsigned int kDefaultInitialBackoffSeconds{1};

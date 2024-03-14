@@ -18,6 +18,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "test/utils/shell_quoting.hpp"
 

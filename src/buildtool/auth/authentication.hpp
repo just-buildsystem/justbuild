@@ -23,6 +23,7 @@
 #include <utility>
 
 #include "gsl/gsl"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 enum class AuthMethod : std::uint8_t { kNONE, kTLS };
 

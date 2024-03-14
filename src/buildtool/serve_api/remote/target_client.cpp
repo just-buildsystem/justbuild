@@ -20,6 +20,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 TargetClient::TargetClient(std::string const& server, Port port) noexcept {
     stub_ = justbuild::just_serve::Target::NewStub(

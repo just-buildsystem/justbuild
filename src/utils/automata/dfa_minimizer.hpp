@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/hex_string.hpp"

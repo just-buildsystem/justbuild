@@ -22,6 +22,8 @@
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 using ExecProps = std::map<std::string, std::string>;

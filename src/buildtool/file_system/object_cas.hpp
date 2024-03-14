@@ -20,8 +20,10 @@
 #include <thread>
 
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// \brief CAS for storing objects as plain blobs.

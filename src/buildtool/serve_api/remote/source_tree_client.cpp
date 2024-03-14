@@ -15,6 +15,7 @@
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 namespace {
 

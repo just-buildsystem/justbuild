@@ -15,9 +15,9 @@
 #include <optional>
 #include <thread>
 
-#include <grpcpp/grpcpp.h>
-
+#include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/remote/retry_parameters.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 // Utility class to help detecting when exit the retry loop. This class can be

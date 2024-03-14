@@ -20,6 +20,8 @@
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_TPP
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 template <bool kDoGlobalUplink>

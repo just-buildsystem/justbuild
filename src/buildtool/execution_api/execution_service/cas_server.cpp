@@ -24,6 +24,7 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 

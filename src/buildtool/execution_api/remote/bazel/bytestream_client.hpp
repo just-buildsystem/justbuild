@@ -23,10 +23,12 @@
 #include <vector>
 
 #include "google/bytestream/bytestream.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 /// Implements client side for google.bytestream.ByteStream service.
