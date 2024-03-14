@@ -99,7 +99,8 @@ class GraphTraverser {
                               ServerAddress>> dispatch_list,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
-        progress_reporter_t reporter)
+        progress_reporter_t reporter,
+        Logger const* logger = nullptr)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
           platform_properties_{std::move(platform_properties)},
@@ -110,7 +111,8 @@ class GraphTraverser {
                                         std::make_optional(repo_config))},
           remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
                                          std::make_optional(repo_config))},
-          reporter_{std::move(reporter)} {}
+          reporter_{std::move(reporter)},
+          logger_{logger} {}
 
     /// \brief Parses actions and blobs into graph, traverses it and retrieves
     /// outputs specified by command line arguments.
@@ -141,8 +143,8 @@ class GraphTraverser {
         }
         auto [rel_paths, artifact_nodes, extra_nodes] = *artifacts;
 
-        auto const object_infos = CollectObjectInfos(artifact_nodes);
-        auto extra_infos = CollectObjectInfos(extra_nodes);
+        auto const object_infos = CollectObjectInfos(artifact_nodes, logger_);
+        auto extra_infos = CollectObjectInfos(extra_nodes, logger_);
         if (not object_infos or not extra_infos) {
             return std::nullopt;
         }
@@ -176,7 +178,9 @@ class GraphTraverser {
         if (clargs_.stage->remember) {
             if (not remote_api_->ParallelRetrieveToCas(
                     *object_infos, GetLocalApi(), clargs_.jobs, true)) {
-                Logger::Log(LogLevel::Warning, "Failed to copy objects to CAS");
+                Logger::Log(logger_,
+                            LogLevel::Warning,
+                            "Failed to copy objects to CAS");
             }
         }
 
@@ -202,7 +206,7 @@ class GraphTraverser {
         std::filesystem::path const& graph_description,
         nlohmann::json const& artifacts) const -> std::optional<BuildResult> {
         // Read blobs to upload and actions from graph description file
-        auto desc = ReadGraphDescription(graph_description);
+        auto desc = ReadGraphDescription(graph_description, logger_);
         if (not desc) {
             return std::nullopt;
         }
@@ -259,6 +263,7 @@ class GraphTraverser {
     gsl::not_null<IExecutionApi::Ptr> const local_api_;
     gsl::not_null<IExecutionApi::Ptr> const remote_api_;
     progress_reporter_t reporter_;
+    Logger const* logger_{nullptr};
 
     /// \brief Reads contents of graph description file as json object. In case
     /// the description is missing "blobs" or "actions" key/value pairs or they
@@ -267,33 +272,38 @@ class GraphTraverser {
     /// \returns A pair containing the blobs to upload (as a vector of strings)
     /// and the actions as a json object.
     [[nodiscard]] static auto ReadGraphDescription(
-        std::filesystem::path const& graph_description)
+        std::filesystem::path const& graph_description,
+        Logger const* logger)
         -> std::optional<
             std::tuple<nlohmann::json, nlohmann::json, nlohmann::json>> {
         auto const graph_description_opt = Json::ReadFile(graph_description);
         if (not graph_description_opt.has_value()) {
-            Logger::Log(LogLevel::Error,
+            Logger::Log(logger,
+                        LogLevel::Error,
                         "parsing graph from {}",
                         graph_description.string());
             return std::nullopt;
         }
         auto blobs_opt = ExtractValueAs<std::vector<std::string>>(
-            *graph_description_opt, "blobs", [](std::string const& s) {
-                Logger::Log(LogLevel::Error,
+            *graph_description_opt, "blobs", [logger](std::string const& s) {
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "{}\ncan not retrieve value for \"blobs\" from "
                             "graph description.",
                             s);
             });
         auto trees_opt = ExtractValueAs<nlohmann::json>(
-            *graph_description_opt, "trees", [](std::string const& s) {
-                Logger::Log(LogLevel::Error,
+            *graph_description_opt, "trees", [logger](std::string const& s) {
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "{}\ncan not retrieve value for \"trees\" from "
                             "graph description.",
                             s);
             });
         auto actions_opt = ExtractValueAs<nlohmann::json>(
-            *graph_description_opt, "actions", [](std::string const& s) {
-                Logger::Log(LogLevel::Error,
+            *graph_description_opt, "actions", [logger](std::string const& s) {
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "{}\ncan not retrieve value for \"actions\" from "
                             "graph description.",
                             s);
@@ -314,7 +324,7 @@ class GraphTraverser {
         BlobContainer container;
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigest::Create<ObjectType::File>(blob);
-            Logger::Log(LogLevel::Trace, [&]() {
+            Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Uploaded blob {}, its digest has id {} and size {}.",
                     nlohmann::json(blob).dump(),
@@ -325,8 +335,10 @@ class GraphTraverser {
                 container.Emplace(
                     BazelBlob{std::move(digest), blob, /*is_exec=*/false});
             } catch (std::exception const& ex) {
-                Logger::Log(
-                    LogLevel::Error, "failed to create blob with: ", ex.what());
+                Logger::Log(logger_,
+                            LogLevel::Error,
+                            "failed to create blob with: ",
+                            ex.what());
                 return false;
             }
         }
@@ -441,15 +453,18 @@ class GraphTraverser {
     /// graph, we write out error message and stop execution with failure code
     [[nodiscard]] static auto GetArtifactNodes(
         DependencyGraph const& g,
-        std::vector<ArtifactIdentifier> const& artifact_ids) noexcept
+        std::vector<ArtifactIdentifier> const& artifact_ids,
+        Logger const* logger) noexcept
         -> std::optional<std::vector<DependencyGraph::ArtifactNode const*>> {
         std::vector<DependencyGraph::ArtifactNode const*> nodes{};
 
         for (auto const& art_id : artifact_ids) {
             auto const* node = g.ArtifactNodeWithId(art_id);
             if (node == nullptr) {
-                Logger::Log(
-                    LogLevel::Error, "Artifact {} not found in graph.", art_id);
+                Logger::Log(logger,
+                            LogLevel::Error,
+                            "Artifact {} not found in graph.",
+                            art_id);
                 return std::nullopt;
             }
             nodes.push_back(node);
@@ -473,10 +488,11 @@ class GraphTraverser {
                    << stats_->RebuiltActionMissingCounter() << " actions";
             }
             ss << ".";
-            Logger::Log(LogLevel::Info, ss.str());
+            Logger::Log(logger_, LogLevel::Info, ss.str());
         }
         else {
-            Logger::Log(LogLevel::Info,
+            Logger::Log(logger_,
+                        LogLevel::Info,
                         "Processed {} actions, {} cache hits.",
                         stats_->ActionsQueuedCounter(),
                         stats_->ActionsCachedCounter());
@@ -519,7 +535,7 @@ class GraphTraverser {
         }
 
         if (not graph->Add(actions) or not graph->Add(tree_actions)) {
-            Logger::Log(LogLevel::Error, [&actions]() {
+            Logger::Log(logger_, LogLevel::Error, [&actions]() {
                 auto json = nlohmann::json::array();
                 for (auto const& desc : actions) {
                     json.push_back(desc->ToJson());
@@ -534,13 +550,13 @@ class GraphTraverser {
 
         if (clargs_.rebuild ? not TraverseRebuild(*graph, artifact_ids)
                             : not Traverse(*graph, artifact_ids)) {
-            Logger::Log(LogLevel::Error, "Build failed.");
+            Logger::Log(logger_, LogLevel::Error, "Build failed.");
             return std::nullopt;
         }
 
         LogStatistics();
 
-        auto artifact_nodes = GetArtifactNodes(*graph, artifact_ids);
+        auto artifact_nodes = GetArtifactNodes(*graph, artifact_ids, logger_);
         if (not artifact_nodes) {
             return std::nullopt;
         }
@@ -570,7 +586,8 @@ class GraphTraverser {
     }
 
     [[nodiscard]] static auto CollectObjectInfos(
-        std::vector<DependencyGraph::ArtifactNode const*> const& artifact_nodes)
+        std::vector<DependencyGraph::ArtifactNode const*> const& artifact_nodes,
+        Logger const* logger)
         -> std::optional<std::vector<Artifact::ObjectInfo>> {
         std::vector<Artifact::ObjectInfo> object_infos;
         object_infos.reserve(artifact_nodes.size());
@@ -580,7 +597,8 @@ class GraphTraverser {
                 object_infos.push_back(*info);
             }
             else {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(logger,
+                            LogLevel::Error,
                             "artifact {} could not be retrieved, it can not be "
                             "found in CAS.",
                             art_ptr->Content().Id());
@@ -607,7 +625,8 @@ class GraphTraverser {
         if (not output_paths or
             not remote_api_->RetrieveToPaths(
                 object_infos, *output_paths, GetLocalApi())) {
-            Logger::Log(LogLevel::Error, "Could not retrieve outputs.");
+            Logger::Log(
+                logger_, LogLevel::Error, "Could not retrieve outputs.");
             return std::nullopt;
         }
 
@@ -645,8 +664,10 @@ class GraphTraverser {
                     }
                 }
                 else {
-                    Logger::Log(
-                        LogLevel::Error, "Missing info for artifact {}.", id);
+                    Logger::Log(logger_,
+                                LogLevel::Error,
+                                "Missing info for artifact {}.",
+                                id);
                 }
             }
             msg_dbg += fmt::format("\n  {}: {}", path, id);
@@ -656,10 +677,10 @@ class GraphTraverser {
             message += fmt::format("\n({} runfiles omitted.)", runfiles.size());
         }
 
-        Logger::Log(LogLevel::Info, "{}", message);
-        Logger::Log(LogLevel::Debug, "{}", msg_dbg);
+        Logger::Log(logger_, LogLevel::Info, "{}", message);
+        Logger::Log(logger_, LogLevel::Debug, "{}", msg_dbg);
         if (failed) {
-            Logger::Log(LogLevel::Info, "{}", msg_failed);
+            Logger::Log(logger_, LogLevel::Info, "{}", msg_failed);
         }
 
         if (clargs_.build.dump_artifacts) {
@@ -686,13 +707,15 @@ class GraphTraverser {
                                 {*info},
                                 {dup(fileno(stdout))},
                                 /*raw_tree=*/false)) {
-                            Logger::Log(LogLevel::Error,
+                            Logger::Log(logger_,
+                                        LogLevel::Error,
                                         "Failed to retrieve {}",
                                         *(clargs_.build.print_to_stdout));
                         }
                     }
                     else {
                         Logger::Log(
+                            logger_,
                             LogLevel::Error,
                             "Failed to obtain object information for {}",
                             *(clargs_.build.print_to_stdout));
@@ -711,6 +734,7 @@ class GraphTraverser {
                 auto relpath = target_path.lexically_relative(path);
                 if ((not relpath.empty()) and *relpath.begin() != "..") {
                     Logger::Log(
+                        logger_,
                         LogLevel::Info,
                         "'{}' not a direct logical path of the specified "
                         "target; will take subobject '{}' of '{}'",
@@ -726,7 +750,8 @@ class GraphTraverser {
                                     {*new_info},
                                     {dup(fileno(stdout))},
                                     /*raw_tree=*/false)) {
-                                Logger::Log(LogLevel::Error,
+                                Logger::Log(logger_,
+                                            LogLevel::Error,
                                             "Failed to retrieve artifact {} at "
                                             "path '{}' of '{}'",
                                             new_info->ToString(),
@@ -737,6 +762,7 @@ class GraphTraverser {
                     }
                     else {
                         Logger::Log(
+                            logger_,
                             LogLevel::Error,
                             "Failed to obtain object information for {}",
                             *(clargs_.build.print_to_stdout));
@@ -744,7 +770,8 @@ class GraphTraverser {
                     return;
                 }
             }
-            Logger::Log(LogLevel::Warning,
+            Logger::Log(logger_,
+                        LogLevel::Warning,
                         "{} not a logical path of the specified target",
                         *(clargs_.build.print_to_stdout));
         }

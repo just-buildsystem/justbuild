@@ -18,12 +18,12 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 
-auto ProgressReporter::Reporter(
-    gsl::not_null<Statistics*> const& stats,
-    gsl::not_null<Progress*> const& progress) noexcept -> progress_reporter_t {
-    return BaseProgressReporter::Reporter([stats, progress]() {
+auto ProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
+                                gsl::not_null<Progress*> const& progress,
+                                Logger const* logger) noexcept
+    -> progress_reporter_t {
+    return BaseProgressReporter::Reporter([stats, progress, logger]() {
         int total = gsl::narrow<int>(progress->OriginMap().size());
         // Note: order matters; queued has to be queried last
         auto const& sample = progress->TaskTracker().Sample();
@@ -53,7 +53,8 @@ auto ProgressReporter::Reporter(
         if (total_work > 0) {
             progress = run * kOneHundred / total_work;
         }
-        Logger::Log(LogLevel::Progress,
+        Logger::Log(logger,
+                    LogLevel::Progress,
                     "[{:3}%] {} cached, {} run, {} processing{}.",
                     progress,
                     cached,

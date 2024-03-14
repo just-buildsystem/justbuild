@@ -29,9 +29,10 @@
     , "progress"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/logging", "logging"]]
+    [["@", "fmt", "", "fmt"], ["src/buildtool/logging", "log_level"]]
   }
 , "base_progress_reporter":
   { "type": ["@", "rules", "CC", "library"]

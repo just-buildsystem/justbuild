@@ -17,14 +17,15 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 
 class ProgressReporter {
   public:
-    [[nodiscard]] static auto Reporter(
-        gsl::not_null<Statistics*> const& stats,
-        gsl::not_null<Progress*> const& progress) noexcept
+    [[nodiscard]] static auto Reporter(gsl::not_null<Statistics*> const& stats,
+                                       gsl::not_null<Progress*> const& progress,
+                                       Logger const* logger = nullptr) noexcept
         -> progress_reporter_t;
 };
 
