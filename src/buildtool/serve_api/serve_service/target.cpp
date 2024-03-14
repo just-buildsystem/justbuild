@@ -82,10 +82,9 @@ auto TargetService::ServeTarget(
     const ::justbuild::just_serve::ServeTargetRequest* request,
     ::justbuild::just_serve::ServeTargetResponse* response) -> ::grpc::Status {
     // check target cache key hash for validity
-    if (auto error_msg = IsAHash(request->target_cache_key_id().hash());
-        error_msg) {
-        logger_->Emit(LogLevel::Error, *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    if (auto msg = IsAHash(request->target_cache_key_id().hash()); msg) {
+        logger_->Emit(LogLevel::Error, *msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *msg};
     }
     auto const& target_cache_key_digest =
         ArtifactDigest{request->target_cache_key_id()};
@@ -93,9 +92,9 @@ auto TargetService::ServeTarget(
     // acquire lock for CAS
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
-        auto error_msg = fmt::format("Could not acquire gc SharedLock");
-        logger_->Emit(LogLevel::Error, error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};
+        auto msg = std::string("Could not acquire gc SharedLock");
+        logger_->Emit(LogLevel::Error, msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
 
     // start filling in the backend description
@@ -113,9 +112,9 @@ auto TargetService::ServeTarget(
         {"platform_properties", platform_properties}};
 
     // read in the dispatch list and add it to the description, if not empty
-    if (auto error_msg = IsAHash(request->dispatch_info().hash()); error_msg) {
-        logger_->Emit(LogLevel::Error, *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    if (auto msg = IsAHash(request->dispatch_info().hash()); msg) {
+        logger_->Emit(LogLevel::Error, *msg);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *msg};
     }
     auto const& dispatch_info_digest = ArtifactDigest{request->dispatch_info()};
     auto res = GetDispatchList(dispatch_info_digest);
@@ -196,26 +195,18 @@ auto TargetService::ServeTarget(
                 "Failed to extract artifacts from target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
+        artifacts.emplace_back(target_entry->second);  // add the tc value
         if (!local_api_->RetrieveToCas(artifacts, &*remote_api_)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
-        }
-
-        // make sure the target cache value is in the remote cas
-        if (!local_api_->RetrieveToCas({target_entry->second}, &*remote_api_)) {
-            auto msg = fmt::format(
-                "Failed to upload to remote cas the target cache entry {}",
-                target_entry->second.ToString());
-            logger_->Emit(LogLevel::Error, msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
-
+        // populate response with the target cache value
         response->mutable_target_value()->CopyFrom(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
@@ -227,7 +218,7 @@ auto TargetService::ServeTarget(
     if (!local_api_->IsAvailable(target_cache_key_digest) and
         !remote_api_->RetrieveToCas({target_cache_key_info}, &*local_api_)) {
         auto msg = fmt::format(
-            "could not retrieve from remote-execution end point blob {}",
+            "Could not retrieve blob {} from remote-execution endpoint",
             target_cache_key_info.ToString());
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
@@ -237,9 +228,9 @@ auto TargetService::ServeTarget(
         local_api_->RetrieveToMemory(target_cache_key_info);
     if (not target_description_str) {
         // this should not fail unless something really broke...
-        auto msg =
-            fmt::format("Unexpected failure in retrieving blob {} from CAS",
-                        target_cache_key_info.ToString());
+        auto msg = fmt::format(
+            "Unexpected failure in retrieving blob {} from local CAS",
+            target_cache_key_info.ToString());
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
@@ -253,7 +244,7 @@ auto TargetService::ServeTarget(
                                target_cache_key_digest.hash(),
                                ex.what());
         logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
     if (not target_description_dict.IsNotNull() or
         not target_description_dict->IsMap()) {
@@ -308,28 +299,29 @@ auto TargetService::ServeTarget(
                                   .type = ObjectType::File}},
             &*local_api_)) {
         auto msg = fmt::format(
-            "Could not retrieve from remote-execution end point blob {}",
+            "Could not retrieve blob {} from remote-execution endpoint",
             repo_key->String());
         logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     auto repo_config_path = Storage::Instance().CAS().BlobPath(
         repo_key_dgst, /*is_executable=*/false);
     if (not repo_config_path) {
-        auto msg = fmt::format("Repository configuration blob {} not in CAS",
-                               repo_key->String());
+        // This should not fail unless something went really bad...
+        auto msg = fmt::format(
+            "Unexpected failure in retrieving blob {} from local CAS",
+            repo_key->String());
         logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
 
     // populate the RepositoryConfig instance
     RepositoryConfig repository_config{};
     std::string const main_repo{"0"};  // known predefined main repository name
-    if (auto err_msg = DetermineRoots(
+    if (auto msg = DetermineRoots(
             main_repo, *repo_config_path, &repository_config, logger_)) {
-        logger_->Emit(LogLevel::Error, *err_msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              *err_msg};
+        logger_->Emit(LogLevel::Error, *msg);
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, *msg};
     }
 
     // get the target name
@@ -499,25 +491,18 @@ auto TargetService::ServeTarget(
                 "Failed to extract artifacts from target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
+        tc_artifacts.emplace_back(target_entry->second);  // add the tc value
         if (!local_api_->RetrieveToCas(tc_artifacts, &*remote_api_)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, msg);
-            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
-        }
-        // make sure the target cache value is in the remote cas
-        if (!local_api_->RetrieveToCas({target_entry->second}, &*remote_api_)) {
-            auto msg = fmt::format(
-                "Failed to upload to remote cas the target cache entry {}",
-                target_entry->second.ToString());
-            logger_->Emit(LogLevel::Error, msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
-        // set response
+        // populate response with the target cache value
         response->mutable_target_value()->CopyFrom(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
@@ -664,7 +649,6 @@ auto TargetService::ServeTargetVariables(
     }
     // populate response with flexible_config list
     auto flexible_config_list = flexible_config->get()->List();
-    std::vector<std::string> fclist{};
     for (auto const& elem : flexible_config_list) {
         if (not elem->IsString()) {
             auto err = fmt::format(
@@ -802,7 +786,7 @@ auto TargetService::ServeTargetDescription(
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, err};
     }
     // populate response description object with fields as-is
-    nlohmann::json desc{};
+    auto desc = nlohmann::json::object();
     if (auto doc = target_desc->get()->Get("doc", Expression::none_t{});
         doc.IsNotNull()) {
         desc["doc"] = doc->ToJson();
