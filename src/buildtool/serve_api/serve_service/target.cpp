@@ -26,6 +26,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/main/analyse.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -253,7 +254,7 @@ auto TargetService::ServeTarget(
                         target_cache_key_digest.hash(),
                         target_description_dict.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
 
     std::string error_msg{};  // buffer to store various error messages
@@ -276,8 +277,7 @@ auto TargetService::ServeTarget(
 
     if (!check_key("repo_key") or !check_key("target_name") or
         !check_key("effective_config")) {
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              error_msg};
+        return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, error_msg};
     }
 
     // get repository config blob path
@@ -290,7 +290,7 @@ auto TargetService::ServeTarget(
             target_cache_key_digest.hash(),
             repo_key.ToJson().dump());
         logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
     ArtifactDigest repo_key_dgst{repo_key->String(), 0, /*is_tree=*/false};
     if (!local_api_->IsAvailable(repo_key_dgst) and
@@ -399,6 +399,16 @@ auto TargetService::ServeTarget(
     Statistics stats{};
     Progress progress{};
 
+    // setup logging for analysis and build; write into a temporary file
+    auto tmp_dir = StorageConfig::CreateTypedTmpDir("serve-target");
+    if (!tmp_dir) {
+        auto msg = std::string("Could not create TmpDir");
+        logger_->Emit(LogLevel::Error, msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+    }
+    std::filesystem::path tmp_log{tmp_dir->GetPath() / "log"};
+    Logger logger{"serve-target", {LogSinkFile::CreateFactory(tmp_log)}};
+
     // analyse the configured target
     auto result = AnalyseTarget(configured_target,
                                 &result_map,
@@ -406,13 +416,37 @@ auto TargetService::ServeTarget(
                                 *tc,
                                 &stats,
                                 RemoteServeConfig::Jobs(),
-                                std::nullopt /*request_action_input*/);
+                                std::nullopt /*request_action_input*/,
+                                &logger);
 
     if (not result) {
+        // report failure locally, to keep track of it...
         auto msg = fmt::format("Failed to analyse target {}",
                                configured_target.target.ToString());
-        logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        logger_->Emit(LogLevel::Warning, msg);
+        // ...but try to give the client the proper log
+        auto const& cas = Storage::Instance().CAS();
+        auto digest = cas.StoreBlob(tmp_log, /*is_executable=*/false);
+        if (not digest) {
+            auto msg = std::string(
+                "Failed to store log of failed analysis to local CAS");
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+        }
+        // upload log blob to remote
+        if (!local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
+                                      .type = ObjectType::File}},
+                &*remote_api_)) {
+            auto msg = fmt::format(
+                "Failed to upload to remote CAS the failed analysis log {}",
+                digest->hash());
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        }
+        // set response with log digest
+        response->mutable_log()->CopyFrom(*digest);
+        return ::grpc::Status::OK;
     }
     logger_->Emit(LogLevel::Info, "Analysed target {}", result->id.ToString());
 
@@ -421,7 +455,7 @@ auto TargetService::ServeTarget(
 
     // get the result map outputs
     auto const& [actions, blobs, trees] =
-        result_map.ToResult(&stats, &progress);
+        result_map.ToResult(&stats, &progress, &logger);
 
     // collect cache targets and artifacts for target-level caching
     auto const cache_targets = result_map.CacheTargets();
@@ -451,17 +485,41 @@ auto TargetService::ServeTarget(
         std::move(dispatch_list),
         &stats,
         &progress,
-        ProgressReporter::Reporter(&stats, &progress)};
+        ProgressReporter::Reporter(&stats, &progress, &logger),
+        &logger};
 
     // perform build
     auto build_result = traverser.BuildAndStage(
         artifacts, runfiles, actions, blobs, trees, std::move(cache_artifacts));
 
     if (not build_result) {
+        // report failure locally, to keep track of it...
         auto msg = fmt::format("Build for target {} failed",
                                configured_target.target.ToString());
-        logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        logger_->Emit(LogLevel::Warning, msg);
+        // ...but try to give the client the proper log
+        auto const& cas = Storage::Instance().CAS();
+        auto digest = cas.StoreBlob(tmp_log, /*is_executable=*/false);
+        if (not digest) {
+            auto msg =
+                std::string("Failed to store log of failed build to local CAS");
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+        }
+        // upload log blob to remote
+        if (!local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
+                                      .type = ObjectType::File}},
+                &*remote_api_)) {
+            auto msg = fmt::format(
+                "Failed to upload to remote CAS the failed build log {}",
+                digest->hash());
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        }
+        // set response with log digest
+        response->mutable_log()->CopyFrom(*digest);
+        return ::grpc::Status::OK;
     }
 
     WriteTargetCacheEntries(cache_targets,
@@ -470,14 +528,39 @@ auto TargetService::ServeTarget(
                             traverser.GetLocalApi(),
                             traverser.GetRemoteApi(),
                             RemoteServeConfig::TCStrategy(),
-                            *tc);
+                            *tc,
+                            &logger,
+                            true /*strict_logging*/);
 
     if (build_result->failed_artifacts) {
+        // report failure locally, to keep track of it...
         auto msg =
             fmt::format("Build result for target {} contains failed artifacts ",
                         configured_target.target.ToString());
         logger_->Emit(LogLevel::Warning, msg);
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
+        // ...but try to give the client the proper log
+        auto const& cas = Storage::Instance().CAS();
+        auto digest = cas.StoreBlob(tmp_log, /*is_executable=*/false);
+        if (not digest) {
+            auto msg = std::string(
+                "Failed to store log of failed artifacts to local CAS");
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+        }
+        // upload log blob to remote
+        if (!local_api_->RetrieveToCas(
+                {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
+                                      .type = ObjectType::File}},
+                &*remote_api_)) {
+            auto msg = fmt::format(
+                "Failed to upload to remote CAS the failed artifacts log {}",
+                digest->hash());
+            logger_->Emit(LogLevel::Error, msg);
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        }
+        // set response with log digest
+        response->mutable_log()->CopyFrom(*digest);
+        return ::grpc::Status::OK;
     }
 
     // now that the target cache key is in, make sure remote CAS has all

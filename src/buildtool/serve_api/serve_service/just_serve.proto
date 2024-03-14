@@ -361,9 +361,13 @@ message ServeTargetRequest {
 
 message ServeTargetResponse {
   // Digest of the blob with the JSON object containing the target-cache value
-  // The implementation must guarantee that all the referenced objects are
-  // present in the remote CAS.
+  // on success. The implementation must guarantee that all the referenced
+  // objects are present in the remote CAS.
   build.bazel.remote.execution.v2.Digest target_value = 1;
+
+  // Digest of the blob containing a log report relevant to the user, e.g.,
+  // the error report for a failed analysis or build of a known target.
+  build.bazel.remote.execution.v2.Digest log = 2;
 }
 
 message ServeTargetVariablesRequest {
@@ -399,16 +403,31 @@ message ServeTargetDescriptionResponse {
 }
 
 service Target {
-  // Given a target-level caching key, returns the computed value. In doing so,
-  // it can build on the associated end-point passing the
+  // Given a target-level caching key, returns the computed value. In doing
+  // so, it can build on the associated endpoint passing the
   // RemoteExecutionProperties contained in the ServeTargetRequest.
+  // The execution backend description, the resulting target cache value,
+  // and all other artifacts referenced therein MUST be made available in
+  // the CAS of the associated remote execution endpoint.
   //
-  // If the status has a code different from `OK`, the response MUST not be used.
+  // A failure to analyse or build a known target (i.e., a target for which
+  // we have all the needed information available) should NOT be reported as
+  // an error. Instead, the failure log should be uploaded as a blob to the
+  // CAS of the associated remote execution endpoint and its digest provided
+  // to the client in the response field `log`. In this case, the field
+  // `target_value` MUST not be set.
+  //
+  // If the status has a code different from `OK` or `NOT_FOUND`, the
+  // response MUST not be used.
   //
   // Errors:
-  // * `FAILED_PRECONDITION`: Failed to find required information in the CAS or
-  //   the target cache key is malformed.
-  // * `UNAVAILABLE`: Could not communicate with the remote execution endpoint.
+  // * `NOT_FOUND`: Unknown target or missing needed local information.
+  //   This should only be used for non-fatal failures.
+  // * `FAILED_PRECONDITION`: Required entries missing in the remote
+  //   execution endpoint.
+  // * `UNAVAILABLE`: Could not communicate with the remote execution
+  //   endpoint.
+  // * `INVALID_ARGUMENT`: The client provided invalid arguments in request.
   // * `INTERNAL`: Internally, something is very broken.
   rpc ServeTarget(ServeTargetRequest) returns (ServeTargetResponse) {}
 
