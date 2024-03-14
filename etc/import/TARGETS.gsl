@@ -1,7 +1,7 @@
 { "gsl":
   { "type": "export"
   , "target": "gsl (unexported)"
-  , "flexible_config": ["OS", "ARCH", "TARGET_ARCH", "TOOLCHAIN_CONFIG"]
+  , "flexible_config": ["OS", "ARCH", "TARGET_ARCH", "TOOLCHAIN_CONFIG", "ENV"]
   }
 , "gsl (unexported)":
   { "type": ["@", "rules", "CC", "library"]
