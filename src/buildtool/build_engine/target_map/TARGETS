@@ -26,6 +26,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     ]

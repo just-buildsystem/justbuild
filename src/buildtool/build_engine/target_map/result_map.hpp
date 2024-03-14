@@ -32,6 +32,7 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -171,7 +172,8 @@ class ResultTargetMap {
 
     template <bool kIncludeOrigins = false>
     [[nodiscard]] auto ToResult(gsl::not_null<Statistics const*> const& stats,
-                                gsl::not_null<Progress*> const& progress) const
+                                gsl::not_null<Progress*> const& progress,
+                                Logger const* logger = nullptr) const
         -> ResultType<kIncludeOrigins> {
         ResultType<kIncludeOrigins> result{};
         size_t na = 0;
@@ -302,11 +304,13 @@ class ResultTargetMap {
 
         int trees_traversed = stats->TreesAnalysedCounter();
         if (trees_traversed > 0) {
-            Logger::Log(LogLevel::Performance,
+            Logger::Log(logger,
+                        LogLevel::Performance,
                         "Analysed {} non-known source trees",
                         trees_traversed);
         }
-        Logger::Log(LogLevel::Info,
+        Logger::Log(logger,
+                    LogLevel::Info,
                     "Discovered {} actions, {} trees, {} blobs",
                     result.actions.size(),
                     result.trees.size(),
