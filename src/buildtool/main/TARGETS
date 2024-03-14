@@ -32,7 +32,7 @@
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
     , ["src/buildtool/common/remote", "retry_parameters"]
-    , ["src/buildtool/execution_api/execution_service", "file_chunker"]
+    , ["src/buildtool/storage", "file_chunker"]
     , "common"
     , "cli"
     , "version"

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_EXECUTION_API_EXECUTION_SERVICE_FILE_CHUNKER_HPP
-#define INCLUDED_SRC_EXECUTION_API_EXECUTION_SERVICE_FILE_CHUNKER_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_FILE_CHUNKER_HPP
+#define INCLUDED_SRC_BUILDTOOL_STORAGE_FILE_CHUNKER_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -95,4 +95,4 @@ class FileChunker {
     [[nodiscard]] auto NextChunkBoundary() noexcept -> std::size_t;
 };
 
-#endif  // INCLUDED_SRC_EXECUTION_API_EXECUTION_SERVICE_FILE_CHUNKER_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_FILE_CHUNKER_HPP

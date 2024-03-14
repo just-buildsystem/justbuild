@@ -19,11 +19,11 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/execution_api/execution_service/file_chunker.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/file_chunker.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 auto CASUtils::EnsureTreeInvariant(std::string const& data,

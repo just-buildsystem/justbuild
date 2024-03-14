@@ -81,4 +81,12 @@
     , "storage"
     ]
   }
+, "file_chunker":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["file_chunker"]
+  , "hdrs": ["file_chunker.hpp"]
+  , "srcs": ["file_chunker.cpp"]
+  , "stage": ["src", "buildtool", "storage"]
+  , "private-deps": [["@", "gsl", "", "gsl"]]
+  }
 }

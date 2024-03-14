@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/execution_api/execution_service/file_chunker.hpp"
+#include "src/buildtool/storage/file_chunker.hpp"
 
 #include <array>
 #include <random>
