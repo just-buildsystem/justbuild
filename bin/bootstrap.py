@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import hashlib
+from itertools import chain
 import json
 import os
 import shutil
@@ -21,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 import platform
+import logging
 
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -66,6 +68,12 @@ if "ARCH" not in g_CONF:
     MACH = platform.machine()
     if MACH in ARCHS:
         g_CONF["ARCH"] = ARCHS[MACH]
+    elif MACH in ARCHS.values():
+        g_CONF["ARCH"] = MACH
+    else:
+        expected = ", ".join(chain(ARCHS.keys(), ARCHS.values()))
+        logging.error(f"Couldn't setup ARCH. Found {MACH} expected one of {expected}")
+
 if 'SOURCE_DATE_EPOCH' in os.environ:
     g_CONF['SOURCE_DATE_EPOCH'] = int(os.environ['SOURCE_DATE_EPOCH'])
 
