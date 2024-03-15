@@ -139,7 +139,7 @@ class GraphTraverser {
         if (not artifacts) {
             return std::nullopt;
         }
-        auto const [rel_paths, artifact_nodes, extra_nodes] = *artifacts;
+        auto [rel_paths, artifact_nodes, extra_nodes] = *artifacts;
 
         auto const object_infos = CollectObjectInfos(artifact_nodes);
         auto extra_infos = CollectObjectInfos(extra_nodes);
@@ -168,10 +168,9 @@ class GraphTraverser {
                          artifact_nodes,
                          runfile_descriptions);
             MaybePrintToStdout(rel_paths, artifact_nodes);
-            return BuildResult{
-                .output_paths = std::move(std::get<0>(*artifacts)),
-                .extra_infos = std::move(infos),
-                .failed_artifacts = failed_artifacts};
+            return BuildResult{.output_paths = std::move(rel_paths),
+                               .extra_infos = std::move(infos),
+                               .failed_artifacts = failed_artifacts};
         }
 
         if (clargs_.stage->remember) {
