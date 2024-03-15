@@ -107,7 +107,12 @@ The configuration file is given by a JSON object.
    remote-execution endpoint. The value *`"disable"`* disables
    adding new entries to the target-level cache, which defeats the
    purpose of typical set up to share target-level computations
-   between clients.
+   between clients.  
+   For the subkey *`"local launcher"`*, if given, the value has
+   to be a list. This list is used as local launcher for the
+   build in the case the serve process acts simultaneously as
+   remote-execution endpoint. If unset (or `null`), the value
+   `["env", "--"]` will be taken as default.
 
 
 See also

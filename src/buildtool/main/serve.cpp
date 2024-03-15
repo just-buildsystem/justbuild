@@ -524,6 +524,35 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->tc.target_cache_write_strategy = *s_value;
         }
+
+        auto launcher = build_args->Get("local launcher", Expression::none_t{});
+        if (launcher.IsNotNull()) {
+            if (not launcher->IsList()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for build key "
+                    "\"local launcher\" has to be a list, but found {}",
+                    clargs->serve.config.string(),
+                    launcher->ToString());
+                std::exit(kExitFailure);
+            }
+            std::vector<std::string> launcher_list{};
+            for (auto const& entry : launcher->List()) {
+                if (not entry->IsString()) {
+                    Logger::Log(LogLevel::Error,
+                                "In serve service config file {}:\nValue for "
+                                "build key \"local launcher\" has to be a list "
+                                "of string, but found {} with entry {}",
+                                clargs->serve.config.string(),
+                                launcher->ToString(),
+                                entry->ToString());
+
+                    std::exit(kExitFailure);
+                }
+                launcher_list.emplace_back(entry->String());
+            }
+            clargs->build.local_launcher = launcher_list;
+        }
     }
 }
 
