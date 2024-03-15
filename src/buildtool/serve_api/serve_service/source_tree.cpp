@@ -399,7 +399,7 @@ auto SourceTreeService::ResolveContentTree(
         ResolvedGitObject resolved_tree{};
         bool failed{false};
         {
-            TaskSystem ts{std::max(1U, std::thread::hardware_concurrency())};
+            TaskSystem ts{RemoteServeConfig::Jobs()};
             resolve_symlinks_map_.ConsumeAfterKeysReady(
                 &ts,
                 {GitObjectToResolve{tree_id,

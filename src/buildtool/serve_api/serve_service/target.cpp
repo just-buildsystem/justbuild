@@ -437,7 +437,7 @@ auto TargetService::ServeTarget(
 
     // Clean up result map, now that it is no longer needed
     {
-        TaskSystem ts;
+        TaskSystem ts{RemoteServeConfig::Jobs()};
         result_map.Clear(&ts);
     }
 

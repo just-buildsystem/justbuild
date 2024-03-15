@@ -1036,7 +1036,7 @@ auto main(int argc, char* argv[]) -> int {
                     ReportTaintedness(*result);
                     // Clean up in parallel
                     {
-                        TaskSystem ts;
+                        TaskSystem ts{arguments.common.jobs};
                         result_map.Clear(&ts);
                     }
                     return kExitSuccess;
@@ -1070,7 +1070,7 @@ auto main(int argc, char* argv[]) -> int {
 
                 // Clean up result map, now that it is no longer needed
                 {
-                    TaskSystem ts;
+                    TaskSystem ts{arguments.common.jobs};
                     result_map.Clear(&ts);
                 }
 
