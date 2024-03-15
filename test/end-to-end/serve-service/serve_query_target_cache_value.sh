@@ -25,6 +25,8 @@ env
 readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
+readonly LBR_UNRELATED_A="${TEST_TMPDIR}/local-build-root-unrelated-A"
+readonly LBR_UNRELATED_B="${TEST_TMPDIR}/local-build-root-unrelated-B"
 
 readonly TOOLS_DIR="${TEST_TMPDIR}/tools"
 readonly OUT="${TEST_TMPDIR}/out"
@@ -93,15 +95,14 @@ cat "${CONF}"
 echo
 
 "${JUST}" build                       \
-    --local-build-root "${SERVE_LBR}" \
+    --local-build-root "${LBR_UNRELATED_A}" \
     -C "${CONF}"                      \
+    --remote-serve-address "${SERVE}" \
     -r "${REMOTE_EXECUTION_ADDRESS}"  \
     ${COMPAT}                         \
     ${REMOTE_PROPERTIES}              \
     ${DISPATCH}                       \
     -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
-
-ls -R "${SERVE_LBR}"
 
 # Demonstrate that from now on, we don't build anything any more
 rm -rf "${TOOLS_DIR}"
@@ -127,7 +128,25 @@ echo "failed as expected"
 
 # Demonstrate we cannot build with a clean remote CAS
 "${JUST}" gc --local-build-root ${REMOTE_LBR} 2>&1
+if [ -n "${STANDALONE_SERVE:-}" ]
+then
+    # if serve and remote-execution are the same process
+    # they also use the same local build root; in this case,
+    # we need to keep the target-level cache of the serve
+    # process alive
+    echo "Building with serve again, to keep tc cache alive"
+    "${JUST}" build                             \
+        --local-build-root "${LBR_UNRELATED_B}" \
+        -C "${CONF}"                            \
+        --remote-serve-address "${SERVE}"       \
+        -r "${REMOTE_EXECUTION_ADDRESS}"        \
+        ${COMPAT}                               \
+        ${REMOTE_PROPERTIES}                    \
+        ${DISPATCH}                             \
+        -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1
+fi
 "${JUST}" gc --local-build-root ${REMOTE_LBR} 2>&1
+echo
 
 "${JUST}" build                       \
     --local-build-root "${LBR}"       \
@@ -136,7 +155,7 @@ echo "failed as expected"
     ${COMPAT}                         \
     ${REMOTE_PROPERTIES}              \
     ${DISPATCH}                       \
-    -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1 && echo "this should fail" && exit 1q
+    -D '{"ENV": {"TOOLS": "'${TOOLS_DIR}'"}}' 2>&1 && echo "this should fail" && exit 1
 echo "failed as expected"
 
 # Demonstrate that we can build if serve endpoint provides the target cache value
