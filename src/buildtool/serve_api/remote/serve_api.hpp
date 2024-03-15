@@ -111,7 +111,7 @@ class ServeApi final {
 
     [[nodiscard]] static auto ServeTarget(const TargetCacheKey& key,
                                           const std::string& repo_key) noexcept
-        -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
+        -> std::optional<serve_target_result_t> {
         return Instance().tc_->ServeTarget(key, repo_key);
     }
 

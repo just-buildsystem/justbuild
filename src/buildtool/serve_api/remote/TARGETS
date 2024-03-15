@@ -58,6 +58,7 @@
   , "private-deps":
     [ ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     ]
   }

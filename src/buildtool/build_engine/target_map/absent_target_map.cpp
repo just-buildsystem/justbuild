@@ -52,7 +52,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             key.target.GetNamedTarget().name);
         if (!flexible_vars) {
             (*logger)(fmt::format("Failed to obtain flexible config variables "
-                                  "for absent target \"{}\"",
+                                  "for absent target {}",
                                   key.target.ToString()),
                       /*fatal=*/true);
             return;
@@ -89,8 +89,36 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                         key.target.ToString());
             exports_progress->TaskTracker().Start(
                 target_cache_key->Id().ToString());
-            target_cache_value =
-                ServeApi::ServeTarget(*target_cache_key, *repo_key);
+            auto res = ServeApi::ServeTarget(*target_cache_key, *repo_key);
+            // process response from serve endpoint
+            if (not res) {
+                // report target not found
+                (*logger)(fmt::format("Absent target {} was not found on serve "
+                                      "endpoint",
+                                      key.target.ToString()),
+                          /*fatal=*/true);
+                return;
+            }
+            if (res->index() == 0) {
+                (*logger)(
+                    fmt::format("Failure to remotely analyse or build absent "
+                                "target {}\nDetailed log available on the "
+                                "remote-execution endpoint as blob {}",
+                                key.target.ToString(),
+                                std::get<0>(*res)),
+                    /*fatal=*/true);
+                return;
+            }
+            if (res->index() == 1) {
+                (*logger)(fmt::format("While querying serve endpoint for "
+                                      "absent export target {}:\n{}",
+                                      key.target.ToString(),
+                                      std::get<1>(*res)),
+                          /*fatal=*/true);
+                return;
+            }
+            // index == 2
+            target_cache_value = std::get<2>(*res);
             exports_progress->TaskTracker().Stop(
                 target_cache_key->Id().ToString());
             from_just_serve = true;

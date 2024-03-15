@@ -17,6 +17,7 @@
 #include <exception>
 #include <utility>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
@@ -29,23 +30,22 @@ TargetClient::TargetClient(std::string const& server, Port port) noexcept {
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,
                                const std::string& repo_key) noexcept
-    -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {
+    -> std::optional<serve_target_result_t> {
     // make sure the blob containing the key is in the remote cas
     if (!local_api_->RetrieveToCas({key.Id()}, &*remote_api_)) {
-        logger_.Emit(LogLevel::Performance,
-                     "failed to retrieve to remote cas ObjectInfo {}",
-                     key.Id().ToString());
-        return std::nullopt;
+        return serve_target_result_t{
+            std::in_place_index<1>,
+            fmt::format("Failed to retrieve to remote cas ObjectInfo {}",
+                        key.Id().ToString())};
     }
     // make sure the repository configuration blob is in the remote cas
     if (!local_api_->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = ArtifactDigest{repo_key, 0, false},
                                   .type = ObjectType::File}},
             &*remote_api_)) {
-        logger_.Emit(LogLevel::Performance,
-                     "failed to retrieve to remote cas blob {}",
-                     repo_key);
-        return std::nullopt;
+        return serve_target_result_t{
+            std::in_place_index<1>,
+            fmt::format("Failed to retrieve to remote cas blob {}", repo_key)};
     }
 
     // add target cache key to request
@@ -72,27 +72,27 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
             dispatch_list.push_back(entry);
         }
     } catch (std::exception const& ex) {
-        logger_.Emit(LogLevel::Performance,
-                     "populating dispatch JSON array failed with:\n{}",
-                     ex.what());
-        return std::nullopt;
+        return serve_target_result_t{
+            std::in_place_index<1>,
+            fmt::format("Populating dispatch JSON array failed with:\n{}",
+                        ex.what())};
     }
 
     auto dispatch_dgst =
         Storage::Instance().CAS().StoreBlob(dispatch_list.dump(2));
     if (not dispatch_dgst) {
-        logger_.Emit(LogLevel::Performance,
-                     "failed to store blob {} to local cas",
-                     dispatch_list.dump(2));
-        return std::nullopt;
+        return serve_target_result_t{
+            std::in_place_index<1>,
+            fmt::format("Failed to store blob {} to local cas",
+                        dispatch_list.dump(2))};
     }
     auto const& dispatch_info = Artifact::ObjectInfo{
         .digest = ArtifactDigest{*dispatch_dgst}, .type = ObjectType::File};
     if (!local_api_->RetrieveToCas({dispatch_info}, &*remote_api_)) {
-        logger_.Emit(LogLevel::Performance,
-                     "failed to upload blob {} to remote cas",
-                     dispatch_info.ToString());
-        return std::nullopt;
+        return serve_target_result_t{
+            std::in_place_index<1>,
+            fmt::format("Failed to upload blob {} to remote cas",
+                        dispatch_info.ToString())};
     }
     request.mutable_dispatch_info()->CopyFrom(*dispatch_dgst);
 
@@ -101,39 +101,67 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     justbuild::just_serve::ServeTargetResponse response;
     auto const& status = stub_->ServeTarget(&context, request, &response);
     if (!status.ok()) {
-        LogStatus(&logger_, LogLevel::Performance, status);
-        return std::nullopt;
+        return serve_target_result_t{std::in_place_index<1>,
+                                     StatusString(status)};
     }
 
-    auto const& target_value_dgst = ArtifactDigest{response.target_value()};
-    auto const& obj_info = Artifact::ObjectInfo{.digest = target_value_dgst,
-                                                .type = ObjectType::File};
-    if (!local_api_->IsAvailable(target_value_dgst)) {
-        if (!remote_api_->RetrieveToCas({obj_info}, &*local_api_)) {
-            logger_.Emit(LogLevel::Performance,
-                         "failed to retrieve blob {} from remote cas",
-                         obj_info.ToString());
-            return std::nullopt;
+    // differentiate status codes
+    switch (status.error_code()) {
+        case grpc::StatusCode::OK: {
+            // if log has been set, pass it along as index 0
+            if (response.has_log()) {
+                return serve_target_result_t{
+                    std::in_place_index<0>,
+                    ArtifactDigest(response.log()).hash()};
+            }
+            // if no log has been set, it must have the target cache value
+            if (not response.has_target_value()) {
+                return serve_target_result_t{
+                    std::in_place_index<1>,
+                    "Serve endpoint failed to set expected response field"};
+            }
+            auto const& target_value_dgst =
+                ArtifactDigest{response.target_value()};
+            auto const& obj_info = Artifact::ObjectInfo{
+                .digest = target_value_dgst, .type = ObjectType::File};
+            if (!local_api_->IsAvailable(target_value_dgst)) {
+                if (!remote_api_->RetrieveToCas({obj_info}, &*local_api_)) {
+                    return serve_target_result_t{
+                        std::in_place_index<1>,
+                        fmt::format(
+                            "Failed to retrieve blob {} from remote cas",
+                            obj_info.ToString())};
+                }
+            }
+            auto const& target_value_str =
+                local_api_->RetrieveToMemory(obj_info);
+            if (!target_value_str) {
+                return serve_target_result_t{
+                    std::in_place_index<1>,
+                    fmt::format("Failed to retrieve blob {} from local cas",
+                                obj_info.ToString())};
+            }
+            try {
+                auto const& result = TargetCacheEntry::FromJson(
+                    nlohmann::json::parse(*target_value_str));
+                // return the target cache value information
+                return serve_target_result_t{std::in_place_index<2>,
+                                             std::make_pair(result, obj_info)};
+            } catch (std::exception const& ex) {
+                return serve_target_result_t{
+                    std::in_place_index<1>,
+                    fmt::format("Parsing target cache value failed with:\n{}",
+                                ex.what())};
+            }
         }
+        case grpc::StatusCode::NOT_FOUND: {
+            return std::nullopt;  // this might allow a local build to continue
+        }
+        default:;  // fallthrough
     }
-
-    auto const& target_value_str = local_api_->RetrieveToMemory(obj_info);
-    if (!target_value_str) {
-        logger_.Emit(LogLevel::Performance,
-                     "failed to retrieve blob {} from local cas",
-                     obj_info.ToString());
-        return std::nullopt;
-    }
-    try {
-        auto const& result = TargetCacheEntry::FromJson(
-            nlohmann::json::parse(*target_value_str));
-        return std::make_pair(result, obj_info);
-    } catch (std::exception const& ex) {
-        logger_.Emit(LogLevel::Performance,
-                     "parsing target cache value failed with:\n{}",
-                     ex.what());
-        return std::nullopt;
-    }
+    return serve_target_result_t{
+        std::in_place_index<1>,
+        fmt::format("Serve endpoint failed with:\n{}", status.error_message())};
 }
 
 auto TargetClient::ServeTargetVariables(std::string const& target_root_id,

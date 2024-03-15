@@ -19,6 +19,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -31,6 +32,16 @@
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 
+/// \brief Result union for the ServeTarget request.
+/// Index 0 will contain the hash of the blob containing the logged
+/// analysis/build failure received from the endpoint, as a string.
+/// Index 1 will contain any other failure message, as a string.
+/// Index 2 will contain the target cache value information on success.
+using serve_target_result_t =
+    std::variant<std::string,
+                 std::string,
+                 std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
+
 /// Implements client side for Target service defined in:
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class TargetClient {
@@ -39,12 +50,13 @@ class TargetClient {
 
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
     /// to the given key.
-    /// \param[in] key The TargetCacheKey of an export target
-    /// \param[in] repo_key The RepositoryKey to upload as precondition
-    /// \returns Pair of cache entry and its object info on success or nullopt.
+    /// \param[in] key The TargetCacheKey of an export target.
+    /// \param[in] repo_key The RepositoryKey to upload as precondition.
+    /// \returns A correspondingly populated result union, or nullopt if remote
+    /// reported that the target was not found.
     [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
                                    const std::string& repo_key) noexcept
-        -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
+        -> std::optional<serve_target_result_t>;
 
     /// \brief Retrieve the flexible config variables of an export target.
     /// \param[in] target_root_id Hash of target-level root tree.
