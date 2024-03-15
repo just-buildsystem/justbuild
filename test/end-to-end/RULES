@@ -235,6 +235,7 @@
     , "RUNS_PER_TEST"
     , "TEST_ENV"
     , "TEST_COMPATIBLE_REMOTE"
+    , "TEST_STANDALONE_SERVE"
     , "TIMEOUT_SCALE"
     ]
   , "field_doc":
@@ -380,6 +381,13 @@
                 }
               }
             }
+          }
+        ]
+      , [ "TEST_REMOTE_EXECUTION"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
+          , "then": true
+          , "else": false
           }
         ]
       ]

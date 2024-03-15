@@ -76,72 +76,94 @@ os.makedirs(SERVE_DIR, exist_ok=True)
 SERVE_LBR = os.path.join(SERVE_DIR, "build-root")
 
 compatible = json.loads(sys.argv[1])
+standalone_serve = json.loads(sys.argv[2])
 
 remote_proc = None
-
-# start just execute as remote service
-REMOTE_INFO = os.path.join(REMOTE_DIR, "remote-info.json")
-
-if os.path.exists(REMOTE_INFO):
-    print(f"Warning: removing unexpected info file {REMOTE_INFO}")
-    os.remove(REMOTE_INFO)
 
 PATH=subprocess.run(
     ["env", "--", "sh", "-c", "echo -n $PATH"],
     stdout=subprocess.PIPE,
 ).stdout.decode('utf-8')
 
-remote_cmd = [
-    "./bin/just",
-    "execute",
-    "-L",
-    json.dumps(["env", "PATH=" + PATH]),
-    "--info-file",
-    REMOTE_INFO,
-    "--local-build-root",
-    REMOTE_LBR,
-    "--log-limit",
-    "6",
-    "--plain-log",
-]
-
-if compatible:
-    remote_cmd.append("--compatible")
-
 remotestdout = open("remotestdout", "w")
 remotestderr = open("remotestderr", "w")
-remote_proc = subprocess.Popen(
-    remote_cmd,
-    stdout=remotestdout,
-    stderr=remotestderr,
-)
+if not standalone_serve:
+  # start just execute as remote service
+  REMOTE_INFO = os.path.join(REMOTE_DIR, "remote-info.json")
 
-while not os.path.exists(REMOTE_INFO):
-    time.sleep(1)
+  if os.path.exists(REMOTE_INFO):
+      print(f"Warning: removing unexpected info file {REMOTE_INFO}")
+      os.remove(REMOTE_INFO)
 
-with open(REMOTE_INFO) as f:
-    info = json.load(f)
+  remote_cmd = [
+      "./bin/just",
+      "execute",
+      "-L",
+      json.dumps(["env", "PATH=" + PATH]),
+      "--info-file",
+      REMOTE_INFO,
+      "--local-build-root",
+      REMOTE_LBR,
+      "--log-limit",
+      "6",
+      "--plain-log",
+  ]
 
-g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
+  if compatible:
+      remote_cmd.append("--compatible")
+
+  remote_proc = subprocess.Popen(
+      remote_cmd,
+      stdout=remotestdout,
+      stderr=remotestderr,
+  )
+
+  while not os.path.exists(REMOTE_INFO):
+      time.sleep(1)
+
+  with open(REMOTE_INFO) as f:
+      info = json.load(f)
+
+  g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 
 # start just serve service
 SERVE_INFO = os.path.join(SERVE_DIR, "serve-info.json")
 SERVE_CONFIG_FILE = os.path.join(SERVE_DIR, "serve.json")
 
-serve_config: Json = {
-    "local build root": SERVE_LBR,
-    "logging": {
-        "limit": 6,
-        "plain": True
-    },
-    "execution endpoint": {
-        "address": g_REMOTE_EXECUTION_ADDRESS,
-        "compatible": compatible
-    },
-    "remote service": {
-        "info file": SERVE_INFO
-    },
-}
+serve_config: Json = {}
+
+if standalone_serve:
+    serve_config = {
+        "local build root": SERVE_LBR,
+        "logging": {
+            "limit": 6,
+            "plain": True
+        },
+        "execution endpoint": {
+            "compatible": compatible
+        },
+        "remote service": {
+            "info file": SERVE_INFO
+        },
+        "build": {
+            "local launcher": ["env", "PATH=" + PATH]
+        },
+    }
+else:
+    serve_config = {
+        "local build root": SERVE_LBR,
+        "logging": {
+            "limit": 6,
+            "plain": True
+        },
+        "execution endpoint": {
+            "address": g_REMOTE_EXECUTION_ADDRESS,
+            "compatible": compatible
+        },
+        "remote service": {
+            "info file": SERVE_INFO
+        },
+    }
 
 repositories: List[str] = []
 repos_env: Dict[str, str] = {}
@@ -233,12 +255,16 @@ ENV = dict(
     os.environ,
     TEST_TMPDIR=TEMP_DIR,
     TMPDIR=TEMP_DIR,
-    REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
-    REMOTE_LBR=REMOTE_LBR,  # expose the execution build root to the test env
+    REMOTE_EXECUTION_ADDRESS= g_REMOTE_EXECUTION_ADDRESS if not standalone_serve else SERVE_ADDRESS,
+    REMOTE_LBR=REMOTE_LBR if not standalone_serve else SERVE_LBR,
     SERVE=SERVE_ADDRESS,
     SERVE_LBR=SERVE_LBR,  # expose the serve build root to the test env
     **repos_env)
 
+if standalone_serve:
+    ENV["STANDALONE_SERVE"] = "YES"
+elif "STANDALONE_SERVE" in ENV:
+    del ENV["STANDALONE_SERVE"]
 if compatible:
     ENV["COMPATIBLE"] = "YES"
 elif "COMPATIBLE" in ENV:
@@ -259,9 +285,10 @@ result = "PASS" if ret.returncode == 0 else "FAIL"
 stdout = ret.stdout.decode("utf-8")
 stderr = ret.stderr.decode("utf-8")
 
-assert remote_proc
-remote_proc.terminate()
-rout, rerr = remote_proc.communicate()
+if not standalone_serve:
+    assert remote_proc
+    remote_proc.terminate()
+    rout, rerr = remote_proc.communicate()
 
 assert serve_proc
 serve_proc.terminate()
@@ -269,7 +296,7 @@ sout, serr = serve_proc.communicate()
 
 dump_results()
 
-for f in sys.argv[2:]:
+for f in sys.argv[3:]:
     keep_file = os.path.join(WORK_DIR, f)
     if not os.path.exists(keep_file):
         open(keep_file, "a").close()
