@@ -64,7 +64,7 @@ cat > repos.json <<EOF
   , "targets":
     { "repository":
       { "type": "git"
-      , "commit": "$COMMIT_1"
+      , "commit": "$COMMIT_2"
       , "pragma": {"absent": true}
       , "repository": "http://non-existent.example.org/data.git"
       , "branch": "master"
