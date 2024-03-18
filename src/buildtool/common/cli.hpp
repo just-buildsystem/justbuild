@@ -184,6 +184,11 @@ struct GcArguments {
     bool no_rotate{};
 };
 
+struct ToAddArguments {
+    std::filesystem::path location{};
+    bool follow_symlinks{};
+};
+
 static inline auto SetupCommonArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommonArguments*> const& clargs) {
