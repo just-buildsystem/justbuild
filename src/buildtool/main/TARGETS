@@ -120,6 +120,27 @@
     , ["src/buildtool/execution_api/utils", "subobject"]
     ]
   }
+, "add_to_cas":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["add_to_cas"]
+  , "hdrs": ["add_to_cas.hpp"]
+  , "srcs": ["add_to_cas.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "cli"]
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "stage": ["src", "buildtool", "main"]
+  }
 , "analyse":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["analyse"]
