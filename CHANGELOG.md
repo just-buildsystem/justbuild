@@ -20,6 +20,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 
 - New script `just-deduplicate-repos` to avoid blow up of the
   `repos.json` in the case of chained imports with common dependencies.
+- New subcommand `add-to-cas` to add files and directories to the local
+  CAS and optionally also copy them to the remote-execution endpoint.
 - The built-in `"generic"` rule now supports an argument `"sh -c"`,
   allowing to specify the invocation of the shell (defaulting to
   `["sh", "-c"]`).

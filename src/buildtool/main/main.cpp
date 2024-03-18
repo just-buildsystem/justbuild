@@ -41,6 +41,7 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/main/add_to_cas.hpp"
 #include "src/buildtool/main/analyse.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/main/cli.hpp"
@@ -950,6 +951,11 @@ auto main(int argc, char* argv[]) -> int {
             return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
                                             traverser.GetLocalApi(),
                                             arguments.fetch)
+                       ? kExitSuccess
+                       : kExitFailure;
+        }
+        if (arguments.cmd == SubCommand::kAddToCas) {
+            return AddArtifactsToCas(arguments.to_add, traverser.GetRemoteApi())
                        ? kExitSuccess
                        : kExitFailure;
         }

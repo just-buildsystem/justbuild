@@ -37,6 +37,7 @@
     , "cli"
     , "version"
     , "analyse"
+    , "add_to_cas"
     , "install_cas"
     , "describe"
     , "diagnose"

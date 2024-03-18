@@ -105,6 +105,20 @@ auto SetupInstallCasCommandArguments(
     SetupRetryArguments(app, &clargs->retry);
 }
 
+/// \brief Setup arguments for sub command "just install-cas".
+auto SetupAddToCasCommandArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<CommandLineArguments*> const& clargs) {
+    SetupCompatibilityArguments(app);
+    SetupCacheArguments(app, &clargs->endpoint);
+    SetupExecutionEndpointArguments(app, &clargs->endpoint);
+    SetupCommonAuthArguments(app, &clargs->auth);
+    SetupClientAuthArguments(app, &clargs->cauth);
+    SetupLogArguments(app, &clargs->log);
+    SetupRetryArguments(app, &clargs->retry);
+    SetupToAddArguments(app, &clargs->to_add);
+}
+
 /// \brief Setup arguments for sub command "just traverse".
 auto SetupTraverseCommandArguments(
     gsl::not_null<CLI::App*> const& app,
@@ -173,6 +187,8 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
         "rebuild", "Rebuild and compare artifacts to cached build.");
     auto* cmd_install_cas =
         app.add_subcommand("install-cas", "Fetch and stage artifact from CAS.");
+    auto* cmd_add_to_cas = app.add_subcommand(
+        "add-to-cas", "Add a local file or directory to CAS.");
     auto* cmd_gc =
         app.add_subcommand("gc", "Trigger garbage collection of local cache.");
     auto* cmd_execution = app.add_subcommand(
@@ -192,6 +208,7 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     SetupInstallCommandArguments(cmd_install, &clargs);
     SetupRebuildCommandArguments(cmd_rebuild, &clargs);
     SetupInstallCasCommandArguments(cmd_install_cas, &clargs);
+    SetupAddToCasCommandArguments(cmd_add_to_cas, &clargs);
     SetupTraverseCommandArguments(cmd_traverse, &clargs);
     SetupGcCommandArguments(cmd_gc, &clargs);
     SetupExecutionServiceCommandArguments(cmd_execution, &clargs);
@@ -225,6 +242,9 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     }
     else if (*cmd_install_cas) {
         clargs.cmd = SubCommand::kInstallCas;
+    }
+    else if (*cmd_add_to_cas) {
+        clargs.cmd = SubCommand::kAddToCas;
     }
     else if (*cmd_traverse) {
         clargs.cmd = SubCommand::kTraverse;

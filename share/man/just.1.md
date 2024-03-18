@@ -12,6 +12,7 @@ SYNOPSIS
 **`just`** {**`analyse`**|**`build`**} \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
 **`just`** **`install`** \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* \[\[*`module`*\] *`target`*\]  
 **`just`** **`install-cas`** \[*`OPTION`*\]... *`OBJECT_ID`*  
+**`just`** **`add-to-cas`** \[*`OPTION`*\]... *`PATH`*  
 **`just`** **`describe`** \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
 **`just`** **`rebuild`** \[*`OPTION`*\]... \[\[*`module`*\] *`target`*\]  
 **`just`** **`traverse`** \[*`OPTION`*\]... **`-o`** *`OUTPUT_DIR`* **`-g`** *`GRAPH_FILE`*  
@@ -248,6 +249,17 @@ description.
    If the artifact is a file, it will replace the existing file. If the
    artifact is a tree, it will cause an error.
 
+**`add-to-cas`**
+----------------
+
+**`add-to-cas`** adds a file or directory to the local CAS and
+reports the hash (without size or type information) on stdout. If a
+remote endpoint is given, the object is also uploaded there. A main
+use case of this command is to simplify the setup of `"git tree"`
+repositories, where it can also avoid checking out a repository of
+a foreign version-control system twice.
+
+
 **`traverse`**
 --------------
 
@@ -300,7 +312,7 @@ At increased computational effort, be compatible with the original
 remote build execution protocol. As the change affects identifiers, the
 flag must be used consistently for all related invocations.  
 Supported by:
-analyse|build|describe|install-cas|install|rebuild|traverse|execute.
+add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse|execute.
 
 Build configuration options
 ---------------------------
@@ -365,7 +377,7 @@ Supported by: build|install|rebuild|traverse|execute.
 **`--local-build-root`** *`PATH`*  
 Root for local CAS, cache, and build directories. The path will be
 created if it does not exist already.  
-Supported by: build|describe|install-cas|install|rebuild|traverse|gc|execute.
+Supported by: add-to-cas|build|describe|install-cas|install|rebuild|traverse|gc|execute.
 
 **`--main`** *`NAME`*  
 The repository to take the target from.  
@@ -421,22 +433,22 @@ Path to local log file. **`just`** will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
 output has been generated.  
 Supported by:
-analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
 **`--log-limit`** *`NUM`*  
 Log limit (higher is more verbose) in interval \[0,6\] (Default: 3).  
 Supported by:
-analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
 **`--plain-log`**  
 Do not use ANSI escape sequences to highlight messages.  
 Supported by:
-analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
 **`--log-append`**  
 Append messages to log file instead of overwriting existing.  
 Supported by:
-analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
 **`--expression-log-limit`** *`NUM`*  
 In error messages, truncate the entries in the enumeration of the active
@@ -526,7 +538,7 @@ Supported by: analyse|build|install|rebuild|traverse.
 
 **`-r`**, **`--remote-execution-address`** *`NAME`*:*`PORT`*  
 Address of the remote execution service.  
-Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
+Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`--endpoint-configuration`** FILE  
 File containing a description on how to dispatch to different
@@ -573,17 +585,17 @@ Only TLS and mutual TLS (mTLS) are supported.
 **`--tls-ca-cert`** *`PATH`*  
 Path to a TLS CA certificate that is trusted to sign the server
 certificate.  
-Supported by: analyse|build|describe|install-cas|install|rebuild|traverse|execute.
+Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse|execute.
 
 **`--tls-client-cert`** *`PATH`*  
 Path to a TLS client certificate to enable mTLS. It must be passed in
 conjunction with **`--tls-client-key`** and **`--tls-ca-cert`**.  
-Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
+Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`--tls-client-key`** *`PATH`*  
 Path to a TLS client key to enable mTLS. It must be passed in
 conjunction with **`--tls-client-cert`** and **`--tls-ca-cert`**.  
-Supported by: analyse|build|describe|install-cas|install|rebuild|traverse.
+Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse.
 
 **`analyse`** specific options
 ------------------------------
@@ -683,6 +695,14 @@ Cache endpoint to compare against (use *`"local"`* for local cache).
 
 **`--dump-flaky`** *`PATH`*  
 Dump flaky actions to file.
+
+**`add-to-cas`** specific options
+---------------------------------
+
+**`--follow-symlinks`**  
+Resolve the positional argument to not be a symbolic link by following
+symbolic links. The default is to add the link itself, i.e., the string
+obtained by **`readlink`**(2), as blob.
 
 **`traverse`** specific options
 -------------------------------

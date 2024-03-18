@@ -607,6 +607,34 @@ static inline auto SetupFetchArguments(
         "--remember", clargs->remember, "Copy object to local CAS first");
 }
 
+static inline auto SetupToAddArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ToAddArguments*> const& clargs) {
+    app->add_option_function<std::string>(
+           "location",
+           [clargs](auto const& path_raw) {
+               std::filesystem::path in = ToNormalPath(path_raw);
+               if (not in.is_absolute()) {
+                   try {
+                       in = std::filesystem::absolute(in);
+                   } catch (std::exception const& e) {
+                       Logger::Log(LogLevel::Error,
+                                   "Failed to convert input path {} ({})",
+                                   path_raw,
+                                   e.what());
+                       throw e;
+                   }
+               }
+               clargs->location = in;
+           },
+           "The path on the local file system to be added to CAS")
+        ->required();
+    app->add_flag("--follow-symlinks",
+                  clargs->follow_symlinks,
+                  "Resolve the positional argument to not be a symbolic link "
+                  "before adding it to CAS.");
+}
+
 static inline auto SetupGraphArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<GraphArguments*> const& clargs) {

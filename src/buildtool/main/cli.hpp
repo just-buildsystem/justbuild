@@ -26,6 +26,7 @@ enum class SubCommand {
     kInstall,
     kRebuild,
     kInstallCas,
+    kAddToCas,
     kTraverse,
     kGc,
     kExecute,
@@ -53,6 +54,7 @@ struct CommandLineArguments {
     ServeArguments serve;
     RetryArguments retry;
     GcArguments gc;
+    ToAddArguments to_add;
 };
 
 auto ParseCommandLineArguments(int argc, char const* const* argv)
