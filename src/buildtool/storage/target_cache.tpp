@@ -49,7 +49,8 @@ auto TargetCache<kDoGlobalUplink>::Read(
     if constexpr (kDoGlobalUplink) {
         // Uplink any existing target cache entry in storage generations
         [[maybe_unused]] auto found =
-            GarbageCollector::GlobalUplinkTargetCacheEntry(key);
+            GarbageCollector::GlobalUplinkTargetCacheEntry(key,
+                                                           explicit_shard_);
     }
 
     auto const entry =

@@ -180,13 +180,14 @@ auto TargetService::ServeTarget(
     }
 
     // get a target cache instance with the correct computed shard
-    auto const& tc = Storage::Instance().TargetCache().WithShard(
-        untagged_execution_backend.hash());
+    auto shard = address ? std::make_optional(untagged_execution_backend.hash())
+                         : std::nullopt;
+    auto const& tc = Storage::Instance().TargetCache().WithShard(shard);
     auto const& tc_key =
         TargetCacheKey{{target_cache_key_digest, ObjectType::File}};
 
     // check if target-level cache entry has already been computed
-    if (auto target_entry = tc->Read(tc_key); target_entry) {
+    if (auto target_entry = tc.Read(tc_key); target_entry) {
 
         // make sure all artifacts referenced in the target cache value are in
         // the remote cas
@@ -413,7 +414,7 @@ auto TargetService::ServeTarget(
     auto result = AnalyseTarget(configured_target,
                                 &result_map,
                                 &repository_config,
-                                *tc,
+                                tc,
                                 &stats,
                                 RemoteServeConfig::Jobs(),
                                 std::nullopt /*request_action_input*/,
@@ -528,7 +529,7 @@ auto TargetService::ServeTarget(
                             traverser.GetLocalApi(),
                             traverser.GetRemoteApi(),
                             RemoteServeConfig::TCStrategy(),
-                            *tc,
+                            tc,
                             &logger,
                             true /*strict_logging*/);
 
@@ -565,7 +566,7 @@ auto TargetService::ServeTarget(
 
     // now that the target cache key is in, make sure remote CAS has all
     // required entries
-    if (auto target_entry = tc->Read(tc_key); target_entry) {
+    if (auto target_entry = tc.Read(tc_key); target_entry) {
         // make sure all artifacts referenced in the target cache value are in
         // the remote cas
         std::vector<Artifact::ObjectInfo> tc_artifacts;

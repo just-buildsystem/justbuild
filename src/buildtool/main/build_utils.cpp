@@ -83,15 +83,6 @@ auto CreateTargetCacheWriterMap(
             TargetCacheKey tc_key{key};
             // check if entry actually needs storing
             if (not cache_targets.contains(tc_key)) {
-                // sanity check: if not in the map, then it must be in cache
-                if (not tc.Read(tc_key)) {
-                    (*logger)(
-                        fmt::format("Target-cache key {} is neither stored "
-                                    "nor marked for storing",
-                                    key.ToString()),
-                        /*fatal=*/true);
-                    return;
-                }
                 // entry already in target-cache, so nothing to be done
                 (*setter)(nullptr);
                 return;

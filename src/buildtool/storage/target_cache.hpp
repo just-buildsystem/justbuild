@@ -50,11 +50,12 @@ class TargetCache {
 
     TargetCache(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
                 std::filesystem::path const& store_path,
-                bool compute_shard = true)
+                std::optional<std::string> const& explicit_shard = std::nullopt)
         : cas_{std::move(cas)},
-          file_store_{compute_shard ? store_path / ComputeShard()
-                                    : store_path} {
-        if (kDoGlobalUplink && compute_shard) {
+          file_store_{explicit_shard ? store_path / *explicit_shard
+                                     : store_path / ComputeShard()},
+          explicit_shard_{explicit_shard} {
+        if (kDoGlobalUplink && not explicit_shard) {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
                 cas_->StoreBlob(StorageConfig::ExecutionBackendDescription());
@@ -68,12 +69,12 @@ class TargetCache {
     /// according to the client's request and not following the server
     /// configuration. It is caller's responsibility to check that \p shard is a
     /// valid path.
-    [[nodiscard]] auto WithShard(const std::string& shard) const
-        -> std::unique_ptr<TargetCache> {
-        return std::make_unique<TargetCache<kDoGlobalUplink>>(
-            cas_,
-            file_store_.StorageRoot().parent_path() / shard,
-            /*compute_shard=*/false);
+    [[nodiscard]] auto WithShard(const std::optional<std::string>& shard) const
+        -> TargetCache {
+        return shard
+                   ? TargetCache<kDoGlobalUplink>(
+                         cas_, file_store_.StorageRoot().parent_path(), *shard)
+                   : *this;
     }
 
     TargetCache(TargetCache const&) = default;
@@ -94,6 +95,7 @@ class TargetCache {
 
     /// \brief Read existing entry and object info from the target cache.
     /// \param key  The target-cache key to read the entry from.
+    /// \param shard Optional explicit shard, if the default is not intended.
     /// \returns Pair of cache entry and its object info on success or nullopt.
     [[nodiscard]] auto Read(TargetCacheKey const& key) const noexcept
         -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
@@ -122,6 +124,7 @@ class TargetCache {
                 kStoreMode,
                 /*kSetEpochTime=*/false>
         file_store_;
+    std::optional<std::string> explicit_shard_{std::nullopt};
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(

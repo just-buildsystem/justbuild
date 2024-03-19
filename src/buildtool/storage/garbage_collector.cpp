@@ -97,12 +97,16 @@ auto GarbageCollector::GlobalUplinkActionCacheEntry(
 }
 
 auto GarbageCollector::GlobalUplinkTargetCacheEntry(
-    TargetCacheKey const& key) noexcept -> bool {
+    TargetCacheKey const& key,
+    std::optional<std::string> const& shard) noexcept -> bool {
     // Try to find target-cache entry in all generations.
-    auto const& latest_tc = Storage::Generation(0).TargetCache();
+    auto const& latest_tc =
+        Storage::Generation(0).TargetCache().WithShard(shard);
     for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
-        if (Storage::Generation(i).TargetCache().LocalUplinkEntry(latest_tc,
-                                                                  key)) {
+        if (Storage::Generation(i)
+                .TargetCache()
+                .WithShard(shard)
+                .LocalUplinkEntry(latest_tc, key)) {
             return true;
         }
     }
