@@ -18,8 +18,8 @@ tree identifier of the root, and secondly, if the tree is not already cached
 then `just-mr` will have to (re)run the (usually expensive) fetch command and
 hash the generated directory in order to store the root in its Git cache.
 
-Proposal
---------
+Implemented Proposal
+--------------------
 
 We propose a new `just add-to-cas` subcommand which takes in a filesystem
 path and provides its Git hash to standard output. A corresponding
@@ -50,15 +50,14 @@ appropriate option.
 
 ### Symbolic links
 
-If the given path points to a symbolic link, by default the link will be
-followed and we will hash the object the symlink resolves to. However, we will
-also support, via an appropriate option, to hash the symlink content as-is
-instead.
+If the given path points to a symbolic link, by default the
+link content will be added to the CAS as blob. If the the option
+`--follow-symlinks` is given, the argument specifying what to add
+will be resolved and the object pointed to will be added to CAS.
 
-If the given path points to a directory, the treatment of contained symbolic
-links will default to allowing only non-upwards symlinks. To mirror options
-available in `just-mr` repository descriptions, we will also support options
-to either ignore, or fully resolve symlinks in the generated Git trees.
+If the given path points to a directory, non-upwards symbolic links
+will be accepted and added to the tree object. Adding directories
+to CAS is only suppored in native mode.
 
 ### Other notes
 
@@ -73,8 +72,14 @@ the command-line `git` tool, a pure computation of the hashes _without_
 generating a CAS entry might still be of interest and available as an option.
 This is, however, not useful in typical situations.
 
-Auxiliary changes
------------------
+Auxiliary changes still to be implemented
+-----------------------------------------
+
+### `just add-to-cas` to support symlink resolving inside directories
+
+To mirror options available in `just-mr` repository descriptions,
+we will also support options to either ignore, or fully resolve
+symlinks in the generated Git trees.
 
 ### `just-mr` to support `archive` subcommand
 
