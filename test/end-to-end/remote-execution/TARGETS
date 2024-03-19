@@ -58,17 +58,40 @@
     , "value": {"type": "var", "name": "TIMEOUT_SCALE", "default": 10}
     }
   }
+, "add-to-cas":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["add-to-cas"]
+  , "test": ["add-to-cas.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE", "TEST_BOOTSTRAP_JUST_MR"]
   , "deps":
-    [ "native-protocol"
-    , "large-blobs"
-    , "upload-test"
-    , "install"
-    , "install-cas"
-    , "dispatch"
-    , "split-splice"
-    ]
+    { "type": "++"
+    , "$1":
+      [ [ "native-protocol"
+        , "large-blobs"
+        , "upload-test"
+        , "install"
+        , "install-cas"
+        , "dispatch"
+        , "split-splice"
+        ]
+      , { "type": "if"
+        , "cond":
+          { "type": "or"
+          , "$1":
+            [ {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+            , {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+            ]
+          }
+        , "then": []
+        , "else": ["add-to-cas"]
+        }
+      ]
+    }
   }
 }
