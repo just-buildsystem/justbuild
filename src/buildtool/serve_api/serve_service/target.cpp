@@ -169,19 +169,12 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, err);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
     }
-    auto untagged_execution_backend = ArtifactDigest{*execution_backend_dgst};
-    auto const& execution_info = Artifact::ObjectInfo{
-        .digest = untagged_execution_backend, .type = ObjectType::File};
-    if (!local_api_->RetrieveToCas({execution_info}, &*remote_api_)) {
-        auto msg = fmt::format("Failed to upload blob {} to remote CAS",
-                               execution_info.ToString());
-        logger_->Emit(LogLevel::Error, msg);
-        return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
-    }
 
     // get a target cache instance with the correct computed shard
-    auto shard = address ? std::make_optional(untagged_execution_backend.hash())
-                         : std::nullopt;
+    auto shard =
+        address
+            ? std::make_optional(ArtifactDigest(*execution_backend_dgst).hash())
+            : std::nullopt;
     auto const& tc = Storage::Instance().TargetCache().WithShard(shard);
     auto const& tc_key =
         TargetCacheKey{{target_cache_key_digest, ObjectType::File}};
