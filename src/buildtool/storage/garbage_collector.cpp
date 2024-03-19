@@ -160,7 +160,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     int remove_me_counter{};
 
     // after releasing the shared lock, wait to get an exclusive lock for doing
-    // the critical renamings
+    // the critical renaming
     {
         auto lock = ExclusiveLock();
         if (not lock) {
@@ -169,7 +169,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
             return false;
         }
 
-        // Frirst, while he have not yet created any to-remove directories, grab
+        // First, while he have not yet created any to-remove directories, grab
         // all existing remove-me directories; they're left overs, as the clean
         // up of owned directories is done with a shared lock.
         std::vector<std::filesystem::path> left_over{};
@@ -238,7 +238,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         }
     }
 
-    // After releasing the exlusive lock, get a shared lock and remove what we
+    // After releasing the exclusive lock, get a shared lock and remove what we
     // have to remove
     bool success{};
     {
