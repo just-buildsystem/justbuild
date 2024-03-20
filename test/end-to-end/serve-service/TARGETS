@@ -149,7 +149,7 @@
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   , "repos": ["serve-many-targets (data)"]
   }
-, "TESTS":
+, "TESTS (unconfigured)":
   { "type": "install"
   , "tainted": ["test"]
   , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
@@ -180,6 +180,28 @@
     , [["./", "serve-file-root", "TESTS"], "serve-file-root"]
     , [["./", "serve-git-tree-root", "TESTS"], "serve-git-tree-root"]
     , [["./", "serve-distdir-root", "TESTS"], "serve-distdir-root"]
+    ]
+  }
+, "TESTS (separate remote)":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "TESTS (unconfigured)"
+  , "config":
+    {"type": "singleton_map", "key": "TEST_STANDALONE_SERVE", "value": false}
+  }
+, "TESTS (standalone serve)":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "TESTS (unconfigured)"
+  , "config":
+    {"type": "singleton_map", "key": "TEST_STANDALONE_SERVE", "value": true}
+  }
+, "TESTS":
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs":
+    [ ["TESTS (separate remote)", "separate-remote"]
+    , ["TESTS (standalone serve)", "standalone-serve"]
     ]
   }
 }
