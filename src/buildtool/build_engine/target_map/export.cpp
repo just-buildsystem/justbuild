@@ -106,7 +106,6 @@ void ExportRule(
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
-    stats->IncrementExportsFoundCounter();
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "export target", logger);
     auto flexible_vars = desc->ReadStringList("flexible_config");
@@ -114,6 +113,18 @@ void ExportRule(
         return;
     }
     auto effective_config = key.config.Prune(*flexible_vars);
+    if (key.config != effective_config) {
+        (*subcaller)(
+            {BuildMaps::Target::ConfiguredTarget{.target = key.target,
+                                                 .config = effective_config}},
+            [setter](auto const& values) {
+                AnalysedTargetPtr result = *(values[0]);
+                (*setter)(std::move(result));
+            },
+            logger);
+        return;
+    }
+    stats->IncrementExportsFoundCounter();
     auto const& target_name = key.target.GetNamedTarget();
     auto repo_key = repo_config->RepositoryKey(target_name.repository);
     auto target_cache_key =
