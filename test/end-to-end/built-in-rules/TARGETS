@@ -29,6 +29,13 @@
   , "test": ["symlink_config.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "export_counting":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["export_counting"]
+  , "test": ["export_counting.sh"]
+  , "deps":
+    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -38,6 +45,7 @@
     , "filegen_config"
     , "tree"
     , "symlink_config"
+    , "export_counting"
     ]
   }
 }
