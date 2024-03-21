@@ -115,7 +115,7 @@ auto SourceTreeService::GetSubtreeFromCommit(
                             commit,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Info, err);
+                        logger->Emit(LogLevel::Debug, err);
                     }
                 });
             return repo->GetSubtreeFromCommit(commit, subdir, wrapped_logger);
@@ -143,7 +143,7 @@ auto SourceTreeService::GetSubtreeFromTree(
                             tree_id,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Info, err);
+                        logger->Emit(LogLevel::Debug, err);
                     }
                 });
             if (auto subtree_id =
@@ -172,7 +172,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                             blob_id,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Info, err);
+                        logger->Emit(LogLevel::Debug, err);
                     }
                 });
             auto res = repo->TryReadBlob(blob_id, wrapped_logger);
@@ -183,7 +183,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                 auto str = fmt::format("Blob {} not found in repository {}",
                                        blob_id,
                                        repo_path.string());
-                logger->Emit(LogLevel::Info, str);
+                logger->Emit(LogLevel::Debug, str);
                 return false;  // non-fatal failure
             }
             return res.second.value();
@@ -191,7 +191,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
     }
     // failed to open repository
     logger->Emit(
-        LogLevel::Info,
+        LogLevel::Debug,
         fmt::format("Failed to open repository {}", repo_path.string()));
     return true;  // fatal failure
 }
@@ -645,7 +645,7 @@ auto SourceTreeService::IsTreeInRepo(std::string const& tree_id,
                             tree_id,
                             repo_path.string(),
                             msg);
-                        logger->Emit(LogLevel::Info, err);
+                        logger->Emit(LogLevel::Debug, err);
                     }
                 });
             return repo->CheckTreeExists(tree_id, wrapped_logger);
@@ -653,7 +653,7 @@ auto SourceTreeService::IsTreeInRepo(std::string const& tree_id,
     }
     // failed to open repository
     logger->Emit(
-        LogLevel::Info,
+        LogLevel::Debug,
         fmt::format("Failed to open repository {}", repo_path.string()));
     return std::nullopt;
 }
