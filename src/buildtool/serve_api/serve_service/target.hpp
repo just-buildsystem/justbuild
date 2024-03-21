@@ -131,8 +131,20 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     /// also ensures the content has the expected format.
     /// \returns An error + data union, with a pair of grpc status at index 0
     /// and the dispatch list stored as a JSON object at index 1.
-    auto GetDispatchList(ArtifactDigest const& dispatch_digest) noexcept
+    [[nodiscard]] auto GetDispatchList(
+        ArtifactDigest const& dispatch_digest) noexcept
         -> std::variant<::grpc::Status, dispatch_t>;
+
+    /// \brief Handles the processing of the log after a failed analysis or
+    /// build. Will populate the response as needed and set the status to be
+    /// returned to the client.
+    /// \param failure_scope String stating where the failure occurred, to be
+    /// included in the local error messaging.
+    [[nodiscard]] auto HandleFailureLog(
+        std::filesystem::path const& logfile,
+        std::string const& failure_scope,
+        ::justbuild::just_serve::ServeTargetResponse* response) noexcept
+        -> ::grpc::Status;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP
