@@ -31,7 +31,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                              auto /*ts*/,
                              auto setter,
                              auto logger,
-                             auto /*subcaller*/,
+                             auto subcaller,
                              auto key) {
         // assumptions:
         // - target with absent targets file requested
@@ -57,10 +57,22 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                       /*fatal=*/true);
             return;
         }
-        // we know now that this target is an export target
-        stats->IncrementExportsFoundCounter();
-        // TODO(asartori): avoid code duplication in export.cpp
         auto effective_config = key.config.Prune(*flexible_vars);
+        if (key.config != effective_config) {
+            (*subcaller)(
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target = key.target, .config = effective_config}},
+                [setter](auto const& values) {
+                    AnalysedTargetPtr result = *(values[0]);
+                    (*setter)(std::move(result));
+                },
+                logger);
+            return;
+        }
+
+        // we know now that this target is an export target
+        // TODO(asartori): avoid code duplication in export.cpp
+        stats->IncrementExportsFoundCounter();
         auto target_name = key.target.GetNamedTarget();
         auto repo_key = repo_config->RepositoryKey(target_name.repository);
         if (!repo_key) {
