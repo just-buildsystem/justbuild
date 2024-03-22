@@ -1058,8 +1058,9 @@ auto main(int argc, char* argv[]) -> int {
                     auto uncached = stats.ExportsUncachedCounter();
                     auto not_eligible = stats.ExportsNotEligibleCounter();
                     Logger::Log(
-                        cached + uncached + not_eligible > 0 ? LogLevel::Info
-                                                             : LogLevel::Debug,
+                        served + cached + uncached + not_eligible > 0
+                            ? LogLevel::Info
+                            : LogLevel::Debug,
                         "Export targets found: {} cached, {}{} uncached, "
                         "{} not eligible for caching",
                         cached,
