@@ -42,6 +42,13 @@ class GarbageCollector {
                                                bool is_executable) noexcept
         -> bool;
 
+    /// \brief Uplink large blob entry across LocalCASes from all generations to
+    /// latest. This method does not splice the large object.
+    /// \param digest           Digest of the large blob entry to uplink.
+    /// \returns true if large entry was found and successfully uplinked.
+    [[nodiscard]] auto static GlobalUplinkLargeBlob(
+        bazel_re::Digest const& digest) noexcept -> bool;
+
     /// \brief Uplink tree across LocalCASes from all generations to latest.
     /// Note that the tree will be deeply uplinked, i.e., all entries referenced
     /// by this tree will be uplinked before (including sub-trees).

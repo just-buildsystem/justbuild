@@ -206,6 +206,20 @@ class LocalCAS {
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest) const noexcept -> bool;
 
+    /// \brief Uplink large entry from this generation to latest LocalCAS
+    /// generation. This function is only available for instances that are used
+    /// as local GC generations (i.e., disabled global uplink).
+    /// \tparam kType       Type of the large entry to be uplinked.
+    /// \tparam kIsLocalGeneration  True if this instance is a local generation.
+    /// \param latest       The latest LocalCAS generation.
+    /// \param latest_large The latest LargeObjectCAS
+    /// \param digest       The digest of the large entry to uplink.
+    /// \returns True if the large entry was successfully uplinked.
+    template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
+    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkLargeObject(
+        LocalGenerationCAS const& latest,
+        bazel_re::Digest const& digest) const noexcept -> bool;
+
   private:
     ObjectCAS<ObjectType::File> cas_file_;
     ObjectCAS<ObjectType::Executable> cas_exec_;

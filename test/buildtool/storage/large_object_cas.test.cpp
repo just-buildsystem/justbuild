@@ -61,6 +61,8 @@ class Blob final {
         -> std::optional<std::filesystem::path>;
 };
 
+using File = Blob<false>;
+
 class Tree final {
   public:
     static constexpr auto kLargeId = std::string_view("tree_256");
@@ -149,6 +151,13 @@ static void TestLarge() noexcept {
 
         CHECK(FileSystemManager::RemoveFile(path));
         CHECK_FALSE(FileSystemManager::IsFile(path));
+        // For executables the non-executable entry must be also deleted.
+        if constexpr (kIsExec) {
+            auto blob_path = cas.BlobPath(digest, /*is_executable=*/false);
+            REQUIRE(blob_path);
+            CHECK(FileSystemManager::RemoveFile(*blob_path));
+            CHECK_FALSE(FileSystemManager::IsFile(*blob_path));
+        }
 
         SECTION("Split short-circuting") {
             // Check the second call loads the entry from the large CAS:
@@ -170,6 +179,41 @@ static void TestLarge() noexcept {
 
             // The result must be in the same location:
             CHECK(*spliced_path == path);
+        }
+
+        SECTION("Uplinking") {
+            // Increment generation:
+            CHECK(GarbageCollector::TriggerGarbageCollection());
+
+            // Check implicit splice:
+            auto spliced_path =
+                kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+            REQUIRE(spliced_path);
+
+            // The result must be spliced to the same location:
+            CHECK(*spliced_path == path);
+
+            // Check the large entry was uplinked too:
+            // Remove the spliced result:
+            CHECK(FileSystemManager::RemoveFile(path));
+            CHECK_FALSE(FileSystemManager::IsFile(path));
+
+            // Call split with disabled uplinking:
+            auto pack_3 = kIsTree
+                              ? Storage::Generation(0).CAS().SplitTree(digest)
+                              : Storage::Generation(0).CAS().SplitBlob(digest);
+            auto* split_3 = std::get_if<std::vector<bazel_re::Digest>>(&pack_3);
+            REQUIRE(split_3);
+            CHECK(split_3->size() == split->size());
+
+            // Check there are no spliced results in all generations:
+            for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+                auto generation_path =
+                    kIsTree ? Storage::Generation(i).CAS().TreePath(digest)
+                            : Storage::Generation(i).CAS().BlobPath(digest,
+                                                                    kIsExec);
+                REQUIRE_FALSE(generation_path);
+            }
         }
     }
 }
@@ -309,6 +353,104 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 }
 
+// Test uplinking of nested large objects:
+// A large tree depends on a number of nested objects:
+//
+// large_tree
+// | - nested_blob
+// | - nested_tree
+// |    |- other nested entries
+// | - other entries
+//
+// All large entries are preliminarily split and the spliced results are
+// deleted. The youngest generation is empty. Uplinking must restore the
+// object(and it's parts) and uplink them properly.
+TEST_CASE_METHOD(HermeticLocalTestFixture,
+                 "LargeObjectCAS: uplink nested large objects",
+                 "[storage]") {
+    auto const& cas = Storage::Instance().CAS();
+
+    // Randomize a large directory:
+    auto tree_path = LargeTestUtils::Tree::Generate(
+        std::string("nested_tree"), LargeTestUtils::Tree::kLargeSize);
+    REQUIRE(tree_path);
+
+    // Randomize a large nested tree:
+    auto const nested_tree = (*tree_path) / "nested_tree";
+    REQUIRE(LargeObjectUtils::GenerateDirectory(
+        nested_tree, LargeTestUtils::Tree::kLargeSize));
+
+    // Randomize a large nested blob:
+    auto nested_blob = (*tree_path) / "nested_blob";
+    REQUIRE(LargeObjectUtils::GenerateFile(nested_blob,
+                                           LargeTestUtils::File::kLargeSize));
+
+    // Add the nested tree to the CAS:
+    auto nested_tree_digest = LargeTestUtils::Tree::StoreRaw(cas, nested_tree);
+    REQUIRE(nested_tree_digest);
+    auto nested_tree_path = cas.TreePath(*nested_tree_digest);
+    REQUIRE(nested_tree_path);
+
+    // Add the nested blob to the CAS:
+    auto nested_blob_digest = cas.StoreBlob(nested_blob, false);
+    REQUIRE(nested_blob_digest);
+    auto nested_blob_path = cas.BlobPath(*nested_blob_digest, false);
+    REQUIRE(nested_blob_path);
+
+    // Add the initial large directory to the CAS:
+    auto large_tree_digest = LargeTestUtils::Tree::StoreRaw(cas, *tree_path);
+    REQUIRE(large_tree_digest);
+    auto large_tree_path = cas.TreePath(*large_tree_digest);
+    REQUIRE(large_tree_path);
+
+    // Split large entries:
+    auto split_nested_tree = cas.SplitTree(*nested_tree_digest);
+    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_nested_tree));
+
+    auto split_nested_blob = cas.SplitBlob(*nested_blob_digest);
+    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_nested_blob));
+
+    auto split_large_tree = cas.SplitTree(*large_tree_digest);
+    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_large_tree));
+
+    // Remove the spliced results:
+    REQUIRE(FileSystemManager::RemoveFile(*nested_tree_path));
+    REQUIRE(FileSystemManager::RemoveFile(*nested_blob_path));
+    REQUIRE(FileSystemManager::RemoveFile(*large_tree_path));
+
+    // Rotate generations:
+    REQUIRE(GarbageCollector::TriggerGarbageCollection());
+
+    // Ask to splice the large tree:
+    auto result_path = cas.TreePath(*large_tree_digest);
+    REQUIRE(result_path);
+
+    // The nested tree and all it's large parts must be spliced to the same
+    // locations:
+    CHECK(FileSystemManager::IsFile(*nested_tree_path));
+    CHECK(FileSystemManager::IsFile(*nested_blob_path));
+    CHECK(FileSystemManager::IsFile(*large_tree_path));
+
+    // Check there are no spliced results in old generations:
+    for (std::size_t i = 1; i < StorageConfig::NumGenerations(); ++i) {
+        auto const& generation_cas = Storage::Generation(i).CAS();
+        REQUIRE_FALSE(generation_cas.TreePath(*nested_tree_digest));
+        REQUIRE_FALSE(generation_cas.TreePath(*large_tree_digest));
+        REQUIRE_FALSE(generation_cas.BlobPath(*nested_blob_digest,
+                                              /*is_executable=*/false));
+    }
+
+    // Check large entries are in the latest generation:
+    auto const& latest_cas = Storage::Generation(0).CAS();
+    auto split_nested_tree_2 = latest_cas.SplitTree(*nested_tree_digest);
+    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_tree_2));
+
+    auto split_nested_blob_2 = latest_cas.SplitBlob(*nested_blob_digest);
+    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_blob_2));
+
+    auto split_large_tree_2 = latest_cas.SplitTree(*large_tree_digest);
+    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_large_tree_2));
+}
 namespace {
 
 /// \brief Extends the lifetime of large files for the whole set of tests.

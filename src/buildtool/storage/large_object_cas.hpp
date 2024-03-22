@@ -133,6 +133,21 @@ class LargeObjectCAS final {
                               std::vector<bazel_re::Digest> const& parts)
         const noexcept -> std::variant<LargeObjectError, LargeObject>;
 
+    /// \brief Uplink large entry from this generation to latest LocalCAS
+    /// generation. For the large entry it's parts get promoted first and then
+    /// the entry itself. This function is only available for instances that are
+    /// used as local GC generations (i.e., disabled global uplink).
+    /// \tparam kIsLocalGeneration  True if this instance is a local generation.
+    /// \param latest       The latest LocalCAS generation.
+    /// \param latest_large The latest LargeObjectCAS
+    /// \param digest       The digest of the large entry to uplink.
+    /// \returns True if the large entry was successfully uplinked.
+    template <bool kIsLocalGeneration = not kDoGlobalUplink>
+    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplink(
+        LocalCAS<false> const& latest,
+        LargeObjectCAS<false, kType> const& latest_large,
+        bazel_re::Digest const& digest) const noexcept -> bool;
+
   private:
     // By default, overwrite existing entries. Unless this is a generation
     // (disabled global uplink), then we never want to overwrite any entries.

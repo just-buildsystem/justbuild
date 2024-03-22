@@ -294,8 +294,19 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     }
 
     // Uplink blob from older generation to the latest generation.
-    return blob_path_latest.has_value() or
-           latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable);
+    bool uplinked =
+        blob_path_latest.has_value() or
+        latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable);
+
+    if (uplinked) {
+        // The result of uplinking of a large object must not affect the
+        // result of uplinking in general. In other case, two sequential calls
+        // to BlobPath might return different results: The first call splices
+        // and uplinks the object, but fails at large entry uplinking. The
+        // second call finds the tree in the youngest generation and returns.
+        std::ignore = LocalUplinkLargeObject<ObjectType::File>(latest, digest);
+    }
+    return uplinked;
 }
 
 template <bool kDoGlobalUplink>
@@ -386,10 +397,17 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     }
 
     // Uplink tree from older generation to the latest generation.
-    return latest.cas_tree_
-        .StoreBlobFromFile(*tree_path,
-                           /*is_owner=*/true)
-        .has_value();
+    if (latest.cas_tree_.StoreBlobFromFile(*tree_path, /*is owner=*/true)) {
+        // Uplink the large entry afterwards:
+        // The result of uplinking of a large object must not affect the
+        // result of uplinking in general. In other case, two sequential calls
+        // to TreePath might return different results: The first call splices
+        // and uplinks the object, but fails at large entry uplinking. The
+        // second call finds the tree in the youngest generation and returns.
+        std::ignore = LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
+        return true;
+    }
+    return false;
 }
 
 template <bool kDoGlobalUplink>
@@ -445,11 +463,37 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
                                            /*is_owner=*/true)) {
         try {
             seen->emplace(digest);
+
+            // Uplink the large entry afterwards:
+            // The result of uplinking of a large object must not affect the
+            // result of uplinking in general. In other case, two sequential
+            // calls to TreePath might return different results: The first call
+            // splices and uplinks the object, but fails at large entry
+            // uplinking. The second call finds the tree in the youngest
+            // generation and returns.
+            std::ignore =
+                LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
             return true;
         } catch (...) {
         }
     }
     return false;
+}
+
+template <bool kDoGlobalUplink>
+template <ObjectType kType, bool kIsLocalGeneration>
+requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
+    LocalUplinkLargeObject(LocalGenerationCAS const& latest,
+                           bazel_re::Digest const& digest) const noexcept
+    -> bool {
+    if constexpr (IsTreeObject(kType)) {
+        return cas_tree_large_.LocalUplink(
+            latest, latest.cas_tree_large_, digest);
+    }
+    else {
+        return cas_file_large_.LocalUplink(
+            latest, latest.cas_file_large_, digest);
+    }
 }
 
 template <bool kDoGlobalUplink>

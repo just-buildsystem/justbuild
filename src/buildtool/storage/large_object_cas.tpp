@@ -21,9 +21,11 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
@@ -35,6 +37,18 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     const std::filesystem::path file_path = file_store_.GetPath(hash);
     if (FileSystemManager::IsFile(file_path)) {
         return file_path;
+    }
+
+    if constexpr (kDoGlobalUplink) {
+        // To promote parts of the tree properly, regular uplinking logic for
+        // trees is used:
+        bool uplinked =
+            IsTreeObject(kType) and not Compatibility::IsCompatible()
+                ? GarbageCollector::GlobalUplinkTree(digest)
+                : GarbageCollector::GlobalUplinkLargeBlob(digest);
+        if (uplinked and FileSystemManager::IsFile(file_path)) {
+            return file_path;
+        }
     }
     return std::nullopt;
 }
@@ -211,6 +225,43 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
                                 "an unknown error occured"};
     }
     return large_object;
+}
+
+template <bool kDoGlobalUplink, ObjectType kType>
+template <bool kIsLocalGeneration>
+requires(kIsLocalGeneration) auto LargeObjectCAS<kDoGlobalUplink, kType>::
+    LocalUplink(LocalCAS<false> const& latest,
+                LargeObjectCAS<false, kType> const& latest_large,
+                bazel_re::Digest const& digest) const noexcept -> bool {
+    // Check the large entry in the youngest generation:
+    if (latest_large.GetEntryPath(digest)) {
+        return true;
+    }
+
+    // Check the large entry in the current generation:
+    auto parts = ReadEntry(digest);
+    if (not parts) {
+        // No large entry or the object is not large
+        return true;
+    }
+
+    // Promoting the parts of the large entry:
+    for (auto const& part : *parts) {
+        static constexpr bool is_executable = false;
+        static constexpr bool skip_sync = true;
+        if (not local_cas_.LocalUplinkBlob(
+                latest, part, is_executable, skip_sync)) {
+            return false;
+        }
+    }
+
+    auto path = GetEntryPath(digest);
+    if (not path) {
+        return false;
+    }
+
+    const auto hash = NativeSupport::Unprefix(digest.hash());
+    return latest_large.file_store_.AddFromFile(hash, *path, /*is_owner=*/true);
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP
