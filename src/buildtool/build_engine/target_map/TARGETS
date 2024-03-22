@@ -104,6 +104,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/utils/cpp", "hash_combine"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]

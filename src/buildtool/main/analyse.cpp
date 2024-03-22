@@ -116,8 +116,15 @@ namespace Target = BuildMaps::Target;
         Base::CreateRuleMap(&rule_file_map, &expr_map, repo_config, jobs);
     auto source_targets =
         Base::CreateSourceTargetMap(&directory_entries, repo_config, jobs);
-    auto absent_target_map = Target::CreateAbsentTargetMap(
-        result_map, repo_config, stats, &exports_progress, jobs);
+    auto absent_target_variables_map =
+        Target::CreateAbsentTargetVariablesMap(jobs);
+    auto absent_target_map =
+        Target::CreateAbsentTargetMap(result_map,
+                                      &absent_target_variables_map,
+                                      repo_config,
+                                      stats,
+                                      &exports_progress,
+                                      jobs);
     auto target_map = Target::CreateTargetMap(&source_targets,
                                               &targets_file_map,
                                               &rule_map,
