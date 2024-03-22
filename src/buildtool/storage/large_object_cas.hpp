@@ -19,11 +19,15 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+
+template <bool>
+class LocalCAS;
 
 enum class LargeObjectErrorCode {
     /// \brief An internal error occured.
@@ -58,11 +62,12 @@ class LargeObjectError final {
 /// The entries are keyed by the hash of the spliced result and the value of an
 /// entry is the concatenation of the hashes of chunks the large object is
 /// composed of.
-template <bool kDoGlobalUplink>
+template <bool kDoGlobalUplink, ObjectType kType>
 class LargeObjectCAS final {
   public:
-    explicit LargeObjectCAS(std::filesystem::path const& store_path) noexcept
-        : file_store_(store_path) {}
+    LargeObjectCAS(LocalCAS<kDoGlobalUplink> const& local_cas,
+                   std::filesystem::path const& store_path) noexcept
+        : local_cas_(local_cas), file_store_(store_path) {}
 
     LargeObjectCAS(LargeObjectCAS const&) = delete;
     LargeObjectCAS(LargeObjectCAS&&) = delete;
@@ -76,12 +81,21 @@ class LargeObjectCAS final {
     [[nodiscard]] auto GetEntryPath(bazel_re::Digest const& digest)
         const noexcept -> std::optional<std::filesystem::path>;
 
+    /// \brief Split an object from the main CAS into chunks. If the object had
+    /// been split before, it would not get split again.
+    /// \param digest       The digest of the object to be split.
+    /// \return             A set of chunks the resulting object is composed of
+    /// or an error on failure.
+    [[nodiscard]] auto Split(bazel_re::Digest const& digest) const noexcept
+        -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>>;
+
   private:
     // By default, overwrite existing entries. Unless this is a generation
     // (disabled global uplink), then we never want to overwrite any entries.
     static constexpr auto kStoreMode =
         kDoGlobalUplink ? StoreMode::LastWins : StoreMode::FirstWins;
 
+    LocalCAS<kDoGlobalUplink> const& local_cas_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
 

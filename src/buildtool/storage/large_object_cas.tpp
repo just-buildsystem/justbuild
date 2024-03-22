@@ -19,13 +19,16 @@
 #include <cstdlib>
 #include <fstream>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/file_chunker.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
+#include "src/buildtool/storage/local_cas.hpp"
 
-template <bool kDoGlobalUplink>
-auto LargeObjectCAS<kDoGlobalUplink>::GetEntryPath(
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     bazel_re::Digest const& digest) const noexcept
     -> std::optional<std::filesystem::path> {
     const std::string hash = NativeSupport::Unprefix(digest.hash());
@@ -36,9 +39,10 @@ auto LargeObjectCAS<kDoGlobalUplink>::GetEntryPath(
     return std::nullopt;
 }
 
-template <bool kDoGlobalUplink>
-auto LargeObjectCAS<kDoGlobalUplink>::ReadEntry(bazel_re::Digest const& digest)
-    const noexcept -> std::optional<std::vector<bazel_re::Digest>> {
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::ReadEntry(
+    bazel_re::Digest const& digest) const noexcept
+    -> std::optional<std::vector<bazel_re::Digest>> {
     auto const file_path = GetEntryPath(digest);
     if (not file_path) {
         return std::nullopt;
@@ -63,8 +67,8 @@ auto LargeObjectCAS<kDoGlobalUplink>::ReadEntry(bazel_re::Digest const& digest)
     return parts;
 }
 
-template <bool kDoGlobalUplink>
-auto LargeObjectCAS<kDoGlobalUplink>::WriteEntry(
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::WriteEntry(
     bazel_re::Digest const& digest,
     std::vector<bazel_re::Digest> const& parts) const noexcept -> bool {
     if (GetEntryPath(digest)) {
@@ -94,6 +98,56 @@ auto LargeObjectCAS<kDoGlobalUplink>::WriteEntry(
 
     const auto hash = NativeSupport::Unprefix(digest.hash());
     return file_store_.AddFromBytes(hash, j.dump());
+}
+
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
+    bazel_re::Digest const& digest) const noexcept
+    -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>> {
+    if (auto large_entry = ReadEntry(digest)) {
+        return std::move(*large_entry);
+    }
+
+    // Get path to the file:
+    auto file_path = IsTreeObject(kType)
+                         ? local_cas_.TreePath(digest)
+                         : local_cas_.BlobPath(digest, /*is_executable=*/false);
+    if (not file_path) {
+        return LargeObjectError{
+            LargeObjectErrorCode::FileNotFound,
+            fmt::format("could not find {}", digest.hash())};
+    }
+
+    // Split file into chunks:
+    FileChunker chunker{*file_path};
+    if (not chunker.IsOpen()) {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not split {}", digest.hash())};
+    }
+
+    std::vector<bazel_re::Digest> parts;
+    try {
+        while (auto chunk = chunker.NextChunk()) {
+            auto part = local_cas_.StoreBlob(*chunk, /*is_executable=*/false);
+            if (not part) {
+                return LargeObjectError{LargeObjectErrorCode::Internal,
+                                        "could not store a part."};
+            }
+            parts.push_back(std::move(*part));
+        }
+    } catch (...) {
+        return LargeObjectError{LargeObjectErrorCode::Internal,
+                                "an unknown error occured."};
+    }
+    if (not chunker.Finished()) {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not split {}", digest.hash())};
+    }
+
+    std::ignore = WriteEntry(digest, parts);
+    return parts;
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP

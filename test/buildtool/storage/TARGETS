@@ -32,6 +32,32 @@
     ]
   , "stage": ["test", "buildtool", "storage"]
   }
+, "large_object_cas":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["large_object_cas"]
+  , "srcs": ["large_object_cas.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["utils", "local_hermeticity"]
+    , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["utils", "large_object_utils"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/bazel_msg"
+      , "bazel_msg_factory"
+      ]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
+    ]
+  , "stage": ["test", "buildtool", "storage"]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["local_cas", "local_ac"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["local_cas", "local_ac", "large_object_cas"]
+  }
 }

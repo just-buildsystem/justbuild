@@ -38,6 +38,7 @@
     ["target_cache_key.cpp", "target_cache_entry.cpp", "garbage_collector.cpp"]
   , "deps":
     [ "config"
+    , "file_chunker"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "object_cas"]
@@ -49,6 +50,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]

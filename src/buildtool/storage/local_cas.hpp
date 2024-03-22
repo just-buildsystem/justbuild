@@ -18,11 +18,14 @@
 #include <filesystem>
 #include <optional>
 #include <unordered_set>
+#include <variant>
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/large_object_cas.hpp"
 
 /// \brief The local (logical) CAS for storing blobs and trees.
 /// Blobs can be stored/queried as executable or non-executable. Trees might be
@@ -45,7 +48,11 @@ class LocalCAS {
         : cas_file_{base.string() + 'f', Uplinker<ObjectType::File>()},
           cas_exec_{base.string() + 'x', Uplinker<ObjectType::Executable>()},
           cas_tree_{base.string() + (Compatibility::IsCompatible() ? 'f' : 't'),
-                    Uplinker<ObjectType::Tree>()} {}
+                    Uplinker<ObjectType::Tree>()},
+          cas_file_large_{*this, base.string() + "-large-f"},
+          cas_tree_large_{*this,
+                          base.string() + "-large-" +
+                              (Compatibility::IsCompatible() ? 'f' : 't')} {}
 
     /// \brief Store blob from file path with x-bit.
     /// \tparam kOwner          Indicates ownership for optimization (hardlink).
@@ -101,12 +108,30 @@ class LocalCAS {
         return path ? path : TrySyncBlob(digest, is_executable);
     }
 
+    /// \brief Split a blob into chunks.
+    /// \param digest           The digest of a blob to be split.
+    /// \returns                Digests of the parts of the large object or an
+    /// error code on failure.
+    [[nodiscard]] auto SplitBlob(bazel_re::Digest const& digest) const noexcept
+        -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>> {
+        return cas_file_large_.Split(digest);
+    }
+
     /// \brief Obtain tree path from digest.
     /// \param digest   Digest of the tree to lookup.
     /// \returns Path to the tree if found or nullopt otherwise.
     [[nodiscard]] auto TreePath(bazel_re::Digest const& digest) const noexcept
         -> std::optional<std::filesystem::path> {
         return cas_tree_.BlobPath(digest);
+    }
+
+    /// \brief Split a tree into chunks.
+    /// \param digest           The digest of a tree to be split.
+    /// \returns                Digests of the parts of the large object or an
+    /// error code on failure.
+    [[nodiscard]] auto SplitTree(bazel_re::Digest const& digest) const noexcept
+        -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>> {
+        return cas_tree_large_.Split(digest);
     }
 
     /// \brief Traverses a tree recursively and retrieves object infos of all
@@ -185,6 +210,8 @@ class LocalCAS {
     ObjectCAS<ObjectType::File> cas_file_;
     ObjectCAS<ObjectType::Executable> cas_exec_;
     ObjectCAS<ObjectType::Tree> cas_tree_;
+    LargeObjectCAS<kDoGlobalUplink, ObjectType::File> cas_file_large_;
+    LargeObjectCAS<kDoGlobalUplink, ObjectType::Tree> cas_tree_large_;
 
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>
