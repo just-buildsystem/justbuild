@@ -37,6 +37,12 @@ enum class LargeObjectErrorCode {
 
     /// \brief The digest is not in the CAS.
     FileNotFound,
+
+    /// \brief The result is different from what was expected.
+    InvalidResult,
+
+    /// \brief Some parts of the tree are not in the storage.
+    InvalidTree
 };
 
 /// \brief Describes an error that occurred during split-splice.

@@ -117,6 +117,20 @@ class LocalCAS {
         return cas_file_large_.Split(digest);
     }
 
+    /// \brief Splice a blob from parts.
+    /// \param digest           The expected digest of the result.
+    /// \param parts            The parts of the large object.
+    /// \param is_executable    Splice the blob with executable permissions.
+    /// \return                 The digest of the result or an error code on
+    /// failure.
+    [[nodiscard]] auto SpliceBlob(bazel_re::Digest const& digest,
+                                  std::vector<bazel_re::Digest> const& parts,
+                                  bool is_executable) const noexcept
+        -> std::variant<LargeObjectError, bazel_re::Digest> {
+        return is_executable ? Splice<ObjectType::Executable>(digest, parts)
+                             : Splice<ObjectType::File>(digest, parts);
+    }
+
     /// \brief Obtain tree path from digest.
     /// \param digest   Digest of the tree to lookup.
     /// \returns Path to the tree if found or nullopt otherwise.
@@ -132,6 +146,17 @@ class LocalCAS {
     [[nodiscard]] auto SplitTree(bazel_re::Digest const& digest) const noexcept
         -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>> {
         return cas_tree_large_.Split(digest);
+    }
+
+    /// \brief Splice a tree from parts.
+    /// \param digest           The expected digest of the result.
+    /// \param parts            The parts of the large object.
+    /// \return                 The digest of the result or an error code on
+    /// failure.
+    [[nodiscard]] auto SpliceTree(bazel_re::Digest const& digest,
+                                  std::vector<bazel_re::Digest> const& parts)
+        const noexcept -> std::variant<LargeObjectError, bazel_re::Digest> {
+        return Splice<ObjectType::Tree>(digest, parts);
     }
 
     /// \brief Traverses a tree recursively and retrieves object infos of all
@@ -160,6 +185,14 @@ class LocalCAS {
         std::filesystem::path const& parent) const noexcept
         -> std::optional<std::pair<std::vector<std::filesystem::path>,
                                    std::vector<Artifact::ObjectInfo>>>;
+
+    /// \brief Check whether all parts of the tree are in the storage.
+    /// \param tree_digest      Digest of the tree to be checked.
+    /// \param tree_data        Content of the tree.
+    /// \return                 An error on fail.
+    [[nodiscard]] auto CheckTreeInvariant(bazel_re::Digest const& tree_digest,
+                                          std::string const& tree_data)
+        const noexcept -> std::optional<LargeObjectError>;
 
     /// \brief Dump artifact to file stream.
     /// Tree artifacts are pretty-printed (i.e., contents are listed) unless
@@ -285,10 +318,32 @@ class LocalCAS {
     requires(kIsLocalGeneration) [[nodiscard]] auto TrySplice(
         bazel_re::Digest const& digest) const noexcept
         -> std::optional<LargeObject>;
+
+    template <ObjectType kType>
+    [[nodiscard]] auto Splice(bazel_re::Digest const& digest,
+                              std::vector<bazel_re::Digest> const& parts)
+        const noexcept -> std::variant<LargeObjectError, bazel_re::Digest>;
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/storage/local_cas.tpp"
+#else
+template <bool kDoGlobalUplink>
+auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
+    bazel_re::Digest const& tree_digest,
+    std::string const& tree_data) const noexcept
+    -> std::optional<LargeObjectError> {
+    return std::nullopt;
+}
+
+template <bool kDoGlobalUplink>
+template <ObjectType kType>
+auto LocalCAS<kDoGlobalUplink>::Splice(
+    bazel_re::Digest const& digest,
+    std::vector<bazel_re::Digest> const& parts) const noexcept
+    -> std::variant<LargeObjectError, bazel_re::Digest> {
+    return LargeObjectError{LargeObjectErrorCode::Internal, "not allowed"};
+}
 #endif
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_HPP

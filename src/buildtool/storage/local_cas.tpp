@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <utility>  // std::move
 
+#include "fmt/core.h"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
@@ -189,6 +190,19 @@ auto ReadObjectInfosRecursively(
         }
     }
     return false;
+}
+
+[[nodiscard]] static inline auto CheckDigestConsistency(
+    bazel_re::Digest const& lhs,
+    bazel_re::Digest const& rhs) noexcept -> bool {
+    if (lhs.hash() != rhs.hash()) {
+        return false;
+    }
+    bool const both_known = lhs.size_bytes() != 0 and rhs.size_bytes() != 0;
+    if (Compatibility::IsCompatible() or both_known) {
+        return lhs.size_bytes() == rhs.size_bytes();
+    }
+    return true;
 }
 
 }  // namespace detail
@@ -506,6 +520,131 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::TrySplice(
     auto* large = std::get_if<LargeObject>(&spliced);
     return large and large->IsValid() ? std::optional{std::move(*large)}
                                       : std::nullopt;
+}
+
+template <bool kDoGlobalUplink>
+auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
+    bazel_re::Digest const& tree_digest,
+    std::string const& tree_data) const noexcept
+    -> std::optional<LargeObjectError> {
+    if (Compatibility::IsCompatible()) {
+        return std::nullopt;
+    }
+
+    auto skip_symlinks = [](auto const& /*unused*/) { return true; };
+    auto const entries =
+        GitRepo::ReadTreeData(tree_data,
+                              NativeSupport::Unprefix(tree_digest.hash()),
+                              skip_symlinks,
+                              /*is_hex_id=*/true);
+    if (not entries) {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not read entries of the tree {}",
+                        tree_digest.hash())};
+    }
+
+    // Ensure all entries are in the storage:
+    for (const auto& entry : *entries) {
+        for (auto const& item : entry.second) {
+            bazel_re::Digest const digest =
+                ArtifactDigest(ToHexString(entry.first),
+                               /*size_unknown=*/0ULL,
+                               IsTreeObject(item.type));
+
+            // To avoid splicing during search, large CASes are inspected first.
+            bool const entry_exists =
+                IsTreeObject(item.type)
+                    ? cas_tree_large_.GetEntryPath(digest) or TreePath(digest)
+                    : cas_file_large_.GetEntryPath(digest) or
+                          BlobPath(digest, IsExecutableObject(item.type));
+
+            if (not entry_exists) {
+                return LargeObjectError{
+                    LargeObjectErrorCode::InvalidTree,
+                    fmt::format("tree invariant violated {} : missing part {}",
+                                tree_digest.hash(),
+                                digest.hash())};
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+template <bool kDoGlobalUplink>
+template <ObjectType kType>
+auto LocalCAS<kDoGlobalUplink>::Splice(
+    bazel_re::Digest const& digest,
+    std::vector<bazel_re::Digest> const& parts) const noexcept
+    -> std::variant<LargeObjectError, bazel_re::Digest> {
+    static constexpr bool kIsTree = IsTreeObject(kType);
+    static constexpr bool kIsExec = IsExecutableObject(kType);
+
+    // Check file is spliced already:
+    if (kIsTree ? TreePath(digest) : BlobPath(digest, kIsExec)) {
+        return digest;
+    }
+
+    // Splice the result from parts:
+    std::optional<LargeObject> large_object;
+    auto splice_result = kIsTree ? cas_tree_large_.Splice(digest, parts)
+                                 : cas_file_large_.Splice(digest, parts);
+    if (auto* result = std::get_if<LargeObject>(&splice_result)) {
+        large_object = *result;
+    }
+    else if (auto* error = std::get_if<LargeObjectError>(&splice_result)) {
+        return std::move(*error);
+    }
+    else {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not splice {}", digest.hash())};
+    }
+
+    // Check digest consistency:
+    // Using Store{Tree, Blob} to calculate the resulting hash and later
+    // decide whether the result is valid is unreasonable, because these
+    // methods can refer to a file that existed before. The direct hash
+    // calculation is done instead.
+    auto const file_path = large_object->GetPath();
+    auto spliced_digest = ObjectCAS<kType>::CreateDigest(file_path);
+    if (not spliced_digest) {
+        return LargeObjectError{LargeObjectErrorCode::Internal,
+                                "could not calculate digest"};
+    }
+
+    if (not detail::CheckDigestConsistency(*spliced_digest, digest)) {
+        return LargeObjectError{
+            LargeObjectErrorCode::InvalidResult,
+            fmt::format("actual result {} differs from the expected one {}",
+                        spliced_digest->hash(),
+                        digest.hash())};
+    }
+
+    // Check tree invariants:
+    if constexpr (kIsTree) {
+        if (not Compatibility::IsCompatible()) {
+            // Read tree entries:
+            auto const tree_data = FileSystemManager::ReadFile(file_path);
+            if (not tree_data) {
+                return LargeObjectError{
+                    LargeObjectErrorCode::Internal,
+                    fmt::format("could not read tree {}", digest.hash())};
+            }
+            if (auto error = CheckTreeInvariant(digest, *tree_data)) {
+                return std::move(*error);
+            }
+        }
+    }
+
+    static constexpr bool kOwner = true;
+    auto const stored_digest = kIsTree ? StoreTree<kOwner>(file_path)
+                                       : StoreBlob<kOwner>(file_path, kIsExec);
+    if (stored_digest) {
+        return std::move(*stored_digest);
+    }
+    return LargeObjectError{LargeObjectErrorCode::Internal,
+                            fmt::format("could not splice {}", digest.hash())};
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP

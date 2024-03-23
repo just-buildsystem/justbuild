@@ -333,6 +333,107 @@ static void TestEmpty() noexcept {
     }
 }
 
+// Test splicing from an external source.
+// 1. The object can be explicitly spliced, if the parts are presented in the
+// storage.
+// 2. Explicit splice fails, it the result of splicing is different from
+// what was expected.
+// 3. Explicit splice fails, if some parts of the tree are missing.
+template <ObjectType kType>
+static void TestExternal() noexcept {
+    SECTION("External") {
+        static constexpr bool kIsTree = IsTreeObject(kType);
+        static constexpr bool kIsExec = IsExecutableObject(kType);
+
+        using TestType = std::conditional_t<kIsTree,
+                                            LargeTestUtils::Tree,
+                                            LargeTestUtils::Blob<kIsExec>>;
+
+        auto const& cas = Storage::Instance().CAS();
+
+        // Create a large object:
+        auto object = TestType::Create(
+            cas, std::string(TestType::kLargeId), TestType::kLargeSize);
+        CHECK(object);
+        auto const& [digest, path] = *object;
+
+        // Split the object:
+        auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
+        auto* split = std::get_if<std::vector<bazel_re::Digest>>(&pack_1);
+        CHECK(split);
+        CHECK(split->size() > 1);
+
+        // External source is emulated by moving the large entry to an older
+        // generation and promoting the parts of the entry to the youngest
+        // generation:
+        REQUIRE(GarbageCollector::TriggerGarbageCollection());
+        for (auto const& part : *split) {
+            static constexpr bool is_executable = false;
+            REQUIRE(cas.BlobPath(part, is_executable));
+        }
+
+        auto const& youngest = Storage::Generation(0).CAS();
+
+        SECTION("Proper request") {
+            if constexpr (kIsTree) {
+                // Promote the parts of the tree:
+                auto splice = cas.TreePath(digest);
+                REQUIRE(splice);
+                REQUIRE(FileSystemManager::RemoveFile(*splice));
+            }
+            REQUIRE_FALSE(FileSystemManager::IsFile(path));
+
+            // Reconstruct the result from parts:
+            std::ignore = kIsTree
+                              ? youngest.SpliceTree(digest, *split)
+                              : youngest.SpliceBlob(digest, *split, kIsExec);
+            CHECK(FileSystemManager::IsFile(path));
+        }
+
+        // Simulate a situation when parts result to an existing file, but it is
+        // not the expected result:
+        SECTION("Digest consistency fail") {
+            // Splice the result to check it will not be affected:
+            auto implicit_splice =
+                kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+            REQUIRE(implicit_splice);
+            REQUIRE(*implicit_splice == path);
+
+            // Randomize one more object to simulate invalidation:
+            auto small = TestType::Create(
+                cas, std::string(TestType::kSmallId), TestType::kSmallSize);
+            REQUIRE(small);
+            auto const& [small_digest, small_path] = *small;
+
+            // The entry itself is not important, only it's digest is needed:
+            REQUIRE(FileSystemManager::RemoveFile(small_path));
+            REQUIRE_FALSE(FileSystemManager::IsFile(small_path));
+
+            // Invalidation is simulated by reconstructing the small_digest
+            // object from the parts of the initial object:
+            auto splice =
+                kIsTree ? youngest.SpliceTree(small_digest, *split)
+                        : youngest.SpliceBlob(small_digest, *split, kIsExec);
+            auto* error = std::get_if<LargeObjectError>(&splice);
+            REQUIRE(error);
+            CHECK(error->Code() == LargeObjectErrorCode::InvalidResult);
+
+            // The initial entry must not be affected:
+            REQUIRE(FileSystemManager::IsFile(path));
+        }
+
+        if constexpr (kIsTree) {
+            SECTION("Tree invariants check fails") {
+                // Check splice fails due to the tree invariants check.
+                auto splice = youngest.SpliceTree(digest, *split);
+                auto* error = std::get_if<LargeObjectError>(&splice);
+                REQUIRE(error);
+                CHECK(error->Code() == LargeObjectErrorCode::InvalidTree);
+            }
+        }
+    }
+}
+
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalCAS: Split-Splice",
                  "[storage]") {
@@ -340,16 +441,19 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         TestLarge<ObjectType::File>();
         TestSmall<ObjectType::File>();
         TestEmpty<ObjectType::File>();
+        TestExternal<ObjectType::File>();
     }
     SECTION("Tree") {
         TestLarge<ObjectType::Tree>();
         TestSmall<ObjectType::Tree>();
         TestEmpty<ObjectType::Tree>();
+        TestExternal<ObjectType::Tree>();
     }
     SECTION("Executable") {
         TestLarge<ObjectType::Executable>();
         TestSmall<ObjectType::Executable>();
         TestEmpty<ObjectType::Executable>();
+        TestExternal<ObjectType::Executable>();
     }
 }
 
