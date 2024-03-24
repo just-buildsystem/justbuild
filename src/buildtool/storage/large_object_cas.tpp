@@ -150,4 +150,67 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
     return parts;
 }
 
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::TrySplice(
+    bazel_re::Digest const& digest) const noexcept
+    -> std::variant<LargeObjectError, LargeObject> {
+    auto parts = ReadEntry(digest);
+    if (not parts) {
+        return LargeObjectError{
+            LargeObjectErrorCode::FileNotFound,
+            fmt::format("could not find large entry for {}", digest.hash())};
+    }
+    return Splice(digest, *parts);
+}
+
+template <bool kDoGlobalUplink, ObjectType kType>
+auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
+    bazel_re::Digest const& digest,
+    std::vector<bazel_re::Digest> const& parts) const noexcept
+    -> std::variant<LargeObjectError, LargeObject> {
+    // Create temporary space for splicing:
+    LargeObject large_object;
+    if (not large_object.IsValid()) {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not create a temporary space for {}",
+                        digest.hash())};
+    }
+
+    // Splice the object from parts
+    try {
+        std::ofstream stream(large_object.GetPath());
+        for (auto const& part : parts) {
+            auto part_path = local_cas_.BlobPath(part, /*is_executable=*/false);
+            if (not part_path) {
+                return LargeObjectError{
+                    LargeObjectErrorCode::FileNotFound,
+                    fmt::format("could not find the part {}", part.hash())};
+            }
+
+            auto part_content = FileSystemManager::ReadFile(*part_path);
+            if (not part_content) {
+                return LargeObjectError{
+                    LargeObjectErrorCode::Internal,
+                    fmt::format("could not read the part content {}",
+                                part.hash())};
+            }
+
+            if (stream.good()) {
+                stream << *part_content;
+            }
+            else {
+                return LargeObjectError{
+                    LargeObjectErrorCode::Internal,
+                    fmt::format("could not splice {}", digest.hash())};
+            }
+        }
+        stream.close();
+    } catch (...) {
+        return LargeObjectError{LargeObjectErrorCode::Internal,
+                                "an unknown error occured"};
+    }
+    return large_object;
+}
+
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP

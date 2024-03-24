@@ -25,6 +25,8 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 template <bool>
 class LocalCAS;
@@ -58,6 +60,29 @@ class LargeObjectError final {
     std::string message_;
 };
 
+/// \brief Stores a temporary directory containing a result of splicing.
+class LargeObject final {
+  public:
+    LargeObject() noexcept
+        : directory_(StorageConfig::CreateTypedTmpDir("splice")),
+          path_(directory_ ? directory_->GetPath() / "result" : ".") {}
+
+    /// \brief Check whether the large object is valid.
+    [[nodiscard]] auto IsValid() const noexcept -> bool {
+        return directory_ != nullptr;
+    }
+
+    /// \brief Obtain the path to the spliced result.
+    [[nodiscard]] auto GetPath() const noexcept
+        -> std::filesystem::path const& {
+        return path_;
+    }
+
+  private:
+    TmpDirPtr directory_;
+    std::filesystem::path path_;
+};
+
 /// \brief Stores auxiliary information for reconstructing large objects.
 /// The entries are keyed by the hash of the spliced result and the value of an
 /// entry is the concatenation of the hashes of chunks the large object is
@@ -88,6 +113,25 @@ class LargeObjectCAS final {
     /// or an error on failure.
     [[nodiscard]] auto Split(bazel_re::Digest const& digest) const noexcept
         -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>>;
+
+    /// \brief Splice an object based on the reconstruction rules from the
+    /// storage. This method doesn't check whether the result of splicing is
+    /// already in the CAS.
+    /// \param digest       The digest of the object to be spliced.
+    /// \return             A temporary directory that contains a single file
+    /// "result" on success or an error on failure.
+    [[nodiscard]] auto TrySplice(bazel_re::Digest const& digest) const noexcept
+        -> std::variant<LargeObjectError, LargeObject>;
+
+    /// \brief Splice an object from parts. This method doesn't check whether
+    /// the result of splicing is already in the CAS.
+    /// \param digest       The digest of the resulting object.
+    /// \param parts        Parts to be concatenated.
+    /// \return             A temporary directory that contains a single file
+    /// "result" on success or an error on failure.
+    [[nodiscard]] auto Splice(bazel_re::Digest const& digest,
+                              std::vector<bazel_re::Digest> const& parts)
+        const noexcept -> std::variant<LargeObjectError, LargeObject>;
 
   private:
     // By default, overwrite existing entries. Unless this is a generation

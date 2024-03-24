@@ -266,6 +266,11 @@ class LocalCAS {
         bazel_re::Digest const& digest,
         gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen)
         const noexcept -> bool;
+
+    template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
+    requires(kIsLocalGeneration) [[nodiscard]] auto TrySplice(
+        bazel_re::Digest const& digest) const noexcept
+        -> std::optional<LargeObject>;
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL

@@ -284,6 +284,11 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     // Determine blob path of given generation.
     auto blob_path = skip_sync ? BlobPathNoSync(digest, is_executable)
                                : BlobPath(digest, is_executable);
+    std::optional<LargeObject> spliced;
+    if (not blob_path) {
+        spliced = TrySplice<ObjectType::File>(digest);
+        blob_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+    }
     if (not blob_path) {
         return false;
     }
@@ -318,6 +323,11 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
 
     // Determine tree path of given generation.
     auto tree_path = cas_tree_.BlobPath(digest);
+    std::optional<LargeObject> spliced;
+    if (not tree_path) {
+        spliced = TrySplice<ObjectType::Tree>(digest);
+        tree_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+    }
     if (not tree_path) {
         return false;
     }
@@ -326,20 +336,26 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     auto content = FileSystemManager::ReadFile(*tree_path);
     auto id = NativeSupport::Unprefix(digest.hash());
     auto check_symlinks =
-        [cas = &cas_file_](std::vector<bazel_re::Digest> const& ids) {
-            for (auto const& id : ids) {
-                auto link_path = cas->BlobPath(id);
-                if (not link_path) {
-                    return false;
-                }
-                // in the local CAS we store as files
-                auto content = FileSystemManager::ReadFile(*link_path);
-                if (not content or not PathIsNonUpwards(*content)) {
-                    return false;
-                }
+        [this](std::vector<bazel_re::Digest> const& ids) -> bool {
+        for (auto const& id : ids) {
+            auto link_path = cas_file_.BlobPath(id);
+            std::optional<LargeObject> spliced;
+            if (not link_path) {
+                spliced = TrySplice<ObjectType::File>(id);
+                link_path =
+                    spliced ? std::optional{spliced->GetPath()} : std::nullopt;
             }
-            return true;
-        };
+            if (not link_path) {
+                return false;
+            }
+            // in the local CAS we store as files
+            auto content = FileSystemManager::ReadFile(*link_path);
+            if (not content or not PathIsNonUpwards(*content)) {
+                return false;
+            }
+        }
+        return true;
+    };
     auto tree_entries = GitRepo::ReadTreeData(*content,
                                               id,
                                               check_symlinks,
@@ -391,6 +407,11 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
 
     // Determine bazel directory path of given generation.
     auto dir_path = cas_tree_.BlobPath(digest);
+    std::optional<LargeObject> spliced;
+    if (not dir_path) {
+        spliced = TrySplice<ObjectType::Tree>(digest);
+        dir_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+    }
     if (not dir_path) {
         return false;
     }
@@ -429,6 +450,18 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
         }
     }
     return false;
+}
+
+template <bool kDoGlobalUplink>
+template <ObjectType kType, bool kIsLocalGeneration>
+requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::TrySplice(
+    bazel_re::Digest const& digest) const noexcept
+    -> std::optional<LargeObject> {
+    auto spliced = IsTreeObject(kType) ? cas_tree_large_.TrySplice(digest)
+                                       : cas_file_large_.TrySplice(digest);
+    auto* large = std::get_if<LargeObject>(&spliced);
+    return large and large->IsValid() ? std::optional{std::move(*large)}
+                                      : std::nullopt;
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP

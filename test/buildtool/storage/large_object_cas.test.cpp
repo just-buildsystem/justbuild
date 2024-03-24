@@ -122,6 +122,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 // Test splitting of a large object. The split must be successful and the entry
 // must be placed to the LargeCAS. The second split of the same object must load
 // the result from the LargeCAS, no actual split must occur.
+// The object can be implicitly reconstructed from the LargeCAS.
 template <ObjectType kType>
 static void TestLarge() noexcept {
     SECTION("Large") {
@@ -160,12 +161,23 @@ static void TestLarge() noexcept {
             // There must be no spliced file:
             CHECK_FALSE(FileSystemManager::IsFile(path));
         }
+
+        SECTION("Splice") {
+            // Check implicit splice:
+            auto spliced_path =
+                kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+            REQUIRE(spliced_path);
+
+            // The result must be in the same location:
+            CHECK(*spliced_path == path);
+        }
     }
 }
 
 // Test splitting of a small object. The split must be successful, but the entry
 // must not be placed to the LargeCAS. The result of spliting must contain one
 // blob.
+// The object cannot be implicitly reconstructed.
 template <ObjectType kType>
 static void TestSmall() noexcept {
     SECTION("Small") {
@@ -209,12 +221,21 @@ static void TestSmall() noexcept {
         auto* error_2 = std::get_if<LargeObjectError>(&pack_2);
         CHECK(error_2);
         CHECK(error_2->Code() == LargeObjectErrorCode::FileNotFound);
+
+        // There must be no spliced file:
+        CHECK_FALSE(FileSystemManager::IsFile(path));
+
+        // Check implicit splice fails:
+        auto spliced_path =
+            kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+        CHECK_FALSE(spliced_path);
     }
 }
 
 // Test splitting of an empty object. The split must be successful, but the
 // entry must not be placed to the LargeCAS. The result of splitting must be
 // empty.
+// The object cannot be implicitly reconstructed.
 template <ObjectType kType>
 static void TestEmpty() noexcept {
     SECTION("Empty") {
@@ -257,6 +278,14 @@ static void TestEmpty() noexcept {
         auto* error_2 = std::get_if<LargeObjectError>(&pack_2);
         CHECK(error_2);
         CHECK(error_2->Code() == LargeObjectErrorCode::FileNotFound);
+
+        // There must be no spliced file:
+        CHECK_FALSE(FileSystemManager::IsFile(path));
+
+        // Check implicit splice fails:
+        auto spliced_path =
+            kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+        CHECK_FALSE(spliced_path);
     }
 }
 
