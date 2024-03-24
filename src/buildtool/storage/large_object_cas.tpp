@@ -18,7 +18,6 @@
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
-#include <string>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"

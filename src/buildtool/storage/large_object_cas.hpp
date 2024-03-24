@@ -17,11 +17,42 @@
 
 #include <filesystem>
 #include <optional>
+#include <string>
+#include <utility>
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+
+enum class LargeObjectErrorCode {
+    /// \brief An internal error occured.
+    Internal = 0,
+
+    /// \brief The digest is not in the CAS.
+    FileNotFound,
+};
+
+/// \brief Describes an error that occurred during split-splice.
+class LargeObjectError final {
+  public:
+    LargeObjectError(LargeObjectErrorCode code, std::string message)
+        : code_(code), message_(std::move(message)) {}
+
+    /// \brief Obtain the error code.
+    [[nodiscard]] auto Code() const noexcept -> LargeObjectErrorCode {
+        return code_;
+    }
+
+    /// \brief Obtain the error message.
+    [[nodiscard]] auto Message() && noexcept -> std::string {
+        return std::move(message_);
+    }
+
+  private:
+    LargeObjectErrorCode const code_;
+    std::string message_;
+};
 
 /// \brief Stores auxiliary information for reconstructing large objects.
 /// The entries are keyed by the hash of the spliced result and the value of an
