@@ -744,6 +744,54 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(result == Expression::FromJson(R"(["foo", "bar", "baz"])"_json));
     }
 
+    SECTION("+ expression") {
+        auto expr_empty = Expression::FromJson(R"(
+            { "type": "+"
+            , "$1": []
+            })"_json);
+        REQUIRE(expr_empty);
+
+        auto result_empty = expr_empty.Evaluate(env, fcts);
+        REQUIRE(result_empty);
+        REQUIRE(result_empty->IsNumber());
+        CHECK(result_empty == Expression::FromJson(R"(0.0)"_json));
+
+        auto expr = Expression::FromJson(R"(
+            { "type": "+"
+            , "$1": [2, 3, 7, -1]
+            })"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsNumber());
+        CHECK(result == Expression::FromJson(R"(11.0)"_json));
+    }
+
+    SECTION("* expression") {
+        auto expr_empty = Expression::FromJson(R"(
+            { "type": "*"
+            , "$1": []
+            })"_json);
+        REQUIRE(expr_empty);
+
+        auto result_empty = expr_empty.Evaluate(env, fcts);
+        REQUIRE(result_empty);
+        REQUIRE(result_empty->IsNumber());
+        CHECK(result_empty == Expression::FromJson(R"(1.0)"_json));
+
+        auto expr = Expression::FromJson(R"(
+            { "type": "*"
+            , "$1": [2, 3, 7, -1]
+            })"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsNumber());
+        CHECK(result == Expression::FromJson(R"(-42.0)"_json));
+    }
+
     SECTION("nub_right expression") {
         auto expr = Expression::FromJson(R"(
              {"type": "nub_right"

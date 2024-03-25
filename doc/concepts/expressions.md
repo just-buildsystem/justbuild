@@ -259,6 +259,14 @@ those) argument(s) to obtain the final result.
  - `"++"` The argument has to be a list of lists. The result is
    the concatenation of those lists.
 
+ - `"+"` The argument has to be a list of numbers. The result is
+   their sum (where the sum of the empty list is, of course, the
+   neutral element 0).
+
+ - `"*"` The argument has to be a list of numbers. The result
+   is their product (where the producut of the empty list is, of
+   course, the neutral element 1).
+
  - `"map_union"` The argument has to be a list of maps. The
    result is a map containing as keys the union of the keys of
    the maps in that list. For each key, the value is the value

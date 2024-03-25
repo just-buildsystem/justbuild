@@ -82,6 +82,42 @@ auto Flatten(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{result};
 }
 
+auto Addition(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "Addition expects a list, but found: {}", expr->ToString())};
+    }
+    Expression::number_t result = 0.0;
+    auto const& list = expr->List();
+    std::for_each(list.begin(), list.end(), [&](auto const& f) {
+        if (not f->IsNumber()) {
+            throw Evaluator::EvaluationError{fmt::format(
+                "Non-number entry found for argument to addition: {}",
+                f->ToString())};
+        }
+        result += f->Number();
+    });
+    return ExpressionPtr(result);
+}
+
+auto Multiplication(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "Multiplication expects a list, but found: {}", expr->ToString())};
+    }
+    Expression::number_t result = 1.0;
+    auto const& list = expr->List();
+    std::for_each(list.begin(), list.end(), [&](auto const& f) {
+        if (not f->IsNumber()) {
+            throw Evaluator::EvaluationError{fmt::format(
+                "Non-number entry found for argument to multiplication: {}",
+                f->ToString())};
+        }
+        result *= f->Number();
+    });
+    return ExpressionPtr(result);
+}
+
 auto All(ExpressionPtr const& list) -> ExpressionPtr {
     for (auto const& c : list->List()) {
         if (not ValueIsTrue(c)) {
@@ -954,6 +990,8 @@ auto const kBuiltInFunctions =
                           {"and", AndExpr},
                           {"or", OrExpr},
                           {"++", UnaryExpr(Flatten)},
+                          {"+", UnaryExpr(Addition)},
+                          {"*", UnaryExpr(Multiplication)},
                           {"nub_right", UnaryExpr(NubRight)},
                           {"range", UnaryExpr(Range)},
                           {"change_ending", ChangeEndingExpr},
