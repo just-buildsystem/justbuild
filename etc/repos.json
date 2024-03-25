@@ -203,10 +203,10 @@
   , "json":
     { "repository":
       { "type": "zip"
-      , "content": "a0cf5f0e098b6a8748eb1c106b0b1994b92fead9"
-      , "fetch": "https://github.com/nlohmann/json/releases/download/v3.11.2/include.zip"
-      , "sha256": "e5c7a9f49a16814be27e4ed0ee900ecd0092bfb7dbfca65b5a421b774dccaaed"
-      , "sha512": "99d9e6d588cabe8913a37437f86acb5d4b8b98bce12423e633c11c13b61e6c7f92ef8f9a4e991baa590329ee2b5c09ca9db9894bee1e54bdd68e8d09d83cc245"
+      , "content": "733571f96614cc01fcebf76c8359f52706677c61"
+      , "fetch": "https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip"
+      , "sha256": "a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d"
+      , "sha512": "8d923e2586acf736fc1886bf1839ca0126444ec60ce93a4bd18c21eef4475dff6f608203e42bf4968878dc50727a8c20c517dd8c1ac5c6b0bb6a95f2dce5546e"
       , "subdir": "include/nlohmann"
       }
     , "target_root": "import targets"
