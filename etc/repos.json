@@ -429,11 +429,11 @@
   , "catch2":
     { "repository":
       { "type": "archive"
-      , "content": "fd54249eeb20894ece50696a84ef674a0052b6da"
-      , "fetch": "https://github.com/catchorg/Catch2/archive/refs/tags/v3.3.2.tar.gz"
-      , "sha256": "8361907f4d9bff3ae7c1edb027f813659f793053c99b67837a0c0375f065bae2"
-      , "sha512": "3d0c5666509a19be54ea0c48a3c8e1c4a951a2d991a7c9f7fe6d326661464538f1ab9dc573b1b2647f49fb6bef45bbd866142a4ce0fba38545ad182b8d55f61f"
-      , "subdir": "Catch2-3.3.2"
+      , "content": "5af653af0c54ad580176a8cadb5a1cef8c880372"
+      , "fetch": "https://github.com/catchorg/Catch2/archive/refs/tags/v3.5.3.tar.gz"
+      , "sha256": "8d723b0535c94860ef8cf6231580fa47d67a3416757ecb10639e40d748ab6c71"
+      , "sha512": "57c996f679cbad212cb0fde39e506bade37bd559c0e93e20f407f2a2f029e98b78661e10257f9c8e4cb5fd7d52d0ea1eae3d4a1f989c6d66fcb281e32e1688f6"
+      , "subdir": "Catch2-3.5.3"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.catch2"
