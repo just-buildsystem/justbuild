@@ -634,6 +634,9 @@
               , [ "HAVE_STRRCHR"
                 , ["strrchr", {"type": "var", "name": "sys_hdrs"}]
                 ]
+              , [ "HAVE_STRUCT_STATFS"
+                , ["statfs", {"type": "var", "name": "sys_hdrs"}]
+                ]
               , [ "HAVE_SYMLINK"
                 , ["symlink", {"type": "var", "name": "sys_hdrs"}]
                 ]
@@ -783,6 +786,11 @@
                 ]
               , [ "HAVE_STRUCT_TM___TM_GMTOFF"
                 , [ "((struct tm*)NULL)->__tm_gmtoff"
+                  , {"type": "var", "name": "sys_hdrs"}
+                  ]
+                ]
+              , [ "HAVE_STRUCT_STATFS_F_IOSIZE"
+                , [ "((struct statfs*)NULL)->f_iosize"
                   , {"type": "var", "name": "sys_hdrs"}
                   ]
                 ]
