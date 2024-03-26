@@ -107,15 +107,21 @@ TEST_CASE("Curl URL handle basics", "[curl_url_handle_basics]") {
         REQUIRE(ret_url_bare_ip);
         CHECK(*ret_url_bare_ip == "http://192.0.2.1/");
 
-        // default scheme, no authority, path not normalized
+        // default scheme, no authority, path normalized
+        auto url_h_root_path = CurlURLHandle::CreatePermissive(
+            "/", false, true, false, true, true);
+        CHECK(url_h_root_path);
+        CHECK(*url_h_root_path);
+        // check what was stored: scheme http, path single slash
+        auto ret_url_root_path = url_h_root_path.value()->GetURL();
+        REQUIRE(ret_url_root_path);
+        CHECK(*ret_url_root_path == "https:///");
+
+        // empty url should fail (with even the most permissive options)
         auto url_h_empty =
             CurlURLHandle::CreatePermissive("", false, true, false, true, true);
         CHECK(url_h_empty);
-        CHECK(*url_h_empty);
-        // check what was stored: scheme http, path single slash
-        auto ret_url_empty = url_h_empty.value()->GetURL();
-        REQUIRE(ret_url_empty);
-        CHECK(*ret_url_empty == "https:///");
+        CHECK_FALSE(*url_h_empty);
     }
 
     SECTION("Parse config key") {

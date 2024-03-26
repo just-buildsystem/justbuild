@@ -23,6 +23,7 @@
     , "ENABLE_THREADED_RESOLVER"
     , "CURL_DISABLE_DICT"
     , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FORM_API"
     , "CURL_DISABLE_FTP"
     , "CURL_DISABLE_GOPHER"
     , "CURL_DISABLE_IMAP"
@@ -37,11 +38,19 @@
     , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
+    , "CURL_DISABLE_SRP"
     , "CURL_DISABLE_COOKIES"
-    , "CURL_DISABLE_CRYPTO_AUTH"
+    , "CURL_DISABLE_BASIC_AUTH"
+    , "CURL_DISABLE_BEARER_AUTH"
+    , "CURL_DISABLE_DIGEST_AUTH"
+    , "CURL_DISABLE_KERBEROS_AUTH"
+    , "CURL_DISABLE_NEGOTIATE_AUTH"
+    , "CURL_DISABLE_AWS"
     , "CURL_DISABLE_NTLM"
     , "CURL_DISABLE_DOH"
     , "CURL_DISABLE_GETOPTIONS"
+    , "CURL_DISABLE_HEADERS_API"
+    , "CURL_DISABLE_BINDLOCAL"
     , "CURL_DISABLE_HSTS"
     , "CURL_DISABLE_MIME"
     , "CURL_DISABLE_NETRC"
@@ -58,7 +67,7 @@
     , "USE_MSH3"
     , "USE_LIBIDN2"
     , "USE_BROTLI"
-    , "USE_ZSTD"
+    , "CURL_ZSTD"
     , "CURL_USE_LIBPSL"
     , "CURL_USE_LIBSSH2"
     , "CURL_USE_LIBSSH"
@@ -68,12 +77,12 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
-    , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
     , "HAVE_AWSLC"
+    , "HAVE_SSL_SET0_WBIO"
+    , "HAVE_OPENSSL_SRP"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
-    , "HAVE_ZSTD_CREATEDSTREAM"
     , "PKG_CONFIG_ARGS"
     ]
   , "config_doc":
@@ -95,6 +104,8 @@
       ]
     , "CURL_DISABLE_DICT": ["Boolean. Disable DICT."]
     , "CURL_DISABLE_FILE": ["Boolean. Disable FILE."]
+    , "CURL_DISABLE_FORM_API":
+      ["Boolean. Disable form API, if ~CURL_DISABLE_MIME==false~"]
     , "CURL_DISABLE_FTP": ["Boolean. Disable FTP."]
     , "CURL_DISABLE_GOPHER": ["Boolean. Disable GOPHER."]
     , "CURL_DISABLE_IMAP": ["Boolean. Disable IMAP."]
@@ -115,12 +126,21 @@
       , "Currently these are unsupported."
       ]
     , "CURL_DISABLE_ALTSVC": ["Boolean. Disable alt-svc."]
+    , "CURL_DISABLE_SRP": ["Boolean. Disable TLS-SRP support."]
     , "CURL_DISABLE_COOKIES": ["Boolean. Disable cookies."]
-    , "CURL_DISABLE_CRYPTO_AUTH":
-      ["Boolean. Disable cryptographic authentication."]
+    , "CURL_DISABLE_BASIC_AUTH": ["Boolean. Disable Basic authentication."]
+    , "CURL_DISABLE_BEARER_AUTH": ["Boolean. Disable Bearer authentication."]
+    , "CURL_DISABLE_DIGEST_AUTH": ["Boolean. Disable Digest authentication."]
+    , "CURL_DISABLE_KERBEROS_AUTH":
+      ["Boolean. Disable Kerberos authentication."]
+    , "CURL_DISABLE_NEGOTIATE_AUTH":
+      ["Boolean. Disable negotiate authentication."]
+    , "CURL_DISABLE_AWS": ["Boolean. Disable AWS-SIG4."]
     , "CURL_DISABLE_NTLM": ["Boolean. Disable NTLM support."]
     , "CURL_DISABLE_DOH": ["Boolean. Disable DNS-over-HTTPS."]
     , "CURL_DISABLE_GETOPTIONS": ["Boolean. Disable curl-easy-options API."]
+    , "CURL_DISABLE_HEADERS_API": ["Boolean. Disable headers-api support."]
+    , "CURL_DISABLE_BINDLOCAL": ["Boolean. Disable local binding support."]
     , "CURL_DISABLE_HSTS": ["Boolean. Disable HSTS support."]
     , "CURL_DISABLE_MIME": ["Boolean. Disable MIME support."]
     , "CURL_DISABLE_NETRC": ["Boolean. Disable netrc parser."]
@@ -158,7 +178,7 @@
       , "or against normaliz (system or open name) if ~OS==\"windows\"~."
       ]
     , "USE_BROTLI": ["Boolean. Link against brotli (system or open name)."]
-    , "USE_ZSTD": ["Boolean. Link against zstd (system or open name)."]
+    , "CURL_ZSTD": ["Boolean. Link against zstd (system or open name)."]
     , "CURL_USE_LIBPSL":
       [ "Boolean. Default value: true. Link against libpsl (system or open name)."
       ]
@@ -194,10 +214,6 @@
       [ "Boolean. Manually set whether to use GNU or POSIX version of ~strerror_r~ function."
       , "Only safe to set if _GNU_SOURCE is set no _POSIX_SOURCE overwrite exists."
       ]
-    , "HAVE_RAND_EGD":
-      [ "Boolean. `RAND_egd` present in OpenSSL."
-      , "If true, corresponding symbol detection logic is skipped."
-      ]
     , "HAVE_BORINGSSL":
       [ "Boolean. OpenSSL is BoringSSL."
       , "If true, corresponding symbol detection logic is skipped."
@@ -206,16 +222,17 @@
       [ "Boolean. OpenSSL is AWSLC."
       , "If true, corresponding symbol detection logic is skipped."
       ]
+    , "HAVE_SSL_SET0_WBIO":
+      ["Boolean. Set if ~SSL_set0_wbio~ present in OpenSSL/wolfSSL."]
+    , "HAVE_OPENSSL_SRP":
+      [ "Boolean. Set if ~SSL_CTX_set_srp_username~ present in OpenSSL/wolfSSL."
+      ]
     , "HAVE_SSL_CTX_SET_QUIC_METHOD":
       [ "Boolean. `SSL_CTX_set_quic_method` present in OpenSSL."
       , "If true, corresponding symbol detection logic is skipped."
       ]
     , "HAVE_QUICHE_CONN_SET_QLOG_FD":
       [ "Boolean. `quiche_conn_set_qlog_fd` present in QUICHE."
-      , "If true, corresponding symbol detection logic is skipped."
-      ]
-    , "HAVE_ZSTD_CREATEDSTREAM":
-      [ "Boolean. `ZSTD_createDStream` present in Zstd."
       , "If true, corresponding symbol detection logic is skipped."
       ]
     }
@@ -233,6 +250,7 @@
     , "ENABLE_THREADED_RESOLVER"
     , "CURL_DISABLE_DICT"
     , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FORM_API"
     , "CURL_DISABLE_FTP"
     , "CURL_DISABLE_GOPHER"
     , "CURL_DISABLE_IMAP"
@@ -247,11 +265,19 @@
     , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
+    , "CURL_DISABLE_SRP"
     , "CURL_DISABLE_COOKIES"
-    , "CURL_DISABLE_CRYPTO_AUTH"
+    , "CURL_DISABLE_BASIC_AUTH"
+    , "CURL_DISABLE_BEARER_AUTH"
+    , "CURL_DISABLE_DIGEST_AUTH"
+    , "CURL_DISABLE_KERBEROS_AUTH"
+    , "CURL_DISABLE_NEGOTIATE_AUTH"
+    , "CURL_DISABLE_AWS"
     , "CURL_DISABLE_NTLM"
     , "CURL_DISABLE_DOH"
     , "CURL_DISABLE_GETOPTIONS"
+    , "CURL_DISABLE_HEADERS_API"
+    , "CURL_DISABLE_BINDLOCAL"
     , "CURL_DISABLE_HSTS"
     , "CURL_DISABLE_MIME"
     , "CURL_DISABLE_NETRC"
@@ -268,7 +294,7 @@
     , "USE_MSH3"
     , "USE_LIBIDN2"
     , "USE_BROTLI"
-    , "USE_ZSTD"
+    , "CURL_ZSTD"
     , "CURL_USE_LIBPSL"
     , "CURL_USE_LIBSSH2"
     , "CURL_USE_LIBSSH"
@@ -278,12 +304,12 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
-    , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
     , "HAVE_AWSLC"
+    , "HAVE_SSL_SET0_WBIO"
+    , "HAVE_OPENSSL_SRP"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
-    , "HAVE_ZSTD_CREATEDSTREAM"
     ]
   , "target": ["./", "lib", "libcurl"]
   , "config":
@@ -315,13 +341,13 @@
         , {"type": "var", "name": "ENABLE_ARES", "default": false}
         ]
       , [ "ENABLE_THREADED_RESOLVER"
-        , { "type": "var"
-          , "name": "ENABLE_THREADED_RESOLVER"
-          , "default":
-            { "type": "if"
-            , "cond": {"type": "var", "name": "ENABLE_ARES"}
-            , "then": false
-            , "else": true
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "ENABLE_ARES"}
+          , "then": false
+          , "else":
+            { "type": "var"
+            , "name": "ENABLE_THREADED_RESOLVER"
+            , "default": true
             }
           }
         ]
@@ -330,6 +356,14 @@
         ]
       , [ "CURL_DISABLE_FILE"
         , {"type": "var", "name": "CURL_DISABLE_FILE", "default": false}
+        ]
+      , [ "CURL_DISABLE_FORM_API"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CURL_DISABLE_MIME"}
+          , "then": true
+          , "else":
+            {"type": "var", "name": "CURL_DISABLE_FORM_API", "default": false}
+          }
         ]
       , [ "CURL_DISABLE_FTP"
         , {"type": "var", "name": "CURL_DISABLE_FTP", "default": false}
@@ -371,11 +405,35 @@
       , [ "CURL_DISABLE_ALTSVC"
         , {"type": "var", "name": "CURL_DISABLE_ALTSVC", "default": false}
         ]
+      , [ "CURL_DISABLE_SRP"
+        , {"type": "var", "name": "CURL_DISABLE_SRP", "default": false}
+        ]
       , [ "CURL_DISABLE_COOKIES"
         , {"type": "var", "name": "CURL_DISABLE_COOKIES", "default": false}
         ]
-      , [ "CURL_DISABLE_CRYPTO_AUTH"
-        , {"type": "var", "name": "CURL_DISABLE_CRYPTO_AUTH", "default": false}
+      , [ "CURL_DISABLE_BASIC_AUTH"
+        , {"type": "var", "name": "CURL_DISABLE_BASIC_AUTH", "default": false}
+        ]
+      , [ "CURL_DISABLE_BEARER_AUTH"
+        , {"type": "var", "name": "CURL_DISABLE_BEARER_AUTH", "default": false}
+        ]
+      , [ "CURL_DISABLE_DIGEST_AUTH"
+        , {"type": "var", "name": "CURL_DISABLE_DIGEST_AUTH", "default": false}
+        ]
+      , [ "CURL_DISABLE_KERBEROS_AUTH"
+        , { "type": "var"
+          , "name": "CURL_DISABLE_KERBEROS_AUTH"
+          , "default": false
+          }
+        ]
+      , [ "CURL_DISABLE_NEGOTIATE_AUTH"
+        , { "type": "var"
+          , "name": "CURL_DISABLE_NEGOTIATE_AUTH"
+          , "default": false
+          }
+        ]
+      , [ "CURL_DISABLE_AWS"
+        , {"type": "var", "name": "CURL_DISABLE_AWS", "default": false}
         ]
       , [ "CURL_DISABLE_NTLM"
         , {"type": "var", "name": "CURL_DISABLE_NTLM", "default": false}
@@ -385,6 +443,12 @@
         ]
       , [ "CURL_DISABLE_GETOPTIONS"
         , {"type": "var", "name": "CURL_DISABLE_GETOPTIONS", "default": false}
+        ]
+      , [ "CURL_DISABLE_HEADERS_API"
+        , {"type": "var", "name": "CURL_DISABLE_HEADERS_API", "default": false}
+        ]
+      , [ "CURL_DISABLE_BINDLOCAL"
+        , {"type": "var", "name": "CURL_DISABLE_BINDLOCAL", "default": false}
         ]
       , [ "CURL_DISABLE_HSTS"
         , {"type": "var", "name": "CURL_DISABLE_HSTS", "default": false}
@@ -432,7 +496,7 @@
         , {"type": "var", "name": "USE_LIBIDN2", "default": false}
         ]
       , ["USE_BROTLI", {"type": "var", "name": "USE_BROTLI", "default": false}]
-      , ["USE_ZSTD", {"type": "var", "name": "USE_ZSTD", "default": false}]
+      , ["CURL_ZSTD", {"type": "var", "name": "CURL_ZSTD", "default": false}]
       , [ "CURL_USE_LIBPSL"
         , {"type": "var", "name": "CURL_USE_LIBPSL", "default": true}
         ]
@@ -485,13 +549,16 @@
       , [ "USE_GNU_STRERROR_R"
         , {"type": "var", "name": "USE_GNU_STRERROR_R", "default": false}
         ]
-      , [ "HAVE_RAND_EGD"
-        , {"type": "var", "name": "HAVE_RAND_EGD", "default": false}
-        ]
       , [ "HAVE_BORINGSSL"
         , {"type": "var", "name": "HAVE_BORINGSSL", "default": false}
         ]
       , ["HAVE_AWSLC", {"type": "var", "name": "HAVE_AWSLC", "default": false}]
+      , [ "HAVE_SSL_SET0_WBIO"
+        , {"type": "var", "name": "HAVE_SSL_SET0_WBIO", "default": false}
+        ]
+      , [ "HAVE_OPENSSL_SRP"
+        , {"type": "var", "name": "HAVE_OPENSSL_SRP", "default": false}
+        ]
       , [ "HAVE_SSL_CTX_SET_QUIC_METHOD"
         , { "type": "var"
           , "name": "HAVE_SSL_CTX_SET_QUIC_METHOD"
@@ -504,9 +571,6 @@
           , "default": false
           }
         ]
-      , [ "HAVE_ZSTD_CREATEDSTREAM"
-        , {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM", "default": false}
-        ]
       ]
     , "body":
       { "type": "env"
@@ -517,6 +581,7 @@
         , "ENABLE_THREADED_RESOLVER"
         , "CURL_DISABLE_DICT"
         , "CURL_DISABLE_FILE"
+        , "CURL_DISABLE_FORM_API"
         , "CURL_DISABLE_FTP"
         , "CURL_DISABLE_GOPHER"
         , "CURL_DISABLE_IMAP"
@@ -531,10 +596,19 @@
         , "CURL_DISABLE_TFTP"
         , "HTTP_ONLY"
         , "CURL_DISABLE_ALTSVC"
+        , "CURL_DISABLE_SRP"
         , "CURL_DISABLE_COOKIES"
-        , "CURL_DISABLE_CRYPTO_AUTH"
+        , "CURL_DISABLE_BASIC_AUTH"
+        , "CURL_DISABLE_BEARER_AUTH"
+        , "CURL_DISABLE_DIGEST_AUTH"
+        , "CURL_DISABLE_KERBEROS_AUTH"
+        , "CURL_DISABLE_NEGOTIATE_AUTH"
+        , "CURL_DISABLE_AWS"
         , "CURL_DISABLE_NTLM"
         , "CURL_DISABLE_DOH"
+        , "CURL_DISABLE_GETOPTIONS"
+        , "CURL_DISABLE_HEADERS_API"
+        , "CURL_DISABLE_BINDLOCAL"
         , "CURL_DISABLE_HSTS"
         , "CURL_DISABLE_MIME"
         , "CURL_DISABLE_NETRC"
@@ -551,7 +625,7 @@
         , "USE_MSH3"
         , "USE_LIBIDN2"
         , "USE_BROTLI"
-        , "USE_ZSTD"
+        , "CURL_ZSTD"
         , "CURL_USE_LIBPSL"
         , "CURL_USE_LIBSSH2"
         , "CURL_USE_LIBSSH"
@@ -561,12 +635,12 @@
         , "CURL_CA_PATH"
         , "CURL_CA_FALLBACK"
         , "USE_GNU_STRERROR_R"
-        , "HAVE_RAND_EGD"
         , "HAVE_BORINGSSL"
         , "HAVE_AWSLC"
+        , "HAVE_SSL_SET0_WBIO"
+        , "HAVE_OPENSSL_SRP"
         , "HAVE_SSL_CTX_SET_QUIC_METHOD"
         , "HAVE_QUICHE_CONN_SET_QLOG_FD"
-        , "HAVE_ZSTD_CREATEDSTREAM"
         ]
       }
     }

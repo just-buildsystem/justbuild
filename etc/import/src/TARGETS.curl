@@ -43,7 +43,16 @@
       { "type": "case*"
       , "expr": {"type": "var", "name": "OS"}
       , "case":
-        [["darwin", ["-framework", "SystemConfiguration", "CoreFoundations"]]]
+        [ [ "darwin"
+          , [ "-framework"
+            , "SystemConfiguration"
+            , "-framework"
+            , "CoreFoundation"
+            , "-framework"
+            , "CoreServices"
+            ]
+          ]
+        ]
       }
     }
   }
@@ -283,11 +292,11 @@
   }
 , "curl_zstd":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["USE_SYSTEM_LIBS", "USE_ZSTD"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "CURL_ZSTD"]
   , "name": ["curl_zstd"]
   , "private-ldflags":
     { "type": "if"
-    , "cond": {"type": "var", "name": "USE_ZSTD"}
+    , "cond": {"type": "var", "name": "CURL_ZSTD"}
     , "then":
       { "type": "if"
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
@@ -296,7 +305,7 @@
     }
   , "deps":
     { "type": "if"
-    , "cond": {"type": "var", "name": "USE_ZSTD"}
+    , "cond": {"type": "var", "name": "CURL_ZSTD"}
     , "then":
       { "type": "if"
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}

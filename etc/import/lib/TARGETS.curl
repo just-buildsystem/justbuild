@@ -10,6 +10,7 @@
     , "ENABLE_THREADED_RESOLVER"
     , "CURL_DISABLE_DICT"
     , "CURL_DISABLE_FILE"
+    , "CURL_DISABLE_FORM_API"
     , "CURL_DISABLE_FTP"
     , "CURL_DISABLE_GOPHER"
     , "CURL_DISABLE_IMAP"
@@ -24,10 +25,19 @@
     , "CURL_DISABLE_TFTP"
     , "HTTP_ONLY"
     , "CURL_DISABLE_ALTSVC"
+    , "CURL_DISABLE_SRP"
     , "CURL_DISABLE_COOKIES"
-    , "CURL_DISABLE_CRYPTO_AUTH"
+    , "CURL_DISABLE_BASIC_AUTH"
+    , "CURL_DISABLE_BEARER_AUTH"
+    , "CURL_DISABLE_DIGEST_AUTH"
+    , "CURL_DISABLE_KERBEROS_AUTH"
+    , "CURL_DISABLE_NEGOTIATE_AUTH"
+    , "CURL_DISABLE_AWS"
     , "CURL_DISABLE_NTLM"
     , "CURL_DISABLE_DOH"
+    , "CURL_DISABLE_GETOPTIONS"
+    , "CURL_DISABLE_HEADERS_API"
+    , "CURL_DISABLE_BINDLOCAL"
     , "CURL_DISABLE_HSTS"
     , "CURL_DISABLE_MIME"
     , "CURL_DISABLE_NETRC"
@@ -44,7 +54,7 @@
     , "USE_MSH3"
     , "USE_LIBIDN2"
     , "USE_BROTLI"
-    , "USE_ZSTD"
+    , "CURL_ZSTD"
     , "CURL_USE_LIBPSL"
     , "CURL_USE_LIBSSH2"
     , "CURL_USE_LIBSSH"
@@ -54,12 +64,12 @@
     , "CURL_CA_PATH"
     , "CURL_CA_FALLBACK"
     , "USE_GNU_STRERROR_R"
-    , "HAVE_RAND_EGD"
     , "HAVE_BORINGSSL"
     , "HAVE_AWSLC"
+    , "HAVE_SSL_SET0_WBIO"
+    , "HAVE_OPENSSL_SRP"
     , "HAVE_SSL_CTX_SET_QUIC_METHOD"
     , "HAVE_QUICHE_CONN_SET_QLOG_FD"
-    , "HAVE_ZSTD_CREATEDSTREAM"
     ]
   , "target": "config_header"
   , "config":
@@ -76,72 +86,86 @@
           }
         ]
       , [ "sys_hdrs"
-        , [ "windows.h"
-          , "ws2tcpip.h"
-          , "winsock2.h"
-          , "wincrypt.h"
-          , "inttypes.h"
-          , "sys/filio.h"
-          , "sys/ioctl.h"
-          , "sys/param.h"
-          , "sys/poll.h"
-          , "sys/resource.h"
-          , "sys/select.h"
-          , "sys/socket.h"
-          , "sys/sockio.h"
-          , "sys/stat.h"
-          , "sys/time.h"
-          , "sys/types.h"
-          , "sys/un.h"
-          , "sys/utime.h"
-          , "sys/xattr.h"
-          , "arpa/inet.h"
-          , "arpa/tftp.h"
-          , "assert.h"
-          , "errno.h"
-          , "fcntl.h"
-          , "idn2.h"
-          , "ifaddrs.h"
-          , "io.h"
-          , "libgen.h"
-          , "locale.h"
-          , "net/if.h"
-          , "netdb.h"
-          , "netinet/in.h"
-          , "netinet/tcp.h"
-          , "linux/tcp.h"
-          , "poll.h"
-          , "pwd.h"
-          , "setjmp.h"
-          , "signal.h"
-          , "ssl.h"
-          , "stdatomic.h"
-          , "stdbool.h"
-          , "stdint.h"
-          , "stdlib.h"
-          , "string.h"
-          , "strings.h"
-          , "stropts.h"
-          , "termio.h"
-          , "termios.h"
-          , "time.h"
-          , "unistd.h"
-          , "utime.h"
-          , "process.h"
-          , "stddef.h"
-          , "stdint.h"
-          , "sys/utsname.h"
-          , "gssapi/gssapi.h"
-          , "gssapi/gssapi_generic.h"
-          , "gssapi/gssapi_krb5.h"
-          ]
+        , { "type": "++"
+          , "$1":
+            [ { "type": "if"
+              , "cond":
+                { "type": "=="
+                , "$1": {"type": "var", "name": "OS"}
+                , "$2": "windows"
+                }
+              , "then": ["windows.h", "ws2tcpip.h", "winsock2.h"]
+              }
+            , [ "sys/filio.h"
+              , "sys/wait.h"
+              , "sys/ioctl.h"
+              , "sys/param.h"
+              , "sys/poll.h"
+              , "sys/resource.h"
+              , "sys/select.h"
+              , "sys/socket.h"
+              , "sys/sockio.h"
+              , "sys/stat.h"
+              , "sys/time.h"
+              , "sys/types.h"
+              , "sys/un.h"
+              , "sys/utime.h"
+              , "sys/xattr.h"
+              , "arpa/inet.h"
+              , "assert.h"
+              , "errno.h"
+              , "fcntl.h"
+              , "fnmatch.h"
+              , "idn2.h"
+              , "ifaddrs.h"
+              , "io.h"
+              , "libgen.h"
+              , "locale.h"
+              , "net/if.h"
+              , "netdb.h"
+              , "netinet/in.h"
+              , "netinet/tcp.h"
+              , "netinet/udp.h"
+              , "linux/tcp.h"
+              , "poll.h"
+              , "pwd.h"
+              , "setjmp.h"
+              , "sched.h"
+              , "signal.h"
+              , "signal.h"
+              , "ssl.h"
+              , "signal.h"
+              , "ssl.h"
+              , "stdatomic.h"
+              , "stdbool.h"
+              , "stdint.h"
+              , "stdlib.h"
+              , "string.h"
+              , "strings.h"
+              , "stropts.h"
+              , "termio.h"
+              , "termios.h"
+              , "time.h"
+              , "unistd.h"
+              , "utime.h"
+              , "process.h"
+              ]
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "CURL_USE_GSSAPI"}
+              , "then":
+                [ "gssapi/gssapi.h"
+                , "gssapi/gssapi_generic.h"
+                , "gssapi/gssapi_krb5.h"
+                ]
+              }
+            ]
+          }
         ]
       , [ "defines1"
         , { "type": "++"
           , "$1":
             [ [ ["BUILDING_LIBCURL", 1]
               , ["HAVE_BOOL_T", 1]
-              , ["HAVE_GETADDRINFO_THREADSAFE", 1]
               , ["HAVE_RECV", 1]
               , ["HAVE_SEND", 1]
               , ["HAVE_STRUCT_TIMEVAL", 1]
@@ -250,9 +274,6 @@
               , [ "CURL_DISABLE_COOKIES"
                 , {"type": "var", "name": "CURL_DISABLE_COOKIES"}
                 ]
-              , [ "CURL_DISABLE_CRYPTO_AUTH"
-                , {"type": "var", "name": "CURL_DISABLE_CRYPTO_AUTH"}
-                ]
               , [ "CURL_DISABLE_NTLM"
                 , {"type": "var", "name": "CURL_DISABLE_NTLM"}
                 ]
@@ -292,22 +313,14 @@
               , ["USE_NGHTTP2", {"type": "var", "name": "USE_NGHTTP2"}]
               , ["HAVE_LIBIDN2", {"type": "var", "name": "USE_LIBIDN2"}]
               , ["HAVE_BROTLI", {"type": "var", "name": "USE_BROTLI"}]
-              , ["HAVE_ZSTD", {"type": "var", "name": "USE_ZSTD"}]
-              , [ "HAVE_ZSTD_CREATEDSTREAM"
-                , { "type": "and"
-                  , "$1":
-                    [ {"type": "var", "name": "USE_ZSTD"}
-                    , {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM"}
-                    ]
-                  }
-                ]
+              , ["HAVE_ZSTD", {"type": "var", "name": "CURL_ZSTD"}]
               , [ "CURL_CA_FALLBACK"
                 , {"type": "var", "name": "CURL_CA_FALLBACK"}
                 ]
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "CURL_ENABLE_SSL"}
-              , "then": [["USE_OPENSSL", 1], ["HAVE_LIBSSL", 1]]
+              , "then": [["USE_OPENSSL", 1], ["SSL_ENABLED", 1]]
               }
             , { "type": "if"
               , "cond": {"type": "var", "name": "USE_NGTCP2"}
@@ -357,6 +370,15 @@
                   , "msg": "libcurl: only one HTTP/3 backend can be selected, but both msh3 and ngtcp2 or quiche given."
                   }
                 , "else": [["USE_MSH3", 1]]
+                }
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "CURL_DISABLE_SRP"}
+              , "then": []
+              , "else":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "HAVE_OPENSSL_SRP"}
+                , "then": [["USE_TLS_SRP", 1]]
                 }
               }
             , [ ["USE_LIBPSL", {"type": "var", "name": "CURL_USE_LIBPSL"}]
@@ -418,27 +440,15 @@
                   ]
                 }
               }
+            , [["HAVE_SA_FAMILY_T", 1]]
             ]
           }
         ]
       , [ "have_cfile"
         , { "type": "++"
           , "$1":
-            [ { "type": "if"
-              , "cond":
-                { "type": "=="
-                , "$1": {"type": "var", "name": "OS"}
-                , "$2": "windows"
-                }
-              , "then":
-                [ ["HAVE_WINDOWS_H", "windows.h"]
-                , ["HAVE_WS2TCPIP_H", "ws2tcpip.h"]
-                , ["HAVE_WINSOCK2_H", "winsock2.h"]
-                , ["HAVE_WINCRYPT_H", "wincrypt.h"]
-                ]
-              }
-            , [ ["HAVE_INTTYPES_H", "inttypes.h"]
-              , ["HAVE_SYS_FILIO_H", "sys/filio.h"]
+            [ [ ["HAVE_SYS_FILIO_H", "sys/filio.h"]
+              , ["HAVE_SYS_WAIT_H", "sys/wait.h"]
               , ["HAVE_SYS_IOCTL_H", "sys/ioctl.h"]
               , ["HAVE_SYS_PARAM_H", "sys/param.h"]
               , ["HAVE_SYS_POLL_H", "sys/poll.h"]
@@ -453,7 +463,6 @@
               , ["HAVE_SYS_UTIME_H", "sys/utime.h"]
               , ["HAVE_SYS_XATTR_H", "sys/xattr.h"]
               , ["HAVE_ARPA_INET_H", "arpa/inet.h"]
-              , ["HAVE_ARPA_TFTP_H", "arpa/tftp.h"]
               , ["HAVE_FCNTL_H", "fcntl.h"]
               , ["HAVE_IDN2_H", "idn2.h"]
               , ["HAVE_IFADDRS_H", "ifaddrs.h"]
@@ -464,25 +473,18 @@
               , ["HAVE_NETDB_H", "netdb.h"]
               , ["HAVE_NETINET_IN_H", "netinet/in.h"]
               , ["HAVE_NETINET_TCP_H", "netinet/tcp.h"]
+              , ["HAVE_NETINET_UDP_H", "netinet/udp.h"]
               , ["HAVE_LINUX_TCP_H", "linux/tcp.h"]
               , ["HAVE_POLL_H", "poll.h"]
               , ["HAVE_PWD_H", "pwd.h"]
-              , ["HAVE_SETJMP_H", "setjmp.h"]
-              , ["HAVE_SIGNAL_H", "signal.h"]
-              , ["HAVE_SSL_H", "ssl.h"]
               , ["HAVE_STDATOMIC_H", "stdatomic.h"]
               , ["HAVE_STDBOOL_H", "stdbool.h"]
-              , ["HAVE_STDLIB_H", "stdlib.h"]
-              , ["HAVE_STRING_H", "string.h"]
               , ["HAVE_STRINGS_H", "strings.h"]
               , ["HAVE_STROPTS_H", "stropts.h"]
               , ["HAVE_TERMIO_H", "termio.h"]
               , ["HAVE_TERMIOS_H", "termios.h"]
-              , ["HAVE_TIME_H", "time.h"]
               , ["HAVE_UNISTD_H", "unistd.h"]
               , ["HAVE_UTIME_H", "utime.h"]
-              , ["HAVE_STDDEF_H", "stddef.h"]
-              , ["HAVE_SYS_UTSNAME_H", "sys/utsname.h"]
               , ["HAVE_ATOMIC", "stdatomic.h"]
               ]
             , { "type": "if"
@@ -580,14 +582,21 @@
                 }
               }
             , { "type": "if"
-              , "cond": {"type": "var", "name": "USE_ZSTD"}
-              , "then":
+              , "cond": {"type": "var", "name": "HAVE_SSL_SET0_WBIO"}
+              , "then": []
+              , "else":
+                [["HAVE_SSL_SET0_WBIO", ["SSL_set0_wbio", ["openssl/ssl.h"]]]]
+              }
+            , { "type": "if"
+              , "cond": {"type": "var", "name": "HAVE_OPENSSL_SRP"}
+              , "then": []
+              , "else":
                 { "type": "if"
-                , "cond": {"type": "var", "name": "HAVE_ZSTD_CREATEDSTREAM"}
+                , "cond": {"type": "var", "name": "CURL_DISABLE_SRP"}
                 , "then": []
                 , "else":
-                  [ [ "HAVE_ZSTD_CREATEDSTREAM"
-                    , ["ZSTD_createDStream", ["zstd.h"]]
+                  [ [ "HAVE_OPENSSL_SRP"
+                    , ["SSL_CTX_set_srp_username", ["openssl/ssl.h"]]
                     ]
                   ]
                 }
@@ -628,14 +637,17 @@
                   ]
                 ]
               }
-            , [ [ "HAVE_FCHMOD"
-                , ["fchmod", {"type": "var", "name": "sys_hdrs"}]
+            , [ [ "HAVE_FNMATCH"
+                , ["fnmatch", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_BASENAME"
                 , ["basename", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_SOCKET"
                 , ["socket", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , [ "HAVE_SCHED_YIELD"
+                , ["sched_yield", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_SELECT"
                 , ["select", {"type": "var", "name": "sys_hdrs"}]
@@ -655,7 +667,14 @@
               , [ "HAVE_STRCMPI"
                 , ["strccmp", {"type": "var", "name": "sys_hdrs"}]
                 ]
+              , [ "HAVE_MEMRCHR"
+                , ["memrchr", {"type": "var", "name": "sys_hdrs"}]
+                ]
               , ["HAVE_ALARM", ["alarm", {"type": "var", "name": "sys_hdrs"}]]
+              , [ "HAVE_ARC4RANDOM"
+                , ["arc4random", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , ["HAVE_FCNTL", ["fcntl", {"type": "var", "name": "sys_hdrs"}]]
               , [ "HAVE_GETPPID"
                 , ["getppid", {"type": "var", "name": "sys_hdrs"}]
                 ]
@@ -705,12 +724,24 @@
               , [ "HAVE_GETADDRINFO"
                 , ["getaddrinfo", {"type": "var", "name": "sys_hdrs"}]
                 ]
+              , [ "HAVE_GETIFADDRS"
+                , ["getifaddrs", {"type": "var", "name": "sys_hdrs"}]
+                ]
               , [ "HAVE_FREEADDRINFO"
                 , ["freeaddrinfo", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , ["HAVE_PIPE", ["pipe", {"type": "var", "name": "sys_hdrs"}]]
               , [ "HAVE_FTRUNCATE"
                 , ["ftruncate", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , [ "HAVE_FSEEKO"
+                , ["fseeko", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , [ "HAVE_DECL_FSEEKO"
+                , ["fseeko", {"type": "var", "name": "sys_hdrs"}]
+                ]
+              , [ "HAVE__FSEEKI64"
+                , ["_fseeki64", {"type": "var", "name": "sys_hdrs"}]
                 ]
               , [ "HAVE_GETPEERNAME"
                 , ["getpeername", {"type": "var", "name": "sys_hdrs"}]
@@ -839,12 +870,16 @@
           }
         ]
       , ["have_ctype", [["HAVE_LONGLONG", "long long"]]]
+      , ["have_ctype", [["HAVE_SUSECONDS_T", "suseconds_t"]]]
       , [ "size_ctype"
-        , [ ["SIZEOF_INT", ["int", [1, 2, 4, 8, 16]]]
+        , [ ["SIZEOF_SIZE_T", ["size_t", [1, 2, 4, 8, 16]]]
+          , ["SIZEOF_SSIZE_T", ["ssize_t", [1, 2, 4, 8, 16]]]
+          , ["SIZEOF_LONG_LONG", ["long long", [1, 2, 4, 8, 16]]]
           , ["SIZEOF_LONG", ["long", [1, 2, 4, 8, 16]]]
-          , ["SIZEOF_OFF_T", ["off_t", [1, 2, 4, 8, 16]]]
-          , ["SIZEOF_SIZE_T", ["size_t", [1, 2, 4, 8, 16]]]
+          , ["SIZEOF_INT", ["int", [1, 2, 4, 8, 16]]]
           , ["SIZEOF_TIME_T", ["time_t", [1, 2, 4, 8, 16]]]
+          , ["SIZEOF_SUSECONDS_T", ["suseconds_t", [1, 2, 4, 8, 16]]]
+          , ["SIZEOF_OFF_T", ["off_t", [1, 2, 4, 8, 16]]]
           ]
         ]
       , [ "defines"
@@ -1018,7 +1053,8 @@
                 }
               }
             , [["SIZEOF_CURL_OFF_T", "8"]]
-            , [["SIZEOF_CURL_SOCKET_T", "8"]]
+            , [["SIZEOF_CURL_SOCKET_T", "4"]]
+            , [["SIZEOF_SA_FAMILY_T", "2"]]
             ]
           }
         ]
@@ -1091,13 +1127,11 @@
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
     [ "vtls/bearssl.c"
-    , "vtls/gskit.c"
     , "vtls/gtls.c"
     , "vtls/hostcheck.c"
     , "vtls/keylog.c"
     , "vtls/mbedtls.c"
     , "vtls/mbedtls_threadlock.c"
-    , "vtls/nss.c"
     , "vtls/openssl.c"
     , "vtls/rustls.c"
     , "vtls/schannel.c"
@@ -1112,16 +1146,15 @@
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
     [ "vtls/bearssl.h"
-    , "vtls/gskit.h"
     , "vtls/gtls.h"
     , "vtls/hostcheck.h"
     , "vtls/keylog.h"
     , "vtls/mbedtls.h"
     , "vtls/mbedtls_threadlock.h"
-    , "vtls/nssg.h"
     , "vtls/openssl.h"
     , "vtls/rustls.h"
     , "vtls/schannel.h"
+    , "vtls/schannel_int.h"
     , "vtls/sectransp.h"
     , "vtls/vtls.h"
     , "vtls/vtls_int.h"
@@ -1134,8 +1167,10 @@
   , "srcs":
     [ "vquic/curl_msh3.c"
     , "vquic/curl_ngtcp2.c"
+    , "vquic/curl_osslq.c"
     , "vquic/curl_quiche.c"
     , "vquic/vquic.c"
+    , "vquic/vquic-tls.c"
     ]
   }
 , "curl_vquic_hfiles":
@@ -1143,9 +1178,11 @@
   , "srcs":
     [ "vquic/curl_msh3.h"
     , "vquic/curl_ngtcp2.h"
+    , "vquic/curl_osslq.h"
     , "vquic/curl_quiche.h"
-    , "vquic/vquic_int.h"
     , "vquic/vquic.h"
+    , "vquic/vquic_int.h"
+    , "vquic/vquic-tls.h"
     ]
   }
 , "curl_vssh_cfiles":
