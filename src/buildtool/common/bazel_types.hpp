@@ -21,6 +21,7 @@
 
 #ifdef BOOTSTRAP_BUILD_TOOL
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 

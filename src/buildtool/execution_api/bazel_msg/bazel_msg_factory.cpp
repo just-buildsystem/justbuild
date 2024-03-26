@@ -22,6 +22,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 #include "gsl/gsl"

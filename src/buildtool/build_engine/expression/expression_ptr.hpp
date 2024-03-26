@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_PTR_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_PTR_HPP
 
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <string>
@@ -62,8 +63,9 @@ class ExpressionPtr {
     [[nodiscard]] auto operator[](
         ExpressionPtr const& key) const& -> ExpressionPtr const&;
     [[nodiscard]] auto operator[](ExpressionPtr const& key) && -> ExpressionPtr;
-    [[nodiscard]] auto operator[](size_t pos) const& -> ExpressionPtr const&;
-    [[nodiscard]] auto operator[](size_t pos) && -> ExpressionPtr;
+    [[nodiscard]] auto operator[](
+        std::size_t pos) const& -> ExpressionPtr const&;
+    [[nodiscard]] auto operator[](std::size_t pos) && -> ExpressionPtr;
     [[nodiscard]] auto operator<(ExpressionPtr const& other) const -> bool;
     [[nodiscard]] auto operator==(ExpressionPtr const& other) const -> bool;
     template <class T>

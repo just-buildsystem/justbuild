@@ -18,9 +18,11 @@
 #include <algorithm>
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

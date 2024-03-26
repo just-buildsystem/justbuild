@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <type_traits>
+#include <utility>  // std::move
 
 class Task {
   public:

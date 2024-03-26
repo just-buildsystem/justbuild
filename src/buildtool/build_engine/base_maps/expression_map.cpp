@@ -16,6 +16,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"

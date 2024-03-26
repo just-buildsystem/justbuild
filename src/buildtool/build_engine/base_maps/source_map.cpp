@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 
 #include <filesystem>
+#include <utility>  // std::move
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"

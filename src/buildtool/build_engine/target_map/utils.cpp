@@ -15,8 +15,10 @@
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "src/utils/cpp/path.hpp"

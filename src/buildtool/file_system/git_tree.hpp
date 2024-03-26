@@ -15,9 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_TREE_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_TREE_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <unordered_map>
+#include <utility>  // std::move
 
 #include "gsl/gsl"
 #include "src/buildtool/file_system/git_repo.hpp"

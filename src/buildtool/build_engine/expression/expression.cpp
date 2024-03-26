@@ -14,6 +14,7 @@
 
 #include "src/buildtool/build_engine/expression/expression.hpp"
 
+#include <algorithm>
 #include <exception>
 #include <optional>
 #include <sstream>

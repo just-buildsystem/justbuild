@@ -16,8 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_CONFIGURATION_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <sstream>
 #include <string>
+#include <utility>  // std::move
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"

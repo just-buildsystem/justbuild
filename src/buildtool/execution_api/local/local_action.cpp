@@ -15,7 +15,9 @@
 #include "src/buildtool/execution_api/local/local_action.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
+#include <utility>
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"

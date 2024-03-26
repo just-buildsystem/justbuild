@@ -18,6 +18,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <shared_mutex>
+#include <utility>  // std::move
 
 // Atomic wrapper with notify/wait capabilities.
 // TODO(modernize): Replace any use this class by C++20's std::atomic<T>, once

@@ -16,12 +16,14 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_RESULT_MAP_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <fstream>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <thread>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "gsl/gsl"

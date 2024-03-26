@@ -21,6 +21,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>  // std::move
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"

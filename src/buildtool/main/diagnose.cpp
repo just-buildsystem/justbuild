@@ -14,6 +14,11 @@
 
 #include "src/buildtool/main/diagnose.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <string>
+#include <unordered_map>
+
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"

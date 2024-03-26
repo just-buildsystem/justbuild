@@ -16,6 +16,7 @@
 
 #include <array>
 #include <cstdint>
+#include <utility>  // std::move
 
 #include "openssl/sha.h"
 

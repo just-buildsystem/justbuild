@@ -14,6 +14,8 @@
 
 #include "src/buildtool/main/install_cas.hpp"
 
+#include <cstddef>
+
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"

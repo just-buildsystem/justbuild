@@ -15,7 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_GIT_GIT_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_GIT_GIT_API_HPP
 
+#include <cstddef>
 #include <cstdio>
+#include <map>
+#include <optional>
+#include <string>
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"

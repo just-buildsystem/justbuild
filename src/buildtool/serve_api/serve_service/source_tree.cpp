@@ -14,6 +14,7 @@
 
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 
+#include <algorithm>
 #include <shared_mutex>
 #include <thread>
 

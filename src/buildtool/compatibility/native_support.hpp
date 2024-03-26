@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMPATIBILITY_NATIVE_SUPPORT_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMPATIBILITY_NATIVE_SUPPORT_HPP
 
+#include <cstddef>
 #include <string>
 
 #include "gsl/gsl"

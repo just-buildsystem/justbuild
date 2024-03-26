@@ -14,6 +14,7 @@
 
 #include <optional>
 #include <thread>
+#include <utility>  // std::move
 
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/remote/retry_parameters.hpp"

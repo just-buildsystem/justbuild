@@ -17,7 +17,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstddef>
 #include <thread>
+#include <utility>  // std::forward
 #include <vector>
 
 #include "src/buildtool/multithreading/notification_queue.hpp"

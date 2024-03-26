@@ -19,6 +19,7 @@
 #include <set>
 #include <string>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"

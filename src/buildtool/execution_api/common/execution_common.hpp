@@ -23,6 +23,7 @@
 #endif
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <random>

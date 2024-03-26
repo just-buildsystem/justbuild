@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_JSON_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <optional>
 #include <sstream>
 #include <string>

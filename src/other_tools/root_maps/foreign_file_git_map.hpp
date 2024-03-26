@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FOREIGN_FILE_GIT_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FOREIGN_FILE_GIT_MAP_HPP
 
+#include <cstddef>
 #include <optional>
 #include <utility>
 

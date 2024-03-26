@@ -16,6 +16,7 @@
 
 #include "src/buildtool/storage/garbage_collector.hpp"
 
+#include <cstddef>
 #include <filesystem>
 #include <vector>
 

@@ -15,9 +15,11 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

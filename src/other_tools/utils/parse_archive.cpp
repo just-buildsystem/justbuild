@@ -14,6 +14,8 @@
 
 #include "src/other_tools/utils/parse_archive.hpp"
 
+#include <utility>  // std::move
+
 #include "fmt/core.h"
 
 namespace {

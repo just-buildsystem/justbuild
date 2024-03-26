@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_PROGRESS_HPP
 #define INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_PROGRESS_HPP
 
+#include <cstddef>
 #include <cstdlib>
 #include <string>
 #include <unordered_map>

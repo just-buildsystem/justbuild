@@ -23,6 +23,7 @@
 #error "Non-unix is not supported yet"
 #endif
 
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <string>

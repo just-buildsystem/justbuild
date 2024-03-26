@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_RESULT_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_RESULT_HPP
 
+#include <cstddef>
+#include <optional>
 #include <unordered_map>
 
 #include "nlohmann/json.hpp"

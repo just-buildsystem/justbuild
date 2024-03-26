@@ -16,12 +16,14 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_USER_RULE_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

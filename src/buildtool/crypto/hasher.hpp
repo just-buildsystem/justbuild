@@ -15,10 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_CRYPTO_HASHER_HPP
 #define INCLUDED_SRC_BUILDTOOL_CRYPTO_HASHER_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

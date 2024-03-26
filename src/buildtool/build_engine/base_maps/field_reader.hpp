@@ -15,9 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_FIELD_READER_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_FIELD_READER_HPP
 
+#include <cstddef>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

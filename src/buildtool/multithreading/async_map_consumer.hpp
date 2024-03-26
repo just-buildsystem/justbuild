@@ -17,12 +17,14 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstddef>
 #include <functional>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>  // std::move
 #include <vector>
 
 #include "gsl/gsl"

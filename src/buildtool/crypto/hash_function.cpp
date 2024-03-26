@@ -14,6 +14,7 @@
 
 #include "src/buildtool/crypto/hash_function.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <string>
 

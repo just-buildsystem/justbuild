@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_CONFIG_HPP
 
 #include <chrono>
+#include <cstddef>
 #include <filesystem>
 #include <iterator>
 #include <vector>

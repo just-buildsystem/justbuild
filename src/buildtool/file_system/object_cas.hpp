@@ -18,6 +18,7 @@
 #include <memory>
 #include <sstream>
 #include <thread>
+#include <utility>  // std::move
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/bazel_types.hpp"

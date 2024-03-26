@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_DESCRIPTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_DESCRIPTION_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 #include <variant>
 
 #include "src/buildtool/common/artifact.hpp"

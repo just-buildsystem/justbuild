@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_CONFIG_HPP
 
 #include <mutex>
+#include <utility>  // std::move
 #include <vector>
 
 #include "src/buildtool/logging/log_level.hpp"

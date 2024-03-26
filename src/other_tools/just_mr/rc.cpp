@@ -14,6 +14,8 @@
 
 #include "src/other_tools/just_mr/rc.hpp"
 
+#include <utility>  // std::move
+
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"

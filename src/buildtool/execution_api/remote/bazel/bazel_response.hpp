@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
 
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 #include "src/buildtool/execution_api/common/execution_api.hpp"

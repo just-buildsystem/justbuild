@@ -14,6 +14,9 @@
 
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
+#include <unordered_map>
+#include <utility>  // std::move
+
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"

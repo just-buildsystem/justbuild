@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <variant>
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"

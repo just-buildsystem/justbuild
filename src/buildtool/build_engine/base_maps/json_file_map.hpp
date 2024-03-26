@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_JSON_FILE_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_JSON_FILE_MAP_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "gsl/gsl"

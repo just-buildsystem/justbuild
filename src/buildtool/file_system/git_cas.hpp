@@ -15,11 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_CAS_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_CAS_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "src/buildtool/file_system/git_context.hpp"

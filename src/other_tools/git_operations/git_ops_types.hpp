@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/utils/cpp/path.hpp"

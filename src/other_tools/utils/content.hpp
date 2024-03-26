@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 #include <variant>
 
 #include "src/buildtool/common/user_structs.hpp"

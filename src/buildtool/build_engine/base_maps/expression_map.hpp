@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_MAP_HPP
 
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <string>

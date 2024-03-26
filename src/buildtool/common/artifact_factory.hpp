@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_COMMON_ARTIFACT_FACTORY_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <utility>

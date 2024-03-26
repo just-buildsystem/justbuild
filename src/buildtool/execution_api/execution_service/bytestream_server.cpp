@@ -14,6 +14,7 @@
 
 #include "bytestream_server.hpp"
 
+#include <cstddef>
 #include <fstream>
 #include <sstream>
 #include <utility>

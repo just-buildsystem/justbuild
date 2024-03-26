@@ -14,6 +14,8 @@
 
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 
+#include <utility>  // std::move
+
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"

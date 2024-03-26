@@ -15,12 +15,14 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_HPP
 
+#include <cstddef>
 #include <exception>
 #include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <type_traits>
+#include <utility>  // std::move
 #include <variant>
 #include <vector>
 

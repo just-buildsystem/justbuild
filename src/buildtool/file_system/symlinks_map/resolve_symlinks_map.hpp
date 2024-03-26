@@ -15,10 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_RESOLVE_SYMLINKS_MAP_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_NODE_HPP
 
 #include <type_traits>
+#include <utility>  // std::move
 #include <variant>
 
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"

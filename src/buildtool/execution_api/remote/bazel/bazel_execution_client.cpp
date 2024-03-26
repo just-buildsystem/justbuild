@@ -14,6 +14,8 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 
+#include <utility>  // std::move
+
 #include "grpcpp/grpcpp.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/remote/client_common.hpp"

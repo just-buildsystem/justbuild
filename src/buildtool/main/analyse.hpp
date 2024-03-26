@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_HPP
 
+#include <cstddef>
 #include <optional>
 #include <string>
 

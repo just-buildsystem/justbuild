@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_UTILS_HPP
 
+#include <cstddef>
 #include <optional>
 
 #include "gsl/gsl"

@@ -23,6 +23,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"

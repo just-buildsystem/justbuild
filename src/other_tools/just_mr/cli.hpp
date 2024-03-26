@@ -15,10 +15,12 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "CLI/CLI.hpp"

@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
 
 #include <chrono>
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <string>

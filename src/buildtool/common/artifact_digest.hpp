@@ -15,8 +15,10 @@
 #ifndef INCLUDED_SRC_COMMON_ARTIFACT_DIGEST_HPP
 #define INCLUDED_SRC_COMMON_ARTIFACT_DIGEST_HPP
 
+#include <cstddef>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"

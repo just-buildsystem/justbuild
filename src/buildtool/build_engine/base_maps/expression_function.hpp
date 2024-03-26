@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_CONCEPTS_HPP
 
 #include <chrono>
+#include <cstddef>
 #include <string>
 #include <type_traits>
 

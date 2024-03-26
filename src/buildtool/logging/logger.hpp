@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_LOGGING_LOGGER_HPP
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOGGER_HPP
 
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"

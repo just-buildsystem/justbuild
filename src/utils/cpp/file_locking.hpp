@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <utility>  // std::move
 
 #include "gsl/gsl"
 

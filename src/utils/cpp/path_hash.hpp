@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_PATH_HASH_HPP
 #define INCLUDED_SRC_UTILS_CPP_PATH_HASH_HPP
 
+#include <cstddef>
 #include <filesystem>
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)

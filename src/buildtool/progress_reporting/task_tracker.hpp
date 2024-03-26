@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_TASK_TRACKER_HPP
 #define INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_TASK_TRACKER_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <string>

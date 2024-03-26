@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_UTILS_AUTOMATA_DFA_MINIMIZER_HPP
 #define INCLUDED_SRC_UTILS_AUTOMATA_DFA_MINIMIZER_HPP
 
+#include <cstddef>
 #include <map>
 #include <regex>
 #include <string>

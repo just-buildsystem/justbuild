@@ -14,6 +14,8 @@
 
 #include "src/buildtool/file_system/git_repo.hpp"
 
+#include <algorithm>
+#include <cstddef>
 #include <thread>
 #include <unordered_set>
 

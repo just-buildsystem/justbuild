@@ -14,6 +14,8 @@
 
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 
+#include <utility>  // std::move
+
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"

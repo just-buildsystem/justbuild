@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+
 #include <string>
+#include <utility>  // std::move
 
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
@@ -37,11 +40,11 @@ auto ExpressionPtr::operator[](ExpressionPtr const& key) && -> ExpressionPtr {
     return (*ptr_)[key];
 }
 
-auto ExpressionPtr::operator[](size_t pos) const& -> ExpressionPtr const& {
+auto ExpressionPtr::operator[](std::size_t pos) const& -> ExpressionPtr const& {
     return (*ptr_)[pos];
 }
 
-auto ExpressionPtr::operator[](size_t pos) && -> ExpressionPtr {
+auto ExpressionPtr::operator[](std::size_t pos) && -> ExpressionPtr {
     return (*ptr_)[pos];
 }
 

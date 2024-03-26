@@ -16,6 +16,8 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TRAVERSER_TRAVERSER_HPP
 
 #include <atomic>
+#include <cstddef>
+#include <unordered_set>
 
 #include "gsl/gsl"
 #include "src/buildtool/execution_engine/dag/dag.hpp"

@@ -15,6 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_MODULE_NAME_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_MODULE_NAME_HPP
 
+#include <cstddef>
+#include <string>
+#include <utility>
+
 #include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Base {

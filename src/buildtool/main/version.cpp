@@ -14,6 +14,8 @@
 
 #include "src/buildtool/main/version.hpp"
 
+#include <cstddef>
+
 #include "nlohmann/json.hpp"
 #include "src/utils/cpp/json.hpp"
 

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 
+#include <cstddef>
 #include <functional>
 #include <map>
 #include <optional>

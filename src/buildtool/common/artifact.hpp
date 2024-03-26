@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <string>

@@ -23,6 +23,7 @@
 #include <optional>
 #include <sstream>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 

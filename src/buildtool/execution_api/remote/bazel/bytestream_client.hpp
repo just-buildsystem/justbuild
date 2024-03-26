@@ -16,10 +16,12 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BYTESTREAM_CLIENT_HPP
 
 #include <algorithm>
+#include <cstddef>
 #include <functional>
 #include <iomanip>
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 #include "google/bytestream/bytestream.grpc.pb.h"

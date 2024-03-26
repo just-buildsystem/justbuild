@@ -21,6 +21,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "src/buildtool/common/bazel_types.hpp"

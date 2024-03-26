@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_HPP
 
+#include <cstddef>
 #include <memory>
 #include <mutex>  // unique_lock
 #include <shared_mutex>

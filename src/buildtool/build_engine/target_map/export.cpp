@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/target_map/export.hpp"
 
 #include <unordered_set>
+#include <utility>  // std::move
 
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"

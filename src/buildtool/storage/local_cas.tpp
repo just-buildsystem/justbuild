@@ -15,6 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP
 
+#include <cstddef>
+#include <utility>  // std::move
+
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"

@@ -15,6 +15,7 @@
 #include "src/other_tools/just_mr/fetch.hpp"
 
 #include <filesystem>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"

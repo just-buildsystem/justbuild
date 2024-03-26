@@ -16,6 +16,7 @@
 #define OPERATION_CACHE_HPP
 
 #include <atomic>
+#include <cstddef>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>

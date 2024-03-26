@@ -14,6 +14,8 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
+#include <cstddef>
+
 #include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"

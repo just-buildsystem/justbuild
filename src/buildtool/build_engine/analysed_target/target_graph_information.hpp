@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>  // std::move
 #include <vector>
 
 #include "nlohmann/json.hpp"

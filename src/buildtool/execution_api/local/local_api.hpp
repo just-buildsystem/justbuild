@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -22,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>  // std::move
 #include <variant>
 #include <vector>
 

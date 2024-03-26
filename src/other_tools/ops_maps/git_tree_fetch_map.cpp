@@ -15,6 +15,7 @@
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 
 #include <cstdlib>
+#include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "src/buildtool/common/repository_config.hpp"

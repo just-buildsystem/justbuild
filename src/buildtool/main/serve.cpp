@@ -15,6 +15,7 @@
 #include "src/buildtool/main/serve.hpp"
 
 #include <chrono>
+#include <cstddef>
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 

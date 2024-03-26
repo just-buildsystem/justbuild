@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_CONTENT_CAS_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_CONTENT_CAS_MAP_HPP
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>

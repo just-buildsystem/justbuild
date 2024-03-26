@@ -17,6 +17,7 @@
 
 #include <array>
 #include <chrono>
+#include <cstddef>
 #include <cstdio>  // for std::fopen
 #include <cstring>
 #include <exception>

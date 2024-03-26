@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_CRITICAL_GIT_OP_MAP_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_CRITICAL_GIT_OP_MAP_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <mutex>
