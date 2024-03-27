@@ -281,4 +281,17 @@
     , ["src/buildtool/logging", "log_level"]
     ]
   }
+, "archive":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["archive"]
+  , "hdrs": ["archive.hpp"]
+  , "srcs": ["archive.cpp"]
+  , "deps": [["src/buildtool/common", "common"]]
+  , "stage": ["src", "buildtool", "main"]
+  , "private-deps":
+    [ ["", "libarchive"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
+  }
 }
