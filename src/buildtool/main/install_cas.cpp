@@ -23,6 +23,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/execution_api/utils/subobject.hpp"
+#include "src/buildtool/main/archive.hpp"
 #endif
 
 namespace {
@@ -96,7 +97,9 @@ auto FetchAndInstallArtifacts(
         }
     }
 
+    std::optional<std::filesystem::path> out{};
     if (clargs.output_path) {
+        // Compute output location and create parent directories
         auto output_path = (*clargs.output_path / "").parent_path();
         if (FileSystemManager::IsDirectory(output_path)) {
             output_path /= object_info.digest.hash();
@@ -108,8 +111,21 @@ auto FetchAndInstallArtifacts(
                         output_path.parent_path().string());
             return false;
         }
-        if (not api->RetrieveToPaths(
-                {object_info}, {output_path}, alternative_api)) {
+        out = output_path;
+    }
+
+    if (clargs.archive) {
+        if (object_info.type != ObjectType::Tree) {
+            Logger::Log(LogLevel::Error,
+                        "Archive requested on non-tree {}",
+                        object_info.ToString());
+            return false;
+        }
+        return GenerateArchive(api, object_info, out);
+    }
+
+    if (out) {
+        if (not api->RetrieveToPaths({object_info}, {*out}, alternative_api)) {
             Logger::Log(LogLevel::Error, "failed to retrieve artifact.");
             return false;
         }
@@ -117,7 +133,7 @@ auto FetchAndInstallArtifacts(
         Logger::Log(LogLevel::Info,
                     "artifact {} was installed to {}",
                     object_info.ToString(),
-                    output_path.string());
+                    out->string());
     }
     else {  // dump to stdout
         if (not api->RetrieveToFds(

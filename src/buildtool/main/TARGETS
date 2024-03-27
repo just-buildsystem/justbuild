@@ -119,6 +119,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/utils", "subobject"]
+    , "archive"
     ]
   }
 , "add_to_cas":
@@ -286,7 +287,10 @@
   , "name": ["archive"]
   , "hdrs": ["archive.hpp"]
   , "srcs": ["archive.cpp"]
-  , "deps": [["src/buildtool/common", "common"]]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
     [ ["", "libarchive"]

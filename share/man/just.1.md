@@ -496,9 +496,16 @@ Install path for the artifact. Refer to **`install-cas`** section for more
 details.  
 Supported by: install-cas.
 
+**`--archive`**  
+Instead of installing the requested tree, install an archive with the
+content of the tree. It is a user error to specify **`--archive`** and
+not request a tree.  
+Supported by: install-cas.
+
 **`--raw-tree`**  
 When installing a tree to stdout, i.e., when no option **`-o`** is given,
-dump the raw tree rather than a pretty-printed version.  
+dump the raw tree rather than a pretty-printed version. This option is
+ignored if **`--archive`** is given.  
 Supported by: install-cas.
 
 **`-P`**, **`--sub-object-path`** *`PATH`*  
