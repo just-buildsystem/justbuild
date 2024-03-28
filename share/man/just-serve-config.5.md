@@ -114,6 +114,38 @@ The configuration file is given by a JSON object.
    remote-execution endpoint. If unset (or `null`), the value
    `["env", "--"]` will be taken as default.
 
+EXAMPLE
+=======
+
+An example serve configuration file could look as follows.
+
+```jsonc
+{ "local build root": "/var/just-serve/root"
+, "authentication":
+  { "ca cert": "/etc/just-serve/certs/ca.crt"
+  , "client cert": "/etc/just-serve/certs/client.crt"
+  , "client key": "/etc/just-serve/certs/client.key"
+  }
+, "remote service":
+  { "interface": "192.0.2.1"
+  , "port": 9999
+  , "pid file": "/var/run/just-serve/server.pid"
+  , "server cert": "/etc/just-serve/certs/server.crt"
+  , "server key": "/etc/just-serve/certs/server.key"
+  }
+, "execution endpoint": {"address": "198.51.100.1"}
+, "repositories":
+  [ "/var/just-serve/repos/third-party-distfiles"
+  , "/var/just-serve/repos/project-foo"
+  , "/var/just-serve/repos/project-bar"
+  ]
+, "jobs": 8
+, "build": {"build jobs": 128}
+, "max-attempts": 10
+, "initial-backoff-seconds": 10
+, "max-backoff-seconds": 60
+}
+```
 
 See also
 ========
