@@ -43,6 +43,14 @@
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
   , "keep": ["log/warning.txt"]
   }
+, "install --archive":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["install-archive"]
+  , "test": ["install-archive.sh"]
+  , "deps":
+    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "keep": ["src.tar", "reconstructed.tar", "fromstdout.tar"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -50,7 +58,14 @@
   , "deps":
     { "type": "++"
     , "$1":
-      [ ["defaults", "pwd", "install", "build -P", "analyse", "git cas -P"]
+      [ [ "defaults"
+        , "pwd"
+        , "install"
+        , "build -P"
+        , "analyse"
+        , "git cas -P"
+        , "install --archive"
+        ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
