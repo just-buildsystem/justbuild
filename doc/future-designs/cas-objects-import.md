@@ -72,6 +72,19 @@ the command-line `git` tool, a pure computation of the hashes _without_
 generating a CAS entry might still be of interest and available as an option.
 This is, however, not useful in typical situations.
 
+### Auxillary change: `just install-cas --archive`
+
+Build sources many times come in the form of archives, which allow efficient
+storage and backup, and permit easy versioning of build dependencies. Also
+build artifacts, for example resulting binaries (together with required headers
+when building statically), are typically shipped as archives.
+
+Therefore, the `just install-cas` command has an option to dump
+an artifact, that has to be a tree, as an archive instead of as a
+directory (or pretty-printed top-level contents). Remote CAS options
+and file location (with stdout as default) are honored.
+
+
 Auxiliary changes still to be implemented
 -----------------------------------------
 
@@ -81,21 +94,7 @@ To mirror options available in `just-mr` repository descriptions,
 we will also support options to either ignore, or fully resolve
 symlinks in the generated Git trees.
 
-### `just-mr` to support `archive` subcommand
-
-Build sources many times come in the form of archives, which allow efficient
-storage and backup, and permit easy versioning of build dependencies. Also
-build artifacts, for example resulting binaries (together with required headers
-when building statically), are typically shipped as archives.
-
-The `just-mr` tool will therefore implement a new subcommand `archive` which,
-given a tree identifier, with the understanding that the tree is available
-locally (either in local CAS or the Git cache), will produce an archive from
-the content of that tree.
-
-The archive content will be written to standard output, thus allowing the usual
-piping and redirection of binary streams. Optionally, the subcommand will be
-able to write to a file instead.
+### `just install-cas --archive` to support different archive types
 
 By default, for reproducibility reasons, the archiving format will be a tarball.
 Options will be added to produce other archive types, as supported by `just-mr`.
