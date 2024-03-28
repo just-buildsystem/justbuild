@@ -177,10 +177,11 @@ An example just-mrrc file could look like the following:
 , "just": {"root": "system", "path": "usr/bin/just"}
 , "git": {"root": "system", "path": "usr/bin/git"}
 , "remote execution": {"address": "10.0.0.1:8980"}
+, "remote-execution properties": ["image:development-v1.2.3"]
 , "just args":
-  { "build": ["--remote-execution-property", "OS:Linux"]
-  , "install": ["--remote-execution-property", "OS:Linux"]
-  , "rebuild": ["--remote-execution-property", "OS:Linux"]
+  { "build": ["-J", "64"]
+  , "install": ["-J", "64", "--remember"]
+  , "install-cas": ["--remember"]
   }
 , "just files":
   { "config":
