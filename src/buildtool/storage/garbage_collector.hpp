@@ -89,6 +89,11 @@ class GarbageCollector {
         -> std::optional<LockFile>;
 
     [[nodiscard]] auto static LockFilePath() noexcept -> std::filesystem::path;
+
+    /// \brief Remove spliced objects from the youngest generation.
+    /// \return True if the youngest generation does not contain spliced
+    /// objects afterwards.
+    [[nodiscard]] auto static Compactify() noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP

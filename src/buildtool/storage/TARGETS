@@ -33,9 +33,14 @@
     , "garbage_collector.hpp"
     , "large_object_cas.hpp"
     , "large_object_cas.tpp"
+    , "compactifier.hpp"
     ]
   , "srcs":
-    ["target_cache_key.cpp", "target_cache_entry.cpp", "garbage_collector.cpp"]
+    [ "target_cache_key.cpp"
+    , "target_cache_entry.cpp"
+    , "garbage_collector.cpp"
+    , "compactifier.cpp"
+    ]
   , "deps":
     [ "config"
     , "file_chunker"

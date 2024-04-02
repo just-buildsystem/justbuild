@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <memory>
 #include <vector>
 
 #include "nlohmann/json.hpp"
@@ -31,6 +32,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/compactifier.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -236,6 +238,16 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
                             remove_me_dir.string());
             }
         }
+
+        // Compactification must take place before rotating generations.
+        // Otherwise, an interruption of the process during compactification
+        // would lead to an invalid old generation.
+        if (not GarbageCollector::Compactify()) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to compactify the youngest generation.");
+            return false;
+        }
+
         // Rotate generations unless told not to do so
         if (not no_rotation) {
             auto remove_me_dir =
@@ -276,6 +288,25 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     }
 
     return success;
+}
+
+auto GarbageCollector::Compactify() noexcept -> bool {
+    const bool mode = Compatibility::IsCompatible();
+
+    // Return to the initial compatibility mode once done:
+    auto scope_guard = std::shared_ptr<void>(nullptr, [mode](void* /*unused*/) {
+        Compatibility::SetCompatible(mode);
+    });
+
+    // Compactification must be done for both native and compatible storages.
+    auto compactify = [](bool compatible) -> bool {
+        auto const storage =
+            ::Generation(StorageConfig::GenerationCacheDir(0, compatible));
+        Compatibility::SetCompatible(compatible);
+
+        return Compactifier::RemoveSpliced(storage.CAS());
+    };
+    return compactify(mode) and compactify(not mode);
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL

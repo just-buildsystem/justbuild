@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -421,6 +422,52 @@ static void TestExternal() noexcept {
     }
 }
 
+// Test compactification of a storage generation.
+// If there are objects in the storage that have an entry in
+// the large CAS, they must be deleted during compactification.
+template <ObjectType kType>
+static void TestCompactification() {
+    SECTION("Compactify") {
+        static constexpr bool kIsTree = IsTreeObject(kType);
+        static constexpr bool kIsExec = IsExecutableObject(kType);
+
+        using TestType = std::conditional_t<kIsTree,
+                                            LargeTestUtils::Tree,
+                                            LargeTestUtils::Blob<kIsExec>>;
+
+        auto const& cas = Storage::Instance().CAS();
+
+        // Create a large object and split it:
+        auto object = TestType::Create(
+            cas, std::string(TestType::kLargeId), TestType::kLargeSize);
+        REQUIRE(object);
+        auto& [digest, path] = *object;
+        auto result = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
+        REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&result) != nullptr);
+
+        // Ensure all entries are in the storage:
+        auto get_path = [](auto const& cas, bazel_re::Digest const& digest) {
+            return kIsTree ? cas.TreePath(digest)
+                           : cas.BlobPath(digest, kIsExec);
+        };
+
+        auto const& latest = Storage::Generation(0).CAS();
+        REQUIRE(get_path(latest, digest).has_value());
+
+        // Compactify the youngest generation:
+        // Generation rotation is disabled to exclude uplinking.
+        static constexpr bool no_rotation = true;
+        REQUIRE(GarbageCollector::TriggerGarbageCollection(no_rotation));
+
+        // All entries must be deleted during compactification, and for blobs
+        // and executables there are no synchronized entries in the storage:
+        REQUIRE_FALSE(get_path(latest, digest).has_value());
+
+        // All entries must be implicitly splicable:
+        REQUIRE(get_path(cas, digest).has_value());
+    }
+}
+
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalCAS: Split-Splice",
                  "[storage]") {
@@ -429,18 +476,21 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         TestSmall<ObjectType::File>();
         TestEmpty<ObjectType::File>();
         TestExternal<ObjectType::File>();
+        TestCompactification<ObjectType::File>();
     }
     SECTION("Tree") {
         TestLarge<ObjectType::Tree>();
         TestSmall<ObjectType::Tree>();
         TestEmpty<ObjectType::Tree>();
         TestExternal<ObjectType::Tree>();
+        TestCompactification<ObjectType::Tree>();
     }
     SECTION("Executable") {
         TestLarge<ObjectType::Executable>();
         TestSmall<ObjectType::Executable>();
         TestEmpty<ObjectType::Executable>();
         TestExternal<ObjectType::Executable>();
+        TestCompactification<ObjectType::Executable>();
     }
 }
 
