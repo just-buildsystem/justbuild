@@ -65,6 +65,12 @@ class ObjectCAS {
     auto operator=(ObjectCAS&&) -> ObjectCAS& = delete;
     ~ObjectCAS() noexcept = default;
 
+    /// \brief Obtain path to the storage root.
+    [[nodiscard]] auto StorageRoot() const noexcept
+        -> std::filesystem::path const& {
+        return file_store_.StorageRoot();
+    }
+
     /// \brief Store blob from bytes.
     /// \param bytes    The bytes do create the blob from.
     /// \returns Digest of the stored blob or nullopt in case of error.

@@ -74,7 +74,8 @@ class FileStorage {
         return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
     }
 
-    [[nodiscard]] auto StorageRoot() const noexcept -> std::filesystem::path {
+    [[nodiscard]] auto StorageRoot() const noexcept
+        -> std::filesystem::path const& {
         return storage_root_;
     }
 

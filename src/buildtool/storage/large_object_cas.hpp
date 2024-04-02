@@ -106,6 +106,12 @@ class LargeObjectCAS final {
     auto operator=(LargeObjectCAS&&) -> LargeObjectCAS& = delete;
     ~LargeObjectCAS() noexcept = default;
 
+    /// \brief Obtain path to the storage root.
+    [[nodiscard]] auto StorageRoot() const noexcept
+        -> std::filesystem::path const& {
+        return file_store_.StorageRoot();
+    }
+
     /// \brief Get the path to a large entry in the storage.
     /// \param  digest      The digest of a large object.
     /// \returns            Path to the large entry if in the storage.

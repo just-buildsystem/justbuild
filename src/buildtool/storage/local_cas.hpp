@@ -54,6 +54,26 @@ class LocalCAS {
                           base.string() + "-large-" +
                               (Compatibility::IsCompatible() ? 'f' : 't')} {}
 
+    /// \brief Obtain path to the storage root.
+    /// \param type             Type of the storage to be obtained.
+    /// \param large            True if a large storage is needed.
+    [[nodiscard]] auto StorageRoot(ObjectType type,
+                                   bool large = false) const noexcept
+        -> std::filesystem::path const& {
+        if (large) {
+            return IsTreeObject(type) ? cas_tree_large_.StorageRoot()
+                                      : cas_file_large_.StorageRoot();
+        }
+        switch (type) {
+            case ObjectType::Tree:
+                return cas_tree_.StorageRoot();
+            case ObjectType::Executable:
+                return cas_exec_.StorageRoot();
+            default:
+                return cas_file_.StorageRoot();
+        }
+    }
+
     /// \brief Store blob from file path with x-bit.
     /// \tparam kOwner          Indicates ownership for optimization (hardlink).
     /// \param file_path        The path of the file to store as blob.
