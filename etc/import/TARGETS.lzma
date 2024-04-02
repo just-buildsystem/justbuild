@@ -176,7 +176,7 @@
         , "then": ["-DHAVE_LZIP_DECODER"]
         }
       , [ "-DHAVE_CLOCK_GETTIME"
-        , "-DHAVE_CLOCK_MONOTONIC"
+        , "-DHAVE_DECL_CLOCK_MONOTONIC"
         , "-DHAVE_PTHREAD_CONDATTR_SETCLOCK"
         , "-DTUKLIB_SYMBOL_PREFIX=lzma_"
         , "-DHAVE_FUNC_ATTRIBUTE_CONSTRUCTOR"

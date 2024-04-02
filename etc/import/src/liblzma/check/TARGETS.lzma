@@ -4,7 +4,7 @@
   , "hdrs":
     { "type": "++"
     , "$1":
-      [ ["check.h", "crc_common.h", "crc_x86_clmul.h"]
+      [ ["check.h", "crc_macros.h"]
       , { "type": "if"
         , "cond": {"type": "var", "name": "ENABLE_SMALL"}
         , "then": []
