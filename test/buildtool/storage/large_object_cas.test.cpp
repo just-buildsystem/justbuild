@@ -425,6 +425,7 @@ static void TestExternal() noexcept {
 // Test compactification of a storage generation.
 // If there are objects in the storage that have an entry in
 // the large CAS, they must be deleted during compactification.
+// All splitable objects in the generation must be split.
 template <ObjectType kType>
 static void TestCompactification() {
     SECTION("Compactify") {
@@ -445,6 +446,17 @@ static void TestCompactification() {
         auto result = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
         REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&result) != nullptr);
 
+        // For trees the size must be increased to exceed the internal
+        // compactification threshold:
+        static constexpr auto ExceedThresholdSize =
+            kIsTree ? TestType::kLargeSize * 8 : TestType::kLargeSize;
+
+        // Create a large object that is to be split during compactification:
+        auto object_2 = TestType::Create(
+            cas, std::string(TestType::kLargeId) + "_2", ExceedThresholdSize);
+        REQUIRE(object_2);
+        auto& [digest_2, path_2] = *object_2;
+
         // Ensure all entries are in the storage:
         auto get_path = [](auto const& cas, bazel_re::Digest const& digest) {
             return kIsTree ? cas.TreePath(digest)
@@ -453,6 +465,7 @@ static void TestCompactification() {
 
         auto const& latest = Storage::Generation(0).CAS();
         REQUIRE(get_path(latest, digest).has_value());
+        REQUIRE(get_path(latest, digest_2).has_value());
 
         // Compactify the youngest generation:
         // Generation rotation is disabled to exclude uplinking.
@@ -462,9 +475,11 @@ static void TestCompactification() {
         // All entries must be deleted during compactification, and for blobs
         // and executables there are no synchronized entries in the storage:
         REQUIRE_FALSE(get_path(latest, digest).has_value());
+        REQUIRE_FALSE(get_path(latest, digest_2).has_value());
 
         // All entries must be implicitly splicable:
         REQUIRE(get_path(cas, digest).has_value());
+        REQUIRE(get_path(cas, digest_2).has_value());
     }
 }
 

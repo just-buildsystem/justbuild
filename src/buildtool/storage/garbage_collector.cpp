@@ -26,6 +26,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -242,7 +243,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Compactification must take place before rotating generations.
         // Otherwise, an interruption of the process during compactification
         // would lead to an invalid old generation.
-        if (not GarbageCollector::Compactify()) {
+        if (not GarbageCollector::Compactify(kMaxBatchTransferSize)) {
             Logger::Log(LogLevel::Error,
                         "Failed to compactify the youngest generation.");
             return false;
@@ -290,7 +291,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     return success;
 }
 
-auto GarbageCollector::Compactify() noexcept -> bool {
+auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
     const bool mode = Compatibility::IsCompatible();
 
     // Return to the initial compatibility mode once done:
@@ -299,12 +300,13 @@ auto GarbageCollector::Compactify() noexcept -> bool {
     });
 
     // Compactification must be done for both native and compatible storages.
-    auto compactify = [](bool compatible) -> bool {
+    auto compactify = [threshold](bool compatible) -> bool {
         auto const storage =
             ::Generation(StorageConfig::GenerationCacheDir(0, compatible));
         Compatibility::SetCompatible(compatible);
 
-        return Compactifier::RemoveSpliced(storage.CAS());
+        return Compactifier::RemoveSpliced(storage.CAS()) and
+               Compactifier::SplitLarge(storage.CAS(), threshold);
     };
     return compactify(mode) and compactify(not mode);
 }

@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_COMPACTIFIER_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_COMPACTIFIER_HPP
 
+#include <cstddef>
+
 template <bool>
 class LocalCAS;
 
@@ -26,6 +28,16 @@ class Compactifier final {
     /// entries.
     [[nodiscard]] static auto RemoveSpliced(LocalCAS<false> const& cas) noexcept
         -> bool;
+
+    /// \brief Split and remove from the storage every entry that is larger than
+    /// the compactification threshold. Results of splitting are added to the
+    /// LocalCAS.
+    /// \param local_cas      LocalCAS to store results of splitting.
+    /// \param threshold      Compactification threshold.
+    /// \return               True if the storage doesn't contain splitable
+    /// entries larger than the compactification threshold afterwards.
+    [[nodiscard]] static auto SplitLarge(LocalCAS<false> const& cas,
+                                         size_t threshold) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_COMPACTIFIER_HPP

@@ -17,9 +17,16 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <optional>
+#include <variant>
+#include <vector>
 
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
 namespace {
@@ -32,11 +39,29 @@ template <ObjectType... kType>
 requires(sizeof...(kType) != 0)
     [[nodiscard]] auto RemoveSpliced(LocalCAS<false> const& cas) noexcept
     -> bool;
+
+/// \brief Split and remove from the kType storage every entry that is larger
+/// than the given threshold. Results of splitting are added to the LocalCAS.
+/// \tparam kType         Type of the storage to inspect.
+/// \param cas            LocalCAS to store results of splitting.
+/// \param threshold      Minimum size of an entry to be split.
+/// \return               True if the kType storage doesn't contain splitable
+/// entries larger than the compactification threshold afterwards.
+template <ObjectType kType>
+[[nodiscard]] auto SplitLarge(LocalCAS<false> const& cas,
+                              size_t threshold) noexcept -> bool;
 }  // namespace
 
 auto Compactifier::RemoveSpliced(LocalCAS<false> const& cas) noexcept -> bool {
     return ::RemoveSpliced<ObjectType::Tree>(cas) and
            ::RemoveSpliced<ObjectType::File, ObjectType::Executable>(cas);
+}
+
+auto Compactifier::SplitLarge(LocalCAS<false> const& cas,
+                              size_t threshold) noexcept -> bool {
+    return ::SplitLarge<ObjectType::File>(cas, threshold) and
+           ::SplitLarge<ObjectType::Executable>(cas, threshold) and
+           ::SplitLarge<ObjectType::Tree>(cas, threshold);
 }
 
 namespace {
@@ -80,6 +105,63 @@ requires(sizeof...(kType) != 0)
         return std::all_of(storage_roots.begin(), storage_roots.end(), check);
     };
     return FileSystemManager::ReadDirectoryEntriesRecursive(large_storage,
+                                                            callback);
+}
+
+template <ObjectType kType>
+[[nodiscard]] auto SplitLarge(LocalCAS<false> const& cas,
+                              size_t threshold) noexcept -> bool {
+    // Obtain path to the storage root:
+    auto const& storage_root = cas.StorageRoot(kType);
+
+    // Check there are entries to process:
+    if (not FileSystemManager::IsDirectory(storage_root)) {
+        return true;
+    }
+
+    FileSystemManager::UseDirEntryFunc callback =
+        [&](std::filesystem::path const& entry_object, bool is_tree) -> bool {
+        // Use all folders:
+        if (is_tree) {
+            return true;
+        }
+
+        // Filter files by size:
+        auto const path = storage_root / entry_object;
+        if (std::filesystem::file_size(path) < threshold) {
+            return true;
+        }
+
+        // Calculate the digest for the entry:
+        auto const digest = ObjectCAS<kType>::CreateDigest(path);
+        if (not digest) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to calculate digest for {}",
+                        path.generic_string());
+            return false;
+        }
+
+        // Split the entry:
+        auto split_result = IsTreeObject(kType) ? cas.SplitTree(*digest)
+                                                : cas.SplitBlob(*digest);
+        auto* parts = std::get_if<std::vector<bazel_re::Digest>>(&split_result);
+        if (parts == nullptr) {
+            Logger::Log(LogLevel::Error, "Failed to split {}", digest->hash());
+            return false;
+        }
+
+        // If the file cannot actually be split (the threshold is too low), the
+        // file must not be deleted.
+        if (parts->size() < 2) {
+            Logger::Log(LogLevel::Debug,
+                        "{} cannot be compactified. The compactification "
+                        "threshold is too low.",
+                        digest->hash());
+            return true;
+        }
+        return FileSystemManager::RemoveFile(path);
+    };
+    return FileSystemManager::ReadDirectoryEntriesRecursive(storage_root,
                                                             callback);
 }
 }  // namespace

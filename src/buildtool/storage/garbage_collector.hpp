@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP
 
+#include <cstddef>
 #include <functional>
 #include <optional>
 #include <string>
@@ -90,10 +91,12 @@ class GarbageCollector {
 
     [[nodiscard]] auto static LockFilePath() noexcept -> std::filesystem::path;
 
-    /// \brief Remove spliced objects from the youngest generation.
-    /// \return True if the youngest generation does not contain spliced
+    /// \brief Remove spliced objects from the youngest generation and split
+    /// objects that are larger than the threshold.
+    /// \param threshold    Compactification threshold.
+    /// \return True if the youngest generation does not contain splicable
     /// objects afterwards.
-    [[nodiscard]] auto static Compactify() noexcept -> bool;
+    [[nodiscard]] auto static Compactify(size_t threshold) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP
