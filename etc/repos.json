@@ -16,8 +16,6 @@
       , "protoc": "protobuf"
       , "libcurl": "com_github_curl_curl"
       , "libarchive": "com_github_libarchive_libarchive"
-      , "lzma": "lzma"
-      , "bzip2": "bzip2"
       }
     , "bootstrap": {"link": ["-pthread"]}
     , "bootstrap_local": {"link": ["-pthread"]}
