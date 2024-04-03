@@ -307,8 +307,8 @@ auto Union(Expression::list_t const& dicts, size_t from, size_t to)
         return entry;
     }
     size_t mid = from + (to - from) / 2;
-    auto left = Union(dicts, from, mid);
-    auto right = Union(dicts, mid, to);
+    auto left = Union<kDisjoint>(dicts, from, mid);
+    auto right = Union<kDisjoint>(dicts, mid, to);
     if (left->Map().empty()) {
         return right;
     }
