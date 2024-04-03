@@ -85,6 +85,8 @@ A feature release on top of `1.2.0`, backwards compatible.
   to be taken on upgrading or downgrading. However, some target-level
   cache entries will not be used leading potentially to rebuilding of
   some targets.
+- The expression `"disjoint_map_union"` did not verify disjointness
+  in all cases; this is fixed now.
 
 ## Release `1.2.0` (2023-08-25)
 
