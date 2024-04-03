@@ -78,6 +78,45 @@ auto const kConfigureRuleFields =
                                     "target",
                                     "type"};
 
+void ReportArtifactWithDependencyOrigin(
+    const ExpressionPtr& artifact,
+    const std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>&
+        deps_by_target,
+    std::stringstream* msg) {
+    *msg << " - " << artifact->ToString() << " from\n";
+    for (auto const& [name, analysis_result] : deps_by_target) {
+        for (auto const& [path, value] : analysis_result->Artifacts().Map()) {
+            if (value == artifact) {
+                *msg << "    - " << name.ToString() << ", artifact at "
+                     << nlohmann::json(path).dump() << "\n";
+            }
+        }
+        for (auto const& [path, value] : analysis_result->RunFiles().Map()) {
+            if (value == artifact) {
+                *msg << "    - " << name.ToString() << ", runfile at "
+                     << nlohmann::json(path).dump() << "\n";
+            }
+        }
+    }
+}
+
+void ReportStagingConflict(
+    const std::string& location,
+    const ExpressionPtr& stage_A,
+    const ExpressionPtr& stage_B,
+    const std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>&
+        deps_by_target,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger) {
+    std::stringstream msg{};
+    auto artifact_A = stage_A->Get(location, Expression::kNone);
+    auto artifact_B = stage_B->Get(location, Expression::kNone);
+    msg << "Staging conflict on path " << nlohmann::json(location).dump()
+        << " between\n";
+    ReportArtifactWithDependencyOrigin(artifact_A, deps_by_target, &msg);
+    ReportArtifactWithDependencyOrigin(artifact_B, deps_by_target, &msg);
+    (*logger)(msg.str(), true);
+}
+
 void BlobGenRuleWithDeps(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
@@ -379,6 +418,7 @@ void SymlinkRule(
 
 void TreeRuleWithDeps(
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
+    const std::vector<BuildMaps::Target::ConfiguredTarget>& dependency_keys,
     const std::string& name,
     const BuildMaps::Target::ConfiguredTarget& key,
     const BuildMaps::Base::FieldReader::Ptr& desc,
@@ -443,8 +483,15 @@ void TreeRuleWithDeps(
             Expression::map_t{(*dep)->RunFiles(), (*dep)->Artifacts()}};
         auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
         if (dup) {
-            (*logger)(fmt::format("Staging conflict for path {}", dup->get()),
-                      true);
+            std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>
+                deps_by_target;
+            deps_by_target.reserve(dependency_keys.size());
+            for (size_t i = 0; i < dependency_keys.size(); ++i) {
+                deps_by_target.emplace(dependency_keys[i].target,
+                                       *dependency_values[i]);
+            }
+            ReportStagingConflict(
+                dup->get(), stage, to_stage, deps_by_target, logger);
             return;
         }
         stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
@@ -565,10 +612,21 @@ void TreeRule(
     }
     (*subcaller)(
         dependency_keys,
-        [name = name_value->String(), desc, setter, logger, key, result_map](
-            auto const& values) {
-            TreeRuleWithDeps(
-                values, name, key, desc, setter, logger, result_map);
+        [name = name_value->String(),
+         dependency_keys,
+         desc,
+         setter,
+         logger,
+         key,
+         result_map](auto const& values) {
+            TreeRuleWithDeps(values,
+                             dependency_keys,
+                             name,
+                             key,
+                             desc,
+                             setter,
+                             logger,
+                             result_map);
         },
         logger);
 }
@@ -652,8 +710,8 @@ void InstallRuleWithDeps(
         auto to_stage = deps_by_target.at(dep)->RunFiles();
         auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
         if (dup) {
-            (*logger)(fmt::format("Staging conflict for path {}", dup->get()),
-                      true);
+            ReportStagingConflict(
+                dup->get(), stage, to_stage, deps_by_target, logger);
             return;
         }
         stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
@@ -709,8 +767,8 @@ void InstallRuleWithDeps(
         auto to_stage = ExpressionPtr{Expression::map_t{subdir_stage}};
         auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
         if (dup) {
-            (*logger)(fmt::format("Staging conflict for path {}", dup->get()),
-                      true);
+            ReportStagingConflict(
+                dup->get(), stage, to_stage, deps_by_target, logger);
             return;
         }
         stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
@@ -1606,7 +1664,7 @@ auto HandleBuiltin(
         [logger, rule_name, key](auto msg, auto fatal) {
             (*logger)(fmt::format("While evaluating {} target {}:\n{}",
                                   rule_name,
-                                  key.target.ToString(),
+                                  key.ToString(),
                                   msg),
                       fatal);
         });
