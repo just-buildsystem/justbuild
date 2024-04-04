@@ -83,6 +83,8 @@ class ExpressionPtr {
             [](std::string const& error) noexcept -> void {
             Logger::Log(LogLevel::Error, error);
         },
+        std::function<std::string(ExpressionPtr)> const& annotate_object =
+            [](auto const& /*unused*/) { return std::string{}; },
         std::function<void(void)> const& note_user_context =
             []() noexcept -> void {}) const noexcept -> ExpressionPtr;
 

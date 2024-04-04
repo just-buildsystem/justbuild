@@ -361,8 +361,13 @@ auto Union(Expression::list_t const& dicts, size_t from, size_t to)
                 fmt::format("Map union not essentially disjoint as claimed, "
                             "duplicate key {}; conflicting values:\n- {}\n- {}",
                             nlohmann::json(dup->get()).dump(),
-                            left_val->ToString(),
-                            right_val->ToString())};
+                            left_val->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit()),
+                            right_val->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit())),
+                false,
+                false,
+                std::vector<ExpressionPtr>{left_val, right_val}};
         }
     }
     return ExpressionPtr{Expression::map_t{left, right}};
@@ -432,12 +437,14 @@ auto UnaryExpr(std::function<ExpressionPtr(ExpressionPtr const&)> const& f)
         } catch (Evaluator::EvaluationError const& ex) {
             throw Evaluator::EvaluationError::WhileEval(
                 fmt::format("Having evaluated the argument to {}:",
-                            argument->ToString()),
+                            argument->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit())),
                 ex);
         } catch (std::exception const& ex) {
             throw Evaluator::EvaluationError::WhileEvaluating(
                 fmt::format("Having evaluated the argument to {}:",
-                            argument->ToString()),
+                            argument->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit())),
                 ex);
         }
     };
@@ -897,6 +904,20 @@ auto ContextExpr(SubExprEvaluator&& eval,
                  Configuration const& env) -> ExpressionPtr {
     try {
         return eval(expr->Get("$1", Expression::kNone), env);
+    } catch (Evaluator::EvaluationError const& ex) {
+        auto msg_expr = expr->Get("msg", map_t{});
+        std::string context{};
+        try {
+            auto msg_val = eval(msg_expr, env);
+            context = msg_val->ToString();
+        } catch (std::exception const&) {
+            context = "[non evaluating term] " + msg_expr->ToString();
+        }
+        std::stringstream ss{};
+        ss << "In Context " << context << std::endl;
+        ss << ex.what();
+        throw Evaluator::EvaluationError(
+            ss.str(), true, true, ex.InvolvedObjects());
     } catch (std::exception const& ex) {
         auto msg_expr = expr->Get("msg", map_t{});
         std::string context{};
@@ -924,12 +945,36 @@ auto DisjointUnionExpr(SubExprEvaluator&& eval,
     }
     try {
         return Union</*kDisjoint=*/true>(argument);
+    } catch (Evaluator::EvaluationError const& ex) {
+        auto msg_expr = expr->Map().Find("msg");
+        if (not msg_expr) {
+            throw Evaluator::EvaluationError::WhileEval(
+                fmt::format("Having evaluated the argument to {}:",
+                            argument->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit())),
+                ex);
+        }
+        std::string msg;
+        try {
+            auto msg_val = eval(**msg_expr, env);
+            msg = msg_val->ToString();
+        } catch (std::exception const&) {
+            msg = "[non evaluating term] " + (**msg_expr)->ToString();
+        }
+        std::stringstream ss{};
+        ss << msg << std::endl;
+        ss << "Underlying " << ex.what() << std::endl;
+        ss << "The argument of the union was "
+           << argument->ToAbbrevString(Evaluator::GetExpressionLogLimit());
+        throw Evaluator::EvaluationError(
+            ss.str(), false, true, ex.InvolvedObjects());
     } catch (std::exception const& ex) {
         auto msg_expr = expr->Map().Find("msg");
         if (not msg_expr) {
             throw Evaluator::EvaluationError::WhileEvaluating(
                 fmt::format("Having evaluated the argument to {}:",
-                            argument->ToString()),
+                            argument->ToAbbrevString(
+                                Evaluator::GetExpressionLogLimit())),
                 ex);
         }
         std::string msg;
@@ -942,7 +987,8 @@ auto DisjointUnionExpr(SubExprEvaluator&& eval,
         std::stringstream ss{};
         ss << msg << std::endl;
         ss << "Reason: " << ex.what() << std::endl;
-        ss << "The argument of the union was " << argument->ToString();
+        ss << "The argument of the union was "
+           << argument->ToAbbrevString(Evaluator::GetExpressionLogLimit());
         throw Evaluator::EvaluationError(ss.str(), false, true);
     }
 }
@@ -1021,23 +1067,31 @@ auto const kBuiltInFunctions =
                           {"env", EnvExpr},
                           {"concat_target_name", ConcatTargetNameExpr}});
 
-}  // namespace
-
-auto Evaluator::EvaluationError::WhileEvaluating(ExpressionPtr const& expr,
-                                                 Configuration const& env,
-                                                 std::exception const& ex)
-    -> Evaluator::EvaluationError {
+auto ExtendedErrorMessage(ExpressionPtr const& expr,
+                          Configuration const& env,
+                          std::exception const& ex) -> std::string {
     std::stringstream ss{};
     ss << "* ";
     if (expr->IsMap() and expr->Map().contains("type") and
         expr["type"]->IsString()) {
         ss << expr["type"]->ToString() << "-expression ";
     }
-    ss << expr->ToAbbrevString(Config().expression_log_limit) << std::endl;
+    ss << expr->ToAbbrevString(Evaluator::GetExpressionLogLimit()) << std::endl;
     ss << "  environment " << std::endl;
-    ss << env.Enumerate("  - ", Config().expression_log_limit) << std::endl;
+    ss << env.Enumerate("  - ", Evaluator::GetExpressionLogLimit())
+       << std::endl;
     ss << ex.what();
-    return EvaluationError{ss.str(), true /* while_eval */};
+    return ss.str();
+}
+
+}  // namespace
+
+auto Evaluator::EvaluationError::WhileEvaluating(ExpressionPtr const& expr,
+                                                 Configuration const& env,
+                                                 std::exception const& ex)
+    -> Evaluator::EvaluationError {
+    return EvaluationError{ExtendedErrorMessage(expr, env, ex),
+                           true /* while_eval */};
 }
 
 auto Evaluator::EvaluationError::WhileEval(ExpressionPtr const& expr,
@@ -1047,7 +1101,8 @@ auto Evaluator::EvaluationError::WhileEval(ExpressionPtr const& expr,
     if (ex.UserContext()) {
         return ex;
     }
-    return Evaluator::EvaluationError::WhileEvaluating(expr, env, ex);
+    return EvaluationError{
+        ExtendedErrorMessage(expr, env, ex), true, false, ex.InvolvedObjects()};
 }
 
 auto Evaluator::EvaluationError::WhileEvaluating(const std::string& where,
@@ -1065,7 +1120,10 @@ auto Evaluator::EvaluationError::WhileEval(const std::string& where,
     if (ex.UserContext()) {
         return ex;
     }
-    return Evaluator::EvaluationError::WhileEvaluating(where, ex);
+    std::stringstream ss{};
+    ss << where << std::endl;
+    ss << ex.what();
+    return EvaluationError{ss.str(), true, false, ex.InvolvedObjects()};
 }
 
 auto Evaluator::EvaluateExpression(
@@ -1073,6 +1131,7 @@ auto Evaluator::EvaluateExpression(
     Configuration const& env,
     FunctionMapPtr const& provider_functions,
     std::function<void(std::string const&)> const& logger,
+    std::function<std::string(ExpressionPtr)> const& annotate_object,
     std::function<void(void)> const& note_user_context) noexcept
     -> ExpressionPtr {
     std::stringstream ss{};
@@ -1096,6 +1155,9 @@ auto Evaluator::EvaluateExpression(
             }
         }
         ss << ex.what();
+        for (auto const& object : ex.InvolvedObjects()) {
+            ss << annotate_object(object);
+        }
     } catch (std::exception const& ex) {
         ss << ex.what();
     }

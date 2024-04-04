@@ -60,10 +60,12 @@ auto ExpressionPtr::Evaluate(
     Configuration const& env,
     FunctionMapPtr const& functions,
     std::function<void(std::string const&)> const& logger,
-    std::function<void(void)> const& note_user_context) const noexcept
-    -> ExpressionPtr {
+    std::function<std::string(ExpressionPtr)> const& annotate_object,
+    std::function<void(void)> const& note_user_context
+
+) const noexcept -> ExpressionPtr {
     return Evaluator::EvaluateExpression(
-        *this, env, functions, logger, note_user_context);
+        *this, env, functions, logger, annotate_object, note_user_context);
 }
 
 auto ExpressionPtr::IsCacheable() const noexcept -> bool {

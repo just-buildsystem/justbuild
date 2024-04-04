@@ -51,11 +51,13 @@ class ExpressionFunction {
             [](std::string const& error) noexcept -> void {
             Logger::Log(LogLevel::Error, error);
         },
+        std::function<std::string(ExpressionPtr)> annotate_object =
+            [](auto const& /*unused*/) { return std::string{}; },
         std::function<void(void)> const& note_user_context =
             []() noexcept -> void {}) const noexcept -> ExpressionPtr {
         try {  // try-catch to silence clang-tidy's bugprone-exception-escape,
                // only imports_caller can throw but it is not called here.
-            auto imports_caller = [this, &functions](
+            auto imports_caller = [this, &functions, &annotate_object](
                                       SubExprEvaluator&& /*eval*/,
                                       ExpressionPtr const& expr,
                                       Configuration const& env) {
@@ -69,6 +71,7 @@ class ExpressionFunction {
                         env,
                         functions,
                         [&ss](auto const& msg) { ss << msg; },
+                        annotate_object,
                         [&user_context]() { user_context = true; }
 
                     );
@@ -94,6 +97,7 @@ class ExpressionFunction {
                 FunctionMap::MakePtr(
                     functions, "CALL_EXPRESSION", imports_caller),
                 logger,
+                annotate_object,
                 note_user_context);
         } catch (...) {
             EnsuresAudit(false);  // ensure that the try-block never throws

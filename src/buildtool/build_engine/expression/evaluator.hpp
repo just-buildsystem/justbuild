@@ -18,6 +18,8 @@
 #include <cstddef>
 #include <exception>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
@@ -36,17 +38,24 @@ class Evaluator {
         Config().expression_log_limit = width;
     }
 
+    static auto GetExpressionLogLimit() -> std::size_t {
+        return Config().expression_log_limit;
+    }
+
     class EvaluationError : public std::exception {
       public:
         explicit EvaluationError(std::string const& msg,
                                  bool while_eval = false,
-                                 bool user_context = false) noexcept
+                                 bool user_context = false,
+                                 std::vector<ExpressionPtr> involved_objetcs =
+                                     std::vector<ExpressionPtr>{}) noexcept
             : msg_{(while_eval ? ""
                                : (user_context ? "UserError: "
                                                : "EvaluationError: ")) +
                    msg},
               while_eval_{while_eval},
-              user_context_{user_context} {}
+              user_context_{user_context},
+              involved_objects_{std::move(std::move(involved_objetcs))} {}
         [[nodiscard]] auto what() const noexcept -> char const* final {
             return msg_.c_str();
         }
@@ -56,6 +65,15 @@ class Evaluator {
         }
 
         [[nodiscard]] auto UserContext() const -> bool { return user_context_; }
+
+        [[nodiscard]] auto InvolvedObjects() const& noexcept
+            -> std::vector<ExpressionPtr> const& {
+            return involved_objects_;
+        }
+
+        [[nodiscard]] auto InvolvedObjects() && -> std::vector<ExpressionPtr> {
+            return involved_objects_;
+        }
 
         [[nodiscard]] static auto WhileEvaluating(ExpressionPtr const& expr,
                                                   Configuration const& env,
@@ -79,6 +97,7 @@ class Evaluator {
         std::string msg_;
         bool while_eval_;
         bool user_context_;
+        std::vector<ExpressionPtr> involved_objects_;
     };
 
     // Exception-free evaluation of expression
@@ -87,6 +106,8 @@ class Evaluator {
         Configuration const& env,
         FunctionMapPtr const& provider_functions,
         std::function<void(std::string const&)> const& logger,
+        std::function<std::string(ExpressionPtr)> const& annotate_object =
+            [](auto const& /*unused*/) { return std::string{}; },
         std::function<void(void)> const& note_user_context = []() {}) noexcept
         -> ExpressionPtr;
 
