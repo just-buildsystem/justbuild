@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -37,6 +38,7 @@
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
+
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -212,6 +214,88 @@ struct TargetData {
                                             /*parse_target_names=*/false);
     }
 };
+
+auto NameTransitionedDeps(
+    const BuildMaps::Target::ConfiguredTarget& transitioned_target,
+    const AnalysedTargetPtr& analysis,
+    const Configuration& effective_conf) -> std::string {
+    auto conf = effective_conf.Update(transitioned_target.config.Expr())
+                    .Prune(analysis->Vars());
+    return BuildMaps::Target::ConfiguredTarget{transitioned_target.target, conf}
+        .ToString();
+}
+
+// Check if an object is contained an expression; to avoid tree-unfolding
+// the expression, we need to cache the values already computed.
+// NOLINTNEXTLINE(misc-no-recursion)
+auto ExpressionContainsObject(std::unordered_map<ExpressionPtr, bool>* map,
+                              const ExpressionPtr& object,
+                              const ExpressionPtr& exp) {
+    auto lookup = map->find(exp);
+    if (lookup != map->end()) {
+        return lookup->second;
+    }
+    auto result = false;
+    if (exp == object) {
+        result = true;
+    }
+    else if (exp->IsList()) {
+        for (auto const& entry : exp->List()) {
+            if (ExpressionContainsObject(map, object, entry)) {
+                result = true;
+                break;
+            }
+        }
+    }
+    else if (exp->IsMap()) {
+        for (auto const& [k, v] : exp->Map()) {
+            if (ExpressionContainsObject(map, object, v)) {
+                result = true;
+                break;
+            }
+        }
+    }
+    map->insert({exp, result});
+    return result;
+}
+
+auto ListDependencies(
+    const ExpressionPtr& object,
+    const std::unordered_map<BuildMaps::Target::ConfiguredTarget,
+                             AnalysedTargetPtr>& deps_by_transition,
+    const Configuration& effective_conf) -> std::string {
+    std::stringstream deps{};
+    std::unordered_map<ExpressionPtr, bool> contains_object{};
+    for (auto const& [transition_target, analysis] : deps_by_transition) {
+        for (auto const& [path, value] : analysis->Artifacts().Map()) {
+            if (value == object) {
+                deps << fmt::format(
+                    "\n - {}, artifact at {}",
+                    NameTransitionedDeps(
+                        transition_target, analysis, effective_conf),
+                    nlohmann::json(path).dump());
+            }
+        }
+        for (auto const& [path, value] : analysis->RunFiles().Map()) {
+            if (value == object) {
+                deps << fmt::format(
+                    "\n - {}, runfile at {}",
+                    NameTransitionedDeps(
+                        transition_target, analysis, effective_conf),
+                    nlohmann::json(path).dump());
+            }
+        }
+        if (ExpressionContainsObject(
+                &contains_object, object, analysis->Provides())) {
+            deps << fmt::format(
+                "\n - {}, in provided data",
+                NameTransitionedDeps(
+                    transition_target, analysis, effective_conf));
+        }
+    }
+
+    return deps.str();
+}
 
 void withDependencies(
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
@@ -832,13 +916,33 @@ void withDependencies(
                                                 .runfiles = runfiles}};
           }}});
 
+    std::function<std::string(ExpressionPtr)> annotate_object =
+        [&deps_by_transition, &effective_conf](auto const& object) {
+            if (not object->IsArtifact()) {
+                // we only annotate artifacts
+                return std::string{};
+            }
+            auto occurrences =
+                ListDependencies(object, deps_by_transition, effective_conf);
+            if (!occurrences.empty()) {
+                return fmt::format(
+                    "\nArtifact {} occurs in direct dependencies{}",
+                    object->ToString(),
+                    occurrences);
+            }
+            return fmt::format("\nArtifact {} unknown to direct dependencies",
+                               object->ToString());
+        };
     auto result = rule->Expression()->Evaluate(
-        expression_config, main_exp_fcts, [logger](auto const& msg) {
+        expression_config,
+        main_exp_fcts,
+        [logger](auto const& msg) {
             (*logger)(
                 fmt::format("While evaluating defining expression of rule:\n{}",
                             msg),
                 true);
-        });
+        },
+        annotate_object);
     if (not result) {
         return;
     }
@@ -1347,12 +1451,11 @@ void withTargetsFile(
                     subcaller,
                     setter,
                     std::make_shared<AsyncMapConsumerLogger>(
-                        [logger, target = key.target, rn](auto const& msg,
-                                                          auto fatal) {
+                        [logger, key, rn](auto const& msg, auto fatal) {
                             (*logger)(
                                 fmt::format("While analysing {} target {}:\n{}",
                                             rn.ToString(),
-                                            target.ToString(),
+                                            key.ToString(),
                                             msg),
                                 fatal);
                         }),
@@ -1811,7 +1914,7 @@ auto CreateTargetMap(
                 [logger, key](auto msg, auto fatal) {
                     (*logger)(
                         fmt::format("While processing absent target {}: {}",
-                                    key.target.ToString(),
+                                    key.ToString(),
                                     msg),
                         fatal);
                 });
