@@ -1749,9 +1749,11 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
                               entry.name.c_str(),
                               &(*id),
                               ObjectTypeToGitFileMode(entry.type)) != 0) {
-                Logger::Log(LogLevel::Debug,
-                            "failed adding object {} to Git tree",
-                            ToHexString(raw_id));
+                Logger::Log(
+                    LogLevel::Debug,
+                    "failed adding object {} to Git tree{}",
+                    ToHexString(raw_id),
+                    id ? fmt::format(" with:\n{}", GitLastError()) : "");
                 return std::nullopt;
             }
         }
