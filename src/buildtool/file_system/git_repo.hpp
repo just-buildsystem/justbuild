@@ -263,6 +263,15 @@ class GitRepo {
                                    anon_logger_ptr const& logger) noexcept
         -> std::pair<bool, std::optional<std::string>>;
 
+    /// \brief Write given content as a blob into underlying object database.
+    /// Calling it from a fake repository allows thread-safe use.
+    /// \returns Git ID of the written blob, or nullopt on errors.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    /// Use with care, especially for large objects.
+    [[nodiscard]] auto WriteBlob(std::string const& content,
+                                 anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::string>;
+
     /// \brief Get the object info related to a given path inside a Git tree.
     /// Unlike GetSubtreeFromTree, we here ignore errors and only return a value
     /// when all is successful.

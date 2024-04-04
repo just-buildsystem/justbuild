@@ -1433,6 +1433,38 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+auto GitRepo::WriteBlob(std::string const& content,
+                        anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    try {
+        // preferably with a "fake" repository!
+        if (not IsRepoFake()) {
+            Logger::Log(LogLevel::Debug,
+                        "Blob writer called on a real repository");
+        }
+        // share the odb lock
+        std::shared_lock lock{GetGitCAS()->mutex_};
+
+        git_oid blob_oid;
+        if (git_blob_create_from_buffer(
+                &blob_oid, repo_->Ptr(), content.c_str(), content.size()) !=
+            0) {
+            (*logger)(fmt::format("writing blob into database failed with:\n{}",
+                                  GitLastError()),
+                      /*fatal=*/true);
+            return std::nullopt;
+        }
+        return std::string{git_oid_tostr_s(&blob_oid)};
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error, "write blob failed with:\n{}", ex.what());
+        return std::nullopt;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                                       std::string const& rel_path) noexcept
     -> std::optional<TreeEntryInfo> {
