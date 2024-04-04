@@ -13,6 +13,10 @@
 // limitations under the License.
 
 #include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <string>
+#include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/expression/linked_map.hpp"

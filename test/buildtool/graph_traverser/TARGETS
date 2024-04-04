@@ -4,6 +4,7 @@
   , "hdrs": ["graph_traverser.test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]

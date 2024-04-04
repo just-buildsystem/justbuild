@@ -15,8 +15,10 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/bazel_action_creator.hpp"
 #include "test/utils/test_env.hpp"
 

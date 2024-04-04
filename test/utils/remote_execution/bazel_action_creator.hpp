@@ -15,11 +15,14 @@
 #ifndef INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP
 #define INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP
 
+#include <algorithm>  // std::transform, std::copy
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"

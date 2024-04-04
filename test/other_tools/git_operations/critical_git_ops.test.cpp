@@ -12,9 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>  // std::find
+#include <atomic>
+#include <cstdlib>  // std::system
+#include <filesystem>
+#include <optional>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <functional>  // std::equal_to
 #include <string>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();

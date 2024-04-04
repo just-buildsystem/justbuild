@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_TEST_UTILS_HERMETICITY_LOCAL_HPP
 #define INCLUDED_SRC_TEST_UTILS_HERMETICITY_LOCAL_HPP
 
+#include <cstdlib>
+
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"

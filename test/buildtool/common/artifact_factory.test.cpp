@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <string>
+
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 TEST_CASE("Description missing mandatory key/value pair",
           "[artifact_factory]") {

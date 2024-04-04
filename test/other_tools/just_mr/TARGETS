@@ -5,6 +5,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/other_tools/just_mr", "rc_merge"]
     ]
   , "stage": ["test", "other_tools", "just_mr"]

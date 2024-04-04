@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
+#include <chrono>
+#include <cstdlib>
+#include <filesystem>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

@@ -24,6 +24,7 @@
   , "srcs": ["create_test_archives.cpp"]
   , "private-deps":
     [ ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/utils/archive", "archive_ops"]

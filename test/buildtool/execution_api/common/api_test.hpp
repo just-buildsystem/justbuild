@@ -13,7 +13,11 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <filesystem>
+#include <functional>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"

@@ -12,12 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
+#include <cstdlib>
+#include <filesystem>
+#include <optional>
+#include <string>
 #include <thread>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/shell_quoting.hpp"
 

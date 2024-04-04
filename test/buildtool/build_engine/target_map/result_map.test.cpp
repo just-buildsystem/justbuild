@@ -15,11 +15,16 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
+#include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"

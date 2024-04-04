@@ -12,8 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
+#include <cstddef>
+#include <filesystem>
+#include <map>
+#include <string>
+#include <unordered_map>
+#include <utility>  // std::move
+#include <vector>
+
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 

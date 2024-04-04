@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <thread>
 
 #include "catch2/catch_session.hpp"

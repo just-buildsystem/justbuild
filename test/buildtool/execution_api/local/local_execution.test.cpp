@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <chrono>
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -21,6 +23,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "test/utils/hermeticity/local.hpp"

@@ -13,7 +13,10 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 TEST_CASE("Consistency check for serialization and de-serialization",
           "[object_info]") {

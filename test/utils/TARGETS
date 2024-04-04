@@ -12,6 +12,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
+    , ["@", "src", "src/buildtool/common", "bazel_types"]
     ]
   , "stage": ["test", "utils"]
   }

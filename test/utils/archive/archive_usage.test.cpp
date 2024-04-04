@@ -12,10 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstddef>
+#include <cstdint>
 #include <cstdlib>
+#include <filesystem>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#ifdef __unix__
+#include <sys/types.h>  // ssize_t
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
@@ -32,7 +42,7 @@ namespace {
 using file_t = std::pair</*content*/ std::string, mode_t>;
 using filetree_t = std::unordered_map<std::string, file_t>;
 
-constexpr size_t kBlockSize = 10240;
+constexpr std::size_t kBlockSize = 10240;
 constexpr int kFilePerm = 0644;
 constexpr int kDirectoryPerm = 0755;
 
@@ -109,7 +119,7 @@ std::vector<archive_test_info_t> const kTestScenarios = {
     archive_entry* entry{};
     while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
         auto size = archive_entry_size(entry);
-        auto buf = std::string(static_cast<size_t>(size), '\0');
+        auto buf = std::string(static_cast<std::size_t>(size), '\0');
         REQUIRE(archive_read_data(a, buf.data(), buf.size()) ==
                 static_cast<ssize_t>(buf.size()));
         result.emplace(archive_entry_pathname(entry),
@@ -171,7 +181,7 @@ void extract_archive(std::string const& path) {
         REQUIRE(archive_write_header(out, entry) == ARCHIVE_OK);
         if (archive_entry_size(entry) > 0) {
             void const* buf{};
-            size_t size{};
+            std::size_t size{};
             int64_t offset{};
             int r2{};
             while ((r2 = archive_read_data_block(a, &buf, &size, &offset)) ==
@@ -322,8 +332,8 @@ TEST_CASE("Archive write disk context", "[archive_context]") {
 
 TEST_CASE("Read-write archives", "[archive_read_write]") {
     // get the scenario
-    auto test_index =
-        GENERATE(Catch::Generators::range<size_t>(0, kTestScenarios.size()));
+    auto test_index = GENERATE(
+        Catch::Generators::range<std::size_t>(0, kTestScenarios.size()));
     auto const& scenario = kTestScenarios[test_index];
 
     // perform the test
@@ -375,8 +385,8 @@ TEST_CASE("Read-write archives", "[archive_read_write]") {
 
 TEST_CASE("ArchiveOps", "[archive_ops]") {
     // get the scenario
-    auto test_index =
-        GENERATE(Catch::Generators::range<size_t>(0, kTestScenarios.size()));
+    auto test_index = GENERATE(
+        Catch::Generators::range<std::size_t>(0, kTestScenarios.size()));
     auto const& scenario = kTestScenarios[test_index];
 
     // perform the test

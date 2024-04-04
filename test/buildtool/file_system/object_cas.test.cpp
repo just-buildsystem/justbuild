@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <functional>  // std::equal_to
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {

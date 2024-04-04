@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <string>
+#include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
@@ -24,6 +26,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"

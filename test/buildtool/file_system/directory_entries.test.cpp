@@ -13,11 +13,18 @@
 // limitations under the License.
 
 #include <atomic>
+#include <cstdlib>
+#include <filesystem>
+#include <optional>
+#include <string>
 #include <thread>
+#include <unordered_set>
 
 #include "catch2/catch_test_macros.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/shell_quoting.hpp"
 

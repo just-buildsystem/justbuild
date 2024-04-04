@@ -6,6 +6,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/other_tools/ops_maps", "critical_git_op_map"]
@@ -29,6 +30,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]

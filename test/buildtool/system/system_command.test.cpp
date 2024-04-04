@@ -13,10 +13,13 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
+#include <string>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/system/system_command.hpp"
 
 namespace {

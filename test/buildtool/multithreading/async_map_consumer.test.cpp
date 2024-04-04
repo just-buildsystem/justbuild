@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>  // std::transform
+#include <atomic>
 #include <cstdint>  // for fixed width integral types
+#include <mutex>
 #include <numeric>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"

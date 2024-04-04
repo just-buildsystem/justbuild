@@ -5,7 +5,9 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }
@@ -18,6 +20,8 @@
     , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }
@@ -28,8 +32,10 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/common", "action_description"]
+    , ["@", "src", "src/buildtool/common", "common"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }
@@ -40,7 +46,11 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "file_root"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["utils", "local_hermeticity"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     ]
@@ -53,7 +63,9 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }

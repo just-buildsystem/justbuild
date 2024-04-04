@@ -14,10 +14,14 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
+#include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
 

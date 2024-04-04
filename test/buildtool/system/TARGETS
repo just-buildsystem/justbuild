@@ -5,6 +5,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/system", "system_command"]
     ]
   , "stage": ["test", "buildtool", "system"]

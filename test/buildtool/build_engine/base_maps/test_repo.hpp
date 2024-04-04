@@ -15,7 +15,11 @@
 #ifndef INCLUDED_SRC_TEST_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_TEST_REPO_HPP
 #define INCLUDED_SRC_TEST_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_TEST_REPO_HPP
 
+#include <atomic>
+#include <cstdlib>
 #include <filesystem>
+#include <optional>
+#include <string>
 
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

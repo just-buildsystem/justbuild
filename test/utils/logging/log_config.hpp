@@ -16,6 +16,8 @@
 #define INCLUDED_SRC_TEST_UTILS_LOGGING_LOG_CONFIG_HPP
 
 #include <cstdlib>
+#include <exception>
+#include <string>  // std::stoul
 
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"

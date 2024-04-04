@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <string>
+#include <variant>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"

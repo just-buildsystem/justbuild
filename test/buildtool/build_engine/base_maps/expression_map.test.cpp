@@ -15,11 +15,16 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <string>
+#include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
 

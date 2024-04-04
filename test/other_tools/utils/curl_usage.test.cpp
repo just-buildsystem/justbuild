@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
+#include <filesystem>
+#include <string>
+#include <vector>  // std::erase_if
+
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/other_tools/utils/curl_context.hpp"

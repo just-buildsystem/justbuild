@@ -12,8 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstddef>
+#include <map>
+#include <string>
+#include <vector>
+
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/action.hpp"
+#include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
 

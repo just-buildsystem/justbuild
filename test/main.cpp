@@ -14,6 +14,7 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <string>
 
 #include "catch2/catch_session.hpp"
 #include "src/buildtool/file_system/git_context.hpp"

@@ -15,11 +15,17 @@
 #ifndef INCLUDED_SRC_TEST_BUILDTOOL_GRAPH_GRAVERSER_GRAPH_TRAVERSER_TEST_HPP
 #define INCLUDED_SRC_TEST_BUILDTOOL_GRAPH_GRAVERSER_GRAPH_TRAVERSER_TEST_HPP
 
+#include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <sstream>
+#include <string>
+#include <thread>
 #include <utility>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

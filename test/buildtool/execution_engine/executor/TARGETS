@@ -18,6 +18,7 @@
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["", "catch-main"]
     , ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }

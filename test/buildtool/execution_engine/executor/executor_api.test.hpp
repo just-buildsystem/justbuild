@@ -15,7 +15,12 @@
 #ifndef INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_EXECUTOR_API_TEST_HPP
 #define INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_EXECUTOR_API_TEST_HPP
 
+#include <cstdlib>
+#include <filesystem>
 #include <functional>
+#include <map>
+#include <string>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"

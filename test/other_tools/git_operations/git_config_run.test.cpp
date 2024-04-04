@@ -15,6 +15,8 @@
 #include <exception>
 #include <filesystem>
 #include <functional>
+#include <memory>
+#include <optional>
 #include <string>
 
 #include "src/buildtool/file_system/git_context.hpp"

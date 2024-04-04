@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <cstddef>
+#include <functional>
 #include <mutex>
 #include <numeric>  // std::iota
 #include <string>
 #include <thread>
 #include <unordered_set>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
