@@ -326,6 +326,50 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo]") {
         }
     }
 
+    SECTION("Check tree exists") {
+        auto res = repo->CheckTreeExists(kRootId, logger);
+        REQUIRE(res);
+        CHECK(*res);
+
+        res = repo->CheckTreeExists(kBazId, logger);
+        REQUIRE(res);
+        CHECK(*res);
+
+        res = repo->CheckTreeExists(kFooId, logger);
+        REQUIRE(res);
+        CHECK_FALSE(*res);
+    }
+
+    SECTION("Check blob exists") {
+        auto res = repo->CheckBlobExists(kFooId, logger);
+        REQUIRE(res);
+        CHECK(*res);
+
+        res = repo->CheckBlobExists(kBarId, logger);
+        REQUIRE(res);
+        CHECK(*res);
+
+        res = repo->CheckBlobExists(kBazId, logger);
+        REQUIRE(res);
+        CHECK_FALSE(*res);
+    }
+
+    SECTION("Try read blob") {
+        auto res = repo->TryReadBlob(kFooId, logger);
+        REQUIRE(res.first);
+        REQUIRE(res.second);
+        CHECK(res.second == "foo");
+
+        res = repo->TryReadBlob(kBarId, logger);
+        REQUIRE(res.first);
+        REQUIRE(res.second);
+        CHECK(res.second == "bar");
+
+        res = repo->TryReadBlob(kBazId, logger);
+        REQUIRE(res.first);       // search succeeded...
+        CHECK_FALSE(res.second);  // ...but blob not found
+    }
+
     SECTION("Get subtree entry id from path") {
         SECTION("Get base tree id") {
             auto entry_root_p =
@@ -472,7 +516,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
     threads.reserve(kNumThreads);
 
     SECTION("Lookups in the same ODB") {
-        constexpr int NUM_CASES = 6;
+        constexpr int NUM_CASES = 9;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
                 [&remote_cas, &remote_repo_path, &logger, &starting_signal](
@@ -517,6 +561,48 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
+                            // Lookup trees
+                            auto res =
+                                remote_repo->CheckTreeExists(kRootId, logger);
+                            REQUIRE(res);
+                            CHECK(*res);
+                            res = remote_repo->CheckTreeExists(kBazId, logger);
+                            REQUIRE(res);
+                            CHECK(*res);
+                        } break;
+                        case 4: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
+                            // Lookup blobs
+                            auto res =
+                                remote_repo->CheckBlobExists(kFooId, logger);
+                            REQUIRE(res);
+                            CHECK(*res);
+                            res = remote_repo->CheckBlobExists(kBarId, logger);
+                            REQUIRE(res);
+                            CHECK(*res);
+                        } break;
+                        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+                        case 5: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
+                            // Read blobs
+                            auto res = remote_repo->TryReadBlob(kFooId, logger);
+                            REQUIRE(res.first);
+                            REQUIRE(res.second);
+                            CHECK(res.second == "foo");
+                            res = remote_repo->TryReadBlob(kBarId, logger);
+                            REQUIRE(res.first);
+                            REQUIRE(res.second);
+                            CHECK(res.second == "bar");
+                        } break;
+                        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+                        case 6: {
+                            auto remote_repo = GitRepo::Open(remote_cas);
+                            REQUIRE(remote_repo);
+                            REQUIRE(remote_repo->IsRepoFake());
                             // Get subtree entry id from path
                             auto path_baz = *remote_repo_path / "baz";
                             auto entry_baz_p = remote_repo->GetSubtreeFromPath(
@@ -524,7 +610,8 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             REQUIRE(entry_baz_p);
                             CHECK(*entry_baz_p == kBazId);
                         } break;
-                        case 4: {
+                        // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+                        case 7: {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
@@ -534,7 +621,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             CHECK(*result_containing);
                         } break;
                         // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-                        case 5: {
+                        case 8: {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
                             REQUIRE(remote_repo->IsRepoFake());
