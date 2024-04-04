@@ -183,6 +183,15 @@ class GitRepo {
                                      anon_logger_ptr const& logger) noexcept
         -> bool;
 
+    /// \brief Ensure given tree is kept alive via a tag. It is expected that
+    /// the tree is part of the repository already.
+    /// Only possible with real repository and thus non-thread-safe.
+    /// Returns success flag.
+    /// It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto KeepTree(std::string const& tree_id,
+                                std::string const& message,
+                                anon_logger_ptr const& logger) noexcept -> bool;
+
     /// \brief Get the tree id of a subtree given the root commit
     /// Calling it from a fake repository allows thread-safe use.
     /// Returns an error + data union, where at index 0 is a flag stating the

@@ -123,6 +123,7 @@
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/utils/cpp", "atomic"]
+    , ["@", "src", "src/utils/cpp", "hex_string"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]

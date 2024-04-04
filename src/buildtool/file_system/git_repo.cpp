@@ -934,6 +934,129 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+auto GitRepo::KeepTree(std::string const& tree_id,
+                       std::string const& message,
+                       anon_logger_ptr const& logger) noexcept -> bool {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return false;
+#else
+    try {
+        // only possible for real repository!
+        if (IsRepoFake()) {
+            (*logger)("cannot commit and tag a tree using a fake repository!",
+                      true /*fatal*/);
+            return false;
+        }
+        // share the odb lock
+        std::shared_lock lock{GetGitCAS()->mutex_};
+
+        // get tree oid
+        git_oid tree_oid;
+        if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
+            (*logger)(fmt::format("tree ID parsing in git repository {} failed "
+                                  "with:\n{}",
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            return false;
+        }
+        // get tree object from oid
+        git_object* target_ptr{nullptr};
+        if (git_object_lookup(
+                &target_ptr, repo_->Ptr(), &tree_oid, GIT_OBJECT_TREE) != 0) {
+            (*logger)(fmt::format("object lookup for tree {} in repository "
+                                  "{} failed with:\n{}",
+                                  tree_id,
+                                  GetGitCAS()->git_path_.string(),
+                                  GitLastError()),
+                      true /*fatal*/);
+            git_object_free(target_ptr);
+            return false;
+        }
+        auto target = std::unique_ptr<git_object, decltype(&object_closer)>(
+            target_ptr, object_closer);
+
+        // set signature
+        git_signature* signature_ptr{nullptr};
+        if (git_signature_new(
+                &signature_ptr, "Nobody", "nobody@example.org", 0, 0) != 0) {
+            (*logger)(
+                fmt::format("creating signature in git repository {} failed "
+                            "with:\n{}",
+                            GetGitCAS()->git_path_.string(),
+                            GitLastError()),
+                true /*fatal*/);
+            // cleanup resources
+            git_signature_free(signature_ptr);
+            return false;
+        }
+        auto signature =
+            std::unique_ptr<git_signature, decltype(&signature_closer)>(
+                signature_ptr, signature_closer);
+
+        // create tag
+        git_oid oid;
+        auto name = fmt::format("keep-{}", tree_id);
+        git_strarray tag_names{};
+
+        // check if tag hasn't already been added by another process
+        if (git_tag_list_match(&tag_names, name.c_str(), repo_->Ptr()) == 0 and
+            tag_names.count > 0) {
+            git_strarray_dispose(&tag_names);
+            return true;  // success!
+        }
+        git_strarray_dispose(&tag_names);  // free any allocated unused space
+
+        size_t max_attempts = kGitLockNumTries;  // number of tries
+        int err = 0;
+        std::string err_mess{};
+        while (max_attempts > 0) {
+            --max_attempts;
+            err = git_tag_create(&oid,
+                                 repo_->Ptr(),
+                                 name.c_str(),
+                                 target.get(),    /*tree*/
+                                 signature.get(), /*tagger*/
+                                 message.c_str(),
+                                 1 /*force*/);
+            if (err == 0) {
+                return true;  // success!
+            }
+            err_mess = GitLastError();  // store last error message
+            // only retry if failure is due to locking
+            if (err != GIT_ELOCKED) {
+                break;
+            }
+            // check if tag hasn't already been added by another process
+            if (git_tag_list_match(&tag_names, name.c_str(), repo_->Ptr()) ==
+                    0 and
+                tag_names.count > 0) {
+                git_strarray_dispose(&tag_names);
+                return true;  // success!
+            }
+            git_strarray_dispose(
+                &tag_names);  // free any allocated unused space
+            // tag still not in, so sleep and try again
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(kGitLockWaitTime));
+        }
+        (*logger)(fmt::format("tag creation for tree {} in git repository {} "
+                              "failed with:\n{}",
+                              tree_id,
+                              GetGitCAS()->git_path_.string(),
+                              err_mess),
+                  true /*fatal*/);
+        return false;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Error,
+                    "keep tree {} failed with:\n{}",
+                    tree_id,
+                    ex.what());
+        return false;
+    }
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                                    std::string const& subdir,
                                    anon_logger_ptr const& logger) noexcept

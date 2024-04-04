@@ -31,6 +31,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/atomic.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 #include "test/utils/shell_quoting.hpp"
 
 namespace {
@@ -43,6 +44,9 @@ auto const kRootId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
 auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
+
+auto const kFooBarTreeId =
+    std::string{"27b32561185c2825150893774953906c6daa6798"};
 
 }  // namespace
 
@@ -239,6 +243,32 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
         // fetch branch
         CHECK(repo_fetch_branch->FetchFromPath(
             nullptr, *path_fetch_branch, "master", logger));
+    }
+
+    SECTION("Tag tree") {
+        auto repo_tag_path = TestUtils::CreateTestRepo(true);
+        REQUIRE(repo_tag_path);
+        auto repo_tag = GitRepo::Open(*repo_tag_path);
+        REQUIRE(repo_tag);
+        CHECK_FALSE(repo_tag->IsRepoFake());
+
+        // tag tree already root of a commit
+        CHECK(repo_tag->KeepTree(kRootId, "test tag 1", logger));
+
+        // tag tree part of another commit
+        CHECK(repo_tag->KeepTree(kBazId, "test tag 2", logger));
+
+        // tag uncommitted tree
+        auto foo_bar = GitRepo::tree_entries_t{
+            {FromHexString(kFooId).value_or<std::string>({}),
+             {GitRepo::tree_entry_t{"foo", ObjectType::File}}},
+            {FromHexString(kBarId).value_or<std::string>({}),
+             {GitRepo::tree_entry_t{"bar", ObjectType::Executable}}}};
+        auto foo_bar_id = repo_tag->CreateTree(foo_bar);
+        REQUIRE(foo_bar_id);
+        auto tree_id = ToHexString(*foo_bar_id);
+        CHECK(tree_id == kFooBarTreeId);
+        CHECK(repo_tag->KeepTree(tree_id, "test tag 3", logger));
     }
 }
 
