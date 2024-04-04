@@ -424,17 +424,10 @@ void ExtractAndImportToGit(
             }
             // only tree id is needed
             std::string archive_tree_id = values[0]->first;
-            // open Git CAS
-            auto just_git_cas = GitCAS::Open(StorageConfig::GitRoot());
-            if (not just_git_cas) {
-                (*logger)("Could not open Git cache object database!",
-                          /*fatal=*/true);
-                return;
-            }
             // write to id file and process subdir tree
             WriteIdFileAndSetWSRoot(key,
                                     archive_tree_id,
-                                    just_git_cas,
+                                    values[0]->second, /*just_git_cas*/
                                     archive_tree_id_file,
                                     is_absent,
                                     serve_api_exists,
