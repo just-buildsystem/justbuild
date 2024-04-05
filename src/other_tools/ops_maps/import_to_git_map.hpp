@@ -55,7 +55,9 @@ struct hash<CommitInfo> {
 }  // namespace std
 
 /// \brief Maps a directory on the file system to a pair of the tree hash of the
-/// content of the directory and the Git ODB it is now a part of.
+/// content of the directory and the Git cache ODB (where the content will be).
+/// The second entry is set for convenience for follow-up operations (to avoid
+/// overheads of opening the Git cache), and is nullptr iff the map fails.
 using ImportToGitMap =
     AsyncMapConsumer<CommitInfo, std::pair<std::string, GitCASPtr>>;
 

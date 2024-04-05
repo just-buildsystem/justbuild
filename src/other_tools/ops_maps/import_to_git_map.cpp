@@ -27,7 +27,7 @@ void KeepCommitAndSetTree(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::string const& commit,
     std::filesystem::path const& target_path,
-    GitCASPtr const& git_cas,
+    GitCASPtr const& just_git_cas,
     gsl::not_null<TaskSystem*> const& ts,
     ImportToGitMap::SetterPtr const& setter,
     ImportToGitMap::LoggerPtr const& logger) {
@@ -43,7 +43,8 @@ void KeepCommitAndSetTree(
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
-        [commit, target_path, git_cas, setter, logger](auto const& values) {
+        [commit, target_path, just_git_cas, setter, logger](
+            auto const& values) {
             GitOpValue op_result = *values[0];
             // check flag
             if (not op_result.result) {
@@ -51,8 +52,8 @@ void KeepCommitAndSetTree(
                           /*fatal=*/true);
                 return;
             }
-            auto git_repo = GitRepoRemote::Open(git_cas);
-            if (not git_repo) {
+            auto just_git_repo = GitRepoRemote::Open(just_git_cas);
+            if (not just_git_repo) {
                 (*logger)(fmt::format("Could not open Git repository {}",
                                       target_path.string()),
                           /*fatal=*/true);
@@ -67,13 +68,13 @@ void KeepCommitAndSetTree(
                                     msg),
                         fatal);
                 });
-            auto res =
-                git_repo->GetSubtreeFromCommit(commit, ".", wrapped_logger);
+            auto res = just_git_repo->GetSubtreeFromCommit(
+                commit, ".", wrapped_logger);
             if (not std::holds_alternative<std::string>(res)) {
                 return;
             }
             (*setter)(std::pair<std::string, GitCASPtr>(
-                std::get<std::string>(res), git_cas));
+                std::get<std::string>(res), just_git_cas));
         },
         [logger, commit, target_path](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While running critical Git op KEEP_TAG for "
@@ -98,7 +99,7 @@ auto CreateImportToGitMap(
                              auto logger,
                              auto /*unused*/,
                              auto const& key) {
-        // Perform initial commit at location: init + add . + commit
+        // Perform initial commit at import location: init + add . + commit
         GitOpKey op_key = {.params =
                                {
                                    key.target_path,  // target_path
@@ -144,7 +145,6 @@ auto CreateImportToGitMap(
                     [critical_git_op_map,
                      commit = *op_result.result,
                      target_path,
-                     git_cas = op_result.git_cas,
                      git_bin,
                      launcher,
                      ts,
@@ -161,27 +161,27 @@ auto CreateImportToGitMap(
                         auto just_git_repo =
                             GitRepoRemote::Open(op_result.git_cas);
                         if (not just_git_repo) {
-                            (*logger)(fmt::format("Could not open Git "
-                                                  "repository {}",
-                                                  target_path.string()),
-                                      /*fatal=*/true);
+                            (*logger)(
+                                fmt::format(
+                                    "Could not open Git cache repository {}",
+                                    StorageConfig::GitRoot().string()),
+                                /*fatal=*/true);
                             return;
                         }
                         auto wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
                                 [logger, target_path](auto const& msg,
                                                       bool fatal) {
-                                    (*logger)(
-                                        fmt::format("While fetch via tmp repo "
-                                                    "for target {}:\n{}",
-                                                    target_path.string(),
-                                                    msg),
-                                        fatal);
+                                    (*logger)(fmt::format("While fetch via tmp "
+                                                          "repo from {}:\n{}",
+                                                          target_path.string(),
+                                                          msg),
+                                              fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
                                 target_path.string(),
                                 std::nullopt,
-                                std::vector<std::string>{} /* XXX */,
+                                std::vector<std::string>{} /* inherit_env */,
                                 git_bin,
                                 launcher,
                                 wrapped_logger)) {
@@ -202,7 +202,7 @@ auto CreateImportToGitMap(
                         KeepCommitAndSetTree(critical_git_op_map,
                                              commit,
                                              target_path,
-                                             git_cas,
+                                             op_result.git_cas, /*just_git_cas*/
                                              ts,
                                              setter,
                                              wrapped_logger);
