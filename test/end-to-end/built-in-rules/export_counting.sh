@@ -21,6 +21,8 @@ readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TMPDIR}/local-build-root"
 readonly LOG="${TMPDIR}/log.txt"
 
+mkdir work && cd work
+
 touch ROOT
 cat <<'EOF' > repos.json
 { "repositories":
