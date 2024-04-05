@@ -157,13 +157,22 @@
   , "hdrs": ["lib/gprpp/construct_destruct.h"]
   , "deps": [["", "gpr_platform"]]
   }
+, "rpc_status_grpc_internal_default_proto":
+  { "type": ["@", "rules", "proto", "library"]
+  , "name": ["rpc_status_grpc_internal_default_proto"]
+  , "srcs": [["@", "google_apis", "", "google/rpc/status.proto"]]
+  }
+, "status_helper_private_proto_deps":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["status_helper_private_proto_deps"]
+  , "proto": ["rpc_status_grpc_internal_default_proto"]
+  }
 , "status_helper":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["status_helper"]
   , "stage": ["src", "core"]
   , "srcs": ["lib/gprpp/status_helper.cc"]
   , "hdrs": ["lib/gprpp/status_helper.h"]
-  , "proto": [["@", "google_apis", "", "google_rpc_status_proto"]]
   , "deps":
     [ "percent_encoding"
     , "slice"
@@ -177,6 +186,7 @@
     , ["third_party/upb", "upb"]
     , ["src/core/ext/upb-generated", "upb-generated-lib"]
     ]
+  , "private-deps": ["status_helper_private_proto_deps"]
   }
 , "unique_type_name":
   { "type": ["@", "rules", "CC", "library"]

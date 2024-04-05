@@ -47,6 +47,8 @@
   , "name": ["google_rpc_status_proto"]
   , "srcs": ["google/rpc/status.proto"]
   }
+, "google/rpc/status.proto":
+  {"type": "export", "target": ["FILE", null, "google/rpc/status.proto"]}
 , "google_longrunning_operations_proto":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_longrunning_operations_proto"]
