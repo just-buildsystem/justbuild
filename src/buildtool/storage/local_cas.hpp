@@ -108,6 +108,18 @@ class LocalCAS {
         return path ? path : TrySyncBlob(digest, is_executable);
     }
 
+    /// \brief Obtain blob path from digest with x-bit.
+    /// Synchronization between file/executable CAS is skipped.
+    /// \param digest           Digest of the blob to lookup.
+    /// \param is_executable    Lookup blob with executable permissions.
+    /// \returns Path to the blob if found or nullopt otherwise.
+    [[nodiscard]] auto BlobPathNoSync(bazel_re::Digest const& digest,
+                                      bool is_executable) const noexcept
+        -> std::optional<std::filesystem::path> {
+        return is_executable ? cas_exec_.BlobPath(digest)
+                             : cas_file_.BlobPath(digest);
+    }
+
     /// \brief Split a blob into chunks.
     /// \param digest           The digest of a blob to be split.
     /// \returns                Digests of the parts of the large object or an
@@ -278,14 +290,6 @@ class LocalCAS {
             };
         }
         return ObjectCAS<kType>::kDefaultExists;
-    }
-
-    /// \brief Get blob path without sync between file/executable CAS.
-    [[nodiscard]] auto BlobPathNoSync(bazel_re::Digest const& digest,
-                                      bool is_executable) const noexcept
-        -> std::optional<std::filesystem::path> {
-        return is_executable ? cas_exec_.BlobPath(digest)
-                             : cas_file_.BlobPath(digest);
     }
 
     /// \brief Try to sync blob between file CAS and executable CAS.

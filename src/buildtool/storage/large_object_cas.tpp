@@ -125,9 +125,18 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
     }
 
     // Get path to the file:
-    auto file_path = IsTreeObject(kType)
-                         ? local_cas_.TreePath(digest)
-                         : local_cas_.BlobPath(digest, /*is_executable=*/false);
+    std::optional<std::filesystem::path> file_path;
+    if constexpr (IsTreeObject(kType)) {
+        file_path = local_cas_.TreePath(digest);
+    }
+    else {
+        // Avoid synchronization between file/executable storages:
+        static constexpr bool kIsExec = IsExecutableObject(kType);
+        file_path = local_cas_.BlobPathNoSync(digest, kIsExec);
+        file_path = file_path ? file_path
+                              : local_cas_.BlobPathNoSync(digest, not kIsExec);
+    }
+
     if (not file_path) {
         return LargeObjectError{
             LargeObjectErrorCode::FileNotFound,

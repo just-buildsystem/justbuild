@@ -153,13 +153,6 @@ static void TestLarge() noexcept {
 
         CHECK(FileSystemManager::RemoveFile(path));
         CHECK_FALSE(FileSystemManager::IsFile(path));
-        // For executables the non-executable entry must be also deleted.
-        if constexpr (kIsExec) {
-            auto blob_path = cas.BlobPath(digest, /*is_executable=*/false);
-            REQUIRE(blob_path);
-            CHECK(FileSystemManager::RemoveFile(*blob_path));
-            CHECK_FALSE(FileSystemManager::IsFile(*blob_path));
-        }
 
         SECTION("Split short-circuting") {
             // Check the second call loads the entry from the large CAS:
@@ -310,14 +303,6 @@ static void TestEmpty() noexcept {
         // To ensure there is no split of the initial object, it is removed:
         CHECK(FileSystemManager::RemoveFile(path));
         CHECK_FALSE(FileSystemManager::IsFile(path));
-
-        // For executables the non-executable entry must be also deleted.
-        if constexpr (kIsExec) {
-            auto blob_path = cas.BlobPath(digest, /*is_executable=*/false);
-            REQUIRE(blob_path);
-            CHECK(FileSystemManager::RemoveFile(*blob_path));
-            CHECK_FALSE(FileSystemManager::IsFile(*blob_path));
-        }
 
         // Split must not find the large entry:
         auto pack_2 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
