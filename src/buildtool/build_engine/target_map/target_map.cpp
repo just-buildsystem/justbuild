@@ -23,7 +23,11 @@
 #include <unordered_set>
 #include <utility>
 
+#ifdef __unix__
 #include <fnmatch.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"

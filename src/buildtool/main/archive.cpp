@@ -16,7 +16,11 @@
 
 #include "src/buildtool/main/archive.hpp"
 
+#ifdef __unix__
 #include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"

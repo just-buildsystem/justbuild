@@ -26,8 +26,6 @@
 #include <optional>
 #include <unordered_set>
 
-#include <fcntl.h>
-
 #ifdef __unix__
 #include <fcntl.h>
 #include <sys/stat.h>

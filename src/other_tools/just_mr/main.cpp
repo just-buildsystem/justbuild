@@ -16,7 +16,11 @@
 #include <filesystem>
 #include <utility>
 
+#ifdef __unix__
 #include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 #include "CLI/CLI.hpp"
 #include "gsl/gsl"

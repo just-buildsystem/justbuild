@@ -17,7 +17,11 @@
 #include <iostream>
 #include <memory>
 
+#ifdef __unix__
 #include <sys/types.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 #include "fmt/core.h"
 #include "grpcpp/grpcpp.h"

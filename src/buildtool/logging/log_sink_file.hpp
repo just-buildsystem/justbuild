@@ -28,6 +28,8 @@
 
 #ifdef __unix__
 #include <sys/time.h>
+#else
+#error "Non-unix is not supported yet"
 #endif
 
 #include "fmt/chrono.h"

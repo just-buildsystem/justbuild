@@ -18,7 +18,11 @@
 #include <cstdlib>
 #include <string>
 
+#ifdef __unix__
 #include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
 void System::ExitWithoutCleanup(int exit_code) {
 #ifdef VALGRIND_BUILD
