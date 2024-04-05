@@ -95,6 +95,8 @@ void ResolveFilePathTree(
     std::string const& target_path,
     std::string const& tree_hash,
     std::optional<PragmaSpecial> const& pragma_special,
+    GitCASPtr const& source_cas,
+    GitCASPtr const& target_cas,
     bool absent,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     bool serve_api_exists,
@@ -117,9 +119,10 @@ void ResolveFilePathTree(
                 return;
             }
             // if serve endpoint is given, try to ensure it has this tree
-            // available to be able to build against it
+            // available to be able to build against it; the tree is resolved,
+            // so it is in our Git cache
             CheckServeAndSetRoot(*resolved_tree_id,
-                                 repo_root,
+                                 StorageConfig::GitRoot().string(),
                                  absent,
                                  serve_api_exists,
                                  remote_api,
@@ -133,10 +136,11 @@ void ResolveFilePathTree(
                 {GitObjectToResolve(tree_hash,
                                     ".",
                                     *pragma_special,
-                                    /*known_info=*/std::nullopt)},
+                                    /*known_info=*/std::nullopt,
+                                    source_cas,
+                                    target_cas)},
                 [resolve_symlinks_map,
                  tree_hash,
-                 repo_root,
                  tree_id_file,
                  absent,
                  serve_api_exists,
@@ -173,9 +177,10 @@ void ResolveFilePathTree(
                         return;
                     }
                     // if serve endpoint is given, try to ensure it has this
-                    // tree available to be able to build against it
+                    // tree available to be able to build against it; the
+                    // resolved tree is in the Git cache
                     CheckServeAndSetRoot(resolved_tree.id,
-                                         repo_root,
+                                         StorageConfig::GitRoot().string(),
                                          absent,
                                          serve_api_exists,
                                          remote_api,
@@ -243,22 +248,6 @@ auto CreateFilePathGitMap(
             return;
         }
         if (not repo_root->empty()) {  // if repo root found
-            auto git_cas = GitCAS::Open(*repo_root);
-            if (not git_cas) {
-                (*logger)(fmt::format("Could not open object database for "
-                                      "repository {}",
-                                      repo_root->string()),
-                          /*fatal=*/true);
-                return;
-            }
-            auto git_repo =
-                GitRepoRemote::Open(git_cas);  // link fake repo to odb
-            if (not git_repo) {
-                (*logger)(fmt::format("Could not open repository {}",
-                                      repo_root->string()),
-                          /*fatal=*/true);
-                return;
-            }
             // get head commit
             GitOpKey op_key = {.params =
                                    {
@@ -273,8 +262,8 @@ auto CreateFilePathGitMap(
                 [fpath = key.fpath,
                  pragma_special = key.pragma_special,
                  absent = key.absent,
-                 git_cas = std::move(git_cas),
                  repo_root = std::move(*repo_root),
+                 critical_git_op_map,
                  resolve_symlinks_map,
                  serve_api_exists,
                  remote_api,
@@ -288,8 +277,8 @@ auto CreateFilePathGitMap(
                                   /*fatal=*/true);
                         return;
                     }
-                    auto git_repo =
-                        GitRepoRemote::Open(git_cas);  // link fake repo to odb
+                    auto git_repo = GitRepoRemote::Open(
+                        op_result.git_cas);  // link fake repo to odb
                     if (not git_repo) {
                         (*logger)(fmt::format("Could not open repository {}",
                                               repo_root.string()),
@@ -312,18 +301,65 @@ auto CreateFilePathGitMap(
                     if (not tree_hash) {
                         return;
                     }
-                    // resolve tree and set workspace root
-                    ResolveFilePathTree(repo_root.string(),
-                                        fpath.string(),
-                                        *tree_hash,
-                                        pragma_special,
-                                        absent,
-                                        resolve_symlinks_map,
-                                        serve_api_exists,
-                                        remote_api,
-                                        ts,
-                                        setter,
-                                        logger);
+                    // resolve tree and set workspace root; tree gets resolved
+                    // from source repo into the Git cache, which we first need
+                    // to ensure is initialized
+                    GitOpKey op_key = {
+                        .params =
+                            {
+                                StorageConfig::GitRoot(),  // target_path
+                                "",                        // git_hash
+                                "",                        // branch
+                                std::nullopt,              // message
+                                true                       // init_bare
+                            },
+                        .op_type = GitOpType::ENSURE_INIT};
+                    critical_git_op_map->ConsumeAfterKeysReady(
+                        ts,
+                        {std::move(op_key)},
+                        [repo_root,
+                         fpath,
+                         tree_hash,
+                         pragma_special,
+                         source_cas = op_result.git_cas,
+                         absent,
+                         resolve_symlinks_map,
+                         serve_api_exists,
+                         remote_api,
+                         ts,
+                         setter,
+                         logger](auto const& values) {
+                            GitOpValue op_result = *values[0];
+                            // check flag
+                            if (not op_result.result) {
+                                (*logger)("Git init failed",
+                                          /*fatal=*/true);
+                                return;
+                            }
+                            ResolveFilePathTree(
+                                repo_root.string(),
+                                fpath.string(),
+                                *tree_hash,
+                                pragma_special,
+                                source_cas,
+                                op_result.git_cas, /*just_git_cas*/
+                                absent,
+                                resolve_symlinks_map,
+                                serve_api_exists,
+                                remote_api,
+                                ts,
+                                setter,
+                                logger);
+                        },
+                        [logger, target_path = StorageConfig::GitRoot()](
+                            auto const& msg, bool fatal) {
+                            (*logger)(
+                                fmt::format("While running critical Git op "
+                                            "ENSURE_INIT for target {}:\n{}",
+                                            target_path.string(),
+                                            msg),
+                                fatal);
+                        });
                 },
                 [logger, target_path = *repo_root](auto const& msg,
                                                    bool fatal) {
@@ -388,11 +424,14 @@ auto CreateFilePathGitMap(
                     }
                     // we only need the tree
                     std::string tree = values[0]->first;
-                    // resolve tree and set workspace root
+                    // resolve tree and set workspace root;
+                    // we work on the Git CAS directly
                     ResolveFilePathTree(StorageConfig::GitRoot().string(),
                                         fpath.string(),
                                         tree,
                                         pragma_special,
+                                        values[0]->second, /*source_cas*/
+                                        values[0]->second, /*target_cas*/
                                         absent,
                                         resolve_symlinks_map,
                                         serve_api_exists,

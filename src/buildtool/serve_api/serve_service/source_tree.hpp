@@ -173,9 +173,12 @@ class SourceTreeService final
                                    ServeArchiveTreeResponse* response)
         -> ::grpc::Status;
 
+    /// \brief Resolves a tree from given repository with respect to symlinks.
+    /// The resolved tree will always be placed in the Git cache.
     [[nodiscard]] auto ResolveContentTree(
         std::string const& tree_id,
         std::filesystem::path const& repo_path,
+        bool repo_is_git_cache,
         std::optional<PragmaSpecial> const& resolve_special,
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;

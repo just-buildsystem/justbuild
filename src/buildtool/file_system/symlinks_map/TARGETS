@@ -5,6 +5,7 @@
   , "srcs": ["resolve_symlinks_map.cpp"]
   , "deps":
     [ "pragma_special"
+    , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
@@ -14,7 +15,11 @@
     ]
   , "stage": ["src", "buildtool", "file_system", "symlinks_map"]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/storage", "config"]]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/utils/cpp", "gsl"]
+    ]
   }
 , "pragma_special":
   { "type": ["@", "rules", "CC", "library"]

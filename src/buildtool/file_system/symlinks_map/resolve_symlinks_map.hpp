@@ -22,6 +22,7 @@
 #include <string>
 #include <utility>  // std::move
 
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
@@ -31,7 +32,9 @@
 #include "src/utils/cpp/path_hash.hpp"
 
 /// \brief Information needed to resolve an object (blob or tree) given its
-/// path relative to the path of a root tree in a given CAS.
+/// path relative to the path of a root tree in a given CAS. The unresolved
+/// entries should be available in the specified source Git repository, and the
+/// resolved entries being made available in the target Git repository.
 struct GitObjectToResolve {
     // hash of the root tree
     std::string root_tree_id{}; /* key */
@@ -42,17 +45,28 @@ struct GitObjectToResolve {
     // sometimes the info of the object at the required path is already known,
     // so leverage this to avoid extra work
     std::optional<GitRepo::TreeEntryInfo> known_info{std::nullopt};
+    // object db to use as source of unresolved entries; it is guaranteed that
+    // this repository is treated as read-only if it differs from target_cas
+    GitCASPtr source_cas{};
+    // object db to use as target for resolved entries; can be the same as
+    // source_cas and usually it is the Git cache; as the caller has access to
+    // such a pointer, it reduces the overhead from opening the Git cache often
+    GitCASPtr target_cas{};
 
     GitObjectToResolve() = default;  // needed for cycle detection only!
 
     GitObjectToResolve(std::string root_tree_id_,
                        std::filesystem::path const& rel_path_,
                        PragmaSpecial const& pragma_special_,
-                       std::optional<GitRepo::TreeEntryInfo> known_info_)
+                       std::optional<GitRepo::TreeEntryInfo> known_info_,
+                       GitCASPtr source_cas_,
+                       GitCASPtr target_cas_)
         : root_tree_id{std::move(root_tree_id_)},
           rel_path{ToNormalPath(rel_path_)},
           pragma_special{pragma_special_},
-          known_info{std::move(known_info_)} {};
+          known_info{std::move(known_info_)},
+          source_cas{std::move(source_cas_)},
+          target_cas{std::move(target_cas_)} {};
 
     [[nodiscard]] auto operator==(
         GitObjectToResolve const& other) const noexcept -> bool {

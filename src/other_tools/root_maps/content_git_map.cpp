@@ -171,6 +171,7 @@ void EnsureRootAsAbsent(
 void ResolveContentTree(
     ArchiveRepoInfo const& key,
     std::string const& tree_hash,
+    GitCASPtr const& just_git_cas,
     bool is_cache_hit,
     bool is_absent,
     bool serve_api_exists,
@@ -212,13 +213,15 @@ void ResolveContentTree(
             }
         }
         else {
-            // resolve tree
+            // resolve tree; both source and target repos are the Git cache
             resolve_symlinks_map->ConsumeAfterKeysReady(
                 ts,
                 {GitObjectToResolve(tree_hash,
                                     ".",
                                     *key.pragma_special,
-                                    /*known_info=*/std::nullopt)},
+                                    /*known_info=*/std::nullopt,
+                                    just_git_cas,
+                                    just_git_cas)},
                 [resolve_symlinks_map,
                  tree_hash,
                  tree_id_file,
@@ -357,6 +360,7 @@ void WriteIdFileAndSetWSRoot(
     // resolve tree and set workspace root
     ResolveContentTree(key,
                        *subtree_hash,
+                       just_git_cas,
                        false, /*is_cache_hit*/
                        is_absent,
                        serve_api_exists,
@@ -543,6 +547,7 @@ auto CreateContentGitMap(
                     ResolveContentTree(
                         key,
                         *subtree_hash,
+                        op_result.git_cas,
                         /*is_cache_hit = */ true,
                         /*is_absent = */ (key.absent and not fetch_absent),
                         serve_api_exists,
