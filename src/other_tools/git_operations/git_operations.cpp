@@ -143,3 +143,37 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
     // success
     return {.git_cas = git_repo->GetGitCAS(), .result = *head_commit};
 }
+
+auto CriticalGitOps::GitKeepTree(GitOpParams const& crit_op_params,
+                                 AsyncMapConsumerLoggerPtr const& logger)
+    -> GitOpValue {
+    // Make sure folder we want to access exists
+    if (not FileSystemManager::Exists(crit_op_params.target_path)) {
+        (*logger)(fmt::format("target directory {} does not exist!",
+                              crit_op_params.target_path.string()),
+                  true /*fatal*/);
+        return {.git_cas = nullptr, .result = std::nullopt};
+    }
+    // Open a GitRepo at given location
+    auto git_repo = GitRepoRemote::Open(crit_op_params.target_path);
+    if (git_repo == std::nullopt) {
+        (*logger)(fmt::format("could not open git repository {}",
+                              crit_op_params.target_path.string()),
+                  true /*fatal*/);
+        return {.git_cas = nullptr, .result = std::nullopt};
+    }
+    // setup wrapped logger
+    auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+        [logger](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While doing keep tree Git op:\n{}", msg),
+                      fatal);
+        });
+    // Create tag for given tree
+    if (not git_repo->KeepTree(crit_op_params.git_hash,
+                               crit_op_params.message.value(),
+                               wrapped_logger)) {
+        return {.git_cas = nullptr, .result = std::nullopt};
+    }
+    // success
+    return {.git_cas = git_repo->GetGitCAS(), .result = ""};
+}

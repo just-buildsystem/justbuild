@@ -53,6 +53,14 @@ class CriticalGitOps {
     [[nodiscard]] static auto GitGetHeadId(
         GitOpParams const& crit_op_params,
         AsyncMapConsumerLoggerPtr const& logger) -> GitOpValue;
+
+    // This operation needs the params: target_path, git_hash (tree), message
+    // Called after resolving symlinks in a tree to retain the resolved tree
+    // by tagging it. Assumes folder exists.
+    // It guarantees the logger is called exactly once with fatal if failure.
+    [[nodiscard]] static auto GitKeepTree(
+        GitOpParams const& crit_op_params,
+        AsyncMapConsumerLoggerPtr const& logger) -> GitOpValue;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_OPERATIONS_HPP

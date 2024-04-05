@@ -57,7 +57,8 @@ enum class GitOpType {
     INITIAL_COMMIT,
     ENSURE_INIT,
     KEEP_TAG,
-    GET_HEAD_ID
+    GET_HEAD_ID,
+    KEEP_TREE
 };
 
 /// \brief Common return value for all critical Git operations

@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <cstdlib>  // std::system
 #include <filesystem>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <thread>
@@ -36,6 +37,7 @@ auto const kBundlePath =
     std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
 auto const kRootCommit =
     std::string{"3ecce3f5b19ad7941c6354d65d841590662f33ef"};
+auto const kBazSymId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 
 }  // namespace
 
@@ -123,22 +125,25 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
 
     // create the target paths for the various critical ops
     // IMPORTANT! For non-init critical ops the paths need to exist already!
-    // 1. Initial commit -> needs a path containing some files
+    // 0. Initial commit -> needs a path containing some files
     // This has to be process unique, as the commit will fail otherwise!
     auto path_init_commit = TestUtilsMP::GetRepoPathUnique(*prefix);
     REQUIRE(FileSystemManager::WriteFile(
         "test no 1", path_init_commit / "test1.txt", true));
     REQUIRE(FileSystemManager::WriteFile(
         "test no 2", path_init_commit / "test2.txt", true));
-    // 2 & 3. Initializing repos -> need only the paths
+    // 1 & 2. Initializing repos -> need only the paths
     auto path_init_bare = TestUtilsMP::GetRepoPath(*prefix);
     auto path_init_non_bare = TestUtilsMP::GetRepoPath(*prefix);
-    // 4. Tag a commit -> needs a repo with a commit
+    // 3. Tag a commit -> needs a repo with a commit
     auto path_keep_tag = TestUtilsMP::CreateTestRepo(*prefix, true);
     REQUIRE(path_keep_tag);
-    // 5. Get head commit -> needs a repo with a commit
+    // 4. Get head commit -> needs a repo with HEAD ref available
     auto path_get_head_id = TestUtilsMP::CreateTestRepoWithCheckout(*prefix);
     REQUIRE(path_get_head_id);
+    // 5. Tag a tree -> needs a repo with a tree
+    auto path_keep_tree = TestUtilsMP::CreateTestRepo(*prefix, true);
+    REQUIRE(path_keep_tree);
 
     // create the map
     auto crit_op_guard = std::make_shared<CriticalGitOpGuard>();
@@ -147,78 +152,91 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
     // Add ops to the map. None should throw, as repeating the same operation
     // should retrieve the value from the map, not call the operation again.
     // helper lists
-    const std::vector<std::size_t> ops_all{
-        0, 1, 2, 3, 4};  // indices of all ops tested
+    constexpr auto NUM_METHODS = 6;
+    std::vector<std::size_t> ops_all(NUM_METHODS);  // indices of all ops tested
+    std::iota(ops_all.begin(), ops_all.end(), 0);
+
     const std::vector<std::size_t> ops_with_result{
         0, 4};  // indices of ops that return a non-empty string
+
     // Add to the map all ops multiple times
-    for ([[maybe_unused]] auto const& i :
-         {0, 0, 0}) {  // replace once ranges are available
-                       // (https://en.cppreference.com/w/cpp/ranges/iota_view)
+    constexpr auto REPEATS = 3;
+    for ([[maybe_unused]] auto k = REPEATS; k > 0; --k) {
         auto error = false;
         auto error_msg = std::string("NONE");
         {
             TaskSystem ts;
-            crit_op_map.ConsumeAfterKeysReady(
-                &ts,
-                {GitOpKey{.params =
-                              {
-                                  path_init_commit,  // target_path
-                                  "",                // git_hash
-                                  "",                // branch
-                                  "Init commit"      // message
-                              },
-                          .op_type = GitOpType::INITIAL_COMMIT},
-                 GitOpKey{.params =
-                              {
-                                  path_init_bare,  // target_path
-                                  "",              // git_hash
-                                  "",              // branch
-                                  std::nullopt,    // message
-                                  true             // init_bare
-                              },
-                          .op_type = GitOpType::ENSURE_INIT},
-                 GitOpKey{.params =
-                              {
-                                  path_init_non_bare,  // target_path
-                                  "",                  // git_hash
-                                  "",                  // branch
-                                  std::nullopt,        // message
-                                  false                // init_bare
-                              },
-                          .op_type = GitOpType::ENSURE_INIT},
-                 GitOpKey{.params =
-                              {
-                                  *path_keep_tag,  // target_path
-                                  kRootCommit,     // git_hash
-                                  "",              // branch
-                                  "keep-me"        // message
-                              },
-                          .op_type = GitOpType::KEEP_TAG},
-                 GitOpKey{.params =
-                              {
-                                  *path_get_head_id,  // target_path
-                                  "",                 // git_hash
-                                  "",                 // branch
-                              },
-                          .op_type = GitOpType::GET_HEAD_ID}},
-                [&ops_all, &ops_with_result](auto const& values) {
-                    // check operations
-                    for (std::size_t const& i : ops_all) {
-                        auto res = *values[i];
-                        REQUIRE(res.git_cas);
-                        REQUIRE(res.result);
-                        if (std::find(ops_with_result.begin(),
-                                      ops_with_result.end(),
-                                      i) != ops_with_result.end()) {
-                            CHECK(not res.result->empty());
+            for ([[maybe_unused]] auto j = REPEATS; j > 0; --j) {
+                crit_op_map.ConsumeAfterKeysReady(
+                    &ts,
+                    {GitOpKey{.params =
+                                  {
+                                      path_init_commit,  // target_path
+                                      "",                // git_hash
+                                      "",                // branch
+                                      "Init commit"      // message
+                                  },
+                              .op_type = GitOpType::INITIAL_COMMIT},
+                     GitOpKey{.params =
+                                  {
+                                      path_init_bare,  // target_path
+                                      "",              // git_hash
+                                      "",              // branch
+                                      std::nullopt,    // message
+                                      true             // init_bare
+                                  },
+                              .op_type = GitOpType::ENSURE_INIT},
+                     GitOpKey{.params =
+                                  {
+                                      path_init_non_bare,  // target_path
+                                      "",                  // git_hash
+                                      "",                  // branch
+                                      std::nullopt,        // message
+                                      false                // init_bare
+                                  },
+                              .op_type = GitOpType::ENSURE_INIT},
+                     GitOpKey{.params =
+                                  {
+                                      *path_keep_tag,  // target_path
+                                      kRootCommit,     // git_hash
+                                      "",              // branch
+                                      "keep-commit"    // message
+                                  },
+                              .op_type = GitOpType::KEEP_TAG},
+                     GitOpKey{.params =
+                                  {
+                                      *path_get_head_id,  // target_path
+                                      "",                 // git_hash
+                                      "",                 // branch
+                                  },
+                              .op_type = GitOpType::GET_HEAD_ID},
+                     GitOpKey{.params =
+                                  {
+                                      *path_keep_tree,  // target_path
+                                      kBazSymId,        // git_hash
+                                      "",               // branch
+                                      "keep-tree"       // message
+                                  },
+                              .op_type = GitOpType::KEEP_TREE}},
+                    [&ops_all, &ops_with_result](auto const& values) {
+                        // check operations
+                        for (std::size_t const& i : ops_all) {
+                            auto res = *values[i];
+                            REQUIRE(res.git_cas);
+                            REQUIRE(res.result);
+                            if (std::find(ops_with_result.begin(),
+                                          ops_with_result.end(),
+                                          i) != ops_with_result.end()) {
+                                CHECK(not res.result->empty());
+                            }
                         }
-                    }
-                },
-                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
-                    error = true;
-                    error_msg = msg;
-                });
+                    },
+                    [&error, &error_msg](std::string const& msg,
+                                         bool /*unused*/) {
+                        error = true;
+                        error_msg = msg;
+                    });
+            }
         }
         CHECK_FALSE(error);
         CHECK(error_msg == "NONE");
