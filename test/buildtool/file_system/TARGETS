@@ -128,6 +128,30 @@
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
+, "resolve_symlinks_map":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["resolve_symlinks_map"]
+  , "srcs": ["resolve_symlinks_map.test.cpp"]
+  , "data": ["test_data"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "git_cas"]
+    , ["@", "src", "src/buildtool/file_system", "git_repo"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/file_system/symlinks_map"
+      , "resolve_symlinks_map"
+      ]
+    , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["utils", "shell_quoting"]
+    ]
+  , "stage": ["test", "buildtool", "file_system"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -138,6 +162,7 @@
     , "git_tree"
     , "directory_entries"
     , "git_repo"
+    , "resolve_symlinks_map"
     ]
   }
 }
