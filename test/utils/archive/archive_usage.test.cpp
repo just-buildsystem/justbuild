@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -358,10 +359,14 @@ TEST_CASE("Read-write archives", "[archive_read_write]") {
         }
 
         if (tools_exist) {
+            std::string path{"/usr/bin"};
+            if (auto* env_path = std::getenv("PATH")) {
+                path = std::string{env_path} + ":" + path;
+            }
             SECTION("Extract via system tools") {
-                REQUIRE(
-                    system((scenario.cmd + " " + scenario.filename).c_str()) ==
-                    0);
+                REQUIRE(system(("export PATH=" + path + " && " + scenario.cmd +
+                                " " + scenario.filename)
+                                   .c_str()) == 0);
                 compare_extracted();
             }
         }
@@ -408,15 +413,18 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                 std::string("/usr/bin/") + tool);
         }
         if (tools_exist) {
+            std::string path{"/usr/bin"};
+            if (auto* env_path = std::getenv("PATH")) {
+                path = std::string{env_path} + ":" + path;
+            }
             SECTION("Extract via system tools") {
                 REQUIRE(
                     FileSystemManager::RemoveDirectory(scenario.test_dir,
                                                        /*recursively=*/true));
                 REQUIRE(FileSystemManager::CreateDirectory(scenario.test_dir));
-
-                REQUIRE(
-                    system((scenario.cmd + " " + scenario.filename).c_str()) ==
-                    0);
+                REQUIRE(system(("export PATH=" + path + " && " + scenario.cmd +
+                                " " + scenario.filename)
+                                   .c_str()) == 0);
                 compare_extracted(scenario.test_dir);
             }
         }
