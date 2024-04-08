@@ -27,7 +27,7 @@ extern "C" {
 namespace {
 
 /// \brief Default block size for archive extraction.
-constexpr size_t kArchiveBlockSize = 10240;
+constexpr std::size_t kArchiveBlockSize = 10240;
 
 /// \brief Clean-up function for archive entry objects.
 void archive_entry_cleanup(archive_entry* entry) {
@@ -120,7 +120,7 @@ auto ArchiveOps::CopyData(archive* ar, archive* aw)
 #ifndef BOOTSTRAP_BUILD_TOOL
     int r{};
     const void* buff{nullptr};
-    size_t size{};
+    std::size_t size{};
     la_int64_t offset{};
 
     while (true) {

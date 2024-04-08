@@ -14,6 +14,7 @@
 
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 
+#include <cstddef>
 #include <utility>  // std::move
 
 #include "fmt/core.h"
@@ -230,7 +231,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         // get the list of refs from remote
         // NOTE: refs will be owned by remote, so we DON'T have to free it!
         git_remote_head const** refs = nullptr;
-        size_t refs_len = 0;
+        std::size_t refs_len = 0;
         if (git_remote_ls(&refs, &refs_len, remote.get()) != 0) {
             (*logger)(
                 fmt::format("Refs retrieval from remote {} failed with:\n{}",

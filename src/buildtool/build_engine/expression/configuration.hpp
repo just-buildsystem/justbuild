@@ -57,16 +57,16 @@ class Configuration {
     [[nodiscard]] auto ToJson() const -> nlohmann::json {
         return expr_->ToJson();
     }
-    [[nodiscard]] auto Enumerate(const std::string& prefix, size_t width) const
-        -> std::string {
+    [[nodiscard]] auto Enumerate(const std::string& prefix,
+                                 std::size_t width) const -> std::string {
         std::stringstream ss{};
         if (width > prefix.size()) {
-            size_t actual_width = width - prefix.size();
+            std::size_t actual_width = width - prefix.size();
             for (auto const& [key, value] : expr_->Map()) {
                 std::string key_str = Expression{key}.ToString();
                 if (actual_width > key_str.size() + 3) {
                     ss << prefix << key_str << " : ";
-                    size_t remain = actual_width - key_str.size() - 3;
+                    std::size_t remain = actual_width - key_str.size() - 3;
                     std::string val_str = value->ToAbbrevString(remain);
                     if (val_str.size() >= remain) {
                         ss << val_str.substr(0, remain - 3) << "...";

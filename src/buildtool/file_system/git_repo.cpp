@@ -258,7 +258,7 @@ struct InMemoryODBBackend {
 [[nodiscard]] auto backend_write(git_odb_backend* _backend,
                                  const git_oid* oid,
                                  const void* data,
-                                 size_t len,
+                                 std::size_t len,
                                  git_object_t type) -> int {
     if (data != nullptr and _backend != nullptr and oid != nullptr) {
         auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
@@ -508,13 +508,14 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
         }
 
         git_repository* tmp_repo{nullptr};
-        size_t max_attempts = kGitLockNumTries;  // number of tries
+        std::size_t max_attempts = kGitLockNumTries;  // number of tries
         int err = 0;
         std::string err_mess{};
         while (max_attempts > 0) {
             --max_attempts;
-            err = git_repository_init(
-                &tmp_repo, repo_path.c_str(), static_cast<size_t>(is_bare));
+            err = git_repository_init(&tmp_repo,
+                                      repo_path.c_str(),
+                                      static_cast<std::size_t>(is_bare));
             if (err == 0) {
                 git_repository_free(tmp_repo);
                 return GitRepo(repo_path);  // success
@@ -758,7 +759,7 @@ auto GitRepo::KeepTag(std::string const& commit,
         }
         git_strarray_dispose(&tag_names);  // free any allocated unused space
 
-        size_t max_attempts = kGitLockNumTries;  // number of tries
+        std::size_t max_attempts = kGitLockNumTries;  // number of tries
         int err = 0;
         std::string err_mess{};
         while (max_attempts > 0) {
@@ -1846,7 +1847,8 @@ void GitRepo::PopulateStrarray(
     array->count = string_list.size();
     array->strings = gsl::owner<char**>(new char*[string_list.size()]);
     for (auto const& elem : string_list) {
-        auto i = static_cast<size_t>(&elem - &string_list[0]);  // get index
+        auto i =
+            static_cast<std::size_t>(&elem - &string_list[0]);  // get index
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         array->strings[i] = gsl::owner<char*>(new char[elem.size() + 1]);
         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)

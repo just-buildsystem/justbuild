@@ -32,10 +32,10 @@ class BaseProgressReporter {
         std::function<void(void)> report) noexcept -> progress_reporter_t;
 
   private:
-    constexpr static int64_t kStartDelayMillis = 3000;
+    constexpr static std::int64_t kStartDelayMillis = 3000;
     // Scaling is roughly sqrt(2)
-    constexpr static int64_t kDelayScalingFactorNumerator = 99;
-    constexpr static int64_t kDelayScalingFactorDenominator = 70;
+    constexpr static std::int64_t kDelayScalingFactorNumerator = 99;
+    constexpr static std::int64_t kDelayScalingFactorDenominator = 70;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_BASE_PROGRESS_REPORTER_HPP

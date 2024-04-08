@@ -14,6 +14,7 @@
 
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
+#include <cstddef>
 #include <regex>
 #include <sstream>
 
@@ -68,7 +69,7 @@ namespace {
 /// Returns the size of the key path if match successful, otherwise nullopt.
 [[nodiscard]] auto PathMatchSize(std::string const& key_path,
                                  std::string const& url_path) noexcept
-    -> std::optional<size_t> {
+    -> std::optional<std::size_t> {
     // split key path
     std::vector<std::string> key_tokens{};
     std::string token{};
@@ -495,8 +496,8 @@ auto CurlURLHandle::ParseConfigKey(std::string const& key) noexcept
         // create regex to find all possible matches of the parsed host in the
         // original key, where any '.' can also be a '*'
         std::stringstream pattern{};
-        size_t old_index{};
-        size_t index{};
+        std::size_t old_index{};
+        std::size_t index{};
         while ((index = parsed_host.find('.', old_index)) !=
                std::string::npos) {
             pattern << parsed_host.substr(old_index, index - old_index);
@@ -508,13 +509,14 @@ auto CurlURLHandle::ParseConfigKey(std::string const& key) noexcept
 
         // for every match, replace the parsed host in the found position and
         // try to parse as usual
-        size_t host_len = parsed_host.length();
+        std::size_t host_len = parsed_host.length();
         for (auto it = std::sregex_iterator(key.begin(), key.end(), re);
              it != std::sregex_iterator();
              ++it) {
             std::string new_key{key};
-            new_key.replace(
-                static_cast<size_t>(it->position()), host_len, parsed_host);
+            new_key.replace(static_cast<std::size_t>(it->position()),
+                            host_len,
+                            parsed_host);
 
             // try to parse new key
             auto try_config_key = GetConfigStructFromKey(new_key);
@@ -538,7 +540,7 @@ auto CurlURLHandle::ParseConfigKey(std::string const& key) noexcept
 auto CurlURLHandle::MatchConfigKey(std::string const& key) noexcept
     -> std::optional<ConfigKeyMatchDegree> {
     try {
-        size_t host_len{};
+        std::size_t host_len{};
         bool user_matched{false};
 
         // parse the given key

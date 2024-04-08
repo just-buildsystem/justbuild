@@ -56,7 +56,7 @@ auto Expression::operator[](ExpressionPtr const& key) && -> ExpressionPtr {
     return std::move(*this)[key->String()];
 }
 
-auto Expression::operator[](size_t pos) const& -> ExpressionPtr const& {
+auto Expression::operator[](std::size_t pos) const& -> ExpressionPtr const& {
     if (pos < List().size()) {
         return List()[pos];
     }
@@ -64,7 +64,7 @@ auto Expression::operator[](size_t pos) const& -> ExpressionPtr const& {
         fmt::format("List pos '{}' is out of bounds.", pos)};
 }
 
-auto Expression::operator[](size_t pos) && -> ExpressionPtr {
+auto Expression::operator[](std::size_t pos) && -> ExpressionPtr {
     auto&& list = std::move(*this).List();
     if (pos < list.size()) {
         return list[pos];
@@ -163,7 +163,8 @@ auto Expression::ToString() const -> std::string {
     return ToJson().dump();
 }
 
-[[nodiscard]] auto Expression::ToAbbrevString(size_t len) const -> std::string {
+[[nodiscard]] auto Expression::ToAbbrevString(std::size_t len) const
+    -> std::string {
     return AbbreviateJson(ToJson(), len);
 }
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -215,7 +216,7 @@ auto Expression::FromJson(nlohmann::json const& json) noexcept
     return ExpressionPtr{nullptr};
 }
 
-template <size_t kIndex>
+template <std::size_t kIndex>
 auto Expression::TypeStringForIndex() const noexcept -> std::string {
     using var_t = decltype(data_);
     if (kIndex == data_.index()) {

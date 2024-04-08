@@ -14,6 +14,7 @@
 
 #include <algorithm>  // std::find
 #include <atomic>
+#include <cstddef>
 #include <cstdlib>  // std::system
 #include <filesystem>
 #include <optional>
@@ -146,9 +147,9 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
     // Add ops to the map. None should throw, as repeating the same operation
     // should retrieve the value from the map, not call the operation again.
     // helper lists
-    const std::vector<size_t> ops_all{
+    const std::vector<std::size_t> ops_all{
         0, 1, 2, 3, 4};  // indices of all ops tested
-    const std::vector<size_t> ops_with_result{
+    const std::vector<std::size_t> ops_with_result{
         0, 4};  // indices of ops that return a non-empty string
     // Add to the map all ops multiple times
     for ([[maybe_unused]] auto const& i :
@@ -203,7 +204,7 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
                           .op_type = GitOpType::GET_HEAD_ID}},
                 [&ops_all, &ops_with_result](auto const& values) {
                     // check operations
-                    for (size_t const& i : ops_all) {
+                    for (std::size_t const& i : ops_all) {
                         auto res = *values[i];
                         REQUIRE(res.git_cas);
                         REQUIRE(res.result);

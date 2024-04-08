@@ -15,7 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_PORT_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_PORT_HPP
 
+#include <cstdint>
+#include <exception>
+#include <limits>
 #include <optional>
+#include <string>
 
 #include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
@@ -30,7 +34,7 @@ using Port = type_safe_arithmetic<PortTag>;
     -> std::optional<Port> {
     try {
         static constexpr int kMaxPortNumber{
-            std::numeric_limits<uint16_t>::max()};
+            std::numeric_limits<std::uint16_t>::max()};
         if (port_num >= 0 and port_num <= kMaxPortNumber) {
             return gsl::narrow_cast<Port::value_t>(port_num);
         }

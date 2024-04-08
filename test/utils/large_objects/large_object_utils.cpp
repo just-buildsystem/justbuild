@@ -15,6 +15,7 @@
 #include "test/utils/large_objects/large_object_utils.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <limits>
 #include <random>
@@ -29,7 +30,7 @@ class Randomizer final {
     Randomizer(std::uint64_t min, std::uint64_t max) noexcept
         : range_(std::random_device{}()), distribution_(min, max) {}
 
-    [[nodiscard]] inline auto Get() noexcept -> uint64_t {
+    [[nodiscard]] inline auto Get() noexcept -> std::uint64_t {
         return distribution_(range_);
     }
 
@@ -41,7 +42,7 @@ class Randomizer final {
 /// \brief Create a number of chunks of the predefined size.
 /// \tparam UChunkLength    Length of each chunk.
 /// \tparam USize           Number of chunks.
-template <size_t kChunkLength, size_t kPoolSize>
+template <std::size_t kChunkLength, std::size_t kPoolSize>
 class ChunkPool final {
   public:
     [[nodiscard]] static auto Instance() noexcept
@@ -50,7 +51,7 @@ class ChunkPool final {
         return pool;
     }
 
-    [[nodiscard]] auto operator[](size_t index) const noexcept
+    [[nodiscard]] auto operator[](std::size_t index) const noexcept
         -> std::string const& {
         return gsl::at(pool_, static_cast<std::ptrdiff_t>(index));
     }
@@ -62,10 +63,10 @@ class ChunkPool final {
         // Starts from 1 to exclude '\0' from randomization
         Randomizer randomizer{1, std::numeric_limits<char>::max()};
 
-        for (size_t i = 0; i < pool_.size(); ++i) {
+        for (std::size_t i = 0; i < pool_.size(); ++i) {
             auto& chunk = gsl::at(pool_, static_cast<std::ptrdiff_t>(i));
             chunk.resize(kChunkLength);
-            for (size_t j = 0; j < kChunkLength; ++j) {
+            for (std::size_t j = 0; j < kChunkLength; ++j) {
                 chunk[j] = randomizer.Get();
             }
         }
@@ -80,22 +81,22 @@ auto LargeObjectUtils::GenerateFile(std::filesystem::path const& path,
         return false;
     }
 
-    static constexpr size_t kChunkLength = 128;
-    static constexpr size_t kPoolSize = 64;
+    static constexpr std::size_t kChunkLength = 128;
+    static constexpr std::size_t kPoolSize = 64;
     using Pool = ChunkPool<kChunkLength, kPoolSize>;
 
     // To create a random file, the initial chunk position and the shift are
     // randomized:
-    Randomizer randomizer{std::numeric_limits<size_t>::min(),
-                          std::numeric_limits<size_t>::max()};
-    const size_t pool_index = randomizer.Get() % kPoolSize;
-    const size_t pool_shift = randomizer.Get() % 10;
-    const size_t step_count = size / kChunkLength + 1;
+    Randomizer randomizer{std::numeric_limits<std::size_t>::min(),
+                          std::numeric_limits<std::size_t>::max()};
+    const std::size_t pool_index = randomizer.Get() % kPoolSize;
+    const std::size_t pool_shift = randomizer.Get() % 10;
+    const std::size_t step_count = size / kChunkLength + 1;
 
     try {
         std::ofstream stream(path);
-        for (size_t i = 0; i < step_count && stream.good(); ++i) {
-            const size_t index = (pool_index + i * pool_shift) % kPoolSize;
+        for (std::size_t i = 0; i < step_count && stream.good(); ++i) {
+            const std::size_t index = (pool_index + i * pool_shift) % kPoolSize;
             if (i != step_count - 1) {
                 stream << Pool::Instance()[index];
             }
@@ -123,8 +124,8 @@ auto LargeObjectUtils::GenerateDirectory(std::filesystem::path const& path,
         return false;
     }
 
-    Randomizer randomizer{std::numeric_limits<size_t>::min(),
-                          std::numeric_limits<size_t>::max()};
+    Randomizer randomizer{std::numeric_limits<std::size_t>::min(),
+                          std::numeric_limits<std::size_t>::max()};
 
     std::uintmax_t entries = 0;
     while (entries < entries_count) {

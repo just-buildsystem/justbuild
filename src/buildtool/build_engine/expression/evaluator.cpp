@@ -65,7 +65,7 @@ auto Flatten(ExpressionPtr const& expr) -> ExpressionPtr {
         return expr;
     }
     auto const& list = expr->List();
-    size_t size{};
+    std::size_t size{};
     std::for_each(list.begin(), list.end(), [&](auto const& l) {
         if (not l->IsList()) {
             throw Evaluator::EvaluationError{
@@ -196,7 +196,7 @@ auto Enumerate(ExpressionPtr const& expr) -> ExpressionPtr {
             "enumerate expects list but instead got: {}.", expr->ToString())};
     }
     auto result = Expression::map_t::underlying_map_t{};
-    size_t count = 0;
+    std::size_t count = 0;
     for (auto const& entry : expr->List()) {
         result[fmt::format("{:010d}", count)] = entry;
         count++;
@@ -263,16 +263,16 @@ auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
 }
 
 auto Range(ExpressionPtr const& expr) -> ExpressionPtr {
-    size_t len = 0;
+    std::size_t len = 0;
     if (expr->IsNumber() && expr->Number() > 0.0) {
-        len = static_cast<size_t>(std::lround(expr->Number()));
+        len = static_cast<std::size_t>(std::lround(expr->Number()));
     }
     if (expr->IsString()) {
-        len = static_cast<size_t>(std::atol(expr->String().c_str()));
+        len = static_cast<std::size_t>(std::atol(expr->String().c_str()));
     }
     auto result = Expression::list_t{};
     result.reserve(len);
-    for (size_t i = 0; i < len; i++) {
+    for (std::size_t i = 0; i < len; i++) {
         result.emplace_back(ExpressionPtr{fmt::format("{}", i)});
     }
     return ExpressionPtr{result};
@@ -330,7 +330,7 @@ auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
 
 template <bool kDisjoint = false>
 // NOLINTNEXTLINE(misc-no-recursion)
-auto Union(Expression::list_t const& dicts, size_t from, size_t to)
+auto Union(Expression::list_t const& dicts, std::size_t from, std::size_t to)
     -> ExpressionPtr {
     if (to <= from) {
         return Expression::kEmptyMap;
@@ -343,7 +343,7 @@ auto Union(Expression::list_t const& dicts, size_t from, size_t to)
         }
         return entry;
     }
-    size_t mid = from + (to - from) / 2;
+    std::size_t mid = from + (to - from) / 2;
     auto left = Union<kDisjoint>(dicts, from, mid);
     auto right = Union<kDisjoint>(dicts, mid, to);
     if (left->Map().empty()) {

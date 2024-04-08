@@ -103,7 +103,7 @@ void strarray_closer(gsl::owner<git_strarray*> strarray) {
 void strarray_deleter(gsl::owner<git_strarray*> strarray) {
 #ifndef BOOTSTRAP_BUILD_TOOL
     if (strarray->strings != nullptr) {
-        for (size_t i = 0; i < strarray->count; ++i) {
+        for (std::size_t i = 0; i < strarray->count; ++i) {
             // NOLINTNEXTLINE(cppcoreguidelines-owning-memory,cppcoreguidelines-pro-bounds-pointer-arithmetic)
             delete[] strarray->strings[i];
         }

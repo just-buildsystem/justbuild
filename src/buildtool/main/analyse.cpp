@@ -50,11 +50,11 @@ namespace Target = BuildMaps::Target;
         }
     }
     else {
-        if (((static_cast<int64_t>(actions.size())) +
-             static_cast<int64_t>(number)) >= 0) {
+        if (((static_cast<std::int64_t>(actions.size())) +
+             static_cast<std::int64_t>(number)) >= 0) {
             return actions[static_cast<std::size_t>(
-                (static_cast<int64_t>(actions.size())) +
-                static_cast<int64_t>(number))];
+                (static_cast<std::int64_t>(actions.size())) +
+                static_cast<std::int64_t>(number))];
         }
     }
     return std::nullopt;

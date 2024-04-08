@@ -93,7 +93,7 @@ TEST_CASE("Lookup and iteration", "[linked_map]") {
 
 class CopyCounter {
   public:
-    CopyCounter() : count_{std::make_shared<size_t>()} {}
+    CopyCounter() : count_{std::make_shared<std::size_t>()} {}
     CopyCounter(CopyCounter const& other) {
         ++(*other.count_);
         count_ = other.count_;
@@ -112,7 +112,7 @@ class CopyCounter {
 
   private:
     // all copies of this object share the same counter
-    std::shared_ptr<size_t> count_{};
+    std::shared_ptr<std::size_t> count_{};
 };
 
 TEST_CASE("Zero copies", "[linked_map]") {

@@ -182,7 +182,7 @@ void extract_archive(std::string const& path) {
         if (archive_entry_size(entry) > 0) {
             void const* buf{};
             std::size_t size{};
-            int64_t offset{};
+            std::int64_t offset{};
             int r2{};
             while ((r2 = archive_read_data_block(a, &buf, &size, &offset)) ==
                    ARCHIVE_OK) {

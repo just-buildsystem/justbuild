@@ -54,7 +54,7 @@ class Expression {
     using map_t = LinkedMap<std::string, ExpressionPtr, ExpressionPtr>;
     using name_t = BuildMaps::Base::EntityName;
 
-    template <class T, size_t kIndex = 0>
+    template <class T, std::size_t kIndex = 0>
     static consteval auto IsValidType() -> bool {
         if constexpr (kIndex < std::variant_size_v<decltype(data_)>) {
             return std::is_same_v<
@@ -219,8 +219,9 @@ class Expression {
     [[nodiscard]] auto operator[](
         ExpressionPtr const& key) const& -> ExpressionPtr const&;
     [[nodiscard]] auto operator[](ExpressionPtr const& key) && -> ExpressionPtr;
-    [[nodiscard]] auto operator[](size_t pos) const& -> ExpressionPtr const&;
-    [[nodiscard]] auto operator[](size_t pos) && -> ExpressionPtr;
+    [[nodiscard]] auto operator[](
+        std::size_t pos) const& -> ExpressionPtr const&;
+    [[nodiscard]] auto operator[](std::size_t pos) && -> ExpressionPtr;
 
     enum class JsonMode { SerializeAll, SerializeAllButNodes, NullForNonJson };
 
@@ -228,7 +229,7 @@ class Expression {
         -> nlohmann::json;
     [[nodiscard]] auto IsCacheable() const -> bool;
     [[nodiscard]] auto ToString() const -> std::string;
-    [[nodiscard]] auto ToAbbrevString(size_t len) const -> std::string;
+    [[nodiscard]] auto ToAbbrevString(std::size_t len) const -> std::string;
     [[nodiscard]] auto ToHash() const noexcept -> std::string;
     [[nodiscard]] auto ToIdentifier() const noexcept -> std::string {
         return ToHexString(ToHash());
@@ -343,7 +344,7 @@ class Expression {
         return "none";
     }
 
-    template <size_t kIndex = 0>
+    template <std::size_t kIndex = 0>
     [[nodiscard]] auto TypeStringForIndex() const noexcept -> std::string;
     [[nodiscard]] auto TypeString() const noexcept -> std::string;
     [[nodiscard]] auto ComputeHash() const noexcept -> std::string;

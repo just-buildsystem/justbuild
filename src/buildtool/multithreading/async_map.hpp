@@ -57,7 +57,7 @@ class AsyncMap {
 
     [[nodiscard]] auto GetPendingKeys() const -> std::vector<KeyT> {
         std::vector<KeyT> keys{};
-        size_t s = 0;
+        std::size_t s = 0;
         for (auto& i : map_) {
             s += i.size();
         }

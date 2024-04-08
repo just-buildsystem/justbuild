@@ -309,7 +309,7 @@ class UserRule {
                                        std::vector<std::string> sfields,
                                        std::vector<std::string> cfields)
         -> std::unordered_set<std::string> {
-        size_t n = 0;
+        std::size_t n = 0;
         n += tfields.size();
         n += sfields.size();
         n += cfields.size();

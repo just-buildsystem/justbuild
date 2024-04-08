@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_URL_HANDLE_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_URL_HANDLE_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -56,10 +57,10 @@ struct ConfigKeyMatchDegree {
     // if a matching happened;
     bool matched{false};
     // length of config key's host field if host was matched
-    size_t host_len{};
+    std::size_t host_len{};
     // length of config key's path field if path was matched;
     // comparison ends on a '/' char or the end of the path
-    size_t path_len{};
+    std::size_t path_len{};
     // signals a match for the user field between config key and remote URL,
     // only if user field exists in config key
     bool user_matched{false};

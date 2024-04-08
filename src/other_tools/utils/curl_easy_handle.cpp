@@ -40,11 +40,11 @@ auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
     std::rewind(stream);
 
     // create string buffer to hold stream content
-    std::string content(static_cast<size_t>(size), '\0');
+    std::string content(static_cast<std::size_t>(size), '\0');
 
     // read stream content into string buffer
     auto n = std::fread(content.data(), 1, content.size(), stream);
-    if (n != static_cast<size_t>(size)) {
+    if (n != static_cast<std::size_t>(size)) {
         Logger::Log(LogLevel::Warning,
                     "Reading curl log from temporary file failed: read only {} "
                     "bytes while {} were expected",
@@ -87,8 +87,8 @@ auto CurlEasyHandle::Create(
 }
 
 auto CurlEasyHandle::EasyWriteToFile(gsl::owner<char*> data,
-                                     size_t size,
-                                     size_t nmemb,
+                                     std::size_t size,
+                                     std::size_t nmemb,
                                      gsl::owner<void*> userptr)
     -> std::streamsize {
     auto actual_size = static_cast<std::streamsize>(size * nmemb);
@@ -98,8 +98,8 @@ auto CurlEasyHandle::EasyWriteToFile(gsl::owner<char*> data,
 }
 
 auto CurlEasyHandle::EasyWriteToString(gsl::owner<char*> data,
-                                       size_t size,
-                                       size_t nmemb,
+                                       std::size_t size,
+                                       std::size_t nmemb,
                                        gsl::owner<void*> userptr)
     -> std::streamsize {
     size_t actual_size = size * nmemb;

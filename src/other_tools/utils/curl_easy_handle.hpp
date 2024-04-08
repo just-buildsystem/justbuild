@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_EASY_HANDLE_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_UTILS_CURL_EASY_HANDLE_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -83,16 +84,16 @@ class CurlEasyHandle {
 
     /// \brief Overwrites write_callback to redirect to file instead of stdout.
     [[nodiscard]] auto static EasyWriteToFile(gsl::owner<char*> data,
-                                              size_t size,
-                                              size_t nmemb,
+                                              std::size_t size,
+                                              std::size_t nmemb,
                                               gsl::owner<void*> userptr)
         -> std::streamsize;
 
     /// \brief Overwrites write_callback to redirect to string instead of
     /// stdout.
     [[nodiscard]] auto static EasyWriteToString(gsl::owner<char*> data,
-                                                size_t size,
-                                                size_t nmemb,
+                                                std::size_t size,
+                                                std::size_t nmemb,
                                                 gsl::owner<void*> userptr)
         -> std::streamsize;
 };

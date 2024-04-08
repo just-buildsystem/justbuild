@@ -99,14 +99,14 @@ auto FileChunker::NextChunkBoundary() noexcept -> std::size_t {
     }
     for (; i < normal_size; i++) {
         fp = (fp << 1U) +
-             gsl::at(gear_table, static_cast<uint8_t>(buffer_[pos_ + i]));
+             gsl::at(gear_table, static_cast<std::uint8_t>(buffer_[pos_ + i]));
         if ((fp & kMaskS) == 0) {
             return i;  // if the masked bits are all '0'
         }
     }
     for (; i < n; i++) {
         fp = (fp << 1U) +
-             gsl::at(gear_table, static_cast<uint8_t>(buffer_[pos_ + i]));
+             gsl::at(gear_table, static_cast<std::uint8_t>(buffer_[pos_ + i]));
         if ((fp & kMaskL) == 0) {
             return i;  // if the masked bits are all '0'
         }

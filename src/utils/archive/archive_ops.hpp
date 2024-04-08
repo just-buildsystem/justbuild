@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_UTILS_ARCHIVE_ARCHIVE_OPS_HPP
 #define INCLUDED_SRC_UTILS_ARCHIVE_ARCHIVE_OPS_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 
@@ -25,7 +26,7 @@ using archive = struct archive;
 using archive_entry = struct archive_entry;
 }
 
-enum class ArchiveType : size_t {
+enum class ArchiveType : std::size_t {
     Zip,
     _7Zip,
     ZipAuto,  // autodetect zip-like archives

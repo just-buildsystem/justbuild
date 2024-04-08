@@ -46,7 +46,7 @@ class TaskTracker {
     [[nodiscard]] auto Sample() noexcept -> std::string {
         std::unique_lock lock(m_);
         std::string result{};
-        uint64_t started = prio_ + 1;
+        std::uint64_t started = prio_ + 1;
         for (auto const& it : running_) {
             if (it.second < started) {
                 result = it.first;
@@ -62,9 +62,9 @@ class TaskTracker {
     }
 
   private:
-    uint64_t prio_{};
+    std::uint64_t prio_{};
     std::mutex m_{};
-    std::unordered_map<std::string, uint64_t> running_{};
+    std::unordered_map<std::string, std::uint64_t> running_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_TASK_TRACKER_HPP

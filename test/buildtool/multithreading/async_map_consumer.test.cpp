@@ -27,7 +27,7 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
-auto FibonacciMapConsumer() -> AsyncMapConsumer<int, uint64_t> {
+auto FibonacciMapConsumer() -> AsyncMapConsumer<int, std::uint64_t> {
     auto value_creator = [](auto /*unused*/,
                             auto setter,
                             auto logger,
@@ -38,7 +38,7 @@ auto FibonacciMapConsumer() -> AsyncMapConsumer<int, uint64_t> {
             return;
         }
         if (key < 2) {
-            (*setter)(uint64_t{static_cast<uint64_t>(key)});
+            (*setter)(uint64_t{static_cast<std::uint64_t>(key)});
             return;
         }
         (*subcaller)(
@@ -48,10 +48,10 @@ auto FibonacciMapConsumer() -> AsyncMapConsumer<int, uint64_t> {
             },
             logger);
     };
-    return AsyncMapConsumer<int, uint64_t>{value_creator};
+    return AsyncMapConsumer<int, std::uint64_t>{value_creator};
 }
 
-auto FibOnEvenConsumer() -> AsyncMapConsumer<int, uint64_t> {
+auto FibOnEvenConsumer() -> AsyncMapConsumer<int, std::uint64_t> {
     auto value_creator = [](auto /*unused*/,
                             auto setter,
                             auto logger,
@@ -63,11 +63,11 @@ auto FibOnEvenConsumer() -> AsyncMapConsumer<int, uint64_t> {
             return;
         }
         if (key == 0) {
-            (*setter)(uint64_t{static_cast<uint64_t>(0)});
+            (*setter)(uint64_t{static_cast<std::uint64_t>(0)});
             return;
         }
         if (key == 2) {
-            (*setter)(uint64_t{static_cast<uint64_t>(1)});
+            (*setter)(uint64_t{static_cast<std::uint64_t>(1)});
             return;
         }
         (*subcaller)(
@@ -81,7 +81,7 @@ auto FibOnEvenConsumer() -> AsyncMapConsumer<int, uint64_t> {
 }
 
 auto CountToMaxConsumer(int max_val, int step = 1, bool cycle = false)
-    -> AsyncMapConsumer<int, uint64_t> {
+    -> AsyncMapConsumer<int, std::uint64_t> {
     auto value_creator = [max_val, step, cycle](auto /*unused*/,
                                                 auto setter,
                                                 auto logger,
@@ -92,7 +92,7 @@ auto CountToMaxConsumer(int max_val, int step = 1, bool cycle = false)
             return;
         }
         if (key == max_val) {  // will never be reached if cycle==true
-            (*setter)(uint64_t{static_cast<uint64_t>(key)});
+            (*setter)(uint64_t{static_cast<std::uint64_t>(key)});
             return;
         }
         auto next = key + step;
@@ -101,17 +101,19 @@ auto CountToMaxConsumer(int max_val, int step = 1, bool cycle = false)
         }
         (*subcaller)(
             {next},
-            [setter](auto const& values) { (*setter)(uint64_t{*values[0]}); },
+            [setter](auto const& values) {
+                (*setter)(std::uint64_t{*values[0]});
+            },
             logger);
     };
-    return AsyncMapConsumer<int, uint64_t>{value_creator};
+    return AsyncMapConsumer<int, std::uint64_t>{value_creator};
 }
 
 TEST_CASE("Fibonacci", "[async_map_consumer]") {
-    uint64_t result{};
+    std::uint64_t result{};
     int const index{92};
     bool execution_failed = false;
-    uint64_t const expected_result{7540113804746346429};
+    std::uint64_t const expected_result{7540113804746346429};
     auto mapconsumer = FibonacciMapConsumer();
     {
         TaskSystem ts;
@@ -196,10 +198,10 @@ TEST_CASE("No subcalling necessary", "[async_map_consumer]") {
 }
 
 TEST_CASE("FibOnEven", "[async_map_consumer]") {
-    uint64_t result{};
+    std::uint64_t result{};
     int const index{184};
     bool execution_failed = false;
-    uint64_t const expected_result{7540113804746346429};
+    std::uint64_t const expected_result{7540113804746346429};
     auto mapconsumer = FibOnEvenConsumer();
     {
         TaskSystem ts;

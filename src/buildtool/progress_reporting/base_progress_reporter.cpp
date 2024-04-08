@@ -28,7 +28,7 @@ auto BaseProgressReporter::Reporter(std::function<void(void)> report) noexcept
                                         std::condition_variable* cv) {
         std::mutex m;
         std::unique_lock<std::mutex> lock(m);
-        int64_t delay = kStartDelayMillis;
+        std::int64_t delay = kStartDelayMillis;
         while (not *done) {
             cv->wait_for(lock, std::chrono::milliseconds(delay));
             if (not *done) {

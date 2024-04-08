@@ -28,13 +28,13 @@
 namespace build::bazel::remote::execution::v2 {
 struct Digest {
     std::string hash_;
-    int64_t size_bytes_;
+    std::int64_t size_bytes_;
 
     auto hash() const& noexcept -> std::string const& { return hash_; }
 
-    auto size_bytes() const noexcept -> int64_t { return size_bytes_; }
+    auto size_bytes() const noexcept -> std::int64_t { return size_bytes_; }
 
-    void set_size_bytes(int64_t size_bytes) { size_bytes_ = size_bytes; }
+    void set_size_bytes(std::int64_t size_bytes) { size_bytes_ = size_bytes; }
 
     void set_hash(std::string hash) { hash_ = hash; }
 
@@ -43,7 +43,7 @@ struct Digest {
 }  // namespace build::bazel::remote::execution::v2
 
 namespace google::protobuf {
-using int64 = int64_t;
+using int64 = std::int64_t;
 }
 
 #else

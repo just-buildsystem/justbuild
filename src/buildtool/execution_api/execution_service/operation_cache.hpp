@@ -17,6 +17,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdint>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -53,14 +54,14 @@ class OperationCache {
         return Instance().QueryInternal(x);
     }
 
-    static void SetExponent(uint8_t x) noexcept {
+    static void SetExponent(std::uint8_t x) noexcept {
         Instance().threshold_ = 1U << x;
     }
 
   private:
     mutable std::shared_mutex mutex_;
     std::unordered_map<std::string, ::google::longrunning::Operation> cache_;
-    static constexpr uint8_t kDefaultExponent{14};
+    static constexpr std::uint8_t kDefaultExponent{14};
     std::size_t threshold_{1U << kDefaultExponent};
 
     void SetInternal(std::string const& action, Operation const& op) {

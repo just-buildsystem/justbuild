@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <iterator>
@@ -131,7 +132,7 @@ void BlobGenRuleWithDeps(
     std::unordered_map<BuildMaps::Target::ConfiguredTarget, AnalysedTargetPtr>
         deps_by_transition;
     deps_by_transition.reserve(transition_keys.size());
-    for (size_t i = 0; i < transition_keys.size(); ++i) {
+    for (std::size_t i = 0; i < transition_keys.size(); ++i) {
         deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
 
@@ -486,7 +487,7 @@ void TreeRuleWithDeps(
             std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>
                 deps_by_target;
             deps_by_target.reserve(dependency_keys.size());
-            for (size_t i = 0; i < dependency_keys.size(); ++i) {
+            for (std::size_t i = 0; i < dependency_keys.size(); ++i) {
                 deps_by_target.emplace(dependency_keys[i].target,
                                        *dependency_values[i]);
             }
@@ -647,7 +648,7 @@ void InstallRuleWithDeps(
     std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>
         deps_by_target;
     deps_by_target.reserve(dependency_keys.size());
-    for (size_t i = 0; i < dependency_keys.size(); ++i) {
+    for (std::size_t i = 0; i < dependency_keys.size(); ++i) {
         deps_by_target.emplace(dependency_keys[i].target,
                                *dependency_values[i]);
     }
@@ -994,7 +995,7 @@ void GenericRuleWithDeps(
     std::unordered_map<BuildMaps::Target::ConfiguredTarget, AnalysedTargetPtr>
         deps_by_transition;
     deps_by_transition.reserve(transition_keys.size());
-    for (size_t i = 0; i < transition_keys.size(); ++i) {
+    for (std::size_t i = 0; i < transition_keys.size(); ++i) {
         deps_by_transition.emplace(transition_keys[i], *dependency_values[i]);
     }
 

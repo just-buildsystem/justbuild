@@ -97,7 +97,7 @@ class ResultTargetMap {
     [[nodiscard]] auto ConfiguredTargets() const noexcept
         -> std::vector<ConfiguredTarget> {
         std::vector<ConfiguredTarget> targets{};
-        size_t s = 0;
+        std::size_t s = 0;
         for (const auto& target : targets_) {
             s += target.size();
         }
@@ -178,9 +178,9 @@ class ResultTargetMap {
                                 Logger const* logger = nullptr) const
         -> ResultType<kIncludeOrigins> {
         ResultType<kIncludeOrigins> result{};
-        size_t na = 0;
-        size_t nb = 0;
-        size_t nt = 0;
+        std::size_t na = 0;
+        std::size_t nb = 0;
+        std::size_t nt = 0;
         for (std::size_t i = 0; i < width_; i++) {
             na += num_actions_[i];
             nb += num_blobs_[i];

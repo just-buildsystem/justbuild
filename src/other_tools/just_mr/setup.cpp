@@ -286,7 +286,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                 auto const& values) {
                 nlohmann::json mr_repos{};
                 for (auto const& repo : setup_repos->to_setup) {
-                    auto i = static_cast<size_t>(
+                    auto i = static_cast<std::size_t>(
                         &repo - &setup_repos->to_setup[0]);  // get index
                     mr_repos[repo] = *values[i];
                 }

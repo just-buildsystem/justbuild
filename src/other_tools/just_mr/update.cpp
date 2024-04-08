@@ -14,6 +14,7 @@
 
 #include "src/other_tools/just_mr/update.hpp"
 
+#include <cstddef>
 #include <filesystem>
 
 #include "fmt/core.h"
@@ -235,7 +236,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
             [&mr_config, repos_to_update_names = update_args.repos_to_update](
                 auto const& values) {
                 for (auto const& repo_name : repos_to_update_names) {
-                    auto i = static_cast<size_t>(
+                    auto i = static_cast<std::size_t>(
                         &repo_name - &repos_to_update_names[0]);  // get index
                     mr_config["repositories"][repo_name]["repository"]
                              ["commit"] = *values[i];
