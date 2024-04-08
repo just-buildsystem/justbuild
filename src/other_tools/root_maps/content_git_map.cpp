@@ -176,6 +176,7 @@ void ResolveContentTree(
     bool is_absent,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& ws_setter,
@@ -223,6 +224,7 @@ void ResolveContentTree(
                                     just_git_cas,
                                     just_git_cas)},
                 [resolve_symlinks_map,
+                 critical_git_op_map,
                  tree_hash,
                  tree_id_file,
                  is_cache_hit,
@@ -230,6 +232,7 @@ void ResolveContentTree(
                  is_absent,
                  serve_api_exists,
                  remote_api,
+                 ts,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -251,34 +254,74 @@ void ResolveContentTree(
                                   /*fatal=*/true);
                         return;
                     }
-                    auto const& resolved_tree = *hashes[0];
-                    // cache the resolved tree in the CAS map
-                    if (not StorageUtils::WriteTreeIDFile(tree_id_file,
-                                                          resolved_tree.id)) {
-                        (*logger)(fmt::format("Failed to write resolved tree "
-                                              "id to file {}",
-                                              tree_id_file.string()),
-                                  /*fatal=*/true);
-                        return;
-                    }
-                    // set the workspace root
-                    if (is_absent) {
-                        EnsureRootAsAbsent(resolved_tree.id,
-                                           key,
-                                           serve_api_exists,
-                                           remote_api,
-                                           is_cache_hit,
-                                           ws_setter,
-                                           logger);
-                    }
-                    else {
-                        (*ws_setter)(
-                            std::pair(nlohmann::json::array(
-                                          {FileRoot::kGitTreeMarker,
-                                           resolved_tree.id,
-                                           StorageConfig::GitRoot().string()}),
-                                      /*is_cache_hit=*/is_cache_hit));
-                    }
+                    auto const& resolved_tree_id = hashes[0]->id;
+                    // keep tree alive in Git cache via a tagged commit
+                    GitOpKey op_key = {
+                        .params =
+                            {
+                                StorageConfig::GitRoot(),     // target_path
+                                resolved_tree_id,             // git_hash
+                                "",                           // branch
+                                "Keep referenced tree alive"  // message
+                            },
+                        .op_type = GitOpType::KEEP_TREE};
+                    critical_git_op_map->ConsumeAfterKeysReady(
+                        ts,
+                        {std::move(op_key)},
+                        [resolved_tree_id,
+                         key,
+                         tree_id_file,
+                         is_absent,
+                         serve_api_exists,
+                         remote_api,
+                         is_cache_hit,
+                         ws_setter,
+                         logger](auto const& values) {
+                            GitOpValue op_result = *values[0];
+                            // check flag
+                            if (not op_result.result) {
+                                (*logger)("Keep tree failed",
+                                          /*fatal=*/true);
+                                return;
+                            }
+                            // cache the resolved tree in the CAS map
+                            if (not StorageUtils::WriteTreeIDFile(
+                                    tree_id_file, resolved_tree_id)) {
+                                (*logger)(
+                                    fmt::format("Failed to write resolved tree "
+                                                "id to file {}",
+                                                tree_id_file.string()),
+                                    /*fatal=*/true);
+                                return;
+                            }
+                            // set the workspace root
+                            if (is_absent) {
+                                EnsureRootAsAbsent(resolved_tree_id,
+                                                   key,
+                                                   serve_api_exists,
+                                                   remote_api,
+                                                   is_cache_hit,
+                                                   ws_setter,
+                                                   logger);
+                            }
+                            else {
+                                (*ws_setter)(std::pair(
+                                    nlohmann::json::array(
+                                        {FileRoot::kGitTreeMarker,
+                                         resolved_tree_id,
+                                         StorageConfig::GitRoot().string()}),
+                                    /*is_cache_hit=*/is_cache_hit));
+                            }
+                        },
+                        [logger, target_path = StorageConfig::GitRoot()](
+                            auto const& msg, bool fatal) {
+                            (*logger)(
+                                fmt::format("While running critical Git op "
+                                            "KEEP_TREE for target {}:\n{}",
+                                            target_path.string(),
+                                            msg),
+                                fatal);
+                        });
                 },
                 [logger, content = key.archive.content](auto const& msg,
                                                         bool fatal) {
@@ -322,6 +365,7 @@ void WriteIdFileAndSetWSRoot(
     bool is_absent,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& setter,
@@ -365,6 +409,7 @@ void WriteIdFileAndSetWSRoot(
                        is_absent,
                        serve_api_exists,
                        remote_api,
+                       critical_git_op_map,
                        resolve_symlinks_map,
                        ts,
                        setter,
@@ -381,6 +426,7 @@ void ExtractAndImportToGit(
     bool is_absent,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
@@ -416,6 +462,7 @@ void ExtractAndImportToGit(
          is_absent,
          serve_api_exists,
          remote_api,
+         critical_git_op_map,
          resolve_symlinks_map,
          ts,
          setter,
@@ -436,6 +483,7 @@ void ExtractAndImportToGit(
                                     is_absent,
                                     serve_api_exists,
                                     remote_api,
+                                    critical_git_op_map,
                                     resolve_symlinks_map,
                                     ts,
                                     setter,
@@ -509,6 +557,7 @@ auto CreateContentGitMap(
                  fetch_absent,
                  serve_api_exists,
                  remote_api,
+                 critical_git_op_map,
                  resolve_symlinks_map,
                  ts,
                  setter,
@@ -552,6 +601,7 @@ auto CreateContentGitMap(
                         /*is_absent = */ (key.absent and not fetch_absent),
                         serve_api_exists,
                         remote_api,
+                        critical_git_op_map,
                         resolve_symlinks_map,
                         ts,
                         setter,
@@ -617,6 +667,7 @@ auto CreateContentGitMap(
                                           /*is_absent = */ true,
                                           serve_api_exists,
                                           remote_api,
+                                          critical_git_op_map,
                                           import_to_git_map,
                                           resolve_symlinks_map,
                                           ts,
@@ -644,6 +695,7 @@ auto CreateContentGitMap(
                     [key,
                      digest,
                      archive_tree_id_file,
+                     critical_git_op_map,
                      import_to_git_map,
                      resolve_symlinks_map,
                      just_mr_paths,
@@ -706,6 +758,7 @@ auto CreateContentGitMap(
                                                       /*is_absent=*/true,
                                                       serve_api_exists,
                                                       remote_api,
+                                                      critical_git_op_map,
                                                       import_to_git_map,
                                                       resolve_symlinks_map,
                                                       ts,
@@ -744,6 +797,7 @@ auto CreateContentGitMap(
                                                   /*is_absent=*/true,
                                                   serve_api_exists,
                                                   remote_api,
+                                                  critical_git_op_map,
                                                   import_to_git_map,
                                                   resolve_symlinks_map,
                                                   ts,
@@ -774,6 +828,7 @@ auto CreateContentGitMap(
                     {key.archive},
                     [archive_tree_id_file,
                      key,
+                     critical_git_op_map,
                      import_to_git_map,
                      resolve_symlinks_map,
                      ts,
@@ -794,6 +849,7 @@ auto CreateContentGitMap(
                                               /*is_absent=*/false,
                                               /*serve_api_exists=*/false,
                                               /*remote_api=*/std::nullopt,
+                                              critical_git_op_map,
                                               import_to_git_map,
                                               resolve_symlinks_map,
                                               ts,

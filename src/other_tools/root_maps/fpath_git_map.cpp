@@ -98,6 +98,7 @@ void ResolveFilePathTree(
     GitCASPtr const& source_cas,
     GitCASPtr const& target_cas,
     bool absent,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     bool serve_api_exists,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
@@ -140,11 +141,13 @@ void ResolveFilePathTree(
                                     source_cas,
                                     target_cas)},
                 [resolve_symlinks_map,
+                 critical_git_op_map,
                  tree_hash,
                  tree_id_file,
                  absent,
                  serve_api_exists,
                  remote_api,
+                 ts,
                  ws_setter,
                  logger](auto const& hashes) {
                     if (not hashes[0]) {
@@ -166,26 +169,65 @@ void ResolveFilePathTree(
                                   /*fatal=*/true);
                         return;
                     }
-                    auto const& resolved_tree = *hashes[0];
-                    // cache the resolved tree in the CAS map
-                    if (not StorageUtils::WriteTreeIDFile(tree_id_file,
-                                                          resolved_tree.id)) {
-                        (*logger)(fmt::format("Failed to write resolved tree "
-                                              "id to file {}",
-                                              tree_id_file.string()),
-                                  /*fatal=*/true);
-                        return;
-                    }
-                    // if serve endpoint is given, try to ensure it has this
-                    // tree available to be able to build against it; the
-                    // resolved tree is in the Git cache
-                    CheckServeAndSetRoot(resolved_tree.id,
-                                         StorageConfig::GitRoot().string(),
-                                         absent,
-                                         serve_api_exists,
-                                         remote_api,
-                                         ws_setter,
-                                         logger);
+                    auto const& resolved_tree_id = hashes[0]->id;
+                    // keep tree alive in Git cache via a tagged commit
+                    GitOpKey op_key = {
+                        .params =
+                            {
+                                StorageConfig::GitRoot(),     // target_path
+                                resolved_tree_id,             // git_hash
+                                "",                           // branch
+                                "Keep referenced tree alive"  // message
+                            },
+                        .op_type = GitOpType::KEEP_TREE};
+                    critical_git_op_map->ConsumeAfterKeysReady(
+                        ts,
+                        {std::move(op_key)},
+                        [resolved_tree_id,
+                         tree_id_file,
+                         absent,
+                         serve_api_exists,
+                         remote_api,
+                         ws_setter,
+                         logger](auto const& values) {
+                            GitOpValue op_result = *values[0];
+                            // check flag
+                            if (not op_result.result) {
+                                (*logger)("Keep tree failed",
+                                          /*fatal=*/true);
+                                return;
+                            }
+                            // cache the resolved tree in the CAS map
+                            if (not StorageUtils::WriteTreeIDFile(
+                                    tree_id_file, resolved_tree_id)) {
+                                (*logger)(
+                                    fmt::format("Failed to write resolved tree "
+                                                "id to file {}",
+                                                tree_id_file.string()),
+                                    /*fatal=*/true);
+                                return;
+                            }
+                            // if serve endpoint is given, try to ensure it has
+                            // this tree available to be able to build against
+                            // it; the resolved tree is in the Git cache
+                            CheckServeAndSetRoot(
+                                resolved_tree_id,
+                                StorageConfig::GitRoot().string(),
+                                absent,
+                                serve_api_exists,
+                                remote_api,
+                                ws_setter,
+                                logger);
+                        },
+                        [logger, target_path = StorageConfig::GitRoot()](
+                            auto const& msg, bool fatal) {
+                            (*logger)(
+                                fmt::format("While running critical Git op "
+                                            "KEEP_TREE for target {}:\n{}",
+                                            target_path.string(),
+                                            msg),
+                                fatal);
+                        });
                 },
                 [logger, target_path](auto const& msg, bool fatal) {
                     (*logger)(fmt::format(
@@ -323,6 +365,7 @@ auto CreateFilePathGitMap(
                          pragma_special,
                          source_cas = op_result.git_cas,
                          absent,
+                         critical_git_op_map,
                          resolve_symlinks_map,
                          serve_api_exists,
                          remote_api,
@@ -344,6 +387,7 @@ auto CreateFilePathGitMap(
                                 source_cas,
                                 op_result.git_cas, /*just_git_cas*/
                                 absent,
+                                critical_git_op_map,
                                 resolve_symlinks_map,
                                 serve_api_exists,
                                 remote_api,
@@ -410,6 +454,7 @@ auto CreateFilePathGitMap(
                  fpath = key.fpath,
                  pragma_special = key.pragma_special,
                  absent = key.absent,
+                 critical_git_op_map,
                  resolve_symlinks_map,
                  serve_api_exists,
                  remote_api,
@@ -433,6 +478,7 @@ auto CreateFilePathGitMap(
                                         values[0]->second, /*source_cas*/
                                         values[0]->second, /*target_cas*/
                                         absent,
+                                        critical_git_op_map,
                                         resolve_symlinks_map,
                                         serve_api_exists,
                                         remote_api,

@@ -456,7 +456,39 @@ auto SourceTreeService::ResolveContentTree(
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
-        // cache the resolved tree
+        // keep tree alive in the Git cache via a tagged commit
+        auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
+            [logger = logger_, resolved_tree](auto const& msg, bool fatal) {
+                if (fatal) {
+                    logger->Emit(LogLevel::Error,
+                                 fmt::format("While keeping tree {} in "
+                                             "repository {}:\n{}",
+                                             resolved_tree.id,
+                                             StorageConfig::GitRoot().string(),
+                                             msg));
+                }
+            });
+        {
+            // this is a non-thread-safe Git operation, so it must be guarded!
+            std::shared_lock slock{mutex_};
+            // open real repository at Git CAS location
+            auto git_repo = GitRepo::Open(StorageConfig::GitRoot());
+            if (not git_repo) {
+                auto str = fmt::format("Failed to open Git CAS repository {}",
+                                       StorageConfig::GitRoot().string());
+                logger_->Emit(LogLevel::Error, str);
+                response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
+                return ::grpc::Status::OK;
+            }
+            // Important: message must be consistent with just-mr!
+            if (not git_repo->KeepTree(resolved_tree.id,
+                                       "Keep referenced tree alive",  // message
+                                       wrapped_logger)) {
+                response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
+                return ::grpc::Status::OK;
+            }
+        }
+        // cache the resolved tree association
         if (not StorageUtils::WriteTreeIDFile(tree_id_file, resolved_tree.id)) {
             auto str =
                 fmt::format("Failed to write resolved tree id to file {}",
