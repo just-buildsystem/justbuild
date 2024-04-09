@@ -18,6 +18,7 @@
 #include <iterator>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -29,11 +30,17 @@
 
 class LogSinkCmdLine final : public ILogSink {
   public:
-    static auto CreateFactory(bool colored = true) -> LogSinkFactory {
-        return [=]() { return std::make_shared<LogSinkCmdLine>(colored); };
+    static auto CreateFactory(bool colored = true,
+                              std::optional<LogLevel> restrict_level =
+                                  std::nullopt) -> LogSinkFactory {
+        return [=]() {
+            return std::make_shared<LogSinkCmdLine>(colored, restrict_level);
+        };
     }
 
-    explicit LogSinkCmdLine(bool colored) noexcept : colored_{colored} {}
+    explicit LogSinkCmdLine(bool colored,
+                            std::optional<LogLevel> restrict_level) noexcept
+        : colored_{colored}, restrict_level_{restrict_level} {}
     ~LogSinkCmdLine() noexcept final = default;
     LogSinkCmdLine(LogSinkCmdLine const&) noexcept = delete;
     LogSinkCmdLine(LogSinkCmdLine&&) noexcept = delete;
@@ -45,6 +52,12 @@ class LogSinkCmdLine final : public ILogSink {
               LogLevel level,
               std::string const& msg) const noexcept final {
         static std::mutex mutex{};
+
+        if (restrict_level_ and
+            (static_cast<int>(*restrict_level_) < static_cast<int>(level))) {
+            return;
+        }
+
         auto prefix = LogLevelToString(level);
 
         if (logger != nullptr) {
@@ -78,6 +91,7 @@ class LogSinkCmdLine final : public ILogSink {
 
   private:
     bool colored_{};
+    std::optional<LogLevel> restrict_level_{};
 
     [[nodiscard]] auto FormatPrefix(LogLevel level,
                                     std::string const& prefix) const noexcept
