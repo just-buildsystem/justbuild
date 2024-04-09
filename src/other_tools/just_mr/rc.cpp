@@ -426,7 +426,21 @@ namespace {
                 std::exit(kExitConfigError);
             }
             clargs->log.log_limit = ToLogLevel(limit->Number());
-            LogConfig::SetLogLimit(*clargs->log.log_limit);
+        }
+    }
+    // Set restrict stderr log limit, if specified and not set on the command
+    // line
+    if (not clargs->log.restrict_stderr_log_limit) {
+        auto limit = rc_config["restrict stderr log limit"];
+        if (limit.IsNotNull()) {
+            if (not limit->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file specified log-limit has to be "
+                            "a number, but found {}",
+                            limit->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->log.restrict_stderr_log_limit = ToLogLevel(limit->Number());
         }
     }
     // Add additional log sinks specified in the rc file.
@@ -444,10 +458,6 @@ namespace {
                 ReadLocation(log_file->ToJson(),
                              clargs->common.just_mr_paths->workspace_root);
             if (path) {
-                LogConfig::AddSink(LogSinkFile::CreateFactory(
-                    path->first,
-                    clargs->log.log_append ? LogSinkFile::Mode::Append
-                                           : LogSinkFile::Mode::Overwrite));
                 clargs->log.log_files.emplace_back(path->first);
             }
         }

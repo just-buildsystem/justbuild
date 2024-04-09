@@ -184,7 +184,8 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     else {
         LogConfig::SetLogLimit(kDefaultLogLevel);
     }
-    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(
+        not clargs.plain_log, clargs.restrict_stderr_log_limit)});
     for (auto const& log_file : clargs.log_files) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
             log_file,
@@ -217,6 +218,9 @@ auto main(int argc, char* argv[]) -> int {
 
         SetupLogging(arguments.log);
         auto config_file = ReadJustMRRC(&arguments);
+        // As the rc file can contain logging parameters, reset the logging
+        // configuration
+        SetupLogging(arguments.log);
         if (arguments.common.repository_config) {
             config_file = arguments.common.repository_config;
         }

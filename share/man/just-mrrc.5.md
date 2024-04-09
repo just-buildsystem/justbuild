@@ -87,6 +87,10 @@ The just-mrrc is given by a JSON object.
    value for the log limit, that can be overridden by the command-line
    options.
 
+ - The value for the key *`"restrict stderr log limit"`*, if given,
+   sets the default value for the restriction of the log limit on
+   console; this value can be overridden by the command-line option.
+
  - The value *`"log files"`*, if given, has to be a list of location
    objects, specifying additional log files, on top of those specified
    on the command line.
@@ -171,7 +175,8 @@ An example just-mrrc file could look like the following:
 , "local build root": {"root": "home", "path": ".cache/just"}
 , "checkout locations": {"root": "home", "path": ".just-local.json"}
 , "local launcher": ["env", "--"]
-, "log limit": 4
+, "log limit": 5
+, "restrict stderr log limit": 4
 , "log files": [{"root": "home", "path": ".log/just/latest-invocation"}]
 , "distdirs": [{"root": "home", "path": ".distfiles"}]
 , "just": {"root": "system", "path": "usr/bin/just"}

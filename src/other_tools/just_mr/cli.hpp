@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
@@ -61,6 +62,7 @@ struct MultiRepoCommonArguments {
 struct MultiRepoLogArguments {
     std::vector<std::filesystem::path> log_files{};
     std::optional<LogLevel> log_limit{};
+    std::optional<LogLevel> restrict_stderr_log_limit{};
     bool plain_log{false};
     bool log_append{false};
 };
@@ -275,6 +277,14 @@ static inline auto SetupMultiRepoLogArguments(
                        static_cast<int>(kFirstLogLevel),
                        static_cast<int>(kLastLogLevel),
                        static_cast<int>(kDefaultLogLevel)))
+        ->type_name("NUM");
+    app->add_option_function<std::underlying_type_t<LogLevel>>(
+           "--restrict-stderr-log-limit",
+           [clargs](auto const& limit) {
+               clargs->restrict_stderr_log_limit = ToLogLevel(limit);
+           },
+           "Restrict logging on console to the minimum of the specified "
+           "--log-limit and this value")
         ->type_name("NUM");
     app->add_flag("--plain-log",
                   clargs->plain_log,
