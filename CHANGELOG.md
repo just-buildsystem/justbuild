@@ -16,6 +16,9 @@ Bug fixes on top of release `1.2.4`.
 - A staging conflict in the test setup was fixed.
 - The expression `"disjoint_map_union"` did not verify disjointness
   in all cases; this is fixed now.
+- The command line option `"--remote-execution-property"` can be
+  repeated multiple times to list all the properties, but only the
+  last one was retained. This is fixed now.
 
 ## Release `1.2.4` (2023-12-19)
 

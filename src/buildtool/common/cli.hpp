@@ -394,7 +394,8 @@ static inline auto SetupEndpointArguments(
            "option multiple times will accumulate pairs (latest wins).")
         ->type_name("KEY:VAL")
         ->allow_extra_args(false)
-        ->expected(1, 1);
+        ->expected(1)
+        ->take_all();
 }
 
 static inline auto SetupCommonBuildArguments(
