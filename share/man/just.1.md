@@ -440,6 +440,13 @@ Log limit (higher is more verbose) in interval \[0,6\] (Default: 3).
 Supported by:
 add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
 
+**`--restrict-stderr-log-limit`** *`NUM`*  
+Restrict logging on console to the minimum of the specified **`--log-limit`**
+and the value specified in this option. The default is to not additionally
+restrict the log level at the console.  
+Supported by:
+add-to-cas|analyse|build|describe|install|install-cas|rebuild|traverse|gc|execute.
+
 **`--plain-log`**  
 Do not use ANSI escape sequences to highlight messages.  
 Supported by:

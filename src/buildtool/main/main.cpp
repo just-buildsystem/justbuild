@@ -87,7 +87,8 @@ void SetupDefaultLogging() {
 
 void SetupLogging(LogArguments const& clargs) {
     LogConfig::SetLogLimit(clargs.log_limit);
-    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(not clargs.plain_log)});
+    LogConfig::SetSinks({LogSinkCmdLine::CreateFactory(
+        not clargs.plain_log, clargs.restrict_stderr_log_limit)});
     for (auto const& log_file : clargs.log_files) {
         LogConfig::AddSink(LogSinkFile::CreateFactory(
             log_file,
