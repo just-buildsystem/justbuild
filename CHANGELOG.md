@@ -5,7 +5,7 @@ A feature release on top of `1.2.0`, backwards compatible.
 ### Major new features
 
 - New subcommand `just serve` to start a target-level caching service,
-  as described in the corresponding design document. 
+  as described in the corresponding design document.
 - `just-mr` is able to back up and retrieve distribution files
   from a remote execution endpoint. This simplifies usage in an
   environment with restricted internet access.
@@ -87,6 +87,9 @@ A feature release on top of `1.2.0`, backwards compatible.
   some targets.
 - The expression `"disjoint_map_union"` did not verify disjointness
   in all cases; this is fixed now.
+- The command line option `"--remote-execution-property"` can be
+  repeated multiple times to list all the properties, but only the
+  last one was retained. This is fixed now.
 
 ## Release `1.2.0` (2023-08-25)
 
