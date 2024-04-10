@@ -1,4 +1,4 @@
-## Release `1.2.5` (UNRELEASED)
+## Release `1.2.5` (2024-04-10)
 
 Bug fixes on top of release `1.2.4`.
 
