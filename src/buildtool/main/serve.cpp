@@ -85,7 +85,11 @@
 
 void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
     Configuration serve_config{};
-    if (FileSystemManager::IsFile(clargs->serve.config)) {
+    auto serve_path = clargs->serve.config;
+    if (not FileSystemManager::ResolveSymlinks(&serve_path)) {
+        return;
+    }
+    if (FileSystemManager::IsFile(serve_path)) {
         // json::parse may throw
         try {
             std::ifstream fs(clargs->serve.config);
