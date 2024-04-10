@@ -31,11 +31,11 @@ The configuration file is given by a JSON object.
  - The value for the key *`"logging"`* is a JSON object specifying logging
    options.  
    For subkey *`"files"`* the value is a list of strings specifying one or more
-   local log files to use. The files will store the information printed on
-   stderr, along with the thread id and timestamp when the output has been
-   generated.  
+   local log files to use.  
    For subkey *`"limit"`* the value is an integer setting the default for
    the log limit.  
+   For subkey *`"restrict stderr limit"`* the value is an integer setting a
+   restriction for the log on stderr.  
    For subkey *`"plain"`* the value is a flag. If set, do not use ANSI escape
    sequences to highlight messages.  
    For subkey *`"append"`* the value is a flag. If set, append messages to log

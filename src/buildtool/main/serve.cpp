@@ -239,6 +239,23 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->log.log_limit = ToLogLevel(limit->Number());
         }
+        // read stderr restriction
+        auto stderr_limit =
+            logging->Get("restrict stderr limit", Expression::none_t{});
+        if (stderr_limit.IsNotNull()) {
+            if (not stderr_limit->IsNumber()) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "In serve service config file {}:\nValue for logging key "
+                    "\"restrict stderr limit\" has to be numeric, but found {}",
+                    clargs->serve.config.string(),
+                    limit->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->log.restrict_stderr_log_limit =
+                ToLogLevel(stderr_limit->Number());
+        }
+        // read stderr restriction
     }
     // read client TLS authentication arguments
     auto auth_args = serve_config["authentication"];
