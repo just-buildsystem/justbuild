@@ -12,6 +12,7 @@
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
     , "TIMEOUT_SCALE"
+    , "TEST_STANDALONE_SERVE"
     ]
   , "imports":
     { "artifacts_list": ["@", "rules", "", "field_artifacts_list"]
@@ -82,6 +83,13 @@
             ]
           }
         ]
+      , [ "out_dirs"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
+          , "then": ["serve"]
+          , "else": ["remote"]
+          }
+        ]
       , [ "inputs"
         , { "type": "map_union"
           , "$1":
@@ -125,6 +133,7 @@
       , "then":
         { "type": "ACTION"
         , "outs": {"type": "var", "name": "outs"}
+        , "out_dirs": {"type": "var", "name": "out_dirs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
@@ -151,6 +160,7 @@
       , "else":
         { "type": "ACTION"
         , "outs": {"type": "var", "name": "outs"}
+        , "out_dirs": {"type": "var", "name": "out_dirs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
@@ -187,6 +197,7 @@
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
     , "TIMEOUT_SCALE"
+    , "TEST_STANDALONE_SERVE"
     ]
   , "imports": {"action": "test-action"}
   , "expression":
