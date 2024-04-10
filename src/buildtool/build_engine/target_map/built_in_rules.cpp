@@ -1396,7 +1396,7 @@ void ConfigureRule(
                 std::vector<std::string>{},
                 std::vector<Tree::Ptr>{},
                 std::move(vars_set),
-                std::set<std::string>{},
+                tainted,
                 std::move(deps_info));
             analysis_result = result_map->Add(key.target,
                                               std::move(effective_conf),

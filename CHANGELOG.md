@@ -11,6 +11,7 @@ Bug fixes on top of release `1.2.4`.
   in the source tree.
 - `just-mr` now reports the name of the build tool correctly, even
   if not called `just`.
+- Taintedness of "configure" targets is now propagated correctly.
 
 ## Release `1.2.4` (2023-12-19)
 
