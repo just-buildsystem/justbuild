@@ -215,6 +215,22 @@ namespace detail {
     return old_abbrev;
 }
 
+// \brief For a json object, return an object that is obtained from the original
+// one by dropping all top-level keys where the value is null.
+[[nodiscard]] static inline auto PruneJson(nlohmann::json const& json)
+    -> nlohmann::json {
+    if (not json.is_object()) {
+        return json;
+    }
+    auto result = nlohmann::json::object();
+    for (auto const& el : json.items()) {
+        if (not el.value().is_null()) {
+            result[el.key()] = el.value();
+        }
+    }
+    return result;
+}
+
 #if defined(FMT_VERSION) and FMT_VERSION >= 100000
 // Use nlohmann::basic_json::operator<<() for formatting via libfmt.
 // This explicit template specialization seems to be required starting with
