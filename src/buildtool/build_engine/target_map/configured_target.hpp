@@ -22,6 +22,7 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
+#include "src/utils/cpp/json.hpp"
 
 namespace BuildMaps::Target {
 
@@ -37,6 +38,11 @@ struct ConfiguredTarget {
 
     [[nodiscard]] auto ToString() const noexcept -> std::string {
         return fmt::format("[{},{}]", target.ToString(), config.ToString());
+    }
+
+    [[nodiscard]] auto ToShortString() const noexcept -> std::string {
+        return fmt::format(
+            "[{},{}]", target.ToString(), PruneJson(config.ToJson()).dump());
     }
 };
 
