@@ -32,7 +32,7 @@
 /// A read buffer is used to progressively process the file content instead of
 /// reading the entire file content in memory.
 class FileChunker {
-    static constexpr std::uint32_t kDefaultChunkSize{1024 * 8};  // 8 KB
+    static constexpr std::uint32_t kAverageChunkSize{1024 * 8};  // 8 KB
     static constexpr std::uint32_t kDefaultSeed{0};
 
   public:
@@ -40,20 +40,19 @@ class FileChunker {
     /// @param path                 The path to the file to be splitted.
     /// @param average_chunk_size   Targeted average chunk size in bytes
     ///                             (default: 8 KB).
-    explicit FileChunker(std::filesystem::path const& path,
-                         std::uint32_t average_chunk_size = kDefaultChunkSize)
+    explicit FileChunker(std::filesystem::path const& path)
         // According to section 4.1 of the paper
         // https://ieeexplore.ieee.org/document/9055082, maximum and minimum
         // chunk sizes are configured to the 8x and the 1/4x of the average
         // chunk size.
-        : min_chunk_size_(average_chunk_size >> 2U),
-          average_chunk_size_(average_chunk_size),
-          max_chunk_size_(average_chunk_size << 3U),
+        : min_chunk_size_(kAverageChunkSize >> 2U),
+          average_chunk_size_(kAverageChunkSize),
+          max_chunk_size_(kAverageChunkSize << 3U),
           stream_{path, std::ios::in | std::ios::binary} {
         // The buffer size needs to be at least max_chunk_size_ large, otherwise
         // max_chunk_size_ is not fully exhausted and the buffer size determines
         // the maximum chunk size.
-        buffer_.resize(max_chunk_size_ << 4U);
+        buffer_.resize(max_chunk_size_ << 1U);
     }
 
     FileChunker() noexcept = delete;
