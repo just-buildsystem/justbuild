@@ -22,12 +22,22 @@ readonly JUST="${ROOT}/bin/tool-under-test"
 readonly LOCAL_TOOLS="${TMPDIR}/tools"
 
 touch ROOT
-cat > TARGETS <<EOF
+cat > TARGETS <<'EOF'
 { "theTargetCausingTheFailure":
   { "type": "generic"
+  , "arguments_config": ["foo", "bar"]
   , "outs": ["a.txt"]
   , "cmds":
-    ["echo -n stdout-of-; echo failing-target", "touch a.txt", "exit 42"]
+    [ { "type": "join"
+      , "$1":
+        [ "echo -n stdout-of-; echo failing-target-"
+        , {"type": "var", "name": "foo", "default": ""}
+        , {"type": "var", "name": "bar", "default": ""}
+        ]
+      }
+    , "touch a.txt"
+    , "exit 42"
+    ]
   }
 }
 EOF
@@ -39,6 +49,7 @@ echo
 mkdir -p "${OUT}"
 "${JUST}" build --local-build-root "${LBR}" \
           -f "${OUT}/log" --log-limit 0 \
+          -D '{"foo": "FOO", "irrelevant": "abc"}' \
           2>&1 && exit 1 || :
 
 # The exit code should be reported
@@ -47,12 +58,17 @@ grep 42 "${OUT}/log"
 # The target name should be reported
 grep theTargetCausingTheFailure "${OUT}/log"
 
+# The pruned effective configuration should be reported in canonical
+# compact form.
+grep '{"foo":"FOO"}' "${OUT}/log"
+
 # At default level we should also find stdout of the target
 echo
 "${JUST}" build --local-build-root "${LBR}" \
           -f "${OUT}/log.default" \
+          -D '{"foo": "FOO", "irrelevant": "abc"}' \
           2>&1 && exit 1 || :
 
-grep stdout-of-failing-target "${OUT}/log.default"
+grep stdout-of-failing-target-FOO "${OUT}/log.default"
 
 echo OK

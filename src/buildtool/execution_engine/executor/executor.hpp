@@ -618,7 +618,7 @@ class ExecutorImpl {
             msg << "\nrequested by";
             for (auto const& origin : origins->second) {
                 msg << "\n - ";
-                msg << origin.first.ToString();
+                msg << origin.first.ToShortString();
                 msg << "#";
                 msg << origin.second;
             }
