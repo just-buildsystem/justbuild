@@ -234,18 +234,21 @@
   , "ssl":
     { "repository":
       { "type": "archive"
-      , "content": "19cdde8ba529848172c09e84e3deb2c92dc670c3"
-      , "fetch": "https://github.com/google/boringssl/archive/6195bf8242156c9a2fa75702eee058f91b86a88b.tar.gz"
-      , "sha256": "ad0b806b6c5cbd6cae121c608945d5fed468748e330632e8d53315089ad52c67"
-      , "sha512": "bd0ff23103695a08c5072ef4e88042c32b684295ee6434124d9c9292586b72863c35246cd8002ad3de3a79a9dfe10a1e0beb594c1625bdf1d6f6175821ca75a1"
-      , "subdir": "boringssl-6195bf8242156c9a2fa75702eee058f91b86a88b"
+      , "content": "7b7deaf147baf61c8efdc8a4ac79a16ba70b216e"
+      , "fetch": "https://github.com/google/boringssl/archive/ae72a4514c7afd150596b0a80947f3ca9b8363b5.tar.gz"
+      , "sha256": "057f662b0e85931a84945b2e89ba201fd44b0583da827c948fe443593690fb83"
+      , "sha512": "757a2727a2ab0e45656c22d807ea1217c74c276f51fa721a87f92b59a4d040d9931586e912b4558f57330340cc3af6361f1694b1479b764635c6a111b356afc4"
+      , "subdir": "boringssl-ae72a4514c7afd150596b0a80947f3ca9b8363b5"
+      , "mirrors":
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/ae72a4514c7afd150596b0a80947f3ca9b8363b5.tar.gz"
+        ]
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.boringssl"
     , "bindings": {"rules": "rules-boringssl"}
     , "bootstrap":
       { "arch_map": {"arm64": "aarch64"}
-      , "build": "{cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c {os}-{arch}/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
+      , "build": "{cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c src/crypto/*/*.S src/third_party/fiat/asm/*.S {os}-{arch}/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
       , "link": ["-lcrypto", "-pthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
@@ -255,11 +258,11 @@
   , "protobuf":
     { "repository":
       { "type": "archive"
-      , "content": "3e7ee8fe7138998e31bd367fdd6feaeb1d98ab39"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v23.4/protobuf-23.4.tar.gz"
-      , "sha256": "a700a49470d301f1190a487a923b5095bf60f08f4ae4cac9f5f7c36883d17971"
-      , "sha512": "b93a4e0339ecbe085796de5b6c61feae35229d40db9019c043090bcaa483a1cce78a99487c5638482c68832fcede5579a0e5ec731221a88359b80db9bb6dc566"
-      , "subdir": "protobuf-23.4"
+      , "content": "989aa1fec35687ab84229fa84099582dd8f0246a"
+      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protobuf-25.1.tar.gz"
+      , "sha256": "9bd87b8280ef720d3240514f884e56a712f2218f0d693b48050c836028940a42"
+      , "sha512": "d2fad2188118ced2cd951bdb472d72cc9e9b2158c88eeca652c76332a884b5b5b4b58628f7777272fa693140753823584ea9c7924f1655b1d5a363f59bdf7a4c"
+      , "subdir": "protobuf-25.1"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
@@ -293,6 +296,9 @@
       , "sha256": "5bb6b0253ccf64b53d6c7249625a7e3f6c3bc6402abd52d3778bfa48258703a0"
       , "sha512": "cdeefae807df7097174b4bb28c0900b06a68d424c00ebba4ff5add260c9c651351d5e429bfc5de42f95ebb75dadec313f7bd3991c2fa476c9104f9ea656acad4"
       , "subdir": "googleapis-2f9af297c84c55c8b871ba4495e01ade42476c92"
+      , "mirrors":
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/googleapis/googleapis/archive/2f9af297c84c55c8b871ba4495e01ade42476c92.tar.gz"
+        ]
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.google_apis"
@@ -302,11 +308,14 @@
   , "com_google_absl":
     { "repository":
       { "type": "archive"
-      , "content": "08a0c4a58d13f234bd3f1de6c73395ec5ab7d5f6"
-      , "fetch": "https://github.com/abseil/abseil-cpp/archive/refs/tags/20230125.3.tar.gz"
-      , "sha256": "5366d7e7fa7ba0d915014d387b66d0d002c03236448e1ba9ef98122c13b35c36"
-      , "sha512": "50509acfc4128fd31435631f71ac8cd0350acd9e290f78502723149016e7f07c9d84182ba99e0938b1873fecda09393d3fd7af8dabfb0d89cdcdd8a69a917e70"
-      , "subdir": "abseil-cpp-20230125.3"
+      , "content": "e9bacd5f3a5c3a51f4f0f50e9ed963464714caa7"
+      , "fetch": "https://github.com/abseil/abseil-cpp/releases/download/20240116.0/abseil-cpp-20240116.0.tar.gz"
+      , "sha256": "338420448b140f0dfd1a1ea3c3ce71b3bc172071f24f4d9a57d59b45037da440"
+      , "sha512": "018488e69cca472ef118631bd79bca4ef0cf1363432e79b81532942168d305511e4cdf4dc72611275e9a9de00cd71c0245be4ec287ff36147248e218218bf825"
+      , "subdir": "abseil-cpp-20240116.0"
+      , "mirrors":
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/20240116.0.tar.gz"
+        ]
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.absl"
@@ -359,6 +368,9 @@
       , "sha256": "1ae8ccfdb1066a731bba6ee0881baad5efd2cd661acd9569b689f2586e1a50e9"
       , "sha512": "fc3d7cc1ee6bd771719845566d83ffc8c4e19d838748e842a1e19c7564473c9a0a061bebb3966ffa82de6515346f9bbddc2d94ceb3de89233f58826774bd7ce7"
       , "subdir": "re2-2022-04-01"
+      , "mirrors":
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/re2/archive/2022-04-01.tar.gz"
+        ]
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.re2"
@@ -380,11 +392,11 @@
   , "com_github_grpc_grpc":
     { "repository":
       { "type": "archive"
-      , "content": "eb5007bb7fb6575db8c1467090719d3262a05868"
-      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.56.2.tar.gz"
-      , "sha256": "931f07db9d48cff6a6007c1033ba6d691fe655bea2765444bc1ad974dfc840aa"
-      , "sha512": "bb4be3b8a128566581b7ea69d1faa6d08a28624656c2f4afdd8bb8fa804e362b7d8f2bb6c52789081b48f299ddffe18e1795c8dce9b9bc304a5e6d3a4274b11e"
-      , "subdir": "grpc-1.56.2"
+      , "content": "d89bbef10ae30b511e062e6aa36520a2805e0f97"
+      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.62.1.tar.gz"
+      , "sha256": "c9f9ae6e4d6f40464ee9958be4068087881ed6aa37e30d0e64d40ed7be39dd01"
+      , "sha512": "3224ad2617c18156f90c54c1ebf1f2015e405a6f12546e8709e0c905f52508c9f1a13b4d5a6cc7a35abf58b429985b5b504c9062f50c0d3d6aa163180a61047a"
+      , "subdir": "grpc-1.62.1"
       , "pragma": {"special": "ignore"}
       }
     , "target_root": "import targets"

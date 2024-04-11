@@ -1,6 +1,6 @@
 { "utility":
   { "type": "export"
-  , "target": "utility_internal"
+  , "target": "utility (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "utility_internal":
+, "utility (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["utility"]
   , "stage": ["absl", "utility"]

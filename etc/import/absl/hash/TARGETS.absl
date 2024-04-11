@@ -1,6 +1,6 @@
 { "hash":
   { "type": "export"
-  , "target": "hash_internal"
+  , "target": "hash (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "hash_internal":
+, "hash (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hash"]
   , "stage": ["absl", "hash"]
@@ -62,6 +62,7 @@
   , "deps":
     [ ["absl/base", "config"]
     , ["absl/base", "endian"]
+    , ["absl/base", "prefetch"]
     , ["absl/numeric", "int128"]
     ]
   }

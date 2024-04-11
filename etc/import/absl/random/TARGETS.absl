@@ -1,6 +1,6 @@
 { "random":
   { "type": "export"
-  , "target": "random_internal"
+  , "target": "random (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -19,7 +19,7 @@
     , "USE_SYSTEM_LIBS"
     ]
   }
-, "random_internal":
+, "random (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["random"]
   , "stage": ["absl", "random"]
@@ -35,7 +35,7 @@
   }
 , "distributions":
   { "type": "export"
-  , "target": "distributions_internal"
+  , "target": "distributions (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -54,7 +54,7 @@
     , "USE_SYSTEM_LIBS"
     ]
   }
-, "distributions_internal":
+, "distributions (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["distributions"]
   , "stage": ["absl", "random"]
@@ -89,6 +89,41 @@
     , ["absl/strings", "strings"]
     ]
   }
+, "bit_gen_ref":
+  { "type": "export"
+  , "target": "bit_gen_ref (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "bit_gen_ref (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bit_gen_ref"]
+  , "stage": ["absl", "random"]
+  , "hdrs": ["bit_gen_ref.h"]
+  , "deps":
+    [ "random"
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "fast_type_id"]
+    , "internal_pool_urbg"
+    , "internal_salted_seed_seq"
+    , "internal_seed_material"
+    , ["absl/types", "span"]
+    ]
+  }
 , "internal_nonsecure_base":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_nonsecure_base"]
@@ -118,6 +153,26 @@
     ]
   }
 , "internal_pool_urbg":
+  { "type": "export"
+  , "target": "internal_pool_urbg (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "internal_pool_urbg (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_pool_urbg"]
   , "stage": ["absl", "random"]
@@ -189,6 +244,26 @@
     ]
   }
 , "internal_fast_uniform_bits":
+  { "type": "export"
+  , "target": "internal_fast_uniform_bits (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "internal_fast_uniform_bits (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_fast_uniform_bits"]
   , "stage": ["absl", "random"]
@@ -211,6 +286,26 @@
   , "deps": [["absl/meta", "type_traits"], ["absl/numeric", "int128"]]
   }
 , "internal_traits":
+  { "type": "export"
+  , "target": "internal_traits (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "internal_traits (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_traits"]
   , "stage": ["absl", "random"]
@@ -246,6 +341,26 @@
     ]
   }
 , "internal_salted_seed_seq":
+  { "type": "export"
+  , "target": "internal_salted_seed_seq (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "internal_salted_seed_seq (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal_salted_seed_seq"]
   , "stage": ["absl", "random"]
@@ -259,6 +374,26 @@
     ]
   }
 , "internal_seed_material":
+  { "type": "export"
+  , "target": "internal_seed_material (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "internal_seed_material (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "OS"]
   , "name": ["internal_seed_material"]

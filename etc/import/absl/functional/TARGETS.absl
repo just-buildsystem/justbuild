@@ -1,6 +1,6 @@
 { "function_ref":
   { "type": "export"
-  , "target": "function_ref_internal"
+  , "target": "function_ref (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,20 +18,21 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "function_ref_internal":
+, "function_ref (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["function_ref"]
   , "stage": ["absl", "functional"]
   , "hdrs": ["function_ref.h", "internal/function_ref.h"]
   , "deps":
-    [ ["absl/base", "base_internal"]
+    [ "any_invocable"
+    , ["absl/base", "base_internal"]
     , ["absl/base", "core_headers"]
     , ["absl/meta", "type_traits"]
     ]
   }
 , "any_invocable":
   { "type": "export"
-  , "target": "any_invocable_internal"
+  , "target": "any_invocable (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -49,7 +50,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "any_invocable_internal":
+, "any_invocable (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["any_invocable"]
   , "stage": ["absl", "functional"]

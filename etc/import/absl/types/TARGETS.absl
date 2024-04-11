@@ -1,6 +1,6 @@
 { "optional":
   { "type": "export"
-  , "target": "optional_internal"
+  , "target": "optional (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "optional_internal":
+, "optional (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["optional"]
   , "stage": ["absl", "types"]
@@ -28,6 +28,7 @@
     , ["absl/base", "base_internal"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
     , ["absl/memory", "memory"]
     , ["absl/meta", "type_traits"]
     , ["absl/utility", "utility"]
@@ -43,7 +44,7 @@
   }
 , "variant":
   { "type": "export"
-  , "target": "variant_internal"
+  , "target": "variant (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -61,7 +62,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "variant_internal":
+, "variant (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["variant"]
   , "stage": ["absl", "types"]
@@ -85,7 +86,7 @@
   }
 , "span":
   { "type": "export"
-  , "target": "span_internal"
+  , "target": "span (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -103,7 +104,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "span_internal":
+, "span (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["span"]
   , "stage": ["absl", "types"]
@@ -111,15 +112,40 @@
   , "deps":
     [ ["absl/algorithm", "algorithm"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
     , ["absl/base", "throw_delegate"]
     , ["absl/meta", "type_traits"]
     ]
   }
 , "compare":
+  { "type": "export"
+  , "target": "compare (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "compare (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["compare"]
   , "stage": ["absl", "types"]
   , "hdrs": ["compare.h"]
-  , "deps": [["absl/base", "core_headers"], ["absl/meta", "type_traits"]]
+  , "deps":
+    [ ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    ]
   }
 }

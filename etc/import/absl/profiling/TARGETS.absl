@@ -1,4 +1,24 @@
 { "exponential_biased":
+  { "type": "export"
+  , "target": "exponential_biased (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "exponential_biased (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["exponential_biased"]
   , "stage": ["absl", "profiling"]
@@ -7,6 +27,26 @@
   , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
   }
 , "sample_recorder":
+  { "type": "export"
+  , "target": "sample_recorder (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "sample_recorder (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["sample_recorder"]
   , "stage": ["absl", "profiling"]

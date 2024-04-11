@@ -1,6 +1,6 @@
-{ "upbdefs-generated-lib":
+{ "upbdefs-gen-lib":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["upbdefs-generated-lib"]
+  , "name": ["upbdefs-gen-lib"]
   , "pure C": ["YES"]
   , "hdrs":
     [ "envoy/admin/v3/certs.upbdefs.h"
@@ -32,6 +32,7 @@
     , "envoy/config/core/v3/grpc_method_list.upbdefs.h"
     , "envoy/config/core/v3/grpc_service.upbdefs.h"
     , "envoy/config/core/v3/health_check.upbdefs.h"
+    , "envoy/config/core/v3/http_service.upbdefs.h"
     , "envoy/config/core/v3/http_uri.upbdefs.h"
     , "envoy/config/core/v3/protocol.upbdefs.h"
     , "envoy/config/core/v3/proxy_protocol.upbdefs.h"
@@ -66,6 +67,7 @@
     , "envoy/config/trace/v3/trace.upbdefs.h"
     , "envoy/config/trace/v3/xray.upbdefs.h"
     , "envoy/config/trace/v3/zipkin.upbdefs.h"
+    , "envoy/data/accesslog/v3/accesslog.upbdefs.h"
     , "envoy/extensions/clusters/aggregate/v3/cluster.upbdefs.h"
     , "envoy/extensions/filters/common/fault/v3/fault.upbdefs.h"
     , "envoy/extensions/filters/http/fault/v3/fault.upbdefs.h"
@@ -79,6 +81,7 @@
     , "envoy/extensions/transport_sockets/tls/v3/secret.upbdefs.h"
     , "envoy/extensions/transport_sockets/tls/v3/tls.upbdefs.h"
     , "envoy/extensions/transport_sockets/tls/v3/tls_spiffe_validator_config.upbdefs.h"
+    , "envoy/extensions/upstreams/http/v3/http_protocol_options.upbdefs.h"
     , "envoy/service/discovery/v3/ads.upbdefs.h"
     , "envoy/service/discovery/v3/discovery.upbdefs.h"
     , "envoy/service/load_stats/v3/lrs.upbdefs.h"
@@ -183,6 +186,7 @@
     , "envoy/config/core/v3/grpc_method_list.upbdefs.c"
     , "envoy/config/core/v3/grpc_service.upbdefs.c"
     , "envoy/config/core/v3/health_check.upbdefs.c"
+    , "envoy/config/core/v3/http_service.upbdefs.c"
     , "envoy/config/core/v3/http_uri.upbdefs.c"
     , "envoy/config/core/v3/protocol.upbdefs.c"
     , "envoy/config/core/v3/proxy_protocol.upbdefs.c"
@@ -217,6 +221,7 @@
     , "envoy/config/trace/v3/trace.upbdefs.c"
     , "envoy/config/trace/v3/xray.upbdefs.c"
     , "envoy/config/trace/v3/zipkin.upbdefs.c"
+    , "envoy/data/accesslog/v3/accesslog.upbdefs.c"
     , "envoy/extensions/clusters/aggregate/v3/cluster.upbdefs.c"
     , "envoy/extensions/filters/common/fault/v3/fault.upbdefs.c"
     , "envoy/extensions/filters/http/fault/v3/fault.upbdefs.c"
@@ -230,6 +235,7 @@
     , "envoy/extensions/transport_sockets/tls/v3/secret.upbdefs.c"
     , "envoy/extensions/transport_sockets/tls/v3/tls.upbdefs.c"
     , "envoy/extensions/transport_sockets/tls/v3/tls_spiffe_validator_config.upbdefs.c"
+    , "envoy/extensions/upstreams/http/v3/http_protocol_options.upbdefs.c"
     , "envoy/service/discovery/v3/ads.upbdefs.c"
     , "envoy/service/discovery/v3/discovery.upbdefs.c"
     , "envoy/service/load_stats/v3/lrs.upbdefs.c"
@@ -305,7 +311,7 @@
     , "xds/type/v3/typed_struct.upbdefs.c"
     ]
   , "deps":
-    [ ["src/core/ext/upb-generated", "upb-generated-lib"]
+    [ ["src/core/ext/upb-gen", "upb-gen-lib"]
     , ["third_party/upb", "reflection"]
     , ["third_party/upb", "reflection_internal"]
     ]

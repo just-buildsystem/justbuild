@@ -1,4 +1,24 @@
 { "crc_cord_state":
+  { "type": "export"
+  , "target": "crc_cord_state (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "crc_cord_state (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["crc_cord_state"]
   , "stage": ["absl", "crc"]
@@ -12,6 +32,26 @@
     ]
   }
 , "crc32c":
+  { "type": "export"
+  , "target": "crc32c (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "crc32c (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["crc32c"]
   , "stage": ["absl", "crc"]
@@ -24,7 +64,7 @@
   , "srcs":
     [ "crc32c.cc"
     , "internal/crc_memcpy_fallback.cc"
-    , "internal/crc_memcpy_x86_64.cc"
+    , "internal/crc_memcpy_x86_arm_combined.cc"
     , "internal/crc_non_temporal_memcpy.cc"
     ]
   , "deps":
@@ -33,10 +73,10 @@
     , "non_temporal_memcpy"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
-    , ["absl/base", "dynamic_annotations"]
     , ["absl/base", "endian"]
     , ["absl/base", "prefetch"]
     , ["absl/strings", "strings"]
+    , ["absl/strings", "str_format"]
     ]
   }
 , "cpu_detect":
@@ -56,10 +96,8 @@
   , "private-hdrs": ["internal/crc_internal.h"]
   , "deps":
     [ "cpu_detect"
-    , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
-    , ["absl/base", "dynamic_annotations"]
     , ["absl/base", "endian"]
     , ["absl/base", "prefetch"]
     , ["absl/base", "raw_logging_internal"]

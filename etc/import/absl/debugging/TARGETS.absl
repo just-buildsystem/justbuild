@@ -1,4 +1,24 @@
 { "symbolize":
+  { "type": "export"
+  , "target": "symbolize (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "symbolize (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["TOOLCHAIN_CONFIG", "ARCH", "TARGET_ARCH"]
   , "name": ["symbolize"]
@@ -50,6 +70,26 @@
     ]
   }
 , "examine_stack":
+  { "type": "export"
+  , "target": "examine_stack (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "examine_stack (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_message"]
   , "stage": ["absl", "debugging"]
@@ -64,6 +104,26 @@
     ]
   }
 , "stacktrace":
+  { "type": "export"
+  , "target": "stacktrace (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "stacktrace (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["stacktrace"]
   , "stage": ["absl", "debugging"]
@@ -84,6 +144,7 @@
     [ "debugging_internal"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "dynamic_annotations"]
     , ["absl/base", "raw_logging_internal"]
     ]
   }
@@ -110,6 +171,26 @@
     ]
   }
 , "demangle_internal":
+  { "type": "export"
+  , "target": "demangle_internal (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "demangle_internal (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["demangle_internal"]
   , "stage": ["absl", "debugging"]

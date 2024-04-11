@@ -36,7 +36,7 @@
   }
 , "marshalling":
   { "type": "export"
-  , "target": "marshalling_internal"
+  , "target": "marshalling (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -54,7 +54,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "marshalling_internal":
+, "marshalling (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["marshalling"]
   , "stage": ["absl", "flags"]
@@ -64,6 +64,7 @@
     [ ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "log_severity"]
+    , ["absl/numeric", "int128"]
     , ["absl/strings", "strings"]
     , ["absl/strings", "str_format"]
     , ["absl/types", "optional"]
@@ -117,6 +118,7 @@
     , "private_handle_accessor"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "no_destructor"]
     , ["absl/container", "flat_hash_map"]
     , ["absl/strings", "strings"]
     , ["absl/synchronization", "synchronization"]
@@ -147,7 +149,7 @@
   }
 , "flag":
   { "type": "export"
-  , "target": "flag_"
+  , "target": "flag (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -165,12 +167,11 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "flag_":
+, "flag (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["flag"]
   , "stage": ["absl", "flags"]
-  , "srcs": ["flag.cc"]
-  , "hdrs": ["declare.h", "flag.h", "internal/flag_msvc.inc"]
+  , "hdrs": ["declare.h", "flag.h"]
   , "deps":
     [ "config"
     , "flag_internal"

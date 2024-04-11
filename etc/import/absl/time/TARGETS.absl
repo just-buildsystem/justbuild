@@ -1,6 +1,6 @@
 { "time":
   { "type": "export"
-  , "target": "time_internal"
+  , "target": "time (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "time_internal":
+, "time (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["time"]
   , "stage": ["absl", "time"]

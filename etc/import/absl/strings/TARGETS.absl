@@ -1,6 +1,6 @@
-{ "strings":
+{ "string_view":
   { "type": "export"
-  , "target": "strings_internal"
+  , "target": "string_view (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,41 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "strings_internal":
+, "string_view (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["string_view"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["string_view.h"]
+  , "srcs": ["string_view.cc"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
+    , ["absl/base", "throw_delegate"]
+    ]
+  }
+, "strings":
+  { "type": "export"
+  , "target": "strings (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "strings (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strings"]
   , "stage": ["absl", "strings"]
@@ -26,6 +60,7 @@
     [ "ascii.h"
     , "charconv.h"
     , "escaping.h"
+    , "has_absl_stringify.h"
     , "internal/damerau_levenshtein_distance.h"
     , "internal/string_constant.h"
     , "internal/has_absl_stringify.h"
@@ -57,7 +92,6 @@
     , "str_cat.cc"
     , "str_replace.cc"
     , "str_split.cc"
-    , "string_view.cc"
     , "substitute.cc"
     ]
   , "private-hdrs":
@@ -66,11 +100,14 @@
     , "internal/memutil.h"
     ]
   , "deps":
-    [ "internal"
+    [ "charset"
+    , "internal"
+    , "string_view"
     , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "endian"]
+    , ["absl/base", "nullability"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/base", "throw_delegate"]
     , ["absl/memory", "memory"]
@@ -81,7 +118,7 @@
   }
 , "internal":
   { "type": "export"
-  , "target": "internal_"
+  , "target": "internal (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -99,13 +136,12 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "internal_":
+, "internal (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["internal"]
   , "stage": ["absl", "strings"]
   , "hdrs":
-    [ "internal/char_map.h"
-    , "internal/escaping.h"
+    [ "internal/escaping.h"
     , "internal/ostringstream.h"
     , "internal/resize_uninitialized.h"
     , "internal/utf8.h"
@@ -122,7 +158,7 @@
   }
 , "cord":
   { "type": "export"
-  , "target": "cord_internal_"
+  , "target": "cord (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -140,7 +176,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "cord_internal_":
+, "cord (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["cord"]
   , "stage": ["absl", "strings"]
@@ -154,15 +190,15 @@
     , "cordz_update_scope"
     , "cordz_update_tracker"
     , "internal"
-    , "str_format"
     , "strings"
     , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "endian"]
+    , ["absl/base", "nullability"]
     , ["absl/base", "raw_logging_internal"]
-    , ["absl/container", "fixed_array"]
     , ["absl/container", "inlined_vector"]
+    , ["absl/crc", "crc32c"]
     , ["absl/crc", "crc_cord_state"]
     , ["absl/functional", "function_ref"]
     , ["absl/meta", "type_traits"]
@@ -184,8 +220,6 @@
     , "internal/cord_rep_crc.h"
     , "internal/cord_rep_consume.h"
     , "internal/cord_rep_flat.h"
-    , "internal/cord_rep_ring.h"
-    , "internal/cord_rep_ring_reader.h"
     ]
   , "srcs":
     [ "internal/cord_internal.cc"
@@ -194,7 +228,6 @@
     , "internal/cord_rep_btree_reader.cc"
     , "internal/cord_rep_crc.cc"
     , "internal/cord_rep_consume.cc"
-    , "internal/cord_rep_ring.cc"
     ]
   , "deps":
     [ "strings"
@@ -256,6 +289,7 @@
     , ["absl/container", "inlined_vector"]
     , ["absl/debugging", "stacktrace"]
     , ["absl/synchronization", "synchronization"]
+    , ["absl/time", "time"]
     , ["absl/types", "span"]
     ]
   }
@@ -301,7 +335,7 @@
   }
 , "str_format":
   { "type": "export"
-  , "target": "str_format_internal_"
+  , "target": "str_format (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -319,12 +353,19 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "str_format_internal_":
+, "str_format (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["str_format"]
   , "stage": ["absl", "strings"]
   , "hdrs": ["str_format.h"]
-  , "deps": ["str_format_internal"]
+  , "deps":
+    [ "str_format_internal"
+    , "string_view"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
+    , ["absl/types", "span"]
+    ]
   }
 , "str_format_internal":
   { "type": ["@", "rules", "CC", "library"]
@@ -352,6 +393,8 @@
     [ "strings"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/container", "fixed_array"]
+    , ["absl/container", "inlined_vector"]
     , ["absl/functional", "function_ref"]
     , ["absl/meta", "type_traits"]
     , ["absl/numeric", "bits"]
@@ -361,5 +404,59 @@
     , ["absl/types", "span"]
     , ["absl/utility", "utility"]
     ]
+  }
+, "has_ostream_operator":
+  { "type": "export"
+  , "target": "has_ostream_operator (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "has_ostream_operator (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["has_ostream_operator"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["has_ostream_operator.h"]
+  , "deps": [["absl/base", "config"]]
+  }
+, "charset":
+  { "type": "export"
+  , "target": "charset (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "charset (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["charset"]
+  , "stage": ["absl", "strings"]
+  , "hdrs": ["charset.h"]
+  , "deps": ["string_view", ["absl/base", "core_headers"]]
   }
 }

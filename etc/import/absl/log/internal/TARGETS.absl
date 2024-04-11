@@ -1,4 +1,24 @@
 { "check_impl":
+  { "type": "export"
+  , "target": "check_impl (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "check_impl (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["check_impl"]
   , "stage": ["absl", "log", "internal"]
@@ -12,6 +32,26 @@
     ]
   }
 , "check_op":
+  { "type": "export"
+  , "target": "check_op (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "check_op (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["check_op"]
   , "stage": ["absl", "log", "internal"]
@@ -27,6 +67,26 @@
     ]
   }
 , "conditions":
+  { "type": "export"
+  , "target": "conditions (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "conditions (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["conditions"]
   , "stage": ["absl", "log", "internal"]
@@ -40,6 +100,26 @@
     ]
   }
 , "config":
+  { "type": "export"
+  , "target": "config (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "config (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "stage": ["absl", "log", "internal"]
@@ -66,6 +146,26 @@
     ]
   }
 , "globals":
+  { "type": "export"
+  , "target": "globals (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "globals (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["globals"]
   , "stage": ["absl", "log", "internal"]
@@ -81,13 +181,54 @@
     ]
   }
 , "log_impl":
+  { "type": "export"
+  , "target": "log_impl (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "log_impl (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_impl"]
   , "stage": ["absl", "log", "internal"]
   , "hdrs": ["log_impl.h"]
-  , "deps": ["conditions", "log_message", "strip"]
+  , "deps":
+    ["conditions", "log_message", "strip", ["absl/log", "absl_vlog_is_on"]]
   }
 , "log_message":
+  { "type": "export"
+  , "target": "log_messages (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "log_messages (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_message"]
   , "stage": ["absl", "log", "internal"]
@@ -143,6 +284,7 @@
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "log_severity"]
+    , ["absl/base", "no_destructor"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/cleanup", "cleanup"]
     , ["absl/log", "globals"]
@@ -154,6 +296,26 @@
     ]
   }
 , "nullguard":
+  { "type": "export"
+  , "target": "nullguard (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "nullguard (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["nullguard"]
   , "stage": ["absl", "log", "internal"]
@@ -162,6 +324,26 @@
   , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
   }
 , "nullstream":
+  { "type": "export"
+  , "target": "nullstream (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "nullstream (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["nullstream"]
   , "stage": ["absl", "log", "internal"]
@@ -174,6 +356,26 @@
     ]
   }
 , "strip":
+  { "type": "export"
+  , "target": "strip (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "strip (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strip"]
   , "stage": ["absl", "log", "internal"]
@@ -181,6 +383,26 @@
   , "deps": ["log_message", "nullstream", ["absl/base", "log_severity"]]
   }
 , "voidify":
+  { "type": "export"
+  , "target": "voidify (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "voidify (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["voidify"]
   , "stage": ["absl", "log", "internal"]
@@ -199,6 +421,72 @@
     , ["absl/base", "core_headers"]
     , ["absl/strings", "strings"]
     , ["absl/types", "span"]
+    ]
+  }
+, "fnmatch":
+  { "type": "export"
+  , "target": "fnmatch (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "fnmatch (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["fnmatch"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["fnmatch.h"]
+  , "srcs": ["fnmatch.cc"]
+  , "deps": [["absl/base", "config"], ["absl/strings", "strings"]]
+  }
+, "vlog_config":
+  { "type": "export"
+  , "target": "vlog_config (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "vlog_config (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["vlog_config"]
+  , "stage": ["absl", "log", "internal"]
+  , "hdrs": ["vlog_config.h"]
+  , "srcs": ["vlog_config.cc"]
+  , "deps":
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "no_destructor"]
+    , "fnmatch"
+    , ["absl/memory", "memory"]
+    , ["absl/strings", "strings"]
+    , ["absl/synchronization", "synchronization"]
+    , ["absl/types", "optional"]
     ]
   }
 }

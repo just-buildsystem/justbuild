@@ -1,6 +1,6 @@
 { "status":
   { "type": "export"
-  , "target": "status_internal"
+  , "target": "status (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,31 +18,37 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "status_internal":
+, "status (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["status"]
   , "stage": ["absl", "status"]
   , "hdrs":
     ["status.h", "status_payload_printer.h", "internal/status_internal.h"]
-  , "srcs": ["status.cc", "status_payload_printer.cc"]
+  , "srcs":
+    ["internal/status_internal.cc", "status.cc", "status_payload_printer.cc"]
   , "deps":
     [ ["absl/base", "atomic_hook"]
+    , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "no_destructor"]
+    , ["absl/base", "nullability"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/base", "strerror"]
     , ["absl/container", "inlined_vector"]
     , ["absl/debugging", "stacktrace"]
     , ["absl/debugging", "symbolize"]
     , ["absl/functional", "function_ref"]
+    , ["absl/memory", "memory"]
     , ["absl/strings", "strings"]
     , ["absl/strings", "cord"]
     , ["absl/strings", "str_format"]
     , ["absl/types", "optional"]
+    , ["absl/types", "span"]
     ]
   }
 , "statusor":
   { "type": "export"
-  , "target": "statusor_internal"
+  , "target": "statusor (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -60,7 +66,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "statusor_internal":
+, "statusor (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["statusor"]
   , "stage": ["absl", "status"]
@@ -69,10 +75,14 @@
   , "deps":
     [ "status"
     , ["absl/base", "base"]
+    , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/meta", "type_traits"]
     , ["absl/strings", "strings"]
+    , ["absl/strings", "has_ostream_operator"]
+    , ["absl/strings", "str_format"]
     , ["absl/types", "variant"]
     , ["absl/utility", "utility"]
     ]

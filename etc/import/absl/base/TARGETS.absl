@@ -1,6 +1,6 @@
 { "base":
   { "type": "export"
-  , "target": "base_internal_"
+  , "target": "base (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "base_internal_":
+, "base (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["OS", "TOOLCHAIN_CONFIG", "ARCH", "TARGET_ARCH"]
   , "name": ["base"]
@@ -82,12 +82,33 @@
     , "cycleclock_internal"
     , "dynamic_annotations"
     , "log_severity"
+    , "nullability"
     , "raw_logging_internal"
     , "spinlock_wait"
     , ["absl/meta", "type_traits"]
     ]
   }
 , "atomic_hook":
+  { "type": "export"
+  , "target": "atomic_hook (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "atomic_hook (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["atomic_hook"]
@@ -105,6 +126,26 @@
   , "deps": ["config", "core_headers"]
   }
 , "base_internal":
+  { "type": "export"
+  , "target": "base_internal (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "base_internal (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["base_internal"]
   , "stage": ["absl", "base"]
@@ -119,7 +160,7 @@
   }
 , "config":
   { "type": "export"
-  , "target": "config_"
+  , "target": "config (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -137,7 +178,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "config_":
+, "config (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
   , "stage": ["absl", "base"]
@@ -150,7 +191,7 @@
   }
 , "core_headers":
   { "type": "export"
-  , "target": "core_headers_internal"
+  , "target": "core_headers (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -168,7 +209,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "core_headers_internal":
+, "core_headers (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["core_headers"]
   , "stage": ["absl", "base"]
@@ -179,7 +220,6 @@
     , "optimization.h"
     , "port.h"
     , "thread_annotations.h"
-    , "internal/thread_annotations.h"
     ]
   , "deps": ["config"]
   }
@@ -193,7 +233,7 @@
   }
 , "dynamic_annotations":
   { "type": "export"
-  , "target": "dynamic_annotations_internal"
+  , "target": "dynamic_annotations (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -211,7 +251,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "dynamic_annotations_internal":
+, "dynamic_annotations (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["dynamic_annotations"]
   , "stage": ["absl", "base"]
@@ -220,7 +260,7 @@
   }
 , "log_severity":
   { "type": "export"
-  , "target": "log_severity_internal"
+  , "target": "log_severity (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -238,13 +278,67 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "log_severity_internal":
+, "log_severity (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["log_severity"]
   , "stage": ["absl", "base"]
   , "hdrs": ["log_severity.h"]
   , "srcs": ["log_severity.cc"]
   , "deps": ["config", "core_headers"]
+  }
+, "no_destructor":
+  { "type": "export"
+  , "target": "no_destructor (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "no_destructor (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["no_destructor"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["no_destructor.h"]
+  , "deps": ["config"]
+  }
+, "nullability":
+  { "type": "export"
+  , "target": "nullability (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "nullability (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["nullability"]
+  , "stage": ["absl", "base"]
+  , "hdrs": ["nullability.h", "internal/nullability_impl.h"]
+  , "deps": ["core_headers", ["absl/meta", "type_traits"]]
   }
 , "raw_logging_internal":
   { "type": "export"
@@ -300,6 +394,26 @@
   , "deps": ["base_internal", "core_headers", "errno_saver"]
   }
 , "errno_saver":
+  { "type": "export"
+  , "target": "errno_saver (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "errno_saver (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["errno_saver"]
   , "stage": ["absl", "base"]
@@ -307,13 +421,53 @@
   , "deps": ["config"]
   }
 , "endian":
+  { "type": "export"
+  , "target": "endian (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "endian (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["endian"]
   , "stage": ["absl", "base"]
   , "hdrs": ["internal/endian.h", "internal/unaligned_access.h"]
-  , "deps": ["base", "config", "core_headers"]
+  , "deps": ["base", "config", "core_headers", "nullability"]
   }
 , "fast_type_id":
+  { "type": "export"
+  , "target": "fast_type_id (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "fast_type_id (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["fast_type_id"]
   , "stage": ["absl", "base"]
@@ -321,6 +475,26 @@
   , "deps": ["config"]
   }
 , "strerror":
+  { "type": "export"
+  , "target": "strerror (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "strerror (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["strerror"]
   , "stage": ["absl", "base"]
@@ -329,6 +503,26 @@
   , "deps": ["config", "core_headers", "errno_saver"]
   }
 , "throw_delegate":
+  { "type": "export"
+  , "target": "throw_delegate (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "throw_delegate (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["throw_delegate"]
   , "stage": ["absl", "base"]
@@ -338,7 +532,7 @@
   }
 , "malloc_internal":
   { "type": "export"
-  , "target": "malloc_internal_"
+  , "target": "malloc_internal (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -357,7 +551,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "malloc_internal_":
+, "malloc_internal (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["malloc_internal"]
@@ -387,16 +581,31 @@
     , "raw_logging_internal"
     ]
   }
-, "internal/direct_mmap.h":
-  { "type": ["@", "rules", "patch", "file"]
-  , "src": [["FILE", null, "internal/direct_mmap.h"]]
-  , "patch": [["@", "patches", "", "direct_mmap.h.diff"]]
-  }
 , "prefetch":
+  { "type": "export"
+  , "target": "prefetch (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "prefetch (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["prefetch"]
   , "stage": ["absl", "base"]
-  , "hdrs": ["internal/prefetch.h"]
-  , "deps": ["config"]
+  , "hdrs": ["prefetch.h"]
+  , "deps": ["config", "core_headers"]
   }
 }

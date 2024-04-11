@@ -5,7 +5,7 @@
   , "ADD_CFLAGS":
     { "type": "++"
     , "$1":
-      [ ["-std=gnu17"]
+      [ ["-std=gnu17", "-DBORINGSSL_IMPLEMENTATION"]
       , { "type": "let*"
         , "bindings":
           [ [ "OS"
@@ -78,10 +78,6 @@
                     , "$1":
                       [ { "type": "=="
                         , "$1": {"type": "var", "name": "PLATFORM"}
-                        , "$2": "linux_ppc64le"
-                        }
-                      , { "type": "=="
-                        , "$1": {"type": "var", "name": "PLATFORM"}
                         , "$2": "linux_x86_64"
                         }
                       , { "type": "=="
@@ -123,7 +119,7 @@
   , "ADD_CXXFLAGS":
     { "type": "++"
     , "$1":
-      [ ["-std=c++20"]
+      [ ["-std=c++20", "-DBORINGSSL_IMPLEMENTATION"]
       , { "type": "let*"
         , "bindings":
           [ [ "OS"
@@ -172,10 +168,6 @@
             [ [ { "type": "or"
                 , "$1":
                   [ { "type": "=="
-                    , "$1": {"type": "var", "name": "PLATFORM"}
-                    , "$2": "linux_ppc64le"
-                    }
-                  , { "type": "=="
                     , "$1": {"type": "var", "name": "PLATFORM"}
                     , "$2": "linux_x86_64"
                     }

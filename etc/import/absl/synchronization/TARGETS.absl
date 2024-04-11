@@ -1,6 +1,6 @@
 { "synchronization":
   { "type": "export"
-  , "target": "synchronization_internal"
+  , "target": "synchronization (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "synchronization_internal":
+, "synchronization (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["ARCH", "TARGET_ARCH"]
   , "name": ["synchronization"]
@@ -28,8 +28,14 @@
     , "blocking_counter.h"
     , "internal/create_thread_identity.h"
     , "internal/futex.h"
+    , "internal/futex_waiter.h"
     , "internal/per_thread_sem.h"
+    , "internal/pthread_waiter.h"
+    , "internal/sem_waiter.h"
+    , "internal/stdcpp_waiter.h"
     , "internal/waiter.h"
+    , "internal/waiter_base.h"
+    , "internal/win32_waiter.h"
     , "mutex.h"
     , "notification.h"
     ]
@@ -37,10 +43,15 @@
     [ "barrier.cc"
     , "blocking_counter.cc"
     , "internal/create_thread_identity.cc"
+    , "internal/futex_waiter.cc"
     , "internal/per_thread_sem.cc"
-    , "internal/waiter.cc"
-    , "notification.cc"
+    , "internal/pthread_waiter.cc"
+    , "internal/sem_waiter.cc"
+    , "internal/stdcpp_waiter.cc"
+    , "internal/waiter_base.cc"
+    , "internal/win32_waiter.cc"
     , "mutex.cc"
+    , "notification.cc"
     ]
   , "private-ldflags":
     { "type": "++"
@@ -59,8 +70,8 @@
   , "deps":
     [ "graphcycles_internal"
     , "kernel_timeout_internal"
-    , ["absl/base", "atomic_hook"]
     , ["absl/base", "base"]
+    , ["absl/base", "atomic_hook"]
     , ["absl/base", "base_internal"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
@@ -91,9 +102,12 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["kernel_timeout_internal"]
   , "stage": ["absl", "synchronization"]
+  , "srcs": ["internal/kernel_timeout.cc"]
   , "hdrs": ["internal/kernel_timeout.h"]
   , "deps":
-    [ ["absl/base", "core_headers"]
+    [ ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/time", "time"]
     ]

@@ -1,6 +1,6 @@
 { "memory":
   { "type": "export"
-  , "target": "memory_internal"
+  , "target": "memory (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "memory_internal":
+, "memory (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["memory"]
   , "stage": ["absl", "memory"]

@@ -1,6 +1,6 @@
 { "type_traits":
   { "type": "export"
-  , "target": "type_traits_internal"
+  , "target": "type_traits (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,11 +18,11 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "type_traits_internal":
+, "type_traits (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["type_traits"]
   , "stage": ["absl", "meta"]
   , "hdrs": ["type_traits.h"]
-  , "deps": [["absl/base", "config"]]
+  , "deps": [["absl/base", "config"], ["absl/base", "core_headers"]]
   }
 }

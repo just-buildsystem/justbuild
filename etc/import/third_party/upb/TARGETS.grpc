@@ -1,333 +1,53 @@
-{ "port":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["port"]
-  , "hdrs":
-    [ "upb/port/atomic.h"
-    , "upb/port/vsnprintf_compat.h"
-    , "upb/port/def.inc"
-    , "upb/port/undef.inc"
-    ]
-  , "pure C": ["YES"]
-  }
-, "upb":
+{ "upb":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["upb"]
+  , "hdrs": ["upb/upb.h"]
+  , "deps": ["base", "mem"]
+  , "pure C": ["YES"]
+  }
+, "generated_code_support":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["generated_code_support"]
   , "hdrs":
-    [ "upb/alloc.h"
-    , "upb/arena.h"
-    , "upb/array.h"
-    , "upb/base/descriptor_constants.h"
-    , "upb/base/status.h"
-    , "upb/base/string_view.h"
-    , "upb/collections/array.h"
-    , "upb/decode.h"
-    , "upb/encode.h"
-    , "upb/extension_registry.h"
-    , "upb/map.h"
-    , "upb/mem/alloc.h"
-    , "upb/mem/arena.h"
-    , "upb/message/extension_internal.h"
-    , "upb/message/message.h"
-    , "upb/mini_table/extension_registry.h"
-    , "upb/msg.h"
-    , "upb/status.h"
-    , "upb/string_view.h"
-    , "upb/upb.h"
-    , "upb/upb.hpp"
-    , "upb/wire/common.h"
-    , "upb/wire/decode.h"
-    , "upb/wire/encode.h"
-    ]
+    ["upb/generated_code_support.h", "upb/port/def.inc", "upb/port/undef.inc"]
   , "deps":
     [ "base"
-    , "collections_internal"
-    , "fastdecode"
-    , "hash"
-    , "lex"
     , "mem"
-    , "message_internal"
-    , "mini_table_internal"
-    , "port"
-    , "wire"
-    ]
-  , "pure C": ["YES"]
-  }
-, "base":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["base"]
-  , "srcs": ["upb/base/status.c"]
-  , "hdrs":
-    [ "upb/base/descriptor_constants.h"
-    , "upb/base/log2.h"
-    , "upb/base/status.h"
-    , "upb/base/string_view.h"
-    ]
-  , "deps": ["port"]
-  , "pure C": ["YES"]
-  }
-, "mini_table":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["mini_table"]
-  , "hdrs":
-    [ "upb/mini_table.h"
-    , "upb/mini_table/decode.h"
-    , "upb/mini_table/extension_registry.h"
-    , "upb/mini_table/types.h"
-    ]
-  , "deps": ["base", "mem", "mini_table_internal", "port"]
-  , "pure C": ["YES"]
-  }
-, "mini_table_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["mini_table_internal"]
-  , "srcs":
-    [ "upb/mini_table/common.c"
-    , "upb/mini_table/decode.c"
-    , "upb/mini_table/encode.c"
-    , "upb/mini_table/extension_registry.c"
-    ]
-  , "hdrs":
-    [ "upb/mini_table/common.h"
-    , "upb/mini_table/common_internal.h"
-    , "upb/mini_table/decode.h"
-    , "upb/mini_table/encode_internal.h"
-    , "upb/mini_table/encode_internal.hpp"
-    , "upb/mini_table/enum_internal.h"
-    , "upb/mini_table/extension_internal.h"
-    , "upb/mini_table/extension_registry.h"
-    , "upb/mini_table/field_internal.h"
-    , "upb/mini_table/file_internal.h"
-    , "upb/mini_table/message_internal.h"
-    , "upb/mini_table/sub_internal.h"
-    , "upb/mini_table/types.h"
-    ]
-  , "deps": ["base", "hash", "mem", "port"]
-  , "pure C": ["YES"]
-  }
-, "message":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["message"]
-  , "hdrs": ["upb/message/message.h"]
-  , "deps": ["mem", "message_internal", "mini_table", "port"]
-  , "pure C": ["YES"]
-  }
-, "message_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["message_internal"]
-  , "srcs": ["upb/message/message.c"]
-  , "hdrs":
-    [ "upb/message/extension_internal.h"
-    , "upb/message/internal.h"
-    , "upb/message/message.h"
-    ]
-  , "deps": ["base", "hash", "mem", "mini_table_internal", "port"]
-  , "pure C": ["YES"]
-  }
-, "message_accessors":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["message_accessors"]
-  , "srcs": ["upb/message/accessors.c"]
-  , "hdrs": ["upb/message/accessors.h", "upb/message/accessors_internal.h"]
-  , "deps":
-    [ "collections_internal"
-    , "eps_copy_input_stream"
-    , "hash"
-    , "message_internal"
-    , "mini_table_internal"
-    , "port"
-    , "upb"
-    , "wire"
-    , "wire_reader"
-    ]
-  , "pure C": ["YES"]
-  }
-, "message_promote":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["message_promote"]
-  , "srcs": ["upb/message/promote.c"]
-  , "hdrs": ["upb/message/promote.h"]
-  , "deps":
-    [ "collections_internal"
-    , "eps_copy_input_stream"
-    , "hash"
+    , "message"
     , "message_accessors"
+    , "message_accessors_internal"
     , "message_internal"
-    , "mini_table_internal"
-    , "port"
-    , "upb"
-    , "wire"
-    , "wire_reader"
-    ]
-  , "pure C": ["YES"]
-  }
-, "message_copy":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["message_copy"]
-  , "srcs": ["upb/message/copy.c"]
-  , "hdrs": ["upb/message/copy.h"]
-  , "deps":
-    [ "collections_internal"
-    , "message_accessors"
-    , "message_internal"
-    , "mini_table_internal"
-    , "port"
-    , "upb"
-    ]
-  , "pure C": ["YES"]
-  }
-, "fastdecode":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["fastdecode"]
-  , "deps":
-    [ "base"
-    , "collections_internal"
-    , "hash"
-    , "mem_internal"
-    , "message_internal"
-    , "mini_table_internal"
-    , "port"
-    , "wire"
-    ]
-  , "pure C": ["YES"]
-  }
-, "generated_code_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name":
-    [ "generated_code_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me"
-    ]
-  , "hdrs":
-    [ "upb/collections/array.h"
-    , "upb/collections/array_internal.h"
-    , "upb/collections/map_gencode_util.h"
-    , "upb/collections/message_value.h"
-    , "upb/extension_registry.h"
-    , "upb/message/accessors.h"
-    , "upb/message/accessors_internal.h"
-    , "upb/message/extension_internal.h"
-    , "upb/message/internal.h"
-    , "upb/message/message.h"
-    , "upb/mini_table/common.h"
-    , "upb/mini_table/enum_internal.h"
-    , "upb/mini_table/extension_internal.h"
-    , "upb/mini_table/field_internal.h"
-    , "upb/mini_table/file_internal.h"
-    , "upb/mini_table/message_internal.h"
-    , "upb/mini_table/sub_internal.h"
-    , "upb/mini_table/types.h"
-    , "upb/port/def.inc"
-    , "upb/port/undef.inc"
-    , "upb/wire/decode.h"
-    , "upb/wire/decode_fast.h"
-    , "upb/wire/encode.h"
-    ]
-  , "deps": ["base", "collections_internal", "hash", "upb"]
-  , "pure C": ["YES"]
-  }
-, "generated_cpp_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name":
-    [ "generated_cpp_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me"
-    ]
-  , "hdrs":
-    [ "upb/message/copy.h"
-    , "upb/message/extension_internal.h"
-    , "upb/message/internal.h"
-    , "upb/message/message.h"
-    , "upb/mini_table/common.h"
-    , "upb/mini_table/enum_internal.h"
-    , "upb/mini_table/extension_internal.h"
-    , "upb/mini_table/field_internal.h"
-    , "upb/mini_table/file_internal.h"
-    , "upb/mini_table/message_internal.h"
-    , "upb/mini_table/sub_internal.h"
-    , "upb/mini_table/types.h"
-    , "upb/port/def.inc"
-    , "upb/port/undef.inc"
-    , "upb/upb.hpp"
-    , "upb/wire/decode.h"
-    , "upb/wire/decode_fast.h"
-    , "upb/wire/encode.h"
-    ]
-  , "deps":
-    [ "base"
-    , "collections_internal"
-    , "hash"
-    , "message_copy"
+    , "mini_descriptor"
     , "mini_table"
-    , "upb"
+    , "wire"
+    , "wire_internal"
     ]
-  , "pure C": ["YES"]
-  }
-, "generated_reflection_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name":
-    [ "generated_reflection_support__only_for_generated_code_do_not_use__i_give_permission_to_break_me"
-    ]
-  , "hdrs":
-    [ "upb/port/def.inc"
-    , "upb/port/undef.inc"
-    , "upb/reflection/def.h"
-    , "upb/reflection/def_pool_internal.h"
-    ]
-  , "deps":
-    [ "base"
-    , "descriptor_upb_proto"
-    , "hash"
-    , "mini_table_internal"
-    , "reflection_internal"
-    ]
-  , "pure C": ["YES"]
-  }
-, "collections":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["collections"]
-  , "hdrs": ["upb/collections/array.h", "upb/collections/map.h"]
-  , "deps": ["base", "collections_internal", "mem", "port"]
-  , "pure C": ["YES"]
-  }
-, "collections_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["collections_internal"]
-  , "srcs":
-    [ "upb/collections/array.c"
-    , "upb/collections/map.c"
-    , "upb/collections/map_sorter.c"
-    ]
-  , "hdrs":
-    [ "upb/collections/array.h"
-    , "upb/collections/array_internal.h"
-    , "upb/collections/map.h"
-    , "upb/collections/map_gencode_util.h"
-    , "upb/collections/map_internal.h"
-    , "upb/collections/map_sorter_internal.h"
-    , "upb/collections/message_value.h"
-    ]
-  , "deps":
-    ["base", "hash", "mem", "message_internal", "mini_table_internal", "port"]
-  , "pure C": ["YES"]
   }
 , "reflection":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["reflection"]
   , "hdrs":
-    [ "upb/def.h"
-    , "upb/def.hpp"
-    , "upb/reflection.h"
-    , "upb/reflection.hpp"
-    , "upb/reflection/def.h"
+    [ "upb/reflection/def.h"
     , "upb/reflection/def.hpp"
     , "upb/reflection/message.h"
     , "upb/reflection/message.hpp"
     ]
-  , "deps": ["collections", "port", "upb"]
+  , "deps":
+    [ "reflection_internal"
+    , "base"
+    , "mem"
+    , "message"
+    , "message_types"
+    , "message_value"
+    , "port"
+    ]
   , "pure C": ["YES"]
   }
 , "reflection_internal":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["reflection_internal"]
   , "srcs":
-    [ "upb/reflection/def_builder.c"
-    , "upb/reflection/def_pool.c"
+    [ "upb/reflection/def_pool.c"
     , "upb/reflection/def_type.c"
     , "upb/reflection/desc_state.c"
     , "upb/reflection/enum_def.c"
@@ -336,6 +56,8 @@
     , "upb/reflection/extension_range.c"
     , "upb/reflection/field_def.c"
     , "upb/reflection/file_def.c"
+    , "upb/reflection/internal/def_builder.c"
+    , "upb/reflection/internal/strdup2.c"
     , "upb/reflection/message.c"
     , "upb/reflection/message_def.c"
     , "upb/reflection/message_reserved_range.c"
@@ -347,166 +69,81 @@
     [ "upb/reflection/common.h"
     , "upb/reflection/def.h"
     , "upb/reflection/def.hpp"
-    , "upb/reflection/def_builder_internal.h"
     , "upb/reflection/def_pool.h"
-    , "upb/reflection/def_pool_internal.h"
     , "upb/reflection/def_type.h"
-    , "upb/reflection/desc_state_internal.h"
     , "upb/reflection/enum_def.h"
-    , "upb/reflection/enum_def_internal.h"
     , "upb/reflection/enum_reserved_range.h"
-    , "upb/reflection/enum_reserved_range_internal.h"
     , "upb/reflection/enum_value_def.h"
-    , "upb/reflection/enum_value_def_internal.h"
     , "upb/reflection/extension_range.h"
-    , "upb/reflection/extension_range_internal.h"
     , "upb/reflection/field_def.h"
-    , "upb/reflection/field_def_internal.h"
     , "upb/reflection/file_def.h"
-    , "upb/reflection/file_def_internal.h"
+    , "upb/reflection/internal/def_pool.h"
+    , "upb/reflection/internal/desc_state.h"
+    , "upb/reflection/internal/enum_def.h"
+    , "upb/reflection/internal/enum_reserved_range.h"
+    , "upb/reflection/internal/enum_value_def.h"
+    , "upb/reflection/internal/extension_range.h"
+    , "upb/reflection/internal/field_def.h"
+    , "upb/reflection/internal/file_def.h"
+    , "upb/reflection/internal/message_def.h"
+    , "upb/reflection/internal/message_reserved_range.h"
+    , "upb/reflection/internal/method_def.h"
+    , "upb/reflection/internal/oneof_def.h"
+    , "upb/reflection/internal/service_def.h"
     , "upb/reflection/message.h"
     , "upb/reflection/message.hpp"
     , "upb/reflection/message_def.h"
-    , "upb/reflection/message_def_internal.h"
     , "upb/reflection/message_reserved_range.h"
-    , "upb/reflection/message_reserved_range_internal.h"
     , "upb/reflection/method_def.h"
-    , "upb/reflection/method_def_internal.h"
     , "upb/reflection/oneof_def.h"
-    , "upb/reflection/oneof_def_internal.h"
     , "upb/reflection/service_def.h"
-    , "upb/reflection/service_def_internal.h"
     ]
-  , "deps":
-    [ "collections"
-    , "hash"
-    , "message_accessors"
-    , "mini_table_internal"
-    , "port"
-    , "upb"
-    , ["src/core/ext/upb-generated", "upb-generated-lib"]
-    ]
-  , "pure C": ["YES"]
-  }
-, "textformat":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["textformat"]
-  , "srcs": ["upb/text/encode.c"]
-  , "hdrs": ["upb/text/encode.h", "upb/text_encode.h"]
-  , "deps":
-    [ "collections_internal"
-    , "eps_copy_input_stream"
-    , "lex"
-    , "port"
-    , "reflection"
-    , "reflection_internal"
-    , "wire"
-    , "wire_reader"
-    , "wire_types"
-    ]
-  , "pure C": ["YES"]
-  }
-, "json":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["json"]
-  , "srcs": ["upb/json/decode.c", "upb/json/encode.c"]
-  , "hdrs":
-    [ "upb/json/decode.h"
-    , "upb/json/encode.h"
-    , "upb/json_decode.h"
-    , "upb/json_encode.h"
-    ]
-  , "deps":
-    [ "collections"
-    , "lex"
-    , "port"
-    , "reflection"
-    , "reflection_internal"
-    , "upb"
-    , ["src/core/ext/upb-generated", "upb-generated-lib"]
-    ]
-  , "pure C": ["YES"]
-  }
-, "mem":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["mem"]
-  , "hdrs": ["upb/mem/alloc.h", "upb/mem/arena.h"]
-  , "deps": ["mem_internal", "port"]
-  , "pure C": ["YES"]
-  }
-, "mem_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["mem_internal"]
-  , "srcs": ["upb/mem/alloc.c", "upb/mem/arena.c"]
-  , "hdrs": ["upb/mem/alloc.h", "upb/mem/arena.h", "upb/mem/arena_internal.h"]
-  , "deps": ["port"]
-  , "pure C": ["YES"]
-  }
-, "wire":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["wire"]
-  , "hdrs": ["upb/wire/decode.h", "upb/wire/encode.h"]
-  , "deps":
-    ["mem", "message_internal", "mini_table_internal", "port", "wire_internal"]
-  , "pure C": ["YES"]
-  }
-, "wire_internal":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["wire_internal"]
-  , "srcs":
-    ["upb/wire/decode.c", "upb/wire/decode_fast.c", "upb/wire/encode.c"]
-  , "hdrs":
-    [ "upb/wire/common.h"
-    , "upb/wire/common_internal.h"
-    , "upb/wire/decode.h"
-    , "upb/wire/decode_fast.h"
-    , "upb/wire/decode_internal.h"
-    , "upb/wire/encode.h"
-    , "upb/wire/swap_internal.h"
+  , "private-hdrs":
+    [ "upb/reflection/internal/def_builder.h"
+    , "upb/reflection/internal/strdup2.h"
     ]
   , "deps":
     [ "base"
-    , "collections_internal"
-    , "eps_copy_input_stream"
     , "hash"
-    , "mem_internal"
-    , "message_internal"
-    , "mini_table_internal"
+    , "mem"
+    , "message"
+    , "message_accessors"
+    , "message_types"
+    , "message_value"
+    , "mini_descriptor"
+    , "mini_descriptor_internal"
+    , "mini_table"
     , "port"
-    , "wire_reader"
-    , "wire_types"
-    , ["third_party/utf8_range", ""]
+    , ["src/core/ext/upb-gen", "upb-gen-lib"]
     ]
   , "pure C": ["YES"]
   }
-, "wire_types":
+, "base":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["wire_types"]
-  , "hdrs": ["upb/wire/types.h"]
+  , "name": ["base"]
+  , "srcs": ["upb/base/status.c"]
+  , "hdrs":
+    [ "upb/base/descriptor_constants.h"
+    , "upb/base/status.h"
+    , "upb/base/status.hpp"
+    , "upb/base/string_view.h"
+    ]
+  , "deps": ["port"]
   , "pure C": ["YES"]
   }
-, "eps_copy_input_stream":
+, "base_internal":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["eps_copy_input_stream"]
-  , "srcs": ["upb/wire/eps_copy_input_stream.c"]
-  , "hdrs": ["upb/wire/eps_copy_input_stream.h"]
-  , "deps": ["mem", "port"]
+  , "name": ["base_internal"]
+  , "hdrs": ["upb/base/internal/log2.h"]
+  , "deps": ["port"]
   , "pure C": ["YES"]
   }
-, "upb/wire/swap_internal.h-lib":
+, "collections":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["upb/wire/swap_internal.h-lib"]
-  , "stage": []
-  , "hdrs": ["upb/wire/swap_internal.h"]
-  }
-, "wire_reader":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["wire_reader"]
-  , "srcs": ["upb/wire/reader.c", "upb/wire/swap_internal.h"]
-  , "hdrs": ["upb/wire/reader.h"]
-  , "deps": ["eps_copy_input_stream", "port", "wire_types"]
+  , "name": ["collections"]
+  , "hdrs": ["upb/collections/array.h", "upb/collections/map.h"]
+  , "deps": ["message"]
   , "pure C": ["YES"]
-  , "private-deps": ["upb/wire/swap_internal.h-lib"]
   }
 , "hash":
   { "type": ["@", "rules", "CC", "library"]
@@ -514,7 +151,38 @@
   , "srcs": ["upb/hash/common.c"]
   , "hdrs":
     ["upb/hash/common.h", "upb/hash/int_table.h", "upb/hash/str_table.h"]
+  , "deps": ["base", "base_internal", "mem", "port"]
+  , "pure C": ["YES"]
+  }
+, "string":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["string"]
+  , "hdrs": ["upb/io/string.h"]
+  , "deps": ["mem", "port"]
+  , "pure C": ["YES"]
+  }
+, "tokenizer":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["tokenizer"]
+  , "srcs": ["upb/io/tokenizer.c"]
+  , "hdrs": ["upb/io/tokenizer.h"]
+  , "deps": ["string", "zero_copy_stream", "base", "lex", "mem", "port"]
+  , "pure C": ["YES"]
+  }
+, "zero_copy_stream":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["zero_copy_stream"]
+  , "hdrs":
+    ["upb/io/zero_copy_input_stream.h", "upb/io/zero_copy_output_stream.h"]
   , "deps": ["base", "mem", "port"]
+  , "pure C": ["YES"]
+  }
+, "json":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["json"]
+  , "srcs": ["upb/json/decode.c", "upb/json/encode.c"]
+  , "hdrs": ["upb/json/decode.h", "upb/json/encode.h"]
+  , "deps": ["lex", "message", "port", "reflection", "wire"]
   , "pure C": ["YES"]
   }
 , "lex":
@@ -533,6 +201,345 @@
     , "upb/lex/unicode.h"
     ]
   , "deps": ["port"]
+  , "pure C": ["YES"]
+  }
+, "mem":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mem"]
+  , "hdrs": ["upb/mem/alloc.h", "upb/mem/arena.h", "upb/mem/arena.hpp"]
+  , "deps": ["mem_internal", "port"]
+  , "pure C": ["YES"]
+  }
+, "mem_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mem_internal"]
+  , "srcs": ["upb/mem/alloc.c", "upb/mem/arena.c"]
+  , "hdrs": ["upb/mem/internal/arena.h"]
+  , "private-hdrs": ["upb/mem/alloc.h", "upb/mem/arena.h"]
+  , "deps": ["port"]
+  , "pure C": ["YES"]
+  }
+, "message_accessors":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_accessors"]
+  , "srcs": ["upb/message/accessors.c"]
+  , "hdrs": ["upb/message/accessors.h"]
+  , "private-hdrs": ["upb/message/internal/accessors.h"]
+  , "deps":
+    [ "message_internal"
+    , "message"
+    , "base"
+    , "eps_copy_input_stream"
+    , "mini_table"
+    , "mini_table_internal"
+    , "port"
+    , "wire"
+    , "wire_reader"
+    ]
+  , "pure C": ["YES"]
+  }
+, "message_accessors_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_accessors_internal"]
+  , "hdrs": ["upb/message/internal/accessors.h"]
+  , "deps": ["message_internal", "mini_table_internal", "port"]
+  , "pure C": ["YES"]
+  }
+, "message_copy":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_copy"]
+  , "srcs": ["upb/message/copy.c"]
+  , "hdrs": ["upb/message/copy.h"]
+  , "deps":
+    [ "message_accessors"
+    , "message_internal"
+    , "message"
+    , "message_types"
+    , "base"
+    , "mem"
+    , "mini_table"
+    , "mini_table_internal"
+    , "port"
+    ]
+  , "pure C": ["YES"]
+  }
+, "message_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_internal"]
+  , "srcs":
+    [ "upb/message/array.c"
+    , "upb/message/map.c"
+    , "upb/message/map_sorter.c"
+    , "upb/message/message.c"
+    ]
+  , "hdrs":
+    [ "upb/message/internal/array.h"
+    , "upb/message/internal/extension.h"
+    , "upb/message/internal/map.h"
+    , "upb/message/internal/map_entry.h"
+    , "upb/message/internal/map_sorter.h"
+    , "upb/message/internal/message.h"
+    , "upb/message/map_gencode_util.h"
+    ]
+  , "private-hdrs":
+    ["upb/message/array.h", "upb/message/map.h", "upb/message/message.h"]
+  , "deps":
+    [ "message_internal_types"
+    , "message_types"
+    , "message_value"
+    , "base"
+    , "base_internal"
+    , "hash"
+    , "mem"
+    , "mini_table"
+    , "port"
+    ]
+  , "pure C": ["YES"]
+  }
+, "message_internal_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_internal_types"]
+  , "hdrs": ["upb/message/internal/types.h"]
+  , "pure C": ["YES"]
+  }
+, "message":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message"]
+  , "hdrs":
+    ["upb/message/array.h", "upb/message/map.h", "upb/message/message.h"]
+  , "deps":
+    [ "message_internal"
+    , "message_types"
+    , "message_value"
+    , "base"
+    , "mem"
+    , "mini_table"
+    , "port"
+    ]
+  , "pure C": ["YES"]
+  }
+, "message_promote":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_promote"]
+  , "srcs": ["upb/message/promote.c"]
+  , "hdrs": ["upb/message/promote.h"]
+  , "deps":
+    [ "message_accessors"
+    , "message_accessors_internal"
+    , "message_internal"
+    , "message"
+    , "message_tagged_ptr"
+    , "message_types"
+    , "base"
+    , "eps_copy_input_stream"
+    , "mem"
+    , "mini_table"
+    , "mini_table_internal"
+    , "port"
+    , "wire"
+    , "wire_internal"
+    , "wire_reader"
+    ]
+  , "pure C": ["YES"]
+  }
+, "message_split64":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_split64"]
+  , "hdrs": ["upb/message/accessors_split64.h", "upb/message/array_split64.h"]
+  , "deps": ["message_accessors", "message", "port"]
+  , "pure C": ["YES"]
+  }
+, "message_tagged_ptr":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_tagged_ptr"]
+  , "hdrs": ["upb/message/tagged_ptr.h"]
+  , "deps": ["message_types", "port"]
+  , "pure C": ["YES"]
+  }
+, "message_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_types"]
+  , "hdrs": ["upb/message/types.h"]
+  , "pure C": ["YES"]
+  }
+, "message_value":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["message_value"]
+  , "hdrs": ["upb/message/value.h"]
+  , "deps": ["message_tagged_ptr", "message_types", "base"]
+  , "pure C": ["YES"]
+  }
+, "mini_descriptor":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mini_descriptor"]
+  , "srcs":
+    [ "upb/mini_descriptor/build_enum.c"
+    , "upb/mini_descriptor/decode.c"
+    , "upb/mini_descriptor/link.c"
+    ]
+  , "hdrs":
+    [ "upb/mini_descriptor/build_enum.h"
+    , "upb/mini_descriptor/decode.h"
+    , "upb/mini_descriptor/link.h"
+    ]
+  , "deps":
+    [ "mini_descriptor_internal"
+    , "base"
+    , "mem"
+    , "mini_table"
+    , "mini_table_internal"
+    , "port"
+    ]
+  , "pure C": ["YES"]
+  }
+, "mini_descriptor_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mini_descriptor_internal"]
+  , "srcs":
+    [ "upb/mini_descriptor/internal/base92.c"
+    , "upb/mini_descriptor/internal/encode.c"
+    ]
+  , "hdrs":
+    [ "upb/mini_descriptor/internal/base92.h"
+    , "upb/mini_descriptor/internal/decoder.h"
+    , "upb/mini_descriptor/internal/encode.h"
+    , "upb/mini_descriptor/internal/encode.hpp"
+    , "upb/mini_descriptor/internal/modifiers.h"
+    , "upb/mini_descriptor/internal/wire_constants.h"
+    ]
+  , "deps": ["base", "base_internal", "port"]
+  , "pure C": ["YES"]
+  }
+, "mini_table_compat":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mini_table_compat"]
+  , "srcs": ["upb/mini_table/compat.c"]
+  , "hdrs": ["upb/mini_table/compat.h"]
+  , "deps": ["mini_table", "base", "hash", "mem", "port"]
+  , "pure C": ["YES"]
+  }
+, "mini_table":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mini_table"]
+  , "srcs": ["upb/mini_table/extension_registry.c", "upb/mini_table/message.c"]
+  , "hdrs":
+    [ "upb/mini_table/enum.h"
+    , "upb/mini_table/extension.h"
+    , "upb/mini_table/extension_registry.h"
+    , "upb/mini_table/field.h"
+    , "upb/mini_table/file.h"
+    , "upb/mini_table/message.h"
+    , "upb/mini_table/sub.h"
+    ]
+  , "deps":
+    ["mini_table_internal", "base", "hash", "mem", "message_types", "port"]
+  , "pure C": ["YES"]
+  }
+, "mini_table_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mini_table_internal"]
+  , "srcs": ["upb/mini_table/internal/message.c"]
+  , "hdrs":
+    [ "upb/mini_table/internal/enum.h"
+    , "upb/mini_table/internal/extension.h"
+    , "upb/mini_table/internal/field.h"
+    , "upb/mini_table/internal/file.h"
+    , "upb/mini_table/internal/message.h"
+    , "upb/mini_table/internal/sub.h"
+    ]
+  , "deps": ["base", "message_types", "port"]
+  , "pure C": ["YES"]
+  }
+, "port":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["port"]
+  , "hdrs":
+    [ "upb/port/atomic.h"
+    , "upb/port/vsnprintf_compat.h"
+    , "upb/port/def.inc"
+    , "upb/port/undef.inc"
+    ]
+  , "pure C": ["YES"]
+  }
+, "text":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["text"]
+  , "srcs": ["upb/text/encode.c"]
+  , "hdrs": ["upb/text/encode.h"]
+  , "deps":
+    [ "eps_copy_input_stream"
+    , "lex"
+    , "message"
+    , "message_internal"
+    , "port"
+    , "reflection"
+    , "wire"
+    , "wire_reader"
+    , "wire_types"
+    ]
+  , "pure C": ["YES"]
+  }
+, "wire":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["wire"]
+  , "hdrs": ["upb/wire/decode.h", "upb/wire/encode.h"]
+  , "deps":
+    ["wire_internal", "wire_types", "mem", "message", "mini_table", "port"]
+  , "pure C": ["YES"]
+  }
+, "wire_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["wire_internal"]
+  , "srcs":
+    ["upb/wire/decode.c", "upb/wire/decode_fast.c", "upb/wire/encode.c"]
+  , "hdrs":
+    [ "upb/wire/decode_fast.h"
+    , "upb/wire/internal/constants.h"
+    , "upb/wire/internal/decode.h"
+    , "upb/wire/internal/swap.h"
+    ]
+  , "private-hdrs": ["upb/wire/decode.h", "upb/wire/encode.h"]
+  , "deps":
+    [ "eps_copy_input_stream"
+    , "wire_reader"
+    , "wire_types"
+    , "base"
+    , "hash"
+    , "mem"
+    , "mem_internal"
+    , "message"
+    , "message_accessors_internal"
+    , "message_internal"
+    , "message_internal_types"
+    , "message_tagged_ptr"
+    , "mini_table"
+    , "mini_table_internal"
+    , "port"
+    , ["third_party/utf8_range", ""]
+    ]
+  , "pure C": ["YES"]
+  }
+, "wire_reader":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["wire_reader"]
+  , "srcs": ["upb/wire/reader.c"]
+  , "hdrs": ["upb/wire/reader.h"]
+  , "private-hdrs": ["upb/wire/internal/swap.h"]
+  , "deps": ["eps_copy_input_stream", "wire_types", "port"]
+  , "pure C": ["YES"]
+  }
+, "wire_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["wire_types"]
+  , "hdrs": ["upb/wire/types.h"]
+  , "pure C": ["YES"]
+  }
+, "eps_copy_input_stream":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["eps_copy_input_stream"]
+  , "srcs": ["upb/wire/eps_copy_input_stream.c"]
+  , "hdrs": ["upb/wire/eps_copy_input_stream.h"]
+  , "deps": ["mem", "port"]
   , "pure C": ["YES"]
   }
 }

@@ -39,6 +39,7 @@
     , "impl/sync.h"
     , "resource_quota.h"
     , "security/audit_logging.h"
+    , "security/tls_crl_provider.h"
     , "security/auth_context.h"
     , "security/auth_metadata_processor.h"
     , "security/credentials.h"

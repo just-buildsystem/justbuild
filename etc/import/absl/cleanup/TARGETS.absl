@@ -1,6 +1,6 @@
 { "cleanup":
   { "type": "export"
-  , "target": "cleanup_internal_"
+  , "target": "cleanup (unexported)"
   , "flexible_config":
     [ "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -18,7 +18,7 @@
     , "TOOLCHAIN_CONFIG"
     ]
   }
-, "cleanup_internal_":
+, "cleanup (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["cleanup"]
   , "stage": ["absl", "cleanup"]
