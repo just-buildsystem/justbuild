@@ -129,6 +129,14 @@ cat > TARGETS <<'EOF'
     , "another provided world"
     ]
   }
+, "rule-conflict-in-config":
+  { "type": "provide"
+  , "deps": ["world", "unrelated", "universe", "greeting.txt"]
+  }
+, "simple-rule-conflict-in-config":
+  { "type": "provide"
+  , "deps": ["unrelated", "universe", "greeting.txt"]
+  }
 }
 EOF
 
@@ -164,5 +172,27 @@ grep '\["@","","","another provided world"\]' log
 grep '\["@","","","provided universe"\]' log
 grep '\["@","","","provided unrelated"\]' log && exit 1 || :
 
+# Also verify that the non-null part of the effective configuration is
+# reported.
+"${JUST}" build --local-build-root "${LBR}" rule-conflict-in-config \
+          -f log --log-limit 0 2>&1 -D '{"FOO": "bar", "NAME": "World"}' \
+    && exit 1 || :
 echo
+grep -F '[["@","","","world"],{}]' log
+grep -F '[["@","","","universe"],{}]' log
+grep -F '[["@","","","greeting.txt"],{"NAME":"World"}]' log
+grep -F '["@","","","unrelated"]' log && exit 1 || :
+echo
+echo
+
+"${JUST}" build --local-build-root "${LBR}" simple-rule-conflict-in-config \
+          -f log --log-limit 0 2>&1 -D '{"FOO": "bar", "NAME": null}' \
+    && exit 1 || :
+echo
+grep -F '[["@","","","universe"],{}]' log
+grep -F '[["@","","","greeting.txt"],{}]' log
+grep -F '["@","","","unrelated"]' log && exit 1 || :
+echo
+echo
+
 echo OK

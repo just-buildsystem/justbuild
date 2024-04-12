@@ -226,7 +226,7 @@ auto NameTransitionedDeps(
     auto conf = effective_conf.Update(transitioned_target.config.Expr())
                     .Prune(analysis->Vars());
     return BuildMaps::Target::ConfiguredTarget{transitioned_target.target, conf}
-        .ToString();
+        .ToShortString();
 }
 
 // Check if an object is contained an expression; to avoid tree-unfolding
