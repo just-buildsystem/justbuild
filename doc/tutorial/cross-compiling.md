@@ -193,7 +193,7 @@ binary, we need to do two things.
 
 - We need to setup remote execution on the correct architecture,
   either by buying the appropriate hardware, or by running an emulator.
-- We need to tell `justbuild` on how to reach that endpoint.
+- We need to tell *justbuild* on how to reach that endpoint.
 
 To continue the example, let's say we set up an `arm64` machine,
 e.g., a Raspberry Pi, in the local network. On that machine, we can
@@ -201,7 +201,7 @@ simply run a single-node execution service using `just execute`;
 note that the `just` binary used there has to be an `arm64` binary,
 e.g., obtained by cross compiling.
 
-The next step is to tell `justbuild` how to reach that machine;
+The next step is to tell *justbuild* how to reach that machine;
 as we only want to use it for certain actions we can't simply
 set it as (default) remote-execution endpoint (specified by the
 `-r` option). Instead we crate a file `dispatch.json`.

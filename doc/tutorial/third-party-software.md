@@ -2,15 +2,15 @@ Building Third-party Software
 =============================
 
 Third-party projects usually ship with their own build description,
-which often happens to be not compatible with justbuild. Nevertheless,
-it often is desireable to include external projects via their source
+which often happens to not be compatible with *justbuild*. Nevertheless,
+it is often desireable to include external projects via their source
 code base, instead of relying on the integration of out-of-band binary
-distributions. justbuild offers a flexible approach to provide the
+distributions. *justbuild* offers a flexible approach to provide the
 required build description via an overlay layer without the need to
 touch the original code base. This mechanism is independent of the
-actual justbuild description eventually used and the latter might
+actual *justbuild* description eventually used, and the latter might
 well be a
-[rule calling the foreign buildsystem](https://github.com/just-buildsystem/rules-cc#rule-ccforeigncmake-library).
+[rule calling a foreign buildsystem](https://github.com/just-buildsystem/rules-cc#rule-ccforeigncmake-library).
 In this section, however, we describe the cleaner approach of providing
 a native build description.
 
@@ -18,7 +18,7 @@ For the remainder of this section, we expect to have the project files
 available resulting from successfully completing the tutorial section on
 *Building C++ Hello World*. We will demonstrate how to use the
 open-source project [fmtlib](https://github.com/fmtlib/fmt) as an
-example for integrating third-party software to a justbuild project.
+example for integrating third-party software to a *justbuild* project.
 
 Creating the target overlay layer for fmtlib
 --------------------------------------------
@@ -171,7 +171,7 @@ additional binding `"format"` for it:
 }
 ```
 
-This `"format"` binding can you be used to add a new private dependency
+This `"format"` binding can be used to add a new private dependency
 in `greet/TARGETS`:
 
 ``` {.jsonc srcname="greet/TARGETS"}
@@ -214,8 +214,8 @@ INFO: Artifacts built, logical paths are:
 $
 ```
 
-Note to build the `fmt` target alone, its containing repository `fmtlib`
-must be specified via the `--main` option:
+Note that in order to build the `fmt` target alone, its containing
+repository `fmtlib` must be specified via the `--main` option:
 
 ``` sh
 $ just-mr --main fmtlib build fmt

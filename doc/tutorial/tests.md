@@ -1,7 +1,7 @@
 Creating Tests
 ==============
 
-To run tests with justbuild, we do *not* have a dedicated `test`
+To run tests with *justbuild*, we do **not** have a dedicated `test`
 subcommand. Instead, we consider tests being a specific action that
 generates a test report. Consequently, we use the `build` subcommand to
 build the test report, and thereby run the test action. Test actions,
@@ -141,13 +141,13 @@ Note that the target is correctly reported as tainted with `"test"`. It
 will produce 3 additional actions for compiling, linking and running the
 test binary.
 
-The result of the test target are 5 artifacts: `result` (containing
+The result of the test target is formed of 5 artifacts: `result` (containing
 `UNKNOWN`, `PASS`, or `FAIL`), `stderr`, `stdout`, `time-start`, and
 `time-stop`, and a single runfile (omitted in the output above), which
 is a tree artifact with the name `test_greet` that contains all of the
 above artifacts. The test was run successfully as otherwise all reported
 artifacts would have been reported as `FAILED` in the output, and
-justbuild would have returned the exit code `2`.
+*justbuild* would have returned the exit code `2`.
 
 To immediately print the standard output produced by the test binary on
 the command line, the `-P` option can be used. Argument to this option
@@ -163,7 +163,7 @@ greet output: Hello Universe!
 $
 ```
 
-Note that `--log-limit 1` was just added to omit justbuild's `INFO:`
+Note that `--log-limit 1` was just added to omit *justbuild*'s `INFO:`
 prints.
 
 Our test binary does not have any useful options for directly

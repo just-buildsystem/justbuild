@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-In order to use *Justbuild*, first make sure that `just`, `just-mr`, and
+In order to use *justbuild*, first make sure that `just`, `just-mr`, and
 `just-import-git` are available in your `PATH`.
 
 Creating a new project
