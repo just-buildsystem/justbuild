@@ -364,15 +364,6 @@ In this way, content-fixed repositories can be generated in a
 generic way, e.g., using other version-control systems or
 specialized artifact-fetching tools.
 
-Additionally, for archive-like repositories in the `just-mr`
-repository specification (currently `archive` and `zip`), a `git`
-tree identifier can be specified. If the tree is known to `just-mr`,
-or the `"pragma"` `"absent"` is given, it will just use that tree.
-Otherwise, it will fetch as usual, but error out if the obtained
-tree is not the promised one after unpacking and taking the
-specified subdirectory. In this way, also archives can be used as
-absent roots.
-
 #### `just-mr fetch` to support storing in remote-execution CAS
 
 The `fetch` subcommand of `just-mr` will get an additional option to
