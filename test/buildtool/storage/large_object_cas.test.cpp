@@ -516,11 +516,22 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto result_path = cas.TreePath(*large_tree_digest);
     REQUIRE(result_path);
 
-    // The nested tree and all it's large parts must be spliced to the same
-    // locations:
-    CHECK(FileSystemManager::IsFile(*nested_tree_path));
-    CHECK(FileSystemManager::IsFile(*nested_blob_path));
+    // Only the main object must be reconstructed:
     CHECK(FileSystemManager::IsFile(*large_tree_path));
+
+    // It's parts must not be reconstructed by default:
+    CHECK_FALSE(FileSystemManager::IsFile(*nested_tree_path));
+    CHECK_FALSE(FileSystemManager::IsFile(*nested_blob_path));
+
+    auto const& latest_cas = Storage::Generation(0).CAS();
+
+    // However, they might be reconstructed on request because there entries are
+    // in the latest generation:
+    auto split_nested_tree_2 = latest_cas.SplitTree(*nested_tree_digest);
+    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_tree_2));
+
+    auto split_nested_blob_2 = latest_cas.SplitBlob(*nested_blob_digest);
+    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_blob_2));
 
     // Check there are no spliced results in old generations:
     for (std::size_t i = 1; i < StorageConfig::NumGenerations(); ++i) {
@@ -530,17 +541,6 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         REQUIRE_FALSE(generation_cas.BlobPath(*nested_blob_digest,
                                               /*is_executable=*/false));
     }
-
-    // Check large entries are in the latest generation:
-    auto const& latest_cas = Storage::Generation(0).CAS();
-    auto split_nested_tree_2 = latest_cas.SplitTree(*nested_tree_digest);
-    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_tree_2));
-
-    auto split_nested_blob_2 = latest_cas.SplitBlob(*nested_blob_digest);
-    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_blob_2));
-
-    auto split_large_tree_2 = latest_cas.SplitTree(*large_tree_digest);
-    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_large_tree_2));
 }
 namespace {
 

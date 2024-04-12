@@ -288,7 +288,8 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     LocalGenerationCAS const& latest,
     bazel_re::Digest const& digest,
     bool is_executable,
-    bool skip_sync) const noexcept -> bool {
+    bool skip_sync,
+    bool splice_result) const noexcept -> bool {
     // Determine blob path in latest generation.
     auto blob_path_latest = latest.BlobPathNoSync(digest, is_executable);
     if (blob_path_latest) {
@@ -307,39 +308,42 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
         return false;
     }
 
-    // Uplink blob from older generation to the latest generation.
-    bool uplinked =
-        blob_path_latest.has_value() or
-        latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable);
-
-    if (uplinked) {
+    if (spliced) {
         // The result of uplinking of a large object must not affect the
         // result of uplinking in general. In other case, two sequential calls
         // to BlobPath might return different results: The first call splices
         // and uplinks the object, but fails at large entry uplinking. The
         // second call finds the tree in the youngest generation and returns.
         std::ignore = LocalUplinkLargeObject<ObjectType::File>(latest, digest);
+        if (not splice_result) {
+            return true;
+        }
     }
-    return uplinked;
+
+    // Uplink blob from older generation to the latest generation.
+    return blob_path_latest.has_value() or
+           latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable);
 }
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
 requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest) const noexcept -> bool {
+    bazel_re::Digest const& digest,
+    bool splice_result) const noexcept -> bool {
     if (Compatibility::IsCompatible()) {
         std::unordered_set<bazel_re::Digest> seen{};
-        return LocalUplinkBazelDirectory(latest, digest, &seen);
+        return LocalUplinkBazelDirectory(latest, digest, &seen, splice_result);
     }
-    return LocalUplinkGitTree(latest, digest);
+    return LocalUplinkGitTree(latest, digest, splice_result);
 }
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
 requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest) const noexcept -> bool {
+    bazel_re::Digest const& digest,
+    bool splice_result) const noexcept -> bool {
     // Determine tree path in latest generation.
     auto tree_path_latest = latest.cas_tree_.BlobPath(digest);
     if (tree_path_latest) {
@@ -410,8 +414,7 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         }
     }
 
-    // Uplink tree from older generation to the latest generation.
-    if (latest.cas_tree_.StoreBlobFromFile(*tree_path, /*is owner=*/true)) {
+    if (spliced) {
         // Uplink the large entry afterwards:
         // The result of uplinking of a large object must not affect the
         // result of uplinking in general. In other case, two sequential calls
@@ -419,9 +422,14 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         // and uplinks the object, but fails at large entry uplinking. The
         // second call finds the tree in the youngest generation and returns.
         std::ignore = LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
-        return true;
+        if (not splice_result) {
+            return true;
+        }
     }
-    return false;
+
+    // Uplink tree from older generation to the latest generation.
+    return latest.cas_tree_.StoreBlobFromFile(*tree_path, /*is owner=*/true)
+        .has_value();
 }
 
 template <bool kDoGlobalUplink>
@@ -430,8 +438,8 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
     LocalUplinkBazelDirectory(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
-        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen)
-        const noexcept -> bool {
+        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
+        bool splice_result) const noexcept -> bool {
     // Skip already uplinked directories
     if (seen->contains(digest)) {
         return true;
@@ -470,23 +478,25 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
     // Determine bazel directory path in latest generation.
     auto dir_path_latest = latest.cas_tree_.BlobPath(digest);
 
+    if (spliced) {
+        // Uplink the large entry afterwards:
+        // The result of uplinking of a large object must not affect the
+        // result of uplinking in general. In other case, two sequential
+        // calls to TreePath might return different results: The first call
+        // splices and uplinks the object, but fails at large entry
+        // uplinking. The second call finds the tree in the youngest
+        // generation and returns.
+        std::ignore = LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
+    }
+
+    bool const skip_store = spliced and not splice_result;
     // Uplink bazel directory from older generation to the latest
     // generation.
-    if (dir_path_latest.has_value() or
+    if (skip_store or dir_path_latest.has_value() or
         latest.cas_tree_.StoreBlobFromFile(*dir_path,
                                            /*is_owner=*/true)) {
         try {
             seen->emplace(digest);
-
-            // Uplink the large entry afterwards:
-            // The result of uplinking of a large object must not affect the
-            // result of uplinking in general. In other case, two sequential
-            // calls to TreePath might return different results: The first call
-            // splices and uplinks the object, but fails at large entry
-            // uplinking. The second call finds the tree in the youngest
-            // generation and returns.
-            std::ignore =
-                LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
             return true;
         } catch (...) {
         }

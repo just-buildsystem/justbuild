@@ -65,7 +65,11 @@ auto GarbageCollector::GlobalUplinkBlob(bazel_re::Digest const& digest,
         // Note that we uplink with _skip_sync_ as we want to prefer hard links
         // from older generations over copies from the companion file/exec CAS.
         if (Storage::Generation(i).CAS().LocalUplinkBlob(
-                latest_cas, digest, is_executable, /*skip_sync=*/true)) {
+                latest_cas,
+                digest,
+                is_executable,
+                /*skip_sync=*/true,
+                /*splice_result=*/true)) {
             return true;
         }
     }
@@ -91,7 +95,8 @@ auto GarbageCollector::GlobalUplinkTree(bazel_re::Digest const& digest) noexcept
     // Try to find tree in all generations.
     auto const& latest_cas = Storage::Generation(0).CAS();
     for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
-        if (Storage::Generation(i).CAS().LocalUplinkTree(latest_cas, digest)) {
+        if (Storage::Generation(i).CAS().LocalUplinkTree(
+                latest_cas, digest, /*splice_result=*/true)) {
             return true;
         }
     }

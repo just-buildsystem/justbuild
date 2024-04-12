@@ -226,13 +226,16 @@ class LocalCAS {
     /// \param digest           The digest of the blob to uplink.
     /// \param is_executable    Uplink blob with executable permissions.
     /// \param skip_sync        Do not sync between file/executable CAS.
+    /// \param splice_result    Create the result of splicing in the latest
+    /// generation.
     /// \returns True if blob was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkBlob(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
         bool is_executable,
-        bool skip_sync = false) const noexcept -> bool;
+        bool skip_sync = false,
+        bool splice_result = false) const noexcept -> bool;
 
     /// \brief Uplink tree from this generation to latest LocalCAS generation.
     /// This function is only available for instances that are used as local GC
@@ -245,11 +248,14 @@ class LocalCAS {
     /// \tparam kIsLocalGeneration  True if this instance is a local generation.
     /// \param latest   The latest LocalCAS generation.
     /// \param digest   The digest of the tree to uplink.
+    /// \param splice_result    Create the result of splicing in the latest
+    /// generation.
     /// \returns True if tree was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkTree(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest) const noexcept -> bool;
+        bazel_re::Digest const& digest,
+        bool splice_result = false) const noexcept -> bool;
 
     /// \brief Uplink large entry from this generation to latest LocalCAS
     /// generation. This function is only available for instances that are used
@@ -309,14 +315,15 @@ class LocalCAS {
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkGitTree(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest) const noexcept -> bool;
+        bazel_re::Digest const& digest,
+        bool splice_result = false) const noexcept -> bool;
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkBazelDirectory(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
-        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen)
-        const noexcept -> bool;
+        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
+        bool splice_result = false) const noexcept -> bool;
 
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto TrySplice(
