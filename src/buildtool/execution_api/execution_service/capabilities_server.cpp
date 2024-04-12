@@ -41,8 +41,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     static_assert(kMaxBatchTransferSize < GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
                   "Max batch transfer size too large.");
     cache.add_supported_chunking_algorithms(
-        ::bazel_re::ChunkingAlgorithm_Value::
-            ChunkingAlgorithm_Value_FASTCDC_MT0_8KB);
+        ::bazel_re::ChunkingAlgorithm_Value::ChunkingAlgorithm_Value_FASTCDC);
     *(response->mutable_cache_capabilities()) = cache;
 
     exec.set_digest_function(

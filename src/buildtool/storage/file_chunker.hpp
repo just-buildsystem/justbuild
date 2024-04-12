@@ -32,7 +32,7 @@
 /// A read buffer is used to progressively process the file content instead of
 /// reading the entire file content in memory.
 class FileChunker {
-    static constexpr std::uint32_t kAverageChunkSize{1024 * 8};  // 8 KB
+    static constexpr std::uint32_t kAverageChunkSize{1024 * 128};  // 128 KB
     static constexpr std::uint32_t kDefaultSeed{0};
 
   public:

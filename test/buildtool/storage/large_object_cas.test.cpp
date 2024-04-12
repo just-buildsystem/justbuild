@@ -67,8 +67,8 @@ using File = Blob<false>;
 
 class Tree final {
   public:
-    static constexpr auto kLargeId = std::string_view("tree_256");
-    static constexpr auto kLargeSize = std::uintmax_t(256);
+    static constexpr auto kLargeId = std::string_view("tree_4096");
+    static constexpr auto kLargeSize = std::uintmax_t(4096);
 
     static constexpr auto kSmallId = std::string_view("tree_1");
     static constexpr auto kSmallSize = std::uintmax_t(1);

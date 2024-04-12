@@ -51,8 +51,8 @@ static auto ChunkingAlgorithmToString(::bazel_re::ChunkingAlgorithm_Value type)
             ChunkingAlgorithm_Value_RABINCDC_8KB:
             return "RABINCDC_8KB";
         case ::bazel_re::ChunkingAlgorithm_Value::
-            ChunkingAlgorithm_Value_FASTCDC_MT0_8KB:
-            return "FASTCDC_MT0_8KB";
+            ChunkingAlgorithm_Value_FASTCDC:
+            return "FASTCDC";
         default:
             return "[Unknown Chunking Algorithm Type]";
     }
@@ -254,16 +254,15 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     if (chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
                                   ChunkingAlgorithm_Value_IDENTITY and
         chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
-                                  ChunkingAlgorithm_Value_FASTCDC_MT0_8KB) {
-        logger_.Emit(
-            LogLevel::Warning,
-            fmt::format(
-                "SplitBlob: unsupported chunking algorithm {}, will use "
-                "default implementation {}",
-                ChunkingAlgorithmToString(chunking_algorithm),
-                ChunkingAlgorithmToString(
-                    ::bazel_re::ChunkingAlgorithm_Value::
-                        ChunkingAlgorithm_Value_FASTCDC_MT0_8KB)));
+                                  ChunkingAlgorithm_Value_FASTCDC) {
+        logger_.Emit(LogLevel::Warning,
+                     fmt::format("SplitBlob: unsupported chunking algorithm "
+                                 "{}, will use "
+                                 "default implementation {}",
+                                 ChunkingAlgorithmToString(chunking_algorithm),
+                                 ChunkingAlgorithmToString(
+                                     ::bazel_re::ChunkingAlgorithm_Value::
+                                         ChunkingAlgorithm_Value_FASTCDC)));
     }
 
     // Acquire garbage collection lock.

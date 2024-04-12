@@ -165,7 +165,7 @@
  // [Capabilities.GetCapabilities][build.bazel.remote.execution.v2.Capabilities.GetCapabilities].
  message GetCapabilitiesRequest {
    // The instance of the execution system to operate against. A server may
-@@ -1723,6 +1874,36 @@
+@@ -1723,6 +1874,37 @@
    }
  }
  
@@ -189,20 +189,21 @@
 +    // the implementation can be found in algorithm 2 (FastCDC8KB) of
 +    // https://ieeexplore.ieee.org/document/9055082. This algorithm has the
 +    // following properties:
-+    //  - minimum chunk size: 2 KB
-+    //  - maximum chunk size: 64 KB
-+    //  - average chunk size: 8 KB
++    //  - minimum chunk size: 32 KB
++    //  - maximum chunk size: 1024 KB
++    //  - average chunk size: 128 KB
 +    // The 256 64-bit random numbers in the Gear table are created with the
 +    // Mersenne Twister pseudo-random generator for 64-bit numbers with a state
 +    // size of 19937 bits and a seed of 0.
-+    FASTCDC_MT0_8KB = 2;
++    // The masks are extended by setting the 2 most significant bytes to 0x4444.
++    FASTCDC = 2;
 +  }
 +}
 +
  // Capabilities of the remote cache system.
  message CacheCapabilities {
    // All the digest functions supported by the remote cache.
-@@ -1751,6 +1932,25 @@
+@@ -1751,6 +1933,25 @@
    // Note that this does not imply which if any compressors are supported by
    // the server at the gRPC level.
    repeated Compressor.Value supported_compressors = 6;

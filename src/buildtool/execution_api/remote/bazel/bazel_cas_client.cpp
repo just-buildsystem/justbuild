@@ -388,8 +388,8 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
     bazel_re::SplitBlobRequest request{};
     request.set_instance_name(instance_name);
     request.mutable_blob_digest()->CopyFrom(blob_digest);
-    request.set_chunking_algorithm(bazel_re::ChunkingAlgorithm_Value::
-                                       ChunkingAlgorithm_Value_FASTCDC_MT0_8KB);
+    request.set_chunking_algorithm(
+        bazel_re::ChunkingAlgorithm_Value::ChunkingAlgorithm_Value_FASTCDC);
     bazel_re::SplitBlobResponse response{};
     auto [ok, status] = WithRetry(
         [this, &response, &request]() {
