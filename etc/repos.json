@@ -234,18 +234,18 @@
   , "ssl":
     { "repository":
       { "type": "archive"
-      , "content": "19cdde8ba529848172c09e84e3deb2c92dc670c3"
-      , "fetch": "https://github.com/google/boringssl/archive/6195bf8242156c9a2fa75702eee058f91b86a88b.tar.gz"
-      , "sha256": "ad0b806b6c5cbd6cae121c608945d5fed468748e330632e8d53315089ad52c67"
-      , "sha512": "bd0ff23103695a08c5072ef4e88042c32b684295ee6434124d9c9292586b72863c35246cd8002ad3de3a79a9dfe10a1e0beb594c1625bdf1d6f6175821ca75a1"
-      , "subdir": "boringssl-6195bf8242156c9a2fa75702eee058f91b86a88b"
+      , "content": "231510cf506711eae6f7f06be9626bc7e44982b4"
+      , "fetch": "https://codeload.github.com/google/boringssl/zip/231510cf506711eae6f7f06be9626bc7e44982b4"
+      , "sha256": "1bc5c01e4d027392b40d358478ebac33d1c1bd7154c3b808a8876883d76fa08b"
+      , "sha512": "f099499868ef04e43841b86952b6c945db66151dcf8af3e0dd3d8a71353789e7499b98f5b2fda83b2c6f6f7391df94d9fefb50e11e1e0aa86dc661704c0f636d"
+      , "subdir": "boringssl-231510cf506711eae6f7f06be9626bc7e44982b4"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.boringssl"
     , "bindings": {"rules": "rules-boringssl"}
     , "bootstrap":
       { "arch_map": {"arm64": "aarch64"}
-      , "build": "{cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c {os}-{arch}/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
+      , "build": "{cc} {cflags} -I include -c ssl/*.c crypto/*.c crypto/*/*.c && {ar} cqs libcrypto.a *.o"
       , "link": ["-lcrypto", "-pthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"

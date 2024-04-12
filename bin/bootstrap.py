@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import hashlib
+from itertools import chain
 import json
 import os
 import shutil
@@ -21,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 import platform
+import logging
 
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
@@ -51,14 +53,14 @@ if 'JUST_BUILD_CONF' in os.environ:
 if "PACKAGE" in os.environ:
     g_CONF["ADD_CFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get(
         "ADD_CFLAGS", [])
-    g_CONF["ADD_CXXFLAGS"] = ["-Wno-error", "-Wno-pedantic"] + g_CONF.get(
+    g_CONF["ADD_CXXFLAGS"] = ["-std=c++20", "-Wno-error", "-Wno-pedantic"] + g_CONF.get(
         "ADD_CXXFLAGS", [])
 
 ARCHS: Dict[str, str] = {
     'i686': 'x86',
     'x86_64': 'x86_64',
     'arm': 'arm',
-    'aarch64': 'arm64'
+    'aarch64': 'arm64',
 }
 if "OS" not in g_CONF:
     g_CONF["OS"] = platform.system().lower()
@@ -66,6 +68,12 @@ if "ARCH" not in g_CONF:
     MACH = platform.machine()
     if MACH in ARCHS:
         g_CONF["ARCH"] = ARCHS[MACH]
+    elif MACH in ARCHS.values():
+        g_CONF["ARCH"] = MACH
+    else:
+        expected = ", ".join(chain(ARCHS.keys(), ARCHS.values()))
+        logging.error(f"Couldn't setup ARCH. Found {MACH} expected one of {expected}")
+
 if 'SOURCE_DATE_EPOCH' in os.environ:
     g_CONF['SOURCE_DATE_EPOCH'] = int(os.environ['SOURCE_DATE_EPOCH'])
 
@@ -168,7 +176,7 @@ def quote(args: List[str]) -> str:
 
 
 def run(cmd: List[str], *, cwd: str, **kwargs: Any) -> None:
-    print("Running %r in %r" % (cmd, cwd), flush=True)
+    print("Running %r in %r" % (" ".join(cmd), cwd), flush=True)
     subprocess.run(cmd, cwd=cwd, check=True, **kwargs)
 
 
@@ -229,7 +237,7 @@ def setup_deps(src_wrkdir: str) -> Json:
                         cxx=g_CXX,
                         ar=g_AR,
                         cflags=quote(g_CFLAGS),
-                        cxxflags=quote(g_CXXFLAGS),
+                        cxxflags=quote(["-std=c++20"] + g_CXXFLAGS),
                     )
                 ],
                     cwd=subdir)
