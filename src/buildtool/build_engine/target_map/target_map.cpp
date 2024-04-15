@@ -1918,7 +1918,7 @@ auto CreateTargetMap(
                 },
                 [logger, key](auto msg, auto fatal) {
                     (*logger)(
-                        fmt::format("While processing absent target {}: {}",
+                        fmt::format("While processing absent target {}:\n{}",
                                     key.ToString(),
                                     msg),
                         fatal);
