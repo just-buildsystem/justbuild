@@ -1,0 +1,7 @@
+{ "": {"type": "export", "target": "FaIlInGtArGeT"}
+, "FaIlInGtArGeT":
+  { "type": "generic"
+  , "outs": ["out.txt"]
+  , "cmds": ["echo -n FaIl", "echo UrEmEsSaGe", "exit 42"]
+  }
+}

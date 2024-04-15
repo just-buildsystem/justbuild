@@ -137,6 +137,22 @@
   , "repos": ["describe (data)"]
   , "keep": ["out/describe.orig", "out/describe"]
   }
+, "failure-report (data)":
+  { "type": "install"
+  , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.fail"}
+  }
+, "failure-report":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["failure-report"]
+  , "test": ["failure-report.sh"]
+  , "deps":
+    [ ["end-to-end", "mr-tool-under-test"]
+    , ["end-to-end", "tool-under-test"]
+    , "describe (locally installed)"
+    ]
+  , "repos": ["failure-report (data)"]
+  , "keep": ["out/log", "out/serve.log", "out/failure.log"]
+  }
 , "serve-many-targets (data)":
   { "type": "install"
   , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.transform"}
@@ -175,6 +191,7 @@
         , "serve-query-target-cache-value"
         , "describe"
         , "deduplication-of-serve-requests"
+        , "failure-report"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
