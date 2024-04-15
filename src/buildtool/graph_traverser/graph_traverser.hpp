@@ -393,6 +393,7 @@ class GraphTraverser {
                           dispatch_list_,
                           stats_,
                           progress_,
+                          logger_,
                           clargs_.build.timeout};
         bool traversing{};
         std::atomic<bool> done = false;

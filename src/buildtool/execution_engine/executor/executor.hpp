@@ -688,6 +688,7 @@ class Executor {
                               ServerAddress>> dispatch_list,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
+        Logger const* logger = nullptr,  // log in caller logger, if given
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
           local_api_{local_api},
@@ -696,6 +697,7 @@ class Executor {
           dispatch_list_{std::move(dispatch_list)},
           stats_{stats},
           progress_{progress},
+          logger_{logger},
           timeout_{timeout} {}
 
     /// \brief Run an action in a blocking manner
@@ -705,6 +707,26 @@ class Executor {
     [[nodiscard]] auto Process(
         gsl::not_null<DependencyGraph::ActionNode const*> const& action)
         const noexcept -> bool {
+        // to avoid always creating a logger we might not need, which is a
+        // non-copyable and non-movable object, we need some code duplication
+        if (logger_ != nullptr) {
+            auto const response = Impl::ExecuteAction(
+                *logger_,
+                action,
+                remote_api_,
+                Impl::MergeProperties(properties_,
+                                      action->ExecutionProperties()),
+                dispatch_list_,
+                Impl::ScaleTime(timeout_, action->TimeoutScale()),
+                action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
+                stats_,
+                progress_);
+            // check response and save digests of results
+            return not response or
+                   Impl::ParseResponse(
+                       *logger_, *response, action, stats_, progress_);
+        }
+
         Logger logger("action:" + action->Content().Id());
 
         auto const response = Impl::ExecuteAction(
@@ -731,6 +753,13 @@ class Executor {
     [[nodiscard]] auto Process(
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
+        // to avoid always creating a logger we might not need, which is a
+        // non-copyable and non-movable object, we need some code duplication
+        if (logger_ != nullptr) {
+            return Impl::VerifyOrUploadArtifact(
+                *logger_, artifact, repo_config_, remote_api_, local_api_);
+        }
+
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
         return Impl::VerifyOrUploadArtifact(
             logger, artifact, repo_config_, remote_api_, local_api_);
@@ -745,6 +774,7 @@ class Executor {
         dispatch_list_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
+    Logger const* logger_;
     std::chrono::milliseconds timeout_;
 };
 
