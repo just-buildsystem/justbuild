@@ -133,7 +133,7 @@ An example serve configuration file could look as follows.
   , "server cert": "/etc/just-serve/certs/server.crt"
   , "server key": "/etc/just-serve/certs/server.key"
   }
-, "execution endpoint": {"address": "198.51.100.1"}
+, "execution endpoint": {"address": "198.51.100.1:8989"}
 , "repositories":
   [ "/var/just-serve/repos/third-party-distfiles"
   , "/var/just-serve/repos/project-foo"
