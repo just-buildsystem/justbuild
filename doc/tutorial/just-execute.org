@@ -1,4 +1,4 @@
-* just execute
+* Single-node remote execution service: ~just execute~
 
 ~just execute~ starts a single-node remote build execution service in
 the environment in which the command has been issued. Having the
@@ -119,7 +119,7 @@ To exploit the execution service, run from a different shell
 $ just [...] -r localhost:8080
 #+END_SRC
 
-**** Use a random port
+*** Use a random port
 
 If we don't need (or know) a fixed port number, we can simply omit the
 ~-p~ option. In this case, ~just execute~ will listen to a random free
@@ -138,7 +138,7 @@ Finally, to connect to the remote endpoint, type
 $ just [...] -r localhost:33841
 #+END_SRC
 
-**** Info file
+*** Info file
 
 Copying and pasting port numbers and pids can be
 error-prone/unfeasible if we manage several/many execution service
@@ -164,7 +164,7 @@ when the user terminates the service. The user is responsible for
 eventually removing it from the file system.
 
 
-**** Enable mTLS
+*** Enable mTLS
 
 It is worth mentioning that mTLS must be enabled when the execution
 service starts, and it cannot be activated (or deactivated) while the
@@ -180,7 +180,7 @@ authority has signed.
 $ just [...] --tls-ca-cert <path_to_CA_cert> --tls-client-cert <path_to_client_cert> --tls-client-key <path_to_client_key>
 #+END_SRC
 
-***** How to generate self-signed certificates
+**** How to generate self-signed certificates
 
 This section does not pretend to be an exhaustive guide to the
 generation and management of certificates, which is well beyond the
@@ -188,14 +188,14 @@ aim of this tutorial. We just want to provide a minimal reference for
 let users start using mTLS and having the benefits of mutual
 authentication.
 
-****** Certification Authority certificate
+***** Certification Authority certificate
 
 As a first step, we need a Certification Authority certificate (~ca.crt~)
 #+BEGIN_SRC bash
 % openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:4096 -keyout ca.key -out ca.crt
 #+END_SRC
 
-****** Server certificate and key
+***** Server certificate and key
 
 If the clients will connect using the loopback device, i.e., the users
 are logged in the same machine where ~just execute~ will run, the
@@ -226,7 +226,7 @@ Then, the pair of certificate and pair can be obtained with
 % rm server.csr
 #+END_SRC bash
 
-****** Client certificate and key
+***** Client certificate and key
 
 The client, which needs the ~ca.crt~ and ~ca.key~ files, can run the
 following
@@ -369,7 +369,7 @@ environment.
 We will replicate what we did for the chroot environment and create a
 suitable docker image.
 
-*** Build a suitable docker image
+**** Build a suitable docker image
 
 Let's write a ~Dockerfile~ that has ~just execute~ as ~ENTRYPOINT~. We
 assume the binary ~just~ is available inside the container at path
