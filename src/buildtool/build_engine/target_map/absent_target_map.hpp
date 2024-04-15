@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_ABSENT_TARGET_MAP_HPP
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -46,6 +47,8 @@ struct AbsentTargetDescription {
 using AbsentTargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 using AbsentTargetVariablesMap =
     AsyncMapConsumer<AbsentTargetDescription, std::vector<std::string>>;
+using ServeFailureLogReporter =
+    std::function<void(ConfiguredTarget, std::string)>;
 
 auto CreateAbsentTargetVariablesMap(std::size_t jobs = 0)
     -> AbsentTargetVariablesMap;
@@ -55,7 +58,9 @@ auto CreateAbsentTargetMap(const gsl::not_null<ResultTargetMap*>&,
                            gsl::not_null<RepositoryConfig*> const& repo_config,
                            gsl::not_null<Statistics*> const& stats,
                            gsl::not_null<Progress*> const& exports_progress,
-                           std::size_t jobs = 0) -> AbsentTargetMap;
+                           std::size_t jobs = 0,
+                           ServeFailureLogReporter* serve_failure_reporter =
+                               nullptr) -> AbsentTargetMap;
 
 }  // namespace BuildMaps::Target
 

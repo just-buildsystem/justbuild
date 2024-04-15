@@ -35,7 +35,8 @@ void WithFlexibleVariables(
     const BuildMaps::Target::AbsentTargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map,
     gsl::not_null<Statistics*> const& stats,
-    gsl::not_null<Progress*> const& exports_progress) {
+    gsl::not_null<Progress*> const& exports_progress,
+    BuildMaps::Target::ServeFailureLogReporter* serve_failure_reporter) {
     auto effective_config = key.config.Prune(flexible_vars);
     if (key.config != effective_config) {
         (*subcaller)(
@@ -89,6 +90,9 @@ void WithFlexibleVariables(
             return;
         }
         if (res->index() == 0) {
+            if (serve_failure_reporter != nullptr) {
+                (*serve_failure_reporter)(key, std::get<0>(*res));
+            }
             (*logger)(fmt::format("Failure to remotely analyse or build absent "
                                   "target {}\nDetailed log available on the "
                                   "remote-execution endpoint as blob {}",
@@ -201,10 +205,17 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
     gsl::not_null<RepositoryConfig*> const& repo_config,
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& exports_progress,
-    std::size_t jobs) -> AbsentTargetMap {
+    std::size_t jobs,
+    BuildMaps::Target::ServeFailureLogReporter* serve_failure_reporter)
+    -> AbsentTargetMap {
 #ifndef BOOTSTRAP_BUILD_TOOL
     auto target_reader =
-        [result_map, repo_config, stats, exports_progress, absent_variables](
+        [result_map,
+         repo_config,
+         stats,
+         exports_progress,
+         absent_variables,
+         serve_failure_reporter](
             auto ts, auto setter, auto logger, auto subcaller, auto key) {
             // assumptions:
             // - target with absent targets file requested
@@ -230,6 +241,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                  setter,
                  repo_config,
                  logger,
+                 serve_failure_reporter,
                  result_map,
                  stats,
                  exports_progress,
@@ -242,7 +254,8 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
                                           logger,
                                           result_map,
                                           stats,
-                                          exports_progress);
+                                          exports_progress,
+                                          serve_failure_reporter);
                 },
                 [logger, target = key.target](auto const& msg, auto fatal) {
                     (*logger)(fmt::format("While requested the flexible "

@@ -21,6 +21,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
+#include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/cli.hpp"
@@ -43,5 +44,7 @@ struct AnalysisResult {
     gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,
     std::optional<std::string> const& request_action_input,
-    Logger const* logger = nullptr) -> std::optional<AnalysisResult>;
+    Logger const* logger = nullptr,
+    BuildMaps::Target::ServeFailureLogReporter* = nullptr)
+    -> std::optional<AnalysisResult>;
 #endif
