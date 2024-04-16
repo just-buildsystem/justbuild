@@ -1113,6 +1113,74 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(result_missing == Expression::FromJson(R"("axb")"_json));
     }
 
+    SECTION("array index") {
+        auto expr = Expression::FromJson(R"(
+            { "type": "[]"
+            , "list": ["a", 101, "c", null, "e"]
+            , "index": "PLACEHOLDER"
+            , "default": "here be dragons"
+            })"_json);
+        REQUIRE(expr);
+
+        // Index a number
+        expr = Replace(expr, "index", Expression::FromJson("2"_json));
+        REQUIRE(expr);
+        auto num_result = expr.Evaluate(env, fcts);
+        REQUIRE(num_result);
+        CHECK(num_result == Expression::FromJson(R"("c")"_json));
+
+        // Index a string
+        expr = Replace(expr, "index", Expression::FromJson(R"("2")"_json));
+        REQUIRE(expr);
+        auto string_result = expr.Evaluate(env, fcts);
+        REQUIRE(string_result);
+        CHECK(string_result == Expression::FromJson(R"("c")"_json));
+
+        // Index pointing to a null value
+        expr = Replace(expr, "index", Expression::FromJson("3"_json));
+        REQUIRE(expr);
+        auto null_result = expr.Evaluate(env, fcts);
+        REQUIRE(null_result);
+        CHECK(null_result == Expression::FromJson("null"_json));
+
+        // Index out of range
+        expr = Replace(expr, "index", Expression::FromJson("5"_json));
+        REQUIRE(expr);
+        auto default_result = expr.Evaluate(env, fcts);
+        REQUIRE(default_result);
+        CHECK(default_result ==
+              Expression::FromJson(R"("here be dragons")"_json));
+
+        // Negative index, number
+        expr = Replace(expr, "index", Expression::FromJson("-3"_json));
+        REQUIRE(expr);
+        auto neg_index_number = expr.Evaluate(env, fcts);
+        REQUIRE(neg_index_number);
+        CHECK(neg_index_number == Expression::FromJson(R"("c")"_json));
+
+        // Negative index, extreme number
+        expr = Replace(expr, "index", Expression::FromJson("-5"_json));
+        REQUIRE(expr);
+        auto neg_index_number_extreme = expr.Evaluate(env, fcts);
+        REQUIRE(neg_index_number_extreme);
+        CHECK(neg_index_number_extreme == Expression::FromJson(R"("a")"_json));
+
+        // Negative index, string
+        expr = Replace(expr, "index", Expression::FromJson(R"("-3")"_json));
+        REQUIRE(expr);
+        auto neg_index_string = expr.Evaluate(env, fcts);
+        REQUIRE(neg_index_string);
+        CHECK(neg_index_string == Expression::FromJson(R"("c")"_json));
+
+        // Index out of range, other direction
+        expr = Replace(expr, "index", Expression::FromJson("-6"_json));
+        REQUIRE(expr);
+        auto other_default_result = expr.Evaluate(env, fcts);
+        REQUIRE(other_default_result);
+        CHECK(other_default_result ==
+              Expression::FromJson(R"("here be dragons")"_json));
+    }
+
     SECTION("empty_map expression") {
         auto expr = Expression::FromJson(R"({"type": "empty_map"})"_json);
         REQUIRE(expr);

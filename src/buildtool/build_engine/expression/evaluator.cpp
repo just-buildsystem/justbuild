@@ -664,6 +664,32 @@ auto LookupExpr(SubExprEvaluator&& eval,
     return lookup;
 }
 
+auto ArrayAccessExpr(SubExprEvaluator&& eval,
+                     ExpressionPtr const& expr,
+                     Configuration const& env) -> ExpressionPtr {
+    auto k = eval(expr["index"], env);
+    auto d = eval(expr["list"], env);
+    if (not d->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "List expected to be list, but found {}.", d->ToString())};
+    }
+    auto len = static_cast<int64_t>(d->List().size());
+    int64_t index = 0;
+    if (k->IsNumber()) {
+        index = static_cast<int64_t>(std::lround(k->Number()));
+    }
+    if (k->IsString()) {
+        index = std::atol(k->String().c_str());
+    }
+    if (0 <= index and index < len) {
+        return d->List()[static_cast<std::size_t>(index)];
+    }
+    if (index < 0 and len + index >= 0) {
+        return d->List()[static_cast<std::size_t>(len + index)];
+    }
+    return eval(expr->Get("default", Expression::none_t()), env);
+}
+
 auto EmptyMapExpr(SubExprEvaluator&& /*eval*/,
                   ExpressionPtr const& /*expr*/,
                   Configuration const&
@@ -1053,6 +1079,7 @@ auto const kBuiltInFunctions =
                           {"reverse", UnaryExpr(Reverse)},
                           {"values", UnaryExpr(Values)},
                           {"lookup", LookupExpr},
+                          {"[]", ArrayAccessExpr},
                           {"empty_map", EmptyMapExpr},
                           {"singleton_map", SingletonMapExpr},
                           {"disjoint_map_union", DisjointUnionExpr},

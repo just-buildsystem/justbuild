@@ -354,6 +354,16 @@ those) argument(s) to obtain the final result.
    `"default"` argument (with default `null`) is evaluated and
    returned.
 
+ - `"[]"` This function takes two keyword arguments, `"index"` and
+   `"list"`. The `"list"` argument has to evaluate to a list. The
+   `"index"` argument has to evaluate to either a number (which
+   is then rounded to the nearest integer) or a string (which
+   is interpreted as an integer). If the index obtained in this
+   way is valid for the obtained list, the entry at that index
+   is returned; negative indices count from the end of the list.
+   Otherwise the `"default"` argument (with default `null`) is
+   evaluated and returned.
+
 #### Constructs related to reporting of user errors
 
 Normally, if an error occurs during the evaluation the error is
