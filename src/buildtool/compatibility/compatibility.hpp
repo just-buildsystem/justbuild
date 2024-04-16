@@ -37,7 +37,12 @@ class Compatibility {
     [[nodiscard]] static auto IsCompatible() noexcept -> bool {
         return Instance().compatible_;
     }
-    static void SetCompatible() noexcept { Instance().compatible_ = true; }
+    static void SetCompatible(bool value = true) noexcept {
+        Instance().compatible_ = value;
+        auto const hasher_type = value ? HashFunction::JustHash::Compatible
+                                       : HashFunction::JustHash::Native;
+        HashFunction::SetHashType(hasher_type);
+    }
 
     [[nodiscard]] static auto RegisterGitEntry(std::string const& git_hash,
                                                std::string const& data,
