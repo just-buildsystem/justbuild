@@ -463,6 +463,17 @@ environment, as well as the expression to be evaluated, to the specified
 number of characters (default: 320).  
 Supported by: analyse|build|install.
 
+**`--serve-errors-log`** *`PATH`*  
+Path to local file in which **`just`** will write, in machine
+readable form, the references to all errors that occurred on the
+serve side. More precisely, the value will be a JSON array with one
+element per failure, where the element is a pair (array of length
+2) consisting of the configured target (serialized, as usual, as a
+pair of qualified target name an configuration) and a string with
+the hex representation of the blob identifier of the log; the log
+itself is guaranteed to be available on the remote-execution side.
+Supported by: analyse|build|install.
+
 **`-P`**, **`--print-to-stdout`** *`LOGICAL_PATH`*  
 After building, print the specified artifact to stdout.  
 Supported by: build|install|rebuild|traverse.

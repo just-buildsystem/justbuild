@@ -69,6 +69,7 @@ struct AnalysisArguments {
     std::optional<std::filesystem::path> expression_root{};
     std::optional<std::filesystem::path> graph_file{};
     std::optional<std::filesystem::path> artifacts_to_build_file{};
+    std::optional<std::filesystem::path> serve_errors_file{};
 };
 
 /// \brief Arguments required for describing targets/rules.
@@ -330,6 +331,11 @@ static inline auto SetupAnalysisArguments(
     app->add_option("--expression-file-name",
                     clargs->expression_file_name,
                     "Name of the expressions file.");
+    app->add_option("--serve-errors-log",
+                    clargs->serve_errors_file,
+                    "File path for dumping the blob identifiers of serve "
+                    "errors as json.")
+        ->type_name("PATH");
     if (with_graph) {
         app->add_option(
                "--dump-graph",

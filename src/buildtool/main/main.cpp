@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -1017,14 +1018,36 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.common.jobs};
             auto id = ReadConfiguredTarget(
                 main_repo, main_ws_root, &repo_config, arguments.analysis);
-            auto result =
-                AnalyseTarget(id,
-                              &result_map,
-                              &repo_config,
-                              Storage::Instance().TargetCache(),
-                              &stats,
-                              arguments.common.jobs,
-                              arguments.analysis.request_action_input);
+            auto serve_errors = nlohmann::json::array();
+            std::mutex serve_errors_access{};
+            BuildMaps::Target::ServeFailureLogReporter collect_serve_errors =
+                [&serve_errors, &serve_errors_access](auto target, auto blob) {
+                    std::unique_lock lock(serve_errors_access);
+                    auto target_desc = nlohmann::json::array();
+                    target_desc.push_back(target.target.ToJson());
+                    target_desc.push_back(target.config.ToJson());
+                    auto entry = nlohmann::json::array();
+                    entry.push_back(target_desc);
+                    entry.push_back(blob);
+                    serve_errors.push_back(entry);
+                };
+            auto result = AnalyseTarget(id,
+                                        &result_map,
+                                        &repo_config,
+                                        Storage::Instance().TargetCache(),
+                                        &stats,
+                                        arguments.common.jobs,
+                                        arguments.analysis.request_action_input,
+                                        /*logger=*/nullptr,
+                                        &collect_serve_errors);
+            if (arguments.analysis.serve_errors_file) {
+                Logger::Log(
+                    serve_errors.empty() ? LogLevel::Debug : LogLevel::Info,
+                    "Dumping serve-error information to {}",
+                    arguments.analysis.serve_errors_file->string());
+                std::ofstream os(*arguments.analysis.serve_errors_file);
+                os << serve_errors.dump() << std::endl;
+            }
             if (result) {
                 if (arguments.analysis.graph_file) {
                     result_map.ToFile(
