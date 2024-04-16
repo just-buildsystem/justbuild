@@ -126,9 +126,12 @@ class StorageConfig {
     }
 
     /// \brief Storage directory of specific generation and protocol type.
-    [[nodiscard]] static auto GenerationCacheDir(std::size_t index) noexcept
+    [[nodiscard]] static auto GenerationCacheDir(
+        std::size_t index,
+        bool is_compatible = Compatibility::IsCompatible()) noexcept
         -> std::filesystem::path {
-        return UpdatePathForCompatibility(GenerationCacheRoot(index));
+        return UpdatePathForCompatibility(GenerationCacheRoot(index),
+                                          is_compatible);
     }
 
     /// \brief String representation of the used execution backend.
@@ -203,9 +206,9 @@ class StorageConfig {
 
     // different folder for different caching protocol
     [[nodiscard]] static auto UpdatePathForCompatibility(
-        std::filesystem::path const& dir) -> std::filesystem::path {
-        return dir / (Compatibility::IsCompatible() ? "compatible-sha256"
-                                                    : "git-sha1");
+        std::filesystem::path const& dir,
+        bool is_compatible) -> std::filesystem::path {
+        return dir / (is_compatible ? "compatible-sha256" : "git-sha1");
     }
 };
 
