@@ -46,7 +46,7 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 WORK_DIR = os.path.realpath("work")
 os.makedirs(WORK_DIR, exist_ok=True)
 
-ENV = dict(os.environ, TEST_TMPDIR=TEMP_DIR)
+ENV = dict(os.environ, TEST_TMPDIR=TEMP_DIR, TMPDIR=TEMP_DIR)
 
 with open('test-launcher.json') as f:
     test_launcher = json.load(f)

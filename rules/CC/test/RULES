@@ -42,9 +42,10 @@
     , "srcs":
       [ "The sources of the test binary"
       , ""
-      , "The resulting test binary in an environment where it can assume"
+      , "The resulting test binary is run in an environment where it can assume"
       , "that the environment variable TEST_TMPDIR points to a"
-      , "director that may be used exclusively by this test."
+      , "directory that may be used exclusively by this test."
+      , "For convenience, the environment variable TMPDIR is also set to TEST_TMPDIR."
       , ""
       , "This running of the test is carried out by the implicit dependency"
       , "on the target \"runner\". By setting this target in the target layer"
@@ -72,7 +73,7 @@
     , "data": ["Any files the test binary needs access to when running"]
     , "defaults": ["The C/C++ toolchain to use"]
     , "runner":
-      [ "The test runner which starts the actual test binrary after providing"
+      [ "The test runner which starts the actual test binary after providing"
       , "the respective environment. The runner also takes care of capturing"
       , "stdout/stderr and timing information."
       ]
