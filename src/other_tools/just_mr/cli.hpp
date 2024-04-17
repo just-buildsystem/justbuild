@@ -29,6 +29,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -114,6 +115,7 @@ enum class SubCommand {
 struct CommandLineArguments {
     SubCommand cmd{SubCommand::kUnknown};
     MultiRepoCommonArguments common;
+    RetryArguments retry;
     MultiRepoLogArguments log;
     MultiRepoSetupArguments setup;
     MultiRepoFetchArguments fetch;

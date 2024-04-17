@@ -145,6 +145,20 @@ location for archives, between local CAS (or distdirs) and the network.
 Address of a **`just`** **`serve`** service. This is used as intermediary fetch
 location for Git commits, between local CAS and the network.
 
+**`--max-attempts`** *`NUM`*  
+If a remote procedure call (rpc) returns `grpc::StatusCode::UNAVAILABLE`, that
+rpc is retried at most *`NUM`* times. (Default: 1, i.e., no retry).
+
+**`--initial-backoff-seconds`** *`NUM`*  
+Before retrying the second time, the client will wait the given amount of
+seconds plus a jitter, to better distribute the workload. (Default: 1).
+
+**`--max-backoff-seconds`** *`NUM`*  
+From the third attempt (included) on, the backoff time is doubled at
+each attempt, until it exceeds the `max-backoff-seconds`
+parameter. From that point, the waiting time is computed as
+`max-backoff-seconds` plus a jitter. (Default: 60)
+
 **`--fetch-absent`**  
 Try to make available all repositories, including those marked as absent.
 This option cannot be set together with **`--compatible`**.

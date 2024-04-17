@@ -35,6 +35,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
               MultiRepoJustSubCmdsArguments const& just_cmd_args,
               MultiRepoLogArguments const& log_args,
               MultiRepoRemoteAuthArguments const& auth_args,
+              RetryArguments const& retry_args,
               ForwardOnlyArguments const& launch_fwd,
               bool forward_build_root,
               std::string multi_repo_tool_name) -> int {
@@ -184,6 +185,19 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         if (auth_args.tls_client_key) {
             cmd.emplace_back("--tls-client-key");
             cmd.emplace_back(auth_args.tls_client_key->string());
+        }
+        if (retry_args.max_attempts) {
+            cmd.emplace_back("--max-attempts");
+            cmd.emplace_back(std::to_string(*retry_args.max_attempts));
+        }
+        if (retry_args.initial_backoff_seconds) {
+            cmd.emplace_back("--initial-backoff-seconds");
+            cmd.emplace_back(
+                std::to_string(*retry_args.initial_backoff_seconds));
+        }
+        if (retry_args.max_backoff_seconds) {
+            cmd.emplace_back("--max-backoff-seconds");
+            cmd.emplace_back(std::to_string(*retry_args.max_backoff_seconds));
         }
     }
     if (supports_dispatch and just_cmd_args.endpoint_configuration) {

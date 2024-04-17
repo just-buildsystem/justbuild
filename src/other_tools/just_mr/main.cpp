@@ -26,6 +26,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_config.hpp"
@@ -33,6 +34,7 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
@@ -53,6 +55,7 @@ void SetupCommonCommandArguments(
     SetupMultiRepoCommonArguments(app, &clargs->common);
     SetupMultiRepoLogArguments(app, &clargs->log);
     SetupMultiRepoRemoteAuthArguments(app, &clargs->auth);
+    SetupRetryArguments(app, &clargs->retry);
 }
 
 /// \brief Setup arguments for subcommand "just-mr fetch".
@@ -311,6 +314,10 @@ auto main(int argc, char* argv[]) -> int {
             return kExitGenericFailure;
         }
 
+        if (not SetupRetryConfig(arguments.retry)) {
+            return kExitGenericFailure;
+        }
+
         /**
          * The current implementation of libgit2 uses pthread_key_t incorrectly
          * on POSIX systems to handle thread-specific data, which requires us to
@@ -336,6 +343,7 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.just_cmd,
                             arguments.log,
                             arguments.auth,
+                            arguments.retry,
                             arguments.launch_fwd,
                             forward_build_root,
                             my_name);

@@ -4,24 +4,26 @@
   , "name": ["just-mr"]
   , "srcs": ["main.cpp"]
   , "private-deps":
-    [ ["src/buildtool/build_engine/expression", "expression"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/main", "version"]
-    , "cli"
-    , "exit_codes"
-    , ["@", "cli11", "", "cli11"]
+    [ ["@", "cli11", "", "cli11"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/file_system", "git_context"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/file_system", "git_context"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/main", "retry"]
+    , ["src/buildtool/main", "version"]
+    , ["src/buildtool/storage", "storage"]
+    , "cli"
+    , "exit_codes"
     , "fetch"
-    , "update"
-    , "setup"
     , "launch"
-    , "setup_utils"
     , "rc"
+    , "setup"
+    , "setup_utils"
+    , "update"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
@@ -65,6 +67,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "clidefaults"]
+    , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/logging", "log_level"]
