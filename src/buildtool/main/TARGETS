@@ -31,7 +31,6 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
-    , ["src/buildtool/common/remote", "retry_parameters"]
     , ["src/buildtool/storage", "file_chunker"]
     , "common"
     , "cli"
@@ -44,6 +43,7 @@
     , "constants"
     , "serve"
     , "build_utils"
+    , "retry"
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-ldflags":
@@ -53,6 +53,15 @@
       , {"type": "var", "name": "FINAL_LDFLAGS", "default": []}
       ]
     }
+  }
+, "retry":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["retry"]
+  , "hdrs": ["retry.hpp"]
+  , "srcs": ["retry.cpp"]
+  , "stage": ["src", "buildtool", "main"]
+  , "deps": [["src/buildtool/common", "retry_cli"]]
+  , "private-deps": [["src/buildtool/common/remote", "retry_parameters"]]
   }
 , "describe":
   { "type": ["@", "rules", "CC", "library"]

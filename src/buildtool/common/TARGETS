@@ -5,12 +5,20 @@
   , "stage": ["src", "buildtool", "common"]
   , "deps": [["src/buildtool/logging", "log_level"]]
   }
+, "retry_cli":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["retry_cli"]
+  , "hdrs": ["retry_cli.hpp"]
+  , "stage": ["src", "buildtool", "common"]
+  , "deps": [["@", "cli11", "", "cli11"], ["@", "gsl", "", "gsl"]]
+  }
 , "cli":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["cli"]
   , "hdrs": ["cli.hpp"]
   , "deps":
     [ "clidefaults"
+    , "retry_cli"
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
