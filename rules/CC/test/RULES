@@ -195,32 +195,13 @@
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps", "defaults"]]
       , [ "runner"
-        , { "type": "map_union"
-          , "$1":
-            { "type": "foreach"
-            , "var": "runner"
-            , "range": {"type": "FIELD", "name": "runner"}
-            , "body":
-              { "type": "map_union"
-              , "$1":
-                { "type": "foreach"
-                , "var": "runner"
-                , "range":
-                  { "type": "values"
-                  , "$1":
-                    { "type": "DEP_ARTIFACTS"
-                    , "dep": {"type": "var", "name": "runner"}
-                    , "transition": {"type": "var", "name": "host-trans"}
-                    }
-                  }
-                , "body":
-                  { "type": "singleton_map"
-                  , "key": "runner"
-                  , "value": {"type": "var", "name": "runner"}
-                  }
-                }
-              }
-            }
+        , { "type": "let*"
+          , "bindings":
+            [ ["fieldname", "runner"]
+            , ["location", "runner"]
+            , ["transition", {"type": "var", "name": "host-trans"}]
+            ]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
           }
         ]
       , ["test-args", {"type": "FIELD", "name": "args", "default": []}]
