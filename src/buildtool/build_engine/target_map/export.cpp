@@ -17,12 +17,14 @@
 #include <unordered_set>
 #include <utility>  // std::move
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/json.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -144,8 +146,10 @@ void ExportRule(
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());
-            auto task = fmt::format(
-                "[{},{}]", key.target.ToString(), effective_config.ToString());
+            auto task =
+                fmt::format("[{},{}]",
+                            key.target.ToString(),
+                            PruneJson(effective_config.ToJson()).dump());
             exports_progress->TaskTracker().Start(task);
             auto res = ServeApi::ServeTarget(*target_cache_key, *repo_key);
             // process response from serve endpoint
