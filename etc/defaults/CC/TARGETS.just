@@ -1,6 +1,5 @@
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["DEBUG"]
   , "base": [["@", "base", "CC", "defaults"]]
   , "ADD_CFLAGS":
     [ "-std=gnu17"
