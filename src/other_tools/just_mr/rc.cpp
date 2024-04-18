@@ -385,6 +385,49 @@ namespace {
                 entry->String());
         }
     }
+    // read the defaults for the retry parameters
+    if (not clargs->retry.max_attempts) {
+        auto max_attempts = rc_config["max attempts"];
+        if (max_attempts.IsNotNull()) {
+            if (not max_attempts->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file provided \"max attempts\" has "
+                            "to be a number, but found {}",
+                            max_attempts->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->retry.max_attempts =
+                static_cast<unsigned int>(std::lround(max_attempts->Number()));
+        }
+    }
+    if (not clargs->retry.initial_backoff_seconds) {
+        auto initial_backoff_seconds = rc_config["initial backoff seconds"];
+        if (initial_backoff_seconds.IsNotNull()) {
+            if (not initial_backoff_seconds->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file provided \"initial backoff "
+                            "seconds\" has to be a number, but found {}",
+                            initial_backoff_seconds->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->retry.initial_backoff_seconds = static_cast<unsigned int>(
+                std::lround(initial_backoff_seconds->Number()));
+        }
+    }
+    if (not clargs->retry.max_backoff_seconds) {
+        auto max_backoff_seconds = rc_config["max backoff seconds"];
+        if (max_backoff_seconds.IsNotNull()) {
+            if (not max_backoff_seconds->IsNumber()) {
+                Logger::Log(LogLevel::Error,
+                            "Configuration-file provided \"max backoff "
+                            "seconds\" has to be a number, but found {}",
+                            max_backoff_seconds->ToString());
+                std::exit(kExitConfigError);
+            }
+            clargs->retry.max_backoff_seconds = static_cast<unsigned int>(
+                std::lround(max_backoff_seconds->Number()));
+        }
+    }
     // read default for local launcher
     if (not clargs->common.local_launcher) {
         auto launcher = rc_config["local launcher"];
