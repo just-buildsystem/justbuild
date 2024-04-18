@@ -115,6 +115,8 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/utils/cpp", "json"]
+    , ["@", "json", "", "json"]
     ]
   }
 }

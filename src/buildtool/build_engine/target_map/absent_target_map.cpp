@@ -17,10 +17,12 @@
 #include <unordered_set>
 #include <utility>  // std::move
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
+#include "src/utils/cpp/json.hpp"
 #endif
 
 #ifndef BOOTSTRAP_BUILD_TOOL
@@ -74,11 +76,15 @@ void WithFlexibleVariables(
         Storage::Instance().TargetCache().Read(*target_cache_key);
     bool from_just_serve = false;
     if (!target_cache_value) {
-        Logger::Log(LogLevel::Debug,
-                    "Querying serve endpoint for absent export target {}",
-                    key.target.ToString());
-        exports_progress->TaskTracker().Start(
-            target_cache_key->Id().ToString());
+        auto task = fmt::format("[{},{}]",
+                                key.target.ToString(),
+                                PruneJson(effective_config.ToJson()).dump());
+        Logger::Log(
+            LogLevel::Debug,
+            "Querying serve endpoint for absent export target {} with key {}",
+            task,
+            key.target.ToString());
+        exports_progress->TaskTracker().Start(task);
         auto res = ServeApi::ServeTarget(*target_cache_key, *repo_key);
         // process response from serve endpoint
         if (not res) {
@@ -111,7 +117,7 @@ void WithFlexibleVariables(
         }
         // index == 2
         target_cache_value = std::get<2>(*res);
-        exports_progress->TaskTracker().Stop(target_cache_key->Id().ToString());
+        exports_progress->TaskTracker().Stop(task);
         from_just_serve = true;
     }
 
