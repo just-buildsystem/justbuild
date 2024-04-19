@@ -38,6 +38,16 @@
         }
       }
     }
+  , "ADD_LDFLAGS":
+    { "type": "lookup"
+    , "key": "ADD_LDFLAGS"
+    , "default": []
+    , "map":
+      { "type": "var"
+      , "name": "TOOLCHAIN_CONFIG"
+      , "default": {"type": "empty_map"}
+      }
+    }
   }
 , "unknown":
   { "type": ["CC", "defaults"]
