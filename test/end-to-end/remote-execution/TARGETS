@@ -23,6 +23,12 @@
   , "test": ["install.sh"]
   , "deps": [["end-to-end", "tool-under-test"]]
   }
+, "execute":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["execute"]
+  , "test": ["execute.sh"]
+  , "deps": [["end-to-end", "tool-under-test"]]
+  }
 , "install-cas":
   { "type": ["end-to-end", "with remote"]
   , "name": ["install-cas"]
@@ -79,6 +85,7 @@
         , "install-cas"
         , "dispatch"
         , "split-splice"
+        , "execute"
         ]
       , { "type": "if"
         , "cond":
