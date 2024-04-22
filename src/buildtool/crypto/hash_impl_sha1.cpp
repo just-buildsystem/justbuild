@@ -51,6 +51,10 @@ class HashImplSha1 final : public Hasher::IHashImpl {
         return {};
     }
 
+    [[nodiscard]] auto GetHashLength() const noexcept -> size_t final {
+        return SHA_DIGEST_LENGTH * kCharsPerNumber;
+    }
+
   private:
     SHA_CTX ctx_{};
     bool initialized_{};

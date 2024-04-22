@@ -51,6 +51,10 @@ class HashImplSha256 final : public Hasher::IHashImpl {
         return {};
     }
 
+    [[nodiscard]] auto GetHashLength() const noexcept -> size_t final {
+        return SHA256_DIGEST_LENGTH * kCharsPerNumber;
+    }
+
   private:
     SHA256_CTX ctx_{};
     bool initialized_{};

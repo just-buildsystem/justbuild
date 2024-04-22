@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <string>
@@ -69,6 +70,10 @@ class Hasher {
     /// \brief Interface for hash implementations
     class IHashImpl {
       public:
+        static constexpr size_t kCharsPerNumber =
+            std::numeric_limits<std::uint8_t>::max() /
+            std::numeric_limits<signed char>::max();
+
         IHashImpl() noexcept = default;
         IHashImpl(IHashImpl const&) = delete;
         IHashImpl(IHashImpl&&) = default;
@@ -88,6 +93,9 @@ class Hasher {
         /// bytes.
         [[nodiscard]] virtual auto Compute(std::string const& data) && noexcept
             -> std::string = 0;
+
+        /// \brief Obtain length of the resulting hash string.
+        [[nodiscard]] virtual auto GetHashLength() const noexcept -> size_t = 0;
 
         static auto FatalError() noexcept -> void {
             Logger::Log(LogLevel::Error, "Failed to compute hash.");
@@ -109,6 +117,11 @@ class Hasher {
         }
         IHashImpl::FatalError();
         return HashDigest{{}};
+    }
+
+    /// \brief Obtain length of the resulting hash string.
+    [[nodiscard]] auto GetHashLength() const noexcept -> size_t {
+        return impl_->GetHashLength();
     }
 
   private:
