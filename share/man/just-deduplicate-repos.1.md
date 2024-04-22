@@ -17,7 +17,7 @@ DESCRIPTION
 Read a multi-repository configuration from stdin and print to stdout
 a repository configuration with indistinguishable repositories merged
 to a single repository. In doing so, keep the `"main"` repository,
-as well as any repositories specified on the as arguments on
+as well as any repositories specified as arguments on
 the command line, even if that means that some indistinguishable
 repositories cannot be merged into one (as both have to be kept).
 
