@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -1550,6 +1551,54 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         REQUIRE(expr_null);
         auto null_result = expr_null.Evaluate(env, fcts);
         CHECK(null_result == Expression::FromJson(R"([])"_json));
+    }
+}
+
+TEST_CASE("Expression Assertions", "[expression]") {
+    using namespace std::string_literals;
+    auto env = Configuration{};
+    auto fcts = FunctionMapPtr{};
+
+    SECTION("fail") {
+        auto expr = Expression::FromJson(R"(
+         { "type": "fail"
+         , "msg": {"type": "join", "$1": ["ErRoR", "mEsSaGe"]}
+         }
+         )"_json);
+        REQUIRE(expr);
+
+        std::stringstream log{};
+        CHECK(not expr.Evaluate(env, fcts, [&](auto msg) { log << msg; }));
+        CHECK(log.str().find("ErRoRmEsSaGe") != std::string::npos);
+    }
+
+    SECTION("assert_non_empty") {
+        auto expr = Expression::FromJson(R"(
+           { "type": "assert_non_empty"
+           , "msg": "Found-Empty!!"
+           , "$1": {"type": "var", "name": "x"}
+           }
+           )"_json);
+        REQUIRE(expr);
+
+        auto list = Expression::FromJson(R"([1, 2, 3])"_json);
+        CHECK(expr.Evaluate(env.Update("x", list), fcts) == list);
+        auto map = Expression::FromJson(R"({"foo": "bar"})"_json);
+        CHECK(expr.Evaluate(env.Update("x", map), fcts) == map);
+
+        auto empty_list = Expression::FromJson(R"([])"_json);
+        std::stringstream log_list{};
+        CHECK(not expr.Evaluate(env.Update("x", empty_list),
+                                fcts,
+                                [&](auto msg) { log_list << msg; }));
+        CHECK(log_list.str().find("Found-Empty!!") != std::string::npos);
+
+        auto empty_map = Expression::FromJson(R"({})"_json);
+        std::stringstream log_map{};
+        CHECK(not expr.Evaluate(env.Update("x", empty_map),
+                                fcts,
+                                [&](auto msg) { log_map << msg; }));
+        CHECK(log_map.str().find("Found-Empty!!") != std::string::npos);
     }
 }
 
