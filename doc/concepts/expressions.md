@@ -391,3 +391,12 @@ that evaluation included in the error message presented to the user.
    two (or more) maps contain the same key, but map it to different
    values. It is also an error if the argument is a name-containing
    value.
+
+ - `"assert"` Evaluate the argument (given by the parameter `"$1"`);
+   then evaluate the expression `"predicate"` with the variable given
+   at the key `"var"` (which has to be a string literal if given,
+   default value is `"_"`) bound to that value. If the predicate
+   evaluates to a true value, return the result of evaluating the
+   argument, otherwise fail; in evaluating the failure message
+   `"msg"`, also keep the variable specified by `"var"` bound to
+   the result of evaluating the argument.

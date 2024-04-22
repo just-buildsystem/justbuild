@@ -1600,6 +1600,33 @@ TEST_CASE("Expression Assertions", "[expression]") {
                                 [&](auto msg) { log_map << msg; }));
         CHECK(log_map.str().find("Found-Empty!!") != std::string::npos);
     }
+
+    SECTION("assert") {
+        auto expr = Expression::FromJson(R"(
+           { "type": "assert"
+           , "predicate": {"type": "[]", "index": 0
+                           , "list": {"type": "var", "name": "_"}}
+           , "msg": ["First entry UNTRUE", {"type": "var", "name": "_"}]
+           , "$1": {"type": "++", "$1": [{"type": "var", "name": "x"}
+                                        , ["b", "c"]]}
+           })"_json);
+        REQUIRE(expr);
+
+        CHECK(expr.Evaluate(
+                  env.Update("x", Expression::FromJson(R"(["a"])"_json)),
+                  fcts) == Expression::FromJson(R"(["a", "b", "c"])"_json));
+
+        std::stringstream log{};
+        CHECK(not expr.Evaluate(
+            env.Update("x", Expression::FromJson(R"([false, "foo"])"_json)),
+            fcts,
+            [&](auto msg) { log << msg; }));
+        // log must contain the canoncial (minimal) repesentation of evaluating
+        // "msg"
+        CHECK(
+            log.str().find(R"(["First entry UNTRUE",[false,"foo","b","c"])"s) !=
+            std::string::npos);
+    }
 }
 
 TEST_CASE("Expression hash computation", "[expression]") {

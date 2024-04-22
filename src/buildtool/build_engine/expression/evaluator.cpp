@@ -1027,6 +1027,26 @@ auto FailExpr(SubExprEvaluator&& eval,
         msg->ToString(), false, /* user error*/ true);
 }
 
+auto AssertExpr(SubExprEvaluator&& eval,
+                ExpressionPtr const& expr,
+                Configuration const& env) -> ExpressionPtr {
+    auto val = eval(expr["$1"], env);
+    auto const& var = expr->Get("var", "_"s);
+    auto pred = eval(expr["predicate"], env.Update(var->String(), val));
+    if (ValueIsTrue(pred)) {
+        return val;
+    }
+    auto msg_expr = expr->Get("msg", Expression::kNone);
+    std::string msg;
+    try {
+        auto msg_val = eval(msg_expr, env.Update(var->String(), val));
+        msg = msg_val->ToString();
+    } catch (std::exception const&) {
+        msg = "[non evaluating term] " + msg_expr->ToString();
+    }
+    throw Evaluator::EvaluationError(msg, false, /* user error */ true);
+}
+
 auto AssertNonEmptyExpr(SubExprEvaluator&& eval,
                         ExpressionPtr const& expr,
                         Configuration const& env) -> ExpressionPtr {
@@ -1057,6 +1077,7 @@ auto const kBuiltInFunctions =
                           {"case", CaseExpr},
                           {"case*", SeqCaseExpr},
                           {"fail", FailExpr},
+                          {"assert", AssertExpr},
                           {"assert_non_empty", AssertNonEmptyExpr},
                           {"context", ContextExpr},
                           {"==", EqualExpr},
