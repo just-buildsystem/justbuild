@@ -1010,6 +1010,19 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         )"_json));
     }
 
+    SECTION("length expression") {
+        auto expr = Expression::FromJson(R"(
+          { "type": "length"
+          , "$1": ["foo", "bar", "baz"]
+          }
+        )"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        CHECK(result == Expression::FromJson("3"_json));
+    }
+
     SECTION("keys expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "keys"

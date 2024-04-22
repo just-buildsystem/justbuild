@@ -256,6 +256,9 @@ those) argument(s) to obtain the final result.
 - `"reverse"` The argument has to be a list. The result is a new list
   with the entries in reverse order.
 
+- `"length"` The argument has to be a list. The result is the length
+  of the list.
+
  - `"++"` The argument has to be a list of lists. The result is
    the concatenation of those lists.
 

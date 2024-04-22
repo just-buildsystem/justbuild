@@ -232,6 +232,15 @@ auto Reverse(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{reverse_result};
 }
 
+auto Length(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "length expects list but instead got: {}.", expr->ToString())};
+    }
+    return ExpressionPtr{
+        static_cast<Expression::number_t>(expr->List().size())};
+}
+
 auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
     if (not expr->IsList()) {
         throw Evaluator::EvaluationError{fmt::format(
@@ -1098,6 +1107,7 @@ auto const kBuiltInFunctions =
                           {"enumerate", UnaryExpr(Enumerate)},
                           {"set", UnaryExpr(Set)},
                           {"reverse", UnaryExpr(Reverse)},
+                          {"length", UnaryExpr(Length)},
                           {"values", UnaryExpr(Values)},
                           {"lookup", LookupExpr},
                           {"[]", ArrayAccessExpr},
