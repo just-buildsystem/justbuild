@@ -305,7 +305,8 @@ auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
             ::Generation(StorageConfig::GenerationCacheDir(0, compatible));
         Compatibility::SetCompatible(compatible);
 
-        return Compactifier::RemoveSpliced(storage.CAS()) and
+        return Compactifier::RemoveInvalid(storage.CAS()) and
+               Compactifier::RemoveSpliced(storage.CAS()) and
                Compactifier::SplitLarge(storage.CAS(), threshold);
     };
     return compactify(mode) and compactify(not mode);

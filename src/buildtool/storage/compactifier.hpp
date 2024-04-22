@@ -22,6 +22,14 @@ class LocalCAS;
 
 class Compactifier final {
   public:
+    /// \brief Remove invalid entries from the storage. An entry is valid if the
+    /// file and its parent directory have a hexadecimal name of the proper
+    /// size.
+    /// \param cas          Storage to be inspected.
+    /// \return             True if storage does not contain invalid entries.
+    [[nodiscard]] static auto RemoveInvalid(LocalCAS<false> const& cas) noexcept
+        -> bool;
+
     /// \brief Remove spliced entries from the storage.
     /// \param local_cas      Storage to be inspected.
     /// \return               True if object storages do not contain spliced

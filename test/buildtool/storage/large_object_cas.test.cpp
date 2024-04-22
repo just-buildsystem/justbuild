@@ -457,6 +457,18 @@ static void TestCompactification() {
         REQUIRE(object_2);
         auto& [digest_2, path_2] = *object_2;
 
+        // After an interuption of a build process intermediate unique files may
+        // be present in the storage. To ensure compactification deals with them
+        // properly, a "unique" file is created:
+        auto invalid_object = TestType::Create(
+            cas, std::string(TestType::kLargeId) + "_3", ExceedThresholdSize);
+        REQUIRE(invalid_object);
+        auto& [invalid_digest, invalid_path] = *invalid_object;
+
+        auto unique_path = CreateUniquePath(invalid_path);
+        REQUIRE(unique_path);
+        REQUIRE(FileSystemManager::Rename(invalid_path, *unique_path));
+
         // Ensure all entries are in the storage:
         auto get_path = [](auto const& cas, bazel_re::Digest const& digest) {
             return kIsTree ? cas.TreePath(digest)
@@ -466,6 +478,7 @@ static void TestCompactification() {
         auto const& latest = Storage::Generation(0).CAS();
         REQUIRE(get_path(latest, digest).has_value());
         REQUIRE(get_path(latest, digest_2).has_value());
+        REQUIRE(FileSystemManager::IsFile(*unique_path));
 
         // Compactify the youngest generation:
         // Generation rotation is disabled to exclude uplinking.
@@ -476,8 +489,9 @@ static void TestCompactification() {
         // and executables there are no synchronized entries in the storage:
         REQUIRE_FALSE(get_path(latest, digest).has_value());
         REQUIRE_FALSE(get_path(latest, digest_2).has_value());
+        REQUIRE_FALSE(FileSystemManager::IsFile(*unique_path));
 
-        // All entries must be implicitly splicable:
+        // All valid entries must be implicitly spliceable:
         REQUIRE(get_path(cas, digest).has_value());
         REQUIRE(get_path(cas, digest_2).has_value());
     }

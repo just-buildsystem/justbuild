@@ -22,14 +22,25 @@
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 namespace {
+/// \brief Remove invalid entries from the kType storage.
+/// \tparam kType         Type of the storage to inspect.
+/// \param cas            Storage to be inspected.
+/// \return               True if the kType storage doesn't contain invalid
+/// entries.
+template <ObjectType kType>
+[[nodiscard]] auto RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool;
+
 /// \brief Remove spliced entries from the kType storage.
 /// \tparam kType         Type of the storage to inspect.
 /// \param cas            Storage to be inspected.
@@ -52,6 +63,12 @@ template <ObjectType kType>
                               size_t threshold) noexcept -> bool;
 }  // namespace
 
+auto Compactifier::RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
+    return ::RemoveInvalid<ObjectType::File>(cas) and
+           ::RemoveInvalid<ObjectType::Executable>(cas) and
+           ::RemoveInvalid<ObjectType::Tree>(cas);
+}
+
 auto Compactifier::RemoveSpliced(LocalCAS<false> const& cas) noexcept -> bool {
     return ::RemoveSpliced<ObjectType::Tree>(cas) and
            ::RemoveSpliced<ObjectType::File, ObjectType::Executable>(cas);
@@ -65,6 +82,44 @@ auto Compactifier::SplitLarge(LocalCAS<false> const& cas,
 }
 
 namespace {
+template <ObjectType kType>
+auto RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
+    auto storage_root = cas.StorageRoot(kType);
+
+    // Check there are entries to process:
+    if (not FileSystemManager::IsDirectory(storage_root)) {
+        return true;
+    }
+
+    // Calculate reference hash size:
+    auto const kHashSize = HashFunction::Hasher().GetHashLength();
+    static constexpr size_t kDirNameSize = 2;
+    auto const kFileNameSize = kHashSize - kDirNameSize;
+
+    FileSystemManager::UseDirEntryFunc callback =
+        [&storage_root, kFileNameSize](std::filesystem::path const& path,
+                                       bool is_tree) -> bool {
+        // Use all folders.
+        if (is_tree) {
+            return true;
+        }
+
+        std::string const f_name = path.filename();
+        std::string const d_name = path.parent_path().filename();
+
+        // A file is valid if:
+        //  * it has a hexadecimal name of length kFileNameSize;
+        //  * parent directory has a hexadecimal name of length kDirNameSize.
+        if (f_name.size() == kFileNameSize and FromHexString(f_name) and
+            d_name.size() == kDirNameSize and FromHexString(d_name)) {
+            return true;
+        }
+        return FileSystemManager::RemoveFile(storage_root / path);
+    };
+    return FileSystemManager::ReadDirectoryEntriesRecursive(storage_root,
+                                                            callback);
+}
+
 template <ObjectType... kType>
 requires(sizeof...(kType) != 0)
     [[nodiscard]] auto RemoveSpliced(LocalCAS<false> const& cas) noexcept
