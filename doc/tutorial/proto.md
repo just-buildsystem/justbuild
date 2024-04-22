@@ -43,8 +43,8 @@ The missing entry `"rules-cc"` refers to our C/C++ build rules provided
 [online](https://github.com/just-buildsystem/rules-cc). These rules
 support protobuf if the dependency `"protoc"` is provided. To import
 this rule repository including the required transitive dependencies for
-protobuf, the `bin/just-import-git` script with option `--as rules-cc`
-can be used to generate the actual `repos.json`:
+protobuf, the `just-import-git` script of the *justbuild* project can be
+used with option `--as rules-cc` to generate the actual `repos.json`:
 
 ``` sh
 $ just-import-git -C repos.template.json -b master --as rules-cc https://github.com/just-buildsystem/rules-cc > repos.json
@@ -73,13 +73,21 @@ declare the library, create a `TARGETS` file with the following content:
 In general, proto libraries could also depend on other proto libraries;
 those would be added to the `"deps"` field.
 
-When building the library, there's very little to do.
+When building the library, there's very little to do after `just-mr` fetches
+and sets up all the repositories.
 
 ``` sh
 $ just-mr build address
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+PROG: [  0%] 1 local, 0 cached, 0 done
+PROG: [  0%] 1 local, 0 cached, 0 done
+PROG: [ 66%] 1 local, 1 cached, 14 done
+PROG: [ 90%] 1 local, 1 cached, 19 done
+PROG: [ 95%] 1 local, 1 cached, 20 done; 1 fetches ("rules-cc/just/import targets")
+INFO: Setup finished, exec ["just","build","-C","...","--local-build-root","/tmp/proto","address"]
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Analysed target [["@","","","address"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 0 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","address"],{}].
 INFO: Processed 0 actions, 0 cache hits.
@@ -101,6 +109,9 @@ structure of the `.proto` files.
 
 ``` sh
 $ just-mr analyse --dump-nodes - address
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","--dump-nodes","-","address"]
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Result of target [["@","","","address"],{}]: {
         "artifacts": {
@@ -200,30 +211,43 @@ also in different projects, the target-level cache is filled already.
 
 ``` sh
 $ just-mr build add_person
-...
+[...]
 $ just-mr build add_person
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","add_person"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Analysed target [["@","","","add_person"],{}]
-INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
+INFO: Export targets found: 2 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 5 actions, 2 trees, 0 blobs
 INFO: Building [["@","","","add_person"],{}].
 INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
-        add_person [bcbb3deabfe0d77e6d3ea35615336a2f59a1b0aa:2285928:x]
+        add_person [bca89ed8465e81c629d689b66c71deca138e2c27:2847912:x]
 $
 ```
 
 If we look at the actions associated with the binary, we find that those
 are still the two actions we expect: a compile action and a link action.
+(Some of the fields have been removed in the following example outputs and
+replaced by `"..."` for clarity.)
 
 ``` sh
 $ just-mr analyse add_person --dump-actions -
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","add_person","--dump-actions","-"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"fcf211e2291b2867375e915538ce04cb4dfae86d","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"6ba3552427c6c47b52bc2fa571a64af300e27243","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
+          "package": {
+            "to_bin": true
+          },
+          "run-libs": {
+          }
         },
         "runfiles": {
         }
@@ -231,9 +255,9 @@ INFO: Result of target [["@","","","add_person"],{}]: {
 INFO: Actions for target [["@","","","add_person"],{}]:
 [
   {
-    "command": ["c++","-I","work","-isystem","include","-c","work/add_person.cc","-o","work/add_person.o"],
+    "command": ["c++","-O2",...,"-I","work","-isystem","include","-c","work/add_person.cc","-o","work/add_person.o"],
     "env": {
-      "PATH": "/bin:/usr/bin"
+      "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
     },
     "input": {
       ...
@@ -241,9 +265,9 @@ INFO: Actions for target [["@","","","add_person"],{}]:
     "output": ["work/add_person.o"]
   },
   {
-    "command": ["c++","-o","add_person","add_person.o","libaddressbook.a","libprotobuf.a","libprotobuf_lite.a","libzlib.a"],
+    "command": ["c++","-Wl,-rpath,$ORIGIN","-Wl,-rpath,$ORIGIN/../lib","-o","add_person","-O2",...,"add_person.o","libaddressbook.a","libprotobuf.a","libprotobuf-lite.a",...,"libz.a"],
     "env": {
-      "PATH": "/bin:/usr/bin"
+      "PATH": "/bin:/sbin:/usr/bin:/usr/sbin"
     },
     "input": {
       ...
@@ -264,12 +288,20 @@ earlier.
 
 ``` sh
 $ just-mr analyse add_person --dump-targets -
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","add_person","--dump-targets","-"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"fcf211e2291b2867375e915538ce04cb4dfae86d","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"6ba3552427c6c47b52bc2fa571a64af300e27243","path":"add_person"},"type":"ACTION"}
         },
         "provides": {
+          "package": {
+            "to_bin": true
+          },
+          "run-libs": {
+          }
         },
         "runfiles": {
         }
@@ -278,26 +310,42 @@ INFO: List of analysed targets:
 {
   "#": {
     "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}]
       }
     },
     "rules-cc": {
       "CC": {
-        "defaults": [{}]
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      },
+      "CC/proto": {
+        "defaults": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
       }
     },
     "rules-cc/just/protobuf": {
       "": {
-        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "well_known_protos": [{}]
+        "installed protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "libprotobuf": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "toolchain": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "toolchain_headers": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      }
+    },
+    "rules-cc/just/rules": {
+      "CC": {
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      }
+    },
+    "rules-cc/just/toolchain": {
+      "CC": {
+        "defaults": [{"ARCH":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "unknown": [{"ARCH":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
       }
     }
   }
@@ -322,7 +370,9 @@ purpose.
 
 ``` sh
 $ just-mr analyse 'address proto library'
-...
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","address proto library"]
 INFO: Requested target is [["@","","","address proto library"],{}]
 INFO: Result of target [["@","","","address proto library"],{}]: {
         "artifacts": {
@@ -330,7 +380,8 @@ INFO: Result of target [["@","","","address proto library"],{}]: {
         "provides": {
           ...
           "compile-deps": {
-            "addressbook.pb.h": {"data":{"id":"6d70cd10fabcbc7591cd82aae2f100cca39d3879","path":"work/addressbook.pb.h"},"type":"ACTION"},
+            ...
+            "addressbook.pb.h": {"data":{"id":"b05ff2058068a30961c3e28318b9105795a08a42","path":"work/addressbook.pb.h"},"type":"ACTION"},
             ...
           },
           "link-args": [
@@ -338,7 +389,8 @@ INFO: Result of target [["@","","","address proto library"],{}]: {
             ...
           ],
           "link-deps": {
-            "libaddressbook.a": {"data":{"id":"753073bd026b6470138c47e004469dd1d3df08d4","path":"libaddressbook.a"},"type":"ACTION"},
+            ...
+            "libaddressbook.a": {"data":{"id":"acc15c9c1218b4df277f49d537a3c4b961263490","path":"libaddressbook.a"},"type":"ACTION"},
             ...
           },
           ...
@@ -355,8 +407,8 @@ Adding a test
 Finally, let's add a test. As we use the `protobuf` repository as
 workspace root, we add the test script ad hoc into a targets file, using
 the `"file_gen"` rule. For debugging a potentially failing test, we also
-keep the intermediate files the test generates. Create a top-level
-`TARGETS` file with the following content:
+keep the intermediate files the test generates. Add to the top-level
+`TARGETS` file the following content:
 
 ``` {.jsonc srcname="TARGETS"}
 ...
@@ -393,50 +445,69 @@ targets and the one anonymous target is reused by both binaries.
 
 ``` sh
 $ just-mr analyse test --dump-targets -
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","test","--dump-targets","-"]
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Result of target [["@","","","test"],{}]: {
         "artifacts": {
-          "result": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"result"},"type":"ACTION"},
-          "stderr": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"stderr"},"type":"ACTION"},
-          "stdout": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"stdout"},"type":"ACTION"},
-          "time-start": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"time-start"},"type":"ACTION"},
-          "time-stop": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"time-stop"},"type":"ACTION"},
-          "work/addressbook.data": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"work/addressbook.data"},"type":"ACTION"},
-          "work/out.txt": {"data":{"id":"20967787c42a289f5598249e696f851dde50065c","path":"work/out.txt"},"type":"ACTION"}
+          "result": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"result"},"type":"ACTION"},
+          "stderr": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"stderr"},"type":"ACTION"},
+          "stdout": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"stdout"},"type":"ACTION"},
+          "time-start": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"time-start"},"type":"ACTION"},
+          "time-stop": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"time-stop"},"type":"ACTION"},
+          "work/addressbook.data": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"work/addressbook.data"},"type":"ACTION"},
+          "work/out.txt": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"work/out.txt"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
-          "read-write-test": {"data":{"id":"c9d7bfc5bc8448bfef25b4e73e4494560bf6c350"},"type":"TREE"}
+          "read-write-test": {"data":{"id":"71d9414c93b1bf4c2883af6070671761f9bc5cbf"},"type":"TREE"}
         }
       }
 INFO: List of analysed targets:
 {
   "#": {
     "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}],
-        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"RUNS_PER_TEST":null,"TEST_ENV":null,"TOOLCHAIN_CONFIG":null}],
+        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"ARCH_DISPATCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"RUNS_PER_TEST":null,"TARGET_ARCH":null,"TEST_ENV":null,"TIMEOUT_SCALE":null,"TOOLCHAIN_CONFIG":null}],
         "test.sh": [{}]
       }
     },
     "rules-cc": {
       "CC": {
-        "defaults": [{}]
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      },
+      "CC/proto": {
+        "defaults": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
       }
     },
     "rules-cc/just/protobuf": {
       "": {
-        "C++ runtime": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "well_known_protos": [{}]
+        "installed protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "libprotobuf": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "protoc": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "toolchain": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "toolchain_headers": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      }
+    },
+    "rules-cc/just/rules": {
+      "CC": {
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      }
+    },
+    "rules-cc/just/toolchain": {
+      "CC": {
+        "defaults": [{"ARCH":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "unknown": [{"ARCH":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
       }
     }
   }
@@ -448,27 +519,30 @@ $
 Finally, the test passes and the output is as expected.
 
 ``` sh
-$ just-mr build test -Pwork/out.txt
+$ just-mr build test -P work/out.txt
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","test","-P","work/out.txt"]
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Analysed target [["@","","","test"],{}]
-INFO: Export targets found: 3 cached, 0 uncached, 0 not eligible for caching
+INFO: Export targets found: 2 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 4 trees, 1 blobs
+INFO: Discovered 8 actions, 5 trees, 1 blobs
 INFO: Building [["@","","","test"],{}].
 INFO: Processed 8 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [7fab9dd1ee66a1e76a3697a27524f905600afbd0:196:f]
-        time-start [7ac216a2a98b7739ae5304d96cdfa6f0b0ed87b6:11:f]
-        time-stop [7ac216a2a98b7739ae5304d96cdfa6f0b0ed87b6:11:f]
-        work/addressbook.data [baa6f28731ff6d93fbef9fcc5f7e8ae900da5ba5:41:f]
-        work/out.txt [7fb178dd66ecf24fdb786a0f96ae5969b55442da:101:f]
+        time-start [8e3614748ef049ea08bc49740d9ba55dfd42ef06:11:f]
+        time-stop [8e3614748ef049ea08bc49740d9ba55dfd42ef06:11:f]
+        work/addressbook.data [b673b647fbce717116104e84c335fdecaae974d6:41:f]
+        work/out.txt [ae02d08605d72d74bbfa72d33e4d314bb3632591:101:f]
       (1 runfiles omitted.)
 Person ID: 12345
   Name: John Doe
   E-mail address: jdoe@example.org
-  Updated: 2022-12-14T18:08:36Z
+  Updated: 2024-04-19T15:51:27Z
 INFO: Target tainted ["test"].
 $
 ```

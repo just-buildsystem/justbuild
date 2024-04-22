@@ -20,9 +20,9 @@ build.
 
 For the remainder of this section, we expect to have the project files
 available resulting from successfully completing the tutorial section on
-*Building C++ Hello World*. We will demonstrate how to write a test
-binary for the `greet` library and a shell test for the `helloworld`
-binary.
+[*Building C++ Hello World*](./hello-world.md). We will demonstrate how
+to write a test binary for the `greet` library and a shell test for the
+`helloworld` binary.
 
 Creating a C++ test binary
 --------------------------
@@ -31,9 +31,14 @@ First, we will create a C++ test binary for testing the correct
 functionality of the `greet` library. Therefore, we need to provide a
 C++ source file that performs the actual testing and returns non-`0` on
 failure. For simplicity reasons, we do not use a testing framework for
-this tutorial. A simple test that captures standard output and verifies
-it with the expected output should be provided in the file
-`tests/greet.test.cpp`:
+this tutorial. Let us place this code in subdirectory `tests`
+
+``` sh
+mkdir -p ./tests
+```
+
+A simple test that captures standard output and verifies it with the expected
+output should be provided in the file `tests/greet.test.cpp`:
 
 ``` {.cpp srcname="tests/greet.test.cpp"}
 #include <functional>
@@ -102,8 +107,15 @@ $ just-mr describe tests greet
 ```
 
 However, in our case, we want to use the default runner and therefore it
-is sufficient to create an empty module. To do so, create the file
-`tutorial-defaults/CC/test/TARGETS` with content
+is sufficient to create an empty module. To do so, we create subdirectories
+
+``` sh
+$ mkdir -p ./tutorial-defaults/CC/test
+$ mkdir -p ./tutorial-defaults/shell/test
+```
+
+where we create, respectively, the file `tutorial-defaults/CC/test/TARGETS`
+with content
 
 ``` {.jsonc srcname="tutorial-defaults/CC/test/TARGETS"}
 {}
@@ -119,9 +131,11 @@ Now we can run the test (i.e., build the test result):
 
 ``` sh
 $ just-mr build tests greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Analysed target [["@","tutorial","tests","greet"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 5 actions, 3 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","greet"],{}].
@@ -130,8 +144,8 @@ INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
         stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
-        time-start [8e7a68af8d5d7a6d0036c1126ff5c16a5045ae95:11:f]
-        time-stop [8e7a68af8d5d7a6d0036c1126ff5c16a5045ae95:11:f]
+        time-start [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
+        time-stop [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -155,19 +169,37 @@ is the name of the artifact that should be printed on the command line,
 in our case `stdout`:
 
 ``` sh
-$ just-mr build tests greet --log-limit 1 -P stdout
+$ just-mr build tests greet -P stdout
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","tests","greet","-P","stdout"]
+INFO: Requested target is [["@","tutorial","tests","greet"],{}]
+INFO: Analysed target [["@","tutorial","tests","greet"],{}]
+INFO: Target tainted ["test"].
+INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Building [["@","tutorial","tests","greet"],{}].
+INFO: Processed 5 actions, 5 cache hits.
+INFO: Artifacts built, logical paths are:
+        result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
+        stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
+        stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
+        time-start [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
+        time-stop [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
+      (1 runfiles omitted.)
 greet output: Hello World!
 
 greet output: Hello Universe!
 
+
+INFO: Target tainted ["test"].
 $
 ```
 
-Note that `--log-limit 1` was just added to omit *justbuild*'s `INFO:`
-prints.
+To also strip *justbuild*'s `INFO:` prints from this output, the argument
+`--log-limit 1` can be passed to the `just-mr` call.
 
 Our test binary does not have any useful options for directly
-interacting with it. When working with test frameworks, it sometimes can
+interact with it. When working with test frameworks, it sometimes can
 be desirable to get hold of the test binary itself for manual
 interaction. The running of the test binary is the last action
 associated with the test and the test binary is, of course, one of its
@@ -175,12 +207,15 @@ inputs.
 
 ``` sh
 $ just-mr analyse --request-action-input -1 tests greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","--request-action-input","-1","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
 INFO: Result of input of action #-1 of target [["@","tutorial","tests","greet"],{}]: {
         "artifacts": {
           "runner": {"data":{"file_type":"x","id":"0647621fba9b22f0727fbef98104f3e398496e2f","size":1876},"type":"KNOWN"},
-          "test": {"data":{"id":"465b690f0b006553c15fb059e2293011c20f74d4","path":"test_greet"},"type":"ACTION"},
+          "test": {"data":{"id":"79e8adb53ca447c956069ce10ba5504d6cf0fd54","path":"test_greet"},"type":"ACTION"},
           "test-args.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"},
           "test-launcher.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"}
         },
@@ -216,17 +251,19 @@ can also be useful when debugging a build failure.
 
 ``` sh
 $ just-mr install -o work --request-action-input -1 tests greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","...","-o","work","--request-action-input","-1","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
 INFO: Analysed target [["@","tutorial","tests","greet"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 5 actions, 3 trees, 1 blobs
 INFO: Building input of action #-1 of [["@","tutorial","tests","greet"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts can be found in:
         /tmp/tutorial/work/runner [0647621fba9b22f0727fbef98104f3e398496e2f:1876:x]
-        /tmp/tutorial/work/test [00458536b165abdee1802e5fb7b0922e04c81491:20352:x]
+        /tmp/tutorial/work/test [306e9440ba06bf615f51d84cde0ce76563723c3d:24448:x]
         /tmp/tutorial/work/test-args.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
         /tmp/tutorial/work/test-launcher.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
 INFO: Target tainted ["test"].
@@ -291,9 +328,11 @@ Now we can run the shell test (i.e., build the test result):
 
 ``` sh
 $ just-mr build tests helloworld
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","tests","helloworld"]
 INFO: Requested target is [["@","tutorial","tests","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","tests","helloworld"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 5 actions, 4 trees, 0 blobs
 INFO: Building [["@","tutorial","tests","helloworld"],{}].
@@ -302,8 +341,8 @@ INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        time-start [c31e92e6b16dacec4ee95beefcc6a688dbffee2d:11:f]
-        time-stop [c31e92e6b16dacec4ee95beefcc6a688dbffee2d:11:f]
+        time-start [7baa9405e8767e91c434af26e312267c3a114d06:11:f]
+        time-stop [7baa9405e8767e91c434af26e312267c3a114d06:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -343,16 +382,18 @@ target `"ALL"`:
 
 ``` sh
 $ just-mr build tests ALL
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","tests","ALL"]
 INFO: Requested target is [["@","tutorial","tests","ALL"],{}]
 INFO: Analysed target [["@","tutorial","tests","ALL"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
 INFO: Discovered 8 actions, 5 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","ALL"],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts built, logical paths are:
-        test_greet [251ba2038ccdb8ba1ae2f4e963751b9230b36646:177:t]
-        test_helloworld [63fa5954161b52b275b05c270e1626feaa8e178b:177:t]
+        test_greet [a06a9ce5ab1fbda1f5d0ee19bdd006d2664eef0a:177:t]
+        test_helloworld [01f32858b491ef5ef254ec3852ea83b8968ea9b2:177:t]
 INFO: Target tainted ["test"].
 $
 ```

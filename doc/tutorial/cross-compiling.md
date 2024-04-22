@@ -26,12 +26,14 @@ spread over several packages, often shared by the architecture to
 cross compile to.
 
 Once the required packages are installed, usage is quite forward.
-Let's start a new project.
+Let's start a new project in a clean working directory.
+
 ``` sh
 $ touch ROOT
 ```
 
 We create a file `repos.template.json` specifying the one local repository.
+
 ``` {.jsonc srcname="repos.template.json"}
 { "repositories":
   { "":
@@ -43,11 +45,13 @@ We create a file `repos.template.json` specifying the one local repository.
 ```
 
 The actual `rules-cc` are imported via `just-import-git`.
+
 ``` sh
 $ just-import-git -C repos.template.json -b master --as rules-cc https://github.com/just-buildsystem/rules-cc > repos.json
 ```
 
-Let's have `main.cpp` be the canonical Hello-World program.
+Let's have `main.cpp` be the canonical _Hello World_ program.
+
 ``` {.cpp srcname="main.cpp"}
 #include <iostream>
 
@@ -57,7 +61,8 @@ int main() {
 }
 ```
 
-Then, our `TARGETS` file describe a simple binary, as usual.
+Then, a `TARGETS` file describing a simple binary.
+
 ``` {.jsonc srcname="TARGETS"}
 { "helloworld":
   { "type": ["@", "rules", "CC", "binary"]
@@ -70,10 +75,12 @@ Then, our `TARGETS` file describe a simple binary, as usual.
 As mentioned in the introduction, we need to specify `TOOLCHAIN_CONFIG`,
 `OS`, and `ARCH`. So the canonical building for host looks something like
 the following.
+
 ``` sh
 $ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64"}'
 INFO: Performing repositories setup
-INFO: Found 21 repositories to set up
+INFO: Found 22 repositories to set up
+...
 INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\"}"]
 INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
@@ -86,10 +93,11 @@ $
 ```
 
 To cross compile, we simply add `TARGET_ARCH`.
+
 ``` sh
 $ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}'
 INFO: Performing repositories setup
-INFO: Found 21 repositories to set up
+INFO: Found 22 repositories to set up
 INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}"]
 INFO: Requested target is [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Analysed target [["@","","","helloworld"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
@@ -103,6 +111,7 @@ $
 
 To inspect the different command lines for native and cross compilation,
 we can use `just analyse`.
+
 ``` sh
 $ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64"}' --dump-actions -
 $ just-mr analyse -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' --dump-actions -
@@ -115,8 +124,14 @@ Testing in the presence of cross compiling
 ------------------------------------------
 
 To understand testing the in the presence of cross compiling, let's
-walk through a simple example. We create a basic test by adding
-a file `test/TARGETS`.
+walk through a simple example. We create a basic test in subdirectory `test`
+
+``` sh
+$ mkdir -p ./test
+```
+
+by adding a file `test/TARGETS` containing
+
 ``` {.jsonc srcname="test/TARGETS"}
 { "basic":
   { "type": ["@", "rules", "shell/test", "script"]
@@ -134,10 +149,11 @@ a file `test/TARGETS`.
 
 Now, if we try to run the test by simply specifying the target architecture,
 we find that the binary to be tested is still only built for host.
+
 ``` sh
 $ just-mr analyse --dump-targets - -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64"}' test basic
 INFO: Performing repositories setup
-INFO: Found 21 repositories to set up
+INFO: Found 22 repositories to set up
 INFO: Setup finished, exec ["just","analyse","-C","...","--dump-targets","-","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\"}","test","basic"]
 INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Result of target [["@","","test","basic"],{"ARCH":"x86_64","OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]: {
@@ -173,9 +189,13 @@ INFO: List of analysed targets:
     },
     "rules-cc/just/rules": {
       "CC": {
-        "defaults": [{"ARCH":"x86_64","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}],
-        "gcc": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}],
-        "toolchain": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+        "defaults": [{"ARCH":"x86_64","DEBUG":null,"HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
+      }
+    },
+    "rules-cc/just/toolchain": {
+      "CC": {
+        "defaults": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}],
+        "gcc": [{"ARCH":"x86_64","HOST_ARCH":null,"OS":"linux","TARGET_ARCH":"x86_64"}]
       }
     }
   }
@@ -204,11 +224,12 @@ e.g., obtained by cross compiling.
 The next step is to tell *justbuild* how to reach that machine;
 as we only want to use it for certain actions we can't simply
 set it as (default) remote-execution endpoint (specified by the
-`-r` option). Instead we crate a file `dispatch.json`.
+`-r` option). Instead we create a file `dispatch.json`.
 
 ``` {.jsonc srcname="dispatch.json"}
 [[{"runner": "arm64-worker"}, "10.204.62.67:9999"]]
 ```
+
 This file contains a list of lists pairs (lists of length 2) with the
 first entry a map of remote-execution properties and the second entry
 a remote-execution endpoint. For each action, if the remote-execution
@@ -246,7 +267,7 @@ still accepts any credentials provided.
 ``` sh
 $ just-mr build -D '{"TOOLCHAIN_CONFIG": {"FAMILY": "gnu"}, "OS": "linux", "ARCH": "x86_64", "TARGET_ARCH": "arm64", "ARCH_DISPATCH": {"arm64": {"runner": "arm64-worker"}}}' --endpoint-configuration dispatch.json --tls-ca-cert ca.crt --tls-client-cert client.crt --tls-client-key client.key test basic
 INFO: Performing repositories setup
-INFO: Found 21 repositories to set up
+INFO: Found 22 repositories to set up
 INFO: Setup finished, exec ["just","build","-C","...","-D","{\"TOOLCHAIN_CONFIG\": {\"FAMILY\": \"gnu\"}, \"OS\": \"linux\", \"ARCH\": \"x86_64\", \"TARGET_ARCH\": \"arm64\", \"ARCH_DISPATCH\": {\"arm64\": {\"runner\": \"arm64-worker\"}}}","--endpoint-configuration","dispatch.json","--tls-ca-cert","ca.crt","--tls-client-cert","client.crt","--tls-client-key","client.key","test","basic"]
 INFO: Requested target is [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
 INFO: Analysed target [["@","","test","basic"],{"ARCH":"x86_64","ARCH_DISPATCH":{"arm64":{"runner":"arm64-worker"}},"OS":"linux","TARGET_ARCH":"arm64","TOOLCHAIN_CONFIG":{"FAMILY":"gnu"}}]
@@ -258,8 +279,8 @@ INFO: Artifacts built, logical paths are:
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [cd0875583aabe89ee197ea133980a9085d08e497:13:f]
-        time-start [298a717bc8ba9b7e681a6d789104a1204ebe75b8:11:f]
-        time-stop [298a717bc8ba9b7e681a6d789104a1204ebe75b8:11:f]
+        time-start [a80d4908a45181a0ed5ebbb8f593cc6260fa51a8:11:f]
+        time-stop [a80d4908a45181a0ed5ebbb8f593cc6260fa51a8:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -272,5 +293,5 @@ be set in the `"just args"` entry of the `.just-mrrc` file.
 
 When inspecting the result, we can use `just install-cas` as usual,
 without any special arguments. Whenever dispatching an action to
-a non-default end point, `just` will take care of syncing back the
+a non-default endpoint, `just` will take care of syncing back the
 artifacts to the default CAS.

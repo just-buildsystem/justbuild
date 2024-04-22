@@ -58,7 +58,6 @@ To build a target, we need to run `just` with the subcommand `build`:
 $ just build greeter
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 0 cache hits.
@@ -78,7 +77,6 @@ and specify the output directory:
 $ just install greeter -o .
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
@@ -104,7 +102,6 @@ for piping the artifact to another program.
 $ just build greeter -P out.txt
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
@@ -167,7 +164,6 @@ As we only request targets, no conflicts arise.
 $ just build upper -P out.txt
 INFO: Requested target is [["@","","","upper"],{}]
 INFO: Analysed target [["@","","","upper"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","upper"],{}].
 INFO: Processed 1 actions, 0 cache hits.
@@ -177,7 +173,6 @@ WORLD
 $ just build greeter -P out.txt
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
@@ -206,7 +201,6 @@ simple case of a target producing precisely one file, the argument
 $ just build both
 INFO: Requested target is [["@","","","both"],{}]
 INFO: Analysed target [["@","","","both"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 2 actions, 0 trees, 0 blobs
 INFO: Building [["@","","","both"],{}].
 INFO: Processed 2 actions, 2 cache hits.

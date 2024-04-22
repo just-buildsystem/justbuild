@@ -269,7 +269,7 @@ scenarios.
 - create a suitable chroot environment
 - chroot into it
 - run ~just execute~ from there
-- in a different shell, ~just build -r <interface>:<port num>~
+- in a different shell, ~just build -r <interface>:<port>~
 
 **** Full latex chroot: walkthrough
 
@@ -346,12 +346,11 @@ INFO: Found 2 repositories to set up
 INFO: Setup finished, exec ["just","install","-C","...","-o",".","-r","localhost:8080"]
 INFO: Requested target is [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
 INFO: Analysed target [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}]
-INFO: Export targets found: 0 cached, 0 uncached, 0 not eligible for caching
 INFO: Discovered 1 actions, 0 trees, 1 blobs
 INFO: Building [["@","tutorial","doc/just-execute/latex-hello-world","tutorial"],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts can be found in:
-        /home/alberto/opt/src/justbuild/doc/just-execute/latex-hello-world/hello.pdf [25e05d3560e344b0180097f21a8074ecb0d9f343:37614:f]
+        /tmp/work/doc/just-execute/latex-hello-world/hello.pdf [25e05d3560e344b0180097f21a8074ecb0d9f343:37614:f]
 #+END_SRC
 
 In the shell where ~just execute~ is running, this line should have

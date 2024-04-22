@@ -116,6 +116,9 @@ command line:
 
 ``` sh
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 2 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
@@ -139,10 +142,10 @@ performs the actual build.
 
 Note that these two programs, `just-mr` and `just`, can also be run
 individually. To do so, first run `just-mr` with `setup` and capture the
-path to the generated build configuration from stdout by assigning it to
-a shell variable (e.g., `CONF`). Afterwards, `just` can be called to
-perform the actual build by explicitly specifying the configuration file
-via `-C`:
+path to the generated build configuration from stdout (above omitted from the
+log message as `"..."`) by assigning it to a shell variable (e.g., `CONF`).
+Afterwards, `just` can be called to perform the actual build by explicitly
+specifying the configuration file via `-C`, e.g.:
 
 ``` sh
 $ CONF=$(just-mr setup tutorial)
@@ -162,6 +165,9 @@ object that sets `"CXX"` to `"clang++"`:
 
 ``` sh
 $ just-mr build helloworld -D'{"CXX":"clang++"}'
+INFO: Performing repositories setup
+INFO: Found 2 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld","-D{\"CXX\":\"clang++\"}"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{"CXX":"clang++"}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
@@ -252,11 +258,15 @@ directory. As our `"defaults"` target is in the directory `"CC"` of
 the rules repository we could also have written the rule `"type"`
 simply as `"defaults"`.
 
-To rebuild the project, we need to rerun `just-mr` (note that due to
-configuration changes, rerunning only `just` would not suffice):
+To rebuild the project, we rerun `just-mr` (note that due to configuration
+changes, we expect the intermediary configuration file hash reported to also
+change):
 
 ``` sh
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs
@@ -296,8 +306,13 @@ Modeling target dependencies
 
 For demonstration purposes, we will separate the print statements into a
 static library `greet`, which will become a dependency to our binary.
-Therefore, we create a new subdirectory `greet` with the files
-`greet/greet.hpp`:
+Therefore, we create a new subdirectory `greet` 
+
+``` sh
+$ mkdir -p ./greet
+```
+
+with the files `greet/greet.hpp`:
 
 ``` {.cpp srcname="greet/greet.hpp"}
 #include <string>
@@ -376,6 +391,9 @@ binary can be built with the same command as before (no need to rerun
 
 ``` sh
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Discovered 4 actions, 2 trees, 0 blobs
@@ -391,6 +409,9 @@ run the following command:
 
 ``` sh
 $ just-mr build greet greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","greet","greet"]
 INFO: Requested target is [["@","tutorial","greet","greet"],{}]
 INFO: Analysed target [["@","tutorial","greet","greet"],{}]
 INFO: Discovered 2 actions, 1 trees, 0 blobs

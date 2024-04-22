@@ -8,9 +8,9 @@ more detail the ways to refer to sources, as well as the difference
 between defined and source targets. The latter is used, e.g., when
 third-party software has to be patched.
 
-As example for this section we use gnu `units` where we want to patch
-into the standard units definition add two units of area popular in
-German news.
+As example for this section we use
+[gnu units](https://www.gnu.org/software/units/) where we want to patch into
+the standard units definition add two units of area popular in German news.
 
 Repository Config for `units` with patches
 ------------------------------------------
@@ -58,14 +58,6 @@ following content.
 }
 ```
 
-The repository to set up is `units` and, as usual, we can use `just-mr`
-to fetch the archive and obtain the resulting multi-repository
-configuration.
-
-``` sh
-$ just-mr setup units
-```
-
 Patching a file: targets versus `FILE`
 --------------------------------------
 
@@ -85,6 +77,9 @@ with the empty object and refine it later.
 ``` sh
 $ echo {} > TARGETS.units
 $ just-mr install -o . definitions.units
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","...","-o",".","definitions.units"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
 INFO: Discovered 0 actions, 0 trees, 0 blobs
@@ -98,7 +93,7 @@ $ echo -e "/German units\n+2a\narea_soccerfield 105 m * 68 m\narea_saarland 2570
 342718
 # A few German units as currently in use.
 342772
-$ mkdir files
+$ mkdir -p files
 $ echo {} > files/TARGETS
 $ diff -u definitions.units.orig definitions.units > files/definitions.units.diff
 $ rm definitions.units*
@@ -136,6 +131,9 @@ their inputs) and, in fact, have a fixed command line.
 
 ``` sh
 $ just-mr analyse definitions.units --dump-actions -
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","definitions.units","--dump-actions","-"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Result of target [["@","units","","definitions.units"],{}]: {
         "artifacts": {
@@ -185,10 +183,13 @@ INFO: Actions for target [["@","units","","definitions.units"],{}]:
 $
 ```
 
-Building `"definitions.units"` we find out patch applied correctly.
+Building `"definitions.units"` we find out that the patch applied correctly
 
 ``` sh
 $ just-mr build definitions.units -P definitions.units | grep -A 5 'German units'
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","definitions.units","-P","definitions.units"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
 INFO: Discovered 1 actions, 0 trees, 1 blobs
@@ -222,6 +223,9 @@ and the output of the patch action.
 
 ``` sh
 $ just-mr analyse data-draft
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","data-draft"]
 INFO: Requested target is [["@","units","","data-draft"],{}]
 INFO: Result of target [["@","units","","data-draft"],{}]: {
         "artifacts": {
@@ -282,7 +286,8 @@ is the rule `["data", "overlay"]` taking the union of the artifacts of
 the specified targets, accepting conflicts and resolving them in a
 latest-wins fashion. Keep in mind, that our target fields are list, not
 sets. Looking at the definition of the rule, one finds that it is simply
-a `"map_union"`. Hence we refine our `"data"` target.
+a `"map_union"`. Hence we refine our `"data-draft"` target into the target
+`"data"` reading
 
 ``` {.jsonc srcname="TARGETS.units"}
 ...
@@ -293,7 +298,7 @@ a `"map_union"`. Hence we refine our `"data"` target.
 ...
 ```
 
-The result of the analysis, of course, still is the same.
+The result of the analysis on this target, of course, remains the same.
 
 Finishing the example: binaries from globbed sources
 ----------------------------------------------------
@@ -323,6 +328,9 @@ total, giving 5 compile and one link action.
 
 ``` sh
 $ just-mr build units-draft
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","units-draft"]
 INFO: Requested target is [["@","units","","units-draft"],{}]
 INFO: Analysed target [["@","units","","units-draft"],{}]
 INFO: Discovered 6 actions, 1 trees, 0 blobs
@@ -345,6 +353,9 @@ a patch.
 
 ``` sh
 $ just-mr install -o . strfunc.c
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","...","-o",".","strfunc.c"]
 INFO: Requested target is [["@","units","","strfunc.c"],{}]
 INFO: Analysed target [["@","units","","strfunc.c"],{}]
 INFO: Discovered 0 actions, 0 trees, 0 blobs
@@ -395,6 +406,9 @@ cache.
 
 ``` sh
 $ just-mr build units
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","units"]
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
 INFO: Discovered 7 actions, 1 trees, 1 blobs
@@ -419,6 +433,9 @@ Then things work as expected
 
 ``` sh
 $ just-mr install -o /tmp/testinstall
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","...","-o","/tmp/testinstall"]
 INFO: Requested target is [["@","units","",""],{}]
 INFO: Analysed target [["@","units","",""],{}]
 INFO: Discovered 8 actions, 1 trees, 1 blobs

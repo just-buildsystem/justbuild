@@ -16,8 +16,8 @@ a native build description.
 
 For the remainder of this section, we expect to have the project files
 available resulting from successfully completing the tutorial section on
-*Building C++ Hello World*. We will demonstrate how to use the
-open-source project [fmtlib](https://github.com/fmtlib/fmt) as an
+[*Building C++ Hello World*](./hello-world.md). We will demonstrate how to use
+the open-source project [fmtlib](https://github.com/fmtlib/fmt) as an
 example for integrating third-party software to a *justbuild* project.
 
 Creating the target overlay layer for fmtlib
@@ -57,8 +57,8 @@ code base's structure. It is also good practice to provide a top-level
 Let's create the overlay structure:
 
 ``` sh
-$ mkdir -p fmt-layer/include/fmt
-$ mkdir -p fmt-layer/src
+$ mkdir -p ./fmt-layer/include/fmt
+$ mkdir -p ./fmt-layer/src
 ```
 
 The directory `include/fmt` contains only header files. As we want all
@@ -203,6 +203,9 @@ repositories:
 
 ``` sh
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 5 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
@@ -219,6 +222,9 @@ repository `fmtlib` must be specified via the `--main` option:
 
 ``` sh
 $ just-mr --main fmtlib build fmt
+INFO: Performing repositories setup
+INFO: Found 4 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","fmt"]
 INFO: Requested target is [["@","fmtlib","","fmt"],{}]
 INFO: Analysed target [["@","fmtlib","","fmt"],{}]
 INFO: Export targets found: 0 cached, 0 uncached, 1 not eligible for caching
@@ -245,7 +251,13 @@ versioning first:
 ``` sh
 $ git init .
 $ git add tutorial-defaults fmt-layer
-$ git commit -m"fix compile flags and fmt targets layer"
+$ git commit -m "fix compile flags and fmt targets layer"
+[master (root-commit) 9c3a98b] fix compile flags and fmt targets layer
+ 4 files changed, 29 insertions(+)
+ create mode 100644 fmt-layer/TARGETS
+ create mode 100644 fmt-layer/include/fmt/TARGETS
+ create mode 100644 fmt-layer/src/TARGETS
+ create mode 100644 tutorial-defaults/CC/TARGETS
 ```
 
 Note that `rules-cc` already is under Git versioning.
@@ -305,6 +317,9 @@ the benefits of the target cache should be visible on the second build:
 
 ``` sh
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 5 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
@@ -313,8 +328,12 @@ INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 7 actions, 7 cache hits.
 INFO: Artifacts built, logical paths are:
         helloworld [18d25e828a0176cef6fb029bfd83e1862712ec87:132736:x]
+INFO: Backing up artifacts of 1 export targets
 $
 $ just-mr build helloworld
+INFO: Performing repositories setup
+INFO: Found 5 repositories to set up
+INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 1 cached, 0 uncached, 0 not eligible for caching
@@ -329,6 +348,13 @@ $
 Note that in the second run the export target `"fmt"` was taken from
 cache and its 3 actions were eliminated, as their result has been
 recorded to the high-level target cache during the first run.
+
+Also note the final message in the first run. As that was the first time the
+export target `"fmt"` was built (i.e., target `"fmt"` with default
+configuration flags), an entry in the target-level cache was created. The
+log message showcases that when a remote-execution endpoint is involved, any
+artifacts referenced by a built export target needs to be ensured to be
+available.
 
 Combining overlay layers for multiple projects
 ----------------------------------------------
@@ -478,7 +504,7 @@ provide as well. So there is a rule to import libraries that way
 and the actual packaging-build version of `libfmt`, as provided in
 `etc/import.pkgconfig`, looks as follows.
 
-``` {.jsonc srcname="etc/import.pkgconfig/TARGETS.fmt}
+``` {.jsonc srcname="etc/import.pkgconfig/TARGETS.fmt"}
 { "fmt":
   {"type": ["@", "rules", "CC/pkgconfig", "system_library"], "name": ["fmt"]}
 }
