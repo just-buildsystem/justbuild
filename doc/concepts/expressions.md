@@ -213,6 +213,10 @@ those) argument(s) to obtain the final result.
 
 ##### Unary functions
 
+ - `"not"` Return the logical negation of the argument, i.e.,
+   if the argument is logically false, return `true`, and `false`
+   otherwise.
+
  - `"nub_right"` The argument has to be a list. It is an error
    if that list contains (directly or indirectly) a name. The
    result is the input list, except that for all duplicate

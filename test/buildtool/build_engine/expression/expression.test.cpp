@@ -647,6 +647,35 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(failure == Expression::FromJson("false"_json));
     }
 
+    SECTION("not expression") {
+        auto expr = Expression::FromJson(R"(
+            { "type": "not"
+            , "$1": {"type": "var", "name": "x" }
+            })"_json);
+        REQUIRE(expr);
+
+        CHECK(expr.Evaluate(env.Update("x", true), fcts) ==
+              Expression::FromJson("false"_json));
+        CHECK(expr.Evaluate(env.Update("x", false), fcts) ==
+              Expression::FromJson("true"_json));
+        CHECK(expr.Evaluate(env.Update("x", Expression::FromJson(R"([])"_json)),
+                            fcts) == Expression::FromJson("true"_json));
+        CHECK(expr.Evaluate(
+                  env.Update("x", Expression::FromJson(R"(["a"])"_json)),
+                  fcts) == Expression::FromJson("false"_json));
+        CHECK(expr.Evaluate(env.Update("x", Expression::FromJson("null"_json)),
+                            fcts) == Expression::FromJson("true"_json));
+        CHECK(expr.Evaluate(env.Update("x", Expression::FromJson("0"_json)),
+                            fcts) == Expression::FromJson("true"_json));
+        CHECK(expr.Evaluate(env.Update("x", Expression::FromJson("1"_json)),
+                            fcts) == Expression::FromJson("false"_json));
+        CHECK(expr.Evaluate(env.Update("x", Expression::FromJson(R"("")"_json)),
+                            fcts) == Expression::FromJson("true"_json));
+        CHECK(expr.Evaluate(
+                  env.Update("x", Expression::FromJson(R"("0")"_json)), fcts) ==
+              Expression::FromJson("false"_json));
+    }
+
     SECTION("and expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "and"

@@ -176,6 +176,14 @@ auto LogicalOr(SubExprEvaluator&& eval,
     return ExpressionPtr{false};
 }
 
+// Logical Negation
+auto Not(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (ValueIsTrue(expr)) {
+        return ExpressionPtr{false};
+    }
+    return ExpressionPtr{true};
+}
+
 auto Keys(ExpressionPtr const& d) -> ExpressionPtr {
     auto const& m = d->Map();
     auto result = Expression::list_t{};
@@ -1092,6 +1100,7 @@ auto const kBuiltInFunctions =
                           {"==", EqualExpr},
                           {"and", AndExpr},
                           {"or", OrExpr},
+                          {"not", UnaryExpr(Not)},
                           {"++", UnaryExpr(Flatten)},
                           {"+", UnaryExpr(Addition)},
                           {"*", UnaryExpr(Multiplication)},
