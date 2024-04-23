@@ -14,7 +14,10 @@
 
 #include "src/other_tools/just_mr/setup.hpp"
 
-#include <filesystem>
+#include <atomic>
+#include <condition_variable>
+#include <cstddef>
+#include <thread>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -282,8 +285,14 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         repos_to_setup_map.ConsumeAfterKeysReady(
             &ts,
             setup_repos->to_setup,
-            [&mr_config, config, setup_repos, main, interactive](
-                auto const& values) {
+            [&failed,
+             &mr_config,
+             repos,
+             setup_repos,
+             main,
+             interactive,
+             multi_repo_tool_name](auto const& values) {
+                // set the initial setup repositories
                 nlohmann::json mr_repos{};
                 for (auto const& repo : setup_repos->to_setup) {
                     auto i = static_cast<std::size_t>(
@@ -291,24 +300,38 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     mr_repos[repo] = *values[i];
                 }
                 // populate ALT_DIRS
-                auto repos = (*config)["repositories"];
-                if (repos.IsNotNull()) {
-                    for (auto const& repo : setup_repos->to_include) {
-                        auto desc = repos->Get(repo, Expression::none_t{});
-                        if (desc.IsNotNull()) {
-                            if (not((main and (repo == *main)) and
-                                    interactive)) {
-                                for (auto const& key : kAltDirs) {
-                                    auto val =
-                                        desc->Get(key, Expression::none_t{});
-                                    if (val.IsNotNull() and
-                                        not((main and val->IsString() and
+                constexpr auto err_msg_format =
+                    "While performing {} {}:\nWhile populating fields for "
+                    "repository {}:\nExpected value for key \"{}\" to be a "
+                    "string, but found {}";
+                for (auto const& repo : setup_repos->to_include) {
+                    auto desc = repos->Get(repo, Expression::none_t{});
+                    if (desc.IsNotNull()) {
+                        if (not((main and (repo == *main)) and interactive)) {
+                            for (auto const& key : kAltDirs) {
+                                auto val = desc->Get(key, Expression::none_t{});
+                                if (val.IsNotNull()) {
+                                    // we expect a string
+                                    if (not val->IsString()) {
+                                        Logger::Log(
+                                            LogLevel::Error,
+                                            err_msg_format,
+                                            multi_repo_tool_name,
+                                            interactive ? "setup-env" : "setup",
+                                            repo,
+                                            key,
+                                            val->ToString());
+                                        failed = true;
+                                        return;
+                                    }
+                                    if (not((main and
                                              (val->String() == *main)) and
                                             interactive)) {
                                         mr_repos[repo][key] =
                                             mr_repos[val->String()]
                                                     ["workspace_root"];
                                     }
+                                    // otherwise, continue
                                 }
                             }
                         }
