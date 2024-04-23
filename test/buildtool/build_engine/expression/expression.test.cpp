@@ -479,6 +479,19 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             CHECK(failure == Expression::FromJson(R"("failure")"_json));
         }
     }
+
+    SECTION("if defaults") {
+        auto expr = Expression::FromJson(R"(
+          { "type": "if"
+          , "cond": {"type": "var", "name": "x"}
+          }
+          )"_json);
+        CHECK(expr.Evaluate(env.Update("x", true), fcts) ==
+              Expression::FromJson(R"([])"_json));
+        CHECK(expr.Evaluate(env.Update("x", false), fcts) ==
+              Expression::FromJson(R"([])"_json));
+    }
+
     SECTION("cond expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "cond"

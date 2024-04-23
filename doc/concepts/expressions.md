@@ -107,12 +107,12 @@ expression power. It is equivalent but lot shorter to multiple
 
 ###### Binary conditional: `"if"`
 
-First the key `"cond"` is evaluated. If it evaluates to a
-value that is logically true, then the key `"then"` is
-evaluated and its value is the result of the evaluation.
-Otherwise, the key `"else"` (if present, otherwise `[]` is
-taken as default) is evaluated and the obtained value is the
-result of the evaluation.
+First the key `"cond"` is evaluated. If it evaluates to a value that
+is logically true, then the key `"then"` (if present, otherwise `[]`
+is taken as default) is evaluated and its value is the result of
+the evaluation. Otherwise, the key `"else"` (if present, otherwise
+`[]` is taken as default) is evaluated and the obtained value is
+the result of the evaluation.
 
 ###### Sequential conditional: `"cond"`
 

@@ -495,7 +495,7 @@ auto IfExpr(SubExprEvaluator&& eval,
             ExpressionPtr const& expr,
             Configuration const& env) -> ExpressionPtr {
     if (ValueIsTrue(EvalArgument(expr, "cond", eval, env))) {
-        return EvalArgument(expr, "then", eval, env);
+        return eval(expr->Get("then", list_t{}), env);
     }
     return eval(expr->Get("else", list_t{}), env);
 }
