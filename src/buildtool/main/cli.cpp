@@ -35,6 +35,7 @@ auto SetupDescribeCommandArguments(
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupCompatibilityArguments(app);
     SetupDescribeArguments(app, &clargs->describe);
+    SetupRetryArguments(app, &clargs->retry);
 }
 
 /// \brief Setup arguments for sub command "just analyse".
