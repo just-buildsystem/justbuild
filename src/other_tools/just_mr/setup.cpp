@@ -17,6 +17,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <cstddef>
+#include <exception>
 #include <thread>
 
 #include "nlohmann/json.hpp"
@@ -291,55 +292,68 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
              setup_repos,
              main,
              interactive,
-             multi_repo_tool_name](auto const& values) {
-                // set the initial setup repositories
-                nlohmann::json mr_repos{};
-                for (auto const& repo : setup_repos->to_setup) {
-                    auto i = static_cast<std::size_t>(
-                        &repo - &setup_repos->to_setup[0]);  // get index
-                    mr_repos[repo] = *values[i];
-                }
-                // populate ALT_DIRS
-                constexpr auto err_msg_format =
-                    "While performing {} {}:\nWhile populating fields for "
-                    "repository {}:\nExpected value for key \"{}\" to be a "
-                    "string, but found {}";
-                for (auto const& repo : setup_repos->to_include) {
-                    auto desc = repos->Get(repo, Expression::none_t{});
-                    if (desc.IsNotNull()) {
-                        if (not((main and (repo == *main)) and interactive)) {
-                            for (auto const& key : kAltDirs) {
-                                auto val = desc->Get(key, Expression::none_t{});
-                                if (val.IsNotNull()) {
-                                    // we expect a string
-                                    if (not val->IsString()) {
-                                        Logger::Log(
-                                            LogLevel::Error,
-                                            err_msg_format,
-                                            multi_repo_tool_name,
-                                            interactive ? "setup-env" : "setup",
-                                            repo,
-                                            key,
-                                            val->ToString());
-                                        failed = true;
-                                        return;
+             multi_repo_tool_name](auto const& values) noexcept {
+                try {
+                    // set the initial setup repositories
+                    nlohmann::json mr_repos{};
+                    for (auto const& repo : setup_repos->to_setup) {
+                        auto i = static_cast<std::size_t>(
+                            &repo - &setup_repos->to_setup[0]);  // get index
+                        mr_repos[repo] = *values[i];
+                    }
+                    // populate ALT_DIRS
+                    constexpr auto err_msg_format =
+                        "While performing {} {}:\nWhile populating fields for "
+                        "repository {}:\nExpected value for key \"{}\" to be a "
+                        "string, but found {}";
+                    for (auto const& repo : setup_repos->to_include) {
+                        auto desc = repos->Get(repo, Expression::none_t{});
+                        if (desc.IsNotNull()) {
+                            if (not((main and (repo == *main)) and
+                                    interactive)) {
+                                for (auto const& key : kAltDirs) {
+                                    auto val =
+                                        desc->Get(key, Expression::none_t{});
+                                    if (val.IsNotNull()) {
+                                        // we expect a string
+                                        if (not val->IsString()) {
+                                            Logger::Log(LogLevel::Error,
+                                                        err_msg_format,
+                                                        multi_repo_tool_name,
+                                                        interactive
+                                                            ? "setup-env"
+                                                            : "setup",
+                                                        repo,
+                                                        key,
+                                                        val->ToString());
+                                            failed = true;
+                                            return;
+                                        }
+                                        if (not((main and
+                                                 (val->String() == *main)) and
+                                                interactive)) {
+                                            mr_repos[repo][key] =
+                                                mr_repos[val->String()]
+                                                        ["workspace_root"];
+                                        }
+                                        // otherwise, continue
                                     }
-                                    if (not((main and
-                                             (val->String() == *main)) and
-                                            interactive)) {
-                                        mr_repos[repo][key] =
-                                            mr_repos[val->String()]
-                                                    ["workspace_root"];
-                                    }
-                                    // otherwise, continue
                                 }
                             }
                         }
                     }
-                }
-                // retain only the repos we need
-                for (auto const& repo : setup_repos->to_include) {
-                    mr_config["repositories"][repo] = mr_repos[repo];
+                    // retain only the repos we need
+                    for (auto const& repo : setup_repos->to_include) {
+                        mr_config["repositories"][repo] = mr_repos[repo];
+                    }
+                } catch (std::exception const& ex) {
+                    Logger::Log(LogLevel::Error,
+                                "While performing {} {}:\nPopulating the "
+                                "configuration failed with:\n{}",
+                                multi_repo_tool_name,
+                                interactive ? "setup-env" : "setup",
+                                ex.what());
+                    failed = true;
                 }
             },
             [&failed, interactive, multi_repo_tool_name](auto const& msg,

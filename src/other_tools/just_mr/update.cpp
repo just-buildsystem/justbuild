@@ -14,8 +14,12 @@
 
 #include "src/other_tools/just_mr/update.hpp"
 
+#include <atomic>
+#include <condition_variable>
 #include <cstddef>
+#include <exception>
 #include <filesystem>
+#include <thread>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
@@ -233,13 +237,29 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
         git_update_map.ConsumeAfterKeysReady(
             &ts,
             repos_to_update,
-            [&mr_config, repos_to_update_names = update_args.repos_to_update](
-                auto const& values) {
-                for (auto const& repo_name : repos_to_update_names) {
-                    auto i = static_cast<std::size_t>(
-                        &repo_name - &repos_to_update_names[0]);  // get index
-                    mr_config["repositories"][repo_name]["repository"]
-                             ["commit"] = *values[i];
+            [&failed,
+             &mr_config,
+             repos_to_update_names = update_args.repos_to_update,
+             multi_repo_tool_name](auto const& values) noexcept {
+                try {
+                    for (auto const& repo_name : repos_to_update_names) {
+                        auto i = static_cast<std::size_t>(
+                            &repo_name -
+                            &repos_to_update_names[0]);  // get index
+                        // we know "repository" is a map for repo_name, so
+                        // field "commit" is here either overwritten or set if
+                        // missing; either way, this should always work
+                        mr_config["repositories"][repo_name]["repository"]
+                                 ["commit"] = *values[i];
+                    }
+                } catch (std::exception const& ex) {
+                    Logger::Log(
+                        LogLevel::Error,
+                        "While performing {} update:\nUpdating configuration "
+                        "fields failed with:\n{}",
+                        multi_repo_tool_name,
+                        ex.what());
+                    failed = true;
                 }
             },
             [&failed, &multi_repo_tool_name](auto const& msg, bool fatal) {
