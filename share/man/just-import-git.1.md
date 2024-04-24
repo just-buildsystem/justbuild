@@ -82,6 +82,9 @@ for a single repository. Useful, if the repository to be imported does
 not have a repository configuration or should be imported without
 dependencies.
 
+**`--absent`**  
+Add the pragma `{"absent": true}` to all imported repositories.
+
 **`--mirror`** *`URL`*  
 Provides an alternative fetch location for the imported repository.
 Specifying this option multiple times will accumulate URLs in the order

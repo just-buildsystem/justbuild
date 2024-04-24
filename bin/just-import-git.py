@@ -227,7 +227,7 @@ def name_imports(to_import: List[str],
 
 
 def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
-                 assign: Json) -> Json:
+                 assign: Json, absent: bool) -> Json:
     new_spec: Json = {}
     repo = repo_spec.get("repository", {})
     if isinstance(repo, str):
@@ -242,6 +242,8 @@ def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
         existing_repos: List[str] = repo.get("repositories", [])
         new_repos = [assign[k] for k in existing_repos]
         repo = dict(repo, **{"repositories": new_repos})
+    if absent and isinstance(repo, dict):
+        repo["pragma"] = dict(repo.get("pragma", {}), **{"absent": True})
     new_spec["repository"] = repo
     for key in ["target_root", "rule_root", "expression_root"]:
         if key in repo_spec:
@@ -319,6 +321,7 @@ def handle_import(args: Namespace) -> Json:
             foreign_repos[repo],
             remote=remote,
             assign=total_assign,
+            absent=args.absent,
         )
     base_config["repositories"] = base_repos
     shutil.rmtree(to_cleanup)
@@ -350,6 +353,11 @@ def main():
         action="store_true",
         help="Pretend the remote repository description is the canonical" +
         " single-repository one",
+    )
+    parser.add_argument(
+        "--absent",
+        action="store_true",
+        help="Import repository and all its dependencies as absent."
     )
     parser.add_argument(
         "--as",
