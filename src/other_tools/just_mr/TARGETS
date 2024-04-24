@@ -220,6 +220,7 @@
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/common", "location"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]

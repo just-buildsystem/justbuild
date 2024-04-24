@@ -29,9 +29,6 @@
 
 /* Paths and constants required by just-mr */
 
-std::unordered_set<std::string> const kLocationTypes{"workspace",
-                                                     "home",
-                                                     "system"};
 auto const kDefaultJustPath = "just";
 auto const kDefaultGitPath = "git";
 auto const kDefaultRCPath = StorageConfig::GetUserHome() / ".just-mrrc";

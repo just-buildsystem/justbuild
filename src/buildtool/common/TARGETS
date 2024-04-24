@@ -145,4 +145,19 @@
     , ["src/buildtool/main", "constants"]
     ]
   }
+, "location":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["location"]
+  , "hdrs": ["location.hpp"]
+  , "srcs": ["location.cpp"]
+  , "deps": [["@", "json", "", "json"]]
+  , "stage": ["src", "buildtool", "common"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/storage", "config"]
+    ]
+  }
 }

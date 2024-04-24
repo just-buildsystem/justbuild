@@ -19,6 +19,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/location.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
@@ -28,83 +29,34 @@
 
 namespace {
 
+/// \brief Overlay for ReadLocationObject accepting an ExpressionPtr and that
+/// can std::exit
 [[nodiscard]] auto ReadLocation(
     ExpressionPtr const& location,
     std::optional<std::filesystem::path> const& ws_root)
     -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
     if (location.IsNotNull()) {
-        auto root = location->Get("root", Expression::none_t{});
-        auto path = location->Get("path", Expression::none_t{});
-        auto base = location->Get("base", std::string("."));
-
-        if (not path->IsString() or not root->IsString() or
-            not kLocationTypes.contains(root->String())) {
-            Logger::Log(LogLevel::Error,
-                        "Malformed location object: {}",
-                        location.ToJson().dump(-1));
+        auto res = ReadLocationObject(location->ToJson(), ws_root);
+        if (res.index() == 0) {
+            Logger::Log(LogLevel::Error, std::get<0>(res));
             std::exit(kExitConfigError);
         }
-        auto root_str = root->String();
-        std::filesystem::path root_path{};
-        if (root_str == "workspace") {
-            if (not ws_root) {
-                Logger::Log(LogLevel::Warning,
-                            "Not in workspace root, ignoring location {}.",
-                            location.ToJson().dump(-1));
-                return std::nullopt;
-            }
-            root_path = *ws_root;
-        }
-        if (root_str == "home") {
-            root_path = StorageConfig::GetUserHome();
-        }
-        if (root_str == "system") {
-            root_path = FileSystemManager::GetCurrentDirectory().root_path();
-        }
-        return std::make_pair(
-            std::filesystem::weakly_canonical(
-                std::filesystem::absolute(root_path / path->String())),
-            std::filesystem::weakly_canonical(
-                std::filesystem::absolute(root_path / base->String())));
+        return std::get<1>(res);
     }
     return std::nullopt;
 }
 
+/// \brief Overlay of ReadLocationObject that can std::exit
 [[nodiscard]] auto ReadLocation(
     nlohmann::json const& location,
     std::optional<std::filesystem::path> const& ws_root)
     -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
-    if (not location.contains("path") or not location.contains("root")) {
-        Logger::Log(LogLevel::Error,
-                    "Malformed location object: {}",
-                    location.dump(-1));
+    auto res = ReadLocationObject(location, ws_root);
+    if (res.index() == 0) {
+        Logger::Log(LogLevel::Error, std::get<0>(res));
         std::exit(kExitConfigError);
     }
-    auto root = location["root"].get<std::string>();
-    auto path = location["path"].get<std::string>();
-    auto base = location.contains("base") ? location["base"].get<std::string>()
-                                          : std::string(".");
-
-    std::filesystem::path root_path{};
-    if (root == "workspace") {
-        if (not ws_root) {
-            Logger::Log(LogLevel::Warning,
-                        "Not in workspace root, ignoring location {}.",
-                        location.dump(-1));
-            return std::nullopt;
-        }
-        root_path = *ws_root;
-    }
-    if (root == "home") {
-        root_path = StorageConfig::GetUserHome();
-    }
-    if (root == "system") {
-        root_path = FileSystemManager::GetCurrentDirectory().root_path();
-    }
-    return std::make_pair(std::filesystem::weakly_canonical(
-                              std::filesystem::absolute(root_path / path)),
-                          std::filesystem::weakly_canonical(
-                              std::filesystem::absolute(root_path / base)));
+    return std::get<1>(res);
 }
 
 [[nodiscard]] auto ReadOptionalLocationList(
@@ -496,10 +448,12 @@ namespace {
                         log_files->ToString());
             std::exit(kExitConfigError);
         }
-        for (auto const& log_file : log_files->List()) {
-            auto path =
-                ReadLocation(log_file->ToJson(),
-                             clargs->common.just_mr_paths->workspace_root);
+        auto const& files_list = log_files->List();
+        clargs->log.log_files.reserve(clargs->log.log_files.size() +
+                                      files_list.size());
+        for (auto const& log_file : files_list) {
+            auto path = ReadLocation(
+                log_file, clargs->common.just_mr_paths->workspace_root);
             if (path) {
                 clargs->log.log_files.emplace_back(path->first);
             }
