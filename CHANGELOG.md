@@ -38,6 +38,9 @@ A feature release on top of `1.2.0`, backwards compatible.
   enabled whatever the distro considers suitable.
 - The `gc` subcommand supports an option `--no-rotate` to carry out
   only local clean up.
+- The expression language has been extended and, in particular,
+  allows indexed access to an arry (basically using it as a tuple)
+  and a generic form of assertion (to report user errors).
 
 ### Fixes
 
