@@ -74,7 +74,7 @@ if not custom_remote:
         print(f"Warning: removing unexpected info file {REMOTE_INFO}")
         os.remove(REMOTE_INFO)
 
-    PATH=subprocess.run(
+    PATH = subprocess.run(
         ["env", "--", "sh", "-c", "echo -n $PATH"],
         stdout=subprocess.PIPE,
     ).stdout.decode('utf-8')
@@ -104,7 +104,15 @@ if not custom_remote:
         stderr=remotestderr,
     )
 
+    timeout: int = 30
     while not os.path.exists(REMOTE_INFO):
+        if timeout == 0:
+            result = "FAIL"
+            stdout = "Failed to start execution service"
+            remote_proc.terminate()
+            dump_results()
+            exit(1)
+        timeout -= 1
         time.sleep(1)
 
     with open(REMOTE_INFO) as f:

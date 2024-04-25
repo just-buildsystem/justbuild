@@ -123,7 +123,15 @@ serve_proc = subprocess.Popen(
     stderr=servestderr,
 )
 
+timeout: int = 30
 while not os.path.exists(REMOTE_SERVE_INFO):
+    if timeout == 0:
+        result = "FAIL"
+        stdout = "Failed to start serve service"
+        serve_proc.terminate()
+        dump_results()
+        exit(1)
+    timeout -= 1
     time.sleep(1)
 
 with open(REMOTE_SERVE_INFO) as f:
