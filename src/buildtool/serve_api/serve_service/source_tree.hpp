@@ -35,6 +35,7 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
+// Service for improved interaction with the target-level cache.
 class SourceTreeService final
     : public justbuild::just_serve::SourceTree::Service {
 
@@ -81,8 +82,7 @@ class SourceTreeService final
         const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
         ServeDistdirTreeResponse* response) -> ::grpc::Status override;
 
-    // Make the blob identifier of an archive content available in
-    // remote CAS, if blob is known.
+    // Make a given content blob available in remote CAS, if blob is known.
     //
     // There are no method-specific errors.
     auto ServeContent(
@@ -90,15 +90,14 @@ class SourceTreeService final
         const ::justbuild::just_serve::ServeContentRequest* request,
         ServeContentResponse* response) -> ::grpc::Status override;
 
-    // Make a given tree identifier available in remote CAS,
-    // if tree is known.
+    // Make a given tree available in remote CAS, if tree is known.
     //
     // There are no method-specific errors.
     auto ServeTree(::grpc::ServerContext* context,
                    const ::justbuild::just_serve::ServeTreeRequest* request,
                    ServeTreeResponse* response) -> ::grpc::Status override;
 
-    // Checks if a Git-tree is locally known and, if found, makes it available
+    // Check if a Git-tree is locally known and, if found, make it available
     // in a location where this serve instance can build against.
     // The implementation should not interrogate the associated remote-execution
     // endpoint at any point during the completion of this request.
@@ -109,8 +108,8 @@ class SourceTreeService final
         const ::justbuild::just_serve::CheckRootTreeRequest* request,
         CheckRootTreeResponse* response) -> ::grpc::Status override;
 
-    // Retrieves a given Git-tree from the CAS of the associated
-    // remote-execution endpoint and makes it available in a location where this
+    // Retrieve a given Git-tree from the CAS of the associated
+    // remote-execution endpoint and make it available in a location where this
     // serve instance can build against.
     //
     // There are no method-specific errors.

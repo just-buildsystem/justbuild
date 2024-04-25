@@ -34,6 +34,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
+// The target-level cache service.
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
     // Given a target-level caching key, returns the computed value. In doing
@@ -41,12 +42,12 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     // RemoteExecutionProperties contained in the ServeTargetRequest.
     // The execution backend description, the resulting target cache value,
     // and all other artifacts referenced therein MUST be made available in
-    // the CAS of the associated remote execution endpoint.
+    // the CAS of the associated remote-execution endpoint.
     //
     // A failure to analyse or build a known target (i.e., a target for which
     // we have all the needed information available) should NOT be reported as
     // an error. Instead, the failure log should be uploaded as a blob to the
-    // CAS of the associated remote execution endpoint and its digest provided
+    // CAS of the associated remote-execution endpoint and its digest provided
     // to the client in the response field `log`. In this case, the field
     // `target_value` MUST not be set.
     //
@@ -58,7 +59,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     //   This should only be used for non-fatal failures.
     // * `FAILED_PRECONDITION`: Required entries missing in the remote
     //   execution endpoint.
-    // * `UNAVAILABLE`: Could not communicate with the remote execution
+    // * `UNAVAILABLE`: Could not communicate with the remote-execution
     //   endpoint.
     // * `INVALID_ARGUMENT`: The client provided invalid arguments in request.
     // * `INTERNAL`: Internally, something is very broken.

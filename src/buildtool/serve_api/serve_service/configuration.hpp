@@ -17,6 +17,8 @@
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 
+// This service can be used by the client to double-check the server
+// configuration.
 class ConfigurationService final
     : public justbuild::just_serve::Configuration::Service {
   public:
@@ -31,7 +33,7 @@ class ConfigurationService final
         ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
         -> ::grpc::Status override;
 
-    // Returns a flag signaling whether the associated remote execution
+    // Returns a flag signaling whether the associated remote-execution
     // endpoint uses the standard remote-execution protocol.
     //
     // There are no method-specific errors.
