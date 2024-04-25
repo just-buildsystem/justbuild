@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <variant>
 #include <vector>
@@ -29,17 +30,24 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/compactification_task.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
-/// \brief Remove invalid entries from the kType storage.
+/// \brief Remove invalid entries from the key directory. The directory itself
+/// can be removed too, if it has an invalid name.
+/// A task is keyed by a two-letter directory name and the type of a storage
+/// being checked.
 /// \tparam kType         Type of the storage to inspect.
-/// \param cas            Storage to be inspected.
-/// \return               True if the kType storage doesn't contain invalid
+/// \param task           Owning compactification task.
+/// \param entry          Directory entry.
+/// \return               True if the entry directory doesn't contain invalid
 /// entries.
 template <ObjectType kType>
-[[nodiscard]] auto RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool;
+[[nodiscard]] auto RemoveInvalid(CompactificationTask const& task,
+                                 std::filesystem::path const& key) noexcept
+    -> bool;
 
 /// \brief Remove spliced entries from the kType storage.
 /// \tparam kType         Type of the storage to inspect.
@@ -64,9 +72,23 @@ template <ObjectType kType>
 }  // namespace
 
 auto Compactifier::RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
-    return ::RemoveInvalid<ObjectType::File>(cas) and
-           ::RemoveInvalid<ObjectType::Executable>(cas) and
-           ::RemoveInvalid<ObjectType::Tree>(cas);
+    auto logger = [](LogLevel level, std::string const& msg) {
+        Logger::Log(
+            level, "Compactification: Removal of invalid files:\n{}", msg);
+    };
+
+    // Collect directories and remove from the storage files and directories
+    // having invalid names.
+    // In general, the number of files in the storage is not limited, thus
+    // parallelization is done using subdirectories to not run out of memory.
+    CompactificationTask task{.cas = cas,
+                              .large = false,
+                              .logger = logger,
+                              .filter = FileSystemManager::IsDirectory,
+                              .f_task = ::RemoveInvalid<ObjectType::File>,
+                              .x_task = ::RemoveInvalid<ObjectType::Executable>,
+                              .t_task = ::RemoveInvalid<ObjectType::Tree>};
+    return CompactifyConcurrently(task);
 }
 
 auto Compactifier::RemoveSpliced(LocalCAS<false> const& cas) noexcept -> bool {
@@ -83,11 +105,13 @@ auto Compactifier::SplitLarge(LocalCAS<false> const& cas,
 
 namespace {
 template <ObjectType kType>
-auto RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
-    auto storage_root = cas.StorageRoot(kType);
+[[nodiscard]] auto RemoveInvalid(CompactificationTask const& task,
+                                 std::filesystem::path const& key) noexcept
+    -> bool {
+    auto const directory = task.cas.StorageRoot(kType) / key;
 
     // Check there are entries to process:
-    if (not FileSystemManager::IsDirectory(storage_root)) {
+    if (not FileSystemManager::IsDirectory(directory)) {
         return true;
     }
 
@@ -96,28 +120,52 @@ auto RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
     static constexpr size_t kDirNameSize = 2;
     auto const kFileNameSize = kHashSize - kDirNameSize;
 
-    FileSystemManager::UseDirEntryFunc callback =
-        [&storage_root, kFileNameSize](std::filesystem::path const& path,
-                                       bool is_tree) -> bool {
-        // Use all folders.
-        if (is_tree) {
+    // Check the directory itself is valid:
+    std::string const d_name = directory.filename();
+    if (d_name.size() != kDirNameSize or not FromHexString(d_name)) {
+        static constexpr bool kRecursively = true;
+        if (FileSystemManager::RemoveDirectory(directory, kRecursively)) {
             return true;
         }
 
-        std::string const f_name = path.filename();
-        std::string const d_name = path.parent_path().filename();
+        task.Log(LogLevel::Error,
+                 "Failed to remove invalid directory {}",
+                 directory.string());
+        return false;
+    }
 
-        // A file is valid if:
-        //  * it has a hexadecimal name of length kFileNameSize;
-        //  * parent directory has a hexadecimal name of length kDirNameSize.
-        if (f_name.size() == kFileNameSize and FromHexString(f_name) and
-            d_name.size() == kDirNameSize and FromHexString(d_name)) {
+    FileSystemManager::ReadDirEntryFunc callback =
+        [&task, &directory, kFileNameSize](std::filesystem::path const& file,
+                                           ObjectType type) -> bool {
+        // Directories are unexpected in storage subdirectories
+        if (IsTreeObject(type)) {
+            task.Log(LogLevel::Error,
+                     "There is a directory in a storage subdirectory: {}",
+                     (directory / file).string());
+            return false;
+        }
+
+        // Check file has a hexadecimal name of length kFileNameSize:
+        std::string const f_name = file.filename();
+        if (f_name.size() == kFileNameSize and FromHexString(f_name)) {
             return true;
         }
-        return FileSystemManager::RemoveFile(storage_root / path);
+        auto const path = directory / file;
+        if (not FileSystemManager::RemoveFile(path)) {
+            task.Log(LogLevel::Error,
+                     "Failed to remove invalid entry {}",
+                     path.string());
+            return false;
+        }
+        return true;
     };
-    return FileSystemManager::ReadDirectoryEntriesRecursive(storage_root,
-                                                            callback);
+
+    // Read the key storage directory:
+    if (not FileSystemManager::ReadDirectory(directory, callback)) {
+        task.Log(LogLevel::Error, "Failed to read {}", directory.string());
+        return false;
+    }
+    return true;
 }
 
 template <ObjectType... kType>
