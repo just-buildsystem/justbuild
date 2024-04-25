@@ -38,6 +38,16 @@
     ]
   , "keep": ["repos.json"]
   }
+, "absent":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["absent"]
+  , "test": ["absent.sh"]
+  , "deps":
+    [ ["end-to-end", "git-import-under-test"]
+    , ["end-to-end", "deduplicate-tool-under-test"]
+    ]
+  , "keep": ["repos.json", "deduplicated.json"]
+  }
 , "TESTS":
   { "type": "install"
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -45,7 +55,7 @@
   , "deps":
     { "type": "++"
     , "$1":
-      [ ["deduplicate"]
+      [ ["deduplicate", "absent"]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
