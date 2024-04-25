@@ -16,7 +16,7 @@
 import json
 import sys
 
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Union, cast
 
 # generic JSON type
 Json = Any
@@ -171,12 +171,49 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
         return sorted(candidates,
                       key=lambda s: (s.count("/"), len(s), s))[0]
 
+    def merge_pragma(rep: str, merged: List[str]) -> Json:
+        desc = cast(Union[str, Dict[str, Json]],
+                    repos["repositories"][rep]["repository"])
+        if not isinstance(desc, dict):
+            return desc
+        pragma = desc.get("pragma", {})
+        # Clear pragma absent unless all merged repos that are not references
+        # have the pragma
+        absent = pragma.get("absent", False)
+        for c in merged:
+            alt_desc = cast(Union[str, Dict[str, Json]],
+                            repos["repositories"][c]["repository"])
+            if (isinstance(alt_desc, dict)):
+                absent = \
+                    absent and alt_desc.get("pragma", {}).get("absent", False)
+        pragma = dict(pragma, **{"absent": absent})
+        if not absent:
+            del pragma["absent"]
+        # Add pragma to_git if at least one of the merged repos requires it
+        to_git = pragma.get("to_git", False)
+        for c in merged:
+            alt_desc = cast(Union[str, Dict[str, Json]],
+                            repos["repositories"][c]["repository"])
+            if (isinstance(alt_desc, dict)):
+                to_git = \
+                    to_git or alt_desc.get("pragma", {}).get("to_git", False)
+        pragma = dict(pragma, **{"to_git": to_git})
+        if not to_git:
+            del pragma["to_git"]
+        # Update the pragma
+        desc = dict(desc, **{"pragma": pragma})
+        if not pragma:
+            del desc["pragma"]
+        return desc
+
     bisim = bisimilar_repos(repos["repositories"])
     renaming = {}
+    updated_repos = {}
     for c in bisim:
         if len(c) == 1:
             continue
         rep = choose_representative(c)
+        updated_repos[rep] = merge_pragma(rep, c)
         for repo in c:
             if ((repo not in keep) and (repo != rep)):
                 renaming[repo] = rep
@@ -198,6 +235,8 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
     for name in repos["repositories"].keys():
         if name not in renaming:
             desc = repos["repositories"][name]
+            if name in updated_repos:
+                desc = dict(desc, **{"repository": updated_repos[name]})
             if "bindings" in desc:
                 bindings = desc["bindings"]
                 new_bindings = {}
