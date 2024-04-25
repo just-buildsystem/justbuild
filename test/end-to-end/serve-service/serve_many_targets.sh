@@ -29,6 +29,22 @@ fi
 mkdir work
 cd work
 touch ROOT
+for repo in 0 1
+do
+
+if [ "$repo" -eq 0 ]
+then
+    COMMIT="${COMMIT_0}"
+    MODULE=""
+else
+    COMMIT="${COMMIT_1}"
+    MODULE="module"
+fi
+echo
+echo Testing module "\"$MODULE\"" on commit $COMMIT
+echo ==============
+echo
+
 cat > repos.json <<EOF
 { "repositories":
   { "":
@@ -38,7 +54,7 @@ cat > repos.json <<EOF
   , "transform":
     { "repository":
       { "type": "git"
-      , "commit": "$COMMIT_0"
+      , "commit": "$COMMIT"
       , "pragma": {"absent": true}
       , "repository": "http://non-existent.example.org/data.git"
       , "branch": "master"
@@ -49,43 +65,44 @@ cat > repos.json <<EOF
 EOF
 cat repos.json
 
-cat > TARGETS <<'EOF'
+cat > TARGETS <<EOF
 { "":
   { "type": "install"
   , "files": {"a": "a", "b": "b", "c": "c", "d": "d", "e": "e", "f": "f"}
   }
 , "a":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "a"}
   }
 , "b":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "b"}
   }
 , "c":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "c"}
   }
 , "d":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "d"}
   }
 , "e":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "e"}
   }
 , "f":
   { "type": "configure"
-  , "target": ["@", "transform", "", ""]
+  , "target": ["@", "transform", "$MODULE", ""]
   , "config": {"type": "singleton_map", "key": "DATA", "value": "f"}
   }
 }
 EOF
+cat TARGETS
 
 "${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
              -R "${SERVE}" -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} \
@@ -97,5 +114,7 @@ EOF
 [ "$(cat "${OUT}/d")" = "DDD" ]
 [ "$(cat "${OUT}/e")" = "EEE" ]
 [ "$(cat "${OUT}/f")" = "FFF" ]
+
+done
 
 echo OK

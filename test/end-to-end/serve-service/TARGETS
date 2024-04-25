@@ -157,13 +157,19 @@
   { "type": "install"
   , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.transform"}
   }
+, "serve-many-targets (data in module)":
+  { "type": "install"
+  , "files":
+    {"ROOT": "data/ROOT", "module/TARGETS": "data/targets/TARGETS.transform"}
+  }
 , "serve-many-targets":
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-many-targets"]
   , "test": ["serve_many_targets.sh"]
   , "deps":
     [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
-  , "repos": ["serve-many-targets (data)"]
+  , "repos":
+    ["serve-many-targets (data)", "serve-many-targets (data in module)"]
   }
 , "deduplication-of-serve-requests":
   { "type": ["end-to-end", "with serve"]
