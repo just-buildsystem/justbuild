@@ -66,9 +66,12 @@ cat repos.json
 
 # Make the repository available via 'just serve'
 cat > .just-servec <<EOF
-{ "repositories": ["${REPO_ROOT}"]
-, "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
-, "local build root": "${SERVE_LBR}"
+{ "repositories": [{"root": "system", "path": "${REPO_ROOT}"}]
+, "remote service":
+  { "info file": {"root": "system", "path": "${INFOFILE}"}
+  , "pid file": {"root": "system", "path": "${PIDFILE}"}
+  }
+, "local build root": {"root": "system", "path": "${SERVE_LBR}"}
 }
 EOF
 echo "Serve service configuration:"

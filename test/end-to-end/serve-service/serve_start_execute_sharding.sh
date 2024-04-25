@@ -115,8 +115,11 @@ ls -R "${SERVE_LBR}"
 #
 cat > .just-servec <<EOF
 { "repositories": []
-, "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
-, "local build root": "${SERVE_LBR}"
+, "remote service":
+  { "info file": {"root": "system", "path": "${INFOFILE}"}
+  , "pid file": {"root": "system", "path": "${PIDFILE}"}
+  }
+, "local build root": {"root": "system", "path": "${SERVE_LBR}"}
 }
 EOF
 echo "Serve service configuration:"

@@ -14,24 +14,32 @@ JSON object is equivalent. We assume, that in JSON objects, each key
 occurs at most once; it is implementation defined how repetitions of the
 same key are treated.
 
+Location objects
+----------------
+
+The general syntax and semantics of a location object are described in 
+**`just-mrrc`**(5). Here we use a restricted form where the value for key
+*`"root"`* can only be either *`"home"`* or *`"system"`*. This is because
+`just serve` is not aware of the concept of workspaces.
+
 The just-serve configuration format
 -----------------------------------
 
 The configuration file is given by a JSON object.
 
- - The value for the key *`"local build root"`* is a string specifying the path
-   to use as the root for local CAS, cache, and build directories. The path will
-   be created if it does not exist already. 
+ - The value for the key *`"local build root"`* is a single location object,
+   specifying the path to use as the root for local CAS, cache, and build
+   directories. The path will be created if it does not exist already.
 
- - The value for the key *`"repositories"`* is a list of strings specifying
-   paths to Git repositories for **`just`** **`serve`** to use as additional
-   object lookup locations. The paths are to be used in the order given and
-   only if requested objects are not found in the local build root.  
+ - The value for the key *`"repositories"`* is a list of location objects,
+   specifying paths to Git repositories for **`just`** **`serve`** to use as
+   additional object lookup locations. The paths are to be used in the order
+   given and only if requested objects are not found in the local build root.
 
  - The value for the key *`"logging"`* is a JSON object specifying logging
    options.  
-   For subkey *`"files"`* the value is a list of strings specifying one or more
-   local log files to use.  
+   For subkey *`"files"`* the value is a list of location objects, specifying
+   one or more local log files to use.  
    For subkey *`"limit"`* the value is an integer setting the default for
    the log limit.  
    For subkey *`"restrict stderr limit"`* the value is an integer setting a
@@ -44,12 +52,12 @@ The configuration file is given by a JSON object.
   - The value for the key *`"authentication"`* is a JSON object specifying
    client-side authentication options for **`just`** **`serve`** when
    communicating with the remote execution endpoint.  
-   For subkey *`"ca cert"`* the value is a string specifying the path to a TLS
-   CA certificate.  
-   For subkey *`"client cert"`* the value is a string specifying the path to a
-   TLS client certificate.  
-   For subkey *`"client key"`* the value is a string specifying the path to a
-   TLS client key.  
+   For subkey *`"ca cert"`* the value is a single location object, specifying
+   the path to a TLS CA certificate.  
+   For subkey *`"client cert"`* the value is a single location object,
+   specifying the path to a TLS client certificate.  
+   For subkey *`"client key"`* the value is a single location object,
+   specifying the path to a TLS client key.  
 
  - The value for the key *`"remote service"`* is a JSON object specifying the
    server arguments for running **`just`** **`serve`** as a service.  
@@ -57,15 +65,17 @@ The configuration file is given by a JSON object.
    If unset, the loopback device is used.  
    For subkey *`"port"`* the value specifies the port to which the service is to
    listen. If unset, the service will choose to the first available one.  
-   For subkey *`"pid file"`* the value specifies a file to which the pid should
-   be stored in plain text. If the file exists, it will be overwritten.  
-   For subkey *`"info file"`* the value specifies a file to which the used port,
-   interface, and pid should be stored in JSON format. If the file exists, it
-   will be overwritten.  
-   For subkey *`"server cert"`* the value is a string specifying the path to a
-   TLS server certificate.  
-   For subkey *`"server key"`* the value is a string specifying the path to a
-   TLS server key.  
+   For subkey *`"pid file"`* the value is a single location object, specifying
+   the path to a file to which the pid should be stored in plain text. If the
+   file exists, it will be overwritten.  
+   For subkey *`"info file"`* the value specifies a single location object,
+   specifying the path to a file file to which the used port, interface, and
+   pid should be stored in JSON format. If the file exists, it will be
+   overwritten.  
+   For subkey *`"server cert"`* the value is a single location object,
+   specifying the path to a TLS server certificate.  
+   For subkey *`"server key"`* the value is a single location object,
+   specifying the path to a TLS server key.  
 
  - The value for the key *`"execution endpoint"`* is a JSON object specifying
    the arguments of a remote execution endpoint to be used by **`just`**
@@ -120,25 +130,33 @@ EXAMPLE
 An example serve configuration file could look as follows.
 
 ```jsonc
-{ "local build root": "/var/just-serve/root"
+{ "local build root": {"root": "system", "path": "var/just-serve/root"}
 , "authentication":
-  { "ca cert": "/etc/just-serve/certs/ca.crt"
-  , "client cert": "/etc/just-serve/certs/client.crt"
-  , "client key": "/etc/just-serve/certs/client.key"
+  { "ca cert":
+    {"root": "system", "path": "etc/just-serve/certs/ca.crt"}
+  , "client cert":
+    {"root": "system", "path": "etc/just-serve/certs/client.crt"}
+  , "client key":
+    {"root": "system", "path": "etc/just-serve/certs/client.key"}
   }
 , "remote service":
   { "interface": "192.0.2.1"
   , "port": 9999
-  , "pid file": "/var/run/just-serve/server.pid"
-  , "server cert": "/etc/just-serve/certs/server.crt"
-  , "server key": "/etc/just-serve/certs/server.key"
+  , "pid file":
+    {"root": "system", "path": "var/run/just-serve/server.pid"}
+  , "server cert":
+    {"root": "system", "path": "etc/just-serve/certs/server.crt"}
+  , "server key":
+    {"root": "system", "path": "etc/just-serve/certs/server.key"}
   }
 , "execution endpoint": {"address": "198.51.100.1:8989"}
 , "repositories":
-  [ "/var/just-serve/repos/third-party-distfiles"
-  , "/var/just-serve/repos/project-foo"
-  , "/var/just-serve/repos/project-bar"
+  [ {"root": "system", "path": "var/just-serve/repos/third-party-distfiles"}
+  , {"root": "system", "path": "var/just-serve/repos/project-foo"}
+  , {"root": "system", "path": "var/just-serve/repos/project-bar"}
   ]
+, "logging":
+  {"files": [{"root": "home", "path": ".log/just-serve/latest"}]}
 , "jobs": 8
 , "build": {"build jobs": 128}
 , "max-attempts": 10
@@ -150,4 +168,4 @@ An example serve configuration file could look as follows.
 See also
 ========
 
-**`just`**(1)
+**`just`**(1), **`just-mrrc`**(5)

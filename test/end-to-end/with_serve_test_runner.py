@@ -59,19 +59,19 @@ def get_remote_execution_address(d: Json) -> str:
 
 dump_results()
 
-TEMP_DIR = os.path.realpath("scratch")
+TEMP_DIR = os.path.abspath(os.path.realpath("scratch"))
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-WORK_DIR = os.path.realpath("work")
+WORK_DIR = os.path.abspath(os.path.realpath("work"))
 os.makedirs(WORK_DIR, exist_ok=True)
 
-REMOTE_DIR = os.path.realpath("remote")
+REMOTE_DIR = os.path.abspath(os.path.realpath("remote"))
 os.makedirs(REMOTE_DIR, exist_ok=True)
 REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
 
 g_REMOTE_EXECUTION_ADDRESS: str = ""
 
-SERVE_DIR = os.path.realpath("serve")
+SERVE_DIR = os.path.abspath(os.path.realpath("serve"))
 os.makedirs(SERVE_DIR, exist_ok=True)
 SERVE_LBR = os.path.join(SERVE_DIR, "build-root")
 
@@ -80,7 +80,7 @@ standalone_serve = json.loads(sys.argv[2])
 
 remote_proc = None
 
-PATH=subprocess.run(
+PATH = subprocess.run(
     ["env", "--", "sh", "-c", "echo -n $PATH"],
     stdout=subprocess.PIPE,
 ).stdout.decode('utf-8')
@@ -88,43 +88,43 @@ PATH=subprocess.run(
 remotestdout = open("remotestdout", "w")
 remotestderr = open("remotestderr", "w")
 if not standalone_serve:
-  # start just execute as remote service
-  REMOTE_INFO = os.path.join(REMOTE_DIR, "remote-info.json")
+    # start just execute as remote service
+    REMOTE_INFO = os.path.join(REMOTE_DIR, "remote-info.json")
 
-  if os.path.exists(REMOTE_INFO):
-      print(f"Warning: removing unexpected info file {REMOTE_INFO}")
-      os.remove(REMOTE_INFO)
+    if os.path.exists(REMOTE_INFO):
+        print(f"Warning: removing unexpected info file {REMOTE_INFO}")
+        os.remove(REMOTE_INFO)
 
-  remote_cmd = [
-      "./bin/just",
-      "execute",
-      "-L",
-      json.dumps(["env", "PATH=" + PATH]),
-      "--info-file",
-      REMOTE_INFO,
-      "--local-build-root",
-      REMOTE_LBR,
-      "--log-limit",
-      "6",
-      "--plain-log",
-  ]
+    remote_cmd = [
+        "./bin/just",
+        "execute",
+        "-L",
+        json.dumps(["env", "PATH=" + PATH]),
+        "--info-file",
+        REMOTE_INFO,
+        "--local-build-root",
+        REMOTE_LBR,
+        "--log-limit",
+        "6",
+        "--plain-log",
+    ]
 
-  if compatible:
-      remote_cmd.append("--compatible")
+    if compatible:
+        remote_cmd.append("--compatible")
 
-  remote_proc = subprocess.Popen(
-      remote_cmd,
-      stdout=remotestdout,
-      stderr=remotestderr,
-  )
+    remote_proc = subprocess.Popen(
+        remote_cmd,
+        stdout=remotestdout,
+        stderr=remotestderr,
+    )
 
-  while not os.path.exists(REMOTE_INFO):
-      time.sleep(1)
+    while not os.path.exists(REMOTE_INFO):
+        time.sleep(1)
 
-  with open(REMOTE_INFO) as f:
-      info = json.load(f)
+    with open(REMOTE_INFO) as f:
+        info = json.load(f)
 
-  g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
+    g_REMOTE_EXECUTION_ADDRESS = get_remote_execution_address(info)
 
 # start just serve service
 SERVE_INFO = os.path.join(SERVE_DIR, "serve-info.json")
@@ -134,7 +134,10 @@ serve_config: Json = {}
 
 if standalone_serve:
     serve_config = {
-        "local build root": SERVE_LBR,
+        "local build root": {
+            "root": "system",
+            "path": SERVE_LBR
+        },
         "logging": {
             "limit": 6,
             "plain": True
@@ -143,7 +146,10 @@ if standalone_serve:
             "compatible": compatible
         },
         "remote service": {
-            "info file": SERVE_INFO
+            "info file": {
+                "root": "system",
+                "path": SERVE_INFO
+            }
         },
         "build": {
             "local launcher": ["env", "PATH=" + PATH]
@@ -151,7 +157,10 @@ if standalone_serve:
     }
 else:
     serve_config = {
-        "local build root": SERVE_LBR,
+        "local build root": {
+            "root": "system",
+            "path": SERVE_LBR
+        },
         "logging": {
             "limit": 6,
             "plain": True
@@ -161,11 +170,14 @@ else:
             "compatible": compatible
         },
         "remote service": {
-            "info file": SERVE_INFO
+            "info file": {
+                "root": "system",
+                "path": SERVE_INFO
+            }
         },
     }
 
-repositories: List[str] = []
+repositories: List[Dict[str, str]] = []  # list of location objects
 repos_env: Dict[str, str] = {}
 
 REPOS_DIR = os.path.realpath("repos")
@@ -214,7 +226,7 @@ for repo in repo_data:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
-    repositories.append(target)
+    repositories.append({"root": "system", "path": target})
     repos_env["COMMIT_%d" % count] = subprocess.run(
         ["git", "log", "-n", "1", "--format=%H"],
         stdout=subprocess.PIPE,
@@ -255,8 +267,9 @@ ENV = dict(
     os.environ,
     TEST_TMPDIR=TEMP_DIR,
     TMPDIR=TEMP_DIR,
-    REMOTE_EXECUTION_ADDRESS= g_REMOTE_EXECUTION_ADDRESS if not standalone_serve else SERVE_ADDRESS,
-    REMOTE_LBR=REMOTE_LBR if not standalone_serve else SERVE_LBR,
+    REMOTE_EXECUTION_ADDRESS=(g_REMOTE_EXECUTION_ADDRESS
+                              if not standalone_serve else SERVE_ADDRESS),
+    REMOTE_LBR=(REMOTE_LBR if not standalone_serve else SERVE_LBR),
     SERVE=SERVE_ADDRESS,
     SERVE_LBR=SERVE_LBR,  # expose the serve build root to the test env
     **repos_env)

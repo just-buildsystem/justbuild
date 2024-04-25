@@ -34,8 +34,11 @@ readonly PIDFILE="${PWD}/pid.txt"
 COMPAT=""
 cat > .just-servec <<EOF
 { "repositories": []
-, "remote service": {"info file": "${INFOFILE}", "pid file": "${PIDFILE}"}
-, "local build root": "${LBR}"
+, "remote service":
+  { "info file": {"root": "system", "path": "${INFOFILE}"}
+  , "pid file": {"root": "system", "path": "${PIDFILE}"}
+  }
+, "local build root": {"root": "system", "path": "${LBR}"}
 EOF
 if [ "${COMPATIBLE:-}" = "YES" ]
 then

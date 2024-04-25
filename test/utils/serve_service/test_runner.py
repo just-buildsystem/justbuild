@@ -40,13 +40,13 @@ def dump_results() -> None:
 
 dump_results()
 
-TEMP_DIR = os.path.realpath("scratch")
+TEMP_DIR = os.path.abspath(os.path.realpath("scratch"))
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-WORK_DIR = os.path.realpath("work")
+WORK_DIR = os.path.abspath(os.path.realpath("work"))
 os.makedirs(WORK_DIR, exist_ok=True)
 
-REMOTE_DIR = os.path.realpath("remote")
+REMOTE_DIR = os.path.abspath(os.path.realpath("remote"))
 os.makedirs(REMOTE_DIR, exist_ok=True)
 
 SERVE_CONFIG_FILE = os.path.realpath("just-servec")
@@ -70,18 +70,47 @@ if os.path.exists(REMOTE_SERVE_INFO):
 
 # Run 'just serve'
 
+PATH = subprocess.run(
+    ["env", "--", "sh", "-c", "echo -n $PATH"],
+    stdout=subprocess.PIPE,
+).stdout.decode('utf-8')
+
+compatible: bool = False
+with open("compatible-remote.json") as f:
+    s = json.load(f)
+    if s:
+        compatible = True
+
 with open(SERVE_CONFIG_FILE, "w") as f:
     f.write(
         json.dumps({
-            "repositories": [TEST_SERVE_REPO_1, TEST_SERVE_REPO_2],
+            "repositories": [{
+                "root": "system",
+                "path": TEST_SERVE_REPO_1
+            }, {
+                "root": "system",
+                "path": TEST_SERVE_REPO_2
+            }],
             "logging": {
                 "limit": 6,
                 "plain": True
             },
             "remote service": {
-                "info file": REMOTE_SERVE_INFO
+                "info file": {
+                    "root": "system",
+                    "path": REMOTE_SERVE_INFO
+                }
             },
-            "local build root": SERVE_LBR
+            "local build root": {
+                "root": "system",
+                "path": SERVE_LBR
+            },
+            "execution endpoint": {
+                "compatible": compatible
+            },
+            "build": {
+                "local launcher": ["env", "PATH=" + PATH]
+            }
         }))
 
 serve_cmd = ["./bin/just", "serve", SERVE_CONFIG_FILE]

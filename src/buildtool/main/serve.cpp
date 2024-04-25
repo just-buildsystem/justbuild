@@ -14,21 +14,47 @@
 
 #include "src/buildtool/main/serve.hpp"
 
-#include <chrono>
-#include <cstddef>
-
 #ifndef BOOTSTRAP_BUILD_TOOL
 
+#include <chrono>
+#include <cstddef>
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
+#include <optional>
+#include <string>
+#include <utility>
+#include <variant>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/common/location.hpp"
 #include "src/buildtool/common/remote/retry_parameters.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
+
+namespace {
+
+/// \brief Overlay for ReadLocationObject accepting an ExpressionPtr and no
+/// workspace root and that can std::exit
+[[nodiscard]] auto ReadLocation(ExpressionPtr const& location)
+    -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
+    if (location.IsNotNull()) {
+        auto res = ReadLocationObject(location->ToJson(), std::nullopt);
+        if (res.index() == 0) {
+            Logger::Log(LogLevel::Error, std::get<0>(res));
+            std::exit(kExitFailure);
+        }
+        return std::get<1>(res);
+    }
+    return std::nullopt;
+}
+
+}  // namespace
 
 [[nodiscard]] auto ParseRetryCliOptions(Configuration const& config) noexcept
     -> bool {
@@ -119,43 +145,39 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
         std::exit(kExitFailure);
     }
     // read local build root
-    auto local_root = serve_config["local build root"];
-    if (local_root.IsNotNull()) {
-        if (not local_root->IsString()) {
-            Logger::Log(LogLevel::Error,
-                        "In serve service config file {}:\nValue for key "
-                        "\"local build root\" has to be a string, but found {}",
-                        clargs->serve.config.string(),
-                        local_root->ToString());
-            std::exit(kExitFailure);
-        }
-        clargs->endpoint.local_root = local_root->String();
+    auto local_root = ReadLocation(serve_config["local build root"]);
+    if (local_root) {
+        clargs->endpoint.local_root = local_root->first;
     }
     // read paths of additional lookup repositories
     auto repositories = serve_config["repositories"];
     if (repositories.IsNotNull()) {
         if (not repositories->IsList()) {
-            Logger::Log(
-                LogLevel::Error,
-                "In serve service config file {}:\nValue for key "
-                "\"repositories\" has to be a list of strings, but found {}",
-                clargs->serve.config.string(),
-                repositories->ToString());
+            Logger::Log(LogLevel::Error,
+                        "In serve service config file {}:\nValue for key "
+                        "\"repositories\" has to be a list, but found {}",
+                        clargs->serve.config.string(),
+                        repositories->ToString());
             std::exit(kExitFailure);
         }
         auto const& repos_list = repositories->List();
         clargs->serve.repositories.reserve(clargs->serve.repositories.size() +
                                            repos_list.size());
         for (auto const& repo : repos_list) {
-            if (not repo->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nExpected each "
-                            "repository path to be a string, but found {}",
-                            clargs->serve.config.string(),
-                            repo->ToString());
-                std::exit(kExitFailure);
+            auto repo_root = ReadLocation(repo);
+            if (repo_root) {
+                if (not FileSystemManager::IsDirectory(repo_root->first)) {
+                    // warn the user that the path might not exist or is not
+                    // a directory
+                    Logger::Log(LogLevel::Warning,
+                                "In serve service config file {}:\nProvided "
+                                "known repository path {} does not exist or "
+                                "is not a directory!",
+                                clargs->serve.config.string(),
+                                repo_root->first.string());
+                }
+                clargs->serve.repositories.emplace_back(repo_root->first);
             }
-            clargs->serve.repositories.emplace_back(repo->String());
         }
     }
     // read logging arguments
@@ -212,17 +234,11 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             auto const& files_list = files->List();
             clargs->log.log_files.reserve(clargs->log.log_files.size() +
                                           files_list.size());
-            for (auto const& file : files_list) {
-                if (not file->IsString()) {
-                    Logger::Log(
-                        LogLevel::Error,
-                        "In serve service config file {}:\nExpected each log "
-                        "file path to be a string, but found {}",
-                        clargs->serve.config.string(),
-                        file->ToString());
-                    std::exit(kExitFailure);
+            for (auto const& log_file : files_list) {
+                auto path = ReadLocation(log_file);
+                if (path) {
+                    clargs->log.log_files.emplace_back(path->first);
                 }
-                clargs->log.log_files.emplace_back(file->String());
             }
         }
         // read in limit field
@@ -269,46 +285,22 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             std::exit(kExitFailure);
         }
         // read the TLS CA certificate
-        auto cacert = auth_args->Get("ca cert", Expression::none_t{});
-        if (cacert.IsNotNull()) {
-            if (not cacert->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "authentication key \"ca cert\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            cacert->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->auth.tls_ca_cert = cacert->String();
+        auto cacert =
+            ReadLocation(auth_args->Get("ca cert", Expression::none_t{}));
+        if (cacert) {
+            clargs->auth.tls_ca_cert = cacert->first;
         }
         // read the TLS client certificate
-        auto client_cert = auth_args->Get("client cert", Expression::none_t{});
-        if (client_cert.IsNotNull()) {
-            if (not client_cert->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "authentication key \"client cert\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            client_cert->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->cauth.tls_client_cert = client_cert->String();
+        auto client_cert =
+            ReadLocation(auth_args->Get("client cert", Expression::none_t{}));
+        if (client_cert) {
+            clargs->cauth.tls_client_cert = client_cert->first;
         }
         // read the TLS client key
-        auto client_key = auth_args->Get("client key", Expression::none_t{});
-        if (client_key.IsNotNull()) {
-            if (not client_key->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "authentication key \"client key\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            client_key->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->cauth.tls_client_key = client_key->String();
+        auto client_key =
+            ReadLocation(auth_args->Get("client key", Expression::none_t{}));
+        if (client_key) {
+            clargs->cauth.tls_client_key = client_key->first;
         }
     }
     // read remote service arguments
@@ -361,62 +353,28 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             clargs->service.port = std::nearbyint(val);
         }
         // read the pid file
-        auto pid_file = remote_service->Get("pid file", Expression::none_t{});
-        if (pid_file.IsNotNull()) {
-            if (not pid_file->IsString()) {
-                Logger::Log(
-                    LogLevel::Error,
-                    "In serve service config file {}:\nValue for remote "
-                    "service key \"pid file\" has to be a string, but found {}",
-                    clargs->serve.config.string(),
-                    pid_file->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->service.pid_file = pid_file->String();
+        auto pid_file =
+            ReadLocation(remote_service->Get("pid file", Expression::none_t{}));
+        if (pid_file) {
+            clargs->service.pid_file = pid_file->first;
         }
         // read the info file
-        auto info_file = remote_service->Get("info file", Expression::none_t{});
-        if (info_file.IsNotNull()) {
-            if (not info_file->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "remote service key \"info file\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            info_file->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->service.info_file = info_file->String();
+        auto info_file = ReadLocation(
+            remote_service->Get("info file", Expression::none_t{}));
+        if (info_file) {
+            clargs->service.info_file = info_file->first;
         }
         // read the TLS server certificate
-        auto server_cert =
-            remote_service->Get("server cert", Expression::none_t{});
-        if (server_cert.IsNotNull()) {
-            if (not server_cert->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "remote service key \"server cert\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            server_cert->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->sauth.tls_server_cert = server_cert->String();
+        auto server_cert = ReadLocation(
+            remote_service->Get("server cert", Expression::none_t{}));
+        if (server_cert) {
+            clargs->sauth.tls_server_cert = server_cert->first;
         }
         // read the TLS server key
-        auto server_key =
-            remote_service->Get("server key", Expression::none_t{});
-        if (server_key.IsNotNull()) {
-            if (not server_key->IsString()) {
-                Logger::Log(LogLevel::Error,
-                            "In serve service config file {}:\nValue for "
-                            "remote service key \"server key\" has to be a "
-                            "string, but found {}",
-                            clargs->serve.config.string(),
-                            server_key->ToString());
-                std::exit(kExitFailure);
-            }
-            clargs->sauth.tls_server_key = server_key->String();
+        auto server_key = ReadLocation(
+            remote_service->Get("server key", Expression::none_t{}));
+        if (server_key) {
+            clargs->sauth.tls_server_key = server_key->first;
         }
     }
     // read execution endpoint arguments
@@ -522,6 +480,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             clargs->build.timeout =
                 std::size_t(timeout->Number()) * std::chrono::seconds{1};
         }
+        // read target-cache writing strategy
         auto strategy = build_args->Get("target-cache write strategy",
                                         Expression::none_t{});
         if (strategy.IsNotNull()) {
@@ -546,7 +505,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->tc.target_cache_write_strategy = *s_value;
         }
-
+        // read local launcher
         auto launcher = build_args->Get("local launcher", Expression::none_t{});
         if (launcher.IsNotNull()) {
             if (not launcher->IsList()) {

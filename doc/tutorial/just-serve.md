@@ -188,13 +188,17 @@ certification, such as
 ...
 , "remote-service":
   ...
-  , "server cert": "/etc/just-serve/certs/server.crt"
-  , "server key": "/etc/just-serve/certs/server.key"
+  , "server cert":
+    {"root": "system", "path": "etc/just-serve/certs/server.crt"}
+  , "server key": 
+    {"root": "system", "path": "etc/just-serve/certs/server.key"}
   ...
 , "authentication":
-  { "ca cert": "/etc/just-serve/certs/ca.crt"
-  , "client cert": "/etc/just-serve/certs/client.crt"
-  , "client key": "/etc/just-serve/certs/client.key"
+  { "ca cert": {"root": "system", "path": "etc/just-serve/certs/ca.crt"}
+  , "client cert": 
+    {"root": "system", "path": "etc/just-serve/certs/client.crt"}
+  , "client key": 
+    {"root": "system", "path": "etc/just-serve/certs/client.key"}
   }
 ...
 ```
@@ -215,6 +219,11 @@ $ just-mr -R <serve_endpoint> [-r <execution_endpoint>] --tls-ca-cert <path_to_C
           --tls-client-cert <path_to_client_cert> --tls-client-key <path_to_client_key> [...]
 ```
 
+Note that the serve configuration file requires location objects to be
+specified (which can be relative to the system root or to the current user's
+home directory), while the command line argument paths are expected to be
+either relative to the invocation directory or absolute.
+
 ### Known repositories
 
 A simple way to maintain the dependencies of a project is to store its list of
@@ -228,9 +237,9 @@ extended, for example, with
 ``` {.jsonc srcname=".just-servec"}
 ...
 , "repositories":
-  [ "third-party-distfiles"
-  , "repos/project-foo"
-  , "repos/project-bar"
+  [ {"root": "system", "path": "var/repos/third-party-distfiles"}
+  , {"root": "system", "path": "var/repos/project-foo"}
+  , {"root": "system", "path": "var/repos/project-bar"}
   ]
 ...
 ```
@@ -244,7 +253,7 @@ configuration file can be extended, for example, with
 
 ``` {.jsonc srcname=".just-servec"}
 ...
-, "local build root": "/var/cache/serve-build-root"
+, "local build root": {"root": "system", "path": "var/cache/serve-build-root"}
 ...
 ```
 
@@ -264,7 +273,7 @@ extend the `"remote service"` field accordingly
 ...
 , "remote-service":
   ...
-  , "pid file": "/var/run/info.json"
+  , "pid file": {"root": "system", "path": "var/run/info.json"}
   ...
 ...
 ```
@@ -369,7 +378,7 @@ Let us start with a basic `.just-servec` configuration file, on which we can
 then expand step-by-step
 
 ``` {.jsonc srcname=".just-servec"}
-{ "local build root": "serve-build-root"
+{ "local build root": {"root": "system", "path": "var/cache/serve-build-root"}
 , "remote service": {"port": 9999}
 }
 ```
@@ -420,10 +429,10 @@ to avoid clients having to fetch archives from the network.
 The typical way a project keeps track of their third-party packages is under
 some version control, e.g., a Git repository. Assuming the referenced fmtlib
 archive is available in such a Git repository, we can create a local checkout
-at path `repos/distfiles`. Then the following command should pass
+at path `/var/repos/distfiles`. Then the following command should pass
 
 ``` sh
-$ git -C repos/distfiles cat-file -t fd4144c2835f89516cac0db1f3c7b73562555dca
+$ git -C /var/repos/distfiles cat-file -t fd4144c2835f89516cac0db1f3c7b73562555dca
 blob
 $
 ```
@@ -433,9 +442,9 @@ adding its path to the known repository list in the `.just-servec` configuration
 file, which will become
 
 ``` {.jsonc srcname=".just-servec"}
-{ "local build root": "/var/cache/serve-build-root"
+{ "local build root": {"root": "system", "path": "var/cache/serve-build-root"}
 , "remote service": {"port": 9999}
-, "repositories": ["repos/distfiles"]
+, "repositories": [{"root": "system", "path": "var/repos/distfiles"}]
 }
 ```
 
@@ -459,7 +468,7 @@ dependency. We will start with the serve service setup.
 As we want to be able to easily change the commit we are interested in whenever
 we expect the latest version of this repository in our project, on the serve
 server we will create a local Git checkout of `"rules-cc"` stored at 
-`repos/rules-cc`. This means that a client can easily update its build
+`/var/repos/rules-cc`. This means that a client can easily update its build
 description to point to whichever commit it needs, while the serve server will
 have to ensure this checkout is always kept updated (usually automatized, for
 example via a cron job). The configuration file of the serve service will need
@@ -467,9 +476,12 @@ thus to be updated to include this checkout location, so `.just-servec` now
 reads
 
 ``` {.jsonc srcname=".just-servec"}
-{ "local build root": "/var/cache/serve-build-root"
+{ "local build root": {"root": "system", "path": "var/cache/serve-build-root"}
 , "remote service": {"port": 9999}
-, "repositories": ["repos/distfiles", "repos/rules-cc"]
+, "repositories": 
+  [ {"root": "system", "path": "var/repos/distfiles"}
+  , {"root": "system", "path": "var/repos/rules-cc"}
+  ]
 }
 ```
 
@@ -535,9 +547,12 @@ We are now ready to see how this setup works. At this point the `repos.json` is
 and the `.just-servec` configuration file is
 
 ``` {.jsonc srcname=".just-servec"}
-{ "local build root": "/var/cache/serve-build-root"
+{ "local build root": {"root": "system", "path": "var/cache/serve-build-root"}
 , "remote service": {"port": 9999}
-, "repositories": ["repos/distfiles", "repos/rules-cc"]
+, "repositories": 
+  [ {"root": "system", "path": "var/repos/distfiles"}
+  , {"root": "system", "path": "var/repos/rules-cc"}
+  ]
 }
 ```
 
