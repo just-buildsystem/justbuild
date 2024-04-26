@@ -201,7 +201,8 @@ namespace Target = BuildMaps::Target;
             return std::nullopt;
         }
         DetectAndReportPending("expressions", expr_map, logger);
-        DetectAndReportPending("targets", expr_map, logger);
+        DetectAndReportPending("rules", rule_map, logger);
+        DetectAndReportPending("targets", target_map, logger);
         return std::nullopt;
     }
 
