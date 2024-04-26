@@ -30,6 +30,7 @@
     , "ENABLE_LIBXML2"
     , "ENABLE_EXPAT"
     , "ENABLE_PCREPOSIX"
+    , "ENABLE_PCRE2POSIX"
     , "ENABLE_LIBGCC"
     , "ENABLE_CNG"
     , "ENABLE_XATTR"
@@ -37,6 +38,7 @@
     , "ENABLE_ICONV"
     , "ENABLE_LIBMD"
     , "ENABLE_PCRE"
+    , "ENABLE_PCRE2"
     , "ENABLE_REGEX"
     , "XATTR_PROVIDER"
     , "ENABLE_RICHACL"
@@ -72,12 +74,16 @@
       ]
     , "ENABLE_LIBXML2":
       [ "Boolean. Default value: true. Link against libxml2 (system or open name)."
+      , "Value used only if ENABLE_ICONV==true."
       ]
     , "ENABLE_EXPAT":
       [ "Boolean. Default value: true. Link against EXPAT (system or open name)."
       ]
     , "ENABLE_PCREPOSIX":
       [ "Boolean. Default value: true. Link against PCREPOSIX (system or open name)."
+      ]
+    , "ENABLE_PCRE2POSIX":
+      [ "Boolean. Default value: true. Link against PCRE2POSIX (system or open name)."
       ]
     , "ENABLE_LIBGCC":
       [ "Boolean. Default value: true. Link against LIBGCC (system or open name)."
@@ -96,6 +102,7 @@
       , "Disabled if ~ENABLE_OPENSSL==true~."
       ]
     , "ENABLE_PCRE": ["Boolean. Link against pcre (system or open name)."]
+    , "ENABLE_PCRE2": ["Boolean. Link against pcre2 (system or open name)."]
     , "ENABLE_REGEX": ["Boolean. Link against regex (system or open name)."]
     , "XATTR_PROVIDER":
       [ "\"attr\": Link against attr (system or open name) for xattr support."
@@ -137,6 +144,7 @@
     , "ENABLE_LIBXML2"
     , "ENABLE_EXPAT"
     , "ENABLE_PCREPOSIX"
+    , "ENABLE_PCRE2POSIX"
     , "ENABLE_LIBGCC"
     , "ENABLE_CNG"
     , "ENABLE_XATTR"
@@ -144,6 +152,7 @@
     , "ENABLE_ICONV"
     , "ENABLE_LIBMD"
     , "ENABLE_PCRE"
+    , "ENABLE_PCRE2"
     , "ENABLE_REGEX"
     , "XATTR_PROVIDER"
     , "ENABLE_RICHACL"
@@ -234,7 +243,11 @@
         , {"type": "var", "name": "ENABLE_BZip2", "default": true}
         ]
       , [ "ENABLE_LIBXML2"
-        , {"type": "var", "name": "ENABLE_LIBXML2", "default": true}
+        , { "type": "case*"
+          , "expr": {"type": "var", "name": "ENABLE_LIBXML2"}
+          , "case": [[true, {"type": "var", "name": "ENABLE_ICONV"}]]
+          , "default": {"type": "var", "name": "ENABLE_ICONV"}
+          }
         ]
       , [ "ENABLE_EXPAT"
         , { "type": "case*"
@@ -257,6 +270,9 @@
           }
         ]
       , [ "ENABLE_PCREPOSIX"
+        , {"type": "var", "name": "ENABLE_PCREPOSIX", "default": true}
+        ]
+      , [ "ENABLE_PCRE2POSIX"
         , {"type": "var", "name": "ENABLE_PCREPOSIX", "default": true}
         ]
       , [ "ENABLE_LIBGCC"
@@ -305,6 +321,9 @@
       , [ "ENABLE_PCRE"
         , {"type": "var", "name": "ENABLE_PCRE", "default": false}
         ]
+      , [ "ENABLE_PCRE2"
+        , {"type": "var", "name": "ENABLE_PCRE2", "default": false}
+        ]
       , [ "ENABLE_REGEX"
         , {"type": "var", "name": "ENABLE_REGEX", "default": false}
         ]
@@ -352,6 +371,7 @@
         , "ENABLE_LIBXML2"
         , "ENABLE_EXPAT"
         , "ENABLE_PCREPOSIX"
+        , "ENABLE_PCRE2POSIX"
         , "ENABLE_LIBGCC"
         , "ENABLE_CNG"
         , "ENABLE_XATTR"
@@ -359,6 +379,7 @@
         , "ENABLE_ICONV"
         , "ENABLE_LIBMD"
         , "ENABLE_PCRE"
+        , "ENABLE_PCRE2"
         , "ENABLE_REGEX"
         , "XATTR_PROVIDER"
         , "ENABLE_RICHACL"

@@ -366,6 +366,30 @@
       }
     }
   }
+, "archive_pcre2posix":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_PCRE2POSIX"]
+  , "name": ["archive_pcre2posix"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE2POSIX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lpcre2posix"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE2POSIX"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "pcre2posix", "", "pcre2posix"]]
+      }
+    }
+  }
 , "archive_pcre":
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_PCRE"]
@@ -387,6 +411,30 @@
       , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
       , "then": []
       , "else": [["@", "pcre", "", "pcre"]]
+      }
+    }
+  }
+, "archive_pcre2":
+  { "type": ["@", "rules", "CC", "library"]
+  , "arguments_config": ["USE_SYSTEM_LIBS", "ENABLE_PCRE2"]
+  , "name": ["archive_pcre2"]
+  , "private-ldflags":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": ["-lpcre2"]
+      }
+    }
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "ENABLE_PCRE2"}
+    , "then":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "USE_SYSTEM_LIBS"}
+      , "then": []
+      , "else": [["@", "pcre2", "", "pcre2"]]
       }
     }
   }
