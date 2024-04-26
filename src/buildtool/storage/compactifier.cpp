@@ -64,16 +64,16 @@ requires(sizeof...(kType) != 0)
                                      std::filesystem::path const& key) noexcept
     -> bool;
 
-/// \brief Split and remove from the kType storage every entry that is larger
-/// than the given threshold. Results of splitting are added to the LocalCAS.
+/// \brief Split and remove a key entry from the kType storage. Results of
+/// splitting are added to the LocalCAS.
 /// \tparam kType         Type of the storage to inspect.
-/// \param cas            LocalCAS to store results of splitting.
-/// \param threshold      Minimum size of an entry to be split.
-/// \return               True if the kType storage doesn't contain splitable
-/// entries larger than the compactification threshold afterwards.
+/// \param task           Owning compactification task.
+/// \param entry          File entry.
+/// \return               True if the file was split succesfully.
 template <ObjectType kType>
-[[nodiscard]] auto SplitLarge(LocalCAS<false> const& cas,
-                              size_t threshold) noexcept -> bool;
+[[nodiscard]] auto SplitLarge(CompactificationTask const& task,
+                              std::filesystem::path const& key) noexcept
+    -> bool;
 }  // namespace
 
 auto Compactifier::RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
@@ -120,9 +120,27 @@ auto Compactifier::RemoveSpliced(LocalCAS<false> const& cas) noexcept -> bool {
 
 auto Compactifier::SplitLarge(LocalCAS<false> const& cas,
                               size_t threshold) noexcept -> bool {
-    return ::SplitLarge<ObjectType::File>(cas, threshold) and
-           ::SplitLarge<ObjectType::Executable>(cas, threshold) and
-           ::SplitLarge<ObjectType::Tree>(cas, threshold);
+    auto logger = [](LogLevel level, std::string const& msg) {
+        Logger::Log(level, "Compactification: Splitting:\n{}", msg);
+    };
+
+    // Collect files larger than the threshold and split them.
+    // Concurrently scanning a directory and putting new entries there may cause
+    // the scan to fail. To avoid that, parallelization is done using
+    // files, although this may result in a run out of memory.
+    CompactificationTask task{
+        .cas = cas,
+        .large = false,
+        .logger = logger,
+        .filter =
+            [threshold](std::filesystem::path const& path) {
+                return not FileSystemManager::IsDirectory(path) and
+                       std::filesystem::file_size(path) >= threshold;
+            },
+        .f_task = ::SplitLarge<ObjectType::File>,
+        .x_task = ::SplitLarge<ObjectType::Executable>,
+        .t_task = ::SplitLarge<ObjectType::Tree>};
+    return CompactifyConcurrently(task);
 }
 
 namespace {
@@ -242,59 +260,53 @@ requires(sizeof...(kType) != 0)
 }
 
 template <ObjectType kType>
-[[nodiscard]] auto SplitLarge(LocalCAS<false> const& cas,
-                              size_t threshold) noexcept -> bool {
-    // Obtain path to the storage root:
-    auto const& storage_root = cas.StorageRoot(kType);
-
-    // Check there are entries to process:
-    if (not FileSystemManager::IsDirectory(storage_root)) {
+[[nodiscard]] auto SplitLarge(CompactificationTask const& task,
+                              std::filesystem::path const& key) noexcept
+    -> bool {
+    auto const path = task.cas.StorageRoot(kType) / key;
+    // Check the entry exists:
+    if (not FileSystemManager::IsFile(path)) {
         return true;
     }
 
-    FileSystemManager::UseDirEntryFunc callback =
-        [&](std::filesystem::path const& entry_object, bool is_tree) -> bool {
-        // Use all folders:
-        if (is_tree) {
-            return true;
-        }
+    // Calculate the digest for the entry:
+    auto const digest = ObjectCAS<kType>::CreateDigest(path);
+    if (not digest) {
+        task.Log(LogLevel::Error,
+                 "Failed to calculate digest for {}",
+                 path.string());
+        return false;
+    }
 
-        // Filter files by size:
-        auto const path = storage_root / entry_object;
-        if (std::filesystem::file_size(path) < threshold) {
-            return true;
-        }
+    // Split the entry:
+    auto split_result = IsTreeObject(kType) ? task.cas.SplitTree(*digest)
+                                            : task.cas.SplitBlob(*digest);
+    auto* parts = std::get_if<std::vector<bazel_re::Digest>>(&split_result);
+    if (parts == nullptr) {
+        auto* error = std::get_if<LargeObjectError>(&split_result);
+        auto const error_message = error ? std::move(*error).Message() : "";
+        task.Log(LogLevel::Error,
+                 "Failed to split {}\nDigest: {}\nMessage: {}",
+                 path.string(),
+                 digest->hash(),
+                 error_message);
+        return false;
+    }
 
-        // Calculate the digest for the entry:
-        auto const digest = ObjectCAS<kType>::CreateDigest(path);
-        if (not digest) {
-            Logger::Log(LogLevel::Error,
-                        "Failed to calculate digest for {}",
-                        path.generic_string());
-            return false;
-        }
+    // If the file cannot actually be split (the threshold is too low), the
+    // file must not be deleted.
+    if (parts->size() < 2) {
+        task.Log(LogLevel::Debug,
+                 "{} cannot be compactified. The compactification "
+                 "threshold is too low.",
+                 digest->hash());
+        return true;
+    }
 
-        // Split the entry:
-        auto split_result = IsTreeObject(kType) ? cas.SplitTree(*digest)
-                                                : cas.SplitBlob(*digest);
-        auto* parts = std::get_if<std::vector<bazel_re::Digest>>(&split_result);
-        if (parts == nullptr) {
-            Logger::Log(LogLevel::Error, "Failed to split {}", digest->hash());
-            return false;
-        }
-
-        // If the file cannot actually be split (the threshold is too low), the
-        // file must not be deleted.
-        if (parts->size() < 2) {
-            Logger::Log(LogLevel::Debug,
-                        "{} cannot be compactified. The compactification "
-                        "threshold is too low.",
-                        digest->hash());
-            return true;
-        }
-        return FileSystemManager::RemoveFile(path);
-    };
-    return FileSystemManager::ReadDirectoryEntriesRecursive(storage_root,
-                                                            callback);
+    if (not FileSystemManager::RemoveFile(path)) {
+        task.Log(LogLevel::Error, "Failed to remove {}", path.string());
+        return false;
+    }
+    return true;
 }
 }  // namespace
