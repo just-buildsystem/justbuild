@@ -76,6 +76,10 @@ A feature release on top of `1.2.0`, backwards compatible.
   `git` for fetching and the URL is passed to `git` unchanged.
 - Improved portability and update of the bundled dependencies.
 - Various minor improvements and typo fixes in the documentation.
+- Fixed a race condition in the task queue that could cause (with
+  probability roughly 1e-5) a premature termination of the queue
+  resulting in spurious analysis failures without explanation (despite
+  "failed to analyse target").
 - Fixed a race condition in an internal cache of `just execute`
   used for keeping track of running operations.
 - The built-in rule `"install"` now properly enforces that the

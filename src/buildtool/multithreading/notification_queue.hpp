@@ -126,11 +126,11 @@ class NotificationQueue {
     // finished)
     template <typename FunctionType>
     void push(FunctionType&& f) {
+        total_workload_->Increment();
         {
             std::unique_lock lock{mutex_};
             queue_.emplace_back(std::forward<FunctionType>(f));
         }
-        total_workload_->Increment();
         ready_.notify_one();
     }
 
@@ -143,9 +143,9 @@ class NotificationQueue {
             if (!lock) {
                 return false;
             }
+            total_workload_->Increment();
             queue_.emplace_back(std::forward<FunctionType>(f));
         }
-        total_workload_->Increment();
         ready_.notify_one();
         return true;
     }
