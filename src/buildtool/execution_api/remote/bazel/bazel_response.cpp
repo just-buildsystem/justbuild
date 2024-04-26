@@ -38,7 +38,9 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     -> std::string {
     auto blobs = network_->ReadBlobs({id}).Next();
     if (blobs.empty()) {
-        // TODO(oreiche): logging
+        Logger::Log(LogLevel::Warning,
+                    "reading digest {} from action response failed",
+                    id.hash());
         return std::string{};
     }
     return blobs[0].data;
