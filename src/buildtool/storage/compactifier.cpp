@@ -50,13 +50,18 @@ template <ObjectType kType>
     -> bool;
 
 /// \brief Remove spliced entries from the kType storage.
-/// \tparam kType         Type of the storage to inspect.
-/// \param cas            Storage to be inspected.
-/// \return               True if the kType storage doesn't contain spliced
+/// A task is keyed by a directory name concisting of two letters and kType...
+/// storages need to be checked.
+/// \tparam kLargeType    Type of the large storage to scan.
+/// \tparam kType         Types of the storages to inspect.
+/// \param task           Owning compactification task.
+/// \param entry          Directory entry.
+/// \return               True if the entry directory doesn't contain spliced
 /// entries.
-template <ObjectType... kType>
+template <ObjectType kLargeType, ObjectType... kType>
 requires(sizeof...(kType) != 0)
-    [[nodiscard]] auto RemoveSpliced(LocalCAS<false> const& cas) noexcept
+    [[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
+                                     std::filesystem::path const& key) noexcept
     -> bool;
 
 /// \brief Split and remove from the kType storage every entry that is larger
@@ -92,8 +97,25 @@ auto Compactifier::RemoveInvalid(LocalCAS<false> const& cas) noexcept -> bool {
 }
 
 auto Compactifier::RemoveSpliced(LocalCAS<false> const& cas) noexcept -> bool {
-    return ::RemoveSpliced<ObjectType::Tree>(cas) and
-           ::RemoveSpliced<ObjectType::File, ObjectType::Executable>(cas);
+    auto logger = [](LogLevel level, std::string const& msg) {
+        Logger::Log(
+            level, "Compactification: Removal of spliced files:\n{}", msg);
+    };
+
+    // Collect directories from large storages and remove from the storage files
+    // having correponding large entries.
+    // In general, the number of files in the storage is not limited, thus
+    // parallelization is done using subdirectories to not run out of memory.
+    CompactificationTask task{
+        .cas = cas,
+        .large = true,
+        .logger = logger,
+        .filter = FileSystemManager::IsDirectory,
+        .f_task = ::RemoveSpliced<ObjectType::File,
+                                  ObjectType::File,
+                                  ObjectType::Executable>,
+        .t_task = ::RemoveSpliced<ObjectType::Tree, ObjectType::Tree>};
+    return CompactifyConcurrently(task);
 }
 
 auto Compactifier::SplitLarge(LocalCAS<false> const& cas,
@@ -168,28 +190,31 @@ template <ObjectType kType>
     return true;
 }
 
-template <ObjectType... kType>
+template <ObjectType kLargeType, ObjectType... kType>
 requires(sizeof...(kType) != 0)
-    [[nodiscard]] auto RemoveSpliced(LocalCAS<false> const& cas) noexcept
+    [[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
+                                     std::filesystem::path const& key) noexcept
     -> bool {
-    // Obtain path to the large CAS:
-    static constexpr std::array types{kType...};
-    auto const& large_storage = cas.StorageRoot(types[0], /*large=*/true);
+    static constexpr bool kLarge = true;
+    auto const directory = task.cas.StorageRoot(kLargeType, kLarge) / key;
 
     // Check there are entries to process:
-    if (not FileSystemManager::IsDirectory(large_storage)) {
+    if (not FileSystemManager::IsDirectory(directory)) {
         return true;
     }
 
-    // Obtain paths to object storages.
-    std::array const storage_roots{cas.StorageRoot(kType)...};
+    // Obtain paths to the corresponding key directories in the object storages.
+    std::array const storage_roots{task.cas.StorageRoot(kType) / key...};
 
-    FileSystemManager::UseDirEntryFunc callback =
-        [&storage_roots](std::filesystem::path const& entry_large,
-                         bool is_tree) -> bool {
-        // Use all folders.
-        if (is_tree) {
-            return true;
+    FileSystemManager::ReadDirEntryFunc callback =
+        [&storage_roots, &task, &directory](
+            std::filesystem::path const& entry_large, ObjectType type) -> bool {
+        // Directories are unexpected in storage subdirectories
+        if (IsTreeObject(type)) {
+            task.Log(LogLevel::Error,
+                     "There is a directory in a storage subdirectory: {}",
+                     (directory / entry_large).string());
+            return false;
         }
 
         // Pathes to large entries and spliced results are:
@@ -207,8 +232,13 @@ requires(sizeof...(kType) != 0)
         };
         return std::all_of(storage_roots.begin(), storage_roots.end(), check);
     };
-    return FileSystemManager::ReadDirectoryEntriesRecursive(large_storage,
-                                                            callback);
+
+    // Read the key storage directory:
+    if (not FileSystemManager::ReadDirectory(directory, callback)) {
+        task.Log(LogLevel::Error, "Failed to read {}", directory.string());
+        return false;
+    }
+    return true;
 }
 
 template <ObjectType kType>
