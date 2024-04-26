@@ -237,7 +237,9 @@ auto BazelExecutionClient::ExtractContents(
     output.action_result = exec_response.result();
     output.cached_result = exec_response.cached_result();
     output.message = exec_response.message();
-    output.server_logs = exec_response.server_logs();
+    for (const auto& [k, v] : exec_response.server_logs()) {
+        output.server_logs[k].CopyFrom(v);
+    }
     response.output = output;
     response.state = ExecutionResponse::State::Finished;
 

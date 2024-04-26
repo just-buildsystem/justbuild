@@ -18,6 +18,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "google/longrunning/operations.pb.h"
@@ -35,8 +36,7 @@ class BazelExecutionClient {
         bazel_re::ActionResult action_result{};
         bool cached_result{};
         grpc::Status status{};
-        // TODO(vmoreno): switch to non-google type for the map
-        google::protobuf::Map<std::string, bazel_re::LogFile> server_logs{};
+        std::unordered_map<std::string, bazel_re::Digest> server_logs{};
         std::string message{};
     };
 
