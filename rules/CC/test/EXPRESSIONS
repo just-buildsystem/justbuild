@@ -18,6 +18,7 @@
     , "ADD_CXXFLAGS"
     , "ENV"
     , "TEST_ENV"
+    , "TIMEOUT_SCALE"
     , "CC_TEST_LAUNCHER"
     , "RUNS_PER_TEST"
     , "name"
@@ -177,6 +178,8 @@
                 , "$1":
                   ["CC test ", {"type": "var", "name": "test-name"}, " failed"]
                 }
+              , "timeout scaling":
+                {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}
               , "execution properties":
                 {"type": "var", "name": "target properties"}
               }
@@ -251,6 +254,11 @@
                           , {"type": "var", "name": "ATTEMPT"}
                           , ")"
                           ]
+                        }
+                      , "timeout scaling":
+                        { "type": "var"
+                        , "name": "TIMEOUT_SCALE"
+                        , "default": 1.0
                         }
                       , "execution properties":
                         {"type": "var", "name": "target properties"}

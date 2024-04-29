@@ -23,6 +23,7 @@
     , "ADD_CXXFLAGS"
     , "ENV"
     , "TEST_ENV"
+    , "TIMEOUT_SCALE"
     , "CC_TEST_LAUNCHER"
     , "RUNS_PER_TEST"
     , "ARCH_DISPATCH"
@@ -103,6 +104,8 @@
       ]
     , "ENV": ["The environment for any action generated."]
     , "TEST_ENV": ["The environment for executing the test runner."]
+    , "TIMEOUT_SCALE":
+      ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
     , "CC_TEST_LAUNCHER":
       [ "List of strings representing the launcher that is prepend to the"
       , "command line for running the test binary."
