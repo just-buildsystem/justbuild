@@ -57,7 +57,7 @@
   , "hdrs": ["large_objects/large_object_utils.hpp"]
   , "srcs": ["large_objects/large_object_utils.cpp"]
   , "private-deps":
-    [ ["@", "src", "src/utils/cpp", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "utils"]

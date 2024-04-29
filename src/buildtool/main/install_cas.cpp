@@ -125,7 +125,8 @@ auto FetchAndInstallArtifacts(
     }
 
     if (out) {
-        if (not api->RetrieveToPaths({object_info}, {*out}, alternative_api)) {
+        if (not api->RetrieveToPaths(
+                {object_info}, {*out}, &(*alternative_api))) {
             Logger::Log(LogLevel::Error, "failed to retrieve artifact.");
             return false;
         }

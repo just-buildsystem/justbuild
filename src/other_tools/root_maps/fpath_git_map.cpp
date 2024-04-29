@@ -65,7 +65,7 @@ void CheckServeAndSetRoot(
             else {
                 if (not EnsureAbsentRootOnServe(tree_id,
                                                 repo_root,
-                                                *remote_api,
+                                                &(*remote_api.value()),
                                                 logger,
                                                 /*no_sync_is_fatal=*/absent)) {
                     return;  // fatal

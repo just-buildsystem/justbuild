@@ -21,8 +21,8 @@
 #include <random>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/utils/cpp/gsl.hpp"
 
 namespace {
 class Randomizer final {
@@ -53,7 +53,7 @@ class ChunkPool final {
 
     [[nodiscard]] auto operator[](std::size_t index) const noexcept
         -> std::string const& {
-        return gsl::at(pool_, static_cast<std::ptrdiff_t>(index));
+        return gsl::at(pool_, index);
     }
 
   private:
@@ -64,7 +64,7 @@ class ChunkPool final {
         Randomizer randomizer{1, std::numeric_limits<char>::max()};
 
         for (std::size_t i = 0; i < pool_.size(); ++i) {
-            auto& chunk = gsl::at(pool_, static_cast<std::ptrdiff_t>(i));
+            auto& chunk = gsl::at(pool_, i);
             chunk.resize(kChunkLength);
             for (std::size_t j = 0; j < kChunkLength; ++j) {
                 chunk[j] = randomizer.Get();

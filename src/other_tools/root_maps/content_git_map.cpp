@@ -120,7 +120,7 @@ void EnsureRootAsAbsent(
                     if (not EnsureAbsentRootOnServe(
                             tree_id,
                             StorageConfig::GitRoot(),
-                            *remote_api,
+                            &(*remote_api.value()),
                             logger,
                             /*no_sync_is_fatal=*/true)) {
                         return;
@@ -144,7 +144,7 @@ void EnsureRootAsAbsent(
                 // root
                 if (not EnsureAbsentRootOnServe(tree_id,
                                                 StorageConfig::GitRoot(),
-                                                *remote_api,
+                                                &(*remote_api.value()),
                                                 logger,
                                                 /*no_sync_is_fatal=*/true)) {
                     return;

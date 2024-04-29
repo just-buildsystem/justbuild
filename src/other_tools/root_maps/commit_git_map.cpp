@@ -118,7 +118,7 @@ void EnsureRootAsAbsent(
                 // for the serve endpoint to retrieve it and set up the root
                 if (not EnsureAbsentRootOnServe(tree_id,
                                                 repo_root,
-                                                *remote_api,
+                                                &(*remote_api.value()),
                                                 logger,
                                                 true /*no_sync_is_fatal*/)) {
                     return;

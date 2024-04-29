@@ -254,7 +254,7 @@ auto CreateDistdirGitMap(
                                     if (not EnsureAbsentRootOnServe(
                                             distdir_tree_id,
                                             StorageConfig::GitRoot(),
-                                            *remote_api,
+                                            &(*remote_api.value()),
                                             logger,
                                             true /*no_sync_is_fatal*/)) {
                                         return;
