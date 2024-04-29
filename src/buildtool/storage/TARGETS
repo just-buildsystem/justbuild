@@ -35,11 +35,13 @@
     , "large_object_cas.tpp"
     , "compactifier.hpp"
     ]
+  , "private-hdrs": ["compactification_task.hpp"]
   , "srcs":
     [ "target_cache_key.cpp"
     , "target_cache_entry.cpp"
     , "garbage_collector.cpp"
     , "compactifier.cpp"
+    , "compactification_task.cpp"
     ]
   , "deps":
     [ "config"
@@ -70,6 +72,7 @@
     [ ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/execution_api/common", "message_limits"]
+    , ["src/buildtool/multithreading", "task_system"]
     ]
   }
 , "fs_utils":
