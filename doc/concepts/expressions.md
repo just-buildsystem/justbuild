@@ -271,7 +271,7 @@ those) argument(s) to obtain the final result.
    neutral element 0).
 
  - `"*"` The argument has to be a list of numbers. The result
-   is their product (where the producut of the empty list is, of
+   is their product (where the product of the empty list is, of
    course, the neutral element 1).
 
  - `"map_union"` The argument has to be a list of maps. The
@@ -307,7 +307,7 @@ those) argument(s) to obtain the final result.
    default `""`).
 
  - `"escape_chars"` Prefix every in the argument every
-   character occuring in `"chars"` (a string, default `""`) by
+   character occurring in `"chars"` (a string, default `""`) by
    `"escape_prefix"` (a strings, default `"\"`).
 
  - `"to_subdir"` The argument has to be a map (not necessarily
