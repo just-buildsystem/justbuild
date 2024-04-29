@@ -66,10 +66,14 @@
   { "type": "configure"
   , "tainted": ["test"]
   , "target": ["./", "bootstrap", "TESTS"]
+  , "arguments_config": ["TIMEOUT_SCALE"]
   , "config":
-    { "type": "let*"
-    , "bindings": [["TIMEOUT_SCALE", 40.0]]
-    , "body": {"type": "env", "vars": ["TIMEOUT_SCALE"]}
+    { "type": "singleton_map"
+    , "key": "TIMEOUT_SCALE"
+    , "value":
+      { "type": "*"
+      , "$1": [40, {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}]
+      }
     }
   }
 , "test-deps-headers":

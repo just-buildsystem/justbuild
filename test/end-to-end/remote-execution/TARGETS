@@ -61,7 +61,10 @@
   , "config":
     { "type": "singleton_map"
     , "key": "TIMEOUT_SCALE"
-    , "value": {"type": "var", "name": "TIMEOUT_SCALE", "default": 10}
+    , "value":
+      { "type": "*"
+      , "$1": [10, {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}]
+      }
     }
   }
 , "add-to-cas":
