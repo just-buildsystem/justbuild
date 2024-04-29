@@ -13,6 +13,7 @@
     , "CFLAGS"
     , "CXXFLAGS"
     , "LDFLAGS"
+    , "ADD_COMPILE_FLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
     , "ADD_LDFLAGS"
@@ -55,12 +56,16 @@
       [ "Linker flags for linking the final CC library. Specifying this field"
       , "overwrites values from \"base\"."
       ]
+    , "ADD_COMPILE_FLAGS":
+      [ "Additional compilation flags for C and C++. Specifying this field"
+      , "extends values from \"base\" for both, \"CFLAGS\" and \"CXXFLAGS\"."
+      ]
     , "ADD_CFLAGS":
-      [ "Additional compilation flags for C. Specifying this field"
+      [ "Additional compilation flags specific for C. Specifying this field"
       , "extends values from \"base\"."
       ]
     , "ADD_CXXFLAGS":
-      [ "Additional compilation flags for C++. Specifying this field"
+      [ "Additional compilation flags specific for C++. Specifying this field"
       , "extends values from \"base\"."
       ]
     , "ADD_LDFLAGS":
@@ -259,6 +264,7 @@
         , { "type": "++"
           , "$1":
             [ {"type": "var", "name": "CFLAGS"}
+            , {"type": "FIELD", "name": "ADD_COMPILE_FLAGS"}
             , {"type": "FIELD", "name": "ADD_CFLAGS"}
             ]
           }
@@ -267,6 +273,7 @@
         , { "type": "++"
           , "$1":
             [ {"type": "var", "name": "CXXFLAGS"}
+            , {"type": "FIELD", "name": "ADD_COMPILE_FLAGS"}
             , {"type": "FIELD", "name": "ADD_CXXFLAGS"}
             ]
           }
