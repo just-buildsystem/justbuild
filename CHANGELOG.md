@@ -100,6 +100,11 @@ A feature release on top of `1.2.0`, backwards compatible.
   repeated multiple times to list all the properties, but only the
   last one was retained. This is fixed now.
 
+## Release `1.3.0~beta1` (2024-05-02)
+
+First beta release for the upcoming `1.3.0` release; see release
+notes there.
+
 ## Release `1.2.0` (2023-08-25)
 
 A feature release on top of `1.1.0`, backwards compatible.
