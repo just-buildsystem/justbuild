@@ -9,8 +9,8 @@ A feature release on top of `1.2.0`, backwards compatible.
 - `just-mr` is able to back up and retrieve distribution files
   from a remote execution endpoint. This simplifies usage in an
   environment with restricted internet access.
-- `just execute` now supports blob splitting as new RPC call. `just
-  install` uses this call to reduce traffic if the remote-execution
+- `just execute` now supports blob splitting as new RPC call.
+  `just install` uses this call to reduce traffic if the remote-execution
   endpoint supports blob splitting and the `--remember` option is given.
   In this way, traffic from the remote-execution endpoint can be reduced
   when subsequently installing artifacts with only small local
@@ -39,7 +39,7 @@ A feature release on top of `1.2.0`, backwards compatible.
 - The `gc` subcommand supports an option `--no-rotate` to carry out
   only local clean up.
 - The expression language has been extended and, in particular,
-  allows indexed access to an arry (basically using it as a tuple)
+  allows indexed access to an array (basically using it as a tuple)
   and a generic form of assertion (to report user errors).
 - The `analyse` subcommand supports a new flag `--dump-result` to dump
   the analysis result to a file or stdout (if `-` is given).
