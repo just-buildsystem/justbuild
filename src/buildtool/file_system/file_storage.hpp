@@ -35,6 +35,11 @@ enum class StoreMode {
     LastWins
 };
 
+struct FileStorageData final {
+    /// Length of a subdirectory name.
+    static constexpr size_t kDirectoryNameLength = 2;
+};
+
 template <ObjectType kType,
           StoreMode kMode,
           bool kSetEpochTime,
@@ -71,7 +76,10 @@ class FileStorage {
     /// \returns The sharded file path.
     [[nodiscard]] auto GetPath(std::string const& id) const noexcept
         -> std::filesystem::path {
-        return storage_root_ / id.substr(0, 2) / id.substr(2, id.size() - 2);
+        return storage_root_ /
+               id.substr(0, FileStorageData::kDirectoryNameLength) /
+               id.substr(FileStorageData::kDirectoryNameLength,
+                         id.size() - FileStorageData::kDirectoryNameLength);
     }
 
     [[nodiscard]] auto StorageRoot() const noexcept

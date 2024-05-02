@@ -25,6 +25,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
+#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -157,12 +158,13 @@ template <ObjectType kType>
 
     // Calculate reference hash size:
     auto const kHashSize = HashFunction::Hasher().GetHashLength();
-    static constexpr size_t kDirNameSize = 2;
-    auto const kFileNameSize = kHashSize - kDirNameSize;
+    auto const kFileNameSize =
+        kHashSize - FileStorageData::kDirectoryNameLength;
 
     // Check the directory itself is valid:
     std::string const d_name = directory.filename();
-    if (d_name.size() != kDirNameSize or not FromHexString(d_name)) {
+    if (d_name.size() != FileStorageData::kDirectoryNameLength or
+        not FromHexString(d_name)) {
         static constexpr bool kRecursively = true;
         if (FileSystemManager::RemoveDirectory(directory, kRecursively)) {
             return true;
