@@ -103,8 +103,9 @@ auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
             },
             [logger, dir](auto msg, auto fatal) {
                 (*logger)(
-                    fmt::format(
-                        "While reading contents of {}: {}", dir.string(), msg),
+                    fmt::format("While reading contents of directory {}: {}",
+                                nlohmann::json(dir.string()).dump(),
+                                msg),
                     fatal);
             }
 
