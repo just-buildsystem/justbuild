@@ -1364,13 +1364,7 @@
   }
 , "install-with-deps result":
   { "vars": ["pc-install-dir", "targets", "prefix", "flat-libs", "hdrs-only"]
-  , "imports":
-    { "compile-deps": "compile-deps"
-    , "compile-args-deps": "compile-args-deps"
-    , "link-deps": "link-deps"
-    , "link-args-deps": "link-args-deps"
-    , "pkg-config": "pkg-config"
-    }
+  , "imports": {"pkg-config": "pkg-config"}
   , "expression":
     { "type": "let*"
     , "bindings":
