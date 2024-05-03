@@ -36,8 +36,12 @@ A feature release on top of `1.2.0`, backwards compatible.
 - Support for fetching archives from FTP and TFTP was added to `just-mr`
   if it was built with bundled curl. For package builds, libcurl has
   enabled whatever the distro considers suitable.
-- The `gc` subcommand supports an option `--no-rotate` to carry out
-  only local clean up.
+- The `gc` subcommand supports an option `--no-rotate` to carry
+  out only local clean up. Part of that local clean up, that is
+  also done as part of a full `gc`, is splitting large files. Note
+  that stable versions before `1.3.0` cannot use those split files.
+  Hence a downgrade after a `gc` with `1.3.0` (or higher) requires
+  cleaning of cache and CAS.
 - The expression language has been extended and, in particular,
   allows indexed access to an array (basically using it as a tuple)
   and a generic form of assertion (to report user errors).

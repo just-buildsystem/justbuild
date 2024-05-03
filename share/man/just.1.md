@@ -277,6 +277,17 @@ to the youngest generation; therefore, upon a call to **`gc`** everything
 not referenced since the last call to **`gc`** is purged and the
 corresponding disk space reclaimed.
 
+Additionally, and before doing generation rotation,
+ - left-over temporary directories (e.g., from interrupted `just`
+   invocations) are removed, and
+ - large files are split and only the chunks and the information
+   how to assemble the file from the chunks are kept; in this way
+   disk space is saved without losing information.
+
+As the non-rotating tasks can be useful in their own right, the
+`--no-rotate` option can be used to request only the clean-up tasks
+that do not lose information.
+
 **`execute`**
 -------------
 
