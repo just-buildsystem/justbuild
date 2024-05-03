@@ -25,7 +25,7 @@ touch ROOT
 cat > TARGETS <<'EOF'
 { "theTargetCausingTheFailure":
   { "type": "generic"
-  , "arguments_config": ["foo", "bar"]
+  , "arguments_config": ["foo", "bar", "magic"]
   , "outs": ["a.txt"]
   , "cmds":
     [ { "type": "join"
@@ -33,11 +33,17 @@ cat > TARGETS <<'EOF'
         [ "echo -n stdout-of-; echo failing-target-"
         , {"type": "var", "name": "foo", "default": ""}
         , {"type": "var", "name": "bar", "default": ""}
+        , "-$MAGIC_VAR"
         ]
       }
     , "touch a.txt"
     , "exit 42"
     ]
+  , "env":
+    { "type": "singleton_map"
+    , "key": "MAGIC_VAR"
+    , "value": {"type": "var", "name": "magic", "default": "unknown"}
+    }
   }
 }
 EOF
@@ -49,7 +55,7 @@ echo
 mkdir -p "${OUT}"
 "${JUST}" build --local-build-root "${LBR}" \
           -f "${OUT}/log" --log-limit 0 \
-          -D '{"foo": "FOO", "irrelevant": "abc"}' \
+          -D '{"foo": "FOO", "irrelevant": "abc", "magic":"xyz"}' \
           2>&1 && exit 1 || :
 
 # The exit code should be reported
@@ -60,15 +66,19 @@ grep theTargetCausingTheFailure "${OUT}/log"
 
 # The pruned effective configuration should be reported in canonical
 # compact form.
-grep '{"foo":"FOO"}' "${OUT}/log"
+grep '{"foo":"FOO","magic":"xyz"}' "${OUT}/log"
 
 # At default level we should also find stdout of the target
 echo
 "${JUST}" build --local-build-root "${LBR}" \
           -f "${OUT}/log.default" \
-          -D '{"foo": "FOO", "irrelevant": "abc"}' \
+          -D '{"foo": "FOO", "irrelevant": "abc", "magic":"xyz"}' \
           2>&1 && exit 1 || :
 
-grep stdout-of-failing-target-FOO "${OUT}/log.default"
+grep stdout-of-failing-target-FOO-xyz "${OUT}/log.default"
+
+# ... as well as command and environment in canonical compact form
+grep 'echo -n stdout-of-;' "${OUT}/log.default"
+grep '{"MAGIC_VAR":"xyz"}' "${OUT}/log.default"
 
 echo OK

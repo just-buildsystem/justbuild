@@ -524,7 +524,7 @@ class ExecutorImpl {
         }
         progress->TaskTracker().Stop(action->Content().Id());
 
-        PrintInfo(logger, action->Command(), response);
+        PrintInfo(logger, action, response);
         bool should_fail_outputs = false;
         for (auto const& [local_path, node] : action->Dependencies()) {
             should_fail_outputs |= node->Content().Info()->failed;
@@ -573,34 +573,36 @@ class ExecutorImpl {
 
     /// \brief Write out if response is empty and otherwise, write out
     /// standard error/output if they are present
-    void static PrintInfo(Logger const& logger,
-                          std::vector<std::string> const& command,
-                          IExecutionResponse::Ptr const& response) noexcept {
+    void static PrintInfo(
+        Logger const& logger,
+        gsl::not_null<DependencyGraph::ActionNode const*> const& action,
+        IExecutionResponse::Ptr const& response) noexcept {
         if (!response) {
             logger.Emit(LogLevel::Error, "response is empty");
             return;
         }
         auto const has_err = response->HasStdErr();
         auto const has_out = response->HasStdOut();
-        auto build_message =
-            [has_err, has_out, &logger, &command, &response]() {
-                using namespace std::string_literals;
-                auto message = ""s;
-                if (has_err or has_out) {
-                    message += (has_err and has_out ? "Stdout and stderr"s
-                                : has_out           ? "Stdout"s
-                                                    : "Stderr"s) +
-                               " of command: ";
-                }
-                message += nlohmann::json(command).dump() + "\n";
-                if (response->HasStdOut()) {
-                    message += response->StdOut();
-                }
-                if (response->HasStdErr()) {
-                    message += response->StdErr();
-                }
-                return message;
-            };
+        auto build_message = [has_err, has_out, &logger, &action, &response]() {
+            using namespace std::string_literals;
+            auto message = ""s;
+            if (has_err or has_out) {
+                message += (has_err and has_out ? "Stdout and stderr"s
+                            : has_out           ? "Stdout"s
+                                                : "Stderr"s) +
+                           " of command ";
+            }
+            message += nlohmann::json(action->Command()).dump() +
+                       " in environment " +
+                       nlohmann::json(action->Env()).dump() + "\n";
+            if (response->HasStdOut()) {
+                message += response->StdOut();
+            }
+            if (response->HasStdErr()) {
+                message += response->StdErr();
+            }
+            return message;
+        };
         logger.Emit((has_err or has_out) ? LogLevel::Info : LogLevel::Debug,
                     std::move(build_message));
     }
@@ -612,6 +614,8 @@ class ExecutorImpl {
         std::ostringstream msg{};
         msg << "Failed to execute command ";
         msg << nlohmann::json(action->Command()).dump();
+        msg << " in evenironment ";
+        msg << nlohmann::json(action->Env()).dump();
         auto const& origin_map = progress->OriginMap();
         auto origins = origin_map.find(action->Content().Id());
         if (origins != origin_map.end() and !origins->second.empty()) {
