@@ -162,6 +162,7 @@
                   ]
                 }
               ]
+            , "env": {"type": "var", "name": "ENV"}
             , "outs": [{"type": "var", "name": "ldflags-filename"}]
             }
           }
