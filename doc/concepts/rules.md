@@ -201,7 +201,7 @@ takes three (evaluated) arguments, `"artifacts"`, `"runfiles"`, and
 map. It defines the result of a target that has the given artifacts,
 runfiles, and provided data, respectively. In particular,
 `"artifacts"` and `"runfiles"` have to be maps to artifacts, and
-`"provides"` has to be a map. Moreover, they keys in `"runfiles"`
+`"provides"` has to be a map. Moreover, the keys in `"runfiles"`
 and `"artifacts"` are treated as paths; it is an error if this
 interpretation yields to conflicts. The keys in the artifacts or
 runfile maps as seen by other targets are the normalized paths of
