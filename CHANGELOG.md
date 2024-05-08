@@ -1,3 +1,7 @@
+## Release `1.4.0` (UNRELEASED)
+
+A feature release on top of `1.3.0`, backwards compatible.
+
 ## Release `1.3.0` (2024-05-08)
 
 A feature release on top of `1.2.0`, backwards compatible.
