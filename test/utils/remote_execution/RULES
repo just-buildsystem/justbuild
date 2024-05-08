@@ -187,7 +187,10 @@
         , { "type": "map_union"
           , "$1":
             [ {"type": "var", "name": "compatible-remote"}
-            , {"type": "var", "name": "just"}
+            , { "type": "to_subdir"
+              , "subdir": "staged"
+              , "$1": {"type": "var", "name": "just"}
+              }
             ]
           }
         ]

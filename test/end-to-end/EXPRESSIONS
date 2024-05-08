@@ -97,7 +97,10 @@
               , "key": "work"
               , "value": {"type": "var", "name": "deps"}
               }
-            , {"type": "var", "name": "just"}
+            , { "type": "to_subdir"
+              , "subdir": "staged"
+              , "$1": {"type": "var", "name": "just"}
+              }
             , {"type": "var", "name": "runner"}
             , {"type": "var", "name": "test.sh"}
             , {"type": "var", "name": "data"}

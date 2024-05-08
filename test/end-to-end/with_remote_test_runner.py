@@ -80,7 +80,7 @@ if not custom_remote:
     ).stdout.decode('utf-8')
 
     remote_cmd = [
-        "./bin/just",
+        "./staged/bin/just",
         "execute",
         "-L",
         json.dumps(["env", "PATH=" + PATH]),

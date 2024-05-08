@@ -113,7 +113,7 @@ with open(SERVE_CONFIG_FILE, "w") as f:
             }
         }))
 
-serve_cmd = ["./bin/just", "serve", SERVE_CONFIG_FILE]
+serve_cmd = ["./staged/bin/just", "serve", SERVE_CONFIG_FILE]
 
 servestdout = open("servestdout", "w")
 servestderr = open("servestderr", "w")
