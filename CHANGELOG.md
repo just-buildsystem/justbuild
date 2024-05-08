@@ -1,4 +1,4 @@
-## Release `1.3.0` (UNRELEASED)
+## Release `1.3.0` (2024-05-08)
 
 A feature release on top of `1.2.0`, backwards compatible.
 
@@ -103,6 +103,15 @@ A feature release on top of `1.2.0`, backwards compatible.
 - The command line option `"--remote-execution-property"` can be
   repeated multiple times to list all the properties, but only the
   last one was retained. This is fixed now.
+
+### Changes since `1.3.0~beta1`
+
+- The `["CC/pkgconfig", "system_library"]` rule now propagates
+  `ENV` correctly, fixing the build on systems where the default
+  paths pulled in by `env` do not contain `cat`.
+- In case of a build failure, the description of the failing action
+  in the error message is now more verbose, including the environment.
+- Various minor fixes in the documentation.
 
 ## Release `1.3.0~beta1` (2024-05-02)
 
