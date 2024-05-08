@@ -350,6 +350,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "DEBUG"
     ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
@@ -443,6 +444,7 @@
       , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
       ]
     , "ENV": ["The environment for any action generated."]
+    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
     }
   , "artifacts_doc":
     ["The actual library (libname.a) staged in the specified directory"]
@@ -460,6 +462,7 @@
       [ "List of strings that have to be added to the command line for linking actions"
       , "in targets depending on this library"
       ]
+    , "debug-srcs": ["Map of all dependencies' sources needed for debugging."]
     }
   , "anonymous":
     { "proto-deps":
@@ -569,7 +572,15 @@
     , "private-ldflags"
     ]
   , "config_vars":
-    ["CC", "CXX", "CFLAGS", "CXXFLAGS", "ADD_CFLAGS", "ADD_CXXFLAGS", "ENV"]
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "DEBUG"
+    ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
     { "name": ["The name of the binary"]
@@ -626,9 +637,12 @@
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     , "ENV": ["The environment for any action generated."]
+    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
     }
   , "artifacts_doc": ["The final binary, staged to the given directory"]
   , "runfiles_doc": ["None"]
+  , "provides_doc":
+    {"debug-srcs": ["Map of all dependencies' sources needed for debugging."]}
   , "anonymous":
     { "private-proto-deps":
       { "target": "private-proto"
@@ -704,6 +718,8 @@
     , "the target, artifacts and dependencies will be installed to"
     , "subdirectories \"bin\", \"include\", and \"lib\". For library targets,"
     , "a pkg-config file is generated and provided in \"lib/pkgconfig\"."
+    , "In debug mode, sources needed for local debugging will be installed to"
+    , "subdirectory \"debug-src\"."
     ]
   , "config_vars": ["PREFIX"]
   , "target_fields": ["targets"]
