@@ -245,7 +245,7 @@
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.boringssl"
-    , "bindings": {"rules": "rules-boringssl"}
+    , "bindings": {"rules": "rules-boringssl", "patches": "patches"}
     , "bootstrap":
       { "arch_map": {"arm64": "aarch64"}
       , "build": "{cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c src/crypto/*/*.S src/third_party/fiat/asm/*.S {os}-{arch}/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
