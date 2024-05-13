@@ -1,0 +1,87 @@
+{ "default-sh":
+  { "vars": ["defaults-transition", "fieldname"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "fieldname"
+        , {"type": "var", "name": "fieldname", "default": "defaults"}
+        ]
+      , ["provider", "sh"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , [ "provided sh"
+        , { "type": "join"
+          , "$1": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+          }
+        ]
+      , [ "sh"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "provided sh"}
+          , "then": {"type": "var", "name": "provided sh"}
+          , "else": "sh"
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "sh"}
+    }
+  }
+, "NON_SYSTEM":
+  { "vars": ["defaults-transition", "fieldname"]
+  , "expression":
+    { "type": "map_union"
+    , "$1":
+      { "type": "foreach"
+      , "var": "x"
+      , "range":
+        { "type": "FIELD"
+        , "name": {"type": "var", "name": "fieldname", "default": "defaults"}
+        }
+      , "body":
+        { "type": "DEP_PROVIDES"
+        , "dep": {"type": "var", "name": "x"}
+        , "provider": "NON_SYSTEM_TOOLS"
+        , "transition":
+          { "type": "var"
+          , "name": "defaults-transition"
+          , "default": {"type": "empty_map"}
+          }
+        , "default": {"type": "empty_map"}
+        }
+      }
+    }
+  }
+, "sh":
+  { "vars": ["defaults-transition", "TOOLCHAIN_DIR", "fieldname"]
+  , "imports": {"default-sh": "default-sh", "NON_SYSTEM": "NON_SYSTEM"}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["sh", {"type": "CALL_EXPRESSION", "name": "default-sh"}]
+      , ["NON_SYSTEM", {"type": "CALL_EXPRESSION", "name": "NON_SYSTEM"}]
+      , [ "sh"
+        , { "type": "if"
+          , "cond":
+            { "type": "lookup"
+            , "key": "sh"
+            , "map": {"type": "var", "name": "NON_SYSTEM"}
+            }
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ "."
+              , { "type": "var"
+                , "name": "TOOLCHAIN_DIR"
+                , "default": "toolchain"
+                }
+              , {"type": "var", "name": "sh"}
+              ]
+            }
+          , "else": {"type": "var", "name": "sh"}
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "sh"}
+    }
+  }
+}

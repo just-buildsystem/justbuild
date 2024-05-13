@@ -35,7 +35,7 @@ cd work
 date +%s > ../time-start
 # TODO:
 # - proper wrapping with timeout
-if sh ../test.sh > ../stdout 2> ../stderr
+if . ../invocation > ../stdout 2> ../stderr
 then
     RESULT=PASS
 else

@@ -49,6 +49,7 @@
       [ "Tool to aggregate the results of individual test runs (for flakyness"
       , "detection) to an overall test result."
       ]
+    , "defaults": ["The shell toolcahin to use."]
     }
   , "config_doc":
     { "RUNS_PER_TEST":
@@ -93,7 +94,11 @@
     , "As the built-in \"install\" rule only takes the runfiles of its \"deps\""
     , "argument, this gives an easy way of defining test suites."
     ]
-  , "implicit": {"runner": ["runner"], "summarizer": ["summarizer"]}
+  , "implicit":
+    { "runner": ["runner"]
+    , "summarizer": ["summarizer"]
+    , "defaults": [["./", "..", "defaults"]]
+    }
   , "imports":
     { "test-result": "test-result"
     , "action": "test-action"

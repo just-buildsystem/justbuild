@@ -144,13 +144,15 @@
   { "doc": ["Replace a file, logically in place, by a patched version"]
   , "target_fields": ["src", "patch"]
   , "config_vars": ["PATCH", "ENV"]
-  , "implicit": {"patch-defaults": ["defaults"]}
+  , "implicit":
+    {"patch-defaults": ["defaults"], "defaults": [["shell", "defaults"]]}
   , "field_doc":
     { "src":
       [ "The single source file to patch, typically an explicit file reference."
       ]
     , "patch": ["The patch to apply."]
     , "patch-defaults": ["The patch binary (and toolchain) to use"]
+    , "defaults": ["The shell toolchain to use"]
     }
   , "artifacts_doc":
     ["The patched file, staged to the position the of the original file"]
@@ -163,12 +165,23 @@
     , "default-ENV": "default-ENV"
     , "default-PATH": "default-PATH"
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
+    , "sh-TOOLCHAIN": ["CC", "default-TOOLCHAIN"]
+    , "sh-PATH": ["CC", "default-PATH"]
+    , "sh": ["shell", "sh"]
     }
   , "expression":
     { "type": "let*"
     , "bindings":
       [ ["TOOLCHAIN_DIR", "toolchain"]
-      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "disjoint_map_union"
+          , "msg": "Staging conflict between patch and sh toolchain"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}
+            , {"type": "CALL_EXPRESSION", "name": "sh-TOOLCHAIN"}
+            ]
+          }
+        ]
       , [ "TOOLCHAIN"
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
@@ -228,6 +241,7 @@
                   { "type": "++"
                   , "$1":
                     [ {"type": "CALL_EXPRESSION", "name": "default-PATH"}
+                    , {"type": "CALL_EXPRESSION", "name": "sh-PATH"}
                     , { "type": "if"
                       , "cond": {"type": "var", "name": "ENV_PATH"}
                       , "then": [{"type": "var", "name": "ENV_PATH"}]
@@ -239,6 +253,7 @@
             ]
           }
         ]
+      , ["sh", {"type": "CALL_EXPRESSION", "name": "sh"}]
       , [ "orig"
         , { "type": "let*"
           , "bindings": [["fieldname", "src"], ["location", "orig"]]
@@ -294,7 +309,7 @@
         , { "type": "ACTION"
           , "inputs": {"type": "var", "name": "inputs"}
           , "outs": ["patched"]
-          , "cmd": ["sh", "./run_patch.sh"]
+          , "cmd": [{"type": "var", "name": "sh"}, "./run_patch.sh"]
           , "env": {"type": "var", "name": "ENV"}
           }
         ]

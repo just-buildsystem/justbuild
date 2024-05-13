@@ -23,6 +23,7 @@
       , "given in \"have_{cfile,cxxfile,ctype,cxxtype,csymbol,cxxsymbol}\"."
       ]
     , "defaults": ["The C/C++ toolchain to use"]
+    , "shell defaults": ["The shell toolchain to use"]
     }
   , "config_doc":
     { "CC":
@@ -160,8 +161,13 @@
     , "default-PATH": ["./", "..", "default-PATH"]
     , "default-TOOLCHAIN": ["./", "..", "default-TOOLCHAIN"]
     , "default-NON_SYSTEM_TOOLS": ["./", "..", "default-NON_SYSTEM_TOOLS"]
+    , "map_provider": ["./", "../..", "field_map_provider"]
+    , "sh": ["./", "../../shell", "sh"]
     }
-  , "implicit": {"defaults": [["./", "..", "defaults"]]}
+  , "implicit":
+    { "defaults": [["./", "..", "defaults"]]
+    , "shell defaults": [["./", "../../shell", "defaults"]]
+    }
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -203,10 +209,35 @@
         ]
       , ["TOOLCHAIN_DIR", "toolchain"]
       , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "shell TOOLCHAIN"
+        , { "type": "let*"
+          , "bindings":
+            [ ["fieldname", "shell defaults"]
+            , ["provider", "TOOLCHAIN"]
+            , ["default", {"type": "empty_map"}]
+            ]
+          , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+          }
+        ]
+      , [ "TOOLCHAIN"
+        , { "type": "disjoint_map_union"
+          , "msg": "Shell and CC toolchain must not conflict"
+          , "$1":
+            [ {"type": "var", "name": "TOOLCHAIN"}
+            , {"type": "var", "name": "shell TOOLCHAIN"}
+            ]
+          }
+        ]
       , [ "TOOLCHAIN"
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
           , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "sh"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "shell defaults"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "sh"}
           }
         ]
       , [ "NON_SYSTEM_TOOLS"
@@ -573,7 +604,7 @@
                     ]
                   }
                 , "cmd":
-                  [ "sh"
+                  [ {"type": "var", "name": "sh"}
                   , "./file_check.sh"
                   , {"type": "var", "name": "CC"}
                   , "c"
@@ -617,7 +648,7 @@
                     ]
                   }
                 , "cmd":
-                  [ "sh"
+                  [ {"type": "var", "name": "sh"}
                   , "./file_check.sh"
                   , {"type": "var", "name": "CXX"}
                   , "cxx"
@@ -661,7 +692,7 @@
                     ]
                   }
                 , "cmd":
-                  [ "sh"
+                  [ {"type": "var", "name": "sh"}
                   , "./type_check.sh"
                   , {"type": "var", "name": "CC"}
                   , "c"
@@ -705,7 +736,7 @@
                     ]
                   }
                 , "cmd":
-                  [ "sh"
+                  [ {"type": "var", "name": "sh"}
                   , "./type_check.sh"
                   , {"type": "var", "name": "CXX"}
                   , "cxx"
@@ -753,7 +784,7 @@
                 , "cmd":
                   { "type": "++"
                   , "$1":
-                    [ [ "sh"
+                    [ [ {"type": "var", "name": "sh"}
                       , "./symbol_check.sh"
                       , {"type": "var", "name": "CC"}
                       , "c"
@@ -804,7 +835,7 @@
                 , "cmd":
                   { "type": "++"
                   , "$1":
-                    [ [ "sh"
+                    [ [ {"type": "var", "name": "sh"}
                       , "./symbol_check.sh"
                       , {"type": "var", "name": "CXX"}
                       , "cxx"
@@ -855,7 +886,7 @@
                 , "cmd":
                   { "type": "++"
                   , "$1":
-                    [ [ "sh"
+                    [ [ {"type": "var", "name": "sh"}
                       , "./size_check.sh"
                       , {"type": "var", "name": "CC"}
                       , "c"
@@ -913,7 +944,7 @@
                 , "cmd":
                   { "type": "++"
                   , "$1":
-                    [ [ "sh"
+                    [ [ {"type": "var", "name": "sh"}
                       , "./size_check.sh"
                       , {"type": "var", "name": "CXX"}
                       , "cxx"
@@ -964,9 +995,15 @@
         ]
       , [ "outfile"
         , { "type": "ACTION"
-          , "inputs": {"type": "var", "name": "definitions"}
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "TOOLCHAIN"}
+              , {"type": "var", "name": "definitions"}
+              ]
+            }
           , "cmd":
-            [ "sh"
+            [ {"type": "var", "name": "sh"}
             , "-c"
             , { "type": "join"
               , "separator": " "

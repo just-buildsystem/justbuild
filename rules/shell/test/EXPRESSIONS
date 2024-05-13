@@ -14,6 +14,11 @@
   , "imports":
     { "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "runfiles_list": ["./", "../..", "field_runfiles_list"]
+    , "default-TOOLCHAIN": ["./", "../../CC", "default-TOOLCHAIN"]
+    , "default-NON_SYSTEM_TOOLS":
+      ["./", "../../CC", "default-NON_SYSTEM_TOOLS"]
+    , "default-PATH": ["./", "../../CC", "default-PATH"]
+    , "default-sh": ["./", "..", "default-sh"]
     }
   , "expression":
     { "type": "let*"
@@ -40,6 +45,86 @@
                 }
               }
             }
+          }
+        ]
+      , ["toolchain dirname", "toolchain"]
+      , [ "toolchain"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "toolchain dirname"}
+          , "$1": {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}
+          }
+        ]
+      , ["sh", {"type": "CALL_EXPRESSION", "name": "default-sh"}]
+      , [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
+        ]
+      , [ "sh from workdir"
+        , { "type": "if"
+          , "cond":
+            { "type": "lookup"
+            , "key": "sh"
+            , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+            }
+          , "then":
+            { "type": "join"
+            , "$1": ["../toolchain/", {"type": "var", "name": "sh"}]
+            }
+          , "else": {"type": "var", "name": "sh"}
+          }
+        ]
+      , [ "invocation cmd"
+        , [{"type": "var", "name": "sh from workdir"}, "../test.sh"]
+        ]
+      , [ "invocation"
+        , { "type": "singleton_map"
+          , "key": "invocation"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "join_cmd"
+              , "$1": {"type": "var", "name": "invocation cmd"}
+              }
+            }
+          }
+        ]
+      , [ "test_env"
+        , {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
+        ]
+      , [ "test_env PATH"
+        , { "type": "lookup"
+          , "key": "PATH"
+          , "map": {"type": "var", "name": "test_env"}
+          }
+        ]
+      , [ "PATH"
+        , { "type": "join"
+          , "separator": ":"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "if"
+                , "cond": {"type": "var", "name": "test_env PATH"}
+                , "then": [{"type": "var", "name": "test_env PATH"}]
+                }
+              , {"type": "CALL_EXPRESSION", "name": "default-PATH"}
+              ]
+            }
+          }
+        ]
+      , [ "test_env"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PATH"}
+          , "then":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "test_env"}
+              , { "type": "singleton_map"
+                , "key": "PATH"
+                , "value": {"type": "var", "name": "PATH"}
+                }
+              ]
+            }
+          , "else": {"type": "var", "name": "test_env"}
           }
         ]
       , [ "deps"
@@ -106,7 +191,9 @@
               , "key": "work"
               , "value": {"type": "var", "name": "deps"}
               }
+            , {"type": "var", "name": "toolchain"}
             , {"type": "var", "name": "runner"}
+            , {"type": "var", "name": "invocation"}
             , {"type": "var", "name": "test.sh"}
             , {"type": "var", "name": "attempt marker"}
             ]
@@ -114,9 +201,6 @@
         ]
       , [ "cmd"
         , {"type": "++", "$1": [["./runner"], {"type": "var", "name": "keep"}]}
-        ]
-      , [ "test_env"
-        , {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
         ]
       ]
     , "body":

@@ -1,0 +1,145 @@
+{ "defaults":
+  { "doc":
+    [ "A rule to provide defaults for the usage of the shell"
+    , ""
+    , "All targets using invocations of the shell use the target"
+    , "[\"shel\", \"defaults\"] to determine which shell to use and how to"
+    , "invoke it. The definition of this default target is probably the only"
+    , "meaningful use of this rule."
+    ]
+  , "target_fields": ["base", "toolchain"]
+  , "string_fields": ["sh", "PATH"]
+  , "field_doc":
+    { "base": ["Other targets (using the same rule) to inherit values from."]
+    , "toolchain":
+      [ "Optional toolchain directory. A collection of artifacts that"
+      , "form the toolchain, in particular the shell itself, where not taken"
+      , "from the ambient host environment."
+      , "Values provided from base are extended."
+      , "This field is built for the host."
+      ]
+    , "sh":
+      [ "The name of the sh binary; if the the field \"toolchain\" is"
+      , "not empty, the value is interpreted as relative to the toolchain"
+      , "directory."
+      ]
+    , "PATH":
+      [ "Paths for looking up system tools."
+      , "Specifying this field extends values from \"base\"."
+      ]
+    }
+  , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
+  , "imports":
+    { "for host": ["transitions", "for host"]
+    , "artifacts_list": ["", "field_artifacts_list"]
+    , "base-provides-list": ["CC", "defaults-base-provides-list"]
+    , "base-provides-++": ["CC", "defaults-base-provides-++"]
+    , "base-provides": ["CC", "defaults-base-provides"]
+    }
+  , "config_transitions":
+    {"toolchain": [{"type": "CALL_EXPRESSION", "name": "for host"}]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "TOOLCHAIN"
+        , { "type": "disjoint_map_union"
+          , "msg": "toolchain artifacts must not overlap"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ { "type": "let*"
+                , "bindings":
+                  [ ["provider", "TOOLCHAIN"]
+                  , ["default", {"type": "empty_map"}]
+                  ]
+                , "body":
+                  {"type": "CALL_EXPRESSION", "name": "base-provides-list"}
+                }
+              , { "type": "let*"
+                , "bindings":
+                  [ ["fieldname", "toolchain"]
+                  , [ "transition"
+                    , {"type": "CALL_EXPRESSION", "name": "for host"}
+                    ]
+                  ]
+                , "body": {"type": "CALL_EXPRESSION", "name": "artifacts_list"}
+                }
+              ]
+            }
+          }
+        ]
+      , [ "sh"
+        , { "type": "if"
+          , "cond": {"type": "FIELD", "name": "sh"}
+          , "then": {"type": "FIELD", "name": "sh"}
+          , "else":
+            { "type": "let*"
+            , "bindings": [["provider", "sh"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+            }
+          }
+        ]
+      , [ "NON_SYSTEM_TOOLS"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              [ [ { "type": "let*"
+                  , "bindings":
+                    [ ["provider", "NON_SYSTEM_TOOLS"]
+                    , ["default", {"type": "empty_map"}]
+                    ]
+                  , "body":
+                    {"type": "CALL_EXPRESSION", "name": "base-provides"}
+                  }
+                ]
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "sh"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "sh"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      , [ "PATH"
+        , { "type": "reverse"
+          , "$1":
+            { "type": "nub_right"
+            , "$1":
+              { "type": "reverse"
+              , "$1":
+                { "type": "++"
+                , "$1":
+                  [ {"type": "FIELD", "name": "PATH"}
+                  , { "type": "let*"
+                    , "bindings": [["provider", "PATH"]]
+                    , "body":
+                      {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "provides":
+        { "type": "env"
+        , "vars": ["TOOLCHAIN", "sh", "NON_SYSTEM_TOOLS", "PATH"]
+        }
+      }
+    }
+  }
+}
