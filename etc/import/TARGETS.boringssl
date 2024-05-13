@@ -302,6 +302,17 @@
     , "src/third_party/fiat/p256_64_msvc.h"
     ]
   }
+, "src/crypto/internal.h":
+  { "type": ["@", "rules", "patch", "file"]
+  , "src": [["FILE", null, "src/crypto/internal.h"]]
+  , "patch":
+    [ [ "@"
+      , "patches"
+      , ""
+      , "crypto-use-_Generic-only-if-defined-__cplusplus.patch"
+      ]
+    ]
+  }
 , "crypto_sources":
   { "type": "install"
   , "deps":
