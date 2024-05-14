@@ -95,30 +95,39 @@ void WithFlexibleVariables(
                       /*fatal=*/true);
             return;
         }
-        if (res->index() == 0) {
-            if (serve_failure_reporter != nullptr) {
-                (*serve_failure_reporter)(key, std::get<0>(*res));
+        switch (auto const& ind = res->index(); ind) {
+            case 0: {
+                if (serve_failure_reporter != nullptr) {
+                    (*serve_failure_reporter)(key, std::get<0>(*res));
+                }
+                // target found but failed to analyse/build: log it as fatal
+                (*logger)(
+                    fmt::format("Failure to remotely analyse or build absent "
+                                "target {}\nDetailed log available on the "
+                                "remote-execution endpoint as blob {}",
+                                key.target.ToString(),
+                                std::get<0>(*res)),
+                    /*fatal=*/true);
+                return;
             }
-            (*logger)(fmt::format("Failure to remotely analyse or build absent "
-                                  "target {}\nDetailed log available on the "
-                                  "remote-execution endpoint as blob {}",
-                                  key.target.ToString(),
-                                  std::get<0>(*res)),
-                      /*fatal=*/true);
-            return;
+            case 1:  // fallthrough
+            case 2: {
+                // Other errors, including INTERNAL: log it as fatal
+                (*logger)(fmt::format(
+                              "While querying serve endpoint for absent export "
+                              "target {}:\n{}",
+                              key.target.ToString(),
+                              ind == 1 ? std::get<1>(*res) : std::get<2>(*res)),
+                          /*fatal=*/true);
+                return;
+            }
+            default: {
+                // index == 3
+                target_cache_value = std::get<3>(*res);
+                exports_progress->TaskTracker().Stop(task);
+                from_just_serve = true;
+            }
         }
-        if (res->index() == 1) {
-            (*logger)(fmt::format("While querying serve endpoint for "
-                                  "absent export target {}:\n{}",
-                                  key.target.ToString(),
-                                  std::get<1>(*res)),
-                      /*fatal=*/true);
-            return;
-        }
-        // index == 2
-        target_cache_value = std::get<2>(*res);
-        exports_progress->TaskTracker().Stop(task);
-        from_just_serve = true;
     }
 
     if (!target_cache_value) {

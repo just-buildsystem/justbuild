@@ -160,31 +160,44 @@ void ExportRule(
                             key.target.ToString());
             }
             else {
-                if (res->index() == 0) {
-                    // target found but failed to analyse/build: this should be
-                    // a fatal error for the local build too
-                    (*logger)(
-                        fmt::format("Failure to remotely analyse or build "
-                                    "target {}\nDetailed log available on the "
-                                    "remote-execution endpoint as blob {}",
-                                    key.target.ToString(),
-                                    std::get<0>(*res)),
-                        /*fatal=*/true);
-                    return;
-                }
-                if (res->index() == 1) {
-                    // some other failure occurred while querying the serve
-                    // endpoint; log to debug and continue locally
-                    Logger::Log(LogLevel::Debug,
-                                "While querying serve endpoint for export "
-                                "target {}:\n{}",
+                switch (res->index()) {
+                    case 0: {
+                        // target found but failed to analyse/build: this should
+                        // be a fatal error for the local build too
+                        (*logger)(
+                            fmt::format(
+                                "Failure to remotely analyse or build target "
+                                "{}\nDetailed log available on the "
+                                "remote-execution endpoint as blob {}",
                                 key.target.ToString(),
-                                std::get<1>(*res));
-                }
-                else {
-                    // index == 2
-                    target_cache_value = std::get<2>(*res);
-                    from_just_serve = true;
+                                std::get<0>(*res)),
+                            /*fatal=*/true);
+                        return;
+                    }
+                    case 1: {
+                        // internal failure on the serve endpoint, or failures
+                        // on the client side: local build should not continue
+                        (*logger)(fmt::format("While querying serve endpoint "
+                                              "for export target {}:\n{}",
+                                              key.target.ToString(),
+                                              std::get<1>(*res)),
+                                  /*fatal=*/true);
+                        return;
+                    }
+                    case 2: {
+                        // some other failure occurred on the serve endpoint;
+                        // log to debug and continue locally
+                        Logger::Log(LogLevel::Debug,
+                                    "While querying serve endpoint for export "
+                                    "target {}:\n{}",
+                                    key.target.ToString(),
+                                    std::get<2>(*res));
+                    } break;
+                    default: {
+                        // index == 3
+                        target_cache_value = std::get<3>(*res);
+                        from_just_serve = true;
+                    }
                 }
             }
             exports_progress->TaskTracker().Stop(task);
