@@ -32,7 +32,7 @@
     if (execution_props not_eq nullptr) {
         std::istringstream pss(std::string{execution_props});
         std::string keyval_pair;
-        while (std::getline(pss, keyval_pair, ';')) {
+        while (std::getline(pss, keyval_pair, ' ')) {
             properties.emplace_back(keyval_pair);
         }
     }
