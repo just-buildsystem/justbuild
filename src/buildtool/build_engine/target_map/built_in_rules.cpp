@@ -1665,7 +1665,7 @@ auto HandleBuiltin(
         [logger, rule_name, key](auto msg, auto fatal) {
             (*logger)(fmt::format("While evaluating {} target {}:\n{}",
                                   rule_name,
-                                  key.ToString(),
+                                  key.ToShortString(),
                                   msg),
                       fatal);
         });

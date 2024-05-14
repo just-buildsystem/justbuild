@@ -1460,7 +1460,7 @@ void withTargetsFile(
                             (*logger)(
                                 fmt::format("While analysing {} target {}:\n{}",
                                             rn.ToString(),
-                                            key.ToString(),
+                                            key.ToShortString(),
                                             msg),
                                 fatal);
                         }),
@@ -1919,7 +1919,7 @@ auto CreateTargetMap(
                 [logger, key](auto msg, auto fatal) {
                     (*logger)(
                         fmt::format("While processing absent target {}:\n{}",
-                                    key.ToString(),
+                                    key.ToShortString(),
                                     msg),
                         fatal);
                 });
