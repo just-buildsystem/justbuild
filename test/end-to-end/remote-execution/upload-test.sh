@@ -64,7 +64,8 @@ export CONF="$(realpath repos.json)"
 # Build remotely
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
-  REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+  REMOTE_EXECUTION_PROPS="$(printf " --remote-execution-property %s" ${REMOTE_EXECUTION_PROPERTIES})"
+  REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} ${REMOTE_EXECUTION_PROPS}"
 fi
 
 "${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_1}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1
@@ -89,7 +90,8 @@ export CONF="$(realpath repos.json)"
 # Build remotely
 REMOTE_EXECUTION_ARGS="-r ${REMOTE_EXECUTION_ADDRESS}"
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]; then
-  REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} --remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+  REMOTE_EXECUTION_PROPS="$(printf " --remote-execution-property %s" ${REMOTE_EXECUTION_PROPERTIES})"
+  REMOTE_EXECUTION_ARGS="${REMOTE_EXECUTION_ARGS} ${REMOTE_EXECUTION_PROPS}"
 fi
 
 "${JUST}" build -L '["env", "PATH='"${PATH}"'"]' -C "${CONF}" --local-build-root="${LBRDIR_2}" ${ARGS} ${REMOTE_EXECUTION_ARGS} 2>&1

@@ -32,7 +32,7 @@ REMOTE_EXECUTION_PROPS=""
 LOCAL_ARGS=""
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]
 then
-   REMOTE_EXECUTION_PROPS="--remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+   REMOTE_EXECUTION_PROPS="$(printf " --remote-execution-property %s" ${REMOTE_EXECUTION_PROPERTIES})"
 fi
 if [ -n "${COMPATIBLE:-}" ]
 then

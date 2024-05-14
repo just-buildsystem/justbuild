@@ -47,7 +47,7 @@ run_tests() {
     if [ -n "${1:-}" ] && [ -n "${2:-}" ]; then
         TYPE="remote"
         REMOTE_ARGS="-r $1"
-        REMOTE_BUILD_ARGS="--remote-execution-property $2"
+        REMOTE_BUILD_ARGS="$(printf " --remote-execution-property %s" $2)"
     fi
     ARGS="$COMMON_ARGS $REMOTE_ARGS"
     BUILD_ARGS="$ARGS $REMOTE_BUILD_ARGS"

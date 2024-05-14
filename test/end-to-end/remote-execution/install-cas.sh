@@ -25,7 +25,7 @@ REMOTE_ARGS="${LOCAL_ARGS} -r ${REMOTE_EXECUTION_ADDRESS}"
 REMOTE_PROPS=""
 if [ "${REMOTE_EXECUTION_PROPERTIES:-}" != "" ]
 then
-   REMOTE_PROPS="--remote-execution-property ${REMOTE_EXECUTION_PROPERTIES}"
+   REMOTE_PROPS="$(printf " --remote-execution-property %s" ${REMOTE_EXECUTION_PROPERTIES})"
 fi
 if [ -n "${COMPATIBLE:-}" ]
 then
