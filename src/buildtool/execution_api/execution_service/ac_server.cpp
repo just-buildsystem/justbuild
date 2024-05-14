@@ -24,7 +24,7 @@ auto ActionCacheServiceImpl::GetActionResult(
     const ::bazel_re::GetActionResultRequest* request,
     ::bazel_re::ActionResult* response) -> ::grpc::Status {
     if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
-        logger_.Emit(LogLevel::Debug, *error_msg);
+        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
     logger_.Emit(LogLevel::Trace,

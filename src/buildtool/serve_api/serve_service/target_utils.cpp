@@ -38,13 +38,12 @@ auto IsTreeInRepo(std::string const& tree_id,
             auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
                 [logger, repo_path, tree_id](auto const& msg, bool fatal) {
                     if (fatal) {
-                        auto err = fmt::format(
-                            "ServeTarget: While checking existence of tree {} "
-                            "in repository {}:\n{}",
-                            tree_id,
-                            repo_path.string(),
-                            msg);
-                        logger->Emit(LogLevel::Info, err);
+                        logger->Emit(LogLevel::Info,
+                                     "ServeTarget: While checking existence of "
+                                     "tree {} in repository {}:\n{}",
+                                     tree_id,
+                                     repo_path.string(),
+                                     msg);
                     }
                 });
             if (auto res = repo->CheckTreeExists(tree_id, wrapped_logger)) {
@@ -238,13 +237,12 @@ auto GetBlobContent(std::filesystem::path const& repo_path,
             auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
                 [logger, repo_path, tree_id](auto const& msg, bool fatal) {
                     if (fatal) {
-                        auto err = fmt::format(
-                            "ServeTargetVariables: While checking if tree {} "
-                            "exists in repository {}:\n{}",
-                            tree_id,
-                            repo_path.string(),
-                            msg);
-                        logger->Emit(LogLevel::Debug, err);
+                        logger->Emit(LogLevel::Debug,
+                                     "ServeTargetVariables: While checking if "
+                                     "tree {} exists in repository {}:\n{}",
+                                     tree_id,
+                                     repo_path.string(),
+                                     msg);
                     }
                 });
             if (repo->CheckTreeExists(tree_id, wrapped_logger) == true) {
@@ -255,26 +253,25 @@ auto GetBlobContent(std::filesystem::path const& repo_path,
                         [logger, repo_path, blob_id = entry_info->id](
                             auto const& msg, bool fatal) {
                             if (fatal) {
-                                auto err = fmt::format(
+                                logger->Emit(
+                                    LogLevel::Debug,
                                     "ServeTargetVariables: While retrieving "
                                     "blob {} from repository {}:\n{}",
                                     blob_id,
                                     repo_path.string(),
                                     msg);
-                                logger->Emit(LogLevel::Debug, err);
                             }
                         });
                     // get blob content
                     return repo->TryReadBlob(entry_info->id, wrapped_logger);
                 }
                 // trace failure to get entry
-                auto err = fmt::format(
-                    "ServeTargetVariables: Failed to retrieve entry {} in "
-                    "tree {} from repository {}",
-                    rel_path,
-                    tree_id,
-                    repo_path.string());
-                logger->Emit(LogLevel::Debug, err);
+                logger->Emit(LogLevel::Debug,
+                             "ServeTargetVariables: Failed to retrieve entry "
+                             "{} in tree {} from repository {}",
+                             rel_path,
+                             tree_id,
+                             repo_path.string());
                 return std::pair(false, std::nullopt);  // could not read blob
             }
         }

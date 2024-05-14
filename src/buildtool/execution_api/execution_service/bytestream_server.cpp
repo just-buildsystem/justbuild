@@ -52,12 +52,12 @@ auto BytestreamServiceImpl::Read(
     auto hash = ParseResourceName(request->resource_name());
     if (!hash) {
         auto str = fmt::format("could not parse {}", request->resource_name());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
     if (auto error_msg = IsAHash(*hash); error_msg) {
-        logger_.Emit(LogLevel::Debug, *error_msg);
+        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
 
@@ -81,7 +81,7 @@ auto BytestreamServiceImpl::Read(
     }
     if (!path) {
         auto str = fmt::format("could not find {}", *hash);
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, str};
     }
     std::ifstream blob{*path};
@@ -113,11 +113,11 @@ auto BytestreamServiceImpl::Write(
     auto hash = ParseResourceName(request.resource_name());
     if (!hash) {
         auto str = fmt::format("could not parse {}", request.resource_name());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
     if (auto error_msg = IsAHash(*hash); error_msg) {
-        logger_.Emit(LogLevel::Debug, *error_msg);
+        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
     logger_.Emit(LogLevel::Trace,
@@ -150,7 +150,7 @@ auto BytestreamServiceImpl::Write(
     if (NativeSupport::IsTree(*hash)) {
         if (not storage_->CAS().StoreTree</*kOwner=*/true>(tmp)) {
             auto str = fmt::format("could not store tree {}", *hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
         }
     }
@@ -158,7 +158,7 @@ auto BytestreamServiceImpl::Write(
         if (not storage_->CAS().StoreBlob</*kOwner=*/true>(
                 tmp, /*is_executable=*/false)) {
             auto str = fmt::format("could not store blob {}", *hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
         }
     }
@@ -173,6 +173,6 @@ auto BytestreamServiceImpl::QueryWriteStatus(
     ::google::bytestream::QueryWriteStatusResponse* /*response*/)
     -> ::grpc::Status {
     auto const* str = "QueryWriteStatus not implemented";
-    logger_.Emit(LogLevel::Error, str);
+    logger_.Emit(LogLevel::Error, "{}", str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }

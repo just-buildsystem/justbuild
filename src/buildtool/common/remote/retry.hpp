@@ -61,7 +61,7 @@ template <CallableReturningRetryResponse F>
             }
             if (fatal) {
                 if (error_msg) {
-                    logger.Emit(LogLevel::Error, *error_msg);
+                    logger.Emit(LogLevel::Error, "{}", *error_msg);
                 }
                 return false;
             }

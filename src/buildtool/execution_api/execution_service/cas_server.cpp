@@ -109,7 +109,7 @@ auto CASServiceImpl::CheckDigestConsistency(bazel_re::Digest const& ref,
             ref.size_bytes(),
             computed.size_bytes(),
             computed.size_bytes());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return str;
     }
     return std::nullopt;
@@ -132,7 +132,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
         if (!IsValidHash(hash)) {
             auto const& str =
                 fmt::format("BatchUpdateBlobs: unsupported digest {}", hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
         }
         logger_.Emit(LogLevel::Trace, "BatchUpdateBlobs: {}", hash);
@@ -144,7 +144,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
             if (auto err = CASUtils::EnsureTreeInvariant(
                     x.digest(), x.data(), *storage_)) {
                 auto str = fmt::format("BatchUpdateBlobs: {}", *err);
-                logger_.Emit(LogLevel::Error, str);
+                logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
                                       str};
             }
@@ -152,12 +152,12 @@ auto CASServiceImpl::BatchUpdateBlobs(
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload tree {}", hash);
-                logger_.Emit(LogLevel::Error, str);
+                logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
             if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
                 auto str = fmt::format("BatchUpdateBlobs: {}", *err);
-                logger_.Emit(LogLevel::Error, str);
+                logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
             }
         }
@@ -166,12 +166,12 @@ auto CASServiceImpl::BatchUpdateBlobs(
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload blob {}", hash);
-                logger_.Emit(LogLevel::Error, str);
+                logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
             }
             if (auto err = CheckDigestConsistency(x.digest(), *dgst)) {
                 auto str = fmt::format("BatchUpdateBlobs: {}", *err);
-                logger_.Emit(LogLevel::Error, str);
+                logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
             }
         }
@@ -186,7 +186,7 @@ auto CASServiceImpl::BatchReadBlobs(
     auto lock = GarbageCollector::SharedLock();
     if (!lock) {
         auto str = fmt::format("BatchReadBlobs: Could not acquire SharedLock");
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     for (auto const& digest : request->digests()) {
@@ -240,7 +240,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     if (not IsValidHash(blob_digest.hash())) {
         auto str =
             fmt::format("SplitBlob: unsupported digest {}", blob_digest.hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
@@ -255,14 +255,13 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
                                   ChunkingAlgorithm_Value_IDENTITY and
         chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
                                   ChunkingAlgorithm_Value_FASTCDC) {
-        logger_.Emit(LogLevel::Warning,
-                     fmt::format("SplitBlob: unsupported chunking algorithm "
-                                 "{}, will use "
-                                 "default implementation {}",
-                                 ChunkingAlgorithmToString(chunking_algorithm),
-                                 ChunkingAlgorithmToString(
-                                     ::bazel_re::ChunkingAlgorithm_Value::
-                                         ChunkingAlgorithm_Value_FASTCDC)));
+        logger_.Emit(
+            LogLevel::Warning,
+            "SplitBlob: unsupported chunking algorithm {}, will use default "
+            "implementation {}",
+            ChunkingAlgorithmToString(chunking_algorithm),
+            ChunkingAlgorithmToString(::bazel_re::ChunkingAlgorithm_Value::
+                                          ChunkingAlgorithm_Value_FASTCDC));
     }
 
     // Acquire garbage collection lock.
@@ -284,7 +283,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     if (std::holds_alternative<grpc::Status>(split_result)) {
         auto status = std::get<grpc::Status>(split_result);
         auto str = fmt::format("SplitBlob: {}", status.error_message());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
     }
 
@@ -322,7 +321,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
     if (not IsValidHash(blob_digest.hash())) {
         auto str = fmt::format("SpliceBlob: unsupported digest {}",
                                blob_digest.hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
@@ -350,13 +349,13 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
     if (std::holds_alternative<grpc::Status>(splice_result)) {
         auto status = std::get<grpc::Status>(splice_result);
         auto str = fmt::format("SpliceBlob: {}", status.error_message());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
     }
     auto digest = std::get<bazel_re::Digest>(splice_result);
     if (auto err = CheckDigestConsistency(blob_digest, digest)) {
         auto str = fmt::format("SpliceBlob: {}", *err);
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
     response->mutable_blob_digest()->CopyFrom(digest);

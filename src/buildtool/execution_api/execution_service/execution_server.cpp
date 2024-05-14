@@ -42,14 +42,14 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
                                 std::optional<std::string>> {
     // get action description
     if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
-        logger_.Emit(LogLevel::Error, *error_msg);
+        logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
     auto path = storage_->CAS().BlobPath(request->action_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                request->action_digest().hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return {std::nullopt, str};
     }
     ::bazel_re::Action action{};
@@ -58,13 +58,13 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         if (!action.ParseFromIstream(&f)) {
             auto str = fmt::format("failed to parse action from blob {}",
                                    request->action_digest().hash());
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return {std::nullopt, str};
         }
     }
     if (auto error_msg = IsAHash(action.input_root_digest().hash());
         error_msg) {
-        logger_.Emit(LogLevel::Error, *error_msg);
+        logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
     path = Compatibility::IsCompatible()
@@ -74,7 +74,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     if (!path) {
         auto str = fmt::format("could not retrieve input root {} from cas",
                                action.input_root_digest().hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return {std::nullopt, str};
     }
     return {std::move(action), std::nullopt};
@@ -84,14 +84,14 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     const noexcept -> std::pair<std::optional<::bazel_re::Command>,
                                 std::optional<std::string>> {
     if (auto error_msg = IsAHash(action.command_digest().hash()); error_msg) {
-        logger_.Emit(LogLevel::Error, *error_msg);
+        logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
     auto path = storage_->CAS().BlobPath(action.command_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                action.command_digest().hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return {std::nullopt, str};
     }
 
@@ -101,7 +101,7 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
         if (!c.ParseFromIstream(&f)) {
             auto str = fmt::format("failed to parse command from blob {}",
                                    action.command_digest().hash());
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return {std::nullopt, str};
         }
     }
@@ -143,7 +143,7 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     if (!i_execution_action) {
         auto str = fmt::format("could not create action from {}",
                                request->action_digest().hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return {std::nullopt, str};
     }
     i_execution_action->SetCacheFlag(
@@ -357,7 +357,7 @@ auto ExecutionServiceImpl::AddResult(
     if (not AddOutputPaths(response, i_execution_response, *storage_)) {
         auto str = fmt::format("Error in creating output paths of action {}",
                                action_hash);
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return std::nullopt;
     }
     auto* result = response->mutable_result();
@@ -368,7 +368,7 @@ auto ExecutionServiceImpl::AddResult(
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stderr of action {}", action_hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return str;
         }
         result->mutable_stderr_digest()->CopyFrom(*dgst);
@@ -379,7 +379,7 @@ auto ExecutionServiceImpl::AddResult(
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stdout of action {}", action_hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return str;
         }
         result->mutable_stdout_digest()->CopyFrom(*dgst);
@@ -422,7 +422,7 @@ auto ExecutionServiceImpl::StoreActionResult(
                                              execute_response.result())) {
         auto str = fmt::format("Could not store action result for action {}",
                                request->action_digest().hash());
-        logger_.Emit(LogLevel::Error, str);
+        logger_.Emit(LogLevel::Error, "{}", str);
         return str;
     }
     return std::nullopt;
@@ -501,7 +501,7 @@ auto ExecutionServiceImpl::WaitExecution(
     -> ::grpc::Status {
     auto const& hash = request->name();
     if (auto error_msg = IsAHash(hash); error_msg) {
-        logger_.Emit(LogLevel::Error, *error_msg);
+        logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
     logger_.Emit(LogLevel::Trace, "WaitExecution: {}", hash);
@@ -511,7 +511,7 @@ auto ExecutionServiceImpl::WaitExecution(
         if (!op) {
             auto const& str = fmt::format(
                 "Executing action {} not found in internal cache.", hash);
-            logger_.Emit(LogLevel::Error, str);
+            logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
