@@ -34,11 +34,16 @@
 
 /// \brief Result union for the ServeTarget request.
 /// Index 0 will contain the hash of the blob containing the logged
-/// analysis/build failure received from the endpoint, as a string.
-/// Index 1 will contain any other failure message, as a string.
-/// Index 2 will contain the target cache value information on success.
+/// analysis/build failure received from the endpoint, as a string; this should
+/// also trigger a local build fail.
+/// Index 1 will contain the message of any INTERNAL error on the endpoint, as
+/// a string; this should trigger a local build fail.
+/// Index 2 will contain any other failure message, as a string; local builds
+/// might be able to continue, but with a warning.
+/// Index 3 will contain the target cache value information on success.
 using serve_target_result_t =
     std::variant<std::string,
+                 std::string,
                  std::string,
                  std::pair<TargetCacheEntry, Artifact::ObjectInfo>>;
 

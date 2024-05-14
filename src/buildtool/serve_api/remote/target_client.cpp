@@ -100,10 +100,6 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     grpc::ClientContext context;
     justbuild::just_serve::ServeTargetResponse response;
     auto const& status = stub_->ServeTarget(&context, request, &response);
-    if (!status.ok()) {
-        return serve_target_result_t{std::in_place_index<1>,
-                                     StatusString(status)};
-    }
 
     // differentiate status codes
     switch (status.error_code()) {
@@ -145,7 +141,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                 auto const& result = TargetCacheEntry::FromJson(
                     nlohmann::json::parse(*target_value_str));
                 // return the target cache value information
-                return serve_target_result_t{std::in_place_index<2>,
+                return serve_target_result_t{std::in_place_index<3>,
                                              std::make_pair(result, obj_info)};
             } catch (std::exception const& ex) {
                 return serve_target_result_t{
@@ -154,13 +150,20 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                                 ex.what())};
             }
         }
+        case grpc::StatusCode::INTERNAL: {
+            return serve_target_result_t{
+                std::in_place_index<1>,
+                fmt::format(
+                    "Serve endpoint reported the fatal internal error:\n{}",
+                    status.error_message())};
+        }
         case grpc::StatusCode::NOT_FOUND: {
             return std::nullopt;  // this might allow a local build to continue
         }
         default:;  // fallthrough
     }
     return serve_target_result_t{
-        std::in_place_index<1>,
+        std::in_place_index<2>,
         fmt::format("Serve endpoint failed with:\n{}", status.error_message())};
 }
 
