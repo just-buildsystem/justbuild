@@ -30,6 +30,8 @@ struct ConfiguredTarget {
     BuildMaps::Base::EntityName target;
     Configuration config;
 
+    static constexpr std::size_t kConfigLength = 320;
+
     [[nodiscard]] auto operator==(
         BuildMaps::Target::ConfiguredTarget const& other) const noexcept
         -> bool {
@@ -42,7 +44,9 @@ struct ConfiguredTarget {
 
     [[nodiscard]] auto ToShortString() const noexcept -> std::string {
         return fmt::format(
-            "[{},{}]", target.ToString(), PruneJson(config.ToJson()).dump());
+            "[{},{}]",
+            target.ToString(),
+            AbbreviateJson(PruneJson(config.ToJson()), kConfigLength));
     }
 };
 
