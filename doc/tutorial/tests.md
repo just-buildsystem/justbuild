@@ -324,6 +324,21 @@ the `tests/TARGETS` file:
 ...
 ```
 
+A shell test depends on the default settings for the shell. Therefore,
+if we bring our own toolchain defaults for our rules, we have to do this
+here as well. We create the module `shell`
+
+``` sh
+$ mkdir -p ./tutorial-defaults/shell
+```
+
+and create a simple `TARGETS` file saying we are happy with the defaults
+for the defaults.
+
+``` {.jsonc srcname="tutorial-defaults/shell/TARGETS"}
+{"defaults": {"type": "defaults"}}
+```
+
 Now we can run the shell test (i.e., build the test result):
 
 ``` sh
