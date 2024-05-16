@@ -84,4 +84,19 @@
     , "body": {"type": "var", "name": "sh"}
     }
   }
+, "PATH":
+  { "vars": ["fieldname", "defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "fieldname"
+        , {"type": "var", "name": "fieldname", "default": "defaults"}
+        ]
+      , ["provider", "PATH"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
 }

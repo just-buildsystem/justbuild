@@ -163,6 +163,7 @@
     , "default-NON_SYSTEM_TOOLS": ["./", "..", "default-NON_SYSTEM_TOOLS"]
     , "map_provider": ["./", "../..", "field_map_provider"]
     , "sh": ["./", "../../shell", "sh"]
+    , "sh-PATH": ["./", "../../shell", "PATH"]
     }
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
@@ -277,6 +278,10 @@
                     , { "type": "if"
                       , "cond": {"type": "var", "name": "ENV_PATH"}
                       , "then": [{"type": "var", "name": "ENV_PATH"}]
+                      }
+                    , { "type": "let*"
+                      , "bindings": [["fieldname", "shell defaults"]]
+                      , "body": {"type": "CALL_EXPRESSION", "name": "sh-PATH"}
                       }
                     ]
                   }
