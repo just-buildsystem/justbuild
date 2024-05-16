@@ -21,7 +21,7 @@
 #include "src/utils/cpp/path.hpp"
 
 auto BuildMaps::Base::CreateDirectoryEntriesMap(
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs) -> DirectoryEntriesMap {
     auto directory_reader = [repo_config](auto /* unused*/,
                                           auto setter,

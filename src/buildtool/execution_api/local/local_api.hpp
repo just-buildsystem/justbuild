@@ -47,7 +47,7 @@
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
   public:
-    explicit LocalApi(std::optional<gsl::not_null<RepositoryConfig*>>
+    explicit LocalApi(std::optional<gsl::not_null<const RepositoryConfig*>>
                           repo_config = std::nullopt)
         : repo_config_{std::move(repo_config)} {}
 
@@ -533,7 +533,7 @@ class LocalApi final : public IExecutionApi {
     }
 
   private:
-    std::optional<gsl::not_null<RepositoryConfig*>> repo_config_{};
+    std::optional<gsl::not_null<const RepositoryConfig*>> repo_config_{};
     gsl::not_null<Storage const*> storage_ = &Storage::Instance();
 };
 

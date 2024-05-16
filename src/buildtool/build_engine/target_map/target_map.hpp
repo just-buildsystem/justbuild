@@ -45,7 +45,7 @@ auto CreateTargetMap(
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&,
     const gsl::not_null<AbsentTargetMap*>&,
     const gsl::not_null<ResultTargetMap*>&,
-    const gsl::not_null<RepositoryConfig*>&,
+    const gsl::not_null<const RepositoryConfig*>&,
     const ActiveTargetCache&,
     const gsl::not_null<Statistics*>& stats,
     const gsl::not_null<Progress*>& exports_progress,

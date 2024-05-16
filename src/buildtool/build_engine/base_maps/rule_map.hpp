@@ -42,7 +42,7 @@ using UserRuleMap = AsyncMapConsumer<EntityName, UserRulePtr>;
 
 auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                    gsl::not_null<ExpressionFunctionMap*> const& expr_map,
-                   gsl::not_null<RepositoryConfig*> const& repo_config,
+                   gsl::not_null<const RepositoryConfig*> const& repo_config,
                    std::size_t jobs = 0) -> UserRuleMap;
 
 }  // namespace BuildMaps::Base

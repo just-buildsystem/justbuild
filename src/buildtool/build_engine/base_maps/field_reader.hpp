@@ -175,7 +175,7 @@ class FieldReader {
 
     [[nodiscard]] auto ReadEntityAliasesObject(
         std::string const& field_name,
-        gsl::not_null<RepositoryConfig*> const& repo_config) const
+        gsl::not_null<const RepositoryConfig*> const& repo_config) const
         -> std::optional<EntityAliases> {
         auto const& map =
             GetOrDefault(json_, field_name, nlohmann::json::object());

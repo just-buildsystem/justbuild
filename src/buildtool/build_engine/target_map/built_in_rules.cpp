@@ -123,7 +123,7 @@ void BlobGenRuleWithDeps(
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
@@ -289,7 +289,7 @@ void BlobGenRuleWithDeps(
 void BlobGenRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -378,7 +378,7 @@ void BlobGenRule(
 void FileGenRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -399,7 +399,7 @@ void FileGenRule(
 void SymlinkRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -537,7 +537,7 @@ void TreeRuleWithDeps(
 void TreeRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -799,7 +799,7 @@ void InstallRuleWithDeps(
 void InstallRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -987,7 +987,7 @@ void GenericRuleWithDeps(
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
@@ -1387,7 +1387,7 @@ void GenericRuleWithDeps(
 void GenericRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -1467,7 +1467,7 @@ void GenericRule(
 void ConfigureRule(
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
     [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
     [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
@@ -1610,7 +1610,7 @@ auto const kBuiltIns = std::unordered_map<
     std::function<void(
         const nlohmann::json&,
         const BuildMaps::Target::ConfiguredTarget&,
-        const gsl::not_null<RepositoryConfig*>&,
+        const gsl::not_null<const RepositoryConfig*>&,
         const ActiveTargetCache&,
         const gsl::not_null<Statistics*>&,
         const gsl::not_null<Progress*>&,
@@ -1643,7 +1643,7 @@ auto HandleBuiltin(
     const nlohmann::json& rule_type,
     const nlohmann::json& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
     const gsl::not_null<Progress*>& exports_progress,

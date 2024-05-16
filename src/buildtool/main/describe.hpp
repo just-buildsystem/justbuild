@@ -24,13 +24,13 @@
 
 [[nodiscard]] auto DescribeTarget(
     BuildMaps::Target::ConfiguredTarget const& id,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs,
     bool print_json) -> int;
 
 [[nodiscard]] auto DescribeUserDefinedRule(
     BuildMaps::Base::EntityName const& rule_name,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs,
     bool print_json) -> int;
 

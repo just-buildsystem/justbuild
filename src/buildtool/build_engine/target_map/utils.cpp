@@ -29,7 +29,7 @@ auto BuildMaps::Target::Utils::obtainTargetByName(
     const ExpressionPtr& expr,
     const Configuration& env,
     const Base::EntityName& current,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     std::unordered_map<BuildMaps::Target::ConfiguredTarget,
                        AnalysedTargetPtr> const& deps_by_transition)
     -> AnalysedTargetPtr {

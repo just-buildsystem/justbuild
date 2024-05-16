@@ -46,7 +46,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
 [[nodiscard]] auto ReadAnonymousObject(
     EntityName const& id,
     nlohmann::json const& json,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<UserRule::anonymous_defs_t> {
     auto obj = GetOrDefault(json, "anonymous", nlohmann::json::object());
@@ -154,7 +154,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
 [[nodiscard]] auto ReadImplicitObject(
     EntityName const& id,
     nlohmann::json const& json,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<UserRule::implicit_t> {
     auto map = GetOrDefault(json, "implicit", nlohmann::json::object());
@@ -242,7 +242,7 @@ auto const kRuleFields = std::unordered_set<std::string>{"anonymous",
 
 auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                    gsl::not_null<ExpressionFunctionMap*> const& expr_map,
-                   gsl::not_null<RepositoryConfig*> const& repo_config,
+                   gsl::not_null<const RepositoryConfig*> const& repo_config,
                    std::size_t jobs) -> UserRuleMap {
     auto user_rule_creator = [rule_file_map, expr_map, repo_config](
                                  auto ts,

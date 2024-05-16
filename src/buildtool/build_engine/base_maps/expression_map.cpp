@@ -23,9 +23,10 @@
 
 namespace BuildMaps::Base {
 
-auto CreateExpressionMap(gsl::not_null<ExpressionFileMap*> const& expr_file_map,
-                         gsl::not_null<RepositoryConfig*> const& repo_config,
-                         std::size_t jobs) -> ExpressionFunctionMap {
+auto CreateExpressionMap(
+    gsl::not_null<ExpressionFileMap*> const& expr_file_map,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::size_t jobs) -> ExpressionFunctionMap {
     auto expr_func_creator = [expr_file_map, repo_config](auto ts,
                                                           auto setter,
                                                           auto logger,

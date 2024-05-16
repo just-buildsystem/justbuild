@@ -431,7 +431,7 @@ void SetupFileChunker() {
 [[nodiscard]] auto ReadConfiguredTarget(
     std::string const& main_repo,
     std::optional<std::filesystem::path> const& main_ws_root,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     AnalysisArguments const& clargs) -> Target::ConfiguredTarget {
     auto const* target_root = repo_config->TargetRoot(main_repo);
     if (target_root == nullptr) {
@@ -760,7 +760,7 @@ void ReportTaintedness(const AnalysisResult& result) {
 auto DetermineNonExplicitTarget(
     std::string const& main_repo,
     std::optional<std::filesystem::path> const& main_ws_root,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     AnalysisArguments const& clargs)
     -> std::optional<BuildMaps::Target::ConfiguredTarget> {
     auto id =

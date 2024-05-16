@@ -32,7 +32,7 @@ using DirectoryEntriesMap =
     AsyncMapConsumer<ModuleName, FileRoot::DirectoryEntries>;
 
 auto CreateDirectoryEntriesMap(
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs = 0) -> DirectoryEntriesMap;
 
 }  // namespace BuildMaps::Base

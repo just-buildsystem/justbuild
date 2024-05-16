@@ -165,7 +165,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto VerifyOrUploadArtifact(
         Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         gsl::not_null<IExecutionApi*> const& remote_api,
         gsl::not_null<IExecutionApi*> const& local_api) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
@@ -328,7 +328,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto VerifyOrUploadGitArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info,
         std::string const& hash) noexcept -> bool {
         std::optional<std::string> content;
@@ -367,7 +367,7 @@ class ExecutorImpl {
 
     [[nodiscard]] static auto ReadGitBlob(
         std::string const& repo,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::string const& hash) noexcept -> std::optional<std::string> {
         std::optional<std::string> blob{};
         if (auto const* ws_root = repo_config->WorkspaceRoot(repo)) {
@@ -383,7 +383,7 @@ class ExecutorImpl {
 
     [[nodiscard]] static auto ReadGitTree(
         std::string const& repo,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::string const& hash) noexcept -> std::optional<GitTree> {
         std::optional<GitTree> tree{};
         if (auto const* ws_root = repo_config->WorkspaceRoot(repo)) {
@@ -406,7 +406,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
         if (Compatibility::IsCompatible()) {
             auto opt = Compatibility::GetGitEntry(info.digest.hash());
@@ -430,7 +430,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto UploadFile(
         gsl::not_null<IExecutionApi*> const& api,
         std::string const& repo,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::filesystem::path const& file_path) noexcept
         -> std::optional<Artifact::ObjectInfo> {
         auto const* ws_root = repo_config->WorkspaceRoot(repo);
@@ -684,7 +684,7 @@ class Executor {
 
   public:
     explicit Executor(
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         gsl::not_null<IExecutionApi*> const& local_api,
         gsl::not_null<IExecutionApi*> const& remote_api,
         std::map<std::string, std::string> properties,
@@ -770,7 +770,7 @@ class Executor {
     }
 
   private:
-    gsl::not_null<RepositoryConfig*> repo_config_;
+    gsl::not_null<const RepositoryConfig*> repo_config_;
     gsl::not_null<IExecutionApi*> local_api_;
     gsl::not_null<IExecutionApi*> remote_api_;
     std::map<std::string, std::string> properties_;
@@ -794,7 +794,7 @@ class Rebuilder {
     /// \param properties   Platform properties for execution.
     /// \param timeout      Timeout for action execution.
     Rebuilder(
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         gsl::not_null<IExecutionApi*> const& local_api,
         gsl::not_null<IExecutionApi*> const& remote_api,
         gsl::not_null<IExecutionApi*> const& api_cached,
@@ -882,7 +882,7 @@ class Rebuilder {
     }
 
   private:
-    gsl::not_null<RepositoryConfig*> repo_config_;
+    gsl::not_null<const RepositoryConfig*> repo_config_;
     gsl::not_null<IExecutionApi*> local_api_;
     gsl::not_null<IExecutionApi*> remote_api_;
     gsl::not_null<IExecutionApi*> api_cached_;

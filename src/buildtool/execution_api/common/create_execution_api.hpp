@@ -31,7 +31,7 @@
 /// \param instance_name only used in the construction of the BazelApi object
 [[nodiscard]] static inline auto CreateExecutionApi(
     std::optional<ServerAddress> const& address,
-    std::optional<gsl::not_null<RepositoryConfig*>> const& repo_config =
+    std::optional<gsl::not_null<const RepositoryConfig*>> const& repo_config =
         std::nullopt,
     std::string const& instance_name = "remote-execution")
     -> gsl::not_null<IExecutionApi::Ptr> {

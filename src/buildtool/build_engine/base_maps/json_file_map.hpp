@@ -41,8 +41,9 @@ using FileNameGetter = auto (RepositoryConfig::*)(std::string const&) const
                        -> std::string const*;
 
 template <RootGetter get_root, FileNameGetter get_name, bool kMandatory = true>
-auto CreateJsonFileMap(gsl::not_null<RepositoryConfig*> const& repo_config,
-                       std::size_t jobs) -> JsonFileMap {
+auto CreateJsonFileMap(
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::size_t jobs) -> JsonFileMap {
     auto json_file_reader = [repo_config](auto /* unused */,
                                           auto setter,
                                           auto logger,

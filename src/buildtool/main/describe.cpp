@@ -59,9 +59,10 @@ void PrintFields(nlohmann::json const& fields,
     }
 }
 
-void PrettyPrintRule(nlohmann::json const& rdesc,
-                     BuildMaps::Base::EntityName const& rule_name,
-                     gsl::not_null<RepositoryConfig*> const& repo_config) {
+void PrettyPrintRule(
+    nlohmann::json const& rdesc,
+    BuildMaps::Base::EntityName const& rule_name,
+    gsl::not_null<const RepositoryConfig*> const& repo_config) {
     auto doc = rdesc.find("doc");
     if (doc != rdesc.end()) {
         PrintDoc(*doc, " | ");
@@ -228,7 +229,7 @@ void PrintRuleAsOrderedJson(nlohmann::json const& rdesc,
 
 auto DescribeUserDefinedRule(
     BuildMaps::Base::EntityName const& rule_name,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs,
     bool print_json) -> int {
     bool failed{};
@@ -266,7 +267,7 @@ auto DescribeUserDefinedRule(
 }
 
 auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
-                    gsl::not_null<RepositoryConfig*> const& repo_config,
+                    gsl::not_null<const RepositoryConfig*> const& repo_config,
                     std::size_t jobs,
                     bool print_json) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL

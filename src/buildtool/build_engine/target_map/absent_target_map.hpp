@@ -53,14 +53,15 @@ using ServeFailureLogReporter =
 auto CreateAbsentTargetVariablesMap(std::size_t jobs = 0)
     -> AbsentTargetVariablesMap;
 
-auto CreateAbsentTargetMap(const gsl::not_null<ResultTargetMap*>&,
-                           const gsl::not_null<AbsentTargetVariablesMap*>&,
-                           gsl::not_null<RepositoryConfig*> const& repo_config,
-                           gsl::not_null<Statistics*> const& stats,
-                           gsl::not_null<Progress*> const& exports_progress,
-                           std::size_t jobs = 0,
-                           ServeFailureLogReporter* serve_failure_reporter =
-                               nullptr) -> AbsentTargetMap;
+auto CreateAbsentTargetMap(
+    const gsl::not_null<ResultTargetMap*>&,
+    const gsl::not_null<AbsentTargetVariablesMap*>&,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<Progress*> const& exports_progress,
+    std::size_t jobs = 0,
+    ServeFailureLogReporter* serve_failure_reporter = nullptr)
+    -> AbsentTargetMap;
 
 }  // namespace BuildMaps::Target
 

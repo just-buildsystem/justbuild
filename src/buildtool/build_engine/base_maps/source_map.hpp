@@ -32,9 +32,10 @@ namespace BuildMaps::Base {
 
 using SourceTargetMap = AsyncMapConsumer<EntityName, AnalysedTargetPtr>;
 
-auto CreateSourceTargetMap(const gsl::not_null<DirectoryEntriesMap*>& dirs,
-                           gsl::not_null<RepositoryConfig*> const& repo_config,
-                           std::size_t jobs = 0) -> SourceTargetMap;
+auto CreateSourceTargetMap(
+    const gsl::not_null<DirectoryEntriesMap*>& dirs,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::size_t jobs = 0) -> SourceTargetMap;
 
 }  // namespace BuildMaps::Base
 

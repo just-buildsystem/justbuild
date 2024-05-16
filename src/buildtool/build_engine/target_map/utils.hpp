@@ -36,7 +36,7 @@ auto obtainTargetByName(const SubExprEvaluator&,
                         const ExpressionPtr&,
                         const Configuration&,
                         const Base::EntityName&,
-                        const gsl::not_null<RepositoryConfig*>&,
+                        const gsl::not_null<const RepositoryConfig*>&,
                         std::unordered_map<BuildMaps::Target::ConfiguredTarget,
                                            AnalysedTargetPtr> const&)
     -> AnalysedTargetPtr;

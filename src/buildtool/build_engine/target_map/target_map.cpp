@@ -309,7 +309,7 @@ void withDependencies(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     std::unordered_map<std::string, ExpressionPtr> params,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -994,7 +994,7 @@ void withRuleDefinition(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1350,7 +1350,7 @@ void withRuleDefinition(
 
 void withTargetsFile(
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
     const gsl::not_null<Progress*>& exports_progress,
@@ -1479,7 +1479,7 @@ void withTargetsFile(
 
 void withTargetNode(
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
     const gsl::not_null<TaskSystem*>& ts,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
@@ -1777,7 +1777,7 @@ auto CreateTargetMap(
         directory_entries_map,
     const gsl::not_null<AbsentTargetMap*>& absent_target_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
-    const gsl::not_null<RepositoryConfig*>& repo_config,
+    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const ActiveTargetCache& target_cache,
     const gsl::not_null<Statistics*>& stats,
     const gsl::not_null<Progress*>& exports_progress,

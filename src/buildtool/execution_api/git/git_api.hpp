@@ -33,7 +33,7 @@
 class GitApi final : public IExecutionApi {
   public:
     GitApi() = delete;
-    explicit GitApi(gsl::not_null<RepositoryConfig*> const& repo_config)
+    explicit GitApi(gsl::not_null<const RepositoryConfig*> const& repo_config)
         : repo_config_{repo_config} {}
     auto CreateAction(
         ArtifactDigest const& /*root_digest*/,
@@ -311,7 +311,7 @@ class GitApi final : public IExecutionApi {
     }
 
   private:
-    gsl::not_null<RepositoryConfig*> repo_config_;
+    gsl::not_null<const RepositoryConfig*> repo_config_;
 };
 
 #endif

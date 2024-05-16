@@ -31,7 +31,7 @@ namespace {
 void WithFlexibleVariables(
     const BuildMaps::Target::ConfiguredTarget& key,
     std::vector<std::string> flexible_vars,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     const BuildMaps::Target::AbsentTargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::AbsentTargetMap::SetterPtr& setter,
     const BuildMaps::Target::AbsentTargetMap::LoggerPtr& logger,
@@ -217,7 +217,7 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(std::size_t jobs)
 auto BuildMaps::Target::CreateAbsentTargetMap(
     const gsl::not_null<ResultTargetMap*>& result_map,
     const gsl::not_null<AbsentTargetVariablesMap*>& absent_variables,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& exports_progress,
     std::size_t jobs,

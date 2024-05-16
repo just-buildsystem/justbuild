@@ -39,7 +39,7 @@ struct AnalysisResult {
 [[nodiscard]] auto AnalyseTarget(
     const BuildMaps::Target::ConfiguredTarget& id,
     gsl::not_null<BuildMaps::Target::ResultTargetMap*> const& result_map,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     ActiveTargetCache const& target_cache,
     gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,

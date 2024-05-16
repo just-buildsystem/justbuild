@@ -74,7 +74,7 @@ class GraphTraverser {
 
     explicit GraphTraverser(
         CommandLineArguments clargs,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::map<std::string, std::string> platform_properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
@@ -94,7 +94,7 @@ class GraphTraverser {
 
     explicit GraphTraverser(
         CommandLineArguments clargs,
-        gsl::not_null<RepositoryConfig*> const& repo_config,
+        gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::map<std::string, std::string> platform_properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
@@ -255,7 +255,7 @@ class GraphTraverser {
 
   private:
     CommandLineArguments const clargs_;
-    gsl::not_null<RepositoryConfig*> repo_config_;
+    gsl::not_null<const RepositoryConfig*> repo_config_;
     std::map<std::string, std::string> platform_properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;

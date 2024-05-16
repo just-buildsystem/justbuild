@@ -183,7 +183,7 @@ template <typename T>
     T const& list,
     std::size_t const list_size,
     EntityName const& current,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -214,7 +214,7 @@ template <typename T>
     T const& list,
     std::size_t const list_size,
     EntityName const& current,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -252,7 +252,7 @@ template <typename T>
 [[nodiscard]] inline auto ParseEntityName(
     T const& source,
     EntityName const& current,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
@@ -285,7 +285,7 @@ template <typename T>
 [[nodiscard]] inline auto ParseEntityNameFromJson(
     nlohmann::json const& json,
     EntityName const& current,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     return ParseEntityName(json, current, repo_config, std::move(logger));
@@ -294,7 +294,7 @@ template <typename T>
 [[nodiscard]] inline auto ParseEntityNameFromExpression(
     ExpressionPtr const& expr,
     EntityName const& current,
-    gsl::not_null<RepositoryConfig*> const& repo_config,
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     return ParseEntityName(expr, current, repo_config, std::move(logger));
