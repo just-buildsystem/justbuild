@@ -269,7 +269,8 @@ class ExecutorImpl {
 
         Logger::Log(LogLevel::Trace, [&tree]() {
             std::ostringstream oss{};
-            oss << "upload directory content of " << tree.Hash() << std::endl;
+            oss << "upload directory content of " << tree.FileRootHash()
+                << std::endl;
             for (auto const& [path, entry] : tree) {
                 oss << fmt::format(" - {}: {}", path, entry->Hash())
                     << std::endl;
@@ -344,7 +345,7 @@ class ExecutorImpl {
             if (not VerifyOrUploadTree(api, *tree)) {
                 Logger::Log(LogLevel::Error,
                             "failed to verifyorupload git tree {} [{}]",
-                            tree->Hash(),
+                            tree->FileRootHash(),
                             hash);
                 return false;
             }
