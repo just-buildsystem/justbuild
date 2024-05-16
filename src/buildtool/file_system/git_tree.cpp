@@ -88,12 +88,10 @@ auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                                               check_symlinks,
                                               /*is_hex_id=*/false,
                                               ignore_special)) {
-                // the raw_id value is NOT recomputed when ignore_special==true,
-                // so we set it to empty to signal that it should not be used!
-                return GitTree::FromEntries(cas,
-                                            std::move(*entries),
-                                            ignore_special ? "" : *raw_id,
-                                            ignore_special);
+                // NOTE: the raw_id value is NOT recomputed when
+                // ignore_special==true.
+                return GitTree::FromEntries(
+                    cas, std::move(*entries), *raw_id, ignore_special);
             }
         }
         else {
@@ -164,7 +162,6 @@ auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
                                                   check_symlinks,
                                                   /*is_hex_id=*/false,
                                                   ignore_special)) {
-                    // the raw_id value is not used when ignore_special==true
                     return GitTree::FromEntries(
                         cas_, std::move(*entries), raw_id_, ignore_special);
                 }

@@ -50,8 +50,7 @@ class GitTree {
     /// \param tree_id  Tree id as as hex string.
     /// \param ignore_special   If set, treat symlinks as absent.
     /// NOTE: If ignore_special==true, the stored entries might differ from the
-    /// actual tree, so the stored ID is set to empty to signal that it should
-    /// not be used.
+    /// actual tree, as some filesystem entries get skipped.
     [[nodiscard]] static auto Read(gsl::not_null<GitCASPtr> const& cas,
                                    std::string const& tree_id,
                                    bool ignore_special = false) noexcept
@@ -67,16 +66,37 @@ class GitTree {
 
     [[nodiscard]] auto begin() const noexcept { return entries_.begin(); }
     [[nodiscard]] auto end() const noexcept { return entries_.end(); }
-    [[nodiscard]] auto Hash() const noexcept { return ToHexString(raw_id_); }
-    [[nodiscard]] auto RawHash() const noexcept { return raw_id_; }
+
+    // Getter for the root tree id with fast lookup flag check. This enforces
+    // automatically that no filesystem entry was skipped during creation.
+    [[nodiscard]] auto Hash() const noexcept {
+        return ignore_special_ ? std::nullopt
+                               : std::make_optional(ToHexString(raw_id_));
+    }
+
+    // Getter of the raw root tree id with no fast lookup flag check. As such,
+    // the caller MUST NOT assume that there is a one-to-one correspondence
+    // between this returned tree id and the values stored in entries_.
+    [[nodiscard]] auto FileRootHash() const noexcept {
+        return ToHexString(raw_id_);
+    }
+
+    // Getter of the raw root tree id with no fast lookup flag check. As such,
+    // the caller MUST NOT assume that there is a one-to-one correspondence
+    // between this returned tree id and the values stored in entries_.
+    [[nodiscard]] auto RawFileRootHash() const noexcept { return raw_id_; }
+
     [[nodiscard]] auto Size() const noexcept -> std::optional<std::size_t>;
     [[nodiscard]] auto RawData() const noexcept -> std::optional<std::string>;
 
   private:
     gsl::not_null<GitCASPtr> cas_;
+    // If not ignore_special_, contains all the entries of tree raw_id_.
     entries_t entries_;
+    // Stores the root id of the tree; if ignore_special_, this is not
+    // guaranteed to be the same as the id of the tree containing entries_.
     std::string raw_id_;
-    // If set, ignore all fast tree lookups and always traverse
+    // If set, ignore all fast tree lookups and always traverse.
     bool ignore_special_;
 
     GitTree(gsl::not_null<GitCASPtr> const& cas,
