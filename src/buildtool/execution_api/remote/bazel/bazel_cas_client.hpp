@@ -67,27 +67,6 @@ class BazelCasClient {
         std::vector<BazelBlob>::const_iterator const& end) noexcept
         -> std::size_t;
 
-    /// \brief Upload multiple blobs in batch transfer
-    /// \param[in] instance_name Name of the CAS instance
-    /// \param[in] begin         Start of the blobs to upload
-    /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs successfully updated
-    [[nodiscard]] auto BatchUpdateBlobs(
-        std::string const& instance_name,
-        BlobContainer::iterator const& begin,
-        BlobContainer::iterator const& end) noexcept -> std::size_t;
-
-    /// \brief Upload multiple blobs in batch transfer
-    /// \param[in] instance_name Name of the CAS instance
-    /// \param[in] begin         Start of the blobs to upload
-    /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs successfully updated
-    [[nodiscard]] auto BatchUpdateBlobs(
-        std::string const& instance_name,
-        BlobContainer::RelatedBlobList::iterator const& begin,
-        BlobContainer::RelatedBlobList::iterator const& end) noexcept
-        -> std::size_t;
-
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
     /// \param[in] begin         Start of the blob digests to read

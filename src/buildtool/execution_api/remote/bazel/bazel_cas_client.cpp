@@ -200,21 +200,6 @@ auto BazelCasClient::BatchUpdateBlobs(
     return DoBatchUpdateBlobs(instance_name, begin, end);
 }
 
-auto BazelCasClient::BatchUpdateBlobs(
-    std::string const& instance_name,
-    BlobContainer::iterator const& begin,
-    BlobContainer::iterator const& end) noexcept -> std::size_t {
-    return DoBatchUpdateBlobs(instance_name, begin, end);
-}
-
-auto BazelCasClient::BatchUpdateBlobs(
-    std::string const& instance_name,
-    BlobContainer::RelatedBlobList::iterator const& begin,
-    BlobContainer::RelatedBlobList::iterator const& end) noexcept
-    -> std::size_t {
-    return DoBatchUpdateBlobs(instance_name, begin, end);
-}
-
 auto BazelCasClient::BatchReadBlobs(
     std::string const& instance_name,
     std::vector<bazel_re::Digest>::const_iterator const& begin,
