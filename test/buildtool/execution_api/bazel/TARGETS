@@ -4,6 +4,7 @@
   , "srcs": ["bazel_cas_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
     , ["utils", "catch-main-remote-execution"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]

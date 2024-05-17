@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -63,9 +64,10 @@ class BazelCasClient {
     /// \returns The digests of blobs successfully updated
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
-        std::vector<BazelBlob>::const_iterator const& begin,
-        std::vector<BazelBlob>::const_iterator const& end) noexcept
-        -> std::size_t;
+        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
+            begin,
+        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
+            end) noexcept -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -143,12 +145,6 @@ class BazelCasClient {
                                         T_OutputIter const& start,
                                         T_OutputIter const& end) noexcept
         -> std::vector<bazel_re::Digest>;
-
-    template <class T_OutputIter>
-    [[nodiscard]] auto DoBatchUpdateBlobs(std::string const& instance_name,
-                                          T_OutputIter const& start,
-                                          T_OutputIter const& end) noexcept
-        -> std::size_t;
 
     template <typename T_Request, typename T_ForwardIter>
     [[nodiscard]] auto CreateBatchRequestsMaxSize(

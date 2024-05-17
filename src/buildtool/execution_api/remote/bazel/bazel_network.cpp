@@ -188,17 +188,23 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
         //
         // The blobs belonging to the second group are uploaded via the
         // bytestream api.
-        std::vector<typename T_Iter::value_type> sorted(first, last);
+        std::vector<gsl::not_null<BazelBlob const*>> sorted;
+        sorted.reserve(std::distance(first, last));
+        std::transform(
+            first, last, std::back_inserter(sorted), [](BazelBlob const& b) {
+                return &b;
+            });
+
         auto it = std::stable_partition(
-            sorted.begin(), sorted.end(), [](auto const& x) {
-                return x.data.size() <= kMaxBatchTransferSize;
+            sorted.begin(), sorted.end(), [](BazelBlob const* x) {
+                return x->data.size() <= kMaxBatchTransferSize;
             });
         auto digests_count =
             cas_->BatchUpdateBlobs(instance_name_, sorted.begin(), it);
 
         return digests_count == std::distance(sorted.begin(), it) &&
-               std::all_of(it, sorted.end(), [this](auto const& x) {
-                   return cas_->UpdateSingleBlob(instance_name_, x);
+               std::all_of(it, sorted.end(), [this](BazelBlob const* x) {
+                   return cas_->UpdateSingleBlob(instance_name_, *x);
                });
     } catch (...) {
         Logger::Log(LogLevel::Warning, "Unknown exception");

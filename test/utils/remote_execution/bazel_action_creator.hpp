@@ -82,8 +82,16 @@
 
     BazelCasClient cas_client(info->host, info->port);
 
-    if (cas_client.BatchUpdateBlobs(
-            instance_name, blobs.begin(), blobs.end()) == blobs.size()) {
+    std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
+    blob_ptrs.reserve(blobs.size());
+    std::transform(blobs.begin(),
+                   blobs.end(),
+                   std::back_inserter(blob_ptrs),
+                   [](BazelBlob const& b) { return &b; });
+
+    if (cas_client.BatchUpdateBlobs(instance_name,
+                                    blob_ptrs.begin(),
+                                    blob_ptrs.end()) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(action_id);
     }
     return nullptr;

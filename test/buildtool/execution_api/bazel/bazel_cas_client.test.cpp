@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -46,7 +47,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
         if (!digests.empty()) {
             // Upload blob, if not found
-            std::vector<BazelBlob> to_upload{blob};
+            std::vector<gsl::not_null<BazelBlob const*>> to_upload{&blob};
             CHECK(cas_client.BatchUpdateBlobs(
                       instance_name, to_upload.begin(), to_upload.end()) == 1U);
         }
@@ -75,7 +76,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
                   .size() == 1);
 
         // Try upload faulty blob
-        std::vector<BazelBlob> to_upload{faulty_blob};
+        std::vector<gsl::not_null<BazelBlob const*>> to_upload{&faulty_blob};
         CHECK(cas_client.BatchUpdateBlobs(
                   instance_name, to_upload.begin(), to_upload.end()) == 0U);
 
