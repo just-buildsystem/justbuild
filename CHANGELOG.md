@@ -2,6 +2,15 @@
 
 A feature release on top of `1.3.0`, backwards compatible.
 
+### Fixes
+
+- A bug was fixed that cased `just serve` to fail with an internal
+  error when building against ignore-special roots.
+- `just` now accurately reports internal errors that occured on
+  the serve endpoint.
+- Dependencies have been updated to also build with gcc 14.
+- Various improvements of the documentation.
+
 ## Release `1.3.0` (2024-05-08)
 
 A feature release on top of `1.2.0`, backwards compatible.
