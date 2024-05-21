@@ -372,6 +372,7 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
                          "Requested {}, but received {}",
                          digest.hash(),
                          real_digest.hash());
+            return std::nullopt;
         }
         return BazelBlob{
             std::move(real_digest), std::move(*data), /*is_exec=*/false};
