@@ -14,8 +14,6 @@
 
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 
-#include "gsl/gsl"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
