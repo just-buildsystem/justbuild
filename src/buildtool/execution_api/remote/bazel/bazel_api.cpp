@@ -30,6 +30,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -276,35 +277,15 @@ auto BazelApi::CreateAction(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
     bool raw_tree) noexcept -> bool {
-    if (artifacts_info.size() != fds.size()) {
-        Logger::Log(LogLevel::Warning,
-                    "different number of digests and file descriptors.");
-        return false;
-    }
-
-    for (std::size_t i{}; i < artifacts_info.size(); ++i) {
-        auto fd = fds[i];
-        auto const& info = artifacts_info[i];
-
-        if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
-            auto const success = network_->DumpToStream(info, out, raw_tree);
-            std::fclose(out);
-            if (not success) {
-                Logger::Log(LogLevel::Warning,
-                            "dumping {} {} to file descriptor {} failed.",
-                            IsTreeObject(info.type) ? "tree" : "blob",
-                            info.ToString(),
-                            fd);
-                return false;
-            }
-        }
-        else {
-            Logger::Log(
-                LogLevel::Warning, "opening file descriptor {} failed.", fd);
-            return false;
-        }
-    }
-    return true;
+    return CommonRetrieveToFds(
+        artifacts_info,
+        fds,
+        [&network = network_, &raw_tree](Artifact::ObjectInfo const& info,
+                                         gsl::not_null<FILE*> const& out) {
+            return network->DumpToStream(info, out, raw_tree);
+        },
+        std::nullopt  // remote can't fallback to Git
+    );
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -318,23 +299,21 @@ auto BazelApi::CreateAction(
     }
 
     // Determine missing artifacts in other CAS.
-    std::vector<ArtifactDigest> digests;
-    digests.reserve(artifacts_info.size());
-    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
-    for (auto const& info : artifacts_info) {
-        digests.push_back(info.digest);
-        info_map[info.digest] = info;
-    }
-    auto const& missing_digests = api->IsAvailable(digests);
-    std::vector<Artifact::ObjectInfo> missing_artifacts_info;
-    missing_artifacts_info.reserve(missing_digests.size());
-    for (auto const& digest : missing_digests) {
-        missing_artifacts_info.push_back(info_map[digest]);
+    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
+        api,
+        artifacts_info.begin(),
+        artifacts_info.end(),
+        [](Artifact::ObjectInfo const& info) { return info.digest; });
+    if (not missing_artifacts_info) {
+        Logger::Log(LogLevel::Error,
+                    "BazelApi: Failed to retrieve the missing artifacts");
+        return false;
     }
 
     // Recursively process trees.
     std::vector<bazel_re::Digest> blob_digests{};
-    for (auto const& info : missing_artifacts_info) {
+    for (auto const& dgst : missing_artifacts_info->digests) {
+        auto const& info = missing_artifacts_info->back_map[dgst];
         if (IsTreeObject(info.type)) {
             auto const infos = network_->ReadDirectTreeEntries(
                 info.digest, std::filesystem::path{});
@@ -349,7 +328,8 @@ auto BazelApi::CreateAction(
         blob_digests.push_back(info.digest);
     }
 
-    return ::RetrieveToCas(blob_digests, api, network_, info_map);
+    return ::RetrieveToCas(
+        blob_digests, api, network_, missing_artifacts_info->back_map);
 }
 
 /// NOLINTNEXTLINE(misc-no-recursion)
@@ -365,25 +345,23 @@ auto BazelApi::CreateAction(
     }
 
     // Determine missing artifacts in other CAS.
-    std::vector<ArtifactDigest> digests;
-    digests.reserve(artifacts_info.size());
-    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
-    for (auto const& info : artifacts_info) {
-        digests.push_back(info.digest);
-        info_map[info.digest] = info;
-    }
-    auto const& missing_digests = api->IsAvailable(digests);
-    std::vector<Artifact::ObjectInfo> missing_artifacts_info;
-    missing_artifacts_info.reserve(missing_digests.size());
-    for (auto const& digest : missing_digests) {
-        missing_artifacts_info.push_back(info_map[digest]);
+    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
+        api,
+        artifacts_info.begin(),
+        artifacts_info.end(),
+        [](Artifact::ObjectInfo const& info) { return info.digest; });
+    if (not missing_artifacts_info) {
+        Logger::Log(LogLevel::Error,
+                    "BazelApi: Failed to retrieve the missing artifacts");
+        return false;
     }
 
     // Recursively process trees.
     std::atomic_bool failure{false};
     try {
         auto ts = TaskSystem{jobs};
-        for (auto const& info : missing_artifacts_info) {
+        for (auto const& dgst : missing_artifacts_info->digests) {
+            auto const& info = missing_artifacts_info->back_map[dgst];
             if (IsTreeObject(info.type)) {
                 auto const infos = network_->ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
@@ -397,18 +375,22 @@ auto BazelApi::CreateAction(
             // Object infos created by network_->ReadTreeInfos() will contain 0
             // as size, but this is handled by the remote execution engine, so
             // no need to regenerate the digest.
-            ts.QueueTask(
-                [this, &info, &api, &failure, &info_map, use_blob_splitting]() {
-                    if (use_blob_splitting and network_->BlobSplitSupport() and
-                                api->BlobSpliceSupport()
-                            ? ::RetrieveToCasSplitted(
-                                  info, this, api, network_, info_map)
-                            : ::RetrieveToCas(
-                                  {info.digest}, api, network_, info_map)) {
-                        return;
-                    }
-                    failure = true;
-                });
+            ts.QueueTask([this,
+                          &info,
+                          &api,
+                          &failure,
+                          &info_map = missing_artifacts_info->back_map,
+                          use_blob_splitting]() {
+                if (use_blob_splitting and network_->BlobSplitSupport() and
+                            api->BlobSpliceSupport()
+                        ? ::RetrieveToCasSplitted(
+                              info, this, api, network_, info_map)
+                        : ::RetrieveToCas(
+                              {info.digest}, api, network_, info_map)) {
+                    return;
+                }
+                failure = true;
+            });
         }
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Warning,
@@ -435,50 +417,6 @@ auto BazelApi::CreateAction(
     return network_->UploadBlobs(blobs, skip_find_missing);
 }
 
-/// NOLINTNEXTLINE(misc-no-recursion)
-[[nodiscard]] auto BazelApi::UploadBlobTree(
-    BlobTreePtr const& blob_tree) noexcept -> bool {
-
-    // Create digest list from blobs for batch availability check.
-    std::vector<bazel_re::Digest> digests;
-    digests.reserve(blob_tree->size());
-    std::unordered_map<bazel_re::Digest, BlobTreePtr> tree_map;
-    for (auto const& node : *blob_tree) {
-        auto digest = node->Blob().digest;
-        digests.emplace_back(digest);
-        try {
-            tree_map.emplace(std::move(digest), node);
-        } catch (...) {
-            return false;
-        }
-    }
-
-    // Find missing digests.
-    auto missing_digests = network_->IsAvailable(digests);
-
-    // Process missing blobs.
-    BlobContainer container;
-    for (auto const& digest : missing_digests) {
-        if (auto it = tree_map.find(digest); it != tree_map.end()) {
-            auto const& node = it->second;
-            // Process trees.
-            if (node->IsTree()) {
-                if (not UploadBlobTree(node)) {
-                    return false;
-                }
-            }
-            // Store blob.
-            try {
-                container.Emplace(node->Blob());
-            } catch (...) {
-                return false;
-            }
-        }
-    }
-
-    return network_->UploadBlobs(container, /*skip_find_missing=*/true);
-}
-
 [[nodiscard]] auto BazelApi::UploadTree(
     std::vector<DependencyGraph::NamedArtifactNodePtr> const&
         artifacts) noexcept -> std::optional<ArtifactDigest> {
@@ -490,12 +428,11 @@ auto BazelApi::CreateAction(
     }
 
     if (Compatibility::IsCompatible()) {
-        BlobContainer blobs{};
-        auto const& network = network_;
-        auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
+        return CommonUploadTreeCompatible(
+            this,
             *build_root,
-            [&network](std::vector<bazel_re::Digest> const& digests,
-                       std::vector<std::string>* targets) {
+            [&network = network_](std::vector<bazel_re::Digest> const& digests,
+                                  std::vector<std::string>* targets) {
                 auto reader = network->ReadBlobs(digests);
                 auto blobs = reader.Next();
                 targets->reserve(digests.size());
@@ -505,51 +442,10 @@ auto BazelApi::CreateAction(
                     }
                     blobs = reader.Next();
                 }
-            },
-            [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); });
-        if (not digest) {
-            Logger::Log(LogLevel::Debug,
-                        "failed to create digest for build root.");
-            return std::nullopt;
-        }
-        Logger::Log(LogLevel::Trace, [&digest]() {
-            std::ostringstream oss{};
-            oss << "upload root directory" << std::endl;
-            oss << fmt::format(" - root digest: {}", digest->hash())
-                << std::endl;
-            return oss.str();
-        });
-        if (not Upload(blobs, /*skip_find_missing=*/false)) {
-            Logger::Log(LogLevel::Debug,
-                        "failed to upload blobs for build root.");
-            return std::nullopt;
-        }
-        return ArtifactDigest{*digest};
+            });
     }
 
-    auto blob_tree = BlobTree::FromDirectoryTree(*build_root);
-    if (not blob_tree) {
-        Logger::Log(LogLevel::Debug,
-                    "failed to create blob tree for build root.");
-        return std::nullopt;
-    }
-    auto tree_blob = (*blob_tree)->Blob();
-    // Upload blob tree if tree is not available at the remote side (content
-    // first).
-    if (not network_->IsAvailable(tree_blob.digest)) {
-        if (not UploadBlobTree(*blob_tree)) {
-            Logger::Log(LogLevel::Debug,
-                        "failed to upload blob tree for build root.");
-            return std::nullopt;
-        }
-        if (not Upload(BlobContainer{{tree_blob}},
-                       /*skip_find_missing=*/true)) {
-            Logger::Log(LogLevel::Debug,
-                        "failed to upload tree blob for build root.");
-            return std::nullopt;
-        }
-    }
-    return ArtifactDigest{tree_blob.digest};
+    return CommonUploadTreeNative(this, *build_root);
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(

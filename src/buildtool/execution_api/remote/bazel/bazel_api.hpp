@@ -111,9 +111,6 @@ class BazelApi final : public IExecutionApi {
 
   private:
     std::shared_ptr<BazelNetwork> network_;
-
-    [[nodiscard]] auto UploadBlobTree(BlobTreePtr const& blob_tree) noexcept
-        -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP

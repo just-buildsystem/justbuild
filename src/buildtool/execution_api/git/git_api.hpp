@@ -25,6 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -179,24 +180,23 @@ class GitApi final : public IExecutionApi {
         }
 
         // Determine missing artifacts in other CAS.
-        std::vector<ArtifactDigest> digests;
-        digests.reserve(artifacts_info.size());
-        std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> info_map;
-        for (auto const& info : artifacts_info) {
-            digests.emplace_back(info.digest);
-            info_map[info.digest] = info;
-        }
-        auto const& missing_digests = api->IsAvailable(digests);
-        std::vector<Artifact::ObjectInfo> missing_artifacts_info;
-        missing_artifacts_info.reserve(missing_digests.size());
-        for (auto const& digest : missing_digests) {
-            missing_artifacts_info.emplace_back(info_map[digest]);
+        auto missing_artifacts_info =
+            GetMissingArtifactsInfo<Artifact::ObjectInfo>(
+                api,
+                artifacts_info.begin(),
+                artifacts_info.end(),
+                [](Artifact::ObjectInfo const& info) { return info.digest; });
+        if (not missing_artifacts_info) {
+            Logger::Log(LogLevel::Error,
+                        "GitApi: Failed to retrieve the missing artifacts");
+            return false;
         }
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
         BlobContainer container{};
-        for (auto const& info : missing_artifacts_info) {
+        for (auto const& dgst : missing_artifacts_info->digests) {
+            auto const& info = missing_artifacts_info->back_map[dgst];
             std::optional<std::string> content;
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
