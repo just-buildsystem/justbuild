@@ -45,24 +45,6 @@
 
 namespace {
 
-[[nodiscard]] auto IsAvailable(
-    std::vector<bazel_re::Digest> const& digests,
-    gsl::not_null<IExecutionApi*> const& api) noexcept
-    -> std::vector<bazel_re::Digest> {
-    std::vector<ArtifactDigest> artifact_digests;
-    artifact_digests.reserve(digests.size());
-    for (auto const& digest : digests) {
-        artifact_digests.emplace_back(digest);
-    }
-    auto const& missing_artifact_digests = api->IsAvailable(artifact_digests);
-    std::vector<bazel_re::Digest> missing_digests;
-    missing_digests.reserve(missing_artifact_digests.size());
-    for (auto const& digest : missing_artifact_digests) {
-        missing_digests.emplace_back(static_cast<bazel_re::Digest>(digest));
-    }
-    return missing_digests;
-}
-
 [[nodiscard]] auto RetrieveToCas(
     std::vector<bazel_re::Digest> const& digests,
     gsl::not_null<IExecutionApi*> const& api,
@@ -110,53 +92,61 @@ namespace {
 
 [[nodiscard]] auto RetrieveToCasSplitted(
     Artifact::ObjectInfo const& artifact_info,
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<IExecutionApi*> const& this_api,
+    gsl::not_null<IExecutionApi*> const& other_api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
         info_map) noexcept -> bool {
 
     // Split blob into chunks at the remote side and retrieve chunk digests.
-    auto chunk_digests = network->SplitBlob(artifact_info.digest);
+    auto chunk_digests = this_api->SplitBlob(artifact_info.digest);
     if (not chunk_digests) {
         // If blob splitting failed, fall back to regular fetching.
-        return ::RetrieveToCas({artifact_info.digest}, api, network, info_map);
+        return ::RetrieveToCas(
+            {artifact_info.digest}, other_api, network, info_map);
     }
 
     // Fetch unknown chunks.
-    auto digest_set = std::unordered_set<bazel_re::Digest>{
-        chunk_digests->begin(), chunk_digests->end()};
+    auto digest_set = std::unordered_set<ArtifactDigest>{chunk_digests->begin(),
+                                                         chunk_digests->end()};
     auto unique_digests =
-        std::vector<bazel_re::Digest>{digest_set.begin(), digest_set.end()};
-    auto missing_digests = ::IsAvailable(unique_digests, api);
-    if (not ::RetrieveToCas(missing_digests, api, network, info_map)) {
+        std::vector<ArtifactDigest>{digest_set.begin(), digest_set.end()};
+
+    auto missing_artifact_digests = other_api->IsAvailable(unique_digests);
+
+    auto missing_digests = std::vector<bazel_re::Digest>{};
+    missing_digests.reserve(digest_set.size());
+    std::transform(missing_artifact_digests.begin(),
+                   missing_artifact_digests.end(),
+                   std::back_inserter(missing_digests),
+                   [](auto const& digest) {
+                       return static_cast<bazel_re::Digest>(digest);
+                   });
+    if (not ::RetrieveToCas(missing_digests, other_api, network, info_map)) {
         return false;
     }
 
     // Assemble blob from chunks.
-    auto artifact_digests = std::vector<ArtifactDigest>{};
-    artifact_digests.reserve(chunk_digests->size());
-    std::transform(chunk_digests->cbegin(),
-                   chunk_digests->cend(),
-                   std::back_inserter(artifact_digests),
-                   [](auto const& digest) { return ArtifactDigest{digest}; });
-    auto digest = api->SpliceBlob(artifact_info.digest, artifact_digests);
+    auto digest = other_api->SpliceBlob(artifact_info.digest, *chunk_digests);
     if (not digest) {
         // If blob splicing failed, fall back to regular fetching.
-        return ::RetrieveToCas({artifact_info.digest}, api, network, info_map);
+        return ::RetrieveToCas(
+            {artifact_info.digest}, other_api, network, info_map);
     }
 
     Logger::Log(
         LogLevel::Debug,
         [&artifact_info,
          &unique_digests,
-         &missing_digests,
+         &missing_artifact_digests,
          total_size = digest->size()]() {
-            auto missing_digest_set = std::unordered_set<bazel_re::Digest>{
-                missing_digests.begin(), missing_digests.end()};
+            auto missing_digest_set = std::unordered_set<ArtifactDigest>{
+                missing_artifact_digests.begin(),
+                missing_artifact_digests.end()};
             std::uint64_t transmitted_bytes{0};
             for (auto const& chunk_digest : unique_digests) {
                 if (missing_digest_set.contains(chunk_digest)) {
-                    transmitted_bytes += chunk_digest.size_bytes();
+                    transmitted_bytes += chunk_digest.size();
                 }
             }
             double transmission_factor =
@@ -412,7 +402,7 @@ auto BazelApi::CreateAction(
                     if (use_blob_splitting and network_->BlobSplitSupport() and
                                 api->BlobSpliceSupport()
                             ? ::RetrieveToCasSplitted(
-                                  info, api, network_, info_map)
+                                  info, this, api, network_, info_map)
                             : ::RetrieveToCas(
                                   {info.digest}, api, network_, info_map)) {
                         return;
