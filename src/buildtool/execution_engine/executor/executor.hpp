@@ -615,7 +615,7 @@ class ExecutorImpl {
         std::ostringstream msg{};
         msg << "Failed to execute command ";
         msg << nlohmann::json(action->Command()).dump();
-        msg << " in evenironment ";
+        msg << " in environment ";
         msg << nlohmann::json(action->Env()).dump();
         auto const& origin_map = progress->OriginMap();
         auto origins = origin_map.find(action->Content().Id());
