@@ -4,6 +4,9 @@
     { "default-ENV": ["./", "..", "default-ENV"]
     , "default-PATH": ["./", "..", "default-PATH"]
     , "stage": ["", "stage_singleton_field"]
+    , "map_provider": ["", "field_map_provider"]
+    , "sh": ["shell", "sh"]
+    , "sh-PATH": ["shell", "PATH"]
     }
   , "expression":
     { "type": "let*"
@@ -22,6 +25,12 @@
           , "key": "PATH"
           }
         ]
+      , [ "sh-PATH"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "shell defaults"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "sh-PATH"}
+          }
+        ]
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
@@ -35,6 +44,7 @@
                   { "type": "++"
                   , "$1":
                     [ {"type": "CALL_EXPRESSION", "name": "default-PATH"}
+                    , {"type": "var", "name": "sh-PATH"}
                     , { "type": "if"
                       , "cond": {"type": "var", "name": "ENV_PATH"}
                       , "then": [{"type": "var", "name": "ENV_PATH"}]
@@ -46,6 +56,27 @@
             ]
           }
         ]
+      , ["TOOLCHAIN_DIR", "toolchain"]
+      , [ "shell TOOLCHAIN"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1":
+            { "type": "let*"
+            , "bindings":
+              [ ["fieldname", "shell defaults"]
+              , ["provider", "TOOLCHAIN"]
+              , ["default", {"type": "empty_map"}]
+              ]
+            , "body": {"type": "CALL_EXPRESSION", "name": "map_provider"}
+            }
+          }
+        ]
+      , [ "sh"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "shell defaults"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "sh"}
+          }
+        ]
       , [ "cflags-filename"
         , {"type": "join", "$1": [{"type": "var", "name": "name"}, ".cflags"]}
         ]
@@ -54,9 +85,9 @@
           , "subdir": {"type": "var", "name": "stage"}
           , "$1":
             { "type": "ACTION"
-            , "inputs": {"type": "empty_map"}
+            , "inputs": {"type": "var", "name": "shell TOOLCHAIN"}
             , "cmd":
-              [ "/bin/sh"
+              [ {"type": "var", "name": "sh"}
               , "-c"
               , { "type": "join"
                 , "separator": " "
@@ -101,9 +132,9 @@
         ]
       , [ "ldflags-files"
         , { "type": "ACTION"
-          , "inputs": {"type": "empty_map"}
+          , "inputs": {"type": "var", "name": "shell TOOLCHAIN"}
           , "cmd":
-            [ "/bin/sh"
+            [ {"type": "var", "name": "sh"}
             , "-c"
             , { "type": "join"
               , "separator": " "
@@ -146,10 +177,11 @@
               , "$1":
                 [ {"type": "var", "name": "add_rpath"}
                 , {"type": "var", "name": "ldflags-files"}
+                , {"type": "var", "name": "shell TOOLCHAIN"}
                 ]
               }
             , "cmd":
-              [ "/bin/sh"
+              [ {"type": "var", "name": "sh"}
               , "-c"
               , { "type": "join"
                 , "separator": " "
