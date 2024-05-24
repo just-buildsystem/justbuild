@@ -191,33 +191,6 @@ class LocalCAS {
         return Splice<ObjectType::Tree>(digest, parts);
     }
 
-    /// \brief Traverses a tree recursively and retrieves object infos of all
-    /// found blobs (leafs). Tree objects are by default not added to the result
-    /// list, but converted to a path name.
-    /// \param tree_digest      Digest of the tree.
-    /// \param parent           Local parent path.
-    /// \param include_trees    Include leaf tree objects (empty trees).
-    /// \returns Pair of vectors, first containing filesystem paths, second
-    /// containing object infos.
-    [[nodiscard]] auto RecursivelyReadTreeLeafs(
-        bazel_re::Digest const& tree_digest,
-        std::filesystem::path const& parent,
-        bool include_trees = false) const noexcept
-        -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                                   std::vector<Artifact::ObjectInfo>>>;
-
-    /// \brief Reads the flat content of a tree and returns object infos of all
-    /// its direct entries (trees and blobs).
-    /// \param tree_digest      Digest of the tree.
-    /// \param parent           Local parent path.
-    /// \returns Pair of vectors, first containing filesystem paths, second
-    /// containing object infos.
-    [[nodiscard]] auto ReadDirectTreeEntries(
-        bazel_re::Digest const& tree_digest,
-        std::filesystem::path const& parent) const noexcept
-        -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                                   std::vector<Artifact::ObjectInfo>>>;
-
     /// \brief Check whether all parts of the tree are in the storage.
     /// \param tree_digest      Digest of the tree to be checked.
     /// \param tree_data        Content of the tree.

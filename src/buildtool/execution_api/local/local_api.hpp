@@ -37,9 +37,11 @@
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
+#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -85,11 +87,12 @@ class LocalApi final : public IExecutionApi {
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto const infos = storage_->CAS().RecursivelyReadTreeLeafs(
+                auto reader = TreeReader<LocalCasReader>{storage_->CAS()};
+                auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
-                if (not infos) {
+                if (not result) {
                     if (Compatibility::IsCompatible()) {
-                        // infos not available, and in compatible mode cannot
+                        // result not available, and in compatible mode cannot
                         // fall back to git
                         return false;
                     }
@@ -99,7 +102,7 @@ class LocalApi final : public IExecutionApi {
                         return false;
                     }
                 }
-                else if (not RetrieveToPaths(infos->second, infos->first)) {
+                else if (not RetrieveToPaths(result->infos, result->paths)) {
                     return false;
                 }
             }
@@ -192,9 +195,10 @@ class LocalApi final : public IExecutionApi {
             auto const& info = missing_artifacts_info->back_map[dgst];
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
-                auto const& infos = storage_->CAS().ReadDirectTreeEntries(
+                auto reader = TreeReader<LocalCasReader>{storage_->CAS()};
+                auto const& result = reader.ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
-                if (not infos or not RetrieveToCas(infos->second, api)) {
+                if (not result or not RetrieveToCas(result->infos, api)) {
                     return false;
                 }
             }

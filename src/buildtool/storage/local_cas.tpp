@@ -131,67 +131,6 @@ template <class T_CAS>
     return false;
 }
 
-[[nodiscard]] static inline auto IsDirectoryEmpty(
-    bazel_re::Directory const& dir) noexcept -> bool {
-    return dir.files().empty() and dir.directories().empty() and
-           dir.symlinks().empty();
-}
-
-template <class T_CAS>
-auto ReadObjectInfosRecursively(
-    T_CAS const& cas,
-    BazelMsgFactory::InfoStoreFunc const& store_info,
-    std::filesystem::path const& parent,
-    bazel_re::Digest const& digest,
-    bool const include_trees = false) -> bool {
-    // read from CAS
-    if (Compatibility::IsCompatible()) {
-        if (auto dir = ReadDirectory(cas, digest)) {
-            if (include_trees and IsDirectoryEmpty(*dir)) {
-                if (not store_info(
-                        parent, {ArtifactDigest{digest}, ObjectType::Tree})) {
-                    return false;
-                }
-            }
-            return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                *dir,
-                [&cas, &store_info, &parent, include_trees](auto path,
-                                                            auto info) {
-                    return IsTreeObject(info.type)
-                               ? ReadObjectInfosRecursively(cas,
-                                                            store_info,
-                                                            parent / path,
-                                                            info.digest,
-                                                            include_trees)
-                               : store_info(parent / path, info);
-                });
-        }
-    }
-    else {
-        if (auto entries = ReadGitTree(cas, digest)) {
-            if (include_trees and entries->empty()) {
-                if (not store_info(
-                        parent, {ArtifactDigest{digest}, ObjectType::Tree})) {
-                    return false;
-                }
-            }
-            return BazelMsgFactory::ReadObjectInfosFromGitTree(
-                *entries,
-                [&cas, &store_info, &parent, include_trees](auto path,
-                                                            auto info) {
-                    return IsTreeObject(info.type)
-                               ? ReadObjectInfosRecursively(cas,
-                                                            store_info,
-                                                            parent / path,
-                                                            info.digest,
-                                                            include_trees)
-                               : store_info(parent / path, info);
-                });
-        }
-    }
-    return false;
-}
-
 [[nodiscard]] static inline auto CheckDigestConsistency(
     bazel_re::Digest const& lhs,
     bazel_re::Digest const& rhs) noexcept -> bool {
@@ -206,71 +145,6 @@ auto ReadObjectInfosRecursively(
 }
 
 }  // namespace detail
-
-template <bool kDoGlobalUplink>
-[[nodiscard]] auto LocalCAS<kDoGlobalUplink>::RecursivelyReadTreeLeafs(
-    bazel_re::Digest const& tree_digest,
-    std::filesystem::path const& parent,
-    bool const include_trees) const noexcept
-    -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                               std::vector<Artifact::ObjectInfo>>> {
-    std::vector<std::filesystem::path> paths{};
-    std::vector<Artifact::ObjectInfo> infos{};
-
-    auto store_info = [&paths, &infos](auto path, auto info) {
-        paths.emplace_back(path);
-        infos.emplace_back(info);
-        return true;
-    };
-
-    try {
-        if (detail::ReadObjectInfosRecursively(
-                *this, store_info, parent, tree_digest, include_trees)) {
-            return std::make_pair(std::move(paths), std::move(infos));
-        }
-    } catch (...) {
-        // fallthrough
-    }
-    return std::nullopt;
-}
-
-template <bool kDoGlobalUplink>
-[[nodiscard]] auto LocalCAS<kDoGlobalUplink>::ReadDirectTreeEntries(
-    bazel_re::Digest const& tree_digest,
-    std::filesystem::path const& parent) const noexcept
-    -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                               std::vector<Artifact::ObjectInfo>>> {
-    std::vector<std::filesystem::path> paths{};
-    std::vector<Artifact::ObjectInfo> infos{};
-
-    auto store_info = [&paths, &infos](auto path, auto info) {
-        paths.emplace_back(path);
-        infos.emplace_back(info);
-        return true;
-    };
-
-    if (Compatibility::IsCompatible()) {
-        if (auto dir = detail::ReadDirectory(*this, tree_digest)) {
-            if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                    *dir, [&store_info, &parent](auto path, auto info) {
-                        return store_info(parent / path, info);
-                    })) {
-                return std::nullopt;
-            }
-        }
-    }
-    else {
-        if (auto entries = detail::ReadGitTree(*this, tree_digest)) {
-            if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
-                    *entries, [&store_info, &parent](auto path, auto info) {
-                        return store_info(parent / path, info);
-                    })) {
-                return std::nullopt;
-            }
-        }
-    }
-    return std::make_pair(std::move(paths), std::move(infos));
-}
 
 template <bool kDoGlobalUplink>
 auto LocalCAS<kDoGlobalUplink>::DumpToStream(Artifact::ObjectInfo const& info,

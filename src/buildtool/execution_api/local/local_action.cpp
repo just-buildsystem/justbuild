@@ -21,7 +21,9 @@
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -216,14 +218,14 @@ auto LocalAction::StageInputs(
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
-
-    auto infos = storage_->CAS().RecursivelyReadTreeLeafs(
+    auto reader = TreeReader<LocalCasReader>{storage_->CAS()};
+    auto result = reader.RecursivelyReadTreeLeafs(
         root_digest_, exec_path, /*include_trees=*/true);
-    if (not infos) {
+    if (not result) {
         return false;
     }
-    for (std::size_t i{}; i < infos->first.size(); ++i) {
-        if (not StageInput(infos->first.at(i), infos->second.at(i))) {
+    for (std::size_t i{}; i < result->paths.size(); ++i) {
+        if (not StageInput(result->paths.at(i), result->infos.at(i))) {
             return false;
         }
     }

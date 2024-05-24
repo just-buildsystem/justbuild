@@ -19,7 +19,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -111,41 +110,16 @@ class BazelNetwork {
         std::vector<std::string> const& output_files) const noexcept
         -> std::optional<bazel_re::ActionResult>;
 
-    /// \brief Traverses a tree recursively and retrieves object infos of all
-    /// found blobs. Tree objects are not added to the result list, but
-    /// converted to a path name.
-    /// \param tree_digest          Digest of the tree.
-    /// \param parent               Local parent path.
-    /// \param request_remote_tree  Query full tree from remote CAS.
-    /// \returns Pair of vectors, first containing filesystem paths, second
-    /// containing object infos.
-    [[nodiscard]] auto RecursivelyReadTreeLeafs(
-        bazel_re::Digest const& tree_digest,
-        std::filesystem::path const& parent,
-        bool request_remote_tree = false) const noexcept
-        -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                                   std::vector<Artifact::ObjectInfo>>>;
-
-    /// \brief Reads the flat content of a tree and returns object infos of all
-    /// its direct entries (trees and blobs).
-    /// \param tree_digest      Digest of the tree.
-    /// \param parent           Local parent path.
-    /// \returns Pair of vectors, first containing filesystem paths, second
-    /// containing object infos.
-    [[nodiscard]] auto ReadDirectTreeEntries(
-        bazel_re::Digest const& tree_digest,
-        std::filesystem::path const& parent) const noexcept
-        -> std::optional<std::pair<std::vector<std::filesystem::path>,
-                                   std::vector<Artifact::ObjectInfo>>>;
-
     [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
                                     gsl::not_null<FILE*> const& stream,
                                     bool raw_tree) const noexcept -> bool;
 
-  private:
-    using DirectoryMap =
-        std::unordered_map<bazel_re::Digest, bazel_re::Directory>;
+    /// \brief Query full tree from remote CAS. Note that this is currently not
+    // supported by Buildbarn revision c3c06bbe2a.
+    [[nodiscard]] auto QueryFullTree(bazel_re::Digest const& digest)
+        const noexcept -> std::optional<std::vector<bazel_re::Directory>>;
 
+  private:
     std::string const instance_name_{};
     ExecutionConfiguration exec_config_{};
     std::unique_ptr<BazelCasClient> cas_{};
@@ -155,12 +129,6 @@ class BazelNetwork {
     template <class T_Iter>
     [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,
                                      T_Iter const& last) noexcept -> bool;
-
-    [[nodiscard]] auto ReadObjectInfosRecursively(
-        std::optional<DirectoryMap> const& dir_map,
-        BazelMsgFactory::InfoStoreFunc const& store_info,
-        std::filesystem::path const& parent,
-        bazel_re::Digest const& digest) const noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_NETWORK_HPP

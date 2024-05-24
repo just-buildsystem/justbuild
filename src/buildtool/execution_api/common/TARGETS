@@ -6,6 +6,7 @@
     , "execution_api.hpp"
     , "execution_action.hpp"
     , "execution_response.hpp"
+    , "tree_reader.hpp"
     ]
   , "srcs": ["execution_api.cpp"]
   , "deps":
@@ -20,6 +21,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/buildtool/file_system", "git_repo"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }

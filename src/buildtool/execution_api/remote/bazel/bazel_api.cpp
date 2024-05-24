@@ -31,11 +31,13 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
+#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -223,10 +225,15 @@ auto BazelApi::CreateAction(
         else {
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto const infos = network_->RecursivelyReadTreeLeafs(
-                    info.digest, output_paths[i], alternative.has_value());
-                if (not infos or
-                    not RetrieveToPaths(infos->second, infos->first)) {
+                auto request_remote_tree = alternative.has_value()
+                                               ? std::make_optional(info.digest)
+                                               : std::nullopt;
+                auto reader = TreeReader<BazelNetworkReader>{
+                    *network_, std::move(request_remote_tree)};
+                auto const result = reader.RecursivelyReadTreeLeafs(
+                    info.digest, output_paths[i]);
+                if (not result or
+                    not RetrieveToPaths(result->infos, result->paths)) {
                     return false;
                 }
             }
@@ -315,9 +322,10 @@ auto BazelApi::CreateAction(
     for (auto const& dgst : missing_artifacts_info->digests) {
         auto const& info = missing_artifacts_info->back_map[dgst];
         if (IsTreeObject(info.type)) {
-            auto const infos = network_->ReadDirectTreeEntries(
+            auto reader = TreeReader<BazelNetworkReader>{*network_};
+            auto const result = reader.ReadDirectTreeEntries(
                 info.digest, std::filesystem::path{});
-            if (not infos or not RetrieveToCas(infos->second, api)) {
+            if (not result or not RetrieveToCas(result->infos, api)) {
                 return false;
             }
         }
@@ -363,11 +371,12 @@ auto BazelApi::CreateAction(
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             if (IsTreeObject(info.type)) {
-                auto const infos = network_->ReadDirectTreeEntries(
+                auto reader = TreeReader<BazelNetworkReader>{*network_};
+                auto const result = reader.ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
-                if (not infos or
+                if (not result or
                     not ParallelRetrieveToCas(
-                        infos->second, api, jobs, use_blob_splitting)) {
+                        result->infos, api, jobs, use_blob_splitting)) {
                     return false;
                 }
             }

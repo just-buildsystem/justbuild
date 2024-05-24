@@ -9,6 +9,7 @@
     , "bazel/bazel_ac_client.hpp"
     , "bazel/bazel_cas_client.hpp"
     , "bazel/bazel_execution_client.hpp"
+    , "bazel/bazel_network_reader.hpp"
     ]
   , "srcs":
     [ "bazel/bazel_action.cpp"
@@ -17,6 +18,7 @@
     , "bazel/bazel_ac_client.cpp"
     , "bazel/bazel_cas_client.cpp"
     , "bazel/bazel_execution_client.cpp"
+    , "bazel/bazel_network_reader.cpp"
     ]
   , "deps":
     [ "config"
@@ -32,6 +34,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/file_system", "git_repo"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -50,6 +53,8 @@
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common/remote", "retry"]
     , ["src/buildtool/execution_api/common", "message_limits"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/utils/cpp", "path"]
     ]
   }
 , "bazel":
