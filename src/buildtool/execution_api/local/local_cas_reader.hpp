@@ -15,8 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_READER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_READER_HPP
 
+#include <filesystem>
+#include <functional>
 #include <optional>
+#include <string>
 
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -24,6 +28,8 @@
 
 class LocalCasReader final {
   public:
+    using DumpCallback = std::function<bool(std::string const&)>;
+
     explicit LocalCasReader(LocalCAS<true> const& cas) noexcept : cas_(cas) {}
 
     [[nodiscard]] auto ReadDirectory(ArtifactDigest const& digest)
@@ -32,8 +38,20 @@ class LocalCasReader final {
     [[nodiscard]] auto ReadGitTree(ArtifactDigest const& digest) const noexcept
         -> std::optional<GitRepo::tree_entries_t>;
 
+    [[nodiscard]] auto DumpRawTree(Artifact::ObjectInfo const& info,
+                                   DumpCallback const& dumper) const noexcept
+        -> bool;
+
+    [[nodiscard]] auto DumpBlob(Artifact::ObjectInfo const& info,
+                                DumpCallback const& dumper) const noexcept
+        -> bool;
+
   private:
     LocalCAS<true> const& cas_;
+
+    [[nodiscard]] static auto DumpRaw(std::filesystem::path const& path,
+                                      DumpCallback const& dumper) noexcept
+        -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_CAS_READER_HPP

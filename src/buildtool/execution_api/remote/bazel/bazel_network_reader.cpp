@@ -92,6 +92,41 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     return std::nullopt;
 }
 
+auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
+                                     DumpCallback const& dumper) const noexcept
+    -> bool {
+    auto blobs = network_.ReadBlobs({info.digest}).Next();
+    if (blobs.size() != 1) {
+        Logger::Log(
+            LogLevel::Debug, "Object {} not found in CAS", info.digest.hash());
+        return false;
+    }
+
+    try {
+        return std::invoke(dumper, blobs.at(0).data);
+    } catch (...) {
+        return false;
+    }
+}
+
+auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
+                                  DumpCallback const& dumper) const noexcept
+    -> bool {
+    auto reader = network_.IncrementalReadSingleBlob(info.digest);
+    auto data = reader.Next();
+    while (data and not data->empty()) {
+        try {
+            if (not std::invoke(dumper, *data)) {
+                return false;
+            }
+        } catch (...) {
+            return false;
+        }
+        data = reader.Next();
+    }
+    return data.has_value();
+}
+
 auto BazelNetworkReader::MakeAuxiliaryMap(
     std::vector<bazel_re::Directory>&& full_tree) noexcept
     -> std::optional<DirectoryMap> {

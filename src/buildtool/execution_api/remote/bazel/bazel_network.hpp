@@ -110,10 +110,6 @@ class BazelNetwork {
         std::vector<std::string> const& output_files) const noexcept
         -> std::optional<bazel_re::ActionResult>;
 
-    [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
-                                    gsl::not_null<FILE*> const& stream,
-                                    bool raw_tree) const noexcept -> bool;
-
     /// \brief Query full tree from remote CAS. Note that this is currently not
     // supported by Buildbarn revision c3c06bbe2a.
     [[nodiscard]] auto QueryFullTree(bazel_re::Digest const& digest)

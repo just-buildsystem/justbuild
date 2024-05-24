@@ -14,6 +14,10 @@
 
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 
+#include <cstdio>
+#include <memory>
+
+#include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -63,4 +67,45 @@ auto LocalCasReader::ReadGitTree(ArtifactDigest const& digest) const noexcept
     }
     Logger::Log(LogLevel::Debug, "Tree {} not found in CAS", digest.hash());
     return std::nullopt;
+}
+
+auto LocalCasReader::DumpRawTree(Artifact::ObjectInfo const& info,
+                                 DumpCallback const& dumper) const noexcept
+    -> bool {
+    auto path = cas_.TreePath(info.digest);
+    return path ? DumpRaw(*path, dumper) : false;
+}
+
+auto LocalCasReader::DumpBlob(Artifact::ObjectInfo const& info,
+                              DumpCallback const& dumper) const noexcept
+    -> bool {
+    auto path = cas_.BlobPath(info.digest, IsExecutableObject(info.type));
+    return path ? DumpRaw(*path, dumper) : false;
+}
+
+auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
+                             DumpCallback const& dumper) noexcept -> bool {
+    auto closer = [](gsl::owner<FILE*> file) -> void {
+        if (file != nullptr) {
+            std::fclose(file);
+        }
+    };
+    auto in = std::shared_ptr<FILE>{std::fopen(path.c_str(), "rb"), closer};
+    if (not in) {
+        return false;
+    }
+
+    constexpr std::size_t kChunkSize{512};
+    std::string buffer(kChunkSize, '\0');
+    while (auto size = std::fread(buffer.data(), 1, buffer.size(), in.get())) {
+        try {
+            buffer.resize(size);
+            if (not std::invoke(dumper, buffer)) {
+                return false;
+            }
+        } catch (...) {
+            return false;
+        }
+    }
+    return true;
 }

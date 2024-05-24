@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
+#include "src/buildtool/execution_api/common/stream_dumper.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
@@ -284,12 +285,13 @@ auto BazelApi::CreateAction(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
     bool raw_tree) noexcept -> bool {
+    auto dumper = StreamDumper<BazelNetworkReader>{*network_};
     return CommonRetrieveToFds(
         artifacts_info,
         fds,
-        [&network = network_, &raw_tree](Artifact::ObjectInfo const& info,
-                                         gsl::not_null<FILE*> const& out) {
-            return network->DumpToStream(info, out, raw_tree);
+        [&dumper, &raw_tree](Artifact::ObjectInfo const& info,
+                             gsl::not_null<FILE*> const& out) {
+            return dumper.DumpToStream(info, out, raw_tree);
         },
         std::nullopt  // remote can't fallback to Git
     );

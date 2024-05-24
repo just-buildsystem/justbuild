@@ -25,112 +25,6 @@
 
 namespace detail {
 
-template <class T_CAS>
-[[nodiscard]] auto ReadDirectory(T_CAS const& cas,
-                                 bazel_re::Digest const& digest) noexcept
-    -> std::optional<bazel_re::Directory> {
-    if (auto const path = cas.TreePath(digest)) {
-        if (auto const content = FileSystemManager::ReadFile(*path)) {
-            return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-                *content);
-        }
-    }
-    Logger::Log(LogLevel::Error,
-                "Directory {} not found in CAS",
-                NativeSupport::Unprefix(digest.hash()));
-    return std::nullopt;
-}
-
-template <class T_CAS>
-[[nodiscard]] auto ReadGitTree(T_CAS const& cas,
-                               bazel_re::Digest const& digest) noexcept
-    -> std::optional<GitRepo::tree_entries_t> {
-    if (auto const path = cas.TreePath(digest)) {
-        if (auto const content = FileSystemManager::ReadFile(*path)) {
-            auto check_symlinks =
-                [&cas](std::vector<bazel_re::Digest> const& ids) {
-                    for (auto const& id : ids) {
-                        auto link_path =
-                            cas.BlobPath(id, /*is_executable=*/false);
-                        if (not link_path) {
-                            return false;
-                        }
-                        // in the local CAS we store as files
-                        auto content = FileSystemManager::ReadFile(*link_path);
-                        if (not content or not PathIsNonUpwards(*content)) {
-                            return false;
-                        }
-                    }
-                    return true;
-                };
-            return GitRepo::ReadTreeData(
-                *content,
-                HashFunction::ComputeTreeHash(*content).Bytes(),
-                check_symlinks,
-                /*is_hex_id=*/false);
-        }
-    }
-    Logger::Log(LogLevel::Debug,
-                "Tree {} not found in CAS",
-                NativeSupport::Unprefix(digest.hash()));
-    return std::nullopt;
-}
-
-[[nodiscard]] inline auto DumpToStream(
-    gsl::not_null<FILE*> const& stream,
-    std::optional<std::string> const& data) noexcept -> bool {
-    if (data) {
-        std::fwrite(data->data(), 1, data->size(), stream);
-        return true;
-    }
-    return false;
-}
-
-template <class T_CAS>
-[[nodiscard]] auto TreeToStream(T_CAS const& cas,
-                                bazel_re::Digest const& tree_digest,
-                                gsl::not_null<FILE*> const& stream) noexcept
-    -> bool {
-    if (Compatibility::IsCompatible()) {
-        if (auto dir = ReadDirectory(cas, tree_digest)) {
-            return DumpToStream(stream,
-                                BazelMsgFactory::DirectoryToString(*dir));
-        }
-    }
-    else {
-        if (auto entries = ReadGitTree(cas, tree_digest)) {
-            return DumpToStream(stream,
-                                BazelMsgFactory::GitTreeToString(*entries));
-        }
-    }
-    return false;
-}
-
-template <class T_CAS>
-[[nodiscard]] auto BlobToStream(T_CAS const& cas,
-                                Artifact::ObjectInfo const& blob_info,
-                                gsl::not_null<FILE*> const& stream) noexcept
-    -> bool {
-    constexpr std::size_t kChunkSize{512};
-    auto path =
-        cas.BlobPath(blob_info.digest, IsExecutableObject(blob_info.type));
-    if (not path and not Compatibility::IsCompatible()) {
-        // in native mode, lookup object in tree cas to dump tree as blob
-        path = cas.TreePath(blob_info.digest);
-    }
-    if (path) {
-        std::string data(kChunkSize, '\0');
-        if (gsl::owner<FILE*> in = std::fopen(path->c_str(), "rb")) {
-            while (auto size = std::fread(data.data(), 1, kChunkSize, in)) {
-                std::fwrite(data.data(), 1, size, stream);
-            }
-            std::fclose(in);
-            return true;
-        }
-    }
-    return false;
-}
-
 [[nodiscard]] static inline auto CheckDigestConsistency(
     bazel_re::Digest const& lhs,
     bazel_re::Digest const& rhs) noexcept -> bool {
@@ -145,16 +39,6 @@ template <class T_CAS>
 }
 
 }  // namespace detail
-
-template <bool kDoGlobalUplink>
-auto LocalCAS<kDoGlobalUplink>::DumpToStream(Artifact::ObjectInfo const& info,
-                                             gsl::not_null<FILE*> const& stream,
-                                             bool raw_tree) const noexcept
-    -> bool {
-    return IsTreeObject(info.type) and not raw_tree
-               ? detail::TreeToStream(*this, info.digest, stream)
-               : detail::BlobToStream(*this, info, stream);
-}
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>

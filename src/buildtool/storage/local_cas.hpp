@@ -199,17 +199,6 @@ class LocalCAS {
                                           std::string const& tree_data)
         const noexcept -> std::optional<LargeObjectError>;
 
-    /// \brief Dump artifact to file stream.
-    /// Tree artifacts are pretty-printed (i.e., contents are listed) unless
-    /// raw_tree is set, then the raw tree will be written to the file stream.
-    /// \param info         The object info of the artifact to dump.
-    /// \param stream       The file stream to dump to.
-    /// \param raw_tree     Dump tree as raw blob.
-    /// \returns true on success.
-    [[nodiscard]] auto DumpToStream(Artifact::ObjectInfo const& info,
-                                    gsl::not_null<FILE*> const& stream,
-                                    bool raw_tree) const noexcept -> bool;
-
     /// \brief Uplink blob from this generation to latest LocalCAS generation.
     /// Performs a synchronization if requested and if blob is only available
     /// with inverse x-bit. This function is only available for instances that

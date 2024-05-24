@@ -37,6 +37,7 @@
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/stream_dumper.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
@@ -141,13 +142,13 @@ class LocalApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
         bool raw_tree) noexcept -> bool final {
+        auto dumper = StreamDumper<LocalCasReader>{storage_->CAS()};
         return CommonRetrieveToFds(
             artifacts_info,
             fds,
-            [&cas = storage_->CAS(), &raw_tree](
-                Artifact::ObjectInfo const& info,
-                gsl::not_null<FILE*> const& out) {
-                return cas.DumpToStream(info, out, raw_tree);
+            [&dumper, &raw_tree](Artifact::ObjectInfo const& info,
+                                 gsl::not_null<FILE*> const& out) {
+                return dumper.DumpToStream(info, out, raw_tree);
             },
             [&repo_config = repo_config_, &raw_tree](
                 Artifact::ObjectInfo const& info, int fd) {

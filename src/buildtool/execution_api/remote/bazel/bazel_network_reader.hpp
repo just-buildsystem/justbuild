@@ -15,9 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 
+#include <filesystem>
+#include <functional>
 #include <optional>
+#include <string>
 #include <unordered_map>
 
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
@@ -25,6 +29,8 @@
 
 class BazelNetworkReader final {
   public:
+    using DumpCallback = std::function<bool(std::string const&)>;
+
     explicit BazelNetworkReader(
         BazelNetwork const& network,
         std::optional<ArtifactDigest> request_remote_tree =
@@ -35,6 +41,14 @@ class BazelNetworkReader final {
 
     [[nodiscard]] auto ReadGitTree(ArtifactDigest const& digest) const noexcept
         -> std::optional<GitRepo::tree_entries_t>;
+
+    [[nodiscard]] auto DumpRawTree(Artifact::ObjectInfo const& info,
+                                   DumpCallback const& dumper) const noexcept
+        -> bool;
+
+    [[nodiscard]] auto DumpBlob(Artifact::ObjectInfo const& info,
+                                DumpCallback const& dumper) const noexcept
+        -> bool;
 
   private:
     using DirectoryMap =
