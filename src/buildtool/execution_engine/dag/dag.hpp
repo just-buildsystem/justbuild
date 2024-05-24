@@ -450,7 +450,7 @@ class DependencyGraph : DirectedAcyclicGraph {
 
         // Collect paths from named nodes.
         // TODO(oreiche): This could be potentially speed up by using a wrapper
-        // iterator to provide a read-only view (similar to BlobContainer)
+        // iterator to provide a read-only view (similar to BazelBlobContainer)
         [[nodiscard]] static auto NodePaths(
             std::vector<NamedOtherNodePtr> const& nodes)
             -> std::vector<Action::LocalPath> {

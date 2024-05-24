@@ -17,7 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"

@@ -17,7 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -89,7 +89,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
         {link_blob->digest, link}};
 
     // create blobs via tree
-    BlobContainer blobs{};
+    BazelBlobContainer blobs{};
     REQUIRE(BazelMsgFactory::CreateDirectoryDigestFromTree(
         *tree,
         [&fake_cas](std::vector<bazel_re::Digest> const& digests,

@@ -174,7 +174,7 @@ class TestApi : public IExecutionApi {
         -> std::optional<std::string> override {
         return std::nullopt;  // not needed by Executor
     }
-    auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
+    auto Upload(BazelBlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
         auto blob_range = blobs.Blobs();
         return std::all_of(

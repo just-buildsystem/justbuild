@@ -194,7 +194,7 @@ class GitApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        BlobContainer container{};
+        BazelBlobContainer container{};
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             std::optional<std::string> content;
@@ -205,7 +205,7 @@ class GitApi final : public IExecutionApi {
                 if (not tree) {
                     return false;
                 }
-                BlobContainer tree_deps_only_blobs{};
+                BazelBlobContainer tree_deps_only_blobs{};
                 for (auto const& [path, entry] : *tree) {
                     if (entry->IsTree()) {
                         if (not RetrieveToCas(
@@ -280,7 +280,7 @@ class GitApi final : public IExecutionApi {
     }
 
     /// NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] auto Upload(BlobContainer const& /*blobs*/,
+    [[nodiscard]] auto Upload(BazelBlobContainer const& /*blobs*/,
                               bool /*skip_find_missing*/ = false) noexcept
         -> bool override {
         // Upload to git cas not supported

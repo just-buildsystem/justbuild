@@ -99,7 +99,7 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
     }
 }
 
-auto BazelNetwork::UploadBlobs(BlobContainer const& blobs,
+auto BazelNetwork::UploadBlobs(BazelBlobContainer const& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (skip_find_missing) {
         auto blob_range = blobs.Blobs();

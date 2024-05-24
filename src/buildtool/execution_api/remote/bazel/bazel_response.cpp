@@ -212,7 +212,7 @@ auto BazelResponse::Populate() noexcept -> bool {
 
 auto BazelResponse::UploadTreeMessageDirectories(
     bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest> {
-    BlobContainer dir_blobs{};
+    BazelBlobContainer dir_blobs{};
 
     auto rootdir_blob = ProcessDirectoryMessage(tree.root());
     if (not rootdir_blob) {

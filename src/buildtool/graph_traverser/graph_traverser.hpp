@@ -36,7 +36,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -322,7 +322,7 @@ class GraphTraverser {
     /// \param[in]  blobs   blobs to be uploaded
     [[nodiscard]] auto UploadBlobs(
         std::vector<std::string> const& blobs) const noexcept -> bool {
-        BlobContainer container;
+        BazelBlobContainer container;
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigest::Create<ObjectType::File>(blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {

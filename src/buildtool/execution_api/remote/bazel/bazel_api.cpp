@@ -26,7 +26,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -60,7 +60,7 @@ namespace {
     auto reader = network->ReadBlobs(digests);
     auto blobs = reader.Next();
     std::size_t count{};
-    BlobContainer container{};
+    BazelBlobContainer container{};
     while (not blobs.empty()) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
@@ -422,7 +422,7 @@ auto BazelApi::CreateAction(
     return std::nullopt;
 }
 
-[[nodiscard]] auto BazelApi::Upload(BlobContainer const& blobs,
+[[nodiscard]] auto BazelApi::Upload(BazelBlobContainer const& blobs,
                                     bool skip_find_missing) noexcept -> bool {
     return network_->UploadBlobs(blobs, skip_find_missing);
 }

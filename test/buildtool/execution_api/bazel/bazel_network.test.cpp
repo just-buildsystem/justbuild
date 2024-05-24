@@ -19,7 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -47,7 +47,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
                   /*is_exec=*/false};
 
     // Search blobs via digest
-    REQUIRE(network.UploadBlobs(BlobContainer{{foo, bar, baz}}));
+    REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar, baz}}));
 
     // Read blobs in order
     auto reader = network.ReadBlobs(
@@ -91,7 +91,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
                   /*is_exec=*/false};
 
     // Upload blobs
-    REQUIRE(network.UploadBlobs(BlobContainer{{foo, bar}}));
+    REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar}}));
 
     // Set size to unknown
     foo.digest.set_size_bytes(0);

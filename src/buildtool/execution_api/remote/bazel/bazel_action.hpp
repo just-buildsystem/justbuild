@@ -58,7 +58,7 @@ class BazelAction final : public IExecutionAction {
                 std::map<std::string, std::string> const& env_vars,
                 std::map<std::string, std::string> const& properties) noexcept;
 
-    [[nodiscard]] auto CreateBundlesForAction(BlobContainer* blobs,
+    [[nodiscard]] auto CreateBundlesForAction(BazelBlobContainer* blobs,
                                               bazel_re::Digest const& exec_dir,
                                               bool do_not_cache) const noexcept
         -> bazel_re::Digest;

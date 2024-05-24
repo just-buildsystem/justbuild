@@ -217,7 +217,7 @@ inline void SetLauncher() {
     std::string output_path{"output_file"};
 
     auto api = api_factory();
-    CHECK(api->Upload(BlobContainer{{BazelBlob{
+    CHECK(api->Upload(BazelBlobContainer{{BazelBlob{
                           test_digest, test_content, /*is_exec=*/false}}},
                       false));
 

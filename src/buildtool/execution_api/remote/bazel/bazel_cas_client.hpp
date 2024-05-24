@@ -27,7 +27,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -54,7 +54,7 @@ class BazelCasClient {
     /// \returns The digests of blobs not found in CAS
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
-        BlobContainer const& blob_container) noexcept
+        BazelBlobContainer const& blob_container) noexcept
         -> std::vector<bazel_re::Digest>;
 
     /// \brief Upload multiple blobs in batch transfer

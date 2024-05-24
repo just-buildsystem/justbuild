@@ -188,7 +188,7 @@ auto BazelCasClient::FindMissingBlobs(
 
 auto BazelCasClient::FindMissingBlobs(
     std::string const& instance_name,
-    BlobContainer const& blob_container) noexcept
+    BazelBlobContainer const& blob_container) noexcept
     -> std::vector<bazel_re::Digest> {
     auto digests_range = blob_container.Digests();
     return FindMissingBlobs(

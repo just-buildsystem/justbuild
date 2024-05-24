@@ -16,7 +16,7 @@
 
 #include <utility>  // std::move
 
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
@@ -45,7 +45,7 @@ BazelAction::BazelAction(
 
 auto BazelAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
-    BlobContainer blobs{};
+    BazelBlobContainer blobs{};
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateBundlesForAction(&blobs, root_digest_, not do_cache);
 
@@ -90,7 +90,7 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     return nullptr;
 }
 
-auto BazelAction::CreateBundlesForAction(BlobContainer* blobs,
+auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
                                          bazel_re::Digest const& exec_dir,
                                          bool do_not_cache) const noexcept
     -> bazel_re::Digest {

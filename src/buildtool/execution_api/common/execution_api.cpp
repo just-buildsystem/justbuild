@@ -43,7 +43,7 @@
             Ensures(false);  // unreachable
             return false;
     }
-    BlobContainer container{};
+    BazelBlobContainer container{};
     try {
         auto exec = IsExecutableObject(type);
         container.Emplace(BazelBlob{digest, *data, exec});

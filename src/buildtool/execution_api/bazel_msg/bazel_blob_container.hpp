@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
 
+#include <filesystem>
+#include <optional>
+
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 
 using BazelBlob = ContentBlob<bazel_re::Digest>;
-using BlobContainer = ContentBlobContainer<bazel_re::Digest>;
+using BazelBlobContainer = ContentBlobContainer<bazel_re::Digest>;
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP

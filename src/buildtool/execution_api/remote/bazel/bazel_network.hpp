@@ -25,7 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
@@ -90,7 +90,7 @@ class BazelNetwork {
     /// \param blobs              The blobs to upload
     /// \param skip_find_missing  Skip finding missing blobs, just upload all
     /// \returns True if upload was successful, false otherwise
-    [[nodiscard]] auto UploadBlobs(BlobContainer const& blobs,
+    [[nodiscard]] auto UploadBlobs(BazelBlobContainer const& blobs,
                                    bool skip_find_missing = false) noexcept
         -> bool;
 

@@ -295,7 +295,7 @@ class ExecutorImpl {
         }
 
         // upload missing entries (blobs or trees)
-        BlobContainer container;
+        BazelBlobContainer container;
         for (auto const& digest : missing_digests) {
             if (auto it = entry_map.find(digest); it != entry_map.end()) {
                 auto const& entry = it->second;
@@ -361,7 +361,7 @@ class ExecutorImpl {
         }
 
         // upload artifact content
-        auto container = BlobContainer{{BazelBlob{
+        auto container = BazelBlobContainer{{BazelBlob{
             info.digest, std::move(*content), IsExecutableObject(info.type)}}};
         return api->Upload(container, /*skip_find_missing=*/true);
     }
@@ -447,10 +447,10 @@ class ExecutorImpl {
             return std::nullopt;
         }
         auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
-        if (not api->Upload(
-                BlobContainer{{BazelBlob{digest,
-                                         std::move(*content),
-                                         IsExecutableObject(*object_type)}}})) {
+        if (not api->Upload(BazelBlobContainer{
+                {BazelBlob{digest,
+                           std::move(*content),
+                           IsExecutableObject(*object_type)}}})) {
             return std::nullopt;
         }
         return Artifact::ObjectInfo{.digest = std::move(digest),

@@ -33,7 +33,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -191,7 +191,7 @@ class LocalApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        BlobContainer container{};
+        BazelBlobContainer container{};
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             // Recursively process trees.
@@ -267,7 +267,7 @@ class LocalApi final : public IExecutionApi {
         return content;
     }
 
-    [[nodiscard]] auto Upload(BlobContainer const& blobs,
+    [[nodiscard]] auto Upload(BazelBlobContainer const& blobs,
                               bool /*skip_find_missing*/) noexcept
         -> bool final {
         for (auto const& blob : blobs.Blobs()) {
