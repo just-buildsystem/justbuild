@@ -29,6 +29,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/stream_dumper.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
@@ -68,15 +69,19 @@ namespace {
             return false;
         }
         for (auto const& blob : blobs) {
-            try {
-                auto digest = ArtifactDigest{blob.digest};
-                auto exec = info_map.contains(digest)
-                                ? IsExecutableObject(info_map.at(digest).type)
-                                : false;
-                container.Emplace(ArtifactBlob{digest, blob.data, exec});
-            } catch (std::exception const& ex) {
-                Logger::Log(
-                    LogLevel::Warning, "failed to emplace blob: ", ex.what());
+            auto digest = ArtifactDigest{blob.digest};
+            auto exec = info_map.contains(digest)
+                            ? IsExecutableObject(info_map.at(digest).type)
+                            : false;
+            // Collect blob and upload to other CAS if transfer size reached.
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    ArtifactBlob{std::move(digest), blob.data, exec},
+                    /*exception_is_fatal=*/true,
+                    [&api](ArtifactBlobContainer&& blobs) {
+                        return api->Upload(std::move(blobs),
+                                           /*skip_find_missing=*/true);
+                    })) {
                 return false;
             }
         }
@@ -89,7 +94,7 @@ namespace {
         return false;
     }
 
-    // Upload blobs to other CAS.
+    // Upload remaining blobs to other CAS.
     return api->Upload(std::move(container), /*skip_find_missing=*/true);
 }
 

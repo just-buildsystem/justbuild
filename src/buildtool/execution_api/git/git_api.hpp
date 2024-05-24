@@ -23,8 +23,10 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -220,25 +222,28 @@ class GitApi final : public IExecutionApi {
                         }
                     }
                     else {
-                        content = entry->RawData();
-                        if (not content) {
+                        auto const& entry_content = entry->RawData();
+                        if (not entry_content) {
                             return false;
                         }
-                        auto digest =
-                            ArtifactDigest::Create<ObjectType::File>(*content);
-                        try {
-                            tree_deps_only_blobs.Emplace(ArtifactBlob{
-                                digest,
-                                *content,
-                                IsExecutableObject(entry->Type())});
-                        } catch (std::exception const& ex) {
-                            Logger::Log(LogLevel::Error,
-                                        "failed to emplace blob: ",
-                                        ex.what());
+                        auto digest = ArtifactDigest::Create<ObjectType::File>(
+                            *entry_content);
+                        // Collect blob and upload to remote CAS if transfer
+                        // size reached.
+                        if (not UpdateContainerAndUpload<ArtifactDigest>(
+                                &tree_deps_only_blobs,
+                                ArtifactBlob{std::move(digest),
+                                             *entry_content,
+                                             IsExecutableObject(entry->Type())},
+                                /*exception_is_fatal=*/true,
+                                [&api](ArtifactBlobContainer&& blobs) -> bool {
+                                    return api->Upload(std::move(blobs));
+                                })) {
                             return false;
                         }
                     }
                 }
+                // Upload remaining blobs.
                 if (not api->Upload(std::move(tree_deps_only_blobs))) {
                     return false;
                 }
@@ -256,18 +261,22 @@ class GitApi final : public IExecutionApi {
                     ? ArtifactDigest::Create<ObjectType::Tree>(*content)
                     : ArtifactDigest::Create<ObjectType::File>(*content);
 
-            try {
-                container.Emplace(ArtifactBlob{std::move(digest),
-                                               *content,
-                                               IsExecutableObject(info.type)});
-            } catch (std::exception const& ex) {
-                Logger::Log(
-                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+            // Collect blob and upload to remote CAS if transfer size reached.
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    ArtifactBlob{std::move(digest),
+                                 std::move(*content),
+                                 IsExecutableObject(info.type)},
+                    /*exception_is_fatal=*/true,
+                    [&api](ArtifactBlobContainer&& blobs) {
+                        return api->Upload(std::move(blobs),
+                                           /*skip_find_missing=*/true);
+                    })) {
                 return false;
             }
         }
 
-        // Upload blobs to remote CAS.
+        // Upload remaining blobs to remote CAS.
         return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 

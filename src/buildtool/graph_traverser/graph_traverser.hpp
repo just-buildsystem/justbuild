@@ -31,12 +31,15 @@
 
 #include "fmt/core.h"
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -332,17 +335,20 @@ class GraphTraverser {
                     digest.hash(),
                     digest.size());
             });
-            try {
-                container.Emplace(
-                    ArtifactBlob{std::move(digest), blob, /*is_exec=*/false});
-            } catch (std::exception const& ex) {
-                Logger::Log(logger_,
-                            LogLevel::Error,
-                            "failed to create blob with: ",
-                            ex.what());
+            // Store and/or upload blob, taking into account the maximum
+            // transfer size.
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    ArtifactBlob{std::move(digest), blob, /*is_exec=*/false},
+                    /*exception_is_fatal=*/true,
+                    [&api = remote_api_](ArtifactBlobContainer&& blobs) {
+                        return api->Upload(std::move(blobs));
+                    },
+                    logger_)) {
                 return false;
             }
         }
+        // Upload remaining blobs.
         return remote_api_->Upload(std::move(container));
     }
 

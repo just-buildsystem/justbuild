@@ -419,7 +419,7 @@ template <class T>
     std::string const& root_name,
     DirectoryTreePtr const& tree,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links,
-    std::optional<BazelMsgFactory::BlobStoreFunc> const& store_blob,
+    std::optional<BazelMsgFactory::BlobProcessFunc> const& process_blob,
     std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
     std::filesystem::path const& parent = "") noexcept
     -> DirectoryNodeBundle::Ptr {
@@ -434,15 +434,16 @@ template <class T>
                 auto const dir_bundle = DirectoryTreeToBundle(name,
                                                               dir,
                                                               resolve_links,
-                                                              store_blob,
+                                                              process_blob,
                                                               store_info,
                                                               parent / name);
                 if (not dir_bundle) {
                     return nullptr;
                 }
                 dir_nodes.emplace_back(dir_bundle->Message());
-                if (store_blob) {
-                    (*store_blob)(dir_bundle->MakeBlob(/*is_exec=*/false));
+                if (process_blob and not(*process_blob)(dir_bundle->MakeBlob(
+                                         /*is_exec=*/false))) {
+                    return nullptr;
                 }
             }
             else {
@@ -544,14 +545,16 @@ auto BazelMsgFactory::ReadObjectInfosFromGitTree(
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     DirectoryTreePtr const& tree,
     LinkDigestResolveFunc const& resolve_links,
-    std::optional<BlobStoreFunc> const& store_blob,
+    std::optional<BlobProcessFunc> const& process_blob,
     std::optional<InfoStoreFunc> const& store_info) noexcept
     -> std::optional<bazel_re::Digest> {
     if (auto bundle = DirectoryTreeToBundle(
-            "", tree, resolve_links, store_blob, store_info)) {
-        if (store_blob) {
+            "", tree, resolve_links, process_blob, store_info)) {
+        if (process_blob) {
             try {
-                (*store_blob)(bundle->MakeBlob(/*is_exec=*/false));
+                if (not(*process_blob)(bundle->MakeBlob(/*is_exec=*/false))) {
+                    return std::nullopt;
+                }
             } catch (...) {
                 return std::nullopt;
             }

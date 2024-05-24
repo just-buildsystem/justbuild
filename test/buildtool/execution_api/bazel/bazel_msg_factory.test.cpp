@@ -111,7 +111,10 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
                 }
             }
         },
-        [&blobs](BazelBlob&& blob) { blobs.Emplace(std::move(blob)); }));
+        [&blobs](BazelBlob&& blob) {
+            blobs.Emplace(std::move(blob));
+            return true;
+        }));
 
     // TODO(aehlig): also check total number of DirectoryNode blobs in container
 }

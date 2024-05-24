@@ -108,15 +108,21 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
                     return false;
                 }
             }
-            // Store blob.
-            try {
-                container.Emplace(node->Blob());
-            } catch (...) {
+            // Optimize store & upload by taking into account the maximum
+            // transfer size.
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    std::move(node->Blob()),
+                    /*exception_is_fatal=*/false,
+                    [&api](ArtifactBlobContainer&& blobs) -> bool {
+                        return api->Upload(std::move(blobs),
+                                           /*skip_find_missing=*/true);
+                    })) {
                 return false;
             }
         }
     }
-
+    // Transfer any remaining blobs.
     return api->Upload(std::move(container), /*skip_find_missing=*/true);
 }
 
@@ -126,10 +132,18 @@ auto CommonUploadTreeCompatible(
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest> {
     ArtifactBlobContainer blobs{};
+    // Store and upload blobs, taking into account the maximum transfer size.
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
-        build_root, resolve_links, [&blobs](BazelBlob&& blob) {
-            blobs.Emplace(ArtifactBlob{
-                ArtifactDigest{blob.digest}, blob.data, blob.is_exec});
+        build_root, resolve_links, [&blobs, &api](BazelBlob&& blob) {
+            return UpdateContainerAndUpload<ArtifactDigest>(
+                &blobs,
+                std::move(ArtifactBlob{
+                    ArtifactDigest{blob.digest}, blob.data, blob.is_exec}),
+                /*exception_is_fatal=*/false,
+                [&api](ArtifactBlobContainer&& container) -> bool {
+                    return api->Upload(std::move(container),
+                                       /*skip_find_missing=*/false);
+                });
         });
     if (not digest) {
         Logger::Log(LogLevel::Debug, "failed to create digest for build root.");
@@ -141,6 +155,7 @@ auto CommonUploadTreeCompatible(
         oss << fmt::format(" - root digest: {}", digest->hash()) << std::endl;
         return oss.str();
     });
+    // Upload remaining blobs.
     if (not api->Upload(std::move(blobs), /*skip_find_missing=*/false)) {
         Logger::Log(LogLevel::Debug, "failed to upload blobs for build root.");
         return std::nullopt;

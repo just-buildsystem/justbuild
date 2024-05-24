@@ -28,11 +28,14 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -303,20 +306,23 @@ class ExecutorImpl {
                 if (not content) {
                     return false;
                 }
-                try {
-                    container.Emplace(
+                // store and/or upload blob, taking into account the maximum
+                // transfer size
+                if (not UpdateContainerAndUpload<ArtifactDigest>(
+                        &container,
                         ArtifactBlob{digest,
                                      std::move(*content),
-                                     IsExecutableObject(entry->Type())});
-                } catch (std::exception const& ex) {
-                    Logger::Log(LogLevel::Error,
-                                "failed to create blob with: ",
-                                ex.what());
+                                     IsExecutableObject(entry->Type())},
+                        /*exception_is_fatal=*/true,
+                        [&api](ArtifactBlobContainer&& blobs) {
+                            return api->Upload(std::move(blobs),
+                                               /*skip_find_missing=*/true);
+                        })) {
                     return false;
                 }
             }
         }
-
+        // upload remaining blobs
         return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 

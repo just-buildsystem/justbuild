@@ -39,6 +39,9 @@
 /// communication.
 class BazelMsgFactory {
   public:
+    /// \brief Store or otherwise process a blob. Returns success flag.
+    using BlobProcessFunc = std::function<bool(BazelBlob&&)>;
+    /// \brief Store blob.
     using BlobStoreFunc = std::function<void(BazelBlob&&)>;
     using InfoStoreFunc = std::function<bool(std::filesystem::path const&,
                                              Artifact::ObjectInfo const&)>;
@@ -72,13 +75,13 @@ class BazelMsgFactory {
     /// Recursively traverse entire tree and create blobs for sub-directories.
     /// \param tree           Directory tree of artifacts.
     /// \param resolve_links  Function for resolving symlinks.
-    /// \param store_blob     Function for storing Directory blobs.
+    /// \param process_blob   Function for processing Directory blobs.
     /// \param store_info     Function for storing object infos.
     /// \returns Digest representing the entire tree.
     [[nodiscard]] static auto CreateDirectoryDigestFromTree(
         DirectoryTreePtr const& tree,
         LinkDigestResolveFunc const& resolve_links,
-        std::optional<BlobStoreFunc> const& store_blob = std::nullopt,
+        std::optional<BlobProcessFunc> const& process_blob = std::nullopt,
         std::optional<InfoStoreFunc> const& store_info = std::nullopt) noexcept
         -> std::optional<bazel_re::Digest>;
 

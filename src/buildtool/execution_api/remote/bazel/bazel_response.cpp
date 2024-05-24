@@ -18,7 +18,8 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -219,16 +220,39 @@ auto BazelResponse::UploadTreeMessageDirectories(
         return std::nullopt;
     }
     auto root_digest = rootdir_blob->digest;
-    dir_blobs.Emplace(std::move(*rootdir_blob));
+    // store or upload rootdir blob, taking maximum transfer size into account
+    if (not UpdateContainerAndUpload<bazel_re::Digest>(
+            &dir_blobs,
+            std::move(*rootdir_blob),
+            /*exception_is_fatal=*/false,
+            [&network = network_](BazelBlobContainer&& blobs) {
+                return network->UploadBlobs(std::move(blobs));
+            })) {
+        Logger::Log(LogLevel::Error,
+                    "uploading Tree's Directory messages failed");
+        return std::nullopt;
+    }
 
     for (auto const& subdir : tree.children()) {
         auto subdir_blob = ProcessDirectoryMessage(subdir);
         if (not subdir_blob) {
             return std::nullopt;
         }
-        dir_blobs.Emplace(std::move(*subdir_blob));
+        // store or upload blob, taking maximum transfer size into account
+        if (not UpdateContainerAndUpload<bazel_re::Digest>(
+                &dir_blobs,
+                std::move(*subdir_blob),
+                /*exception_is_fatal=*/false,
+                [&network = network_](BazelBlobContainer&& blobs) {
+                    return network->UploadBlobs(std::move(blobs));
+                })) {
+            Logger::Log(LogLevel::Error,
+                        "uploading Tree's Directory messages failed");
+            return std::nullopt;
+        }
     }
 
+    // upload any remaining blob
     if (not network_->UploadBlobs(std::move(dir_blobs))) {
         Logger::Log(LogLevel::Error,
                     "uploading Tree's Directory messages failed");

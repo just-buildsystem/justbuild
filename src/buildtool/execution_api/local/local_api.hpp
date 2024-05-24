@@ -30,10 +30,12 @@
 #include "fmt/core.h"
 #include "grpcpp/support/status.h"
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -227,19 +229,22 @@ class LocalApi final : public IExecutionApi {
                     ? ArtifactDigest::Create<ObjectType::Tree>(*content)
                     : ArtifactDigest::Create<ObjectType::File>(*content);
 
-            // Collect blob.
-            try {
-                container.Emplace(ArtifactBlob{std::move(digest),
-                                               *content,
-                                               IsExecutableObject(info.type)});
-            } catch (std::exception const& ex) {
-                Logger::Log(
-                    LogLevel::Error, "failed to emplace blob: ", ex.what());
+            // Collect blob and upload to remote CAS if transfer size reached.
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    ArtifactBlob{std::move(digest),
+                                 *content,
+                                 IsExecutableObject(info.type)},
+                    /*exception_is_fatal=*/true,
+                    [&api](ArtifactBlobContainer&& blobs) {
+                        return api->Upload(std::move(blobs),
+                                           /*skip_find_missing=*/true);
+                    })) {
                 return false;
             }
         }
 
-        // Upload blobs to remote CAS.
+        // Upload remaining blobs to remote CAS.
         return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
