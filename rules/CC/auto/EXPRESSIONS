@@ -1,32 +1,12 @@
 { "last_list_entry":
   { "vars": ["list"]
   , "expression":
-    { "type": "foldl"
-    , "range": {"type": "var", "name": "list"}
-    , "start": null
-    , "body": {"type": "var", "name": "_"}
-    }
+    {"type": "[]", "index": -1, "list": {"type": "var", "name": "list"}}
   }
 , "first_list_entry":
   { "vars": ["list"]
   , "imports": {"last": "last_list_entry"}
   , "expression":
-    { "type": "let*"
-    , "bindings":
-      [ [ "list"
-        , { "type": "foldl"
-          , "range": {"type": "var", "name": "list", "default": []}
-          , "start": null
-          , "body":
-            { "type": "if"
-            , "cond": {"type": "var", "name": "$1"}
-            , "then": {"type": "var", "name": "$1"}
-            , "else": [{"type": "var", "name": "_"}]
-            }
-          }
-        ]
-      ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "last"}
-    }
+    {"type": "[]", "index": 0, "list": {"type": "var", "name": "list"}}
   }
 }
