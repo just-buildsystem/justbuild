@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
 class BazelApi;

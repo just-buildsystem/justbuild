@@ -19,7 +19,6 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
