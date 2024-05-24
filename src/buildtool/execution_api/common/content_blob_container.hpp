@@ -1,4 +1,4 @@
-// Copyright 2022 Huawei Cloud Computing Technology Co., Ltd.
+// Copyright 2024 Huawei Cloud Computing Technology Co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP
 
 #include <cstddef>
+#include <string>
 #include <unordered_map>
-#include <utility>  // std::pair via auto
+#include <utility>  //std::move
 #include <vector>
 
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/utils/cpp/transformed_range.hpp"
 
-/// \brief Container for Blobs
-/// Can be used to iterate over digests or subset of blobs with certain digest.
-class BlobContainer {
-    using underlaying_map_t = std::unordered_map<bazel_re::Digest, BazelBlob>;
+template <typename TDigest>
+struct ContentBlob final {
+    ContentBlob(TDigest mydigest, std::string mydata, bool is_exec) noexcept
+        : digest{std::move(mydigest)},
+          data{std::move(mydata)},
+          is_exec{is_exec} {}
 
+    TDigest digest{};
+    std::string data{};
+    bool is_exec{};
+};
+
+template <typename TDigest>
+class ContentBlobContainer final {
   public:
-    BlobContainer() noexcept = default;
-    explicit BlobContainer(std::vector<BazelBlob> blobs) {
+    using DigestType = TDigest;
+    using BlobType = ContentBlob<TDigest>;
+
+    ContentBlobContainer() noexcept = default;
+    explicit ContentBlobContainer(std::vector<BlobType> blobs) {
         blobs_.reserve(blobs.size());
         for (auto& blob : blobs) {
             this->Emplace(std::move(blob));
@@ -38,8 +50,8 @@ class BlobContainer {
     }
 
     /// \brief Emplace new BazelBlob to container.
-    void Emplace(BazelBlob&& blob) {
-        bazel_re::Digest digest = blob.digest;
+    void Emplace(BlobType&& blob) {
+        DigestType digest = blob.digest;
         blobs_.emplace(std::move(digest), std::move(blob));
     }
 
@@ -53,13 +65,13 @@ class BlobContainer {
 
     /// \brief Is equivalent BazelBlob (with same Digest) in container.
     /// \param[in] blob BazelBlob to search equivalent BazelBlob for
-    [[nodiscard]] auto Contains(BazelBlob const& blob) const noexcept -> bool {
+    [[nodiscard]] auto Contains(BlobType const& blob) const noexcept -> bool {
         return blobs_.contains(blob.digest);
     }
 
     /// \brief Obtain iterable list of Blobs from container.
     [[nodiscard]] auto Blobs() const noexcept {
-        auto converter = [](auto const& p) -> BazelBlob const& {
+        auto converter = [](auto const& p) -> BlobType const& {
             return p.second;
         };
         return TransformedRange{
@@ -68,7 +80,7 @@ class BlobContainer {
 
     /// \brief Obtain iterable list of Digests from container.
     [[nodiscard]] auto Digests() const noexcept {
-        auto converter = [](auto const& p) -> bazel_re::Digest const& {
+        auto converter = [](auto const& p) -> DigestType const& {
             return p.first;
         };
         return TransformedRange{
@@ -78,8 +90,8 @@ class BlobContainer {
     /// \brief Obtain iterable list of BazelBlobs related to Digests.
     /// \param[in] related Related Digests
     [[nodiscard]] auto RelatedBlobs(
-        std::vector<bazel_re::Digest> const& related) const noexcept {
-        auto converter = [this](auto const& digest) -> BazelBlob const& {
+        std::vector<DigestType> const& related) const noexcept {
+        auto converter = [this](auto const& digest) -> BlobType const& {
             return blobs_.at(digest);
         };
         return TransformedRange{
@@ -87,7 +99,7 @@ class BlobContainer {
     };
 
   private:
-    underlaying_map_t blobs_{};
+    std::unordered_map<DigestType, BlobType> blobs_{};
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP

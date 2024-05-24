@@ -1,12 +1,12 @@
 { "bazel_msg":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bazel_msg"]
-  , "hdrs": ["bazel_blob.hpp", "bazel_blob_container.hpp", "bazel_common.hpp"]
+  , "hdrs": ["bazel_blob.hpp", "bazel_common.hpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/common", "bazel_types"]
-    , ["src/utils/cpp", "transformed_range"]
+    , ["src/buildtool/execution_api/common", "content_blob_container"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   , "private-deps":

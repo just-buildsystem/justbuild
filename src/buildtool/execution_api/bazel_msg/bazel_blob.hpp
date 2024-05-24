@@ -15,20 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
 
-#include <string>
-#include <utility>  // std::move
-
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 
-struct BazelBlob {
-    BazelBlob(bazel_re::Digest mydigest, std::string mydata, bool is_exec)
-        : digest{std::move(mydigest)},
-          data{std::move(mydata)},
-          is_exec{is_exec} {}
-
-    bazel_re::Digest digest{};
-    std::string data{};
-    bool is_exec{};  // optional: hint to put the blob in executable CAS
-};
+using BazelBlob = ContentBlob<bazel_re::Digest>;
+using BlobContainer = ContentBlobContainer<bazel_re::Digest>;
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
