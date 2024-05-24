@@ -270,7 +270,7 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto Upload(BlobContainer const& blobs,
                               bool /*skip_find_missing*/) noexcept
         -> bool final {
-        for (auto const& blob : blobs) {
+        for (auto const& blob : blobs.Blobs()) {
             auto const is_tree = NativeSupport::IsTree(blob.digest.hash());
             auto cas_digest =
                 is_tree ? storage_->CAS().StoreTree(blob.data)

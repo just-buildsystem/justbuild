@@ -54,7 +54,7 @@ class BazelCasClient {
     /// \returns The digests of blobs not found in CAS
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
-        BlobContainer::DigestList const& digests) noexcept
+        BlobContainer const& blob_container) noexcept
         -> std::vector<bazel_re::Digest>;
 
     /// \brief Upload multiple blobs in batch transfer

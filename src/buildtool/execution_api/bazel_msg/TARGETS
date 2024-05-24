@@ -5,8 +5,8 @@
   , "deps":
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/utils/cpp", "concepts"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["src/utils/cpp", "transformed_range"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   , "private-deps":

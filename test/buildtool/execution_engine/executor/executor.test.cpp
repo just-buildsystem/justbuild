@@ -176,8 +176,9 @@ class TestApi : public IExecutionApi {
     }
     auto Upload(BlobContainer const& blobs, bool /*unused*/) noexcept
         -> bool final {
+        auto blob_range = blobs.Blobs();
         return std::all_of(
-            blobs.begin(), blobs.end(), [this](auto const& blob) {
+            blob_range.begin(), blob_range.end(), [this](auto const& blob) {
                 return config_.artifacts[blob.data]
                            .uploads  // for local artifacts
                        or config_.artifacts[blob.digest.hash()]

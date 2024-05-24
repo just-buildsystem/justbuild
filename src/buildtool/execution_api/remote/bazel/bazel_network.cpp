@@ -102,12 +102,12 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
 auto BazelNetwork::UploadBlobs(BlobContainer const& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (skip_find_missing) {
-        return DoUploadBlobs(blobs.begin(), blobs.end());
+        auto blob_range = blobs.Blobs();
+        return DoUploadBlobs(blob_range.begin(), blob_range.end());
     }
 
     // find digests of blobs missing in CAS
-    auto missing_digests =
-        cas_->FindMissingBlobs(instance_name_, blobs.Digests());
+    auto missing_digests = cas_->FindMissingBlobs(instance_name_, blobs);
 
     if (not missing_digests.empty()) {
         // update missing blobs
