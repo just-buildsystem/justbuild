@@ -18,8 +18,6 @@
 #include <variant>
 
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -39,8 +37,7 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                 if (not blob_tree) {
                     return std::nullopt;
                 }
-                auto raw_id = FromHexString(NativeSupport::Unprefix(
-                    (*blob_tree)->Blob().digest.hash()));
+                auto raw_id = FromHexString((*blob_tree)->Blob().digest.hash());
                 if (not raw_id) {
                     return std::nullopt;
                 }
@@ -64,14 +61,12 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
             }
         }
         if (auto git_tree = GitRepo::CreateShallowTree(entries)) {
-            bazel_re::Digest digest{};
-            digest.set_hash(NativeSupport::Prefix(ToHexString(git_tree->first),
-                                                  /*is_tree=*/true));
-            digest.set_size_bytes(
-                gsl::narrow<google::protobuf::int64>(git_tree->second.size()));
-            return std::make_shared<BlobTree>(BazelBlob{digest,
-                                                        git_tree->second,
-                                                        /*is_exec=*/false},
+            ArtifactDigest digest{ToHexString(git_tree->first),
+                                  git_tree->second.size(),
+                                  /*is_tree=*/true};
+            return std::make_shared<BlobTree>(ArtifactBlob{std::move(digest),
+                                                           git_tree->second,
+                                                           /*is_exec=*/false},
                                               nodes);
         }
     } catch (...) {

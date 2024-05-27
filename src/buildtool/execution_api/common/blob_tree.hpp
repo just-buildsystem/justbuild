@@ -23,8 +23,8 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 
 class BlobTree;
 using BlobTreePtr = gsl::not_null<std::shared_ptr<BlobTree>>;
@@ -33,12 +33,13 @@ using BlobTreePtr = gsl::not_null<std::shared_ptr<BlobTree>>;
 /// upload.
 class BlobTree {
   public:
-    BlobTree(BazelBlob blob, std::vector<BlobTreePtr> nodes)
+    BlobTree(ArtifactBlob blob, std::vector<BlobTreePtr> nodes)
         : blob_{std::move(blob)}, nodes_{std::move(nodes)} {}
 
-    [[nodiscard]] auto Blob() const noexcept -> BazelBlob { return blob_; }
+    [[nodiscard]] auto Blob() const noexcept -> ArtifactBlob { return blob_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool {
-        return NativeSupport::IsTree(blob_.digest.hash());
+        return NativeSupport::IsTree(
+            static_cast<bazel_re::Digest>(blob_.digest).hash());
     }
 
     /// \brief Create a `BlobTree` from a `DirectoryTree`.
@@ -52,7 +53,7 @@ class BlobTree {
     [[nodiscard]] auto size() const noexcept { return nodes_.size(); }
 
   private:
-    BazelBlob blob_;
+    ArtifactBlob blob_;
     std::vector<BlobTreePtr> nodes_;
 };
 

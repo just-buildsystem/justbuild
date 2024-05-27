@@ -112,7 +112,10 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
             }
             // Store blob.
             try {
-                container.Emplace(node->Blob());
+                BazelBlob bazel_blob{node->Blob().digest,
+                                     node->Blob().data,
+                                     node->Blob().is_exec};
+                container.Emplace(std::move(bazel_blob));
             } catch (...) {
                 return false;
             }
@@ -161,18 +164,20 @@ auto CommonUploadTreeNative(gsl::not_null<IExecutionApi*> const& api,
     auto tree_blob = (*blob_tree)->Blob();
     // Upload blob tree if tree is not available at the remote side (content
     // first).
-    if (not api->IsAvailable(ArtifactDigest{tree_blob.digest})) {
+    if (not api->IsAvailable(tree_blob.digest)) {
         if (not CommonUploadBlobTree(*blob_tree, api)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload blob tree for build root.");
             return std::nullopt;
         }
-        if (not api->Upload(BazelBlobContainer{{tree_blob}},
+        BazelBlob bazel_blob{
+            tree_blob.digest, tree_blob.data, tree_blob.is_exec};
+        if (not api->Upload(BazelBlobContainer{{bazel_blob}},
                             /*skip_find_missing=*/true)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload tree blob for build root.");
             return std::nullopt;
         }
     }
-    return ArtifactDigest{tree_blob.digest};
+    return tree_blob.digest;
 }

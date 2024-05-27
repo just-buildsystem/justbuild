@@ -8,10 +8,12 @@
     , "execution_response.hpp"
     , "tree_reader.hpp"
     , "stream_dumper.hpp"
+    , "artifact_blob_container.hpp"
     ]
   , "srcs": ["execution_api.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ "content_blob_container"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
@@ -78,7 +80,6 @@
   , "srcs": ["blob_tree.cpp"]
   , "deps":
     [ "common"
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/compatibility", "compatibility"]
