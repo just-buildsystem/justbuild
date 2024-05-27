@@ -7,8 +7,16 @@
       [ ["fieldname", "defaults"]
       , ["provider", "CC"]
       , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["CC", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , [ "CC"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CC"}
+          , "then": {"type": "var", "name": "CC"}
+          , "else": ["cc"]
+          }
+        ]
       ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    , "body": {"type": "var", "name": "CC"}
     }
   }
 , "default-CXX":
@@ -20,8 +28,16 @@
       [ ["fieldname", "defaults"]
       , ["provider", "CXX"]
       , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["CXX", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , [ "CXX"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "CXX"}
+          , "then": {"type": "var", "name": "CXX"}
+          , "else": ["c++"]
+          }
+        ]
       ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    , "body": {"type": "var", "name": "CXX"}
     }
   }
 , "default-AR":
@@ -33,8 +49,16 @@
       [ ["fieldname", "defaults"]
       , ["provider", "AR"]
       , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["AR", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , [ "AR"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "AR"}
+          , "then": {"type": "var", "name": "AR"}
+          , "else": ["ar"]
+          }
+        ]
       ]
-    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    , "body": {"type": "var", "name": "AR"}
     }
   }
 , "default-CFLAGS":
