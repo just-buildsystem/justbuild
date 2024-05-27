@@ -44,7 +44,7 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
                     id.hash());
         return std::string{};
     }
-    return blobs[0].data;
+    return *blobs[0].data;
 }
 
 auto BazelResponse::Artifacts() noexcept -> ArtifactInfos {
@@ -181,7 +181,7 @@ auto BazelResponse::Populate() noexcept -> bool {
         for (auto const& tree_blob : tree_blobs) {
             try {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
-                    tree_blob.data);
+                    *tree_blob.data);
                 if (not tree) {
                     return false;
                 }

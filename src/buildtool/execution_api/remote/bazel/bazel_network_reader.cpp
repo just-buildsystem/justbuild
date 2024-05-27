@@ -48,7 +48,7 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
     auto blobs = network_.ReadBlobs({digest}).Next();
     if (blobs.size() == 1) {
         return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-            blobs.at(0).data);
+            *blobs.at(0).data);
     }
     Logger::Log(
         LogLevel::Debug, "Directory {} not found in CAS", digest.hash());
@@ -59,7 +59,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     const noexcept -> std::optional<GitRepo::tree_entries_t> {
     auto blobs = network_.ReadBlobs({digest}).Next();
     if (blobs.size() == 1) {
-        auto const& content = blobs.at(0).data;
+        auto const& content = *blobs.at(0).data;
         auto check_symlinks = [this](std::vector<bazel_re::Digest> const& ids) {
             auto size = ids.size();
             auto reader = network_.ReadBlobs(ids);
@@ -72,7 +72,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
                     return false;
                 }
                 for (auto const& blob : blobs) {
-                    if (not PathIsNonUpwards(blob.data)) {
+                    if (not PathIsNonUpwards(*blob.data)) {
                         return false;
                     }
                 }
@@ -102,7 +102,7 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
     }
 
     try {
-        return std::invoke(dumper, blobs.at(0).data);
+        return std::invoke(dumper, *blobs.at(0).data);
     } catch (...) {
         return false;
     }

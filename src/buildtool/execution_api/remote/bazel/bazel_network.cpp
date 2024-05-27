@@ -84,7 +84,7 @@ auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
 
         auto it = std::stable_partition(
             sorted.begin(), sorted.end(), [](BazelBlob const* x) {
-                return x->data.size() <= kMaxBatchTransferSize;
+                return x->data->size() <= kMaxBatchTransferSize;
             });
         auto digests_count =
             cas_->BatchUpdateBlobs(instance_name_, sorted.begin(), it);

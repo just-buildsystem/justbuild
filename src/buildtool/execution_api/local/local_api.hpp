@@ -272,8 +272,8 @@ class LocalApi final : public IExecutionApi {
             auto const is_tree = NativeSupport::IsTree(
                 static_cast<bazel_re::Digest>(blob.digest).hash());
             auto cas_digest =
-                is_tree ? storage_->CAS().StoreTree(blob.data)
-                        : storage_->CAS().StoreBlob(blob.data, blob.is_exec);
+                is_tree ? storage_->CAS().StoreTree(*blob.data)
+                        : storage_->CAS().StoreBlob(*blob.data, blob.is_exec);
             if (not cas_digest or not std::equal_to<bazel_re::Digest>{}(
                                       *cas_digest, blob.digest)) {
                 return false;

@@ -63,11 +63,11 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 5);
-    CHECK(blobs[0].data == content_foo);
-    CHECK(blobs[1].data == content_bar);
-    CHECK(blobs[2].data == content_baz);
-    CHECK(blobs[3].data == content_bar);
-    CHECK(blobs[4].data == content_foo);
+    CHECK(*blobs[0].data == content_foo);
+    CHECK(*blobs[1].data == content_bar);
+    CHECK(*blobs[2].data == content_baz);
+    CHECK(*blobs[3].data == content_bar);
+    CHECK(*blobs[4].data == content_foo);
 }
 
 TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
@@ -110,6 +110,6 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 2);
-    CHECK(blobs[0].data == content_foo);
-    CHECK(blobs[1].data == content_bar);
+    CHECK(*blobs[0].data == content_foo);
+    CHECK(*blobs[1].data == content_bar);
 }

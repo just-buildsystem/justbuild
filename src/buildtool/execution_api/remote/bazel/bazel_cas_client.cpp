@@ -320,7 +320,7 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
                                          uuid,
                                          blob.digest.hash(),
                                          blob.digest.size_bytes()),
-                             blob.data);
+                             *blob.data);
     if (!ok) {
         logger_.Emit(LogLevel::Error,
                      "Failed to write {}:{}",
@@ -654,7 +654,7 @@ auto BazelCasClient::CreateUpdateBlobsSingleRequest(BazelBlob const& b) noexcept
     bazel_re::BatchUpdateBlobsRequest_Request r{};
     r.set_allocated_digest(
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{b.digest}});
-    r.set_data(b.data);
+    r.set_data(*b.data);
     return r;
 }
 

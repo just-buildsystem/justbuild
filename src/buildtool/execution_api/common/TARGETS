@@ -96,6 +96,6 @@
   , "name": ["content_blob_container"]
   , "hdrs": ["content_blob_container.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
-  , "deps": [["src/utils/cpp", "transformed_range"]]
+  , "deps": [["src/utils/cpp", "transformed_range"], ["@", "gsl", "", "gsl"]]
   }
 }

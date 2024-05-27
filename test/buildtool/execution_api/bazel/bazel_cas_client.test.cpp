@@ -58,7 +58,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
             instance_name, to_read.begin(), to_read.end());
         REQUIRE(blobs.size() == 1);
         CHECK(std::equal_to<bazel_re::Digest>{}(blobs[0].digest, digest));
-        CHECK(blobs[0].data == content);
+        CHECK(*blobs[0].data == content);
     }
 
     SECTION("Invalid digest and blob") {

@@ -275,7 +275,7 @@ auto BazelApi::CreateAction(
             auto const& type = artifacts_info[gpos].type;
             if (not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
                                                    /*kSetWritable=*/true>(
-                    blobs[pos].data, output_paths[gpos], type)) {
+                    *blobs[pos].data, output_paths[gpos], type)) {
                 Logger::Log(LogLevel::Warning,
                             "staging to output path {} failed.",
                             output_paths[gpos].string());
@@ -432,7 +432,7 @@ auto BazelApi::CreateAction(
     -> std::optional<std::string> {
     auto blobs = network_->ReadBlobs({artifact_info.digest}).Next();
     if (blobs.size() == 1) {
-        return blobs.at(0).data;
+        return *blobs.at(0).data;
     }
     return std::nullopt;
 }
@@ -465,7 +465,7 @@ auto BazelApi::CreateAction(
                 targets->reserve(digests.size());
                 while (not blobs.empty()) {
                     for (auto const& blob : blobs) {
-                        targets->emplace_back(blob.data);
+                        targets->emplace_back(*blob.data);
                     }
                     blobs = reader.Next();
                 }

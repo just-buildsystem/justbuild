@@ -179,7 +179,7 @@ class TestApi : public IExecutionApi {
         auto blob_range = blobs.Blobs();
         return std::all_of(
             blob_range.begin(), blob_range.end(), [this](auto const& blob) {
-                return config_.artifacts[blob.data]
+                return config_.artifacts[*blob.data]
                            .uploads  // for local artifacts
                        or config_.artifacts[blob.digest.hash()]
                               .uploads;  // for known and action artifacts

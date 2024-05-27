@@ -16,22 +16,29 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>  //std::move
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/utils/cpp/transformed_range.hpp"
 
 template <typename TDigest>
 struct ContentBlob final {
     ContentBlob(TDigest mydigest, std::string mydata, bool is_exec) noexcept
         : digest{std::move(mydigest)},
-          data{std::move(mydata)},
+          data{std::make_shared<std::string>(std::move(mydata))},
           is_exec{is_exec} {}
 
+    ContentBlob(TDigest mydigest,
+                gsl::not_null<std::shared_ptr<std::string>> const& mydata,
+                bool is_exec) noexcept
+        : digest{std::move(mydigest)}, data(mydata), is_exec{is_exec} {}
+
     TDigest digest{};
-    std::string data{};
+    std::shared_ptr<std::string> data{};
     bool is_exec{};
 };
 

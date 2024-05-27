@@ -130,7 +130,7 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
                                    blob.digest.hash(),
                                    blob.digest.size_bytes());
             },
-            [](auto const& blob) { return blob.data; }));
+            [](auto const& blob) { return *blob.data; }));
 
         SECTION("Download small blobs") {
             std::vector<std::string> contents{};
@@ -146,9 +146,9 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
                     contents.emplace_back(std::move(data));
                 });
             REQUIRE(contents.size() == 3);
-            CHECK(contents[0] == foo.data);
-            CHECK(contents[1] == bar.data);
-            CHECK(contents[2] == baz.data);
+            CHECK(contents[0] == *foo.data);
+            CHECK(contents[1] == *bar.data);
+            CHECK(contents[2] == *baz.data);
         }
     }
 
@@ -183,7 +183,7 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
                                    blob.digest.hash(),
                                    blob.digest.size_bytes());
             },
-            [](auto const& blob) { return blob.data; }));
+            [](auto const& blob) { return *blob.data; }));
 
         SECTION("Download large blobs") {
             std::vector<std::string> contents{};
@@ -199,9 +199,9 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
                     contents.emplace_back(std::move(data));
                 });
             REQUIRE(contents.size() == 3);
-            CHECK(contents[0] == foo.data);
-            CHECK(contents[1] == bar.data);
-            CHECK(contents[2] == baz.data);
+            CHECK(contents[0] == *foo.data);
+            CHECK(contents[1] == *bar.data);
+            CHECK(contents[2] == *baz.data);
         }
     }
 }

@@ -45,7 +45,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     CHECK(link_blob);
 
     // both files are the same and should result in identical blobs
-    CHECK(file1_blob->data == file2_blob->data);
+    CHECK(*file1_blob->data == *file2_blob->data);
     CHECK(file1_blob->digest.hash() == file2_blob->digest.hash());
     CHECK(file1_blob->digest.size_bytes() == file2_blob->digest.size_bytes());
 
