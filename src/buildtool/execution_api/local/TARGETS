@@ -35,7 +35,6 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/buildtool/execution_api/bazel_msg", "blob_tree"]
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/compatibility", "compatibility"]

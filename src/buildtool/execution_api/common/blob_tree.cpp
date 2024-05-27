@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/execution_api/bazel_msg/blob_tree.hpp"
+#include "src/buildtool/execution_api/common/blob_tree.hpp"
 
 #include <utility>
 #include <variant>

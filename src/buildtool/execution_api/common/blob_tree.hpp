@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BLOB_TREE_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BLOB_TREE_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BLOB_TREE_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BLOB_TREE_HPP
 
 #include <filesystem>
 #include <memory>
@@ -56,4 +56,4 @@ class BlobTree {
     std::vector<BlobTreePtr> nodes_;
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BLOB_TREE_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BLOB_TREE_HPP
