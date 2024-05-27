@@ -240,7 +240,7 @@ $
 Employing high-level target caching
 -----------------------------------
 
-The make use of high-level target caching for exported targets, we need
+To make use of high-level target caching for exported targets, we need
 to ensure that all inputs to an export target are transitively
 content-fixed. This is automatically the case for `"type":"git"`
 repositories. However, the `libfmt` repository also depends on
@@ -499,7 +499,7 @@ staging mechanism the logical repository it belongs to is rooted in the
 ```
 
 However, even specifying all the include locations and headers can
-be tedious and in the end, it is information that `pkg-config` can
+be tedious and, in the end, it is information that `pkg-config` can
 provide as well. So there is a rule to import libraries that way
 and the actual packaging-build version of `libfmt`, as provided in
 `etc/import.pkgconfig`, looks as follows.

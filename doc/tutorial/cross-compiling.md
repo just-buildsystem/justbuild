@@ -13,7 +13,7 @@ Cross compiling using the CC rules
 ----------------------------------
 
 The `C` and `C++` rules that come with the `justbuild` repository
-already have cross-compiling already built into the tool-chain
+already have cross-compiling already built into the toolchain
 definitions for the `"gnu"` and `"clang"` compiler families; as
 different compilers expect different ways to be told about the target
 architecture, cross compiling is not supported for the `"unknown"`
