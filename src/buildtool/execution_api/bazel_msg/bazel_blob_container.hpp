@@ -230,13 +230,14 @@ class BlobContainer {
     explicit BlobContainer(std::vector<BazelBlob> blobs) {
         blobs_.reserve(blobs.size());
         for (auto& blob : blobs) {
-            blobs_.emplace(blob.digest, std::move(blob));
+            this->Emplace(std::move(blob));
         }
     }
 
     /// \brief Emplace new BazelBlob to container.
     void Emplace(BazelBlob&& blob) {
-        blobs_.emplace(blob.digest, std::move(blob));
+        bazel_re::Digest digest = blob.digest;
+        blobs_.emplace(std::move(digest), std::move(blob));
     }
 
     /// \brief Clear all BazelBlobs from container.
