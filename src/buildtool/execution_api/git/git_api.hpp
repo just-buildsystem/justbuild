@@ -194,7 +194,7 @@ class GitApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        BazelBlobContainer container{};
+        ArtifactBlobContainer container{};
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             std::optional<std::string> content;
@@ -205,7 +205,7 @@ class GitApi final : public IExecutionApi {
                 if (not tree) {
                     return false;
                 }
-                BazelBlobContainer tree_deps_only_blobs{};
+                ArtifactBlobContainer tree_deps_only_blobs{};
                 for (auto const& [path, entry] : *tree) {
                     if (entry->IsTree()) {
                         if (not RetrieveToCas(
@@ -227,10 +227,10 @@ class GitApi final : public IExecutionApi {
                         auto digest =
                             ArtifactDigest::Create<ObjectType::File>(*content);
                         try {
-                            tree_deps_only_blobs.Emplace(
-                                BazelBlob{digest,
-                                          *content,
-                                          IsExecutableObject(entry->Type())});
+                            tree_deps_only_blobs.Emplace(ArtifactBlob{
+                                digest,
+                                *content,
+                                IsExecutableObject(entry->Type())});
                         } catch (std::exception const& ex) {
                             Logger::Log(LogLevel::Error,
                                         "failed to emplace blob: ",
@@ -239,7 +239,7 @@ class GitApi final : public IExecutionApi {
                         }
                     }
                 }
-                if (not api->Upload(tree_deps_only_blobs)) {
+                if (not api->Upload(std::move(tree_deps_only_blobs))) {
                     return false;
                 }
                 content = tree->RawData();
@@ -251,17 +251,15 @@ class GitApi final : public IExecutionApi {
                 return false;
             }
 
-            ArtifactDigest digest;
-            if (IsTreeObject(info.type)) {
-                digest = ArtifactDigest::Create<ObjectType::Tree>(*content);
-            }
-            else {
-                digest = ArtifactDigest::Create<ObjectType::File>(*content);
-            }
+            ArtifactDigest digest =
+                IsTreeObject(info.type)
+                    ? ArtifactDigest::Create<ObjectType::Tree>(*content)
+                    : ArtifactDigest::Create<ObjectType::File>(*content);
 
             try {
-                container.Emplace(
-                    BazelBlob{digest, *content, IsExecutableObject(info.type)});
+                container.Emplace(ArtifactBlob{std::move(digest),
+                                               *content,
+                                               IsExecutableObject(info.type)});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Error, "failed to emplace blob: ", ex.what());
@@ -270,7 +268,7 @@ class GitApi final : public IExecutionApi {
         }
 
         // Upload blobs to remote CAS.
-        return api->Upload(container, /*skip_find_missing=*/true);
+        return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] auto RetrieveToMemory(
@@ -280,7 +278,7 @@ class GitApi final : public IExecutionApi {
     }
 
     /// NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] auto Upload(BazelBlobContainer const& /*blobs*/,
+    [[nodiscard]] auto Upload(ArtifactBlobContainer&& /*blobs*/,
                               bool /*skip_find_missing*/ = false) noexcept
         -> bool override {
         // Upload to git cas not supported

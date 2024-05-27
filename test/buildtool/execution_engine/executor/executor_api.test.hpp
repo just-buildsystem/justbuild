@@ -51,7 +51,7 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
     SetupConfig(repo_config);
     auto api = factory();
     std::string const blob = "test";
-    CHECK(api->Upload(BazelBlobContainer{{BazelBlob{
+    CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
         ArtifactDigest{HashFunction::ComputeBlobHash(blob).HexString(),
                        blob.size(),
                        /*is_tree=*/false},
@@ -382,9 +382,9 @@ static inline void TestUploadAndDownloadTrees(
 
     // upload blobs
     auto api = factory();
-    REQUIRE(api->Upload(
-        BazelBlobContainer{{BazelBlob{foo_digest, foo, /*is_exec=*/false},
-                            BazelBlob{bar_digest, bar, /*is_exec=*/false}}}));
+    REQUIRE(api->Upload(ArtifactBlobContainer{
+        {ArtifactBlob{foo_digest, foo, /*is_exec=*/false},
+         ArtifactBlob{bar_digest, bar, /*is_exec=*/false}}}));
 
     // define known artifacts
     auto foo_desc = ArtifactDescription{foo_digest, ObjectType::File};

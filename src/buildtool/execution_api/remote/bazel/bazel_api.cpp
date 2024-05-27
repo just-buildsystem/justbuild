@@ -60,7 +60,7 @@ namespace {
     auto reader = network->ReadBlobs(digests);
     auto blobs = reader.Next();
     std::size_t count{};
-    BazelBlobContainer container{};
+    ArtifactBlobContainer container{};
     while (not blobs.empty()) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
@@ -73,7 +73,7 @@ namespace {
                 auto exec = info_map.contains(digest)
                                 ? IsExecutableObject(info_map.at(digest).type)
                                 : false;
-                container.Emplace(BazelBlob{blob.digest, blob.data, exec});
+                container.Emplace(ArtifactBlob{digest, blob.data, exec});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Warning, "failed to emplace blob: ", ex.what());
@@ -90,7 +90,7 @@ namespace {
     }
 
     // Upload blobs to other CAS.
-    return api->Upload(container, /*skip_find_missing=*/true);
+    return api->Upload(std::move(container), /*skip_find_missing=*/true);
 }
 
 [[nodiscard]] auto RetrieveToCasSplitted(
@@ -165,6 +165,21 @@ namespace {
 
     return true;
 }
+
+[[nodiscard]] auto ConvertToBazelBlobContainer(
+    ArtifactBlobContainer&& container) noexcept
+    -> std::optional<BazelBlobContainer> {
+    std::vector<BazelBlob> blobs;
+    try {
+        blobs.reserve(container.Size());
+        for (const auto& blob : container.Blobs()) {
+            blobs.emplace_back(blob.digest, blob.data, blob.is_exec);
+        }
+    } catch (...) {
+        return std::nullopt;
+    }
+    return BazelBlobContainer{std::move(blobs)};
+};
 
 }  // namespace
 
@@ -422,9 +437,11 @@ auto BazelApi::CreateAction(
     return std::nullopt;
 }
 
-[[nodiscard]] auto BazelApi::Upload(BazelBlobContainer const& blobs,
+[[nodiscard]] auto BazelApi::Upload(ArtifactBlobContainer&& blobs,
                                     bool skip_find_missing) noexcept -> bool {
-    return network_->UploadBlobs(blobs, skip_find_missing);
+    auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));
+    return bazel_blobs ? network_->UploadBlobs(*bazel_blobs, skip_find_missing)
+                       : false;
 }
 
 [[nodiscard]] auto BazelApi::UploadTree(

@@ -322,7 +322,7 @@ class GraphTraverser {
     /// \param[in]  blobs   blobs to be uploaded
     [[nodiscard]] auto UploadBlobs(
         std::vector<std::string> const& blobs) const noexcept -> bool {
-        BazelBlobContainer container;
+        ArtifactBlobContainer container;
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigest::Create<ObjectType::File>(blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
@@ -334,7 +334,7 @@ class GraphTraverser {
             });
             try {
                 container.Emplace(
-                    BazelBlob{std::move(digest), blob, /*is_exec=*/false});
+                    ArtifactBlob{std::move(digest), blob, /*is_exec=*/false});
             } catch (std::exception const& ex) {
                 Logger::Log(logger_,
                             LogLevel::Error,
@@ -343,7 +343,7 @@ class GraphTraverser {
                 return false;
             }
         }
-        return remote_api_->Upload(container);
+        return remote_api_->Upload(std::move(container));
     }
 
     /// \brief Adds the artifacts to be retrieved to the graph

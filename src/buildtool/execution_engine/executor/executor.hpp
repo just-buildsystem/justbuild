@@ -295,7 +295,7 @@ class ExecutorImpl {
         }
 
         // upload missing entries (blobs or trees)
-        BazelBlobContainer container;
+        ArtifactBlobContainer container;
         for (auto const& digest : missing_digests) {
             if (auto it = entry_map.find(digest); it != entry_map.end()) {
                 auto const& entry = it->second;
@@ -304,10 +304,10 @@ class ExecutorImpl {
                     return false;
                 }
                 try {
-                    container.Emplace(std::move(
-                        BazelBlob{digest,
-                                  std::move(*content),
-                                  IsExecutableObject(entry->Type())}));
+                    container.Emplace(
+                        ArtifactBlob{digest,
+                                     std::move(*content),
+                                     IsExecutableObject(entry->Type())});
                 } catch (std::exception const& ex) {
                     Logger::Log(LogLevel::Error,
                                 "failed to create blob with: ",
@@ -317,7 +317,7 @@ class ExecutorImpl {
             }
         }
 
-        return api->Upload(container, /*skip_find_missing=*/true);
+        return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     /// \brief Lookup blob via digest in local git repositories and upload.
@@ -360,10 +360,11 @@ class ExecutorImpl {
             return false;
         }
 
-        // upload artifact content
-        auto container = BazelBlobContainer{{BazelBlob{
-            info.digest, std::move(*content), IsExecutableObject(info.type)}}};
-        return api->Upload(container, /*skip_find_missing=*/true);
+        return api->Upload(ArtifactBlobContainer{{ArtifactBlob{
+                               info.digest,
+                               std::move(*content),
+                               IsExecutableObject(info.type)}}},
+                           /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] static auto ReadGitBlob(
@@ -447,10 +448,10 @@ class ExecutorImpl {
             return std::nullopt;
         }
         auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
-        if (not api->Upload(BazelBlobContainer{
-                {BazelBlob{digest,
-                           std::move(*content),
-                           IsExecutableObject(*object_type)}}})) {
+        if (not api->Upload(ArtifactBlobContainer{
+                {ArtifactBlob{digest,
+                              std::move(*content),
+                              IsExecutableObject(*object_type)}}})) {
             return std::nullopt;
         }
         return Artifact::ObjectInfo{.digest = std::move(digest),

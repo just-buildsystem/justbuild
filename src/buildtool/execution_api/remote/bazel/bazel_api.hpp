@@ -80,7 +80,7 @@ class BazelApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api) noexcept -> bool final;
 
-    [[nodiscard]] auto Upload(BazelBlobContainer const& blobs,
+    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool skip_find_missing) noexcept -> bool final;
 
     [[nodiscard]] auto UploadTree(

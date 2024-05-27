@@ -191,7 +191,7 @@ class LocalApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        BazelBlobContainer container{};
+        ArtifactBlobContainer container{};
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             // Recursively process trees.
@@ -222,18 +222,16 @@ class LocalApi final : public IExecutionApi {
 
             // Regenerate digest since object infos read by
             // storage_->ReadTreeInfos() will contain 0 as size.
-            ArtifactDigest digest;
-            if (IsTreeObject(info.type)) {
-                digest = ArtifactDigest::Create<ObjectType::Tree>(*content);
-            }
-            else {
-                digest = ArtifactDigest::Create<ObjectType::File>(*content);
-            }
+            ArtifactDigest digest =
+                IsTreeObject(info.type)
+                    ? ArtifactDigest::Create<ObjectType::Tree>(*content)
+                    : ArtifactDigest::Create<ObjectType::File>(*content);
 
             // Collect blob.
             try {
-                container.Emplace(
-                    BazelBlob{digest, *content, IsExecutableObject(info.type)});
+                container.Emplace(ArtifactBlob{std::move(digest),
+                                               *content,
+                                               IsExecutableObject(info.type)});
             } catch (std::exception const& ex) {
                 Logger::Log(
                     LogLevel::Error, "failed to emplace blob: ", ex.what());
@@ -242,7 +240,7 @@ class LocalApi final : public IExecutionApi {
         }
 
         // Upload blobs to remote CAS.
-        return api->Upload(container, /*skip_find_missing=*/true);
+        return api->Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] auto RetrieveToMemory(
@@ -267,11 +265,12 @@ class LocalApi final : public IExecutionApi {
         return content;
     }
 
-    [[nodiscard]] auto Upload(BazelBlobContainer const& blobs,
+    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool /*skip_find_missing*/) noexcept
         -> bool final {
         for (auto const& blob : blobs.Blobs()) {
-            auto const is_tree = NativeSupport::IsTree(blob.digest.hash());
+            auto const is_tree = NativeSupport::IsTree(
+                static_cast<bazel_re::Digest>(blob.digest).hash());
             auto cas_digest =
                 is_tree ? storage_->CAS().StoreTree(blob.data)
                         : storage_->CAS().StoreBlob(blob.data, blob.is_exec);

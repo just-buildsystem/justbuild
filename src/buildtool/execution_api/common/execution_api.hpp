@@ -26,7 +26,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -116,7 +116,7 @@ class IExecutionApi {
     /// \param blobs                Container of blobs to upload.
     /// \param skip_find_missing    Skip finding missing blobs, just upload all.
     /// NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] virtual auto Upload(BazelBlobContainer const& blobs,
+    [[nodiscard]] virtual auto Upload(ArtifactBlobContainer&& blobs,
                                       bool skip_find_missing = false) noexcept
         -> bool = 0;
 

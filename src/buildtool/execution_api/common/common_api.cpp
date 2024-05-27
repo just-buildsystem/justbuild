@@ -99,7 +99,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
     }
 
     // Process missing blobs.
-    BazelBlobContainer container;
+    ArtifactBlobContainer container;
     for (auto const& digest : missing_blobs_info->digests) {
         if (auto it = missing_blobs_info->back_map.find(digest);
             it != missing_blobs_info->back_map.end()) {
@@ -112,17 +112,14 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
             }
             // Store blob.
             try {
-                BazelBlob bazel_blob{node->Blob().digest,
-                                     node->Blob().data,
-                                     node->Blob().is_exec};
-                container.Emplace(std::move(bazel_blob));
+                container.Emplace(node->Blob());
             } catch (...) {
                 return false;
             }
         }
     }
 
-    return api->Upload(container, /*skip_find_missing=*/true);
+    return api->Upload(std::move(container), /*skip_find_missing=*/true);
 }
 
 auto CommonUploadTreeCompatible(
@@ -130,10 +127,11 @@ auto CommonUploadTreeCompatible(
     DirectoryTreePtr const& build_root,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest> {
-    BazelBlobContainer blobs{};
+    ArtifactBlobContainer blobs{};
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
         build_root, resolve_links, [&blobs](BazelBlob&& blob) {
-            blobs.Emplace(std::move(blob));
+            blobs.Emplace(ArtifactBlob{
+                ArtifactDigest{blob.digest}, blob.data, blob.is_exec});
         });
     if (not digest) {
         Logger::Log(LogLevel::Debug, "failed to create digest for build root.");
@@ -145,7 +143,7 @@ auto CommonUploadTreeCompatible(
         oss << fmt::format(" - root digest: {}", digest->hash()) << std::endl;
         return oss.str();
     });
-    if (not api->Upload(blobs, /*skip_find_missing=*/false)) {
+    if (not api->Upload(std::move(blobs), /*skip_find_missing=*/false)) {
         Logger::Log(LogLevel::Debug, "failed to upload blobs for build root.");
         return std::nullopt;
     }
@@ -170,9 +168,7 @@ auto CommonUploadTreeNative(gsl::not_null<IExecutionApi*> const& api,
                         "failed to upload blob tree for build root.");
             return std::nullopt;
         }
-        BazelBlob bazel_blob{
-            tree_blob.digest, tree_blob.data, tree_blob.is_exec};
-        if (not api->Upload(BazelBlobContainer{{bazel_blob}},
+        if (not api->Upload(ArtifactBlobContainer{{tree_blob}},
                             /*skip_find_missing=*/true)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload tree blob for build root.");

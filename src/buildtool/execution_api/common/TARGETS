@@ -16,7 +16,6 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
@@ -25,6 +24,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }

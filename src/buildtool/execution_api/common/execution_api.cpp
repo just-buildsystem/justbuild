@@ -43,13 +43,13 @@
             Ensures(false);  // unreachable
             return false;
     }
-    BazelBlobContainer container{};
+    ArtifactBlobContainer container{};
     try {
         auto exec = IsExecutableObject(type);
-        container.Emplace(BazelBlob{digest, *data, exec});
+        container.Emplace(ArtifactBlob{digest, *data, exec});
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error, "failed to emplace blob: ", ex.what());
         return false;
     }
-    return Upload(container);
+    return Upload(std::move(container));
 }
