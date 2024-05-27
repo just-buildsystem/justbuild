@@ -293,7 +293,7 @@ Our `repos.json` at this stage reads:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "307c96681e6626286804c45273082dff94127878"
+      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -504,7 +504,7 @@ We are now ready to see how this setup works. At this point the `repos.json` is
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "307c96681e6626286804c45273082dff94127878"
+      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -643,7 +643,7 @@ removing any `"absent"` pragma fields
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "307c96681e6626286804c45273082dff94127878"
+      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
