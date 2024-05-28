@@ -212,11 +212,13 @@
       }
     }
   }
-, "debug-srcs":
-  { "doc": ["Collect debug dependencies (sources) from given target_fields"]
-  , "vars": ["deps-fieldnames", "deps-transition"]
+, "debug-deps":
+  { "doc":
+    ["Collect debug dependencies (sources/headers) from given target_fields"]
+  , "vars": ["deps-provider", "deps-fieldnames", "deps-transition"]
   , "vars_doc":
-    { "deps-fieldnames":
+    { "deps-provider": ["Name of provider to use (debug-srcs/debug-hdrs)."]
+    , "deps-fieldnames":
       ["List of target_field names to collect dependencies from."]
     , "deps-transition":
       ["The optional configuration transition for the targets."]
@@ -235,7 +237,7 @@
           , "$1":
             { "type": "let*"
             , "bindings":
-              [ ["provider", "debug-srcs"]
+              [ ["provider", {"type": "var", "name": "deps-provider"}]
               , ["transition", {"type": "var", "name": "deps-transition"}]
               , ["default", {"type": "empty_map"}]
               ]
@@ -1106,7 +1108,7 @@
     , "cflags-files-deps": "cflags-files-deps"
     , "ldflags-files-deps": "ldflags-files-deps"
     , "lib artifact": "lib artifact"
-    , "debug-srcs": "debug-srcs"
+    , "debug-deps": "debug-deps"
     }
   , "expression":
     { "type": "let*"
@@ -1151,8 +1153,29 @@
           , "then":
             { "type": "map_union"
             , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "debug-srcs"}
+              [ { "type": "let*"
+                , "bindings": [["deps-provider", "debug-srcs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+                }
               , {"type": "var", "name": "srcs"}
+              , {"type": "var", "name": "private-hdrs"}
+              , {"type": "var", "name": "hdrs"}
+              ]
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "debug-hdrs"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "let*"
+                , "bindings": [["deps-provider", "debug-hdrs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+                }
+              , {"type": "var", "name": "hdrs"}
               ]
             }
           , "else": {"type": "empty_map"}
@@ -1197,6 +1220,7 @@
               , "link-args"
               , "package"
               , "debug-srcs"
+              , "debug-hdrs"
               ]
             }
           , { "type": "var"
@@ -1396,7 +1420,7 @@
     , "cflags-files-deps": "cflags-files-deps"
     , "ldflags-files-deps": "ldflags-files-deps"
     , "binary": "bin artifact"
-    , "debug-srcs": "debug-srcs"
+    , "debug-deps": "debug-deps"
     }
   , "expression":
     { "type": "let*"
@@ -1436,9 +1460,24 @@
           , "then":
             { "type": "map_union"
             , "$1":
-              [ {"type": "CALL_EXPRESSION", "name": "debug-srcs"}
+              [ { "type": "let*"
+                , "bindings": [["deps-provider", "debug-srcs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+                }
               , {"type": "var", "name": "srcs"}
+              , {"type": "var", "name": "private-hdrs"}
               ]
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "debug-hdrs"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "let*"
+            , "bindings": [["deps-provider", "debug-hdrs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
             }
           , "else": {"type": "empty_map"}
           }
@@ -1447,7 +1486,8 @@
     , "body":
       { "type": "RESULT"
       , "artifacts": {"type": "CALL_EXPRESSION", "name": "binary"}
-      , "provides": {"type": "env", "vars": ["package", "debug-srcs"]}
+      , "provides":
+        {"type": "env", "vars": ["package", "debug-srcs", "debug-hdrs"]}
       }
     }
   }
@@ -1504,6 +1544,18 @@
                       { "type": "DEP_PROVIDES"
                       , "dep": {"type": "var", "name": "target"}
                       , "provider": "debug-srcs"
+                      , "default": {"type": "empty_map"}
+                      }
+                    }
+                  ]
+                , [ "debug-hdrs"
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "skip-debug-stage"}
+                    , "then": {"type": "empty_map"}
+                    , "else":
+                      { "type": "DEP_PROVIDES"
+                      , "dep": {"type": "var", "name": "target"}
+                      , "provider": "debug-hdrs"
                       , "default": {"type": "empty_map"}
                       }
                     }
@@ -1650,7 +1702,13 @@
                         }
                       , { "type": "to_subdir"
                         , "subdir": "include"
-                        , "$1": {"type": "var", "name": "headers"}
+                        , "$1":
+                          { "type": "map_union"
+                          , "$1":
+                            [ {"type": "var", "name": "headers"}
+                            , {"type": "var", "name": "debug-hdrs"}
+                            ]
+                          }
                         }
                       , { "type": "to_subdir"
                         , "subdir": "lib"
@@ -1663,7 +1721,7 @@
                         , "$1": {"type": "var", "name": "pkg-config"}
                         }
                       , { "type": "to_subdir"
-                        , "subdir": "debug-src"
+                        , "subdir": "work"
                         , "$1": {"type": "var", "name": "debug-srcs"}
                         }
                       ]

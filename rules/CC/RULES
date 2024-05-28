@@ -462,7 +462,8 @@
       [ "List of strings that have to be added to the command line for linking actions"
       , "in targets depending on this library"
       ]
-    , "debug-srcs": ["Map of all dependencies' sources needed for debugging."]
+    , "debug-srcs": ["Map of all sources needed for debugging."]
+    , "debug-hdrs": ["Map of all additional headers needed for debugging."]
     }
   , "anonymous":
     { "proto-deps":
@@ -642,7 +643,9 @@
   , "artifacts_doc": ["The final binary, staged to the given directory"]
   , "runfiles_doc": ["None"]
   , "provides_doc":
-    {"debug-srcs": ["Map of all dependencies' sources needed for debugging."]}
+    { "debug-srcs": ["Map of all sources needed for debugging."]
+    , "debug-hdrs": ["Map of all additional headers needed for debugging."]
+    }
   , "anonymous":
     { "private-proto-deps":
       { "target": "private-proto"
