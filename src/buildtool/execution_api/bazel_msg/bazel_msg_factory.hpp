@@ -50,14 +50,10 @@ class BazelMsgFactory {
                            std::vector<std::string>*)>;
     using FileStoreFunc = std::function<
         std::optional<bazel_re::Digest>(std::filesystem::path const&, bool)>;
-    using DirStoreFunc = std::function<std::optional<bazel_re::Digest>(
-        std::string const&,
-        bazel_re::Directory const&)>;
     using SymlinkStoreFunc =
         std::function<std::optional<bazel_re::Digest>(std::string const&)>;
-    using TreeStoreFunc = std::function<std::optional<bazel_re::Digest>(
-        std::string const&,
-        GitRepo::tree_entries_t const&)>;
+    using TreeStoreFunc =
+        std::function<std::optional<bazel_re::Digest>(std::string const&)>;
 
     /// \brief Read object infos from directory.
     /// \returns true on success.
@@ -95,7 +91,7 @@ class BazelMsgFactory {
     [[nodiscard]] static auto CreateDirectoryDigestFromLocalTree(
         std::filesystem::path const& root,
         FileStoreFunc const& store_file,
-        DirStoreFunc const& store_dir,
+        TreeStoreFunc const& store_dir,
         SymlinkStoreFunc const& store_symlink) noexcept
         -> std::optional<bazel_re::Digest>;
 

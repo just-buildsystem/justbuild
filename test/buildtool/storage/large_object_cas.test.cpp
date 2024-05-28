@@ -703,13 +703,16 @@ auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
         return std::nullopt;
     }
 
-    auto store_blob = [&cas](auto const& path, auto is_exec) {
-        return cas.StoreBlob(path, is_exec);
+    auto store_blob = [&cas](std::filesystem::path const& path,
+                             auto is_exec) -> std::optional<bazel_re::Digest> {
+        return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
     };
-    auto store_tree = [&cas](auto const& bytes, auto const& /*dir*/) {
-        return cas.StoreTree(bytes);
+    auto store_tree =
+        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        return cas.StoreTree(content);
     };
-    auto store_symlink = [&cas](auto const& content) {
+    auto store_symlink =
+        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
         return cas.StoreBlob(content);
     };
 

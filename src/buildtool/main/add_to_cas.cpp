@@ -16,7 +16,10 @@
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 
+#include <filesystem>
 #include <iostream>
+#include <optional>
+#include <string>
 
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -75,13 +78,17 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
                             "Storing of trees only supported in native mode");
                 return false;
             }
-            auto store_blob = [&cas](auto path, auto is_exec) {
-                return cas.StoreBlob(path, is_exec);
+            auto store_blob =
+                [&cas](std::filesystem::path const& path,
+                       auto is_exec) -> std::optional<bazel_re::Digest> {
+                return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
             };
-            auto store_tree = [&cas](auto bytes, auto /*dir*/) {
-                return cas.StoreTree(bytes);
+            auto store_tree = [&cas](std::string const& content)
+                -> std::optional<bazel_re::Digest> {
+                return cas.StoreTree(content);
             };
-            auto store_symlink = [&cas](auto content) {
+            auto store_symlink = [&cas](std::string const& content)
+                -> std::optional<bazel_re::Digest> {
                 return cas.StoreBlob(content);
             };
             digest = BazelMsgFactory::CreateGitTreeDigestFromLocalTree(

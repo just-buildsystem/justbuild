@@ -567,7 +567,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
 auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
     std::filesystem::path const& root,
     FileStoreFunc const& store_file,
-    DirStoreFunc const& store_dir,
+    TreeStoreFunc const& store_dir,
     SymlinkStoreFunc const& store_symlink) noexcept
     -> std::optional<bazel_re::Digest> {
     std::vector<bazel_re::FileNode> files{};
@@ -636,7 +636,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
         auto dir = CreateDirectory(files, dirs, symlinks, {});
         if (auto bytes = SerializeMessage(dir)) {
             try {
-                if (auto digest = store_dir(*bytes, dir)) {
+                if (auto digest = store_dir(*bytes)) {
                     return *digest;
                 }
             } catch (std::exception const& ex) {
@@ -724,7 +724,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
             root, dir_reader, /*allow_upwards=*/true)) {
         if (auto tree = GitRepo::CreateShallowTree(entries)) {
             try {
-                if (auto digest = store_tree(tree->second, entries)) {
+                if (auto digest = store_tree(tree->second)) {
                     return *digest;
                 }
             } catch (std::exception const& ex) {

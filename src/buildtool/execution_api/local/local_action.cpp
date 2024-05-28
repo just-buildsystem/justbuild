@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
+#include <optional>
+#include <string>
 #include <utility>
 
 #include "src/buildtool/common/bazel_types.hpp"
@@ -59,14 +61,16 @@ class BuildCleanupAnchor {
     gsl::not_null<Storage const*> const& storage,
     std::filesystem::path const& dir_path) -> std::optional<bazel_re::Digest> {
     auto const& cas = storage->CAS();
-    auto store_blob = [&cas](auto path, auto is_exec) {
+    auto store_blob = [&cas](std::filesystem::path const& path,
+                             auto is_exec) -> std::optional<bazel_re::Digest> {
         return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
     };
-    auto store_tree = [&cas](auto bytes,
-                             auto /*dir*/) -> std::optional<bazel_re::Digest> {
-        return cas.StoreTree(bytes);
+    auto store_tree =
+        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        return cas.StoreTree(content);
     };
-    auto store_symlink = [&cas](auto content) {
+    auto store_symlink =
+        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
         return cas.StoreBlob(content);
     };
     return Compatibility::IsCompatible()
