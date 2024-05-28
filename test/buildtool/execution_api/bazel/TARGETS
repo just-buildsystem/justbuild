@@ -77,6 +77,7 @@
       , "bazel_msg_factory"
       ]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["utils", "blob_creator"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }

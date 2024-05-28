@@ -20,7 +20,9 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "test/utils/blob_creator.hpp"
 
 TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     std::filesystem::path workspace{"test/buildtool/storage/data"};

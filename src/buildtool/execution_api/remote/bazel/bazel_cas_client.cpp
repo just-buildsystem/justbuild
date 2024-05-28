@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "grpcpp/grpcpp.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"

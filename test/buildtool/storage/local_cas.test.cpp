@@ -20,6 +20,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "test/utils/blob_creator.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,

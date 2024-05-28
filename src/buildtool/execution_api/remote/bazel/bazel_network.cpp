@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

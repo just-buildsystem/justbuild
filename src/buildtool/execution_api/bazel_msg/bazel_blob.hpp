@@ -15,15 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
 
-#include <filesystem>
-#include <memory>
-#include <optional>
 #include <string>
 #include <utility>  // std::move
 
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
 
 struct BazelBlob {
     BazelBlob(bazel_re::Digest mydigest, std::string mydata, bool is_exec)
@@ -35,22 +30,5 @@ struct BazelBlob {
     std::string data{};
     bool is_exec{};  // optional: hint to put the blob in executable CAS
 };
-
-/// \brief Create a blob from the content found in file or symlink pointed to by
-/// given path.
-[[nodiscard]] static inline auto CreateBlobFromPath(
-    std::filesystem::path const& fpath) noexcept -> std::optional<BazelBlob> {
-    auto const type = FileSystemManager::Type(fpath, /*allow_upwards=*/true);
-    if (not type) {
-        return std::nullopt;
-    }
-    auto const content = FileSystemManager::ReadContentAtPath(fpath, *type);
-    if (not content.has_value()) {
-        return std::nullopt;
-    }
-    return BazelBlob{ArtifactDigest::Create<ObjectType::File>(*content),
-                     *content,
-                     IsExecutableObject(*type)};
-}
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_HPP
