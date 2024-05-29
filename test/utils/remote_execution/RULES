@@ -58,7 +58,7 @@
       , "Individual directory components are joined with \"/\"."
       ]
     , "pure C":
-      [ "If non-empty, compile as C sources rathter than C++ sources."
+      [ "If non-empty, compile as C sources rather than C++ sources."
       , "In particular, CC is used to compile rather than CXX (or their"
       , "respective defaults)."
       ]

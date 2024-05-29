@@ -1,7 +1,7 @@
 { "with remote":
   { "doc":
     [ "Shell test, given by a test script,"
-    , "implictly assuming a remote execution in the background."
+    , "implicitly assuming a remote execution in the background."
     ]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
@@ -22,7 +22,7 @@
       , "following variables added."
       , " - REMOTE_EXECUTION_ADDRESS containing the IP:port pair the"
       , "   implicit remote-execution endpoint is listening at."
-      , " - COMAPTIBLE is set to an non-empty string, if the server was"
+      , " - COMPATIBLE is set to an non-empty string, if the server was"
       , "   started in compatible mode, and unset otherwise."
       , "Additionally, the variables TLS_CA_CERT, TLS_CLIENT_CERT, and"
       , "TLS_CLIENT_KEY are removed from the environment."
@@ -224,7 +224,7 @@
 , "with serve":
   { "doc":
     [ "Shell test, given by a test script,"
-    , "implictly assuming a remote execution and a just serve instance"
+    , "implicitly assuming a remote execution and a just serve instance"
     , "in the background."
     ]
   , "target_fields": ["deps", "test", "repos"]
@@ -246,7 +246,7 @@
       , "following variables added."
       , " - REMOTE_EXECUTION_ADDRESS containing the IP:port pair the"
       , "   implicit remote-execution endpoint is listening at."
-      , " - COMAPTIBLE is set to an non-empty string, if the server was"
+      , " - COMPATIBLE is set to an non-empty string, if the server was"
       , "   started in compatible mode, and unset otherwise."
       , " - REMOTE_LBR containing the absolute path to the local build root"
       , "   of the implicit remote-execution end point"
