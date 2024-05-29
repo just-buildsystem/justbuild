@@ -2,20 +2,19 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["cas-independent"]
   , "test": ["cas-independent.sh"]
-  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"]]
   }
 , "fetch":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["fetch"]
   , "test": ["fetch.sh"]
-  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"]]
   }
 , "fetch-gc":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["fetch-gc"]
   , "test": ["fetch-gc.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "create_test_archives":
   { "type": ["@", "rules", "CC", "binary"]
@@ -40,7 +39,7 @@
   , "deps":
     [ "create_test_archives"
     , ["utils", "test_utils_install"]
-    , ["end-to-end", "mr-tool-under-test"]
+    , ["", "mr-tool-under-test"]
     ]
   }
 , "just_mr_mirrors":
@@ -51,77 +50,70 @@
     [ "create_test_archives"
     , ["utils", "test_utils_install"]
     , ["utils", "null server"]
-    , ["end-to-end", "mr-tool-under-test"]
+    , ["", "mr-tool-under-test"]
     ]
   }
 , "git-tree-verbosity":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-tree-verbosity"]
   , "test": ["verbosity.sh"]
-  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"]]
   }
 , "defaults":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["default-values"]
   , "test": ["defaults.sh"]
-  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"]]
   }
 , "install-roots":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-roots"]
   , "test": ["install-roots.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "install-roots-symlinks":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-roots-symlinks"]
   , "test": ["install-roots-symlinks.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "fetch-remote":
   { "type": ["end-to-end", "with remote"]
   , "name": ["fetch-remote"]
   , "test": ["fetch-remote.sh"]
-  , "deps": [["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"]]
   }
 , "fetch-remote-git-tree":
   { "type": ["end-to-end", "with remote"]
   , "name": ["fetch-remote-git-tree"]
   , "test": ["fetch-remote-git-tree.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "absent-roots":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["absent-roots"]
   , "test": ["absent-roots.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "fetch-absent":
   { "type": ["end-to-end", "with serve"]
   , "name": ["fetch-absent"]
   , "test": ["fetch-absent.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
 , "fetch-absent-git-tree":
   { "type": ["end-to-end", "with serve"]
   , "name": ["fetch-absent-git-tree"]
   , "test": ["fetch-absent-git-tree.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
 , "absent-config":
   { "type": ["end-to-end", "with serve"]
   , "name": ["absent-config"]
   , "test": ["absent-config.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
 , "fetch-absent-archives":
@@ -129,8 +121,8 @@
   , "name": ["fetch-absent-archives"]
   , "test": ["fetch-absent-archives.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "fetch-absent (data)"
     ]
   , "repos": ["fetch-absent (data)"]
@@ -140,8 +132,8 @@
   , "name": ["fetch-absent-archives-symlinks"]
   , "test": ["fetch-absent-archives-symlinks.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "fetch-absent-with-symlinks (data)"
     ]
   , "repos": ["fetch-absent-with-symlinks (data)"]
@@ -151,8 +143,8 @@
   , "name": ["fetch-absent-distdir-archive"]
   , "test": ["fetch-absent-distdir-archive.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "fetch-absent (data)"
     ]
   , "repos": ["fetch-absent (data)"]
@@ -179,30 +171,27 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-tree-git-tree-env"]
   , "test": ["git-tree-env.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "git-env":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-env"]
   , "test": ["git-env.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "foreign-file":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["foreign-file"]
   , "test": ["foreign-file.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "reporting-verbosity":
   { "type": ["end-to-end", "with remote"]
   , "name": ["reporting-verbosity"]
   , "test": ["reporting-verbosity.sh"]
   , "deps":
-    [ ["end-to-end", "tool-under-test"]
-    , ["end-to-end", "mr-tool-under-test"]
+    [ ["", "tool-under-test"]
+    , ["", "mr-tool-under-test"]
     , "fetch-absent (data)"
     ]
   }
@@ -211,8 +200,8 @@
   , "name": ["stay-local"]
   , "test": ["stay-local.sh"]
   , "deps":
-    [ ["end-to-end", "tool-under-test"]
-    , ["end-to-end", "mr-tool-under-test"]
+    [ ["", "tool-under-test"]
+    , ["", "mr-tool-under-test"]
     , "fetch-absent (data)"
     , ["utils", "null server"]
     ]

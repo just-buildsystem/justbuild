@@ -16,8 +16,8 @@
   , "name": ["present"]
   , "test": ["present.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "serve-distdir (data)"
     ]
   , "repos": ["serve-distdir (data)"]
@@ -27,8 +27,8 @@
   , "name": ["absent"]
   , "test": ["absent.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "serve-distdir (data)"
     ]
   , "repos": ["serve-distdir (data)"]
@@ -38,8 +38,8 @@
   , "name": ["upload"]
   , "test": ["upload.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "serve-distdir (data)"
     ]
   }
@@ -48,8 +48,8 @@
   , "name": ["foreign-file"]
   , "test": ["foreign-file.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , ["TREE", null, "foreign-file-data"]
     ]
   , "repos": [["TREE", null, "foreign-file-data"]]

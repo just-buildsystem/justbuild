@@ -30,7 +30,7 @@
   , "implicit":
     { "defaults": [["@", "rules", "CC", "defaults"]]
     , "runner": ["test_runner.py"]
-    , "just": [["@", "src", "", "installed just"]]
+    , "just": [["", "tool-under-test"]]
     }
   , "field_doc":
     { "name":

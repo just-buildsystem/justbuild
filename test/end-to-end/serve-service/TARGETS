@@ -2,8 +2,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-target-remote-build"]
   , "test": ["serve_target_remote_build.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "repos":
     [ "serve-target-remote-build (repo)"
     , "serve-target-remote-build (rule)"
@@ -15,8 +14,8 @@
   , "name": ["serve-target-failed-build"]
   , "test": ["serve_target_failed_build.sh"]
   , "deps":
-    [ ["end-to-end", "tool-under-test"]
-    , ["end-to-end", "mr-tool-under-test"]
+    [ ["", "tool-under-test"]
+    , ["", "mr-tool-under-test"]
     , "serve-tree (archive)"
     , "data/targets/TARGETS"
     , "data/rules/RULES"
@@ -56,28 +55,25 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-target-cache-hit"]
   , "test": ["serve_target_cache_hit.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "serve-start-execute":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["serve-start-execute"]
   , "test": ["serve_start_execute.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "serve-start-execute-sharding":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["serve-start-execute-sharding"]
   , "test": ["serve_start_execute_sharding.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "serve-export-deps":
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-export-deps"]
   , "test": ["serve_export_deps.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "serve-tree (data)":
   {"type": "install", "dirs": [["serve-target-remote-build (repo)", "repo"]]}
@@ -92,8 +88,8 @@
   , "name": ["serve-tree"]
   , "test": ["serve-tree.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "serve-tree (archive)"
     , "data/targets/TARGETS.tree"
     ]
@@ -108,16 +104,14 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-target-remote-build-dispatch"]
   , "test": ["serve_target_remote_build_dispatch.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "repos": ["serve-target-remote-build-dispatch (data)"]
   }
 , "serve-query-target-cache-value":
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-query-target-cache-value"]
   , "test": ["serve_query_target_cache_value.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "describe (data)":
   { "type": "install"
@@ -130,8 +124,8 @@
   , "name": ["describe"]
   , "test": ["describe.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "describe (locally installed)"
     ]
   , "repos": ["describe (data)"]
@@ -146,8 +140,8 @@
   , "name": ["failure-report"]
   , "test": ["failure-report.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , "describe (locally installed)"
     ]
   , "repos": ["failure-report (data)"]
@@ -166,8 +160,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-many-targets"]
   , "test": ["serve_many_targets.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "repos":
     ["serve-many-targets (data)", "serve-many-targets (data in module)"]
   }
@@ -175,8 +168,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["deduplication-of-serve-requests"]
   , "test": ["deduplication_of_serve_requests.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "repos": ["serve-many-targets (data)"]
   }
 , "TESTS (unconfigured)":

@@ -2,67 +2,63 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["defaults"]
   , "test": ["defaults.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "pwd":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["pwd"]
   , "test": ["pwd.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "install":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install"]
   , "test": ["install.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "analyse":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["analyse"]
   , "test": ["analyse.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "build -P":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["build-P"]
   , "test": ["build-p.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "git cas -P":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-cas-P"]
   , "test": ["git-cas-p.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "just-mr reporting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["just-mr-reporting"]
   , "test": ["just-mr-reporting.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "keep": ["log/warning.txt"]
   }
 , "install --archive":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-archive"]
   , "test": ["install-archive.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   , "keep": ["src.tar", "reconstructed.tar", "fromstdout.tar"]
   }
 , "conflict report":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["conflict-report"]
   , "test": ["conflict-report.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "log limit":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["log-limit"]
   , "test": ["log-limit.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

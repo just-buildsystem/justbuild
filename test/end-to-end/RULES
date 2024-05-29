@@ -84,7 +84,7 @@
   , "implicit":
     { "runner": ["with_remote_test_runner.py"]
     , "summarizer": [["@", "rules", "shell/test", "summarizer"]]
-    , "just": [["@", "src", "", "installed just"]]
+    , "just": [["", "tool-under-test"]]
     }
   , "imports":
     { "test-result": "test-result"
@@ -323,7 +323,7 @@
   , "implicit":
     { "runner": ["with_serve_test_runner.py"]
     , "summarizer": [["@", "rules", "shell/test", "summarizer"]]
-    , "just": [["@", "src", "", "installed just"]]
+    , "just": [["", "tool-under-test"]]
     }
   , "imports":
     { "test-result": "test-result"

@@ -2,38 +2,37 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["native-protocol"]
   , "test": ["native-protocol.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "large-blobs":
   { "type": ["end-to-end", "with remote"]
   , "name": ["large-blobs"]
   , "test": ["large-blobs.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "upload-test":
   { "type": ["end-to-end", "with remote"]
   , "name": ["upload-test"]
   , "test": ["upload-test.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "install":
   { "type": ["end-to-end", "with remote"]
   , "name": ["install"]
   , "test": ["install.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "execute":
   { "type": ["end-to-end", "with remote"]
   , "name": ["execute"]
   , "test": ["execute.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "install-cas":
   { "type": ["end-to-end", "with remote"]
   , "name": ["install-cas"]
   , "test": ["install-cas.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   , "keep":
     [ "out/stdout/remote"
     , "out/stdout/remote-raw"
@@ -45,13 +44,13 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["dispatch"]
   , "test": ["dispatch.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "split-splice (raw)":
   { "type": ["end-to-end", "with remote"]
   , "name": ["split-splice"]
   , "test": ["split-splice.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "split-splice":
   { "type": "configure"
@@ -71,8 +70,7 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["add-to-cas"]
   , "test": ["add-to-cas.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

@@ -3,8 +3,8 @@
   , "name": ["upload"]
   , "test": ["upload.sh"]
   , "deps":
-    [ ["end-to-end", "mr-tool-under-test"]
-    , ["end-to-end", "tool-under-test"]
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , ["end-to-end/serve-service", "serve-tree (archive)"]
     ]
   }

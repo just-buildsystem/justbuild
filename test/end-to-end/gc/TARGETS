@@ -2,28 +2,25 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["basic"]
   , "test": ["basic.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "compactification":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["compactification"]
   , "test": ["compactification.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "export":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["export"]
   , "test": ["export.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "tc-deps":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["tc-deps"]
   , "test": ["tc-deps.sh"]
-  , "deps":
-    [["end-to-end", "tool-under-test"], ["end-to-end", "mr-tool-under-test"]]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

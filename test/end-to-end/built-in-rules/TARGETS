@@ -2,39 +2,38 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["generic_out_dirs"]
   , "test": ["generic_out_dirs.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "generic_sh":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["generic_sh"]
   , "test": ["generic_sh.sh"]
   , "keep": ["null.json", "empty.json", "custom.json"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "filegen_config":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["filegen_config"]
   , "test": ["filegen_config.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "tree":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["tree"]
   , "test": ["tree.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "symlink_config":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["symlink_config"]
   , "test": ["symlink_config.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "export_counting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["export_counting"]
   , "test": ["export_counting.sh"]
-  , "deps":
-    [["end-to-end", "mr-tool-under-test"], ["end-to-end", "tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

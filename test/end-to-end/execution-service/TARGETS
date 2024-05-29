@@ -2,13 +2,13 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["simple_build"]
   , "test": ["simple_build.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "tree_inputs":
   { "type": ["end-to-end", "with remote"]
   , "name": ["tree_inputs"]
   , "test": ["tree_inputs.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"

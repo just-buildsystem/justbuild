@@ -2,7 +2,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["single_fail_dep"]
   , "test": ["single_fail_dep.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
   {"type": "install", "tainted": ["test"], "deps": ["single_fail_dep"]}

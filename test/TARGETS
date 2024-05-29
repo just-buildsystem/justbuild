@@ -1,4 +1,37 @@
-{ "catch-main":
+{ "tested just":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "skip-debug-stage": ["yes"]
+  , "targets": [["@", "src", "", "just"]]
+  }
+, "tool-under-test":
+  { "type": "install"
+  , "dirs": [["tested just", "."]]
+  , "files": {"bin/tool-under-test": ["@", "src", "", "just"]}
+  }
+, "tested just-mr":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "skip-debug-stage": ["yes"]
+  , "targets": [["@", "src", "", "just-mr"]]
+  }
+, "mr-tool-under-test":
+  { "type": "install"
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "dirs":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+    , "then": []
+    , "else": [["tested just-mr", "."]]
+    }
+  , "files":
+    { "bin/mr-tool-under-test":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+      , "then": ["@", "src", "", "bin/just-mr.py"]
+      , "else": ["@", "src", "", "just-mr"]
+      }
+    }
+  }
+, "catch-main":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["catch-main"]
   , "srcs": ["main.cpp"]

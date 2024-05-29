@@ -3,7 +3,7 @@
   , "name": ["shell"]
   , "test": ["shell-script.sh"]
   , "keep": ["out/out.txt"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "compile rules":
   {"type": "install", "files": {"RULES": "data/RULES.compiled"}}
@@ -12,7 +12,7 @@
   , "name": ["compiled"]
   , "test": ["compiled.sh"]
   , "keep": ["graph.json", "out/out.txt"]
-  , "deps": [["end-to-end", "tool-under-test"], "compile rules"]
+  , "deps": [["", "tool-under-test"], "compile rules"]
   }
 , "TESTS":
   {"type": "install", "tainted": ["test"], "deps": ["shell", "compiled"]}

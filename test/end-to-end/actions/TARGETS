@@ -3,7 +3,7 @@
   , "name": ["equality"]
   , "test": ["action-equality.sh"]
   , "keep": ["graph.json"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "equality-timeout":
   { "type": ["@", "rules", "shell/test", "script"]
@@ -17,7 +17,7 @@
     , "generic/graph-1.json"
     , "generic/graph-2.json"
     ]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "equality-properties":
   { "type": ["@", "rules", "shell/test", "script"]
@@ -31,32 +31,32 @@
     , "generic/graph-empty.json"
     , "generic/graph-set.json"
     ]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "trees":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["trees"]
   , "test": ["nested-trees.sh"]
   , "keep": ["blobs.json", "trees.json", "out/index.txt"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "conflicts":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["conflicts"]
   , "test": ["conflicts.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "incomplete-retry":
   { "type": ["end-to-end", "with remote"]
   , "name": ["incompete-retry"]
   , "test": ["incomplete-retry.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "error-reporting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["error-reporting"]
   , "test": ["error-reporting.sh"]
-  , "deps": [["end-to-end", "tool-under-test"]]
+  , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": "install"
