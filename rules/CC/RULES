@@ -718,12 +718,13 @@
     , "the target, artifacts and dependencies will be installed to"
     , "subdirectories \"bin\", \"include\", and \"lib\". For library targets,"
     , "a pkg-config file is generated and provided in \"lib/pkgconfig\"."
-    , "In debug mode, sources needed for local debugging will be installed to"
-    , "subdirectory \"debug-src\"."
+    , "In debug mode, depending on the target, additional artifacts needed for"
+    , "local debugging are gathered and installed, depending on target, to"
+    , "\"work\" and \"include\"."
     ]
   , "config_vars": ["PREFIX"]
   , "target_fields": ["targets"]
-  , "string_fields": ["flat-libs", "prefix", "hdrs-only"]
+  , "string_fields": ["flat-libs", "prefix", "hdrs-only", "skip-debug-stage"]
   , "imports": {"install result": "install-with-deps result"}
   , "field_doc":
     { "targets": ["Targets to install artifacts from."]
@@ -739,6 +740,10 @@
       , "taken, with the default value being \"/\"."
       ]
     , "hdrs-only": ["Only collect headers from deps (without subdirectory)."]
+    , "skip-debug-stage":
+      [ "If in debug mode, skip installing additional artifacts gathered if no"
+      , "local debugging is needed, but debug targets are nonetheless desired."
+      ]
     }
   , "config_doc":
     { "PREFIX":
@@ -768,6 +773,7 @@
         ]
       , ["flat-libs", {"type": "FIELD", "name": "flat-libs"}]
       , ["hdrs-only", {"type": "FIELD", "name": "hdrs-only"}]
+      , ["skip-debug-stage", {"type": "FIELD", "name": "skip-debug-stage"}]
       ]
     , "body": {"type": "CALL_EXPRESSION", "name": "install result"}
     }
