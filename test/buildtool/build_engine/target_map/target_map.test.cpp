@@ -362,6 +362,84 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
         CHECK(artifacts_desc["foo.txt"]["type"] == "KNOWN");
     }
 
+    SECTION("Rule stages symlink") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "stage link"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        auto blobs = result->Blobs();
+        CHECK(blobs.size() == 1);
+        CHECK(blobs[0] == "this/is/a/link");
+        auto artifacts_desc = result->Artifacts()->ToJson();
+        CHECK(artifacts_desc["foo.txt"]["type"] == "KNOWN");
+        CHECK(artifacts_desc["foo.txt"]["data"]["file_type"] == "l");
+    }
+
+    SECTION("Rule stages symlink, bad: absolute") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "bad absolute link"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(error);
+        CHECK(error_msg != "NONE");
+    }
+
+    SECTION("Rule stages symlink, bad: upwards") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "bad upwards link"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(error);
+        CHECK(error_msg != "NONE");
+    }
+
     SECTION("Stage implicit target") {
         {
             error_msg = "NONE";

@@ -18,6 +18,21 @@
   , "name": ["foo.txt"]
   , "content": ["This is FOO!"]
   }
+, "stage link":
+  { "type": ["simple_rules", "symlink"]
+  , "name": ["foo.txt"]
+  , "content": ["this/is/a/link"]
+  }
+, "bad absolute link":
+  { "type": ["simple_rules", "symlink"]
+  , "name": ["foo.txt"]
+  , "content": ["/absolute/link"]
+  }
+, "bad upwards link":
+  { "type": ["simple_rules", "symlink"]
+  , "name": ["foo.txt"]
+  , "content": ["../upwards/link"]
+  }
 , "use implicit": {"type": ["simple_rules", "implicit file"]}
 , "actions":
   {"type": ["simple_rules", "upper case"], "srcs": ["foo.txt", "bar.txt"]}

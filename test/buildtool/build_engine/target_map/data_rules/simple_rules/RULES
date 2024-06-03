@@ -97,6 +97,21 @@
       }
     }
   }
+, "symlink":
+  { "string_fields": ["name", "content"]
+  , "target_fields": ["analyze"]
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts":
+      { "type": "singleton_map"
+      , "key": {"type": "join", "$1": {"type": "FIELD", "name": "name"}}
+      , "value":
+        { "type": "SYMLINK"
+        , "data": {"type": "join", "$1": {"type": "FIELD", "name": "content"}}
+        }
+      }
+    }
+  }
 , "implicit file":
   { "implicit": {"script": ["implicit_script.sh"]}
   , "expression":

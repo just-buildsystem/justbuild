@@ -729,6 +729,27 @@ void withDependencies(
                   ArtifactDigest::Create<ObjectType::File>(data->String()),
                   ObjectType::File}};
           }},
+
+         {"SYMLINK",
+          [&blobs](auto&& eval, auto const& expr, auto const& env) {
+              auto data = eval(expr->Get("data", ""s), env);
+              if (not data->IsString()) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("SYMLINK data has to be a string, but got {}",
+                                  data->ToString())};
+              }
+              if (not PathIsNonUpwards(data->String())) {
+                  throw Evaluator::EvaluationError{fmt::format(
+                      "SYMLINK data has to be non-upwards relative, but got {}",
+                      data->ToString())};
+              }
+              blobs.emplace_back(data->String());
+
+              return ExpressionPtr{ArtifactDescription{
+                  ArtifactDigest::Create<ObjectType::Symlink>(data->String()),
+                  ObjectType::Symlink}};
+          }},
+
          {"TREE",
           [&trees](auto&& eval, auto const& expr, auto const& env) {
               auto val = eval(expr->Get("$1", Expression::kEmptyMapExpr), env);
