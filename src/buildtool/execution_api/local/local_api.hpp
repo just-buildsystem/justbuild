@@ -287,34 +287,6 @@ class LocalApi final : public IExecutionApi {
         return true;
     }
 
-    [[nodiscard]] auto UploadFile(std::filesystem::path const& file_path,
-                                  ObjectType type) noexcept -> bool override {
-        Logger::Log(LogLevel::Trace, [&file_path, &type]() {
-            return fmt::format("Storing {} of type {} directly to CAS.",
-                               file_path.string(),
-                               ToChar(type));
-        });
-        switch (type) {
-            case ObjectType::Tree:
-                return storage_->CAS()
-                    .StoreTree</* kOwner= */ true>(file_path)
-                    .has_value();
-            case ObjectType::Symlink:
-            case ObjectType::File:
-                return storage_->CAS()
-                    .StoreBlob</* kOwner= */ true>(file_path,
-                                                   /* is_executable= */ false)
-                    .has_value();
-            case ObjectType::Executable:
-                return storage_->CAS()
-                    .StoreBlob</* kOwner= */ true>(file_path,
-                                                   /* is_executable= */ true)
-                    .has_value();
-        }
-        Ensures(false);  // unreachable
-        return false;
-    }
-
     [[nodiscard]] auto UploadTree(
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
             artifacts) noexcept -> std::optional<ArtifactDigest> final {

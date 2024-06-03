@@ -29,7 +29,6 @@
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 
 /// \brief Abstract remote execution API
 /// Can be used to create actions.
@@ -119,12 +118,6 @@ class IExecutionApi {
     [[nodiscard]] virtual auto Upload(ArtifactBlobContainer&& blobs,
                                       bool skip_find_missing = false) noexcept
         -> bool = 0;
-
-    /// \brief Upload a file to CAS as an object of the specified type.
-    /// It may be assumed that the file is owned entirely by the build process.
-    [[nodiscard]] virtual auto UploadFile(
-        std::filesystem::path const& file_path,
-        ObjectType type) noexcept -> bool;
 
     [[nodiscard]] virtual auto UploadTree(
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
