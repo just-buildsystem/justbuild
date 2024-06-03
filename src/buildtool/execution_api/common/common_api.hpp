@@ -29,7 +29,11 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 
 /// \brief Stores a list of missing artifact digests, as well as a back-mapping
 /// to some given original type.
@@ -95,5 +99,63 @@ template <typename T>
     gsl::not_null<IExecutionApi*> const& api,
     DirectoryTreePtr const& build_root) noexcept
     -> std::optional<ArtifactDigest>;
+
+/// \brief Updates the given container based on the given blob, ensuring the
+/// container is kept under the maximum transfer limit. If the given blob is
+/// larger than the transfer limit, it is immediately uploaded. Otherwise,
+/// it is added to the container if it fits inside the transfer limit, or it
+/// is added to a new container moving forward, with the old one being uploaded.
+/// This way we ensure we only store as much data as we can actually transfer in
+/// one go.
+/// \param container Stores blobs smaller than the transfer limit.
+/// \param blob New blob to be handled (uploaded or added to container).
+/// \param exception_is_fatal If true, caught exceptions are logged to Error.
+/// \param uploader Lambda handling the actual upload call.
+/// \param logger Use this instance for any logging. If nullptr, use the default
+/// logger. This value is used only if exception_is_fatal==true.
+/// \returns Returns true on success, false otherwise (failures or exceptions).
+template <typename TDigest>
+auto UpdateContainerAndUpload(
+    gsl::not_null<ContentBlobContainer<TDigest>*> const& container,
+    ContentBlob<TDigest>&& blob,
+    bool exception_is_fatal,
+    std::function<bool(ContentBlobContainer<TDigest>&&)> const& uploader,
+    Logger const* logger = nullptr) noexcept -> bool {
+    // Optimize upload of blobs with respect to the maximum transfer limit, such
+    // that we never store unnecessarily more data in the container than we need
+    // per remote transfer.
+    try {
+        if (blob.data->size() > kMaxBatchTransferSize) {
+            // large blobs use individual stream upload
+            if (not uploader(ContentBlobContainer<TDigest>{{blob}})) {
+                return false;
+            }
+        }
+        else {
+            if (container->ContentSize() + blob.data->size() >
+                kMaxBatchTransferSize) {
+                // swap away from original container to allow move during upload
+                ContentBlobContainer<TDigest> tmp_container{};
+                std::swap(*container, tmp_container);
+                // if we would surpass the transfer limit, upload the current
+                // container and clear it before adding more blobs
+                if (not uploader(std::move(tmp_container))) {
+                    return false;
+                }
+            }
+            // add current blob to container
+            container->Emplace(std::move(blob));
+        }
+    } catch (std::exception const& ex) {
+        if (exception_is_fatal) {
+            Logger::Log(logger,
+                        LogLevel::Error,
+                        "failed to emplace blob with\n:{}",
+                        ex.what());
+        }
+        return false;
+    }
+    return true;  // success!
+}
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_COMMON_API_HPP

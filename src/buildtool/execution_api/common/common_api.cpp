@@ -18,8 +18,6 @@
 #include <exception>
 
 #include "fmt/core.h"
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 
 auto CommonRetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,

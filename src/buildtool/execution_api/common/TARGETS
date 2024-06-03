@@ -61,17 +61,17 @@
   , "deps":
     [ "common"
     , "blob_tree"
+    , "content_blob_container"
+    , "message_limits"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
-    ]
-  , "stage": ["src", "buildtool", "execution_api", "common"]
-  , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
     ]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  , "private-deps": [["@", "fmt", "", "fmt"]]
   }
 , "blob_tree":
   { "type": ["@", "rules", "CC", "library"]
