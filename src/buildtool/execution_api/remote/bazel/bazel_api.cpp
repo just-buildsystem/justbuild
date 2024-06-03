@@ -440,7 +440,8 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::Upload(ArtifactBlobContainer&& blobs,
                                     bool skip_find_missing) noexcept -> bool {
     auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));
-    return bazel_blobs ? network_->UploadBlobs(*bazel_blobs, skip_find_missing)
+    return bazel_blobs ? network_->UploadBlobs(std::move(*bazel_blobs),
+                                               skip_find_missing)
                        : false;
 }
 

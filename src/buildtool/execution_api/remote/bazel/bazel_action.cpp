@@ -72,7 +72,8 @@ auto BazelAction::Execute(Logger const* logger) noexcept
         }
     }
 
-    if (ExecutionEnabled(cache_flag_) and network_->UploadBlobs(blobs)) {
+    if (ExecutionEnabled(cache_flag_) and
+        network_->UploadBlobs(std::move(blobs))) {
         if (auto output = network_->ExecuteBazelActionSync(action)) {
             if (cache_flag_ == CacheFlag::PretendCached) {
                 // ensure the same id is created as if caching were enabled

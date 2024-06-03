@@ -229,7 +229,7 @@ auto BazelResponse::UploadTreeMessageDirectories(
         dir_blobs.Emplace(std::move(*subdir_blob));
     }
 
-    if (not network_->UploadBlobs(dir_blobs)) {
+    if (not network_->UploadBlobs(std::move(dir_blobs))) {
         Logger::Log(LogLevel::Error,
                     "uploading Tree's Directory messages failed");
         return std::nullopt;
