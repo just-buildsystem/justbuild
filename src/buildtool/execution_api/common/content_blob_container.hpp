@@ -56,18 +56,30 @@ class ContentBlobContainer final {
         }
     }
 
-    /// \brief Emplace new BazelBlob to container.
+    /// \brief Emplace new Blob to container.
     void Emplace(BlobType&& blob) {
         DigestType digest = blob.digest;
-        blobs_.emplace(std::move(digest), std::move(blob));
+        if (auto res = blobs_.emplace(std::move(digest), std::move(blob));
+            res.second) {
+            // only count size if blob was actually added
+            content_size_ += res.first->second.data->size();
+        }
     }
 
-    /// \brief Clear all BazelBlobs from container.
-    void Clear() noexcept { return blobs_.clear(); }
+    /// \brief Clear all Blobs from container.
+    void Clear() noexcept {
+        blobs_.clear();
+        content_size_ = 0;
+    }
 
-    /// \brief Number of BazelBlobs in container.
+    /// \brief Number of Blobs in container.
     [[nodiscard]] auto Size() const noexcept -> std::size_t {
         return blobs_.size();
+    }
+
+    /// \brief Collective size of the stored content in container.
+    [[nodiscard]] auto ContentSize() const noexcept -> std::size_t {
+        return content_size_;
     }
 
     /// \brief Is equivalent BazelBlob (with same Digest) in container.
@@ -107,6 +119,7 @@ class ContentBlobContainer final {
 
   private:
     std::unordered_map<DigestType, BlobType> blobs_{};
+    std::size_t content_size_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP
