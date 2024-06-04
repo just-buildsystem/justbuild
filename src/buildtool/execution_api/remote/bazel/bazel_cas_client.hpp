@@ -45,7 +45,7 @@ class BazelCasClient {
     /// \returns The digests of blobs not found in CAS
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
-        std::vector<bazel_re::Digest> const& digests) noexcept
+        std::vector<bazel_re::Digest> const& digests) const noexcept
         -> std::vector<bazel_re::Digest>;
 
     /// \brief Find missing blobs
@@ -54,7 +54,7 @@ class BazelCasClient {
     /// \returns The digests of blobs not found in CAS
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
-        BazelBlobContainer const& blob_container) noexcept
+        BazelBlobContainer const& blob_container) const noexcept
         -> std::vector<bazel_re::Digest>;
 
     /// \brief Upload multiple blobs in batch transfer
@@ -66,8 +66,8 @@ class BazelCasClient {
         std::string const& instance_name,
         std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
             begin,
-        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
-            end) noexcept -> std::size_t;
+        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& end)
+        const noexcept -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -77,21 +77,22 @@ class BazelCasClient {
     [[nodiscard]] auto BatchReadBlobs(
         std::string const& instance_name,
         std::vector<bazel_re::Digest>::const_iterator const& begin,
-        std::vector<bazel_re::Digest>::const_iterator const& end) noexcept
+        std::vector<bazel_re::Digest>::const_iterator const& end) const noexcept
         -> std::vector<BazelBlob>;
 
     [[nodiscard]] auto GetTree(std::string const& instance_name,
                                bazel_re::Digest const& root_digest,
                                std::int32_t page_size,
-                               std::string const& page_token = "") noexcept
-        -> std::vector<bazel_re::Directory>;
+                               std::string const& page_token = "")
+        const noexcept -> std::vector<bazel_re::Directory>;
 
     /// \brief Upload single blob via bytestream
     /// \param[in] instance_name Name of the CAS instance
     /// \param[in] blob          The blob to upload
     /// \returns Boolean indicating successful upload
     [[nodiscard]] auto UpdateSingleBlob(std::string const& instance_name,
-                                        BazelBlob const& blob) noexcept -> bool;
+                                        BazelBlob const& blob) const noexcept
+        -> bool;
 
     /// \brief Read single blob via incremental bytestream reader
     /// \param[in] instance_name Name of the CAS instance
@@ -99,7 +100,7 @@ class BazelCasClient {
     /// \returns Incremental bytestream reader.
     [[nodiscard]] auto IncrementalReadSingleBlob(
         std::string const& instance_name,
-        bazel_re::Digest const& digest) noexcept
+        bazel_re::Digest const& digest) const noexcept
         -> ByteStreamClient::IncrementalReader;
 
     /// \brief Read single blob via bytestream
@@ -107,8 +108,8 @@ class BazelCasClient {
     /// \param[in] digest        Blob digest to read
     /// \returns The blob successfully read
     [[nodiscard]] auto ReadSingleBlob(std::string const& instance_name,
-                                      bazel_re::Digest const& digest) noexcept
-        -> std::optional<BazelBlob>;
+                                      bazel_re::Digest const& digest)
+        const noexcept -> std::optional<BazelBlob>;
 
     /// @brief Split single blob into chunks
     /// @param[in] instance_name    Name of the CAS instance
@@ -143,7 +144,7 @@ class BazelCasClient {
     template <class T_OutputIter>
     [[nodiscard]] auto FindMissingBlobs(std::string const& instance_name,
                                         T_OutputIter const& start,
-                                        T_OutputIter const& end) noexcept
+                                        T_OutputIter const& end) const noexcept
         -> std::vector<bazel_re::Digest>;
 
     template <typename T_Request, typename T_ForwardIter>

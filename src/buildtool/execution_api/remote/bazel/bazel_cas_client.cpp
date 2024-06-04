@@ -181,15 +181,14 @@ BazelCasClient::BazelCasClient(std::string const& server, Port port) noexcept
 
 auto BazelCasClient::FindMissingBlobs(
     std::string const& instance_name,
-    std::vector<bazel_re::Digest> const& digests) noexcept
+    std::vector<bazel_re::Digest> const& digests) const noexcept
     -> std::vector<bazel_re::Digest> {
     return FindMissingBlobs(instance_name, digests.begin(), digests.end());
 }
 
-auto BazelCasClient::FindMissingBlobs(
-    std::string const& instance_name,
-    BazelBlobContainer const& blob_container) noexcept
-    -> std::vector<bazel_re::Digest> {
+auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
+                                      BazelBlobContainer const& blob_container)
+    const noexcept -> std::vector<bazel_re::Digest> {
     auto digests_range = blob_container.Digests();
     return FindMissingBlobs(
         instance_name, digests_range.begin(), digests_range.end());
@@ -198,7 +197,7 @@ auto BazelCasClient::FindMissingBlobs(
 auto BazelCasClient::BatchReadBlobs(
     std::string const& instance_name,
     std::vector<bazel_re::Digest>::const_iterator const& begin,
-    std::vector<bazel_re::Digest>::const_iterator const& end) noexcept
+    std::vector<bazel_re::Digest>::const_iterator const& end) const noexcept
     -> std::vector<BazelBlob> {
     if (begin == end) {
         return {};
@@ -266,7 +265,7 @@ auto BazelCasClient::BatchReadBlobs(
 auto BazelCasClient::GetTree(std::string const& instance_name,
                              bazel_re::Digest const& root_digest,
                              std::int32_t page_size,
-                             std::string const& page_token) noexcept
+                             std::string const& page_token) const noexcept
     -> std::vector<bazel_re::Directory> {
     auto request =
         CreateGetTreeRequest(instance_name, root_digest, page_size, page_token);
@@ -298,7 +297,8 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 }
 
 auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
-                                      BazelBlob const& blob) noexcept -> bool {
+                                      BazelBlob const& blob) const noexcept
+    -> bool {
     logger_.Emit(LogLevel::Trace, [&blob]() {
         std::ostringstream oss{};
         oss << "upload single blob" << std::endl;
@@ -330,16 +330,15 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
     return ok;
 }
 
-auto BazelCasClient::IncrementalReadSingleBlob(
-    std::string const& instance_name,
-    bazel_re::Digest const& digest) noexcept
-    -> ByteStreamClient::IncrementalReader {
+auto BazelCasClient::IncrementalReadSingleBlob(std::string const& instance_name,
+                                               bazel_re::Digest const& digest)
+    const noexcept -> ByteStreamClient::IncrementalReader {
     return stream_->IncrementalRead(ToResourceName(instance_name, digest));
 }
 
-auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
-                                    bazel_re::Digest const& digest) noexcept
-    -> std::optional<BazelBlob> {
+auto BazelCasClient::ReadSingleBlob(
+    std::string const& instance_name,
+    bazel_re::Digest const& digest) const noexcept -> std::optional<BazelBlob> {
     if (auto data = stream_->Read(ToResourceName(instance_name, digest))) {
         // Recompute the digest from the received content to cross-check a
         // correct transmission.
@@ -429,7 +428,7 @@ auto BazelCasClient::BlobSpliceSupport(
 template <class T_ForwardIter>
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                                       T_ForwardIter const& start,
-                                      T_ForwardIter const& end) noexcept
+                                      T_ForwardIter const& end) const noexcept
     -> std::vector<bazel_re::Digest> {
     std::vector<bazel_re::Digest> result;
     if (start == end) {
@@ -490,8 +489,8 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& begin,
-    std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
-        end) noexcept -> std::size_t {
+    std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& end)
+    const noexcept -> std::size_t {
     if (begin == end) {
         return 0;
     }
