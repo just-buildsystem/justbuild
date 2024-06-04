@@ -249,7 +249,7 @@ auto BazelApi::CreateAction(
                                                ? std::make_optional(info.digest)
                                                : std::nullopt;
                 auto reader = TreeReader<BazelNetworkReader>{
-                    *network_, std::move(request_remote_tree)};
+                    network_->CreateReader(), std::move(request_remote_tree)};
                 auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not result or
@@ -304,7 +304,7 @@ auto BazelApi::CreateAction(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
     bool raw_tree) noexcept -> bool {
-    auto dumper = StreamDumper<BazelNetworkReader>{*network_};
+    auto dumper = StreamDumper<BazelNetworkReader>{network_->CreateReader()};
     return CommonRetrieveToFds(
         artifacts_info,
         fds,
@@ -343,7 +343,8 @@ auto BazelApi::CreateAction(
     for (auto const& dgst : missing_artifacts_info->digests) {
         auto const& info = missing_artifacts_info->back_map[dgst];
         if (IsTreeObject(info.type)) {
-            auto reader = TreeReader<BazelNetworkReader>{*network_};
+            auto reader =
+                TreeReader<BazelNetworkReader>{network_->CreateReader()};
             auto const result = reader.ReadDirectTreeEntries(
                 info.digest, std::filesystem::path{});
             if (not result or not RetrieveToCas(result->infos, api)) {
@@ -392,7 +393,8 @@ auto BazelApi::CreateAction(
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             if (IsTreeObject(info.type)) {
-                auto reader = TreeReader<BazelNetworkReader>{*network_};
+                auto reader =
+                    TreeReader<BazelNetworkReader>{network_->CreateReader()};
                 auto const result = reader.ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
                 if (not result or

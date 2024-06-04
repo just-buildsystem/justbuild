@@ -18,37 +18,41 @@
 
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
 
+BazelNetworkReader::BazelNetworkReader(std::string instance_name,
+                                       BazelCasClient const& cas) noexcept
+    : instance_name_{std::move(instance_name)}, cas_(cas) {}
+
 BazelNetworkReader::BazelNetworkReader(
-    BazelNetwork const& network,
+    BazelNetworkReader&& other,
     std::optional<ArtifactDigest> request_remote_tree) noexcept
-    : network_(network) {
+    : instance_name_{other.instance_name_}, cas_(other.cas_) {
     if (Compatibility::IsCompatible() and request_remote_tree) {
-        auto full_tree = network_.QueryFullTree(*request_remote_tree);
-        if (full_tree) {
-            auxiliary_map_ = MakeAuxiliaryMap(std::move(*full_tree));
-        }
+        // Query full tree from remote CAS. Note that this is currently not
+        // supported by Buildbarn revision c3c06bbe2a.
+        auto full_tree = cas_.GetTree(
+            instance_name_, *request_remote_tree, kMaxBatchTransferSize);
+        auxiliary_map_ = MakeAuxiliaryMap(std::move(full_tree));
     }
 }
 
 auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
     const noexcept -> std::optional<bazel_re::Directory> {
-    try {
-        if (auxiliary_map_ and auxiliary_map_->contains(digest)) {
-            return auxiliary_map_->at(digest);
+    if (auxiliary_map_) {
+        auto it = auxiliary_map_->find(digest);
+        if (it != auxiliary_map_->end()) {
+            return it->second;
         }
-    } catch (...) {
-        // fallthrough
     }
 
-    auto blobs = network_.ReadBlobs({digest}).Next();
-    if (blobs.size() == 1) {
+    if (auto blob = ReadSingleBlob(digest)) {
         return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-            *blobs.at(0).data);
+            *blob->data);
     }
     Logger::Log(
         LogLevel::Debug, "Directory {} not found in CAS", digest.hash());
@@ -57,52 +61,43 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
 
 auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     const noexcept -> std::optional<GitRepo::tree_entries_t> {
-    auto blobs = network_.ReadBlobs({digest}).Next();
-    if (blobs.size() == 1) {
-        auto const& content = *blobs.at(0).data;
-        auto check_symlinks = [this](std::vector<bazel_re::Digest> const& ids) {
-            auto size = ids.size();
-            auto reader = network_.ReadBlobs(ids);
-            auto blobs = reader.Next();
-            std::size_t count{};
-            while (not blobs.empty()) {
-                if (count + blobs.size() > size) {
-                    Logger::Log(LogLevel::Debug,
-                                "received more blobs than requested.");
-                    return false;
-                }
-                for (auto const& blob : blobs) {
-                    if (not PathIsNonUpwards(*blob.data)) {
-                        return false;
-                    }
-                }
-                count += blobs.size();
-                blobs = reader.Next();
-            }
-            return true;
-        };
-        return GitRepo::ReadTreeData(
-            content,
-            HashFunction::ComputeTreeHash(content).Bytes(),
-            check_symlinks,
-            /*is_hex_id=*/false);
+    auto read_blob = ReadSingleBlob(digest);
+    if (not read_blob) {
+        Logger::Log(LogLevel::Debug, "Tree {} not found in CAS", digest.hash());
+        return std::nullopt;
     }
-    Logger::Log(LogLevel::Debug, "Tree {} not found in CAS", digest.hash());
-    return std::nullopt;
+    auto check_symlinks = [this](std::vector<bazel_re::Digest> const& ids) {
+        // TODO(denisov) Fix non-incremental read
+        auto blobs = BatchReadBlobs(ids);
+        if (blobs.size() > ids.size()) {
+            Logger::Log(LogLevel::Debug, "received more blobs than requested.");
+            return false;
+        }
+        return std::all_of(
+            blobs.begin(), blobs.end(), [](ArtifactBlob const& blob) {
+                return PathIsNonUpwards(*blob.data);
+            });
+    };
+
+    std::string const& content = *read_blob->data;
+    return GitRepo::ReadTreeData(content,
+                                 HashFunction::ComputeTreeHash(content).Bytes(),
+                                 check_symlinks,
+                                 /*is_hex_id=*/false);
 }
 
 auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
                                      DumpCallback const& dumper) const noexcept
     -> bool {
-    auto blobs = network_.ReadBlobs({info.digest}).Next();
-    if (blobs.size() != 1) {
+    auto read_blob = ReadSingleBlob(info.digest);
+    if (not read_blob) {
         Logger::Log(
             LogLevel::Debug, "Object {} not found in CAS", info.digest.hash());
         return false;
     }
 
     try {
-        return std::invoke(dumper, *blobs.at(0).data);
+        return std::invoke(dumper, *read_blob->data);
     } catch (...) {
         return false;
     }
@@ -111,7 +106,7 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
 auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
                                   DumpCallback const& dumper) const noexcept
     -> bool {
-    auto reader = network_.IncrementalReadSingleBlob(info.digest);
+    auto reader = cas_.IncrementalReadSingleBlob(instance_name_, info.digest);
     auto data = reader.Next();
     while (data and not data->empty()) {
         try {
@@ -141,4 +136,32 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
         }
     }
     return result;
+}
+
+auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
+    const noexcept -> std::optional<ArtifactBlob> {
+    if (auto blob = cas_.ReadSingleBlob(instance_name_, digest)) {
+        return ArtifactBlob{
+            ArtifactDigest{blob->digest}, blob->data, blob->is_exec};
+    }
+    return std::nullopt;
+}
+
+auto BazelNetworkReader::BatchReadBlobs(
+    std::vector<bazel_re::Digest> const& blobs) const noexcept
+    -> std::vector<ArtifactBlob> {
+    std::vector<BazelBlob> result =
+        cas_.BatchReadBlobs(instance_name_, blobs.begin(), blobs.end());
+
+    std::vector<ArtifactBlob> artifacts;
+    artifacts.reserve(result.size());
+    std::transform(result.begin(),
+                   result.end(),
+                   std::back_inserter(artifacts),
+                   [](BazelBlob const& blob) {
+                       return ArtifactBlob{ArtifactDigest{blob.digest},
+                                           blob.data,
+                                           blob.is_exec};
+                   });
+    return artifacts;
 }

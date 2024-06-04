@@ -20,21 +20,25 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 
 class BazelNetworkReader final {
   public:
     using DumpCallback = std::function<bool(std::string const&)>;
 
-    explicit BazelNetworkReader(
-        BazelNetwork const& network,
-        std::optional<ArtifactDigest> request_remote_tree =
-            std::nullopt) noexcept;
+    BazelNetworkReader(std::string instance_name,
+                       BazelCasClient const& cas) noexcept;
+
+    BazelNetworkReader(
+        BazelNetworkReader&& other,
+        std::optional<ArtifactDigest> request_remote_tree) noexcept;
 
     [[nodiscard]] auto ReadDirectory(ArtifactDigest const& digest)
         const noexcept -> std::optional<bazel_re::Directory>;
@@ -50,16 +54,24 @@ class BazelNetworkReader final {
                                 DumpCallback const& dumper) const noexcept
         -> bool;
 
+    [[nodiscard]] auto ReadSingleBlob(ArtifactDigest const& digest)
+        const noexcept -> std::optional<ArtifactBlob>;
+
   private:
     using DirectoryMap =
-        std::unordered_map<bazel_re::Digest, bazel_re::Directory>;
+        std::unordered_map<ArtifactDigest, bazel_re::Directory>;
 
-    BazelNetwork const& network_;
+    std::string const instance_name_;
+    BazelCasClient const& cas_;
     std::optional<DirectoryMap> auxiliary_map_;
 
     [[nodiscard]] static auto MakeAuxiliaryMap(
         std::vector<bazel_re::Directory>&& full_tree) noexcept
         -> std::optional<DirectoryMap>;
+
+    [[nodiscard]] auto BatchReadBlobs(
+        std::vector<bazel_re::Digest> const& blobs) const noexcept
+        -> std::vector<ArtifactBlob>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP

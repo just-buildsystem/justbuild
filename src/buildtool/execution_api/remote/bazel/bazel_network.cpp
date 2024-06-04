@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <cstddef>
 
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -181,9 +180,8 @@ auto BazelNetwork::ReadBlobs(std::vector<bazel_re::Digest> ids) const noexcept
     return BlobReader{instance_name_, cas_.get(), std::move(ids)};
 }
 
-auto BazelNetwork::IncrementalReadSingleBlob(bazel_re::Digest const& id)
-    const noexcept -> ByteStreamClient::IncrementalReader {
-    return cas_->IncrementalReadSingleBlob(instance_name_, id);
+auto BazelNetwork::CreateReader() const noexcept -> BazelNetworkReader {
+    return BazelNetworkReader{instance_name_, *cas_};
 }
 
 auto BazelNetwork::GetCachedActionResult(
@@ -192,12 +190,4 @@ auto BazelNetwork::GetCachedActionResult(
     -> std::optional<bazel_re::ActionResult> {
     return ac_->GetActionResult(
         instance_name_, action, false, false, output_files);
-}
-
-auto BazelNetwork::QueryFullTree(bazel_re::Digest const& digest) const noexcept
-    -> std::optional<std::vector<bazel_re::Directory>> {
-    if (not Compatibility::IsCompatible()) {
-        return std::nullopt;
-    }
-    return cas_->GetTree(instance_name_, digest, kMaxBatchTransferSize);
 }

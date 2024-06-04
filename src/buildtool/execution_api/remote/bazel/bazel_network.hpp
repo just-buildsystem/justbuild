@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 
 /// \brief Contains all network clients and is responsible for all network IO.
 class BazelNetwork {
@@ -101,18 +102,12 @@ class BazelNetwork {
     [[nodiscard]] auto ReadBlobs(
         std::vector<bazel_re::Digest> ids) const noexcept -> BlobReader;
 
-    [[nodiscard]] auto IncrementalReadSingleBlob(bazel_re::Digest const& id)
-        const noexcept -> ByteStreamClient::IncrementalReader;
+    [[nodiscard]] auto CreateReader() const noexcept -> BazelNetworkReader;
 
     [[nodiscard]] auto GetCachedActionResult(
         bazel_re::Digest const& action,
         std::vector<std::string> const& output_files) const noexcept
         -> std::optional<bazel_re::ActionResult>;
-
-    /// \brief Query full tree from remote CAS. Note that this is currently not
-    // supported by Buildbarn revision c3c06bbe2a.
-    [[nodiscard]] auto QueryFullTree(bazel_re::Digest const& digest)
-        const noexcept -> std::optional<std::vector<bazel_re::Directory>>;
 
   private:
     std::string const instance_name_{};
