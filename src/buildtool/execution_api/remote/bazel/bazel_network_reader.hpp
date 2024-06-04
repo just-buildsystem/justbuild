@@ -25,6 +25,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -72,6 +73,8 @@ class BazelNetworkReader final {
     [[nodiscard]] auto BatchReadBlobs(
         std::vector<bazel_re::Digest> const& blobs) const noexcept
         -> std::vector<ArtifactBlob>;
+
+    [[nodiscard]] static auto Validate(BazelBlob const& blob) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP

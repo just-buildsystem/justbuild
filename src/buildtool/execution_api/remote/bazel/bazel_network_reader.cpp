@@ -140,7 +140,8 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
 
 auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
     const noexcept -> std::optional<ArtifactBlob> {
-    if (auto blob = cas_.ReadSingleBlob(instance_name_, digest)) {
+    auto blob = cas_.ReadSingleBlob(instance_name_, digest);
+    if (blob and BazelNetworkReader::Validate(*blob)) {
         return ArtifactBlob{
             ArtifactDigest{blob->digest}, blob->data, blob->is_exec};
     }
@@ -153,6 +154,12 @@ auto BazelNetworkReader::BatchReadBlobs(
     std::vector<BazelBlob> result =
         cas_.BatchReadBlobs(instance_name_, blobs.begin(), blobs.end());
 
+    auto it =
+        std::remove_if(result.begin(), result.end(), [](BazelBlob const& blob) {
+            return not BazelNetworkReader::Validate(blob);
+        });
+    result.erase(it, result.end());
+
     std::vector<ArtifactBlob> artifacts;
     artifacts.reserve(result.size());
     std::transform(result.begin(),
@@ -164,4 +171,19 @@ auto BazelNetworkReader::BatchReadBlobs(
                                            blob.is_exec};
                    });
     return artifacts;
+}
+
+auto BazelNetworkReader::Validate(BazelBlob const& blob) noexcept -> bool {
+    ArtifactDigest const rehashed_digest =
+        NativeSupport::IsTree(blob.digest.hash())
+            ? ArtifactDigest::Create<ObjectType::Tree>(*blob.data)
+            : ArtifactDigest::Create<ObjectType::File>(*blob.data);
+    if (rehashed_digest == ArtifactDigest{blob.digest}) {
+        return true;
+    }
+    Logger::Log(LogLevel::Warning,
+                "Requested {}, but received {}",
+                ArtifactDigest{blob.digest}.hash(),
+                rehashed_digest.hash());
+    return false;
 }
