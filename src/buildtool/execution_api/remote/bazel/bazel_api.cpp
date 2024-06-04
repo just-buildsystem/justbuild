@@ -58,25 +58,24 @@ namespace {
 
     // Fetch blobs from this CAS.
     auto size = digests.size();
-    auto reader = network->ReadBlobs(digests);
-    auto blobs = reader.Next();
+    auto reader = network->CreateReader();
     std::size_t count{};
     ArtifactBlobContainer container{};
-    while (not blobs.empty()) {
+    for (auto blobs : reader.ReadIncrementally(digests)) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
             return false;
         }
-        for (auto const& blob : blobs) {
-            auto digest = ArtifactDigest{blob.digest};
-            auto exec = info_map.contains(digest)
-                            ? IsExecutableObject(info_map.at(digest).type)
-                            : false;
+        for (auto& blob : blobs) {
+            blob.is_exec =
+                info_map.contains(blob.digest)
+                    ? IsExecutableObject(info_map.at(blob.digest).type)
+                    : false;
             // Collect blob and upload to other CAS if transfer size reached.
             if (not UpdateContainerAndUpload<ArtifactDigest>(
                     &container,
-                    ArtifactBlob{std::move(digest), blob.data, exec},
+                    std::move(blob),
                     /*exception_is_fatal=*/true,
                     [&api](ArtifactBlobContainer&& blobs) {
                         return api->Upload(std::move(blobs),
@@ -86,7 +85,6 @@ namespace {
             }
         }
         count += blobs.size();
-        blobs = reader.Next();
     }
 
     if (count != size) {
@@ -266,10 +264,9 @@ auto BazelApi::CreateAction(
 
     // Request file blobs
     auto size = file_digests.size();
-    auto reader = network_->ReadBlobs(std::move(file_digests));
-    auto blobs = reader.Next();
+    auto reader = network_->CreateReader();
     std::size_t count{};
-    while (not blobs.empty()) {
+    for (auto blobs : reader.ReadIncrementally(std::move(file_digests))) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
@@ -288,7 +285,6 @@ auto BazelApi::CreateAction(
             }
         }
         count += blobs.size();
-        blobs = reader.Next();
     }
 
     if (count != size) {
@@ -437,9 +433,9 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToMemory(
     Artifact::ObjectInfo const& artifact_info) noexcept
     -> std::optional<std::string> {
-    auto blobs = network_->ReadBlobs({artifact_info.digest}).Next();
-    if (blobs.size() == 1) {
-        return *blobs.at(0).data;
+    auto reader = network_->CreateReader();
+    if (auto blob = reader.ReadSingleBlob(artifact_info.digest)) {
+        return *blob->data;
     }
     return std::nullopt;
 }
@@ -468,14 +464,12 @@ auto BazelApi::CreateAction(
             *build_root,
             [&network = network_](std::vector<bazel_re::Digest> const& digests,
                                   std::vector<std::string>* targets) {
-                auto reader = network->ReadBlobs(digests);
-                auto blobs = reader.Next();
+                auto reader = network->CreateReader();
                 targets->reserve(digests.size());
-                while (not blobs.empty()) {
+                for (auto blobs : reader.ReadIncrementally(digests)) {
                     for (auto const& blob : blobs) {
                         targets->emplace_back(*blob.data);
                     }
-                    blobs = reader.Next();
                 }
             });
     }

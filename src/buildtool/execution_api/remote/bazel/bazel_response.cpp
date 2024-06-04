@@ -38,14 +38,14 @@ auto ProcessDirectoryMessage(bazel_re::Directory const& dir) noexcept
 
 auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     -> std::string {
-    auto blobs = network_->ReadBlobs({id}).Next();
-    if (blobs.empty()) {
-        Logger::Log(LogLevel::Warning,
-                    "reading digest {} from action response failed",
-                    id.hash());
-        return std::string{};
+    auto reader = network_->CreateReader();
+    if (auto blob = reader.ReadSingleBlob(ArtifactDigest{id})) {
+        return *blob->data;
     }
-    return *blobs[0].data;
+    Logger::Log(LogLevel::Warning,
+                "reading digest {} from action response failed",
+                id.hash());
+    return std::string{};
 }
 
 auto BazelResponse::Artifacts() noexcept -> ArtifactInfos {
@@ -175,10 +175,9 @@ auto BazelResponse::Populate() noexcept -> bool {
                    [](auto dir) { return dir.tree_digest(); });
 
     // collect root digests from trees and store them
-    auto blob_reader = network_->ReadBlobs(tree_digests);
-    auto tree_blobs = blob_reader.Next();
-    int pos{};
-    while (not tree_blobs.empty()) {
+    auto reader = network_->CreateReader();
+    int pos = 0;
+    for (auto tree_blobs : reader.ReadIncrementally(tree_digests)) {
         for (auto const& tree_blob : tree_blobs) {
             try {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
@@ -204,7 +203,6 @@ auto BazelResponse::Populate() noexcept -> bool {
             }
             ++pos;
         }
-        tree_blobs = blob_reader.Next();
     }
     artifacts_ = std::move(artifacts);
     dir_symlinks_ = std::move(dir_symlinks);

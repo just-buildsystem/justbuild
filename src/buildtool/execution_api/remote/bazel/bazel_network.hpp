@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -36,31 +35,6 @@
 /// \brief Contains all network clients and is responsible for all network IO.
 class BazelNetwork {
   public:
-    class BlobReader {
-        friend class BazelNetwork;
-
-      public:
-        // Obtain the next batch of blobs that can be transferred in a single
-        // request.
-        [[nodiscard]] auto Next() noexcept -> std::vector<BazelBlob>;
-
-      private:
-        std::string instance_name_;
-        gsl::not_null<BazelCasClient*> cas_;
-        std::vector<bazel_re::Digest> const ids_;
-        std::vector<bazel_re::Digest>::const_iterator begin_;
-        std::vector<bazel_re::Digest>::const_iterator current_;
-
-        BlobReader(std::string instance_name,
-                   gsl::not_null<BazelCasClient*> const& cas,
-                   std::vector<bazel_re::Digest> ids)
-            : instance_name_{std::move(instance_name)},
-              cas_{cas},
-              ids_{std::move(ids)},
-              begin_{ids_.begin()},
-              current_{begin_} {};
-    };
-
     BazelNetwork(std::string instance_name,
                  std::string const& host,
                  Port port,
@@ -98,9 +72,6 @@ class BazelNetwork {
     [[nodiscard]] auto ExecuteBazelActionSync(
         bazel_re::Digest const& action) noexcept
         -> std::optional<BazelExecutionClient::ExecutionOutput>;
-
-    [[nodiscard]] auto ReadBlobs(
-        std::vector<bazel_re::Digest> ids) const noexcept -> BlobReader;
 
     [[nodiscard]] auto CreateReader() const noexcept -> BazelNetworkReader;
 

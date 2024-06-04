@@ -50,14 +50,11 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar, baz}}));
 
     // Read blobs in order
-    auto reader = network.ReadBlobs(
-        {foo.digest, bar.digest, baz.digest, bar.digest, foo.digest});
-    std::vector<BazelBlob> blobs{};
-    while (true) {
-        auto next = reader.Next();
-        if (next.empty()) {
-            break;
-        }
+    auto reader = network.CreateReader();
+    std::vector<bazel_re::Digest> to_read{
+        foo.digest, bar.digest, baz.digest, bar.digest, foo.digest};
+    std::vector<ArtifactBlob> blobs{};
+    for (auto next : reader.ReadIncrementally(to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
     }
 
@@ -98,13 +95,10 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     bar.digest.set_size_bytes(0);
 
     // Read blobs
-    auto reader = network.ReadBlobs({foo.digest, bar.digest});
-    std::vector<BazelBlob> blobs{};
-    while (true) {
-        auto next = reader.Next();
-        if (next.empty()) {
-            break;
-        }
+    auto reader = network.CreateReader();
+    std::vector<bazel_re::Digest> to_read{foo.digest, bar.digest};
+    std::vector<ArtifactBlob> blobs{};
+    for (auto next : reader.ReadIncrementally(to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
     }
 

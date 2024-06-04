@@ -134,52 +134,6 @@ auto BazelNetwork::ExecuteBazelActionSync(
     return response.output;
 }
 
-auto BazelNetwork::BlobReader::Next() noexcept -> std::vector<BazelBlob> {
-    std::size_t size{};
-    std::vector<BazelBlob> blobs{};
-
-    try {
-        while (current_ != ids_.end()) {
-            auto blob_size = gsl::narrow<std::size_t>(current_->size_bytes());
-            size += blob_size;
-            // read if size is 0 (unknown) or exceeds transfer size
-            if (blob_size == 0 or size > kMaxBatchTransferSize) {
-                // perform read of range [begin_, current_)
-                if (begin_ == current_) {
-                    auto blob = cas_->ReadSingleBlob(instance_name_, *begin_);
-                    if (blob) {
-                        blobs.emplace_back(std::move(*blob));
-                    }
-                    ++current_;
-                }
-                else {
-                    blobs =
-                        cas_->BatchReadBlobs(instance_name_, begin_, current_);
-                }
-                begin_ = current_;
-                break;
-            }
-            ++current_;
-        }
-
-        if (begin_ != current_) {
-            blobs = cas_->BatchReadBlobs(instance_name_, begin_, current_);
-            begin_ = current_;
-        }
-    } catch (std::exception const& e) {
-        Logger::Log(
-            LogLevel::Warning, "Reading blobs failed with: {}", e.what());
-        Ensures(false);
-    }
-
-    return blobs;
-}
-
-auto BazelNetwork::ReadBlobs(std::vector<bazel_re::Digest> ids) const noexcept
-    -> BlobReader {
-    return BlobReader{instance_name_, cas_.get(), std::move(ids)};
-}
-
 auto BazelNetwork::CreateReader() const noexcept -> BazelNetworkReader {
     return BazelNetworkReader{instance_name_, *cas_};
 }
