@@ -16,6 +16,18 @@
     , "bootstrap-src-staged"
     ]
   }
+, "serve-sync":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["serve-sync"]
+  , "test": ["serve-sync.sh"]
+  , "deps":
+    [ ["", "tool-under-test"]
+    , ["", "mr-tool-under-test"]
+    , ["./", "data", "lib with generated hdr"]
+    , "bootstrap-src-staged"
+    ]
+  , "repos": [["./", "data", "lib with generated hdr"]]
+  }
 , "export-extern":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["export-extern"]
@@ -35,7 +47,7 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["artifacts-sync"]
+        , "else": ["artifacts-sync", "serve-sync"]
         }
       ]
     }

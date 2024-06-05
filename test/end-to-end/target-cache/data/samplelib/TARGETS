@@ -1,0 +1,14 @@
+{ "": {"type": "export", "target": "lib"}
+, "lib":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["foo"]
+  , "srcs": ["foo.cpp"]
+  , "hdrs": ["foo.hpp"]
+  }
+, "foo.hpp":
+  { "type": "generic"
+  , "outs": ["foo.hpp"]
+  , "cmds":
+    ["echo '// generated file' > foo.hpp", "echo 'int foo(int x);' >> foo.hpp"]
+  }
+}
