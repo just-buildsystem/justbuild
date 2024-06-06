@@ -379,3 +379,13 @@ This includes
 In this way, `just-mr` can be used to fill the CAS from one central
 point with all the information the clients need to treat all
 content-fixed roots as absent.
+
+### Target-level cache writing in the presence of some targets served
+
+When building, `just` normally does not create an entry for
+target-level cache hit received from `just serve`. However, it
+might happen that `just` has to analyse an eligible `export`
+target locally, as the `just serve` instance cannot provide it, and
+during that analysis `export` targets provided by `just serve` are
+encountered. In this case, the writing of the export targets depending
+on served targets is skipped.
