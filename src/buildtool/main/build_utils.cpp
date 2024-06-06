@@ -160,7 +160,7 @@ void WriteTargetCacheEntries(
     TargetCacheWriteStrategy strategy,
     TargetCache<true> const& tc,
     Logger const* logger,
-    bool strict_logging) {
+    LogLevel log_level) {
     if (strategy == TargetCacheWriteStrategy::Disable) {
         return;
     }
@@ -186,12 +186,11 @@ void WriteTargetCacheEntries(
             &ts,
             cache_targets_ids,
             []([[maybe_unused]] auto _) {},  // map doesn't set anything
-            [&failed, logger, strict_logging](auto const& msg, bool fatal) {
-                Logger::Log(
-                    logger,
-                    strict_logging ? LogLevel::Error : LogLevel::Warning,
-                    "While writing target cache entries:\n{}",
-                    msg);
+            [&failed, logger, log_level](auto const& msg, bool fatal) {
+                Logger::Log(logger,
+                            log_level,
+                            "While writing target cache entries:\n{}",
+                            msg);
                 failed = failed or fatal;
             });
     }
@@ -201,9 +200,7 @@ void WriteTargetCacheEntries(
     }
     if (auto error = DetectAndReportCycle(
             "writing cache targets", tc_writer_map, kObjectInfoPrinter)) {
-        Logger::Log(logger,
-                    strict_logging ? LogLevel::Error : LogLevel::Warning,
-                    *error);
+        Logger::Log(logger, log_level, *error);
         return;
     }
 

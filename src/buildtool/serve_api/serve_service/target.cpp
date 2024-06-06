@@ -518,7 +518,7 @@ auto TargetService::ServeTarget(
                             RemoteServeConfig::TCStrategy(),
                             tc,
                             &logger,
-                            true /*strict_logging*/);
+                            LogLevel::Error);
 
     if (build_result->failed_artifacts) {
         // report failure locally, to keep track of it...

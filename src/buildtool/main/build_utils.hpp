@@ -31,6 +31,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -93,7 +94,7 @@ void WriteTargetCacheEntries(
     TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync,
     TargetCache<true> const& tc = Storage::Instance().TargetCache(),
     Logger const* logger = nullptr,
-    bool strict_logging = false);
+    LogLevel log_level = LogLevel::Warning);
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP

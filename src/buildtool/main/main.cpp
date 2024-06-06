@@ -1109,7 +1109,12 @@ auto main(int argc, char* argv[]) -> int {
                         jobs,
                         traverser.GetLocalApi(),
                         traverser.GetRemoteApi(),
-                        arguments.tc.target_cache_write_strategy);
+                        arguments.tc.target_cache_write_strategy,
+                        Storage::Instance().TargetCache(),
+                        nullptr,
+                        arguments.serve.remote_serve_address
+                            ? LogLevel::Performance
+                            : LogLevel::Warning);
 
                     // Repeat taintedness message to make the user aware that
                     // the artifacts are not for production use.
