@@ -83,8 +83,15 @@ auto CreateTargetCacheWriterMap(
             TargetCacheKey tc_key{key};
             // check if entry actually needs storing
             if (not cache_targets.contains(tc_key)) {
-                // entry already in target-cache, so nothing to be done
-                (*setter)(nullptr);
+                if (tc.Read(tc_key)) {
+                    // entry already in target-cache, so nothing to be done
+                    (*setter)(nullptr);
+                    return;
+                }
+                (*logger)(fmt::format("Export target {} not analysed locally; "
+                                      "not caching anything depending on it",
+                                      key.ToString()),
+                          true);
                 return;
             }
             auto const& target = cache_targets.at(tc_key);
