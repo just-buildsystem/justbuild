@@ -8,7 +8,18 @@ A feature release on top of `1.3.0`, backwards compatible.
   error when building against ignore-special roots.
 - `just` now accurately reports internal errors that occured on
   the serve endpoint.
+- Target-level cache entries are only written if all export targets
+  depended upon are also written to or found in cache; previously,
+  it was assumed that all export targets not analysed locally
+  were local cache hits, an assumption that no longer holds in
+  the presence of serve end points. This fixes a cache consistency
+  problem if the same remote-execution endpoint is used both, with
+  and without a serve endpoint.
+- Internal code clean up, reducing memory footprint, in particular
+  for simultaneous upload of a large number of blobs.
 - Dependencies have been updated to also build with gcc 14.
+- Porability improvements of the code by not relying on implementation
+  details of the compiler.
 - Various improvements of the documentation.
 
 ## Release `1.3.0` (2024-05-08)
