@@ -62,8 +62,8 @@ void WithFlexibleVariables(
                   /*fatal=*/true);
         return;
     }
-    auto target_cache_key =
-        TargetCacheKey::Create(*repo_key, target_name, effective_config);
+    auto target_cache_key = Storage::Instance().TargetCache().ComputeKey(
+        *repo_key, target_name, effective_config);
     if (not target_cache_key) {
         (*logger)(fmt::format("Could not produce cache key for target {}",
                               key.target.ToString()),

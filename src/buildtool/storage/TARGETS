@@ -37,8 +37,7 @@
     ]
   , "private-hdrs": ["compactification_task.hpp"]
   , "srcs":
-    [ "target_cache_key.cpp"
-    , "target_cache_entry.cpp"
+    [ "target_cache_entry.cpp"
     , "garbage_collector.cpp"
     , "compactifier.cpp"
     , "compactification_task.cpp"

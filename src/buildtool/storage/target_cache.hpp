@@ -22,6 +22,8 @@
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -92,6 +94,15 @@ class TargetCache {
         TargetCacheKey const& key,
         TargetCacheEntry const& value,
         ArtifactDownloader const& downloader) const noexcept -> bool;
+
+    /// \brief Calculate TargetCacheKey based on auxiliary information.
+    /// Doesn't create a TargetCacheEntry in the TargetCache.
+    /// \return TargetCacheKey on success.
+    [[nodiscard]] auto ComputeKey(
+        std::string const& repo_key,
+        BuildMaps::Base::NamedTarget const& target_name,
+        Configuration const& effective_config) const noexcept
+        -> std::optional<TargetCacheKey>;
 
     /// \brief Read existing entry and object info from the target cache.
     /// \param key  The target-cache key to read the entry from.

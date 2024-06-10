@@ -40,6 +40,32 @@ auto TargetCache<kDoGlobalUplink>::Store(
 }
 
 template <bool kDoGlobalUplink>
+auto TargetCache<kDoGlobalUplink>::ComputeKey(
+    std::string const& repo_key,
+    BuildMaps::Base::NamedTarget const& target_name,
+    Configuration const& effective_config) const noexcept
+    -> std::optional<TargetCacheKey> {
+    try {
+        // target's repository is content-fixed, we can compute a cache key
+        auto target_desc = nlohmann::json{
+            {"repo_key", repo_key},
+            {"target_name",
+             nlohmann::json{target_name.module, target_name.name}.dump()},
+            {"effective_config", effective_config.ToString()}};
+        if (auto target_key =
+                cas_->StoreBlob(target_desc.dump(2), /*is_executable=*/false)) {
+            return TargetCacheKey{
+                {ArtifactDigest{*target_key}, ObjectType::File}};
+        }
+    } catch (std::exception const& ex) {
+        logger_->Emit(LogLevel::Error,
+                      "Creating target cache key failed with:\n{}",
+                      ex.what());
+    }
+    return std::nullopt;
+}
+
+template <bool kDoGlobalUplink>
 auto TargetCache<kDoGlobalUplink>::Read(
     TargetCacheKey const& key) const noexcept
     -> std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>> {

@@ -132,7 +132,7 @@ void ExportRule(
     auto repo_key = repo_config->RepositoryKey(target_name.repository);
     auto target_cache_key =
         repo_key
-            ? TargetCacheKey::Create(*repo_key, target_name, effective_config)
+            ? target_cache.ComputeKey(*repo_key, target_name, effective_config)
             : std::nullopt;
 
     if (target_cache_key) {

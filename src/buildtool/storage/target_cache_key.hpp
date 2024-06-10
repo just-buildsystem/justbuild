@@ -15,23 +15,14 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
 
-#include <functional>
-#include <optional>
 #include <utility>
 
-#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
-#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
 
 // Key for target cache. Created from target name and effective config.
 class TargetCacheKey {
   public:
     explicit TargetCacheKey(Artifact::ObjectInfo id) : id_{std::move(id)} {}
-    [[nodiscard]] static auto Create(
-        std::string const& repo_key,
-        BuildMaps::Base::NamedTarget const& target_name,
-        Configuration const& effective_config) noexcept
-        -> std::optional<TargetCacheKey>;
 
     [[nodiscard]] auto Id() const& -> Artifact::ObjectInfo const& {
         return id_;
