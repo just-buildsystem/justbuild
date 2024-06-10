@@ -11,6 +11,19 @@
     , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
     }
   }
+, "default-PROTOCFLAGS":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "proto-defaults"]
+      , ["provider", "PROTOCFLAGS"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      ]
+    , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+    }
+  }
 , "default-LDFLAGS":
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "../..", "field_list_provider"]}
@@ -128,6 +141,7 @@
     , "artifacts_list": ["./", "../..", "field_artifacts_list"]
     , "protoc-deps": "protoc-deps"
     , "default-PROTOC": "default-PROTOC"
+    , "default-PROTOCFLAGS": "default-PROTOCFLAGS"
     , "default-LDFLAGS": "default-LDFLAGS"
     , "default-GRPC_PLUGIN": "default-GRPC_PLUGIN"
     , "default-ENV": "default-ENV"
@@ -297,10 +311,9 @@
       , [ "cmd"
         , { "type": "++"
           , "$1":
-            [ [ {"type": "var", "name": "PROTOC"}
-              , "--proto_path=work"
-              , "--cpp_out=work"
-              ]
+            [ [{"type": "var", "name": "PROTOC"}]
+            , {"type": "CALL_EXPRESSION", "name": "default-PROTOCFLAGS"}
+            , ["--proto_path=work", "--cpp_out=work"]
             , { "type": "if"
               , "cond": {"type": "var", "name": "service support"}
               , "then":

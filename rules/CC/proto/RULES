@@ -7,7 +7,14 @@
     ]
   , "target_fields": ["base", "toolchain", "deps"]
   , "string_fields":
-    ["PROTOC", "LDFLAGS", "ADD_LDFLAGS", "GRPC_PLUGIN", "PATH"]
+    [ "PROTOC"
+    , "PROTOCFLAGS"
+    , "ADD_PROTOCFLAGS"
+    , "LDFLAGS"
+    , "ADD_LDFLAGS"
+    , "GRPC_PLUGIN"
+    , "PATH"
+    ]
   , "config_vars": ["ARCH", "HOST_ARCH"]
   , "field_doc":
     { "base":
@@ -40,6 +47,14 @@
       , "plugin. If \"toolchain\" is non-empty, this field's value is assumed"
       , "to be the relative path to the plugin in \"toolchain\". Specifying"
       , "this field overwrites values from \"base\"."
+      ]
+    , "PROTOCFLAGS":
+      [ "Protobuf compiler flags. Specifying this field overwrites values from"
+      , "\"base\"."
+      ]
+    , "ADD_PROTOCFLAGS":
+      [ "Additional protobuf compiler flags. Specifying this field extends"
+      , "values from \"base\"."
       ]
     , "LDFLAGS":
       [ "Linker flags for linking the final CC library. Specifying this field"
@@ -74,6 +89,7 @@
     { "type": "let*"
     , "bindings":
       [ ["PROTOC", {"type": "FIELD", "name": "PROTOC"}]
+      , ["PROTOCFLAGS", {"type": "FIELD", "name": "PROTOCFLAGS"}]
       , ["LDFLAGS", {"type": "FIELD", "name": "LDFLAGS"}]
       , ["GRPC_PLUGIN", {"type": "FIELD", "name": "GRPC_PLUGIN"}]
       , ["PATH", {"type": "FIELD", "name": "PATH"}]
@@ -83,6 +99,14 @@
           , "cond": {"type": "var", "name": "PROTOC"}
           , "then": {"type": "var", "name": "PROTOC"}
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
+      , ["provider", "PROTOCFLAGS"]
+      , [ "PROTOCFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PROTOCFLAGS"}
+          , "then": {"type": "var", "name": "PROTOCFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
       , ["provider", "LDFLAGS"]
@@ -186,6 +210,14 @@
             }
           }
         ]
+      , [ "PROTOCFLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "PROTOCFLAGS"}
+            , {"type": "FIELD", "name": "ADD_PROTOCFLAGS"}
+            ]
+          }
+        ]
       , [ "LDFLAGS"
         , { "type": "++"
           , "$1":
@@ -215,6 +247,7 @@
         { "type": "env"
         , "vars":
           [ "PROTOC"
+          , "PROTOCFLAGS"
           , "LDFLAGS"
           , "GRPC_PLUGIN"
           , "PATH"
