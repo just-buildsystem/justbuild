@@ -15,25 +15,32 @@ opaque objects, which has two advantages.
   latter addition of artifacts are already detected now.
 
 However, there are some use cases not covered by this way of handling
-trees. E.g., when creating disk images, it might be desirable to
-add project-specific artifacts to a tree obtained as directory
-output of an action calling a foreign build system. Of course,
-there need to be some out-of-band understanding where artifacts
-can be placed without messing up the original tree, but often this
-is the case, despite this being hard to formulate in a way that
-can be verified by a build system. A similar situation might occur
-when a third-party library is built using a foreign build system
-and, in order to keep the description maintainable over updates,
-the include files are collected as a whole directory.
+trees. E.g., when creating disk images, it might be desirable to add
+project-specific artifacts to a tree obtained as directory output
+of an action calling a foreign build system. Of course, there need
+to be some out-of-band understanding where artifacts can be placed
+without messing up the original tree, but often this is the case,
+despite this being hard to formulate in a way that can be verified
+by a build system; however, it is easy for a build system to verify
+after the fact (i.e., once the trees are computed) that certain
+trees do not conflict on any path. Such an after-the-fact check is
+often maintainable enough and still guarantees that no files needed
+for the disk image to work get lost during the build process.
+
+A similar need for overlaying trees might occur when a third-party
+library is built using a foreign build system and, in order to keep
+the description maintainable over updates, the include files are
+collected as a whole directory.
 
 ## Proposed Changes
 
-We propose to add a new type of (in-memory) action `TREE_OVERLAY`
-that rules can use to construct new trees out of existing ones
-by overlaying the contents. For ad-hoc constructions, we also add
-a built-in rule `tree_overlay` reflecting this additional action
-constructor. The following sections describe the needed changes
-in detail.
+We propose to add a new type of (in-memory) action `TREE_OVERLAY` that
+rules can use to construct new trees out of existing ones by overlaying
+the contents; we propose to also a variant `DISJOINT_TREE_OVERLAY`
+that enforces that the overlayed trees do not conflict on any path.
+For ad-hoc constructions, we also add a built-in rule `tree_overlay`
+reflecting this additional action constructors. The following
+sections describe the needed changes in detail.
 
 ### Action graph data structure: new action of overlaying trees
 
@@ -48,7 +55,9 @@ Currently, the action graph is given by
 
 We propose to extend that data structure by introducing a new category
 `"tree overlays"` mapping (intensional) names to their definition
-as a list of existing tree artifacts. The extensional value of such
+as a list of existing tree artifacts, together with a bit indicating if
+the build should be aborted if the overlayed trees conflict on any path.
+The extensional value of such
 a tree overlay is obtained by starting with the empty tree and,
 sequentially in the given order, overlay the extensional value of
 the defining artifacts. Here, the overlay of one tree by another is
@@ -82,14 +91,15 @@ CAS in topological order, in order to keep the tree invariant.
 
 ### Additional function in rule definition: `TREE_OVERLAY`
 
-In the defining expressions of rules, an additional constructor
-`TREE_OVERLAY` is added that (like `ACTION`, `BLOB`, and `TREE`)
-can be used to describe parts of the action graph. This constructor
-has one argument `"deps"` which has to evaluate to a list of
-tree-conflict&mdash;free mappings of strings to artifacts, also
-called "stages". The result of this function is a single artifact,
-the tree defined to be the overlay of the trees corresponding to
-the stages.
+In the defining expressions of rules, two additional constructors
+`TREE_OVERLAY` and `DISJOINT_TREE_OVERLAY` are added that (like
+`ACTION`, `BLOB`, and `TREE`) can be used to describe parts of the
+action graph. These constructors have one argument `"deps"` which
+has to evaluate to a list of tree-conflict&mdash;free mappings
+of strings to artifacts, also called "stages". The result of this
+function is a single artifact, the tree defined to be the overlay
+or conflict-free overlay, respectively, of the trees corresponding
+to the stages.
 
 The reason we require stages to be passed to the new constructor
 rather than artifacts that happen to be trees is twofold.
@@ -106,9 +116,10 @@ rather than artifacts that happen to be trees is twofold.
 
 ### Additional built-in function `tree_overlay`
 
-To stay consistent with the idea that any build primitive also
-has a corresponding built-in rule type, we also add an additional
-built-in rule `"tree_overlay"`. It has a single field `"deps"`
-which expects a list of targets. Both, runfiles and artifacts of
-the `"tree_overlay"` target are the tree overlays of the artifacts
-of the specified `"deps"` targets in the specified order.
+To stay consistent with the idea that any build primitive also has
+a corresponding built-in rule type, we also add additional built-in
+rules `"tree_overlay"` and `"disjoint_tree_overlay"`. They have a
+single field `"deps"` which expects a list of targets. Both, runfiles
+and artifacts of the `"tree_overlay"` target are the tree overlays
+or conflict-free tree overlay, respectively, of the artifacts of
+the specified `"deps"` targets in the specified order.
