@@ -18,9 +18,13 @@
 #include <utility>  // std::move
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/json.hpp"
 #endif
@@ -29,15 +33,13 @@
 
 namespace {
 void WithFlexibleVariables(
+    const gsl::not_null<AnalyseContext*>& context,
     const BuildMaps::Target::ConfiguredTarget& key,
     std::vector<std::string> flexible_vars,
-    gsl::not_null<const RepositoryConfig*> const& repo_config,
     const BuildMaps::Target::AbsentTargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::AbsentTargetMap::SetterPtr& setter,
     const BuildMaps::Target::AbsentTargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map,
-    gsl::not_null<Statistics*> const& stats,
-    gsl::not_null<Progress*> const& exports_progress,
     BuildMaps::Target::ServeFailureLogReporter* serve_failure_reporter) {
     auto effective_config = key.config.Prune(flexible_vars);
     if (key.config != effective_config) {
@@ -53,16 +55,16 @@ void WithFlexibleVariables(
     }
 
     // TODO(asartori): avoid code duplication in export.cpp
-    stats->IncrementExportsFoundCounter();
+    context->statistics->IncrementExportsFoundCounter();
     auto target_name = key.target.GetNamedTarget();
-    auto repo_key = repo_config->RepositoryKey(target_name.repository);
+    auto repo_key = context->repo_config->RepositoryKey(target_name.repository);
     if (!repo_key) {
         (*logger)(fmt::format("Failed to obtain repository key for repo \"{}\"",
                               target_name.repository),
                   /*fatal=*/true);
         return;
     }
-    auto target_cache_key = Storage::Instance().TargetCache().ComputeKey(
+    auto target_cache_key = context->target_cache.ComputeKey(
         *repo_key, target_name, effective_config);
     if (not target_cache_key) {
         (*logger)(fmt::format("Could not produce cache key for target {}",
@@ -72,8 +74,7 @@ void WithFlexibleVariables(
     }
     std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>
         target_cache_value{std::nullopt};
-    target_cache_value =
-        Storage::Instance().TargetCache().Read(*target_cache_key);
+    target_cache_value = context->target_cache.Read(*target_cache_key);
     bool from_just_serve = false;
     if (!target_cache_value) {
         auto task = fmt::format("[{},{}]",
@@ -84,7 +85,7 @@ void WithFlexibleVariables(
             "Querying serve endpoint for absent export target {} with key {}",
             task,
             key.target.ToString());
-        exports_progress->TaskTracker().Start(task);
+        context->progress->TaskTracker().Start(task);
         auto res =
             ServeApi::Instance().ServeTarget(*target_cache_key, *repo_key);
         // process response from serve endpoint
@@ -125,7 +126,7 @@ void WithFlexibleVariables(
             default: {
                 // index == 3
                 target_cache_value = std::get<3>(*res);
-                exports_progress->TaskTracker().Stop(task);
+                context->progress->TaskTracker().Stop(task);
                 from_just_serve = true;
             }
         }
@@ -170,10 +171,10 @@ void WithFlexibleVariables(
 
         (*setter)(std::move(analysis_result));
         if (from_just_serve) {
-            stats->IncrementExportsServedCounter();
+            context->statistics->IncrementExportsServedCounter();
         }
         else {
-            stats->IncrementExportsCachedCounter();
+            context->statistics->IncrementExportsCachedCounter();
         }
         return;
     }
@@ -216,75 +217,63 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(std::size_t jobs)
 }
 
 auto BuildMaps::Target::CreateAbsentTargetMap(
+    const gsl::not_null<AnalyseContext*>& context,
     const gsl::not_null<ResultTargetMap*>& result_map,
     const gsl::not_null<AbsentTargetVariablesMap*>& absent_variables,
-    gsl::not_null<const RepositoryConfig*> const& repo_config,
-    gsl::not_null<Statistics*> const& stats,
-    gsl::not_null<Progress*> const& exports_progress,
     std::size_t jobs,
     BuildMaps::Target::ServeFailureLogReporter* serve_failure_reporter)
     -> AbsentTargetMap {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    auto target_reader = [result_map,
-                          repo_config,
-                          stats,
-                          exports_progress,
-                          absent_variables,
-                          serve_failure_reporter](auto ts,
-                                                  auto setter,
-                                                  auto logger,
-                                                  auto subcaller,
-                                                  auto key) {
-        // assumptions:
-        // - target with absent targets file requested
-        // - ServeApi correctly configured
-        auto const& repo_name = key.target.ToModule().repository;
-        auto target_root_id =
-            repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
-        if (!target_root_id) {
-            (*logger)(fmt::format("Failed to get the target root id for "
-                                  "repository \"{}\"",
-                                  repo_name),
-                      /*fatal=*/true);
-            return;
-        }
-        std::filesystem::path module{key.target.ToModule().module};
-        auto vars_request = AbsentTargetDescription{
-            .target_root_id = *target_root_id,
-            .target_file =
-                (module / *(repo_config->TargetFileName(repo_name))).string(),
-            .target = key.target.GetNamedTarget().name};
-        absent_variables->ConsumeAfterKeysReady(
-            ts,
-            {vars_request},
-            [key,
-             setter,
-             repo_config,
-             logger,
-             serve_failure_reporter,
-             result_map,
-             stats,
-             exports_progress,
-             subcaller](auto const& values) {
-                WithFlexibleVariables(key,
-                                      *(values[0]),
-                                      repo_config,
-                                      subcaller,
-                                      setter,
-                                      logger,
-                                      result_map,
-                                      stats,
-                                      exports_progress,
-                                      serve_failure_reporter);
-            },
-            [logger, target = key.target](auto const& msg, auto fatal) {
-                (*logger)(fmt::format("While requested the flexible "
-                                      "variables of {}:\n{}",
-                                      target.ToString(),
-                                      msg),
-                          fatal);
-            });
-    };
+    auto target_reader =
+        [context, result_map, absent_variables, serve_failure_reporter](
+            auto ts, auto setter, auto logger, auto subcaller, auto key) {
+            // assumptions:
+            // - target with absent targets file requested
+            // - ServeApi correctly configured
+            auto const& repo_name = key.target.ToModule().repository;
+            auto target_root_id =
+                context->repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
+            if (!target_root_id) {
+                (*logger)(fmt::format("Failed to get the target root id for "
+                                      "repository \"{}\"",
+                                      repo_name),
+                          /*fatal=*/true);
+                return;
+            }
+            std::filesystem::path module{key.target.ToModule().module};
+            auto vars_request = AbsentTargetDescription{
+                .target_root_id = *target_root_id,
+                .target_file = (module / *(context->repo_config->TargetFileName(
+                                             repo_name)))
+                                   .string(),
+                .target = key.target.GetNamedTarget().name};
+            absent_variables->ConsumeAfterKeysReady(
+                ts,
+                {vars_request},
+                [context,
+                 key,
+                 setter,
+                 logger,
+                 serve_failure_reporter,
+                 result_map,
+                 subcaller](auto const& values) {
+                    WithFlexibleVariables(context,
+                                          key,
+                                          *(values[0]),
+                                          subcaller,
+                                          setter,
+                                          logger,
+                                          result_map,
+                                          serve_failure_reporter);
+                },
+                [logger, target = key.target](auto const& msg, auto fatal) {
+                    (*logger)(fmt::format("While requested the flexible "
+                                          "variables of {}:\n{}",
+                                          target.ToString(),
+                                          msg),
+                              fatal);
+                });
+        };
 #else
     auto target_reader = [](auto /*ts*/,
                             auto /*setter*/,

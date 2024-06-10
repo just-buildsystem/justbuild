@@ -47,11 +47,9 @@
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/main", "analyse_context"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     ]
@@ -73,6 +71,9 @@
     , ["src/utils/cpp", "vector"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/progress_reporting", "progress"]
     ]
   }
 , "target_map_testable_internals":
@@ -102,11 +103,9 @@
     [ "configured_target"
     , "result_map"
     , ["src/buildtool/build_engine/analysed_target", "target"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/progress_reporting", "progress"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/buildtool/main", "analyse_context"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "target_map"]
@@ -117,6 +116,9 @@
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/utils/cpp", "json"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/progress_reporting", "progress"]
     ]
   }
 }

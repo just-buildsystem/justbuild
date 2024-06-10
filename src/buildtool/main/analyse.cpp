@@ -31,7 +31,6 @@
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
-#include "src/buildtool/progress_reporting/progress.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/remote/config.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -94,50 +93,41 @@ namespace Target = BuildMaps::Target;
 }  // namespace
 
 [[nodiscard]] auto AnalyseTarget(
+    gsl::not_null<AnalyseContext*> const& context,
     const Target::ConfiguredTarget& id,
     gsl::not_null<Target::ResultTargetMap*> const& result_map,
-    gsl::not_null<const RepositoryConfig*> const& repo_config,
-    ActiveTargetCache const& target_cache,
-    gsl::not_null<Statistics*> const& stats,
     std::size_t jobs,
     std::optional<std::string> const& request_action_input,
     Logger const* logger,
     BuildMaps::Target::ServeFailureLogReporter* serve_log)
     -> std::optional<AnalysisResult> {
-    // create progress tracker for export targets
-    Progress exports_progress{};
     // create async maps
-    auto directory_entries = Base::CreateDirectoryEntriesMap(repo_config, jobs);
+    auto directory_entries =
+        Base::CreateDirectoryEntriesMap(context->repo_config, jobs);
     auto expressions_file_map =
-        Base::CreateExpressionFileMap(repo_config, jobs);
-    auto rule_file_map = Base::CreateRuleFileMap(repo_config, jobs);
-    auto targets_file_map = Base::CreateTargetsFileMap(repo_config, jobs);
-    auto expr_map =
-        Base::CreateExpressionMap(&expressions_file_map, repo_config, jobs);
-    auto rule_map =
-        Base::CreateRuleMap(&rule_file_map, &expr_map, repo_config, jobs);
-    auto source_targets =
-        Base::CreateSourceTargetMap(&directory_entries, repo_config, jobs);
+        Base::CreateExpressionFileMap(context->repo_config, jobs);
+    auto rule_file_map = Base::CreateRuleFileMap(context->repo_config, jobs);
+    auto targets_file_map =
+        Base::CreateTargetsFileMap(context->repo_config, jobs);
+    auto expr_map = Base::CreateExpressionMap(
+        &expressions_file_map, context->repo_config, jobs);
+    auto rule_map = Base::CreateRuleMap(
+        &rule_file_map, &expr_map, context->repo_config, jobs);
+    auto source_targets = Base::CreateSourceTargetMap(
+        &directory_entries, context->repo_config, jobs);
     auto absent_target_variables_map =
         Target::CreateAbsentTargetVariablesMap(jobs);
-    auto absent_target_map =
-        Target::CreateAbsentTargetMap(result_map,
-                                      &absent_target_variables_map,
-                                      repo_config,
-                                      stats,
-                                      &exports_progress,
-                                      jobs,
-                                      serve_log);
-    auto target_map = Target::CreateTargetMap(&source_targets,
+
+    auto absent_target_map = Target::CreateAbsentTargetMap(
+        context, result_map, &absent_target_variables_map, jobs, serve_log);
+
+    auto target_map = Target::CreateTargetMap(context,
+                                              &source_targets,
                                               &targets_file_map,
                                               &rule_map,
                                               &directory_entries,
                                               &absent_target_map,
                                               result_map,
-                                              repo_config,
-                                              target_cache,
-                                              stats,
-                                              &exports_progress,
                                               jobs);
     Logger::Log(
         logger, LogLevel::Info, "Requested target is {}", id.ToString());
@@ -154,7 +144,7 @@ namespace Target = BuildMaps::Target;
     std::atomic<bool> done{false};
     std::condition_variable cv{};
     auto reporter = ExportsProgressReporter::Reporter(
-        stats, &exports_progress, has_serve, logger);
+        context->statistics, context->progress, has_serve, logger);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

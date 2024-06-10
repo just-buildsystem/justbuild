@@ -28,27 +28,21 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
-#include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/buildtool/progress_reporting/progress.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
 
 namespace BuildMaps::Target {
 
 using TargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 
 auto CreateTargetMap(
+    const gsl::not_null<AnalyseContext*>&,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>&,
     const gsl::not_null<BuildMaps::Base::TargetsFileMap*>&,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>&,
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&,
     const gsl::not_null<AbsentTargetMap*>&,
     const gsl::not_null<ResultTargetMap*>&,
-    const gsl::not_null<const RepositoryConfig*>&,
-    const ActiveTargetCache&,
-    const gsl::not_null<Statistics*>& stats,
-    const gsl::not_null<Progress*>& exports_progress,
     std::size_t jobs = 0) -> TargetMap;
 
 // use explicit cast to std::function to allow template deduction when used

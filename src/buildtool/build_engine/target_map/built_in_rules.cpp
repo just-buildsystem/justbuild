@@ -32,6 +32,7 @@
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/export.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
 
@@ -376,19 +377,16 @@ void BlobGenRule(
 }
 
 void FileGenRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
     BlobGenRule(desc_json,
                 key,
-                repo_config,
+                context->repo_config,
                 subcaller,
                 setter,
                 logger,
@@ -397,19 +395,16 @@ void FileGenRule(
 }
 
 void SymlinkRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
     BlobGenRule(desc_json,
                 key,
-                repo_config,
+                context->repo_config,
                 subcaller,
                 setter,
                 logger,
@@ -535,12 +530,9 @@ void TreeRuleWithDeps(
 }
 
 void TreeRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -579,7 +571,7 @@ void TreeRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &dep_name](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing dep entry {} failed with:\n{}",
                                       dep_name->ToString(),
@@ -797,12 +789,9 @@ void InstallRuleWithDeps(
 }
 
 void InstallRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -843,7 +832,7 @@ void InstallRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &dep_name](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing dep entry {} failed with:\n{}",
                                       dep_name->ToString(),
@@ -888,7 +877,7 @@ void InstallRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &dep_name, &path = path](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing file entry {} for key {} failed "
                                       "with:\n{}",
@@ -939,7 +928,7 @@ void InstallRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             entry->List()[0],
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &entry](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing dir entry {} for path {} failed "
                                       "with:\n{}",
@@ -1385,16 +1374,13 @@ void GenericRuleWithDeps(
 }
 
 void GenericRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map) {
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
         desc_json, key.target, "generic target", logger);
     desc->ExpectFields(kGenericRuleFields);
@@ -1428,7 +1414,7 @@ void GenericRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &dep_name](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing dep entry {} failed with:\n{}",
                                       dep_name->ToString(),
@@ -1450,13 +1436,13 @@ void GenericRule(
          setter,
          logger,
          key,
-         repo_config,
+         context,
          result_map](auto const& values) {
             GenericRuleWithDeps(transition_keys,
                                 values,
                                 desc,
                                 key,
-                                repo_config,
+                                context->repo_config,
                                 setter,
                                 logger,
                                 result_map);
@@ -1465,12 +1451,9 @@ void GenericRule(
 }
 
 void ConfigureRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    [[maybe_unused]] const ActiveTargetCache& /*target_cache*/,
-    [[maybe_unused]] const gsl::not_null<Statistics*>& /*stats*/,
-    [[maybe_unused]] const gsl::not_null<Progress*>& /*exports_progress*/,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1500,7 +1483,7 @@ void ConfigureRule(
     auto configured_target = BuildMaps::Base::ParseEntityNameFromExpression(
         configured_target_name,
         key.target,
-        repo_config,
+        context->repo_config,
         [&logger, &configured_target_name](std::string const& parse_err) {
             (*logger)(fmt::format("Parsing target name {} failed with:\n{}",
                                   configured_target_name->ToString(),
@@ -1608,16 +1591,13 @@ void ConfigureRule(
 auto const kBuiltIns = std::unordered_map<
     std::string,
     std::function<void(
+        const gsl::not_null<AnalyseContext*>&,
         const nlohmann::json&,
         const BuildMaps::Target::ConfiguredTarget&,
-        const gsl::not_null<const RepositoryConfig*>&,
-        const ActiveTargetCache&,
-        const gsl::not_null<Statistics*>&,
-        const gsl::not_null<Progress*>&,
         const BuildMaps::Target::TargetMap::SubCallerPtr&,
         const BuildMaps::Target::TargetMap::SetterPtr&,
         const BuildMaps::Target::TargetMap::LoggerPtr&,
-        const gsl::not_null<BuildMaps::Target::ResultTargetMap*>)>>{
+        const gsl::not_null<BuildMaps::Target::ResultTargetMap*>&)>>{
     {"export", ExportRule},
     {"file_gen", FileGenRule},
     {"tree", TreeRule},
@@ -1640,13 +1620,10 @@ auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool {
 }
 
 auto HandleBuiltin(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& rule_type,
     const nlohmann::json& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    const ActiveTargetCache& target_cache,
-    const gsl::not_null<Statistics*>& stats,
-    const gsl::not_null<Progress*>& exports_progress,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1669,16 +1646,8 @@ auto HandleBuiltin(
                                   msg),
                       fatal);
         });
-    (it->second)(desc,
-                 key,
-                 repo_config,
-                 target_cache,
-                 stats,
-                 exports_progress,
-                 subcaller,
-                 setter,
-                 target_logger,
-                 result_map);
+    (it->second)(
+        context, desc, key, subcaller, setter, target_logger, result_map);
     return true;
 }
 }  // namespace BuildMaps::Target

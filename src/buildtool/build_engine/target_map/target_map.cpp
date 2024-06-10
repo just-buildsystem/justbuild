@@ -37,6 +37,8 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -1370,11 +1372,8 @@ void withRuleDefinition(
 }
 
 void withTargetsFile(
+    const gsl::not_null<AnalyseContext*>& context,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    const ActiveTargetCache& target_cache,
-    const gsl::not_null<Statistics*>& stats,
-    const gsl::not_null<Progress*>& exports_progress,
     const nlohmann::json& targets_file,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
@@ -1409,18 +1408,14 @@ void withTargetsFile(
             return;
         }
         // Handle built-in rule, if it is
-        auto handled_as_builtin =
-            BuildMaps::Target::HandleBuiltin(*rule_it,
-                                             desc,
-                                             key,
-                                             repo_config,
-                                             target_cache,
-                                             stats,
-                                             exports_progress,
-                                             subcaller,
-                                             setter,
-                                             logger,
-                                             result_map);
+        auto handled_as_builtin = BuildMaps::Target::HandleBuiltin(context,
+                                                                   *rule_it,
+                                                                   desc,
+                                                                   key,
+                                                                   subcaller,
+                                                                   setter,
+                                                                   logger,
+                                                                   result_map);
         if (handled_as_builtin) {
             return;
         }
@@ -1429,7 +1424,7 @@ void withTargetsFile(
         auto rule_name = BuildMaps::Base::ParseEntityNameFromJson(
             *rule_it,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &rule_it, &key](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing rule name {} for target {} "
                                       "failed with:\n{}",
@@ -1457,7 +1452,7 @@ void withTargetsFile(
              setter,
              logger,
              key,
-             repo_config,
+             context,
              result_map,
              rn = *rule_name](auto values) {
                 auto data = TargetData::FromFieldReader(*values[0], desc);
@@ -1473,7 +1468,7 @@ void withTargetsFile(
                     *values[0],
                     data,
                     key,
-                    repo_config,
+                    context->repo_config,
                     subcaller,
                     setter,
                     std::make_shared<AsyncMapConsumerLogger>(
@@ -1791,6 +1786,7 @@ void GlobTargetWithDirEntry(
 
 namespace BuildMaps::Target {
 auto CreateTargetMap(
+    const gsl::not_null<AnalyseContext*>& context,
     const gsl::not_null<BuildMaps::Base::SourceTargetMap*>& source_target_map,
     const gsl::not_null<BuildMaps::Base::TargetsFileMap*>& targets_file_map,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
@@ -1798,10 +1794,6 @@ auto CreateTargetMap(
         directory_entries_map,
     const gsl::not_null<AbsentTargetMap*>& absent_target_map,
     const gsl::not_null<ResultTargetMap*>& result_map,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
-    const ActiveTargetCache& target_cache,
-    const gsl::not_null<Statistics*>& stats,
-    const gsl::not_null<Progress*>& exports_progress,
     std::size_t jobs) -> TargetMap {
     auto target_reader = [source_target_map,
                           targets_file_map,
@@ -1809,17 +1801,14 @@ auto CreateTargetMap(
                           directory_entries_map,
                           absent_target_map,
                           result_map,
-                          repo_config,
-                          target_cache,
-                          stats,
-                          exports_progress](auto ts,
-                                            auto setter,
-                                            auto logger,
-                                            auto subcaller,
-                                            auto key) {
+                          context](auto ts,
+                                   auto setter,
+                                   auto logger,
+                                   auto subcaller,
+                                   auto key) {
         if (key.target.IsAnonymousTarget()) {
             withTargetNode(key,
-                           repo_config,
+                           context->repo_config,
                            rule_map,
                            ts,
                            subcaller,
@@ -1845,7 +1834,7 @@ auto CreateTargetMap(
                        wrapped_logger,
                        result_map,
                        directory_entries_map,
-                       stats);
+                       context->statistics);
         }
         else if (key.target.GetNamedTarget().reference_t ==
                  BuildMaps::Base::ReferenceType::kFile) {
@@ -1913,7 +1902,8 @@ auto CreateTargetMap(
             );
         }
 #ifndef BOOTSTRAP_BUILD_TOOL
-        else if (repo_config->TargetRoot(key.target.ToModule().repository)
+        else if (context->repo_config
+                     ->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
             if (not RemoteServeConfig::Instance().RemoteAddress()) {
                 (*logger)(
@@ -1951,10 +1941,7 @@ auto CreateTargetMap(
                 ts,
                 {key.target.ToModule()},
                 [key,
-                 repo_config,
-                 target_cache,
-                 stats,
-                 exports_progress,
+                 context,
                  source_target_map,
                  rule_map,
                  ts,
@@ -1962,11 +1949,8 @@ auto CreateTargetMap(
                  setter = std::move(setter),
                  logger,
                  result_map](auto values) {
-                    withTargetsFile(key,
-                                    repo_config,
-                                    target_cache,
-                                    stats,
-                                    exports_progress,
+                    withTargetsFile(context,
+                                    key,
                                     *values[0],
                                     source_target_map,
                                     rule_map,

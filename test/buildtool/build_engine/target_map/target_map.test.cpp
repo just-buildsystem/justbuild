@@ -25,8 +25,10 @@
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -89,26 +91,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -527,26 +528,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     std::vector<AnalysedTargetPtr> result;
     bool error{false};
@@ -610,26 +610,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -703,26 +702,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
     AnalysedTargetPtr result;
     bool error{false};
     std::string error_msg;
@@ -906,26 +904,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1042,26 +1039,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1144,26 +1140,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};
@@ -1303,26 +1298,25 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     BuildMaps::Target::ResultTargetMap result_map{0};
     Statistics stats{};
     Progress exports_progress{};
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .target_cache = Storage::Instance().TargetCache(),
+                       .statistics = &stats,
+                       .progress = &exports_progress};
+
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
-    auto absent_target_map =
-        BuildMaps::Target::CreateAbsentTargetMap(&result_map,
-                                                 &absent_target_variables_map,
-                                                 &repo_config,
-                                                 &stats,
-                                                 &exports_progress,
-                                                 0);
-    auto target_map =
-        BuildMaps::Target::CreateTargetMap(&source,
-                                           &targets_file_map,
-                                           &rule_map,
-                                           &directory_entries,
-                                           &absent_target_map,
-                                           &result_map,
-                                           &repo_config,
-                                           Storage::Instance().TargetCache(),
-                                           &stats,
-                                           &exports_progress);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
 
     AnalysedTargetPtr result;
     bool error{false};

@@ -23,14 +23,18 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/main/analyse.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
@@ -442,12 +446,15 @@ auto TargetService::ServeTarget(
     std::filesystem::path tmp_log{tmp_dir->GetPath() / "log"};
     Logger logger{"serve-target", {LogSinkFile::CreateFactory(tmp_log)}};
 
+    AnalyseContext analyse_ctx{.repo_config = &repository_config,
+                               .target_cache = tc,
+                               .statistics = &stats,
+                               .progress = &progress};
+
     // analyse the configured target
-    auto result = AnalyseTarget(configured_target,
+    auto result = AnalyseTarget(&analyse_ctx,
+                                configured_target,
                                 &result_map,
-                                &repository_config,
-                                tc,
-                                &stats,
                                 RemoteServeConfig::Instance().Jobs(),
                                 std::nullopt /*request_action_input*/,
                                 &logger);

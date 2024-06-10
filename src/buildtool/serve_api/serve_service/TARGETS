@@ -76,7 +76,6 @@
   , "deps":
     [ ["src/buildtool/logging", "logging"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/common", "create_execution_api"]
@@ -107,6 +106,9 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "verify_hash"]
+    , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/buildtool/main", "analyse_context"]
+    , ["src/buildtool/common", "config"]
     ]
   }
 , "configuration_service":

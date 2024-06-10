@@ -20,20 +20,15 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
-#include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/progress_reporting/progress.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 
-void ExportRule(const nlohmann::json& desc_json,
-                const BuildMaps::Target::ConfiguredTarget& key,
-                const gsl::not_null<const RepositoryConfig*>& repo_config,
-                const ActiveTargetCache& target_cache,
-                const gsl::not_null<Statistics*>& stats,
-                const gsl::not_null<Progress*>& exports_progress,
-                const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
-                const BuildMaps::Target::TargetMap::SetterPtr& setter,
-                const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-                gsl::not_null<BuildMaps::Target::ResultTargetMap*> result_map);
+void ExportRule(
+    const gsl::not_null<AnalyseContext*>& context,
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map);
 
 #endif

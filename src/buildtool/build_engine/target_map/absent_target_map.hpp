@@ -24,10 +24,8 @@
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
-#include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Target {
@@ -53,15 +51,12 @@ using ServeFailureLogReporter =
 auto CreateAbsentTargetVariablesMap(std::size_t jobs = 0)
     -> AbsentTargetVariablesMap;
 
-auto CreateAbsentTargetMap(
-    const gsl::not_null<ResultTargetMap*>&,
-    const gsl::not_null<AbsentTargetVariablesMap*>&,
-    gsl::not_null<const RepositoryConfig*> const& repo_config,
-    gsl::not_null<Statistics*> const& stats,
-    gsl::not_null<Progress*> const& exports_progress,
-    std::size_t jobs = 0,
-    ServeFailureLogReporter* serve_failure_reporter = nullptr)
-    -> AbsentTargetMap;
+auto CreateAbsentTargetMap(const gsl::not_null<AnalyseContext*>&,
+                           const gsl::not_null<ResultTargetMap*>&,
+                           const gsl::not_null<AbsentTargetVariablesMap*>&,
+                           std::size_t jobs = 0,
+                           ServeFailureLogReporter* serve_failure_reporter =
+                               nullptr) -> AbsentTargetMap;
 
 }  // namespace BuildMaps::Target
 

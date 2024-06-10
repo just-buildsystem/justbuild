@@ -43,6 +43,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/add_to_cas.hpp"
 #include "src/buildtool/main/analyse.hpp"
+#include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/main/cli.hpp"
 #include "src/buildtool/main/constants.hpp"
@@ -1011,11 +1012,17 @@ auto main(int argc, char* argv[]) -> int {
                     entry.push_back(blob);
                     serve_errors.push_back(entry);
                 };
-            auto result = AnalyseTarget(id,
+
+            // create progress tracker for export targets
+            Progress exports_progress{};
+            AnalyseContext analyse_ctx{
+                .repo_config = &repo_config,
+                .target_cache = Storage::Instance().TargetCache(),
+                .statistics = &stats,
+                .progress = &exports_progress};
+            auto result = AnalyseTarget(&analyse_ctx,
+                                        id,
                                         &result_map,
-                                        &repo_config,
-                                        Storage::Instance().TargetCache(),
-                                        &stats,
                                         arguments.common.jobs,
                                         arguments.analysis.request_action_input,
                                         /*logger=*/nullptr,
