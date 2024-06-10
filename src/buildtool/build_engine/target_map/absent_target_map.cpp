@@ -85,7 +85,8 @@ void WithFlexibleVariables(
             task,
             key.target.ToString());
         exports_progress->TaskTracker().Start(task);
-        auto res = ServeApi::ServeTarget(*target_cache_key, *repo_key);
+        auto res =
+            ServeApi::Instance().ServeTarget(*target_cache_key, *repo_key);
         // process response from serve endpoint
         if (not res) {
             // report target not found
@@ -199,7 +200,7 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(std::size_t jobs)
                                auto logger,
                                auto /*subcaller*/,
                                auto key) {
-        auto flexible_vars_opt = ServeApi::ServeTargetVariables(
+        auto flexible_vars_opt = ServeApi::Instance().ServeTargetVariables(
             key.target_root_id, key.target_file, key.target);
         if (!flexible_vars_opt) {
             (*logger)(fmt::format("Failed to obtain flexible config variables "

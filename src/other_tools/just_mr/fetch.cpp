@@ -404,7 +404,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     // check configuration of the serve endpoint provided
     if (serve_api_exists) {
         // check the compatibility mode of the serve endpoint
-        auto compatible = ServeApi::IsCompatible();
+        auto compatible = ServeApi::Instance().IsCompatible();
         if (not compatible) {
             Logger::Log(LogLevel::Warning,
                         "Checking compatibility configuration of the provided "
@@ -421,7 +421,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         // if we have a remote endpoint explicitly given by the user, it must
         // match what the serve endpoint expects
         if (remote_api and common_args.remote_execution_address and
-            not ServeApi::CheckServeRemoteExecution()) {
+            not ServeApi::Instance().CheckServeRemoteExecution()) {
             return kExitFetchError;  // this check logs error on failure
         }
     }

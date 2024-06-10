@@ -77,10 +77,10 @@ void EnsureRootAsAbsent(
         if (not *has_tree) {
             // try to see if serve endpoint has the information to prepare the
             // root itself
-            auto serve_result =
-                ServeApi::RetrieveTreeFromCommit(repo_info.hash,
-                                                 repo_info.subdir,
-                                                 /*sync_tree = */ false);
+            auto serve_result = ServeApi::Instance().RetrieveTreeFromCommit(
+                repo_info.hash,
+                repo_info.subdir,
+                /*sync_tree = */ false);
             if (std::holds_alternative<std::string>(serve_result)) {
                 // if serve has set up the tree, it must match what we expect
                 auto const& served_tree_id =
@@ -513,10 +513,10 @@ void EnsureCommit(
         if (serve_api_exists) {
             // if root purely absent, request only the subdir tree
             if (repo_info.absent and not fetch_absent) {
-                auto serve_result =
-                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
-                                                     repo_info.subdir,
-                                                     /*sync_tree = */ false);
+                auto serve_result = ServeApi::Instance().RetrieveTreeFromCommit(
+                    repo_info.hash,
+                    repo_info.subdir,
+                    /*sync_tree = */ false);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // set the workspace root as absent
                     JustMRProgress::Instance().TaskTracker().Stop(
@@ -544,10 +544,10 @@ void EnsureCommit(
             // otherwise, request (and sync) the whole commit tree, to ensure
             // we maintain the id file association
             else {
-                auto serve_result =
-                    ServeApi::RetrieveTreeFromCommit(repo_info.hash,
-                                                     /*subdir = */ ".",
-                                                     /*sync_tree = */ true);
+                auto serve_result = ServeApi::Instance().RetrieveTreeFromCommit(
+                    repo_info.hash,
+                    /*subdir = */ ".",
+                    /*sync_tree = */ true);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     auto const& root_tree_id =
                         std::get<std::string>(serve_result);

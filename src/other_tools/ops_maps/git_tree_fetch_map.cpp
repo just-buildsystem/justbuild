@@ -15,6 +15,7 @@
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 
 #include <cstdlib>
+#include <tuple>    // std::ignore
 #include <utility>  // std::move
 
 #include "fmt/core.h"
@@ -235,8 +236,8 @@ auto CreateGitTreeFetchMap(
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS
-                    [[maybe_unused]] auto _ =
-                        ServeApi::TreeInRemoteCAS(key.hash);
+                    std::ignore =
+                        ServeApi::Instance().TreeInRemoteCAS(key.hash);
                 }
                 // check if tree is in remote CAS, if a remote is given
                 if (remote_api and

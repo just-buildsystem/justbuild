@@ -285,7 +285,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         // check that just serve and the client use same remote execution
         // endpoint; it might make sense in the future to remove or avoid this
         // check, e.g., if remote endpoints are behind proxies.
-        if (not ServeApi::CheckServeRemoteExecution()) {
+        if (not ServeApi::Instance().CheckServeRemoteExecution()) {
             Logger::Log(LogLevel::Error,
                         "Inconsistent remote execution endpoint and serve "
                         "endpoint configuration detected.");
@@ -302,7 +302,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                 repo_name);
             return kExitFailure;
         }
-        if (auto dgst = ServeApi::ServeTargetDescription(
+        if (auto dgst = ServeApi::Instance().ServeTargetDescription(
                 *target_root_id,
                 *(repo_config->TargetFileName(repo_name)),
                 id.target.GetNamedTarget().name)) {

@@ -151,7 +151,8 @@ void ExportRule(
                             key.target.ToString(),
                             PruneJson(effective_config.ToJson()).dump());
             exports_progress->TaskTracker().Start(task);
-            auto res = ServeApi::ServeTarget(*target_cache_key, *repo_key);
+            auto res =
+                ServeApi::Instance().ServeTarget(*target_cache_key, *repo_key);
             // process response from serve endpoint
             if (not res) {
                 // target not found: log to performance, and continue

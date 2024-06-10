@@ -201,9 +201,10 @@ auto CreateDistdirGitMap(
                                 // try to see if serve endpoint has the
                                 // information to prepare the root itself
                                 auto serve_result =
-                                    ServeApi::RetrieveTreeFromDistdir(
-                                        key.content_list,
-                                        /*sync_tree=*/false);
+                                    ServeApi::Instance()
+                                        .RetrieveTreeFromDistdir(
+                                            key.content_list,
+                                            /*sync_tree=*/false);
                                 if (std::holds_alternative<std::string>(
                                         serve_result)) {
                                     // if serve has set up the tree, it must
@@ -348,8 +349,9 @@ auto CreateDistdirGitMap(
                     // try to see if serve endpoint has the information to
                     // prepare the root itself
                     auto serve_result =
-                        ServeApi::RetrieveTreeFromDistdir(key.content_list,
-                                                          /*sync_tree=*/false);
+                        ServeApi::Instance().RetrieveTreeFromDistdir(
+                            key.content_list,
+                            /*sync_tree=*/false);
                     if (std::holds_alternative<std::string>(serve_result)) {
                         // if serve has set up the tree, it must match what we
                         // expect
@@ -482,8 +484,9 @@ auto CreateDistdirGitMap(
             // a present root, a corresponding remote endpoint is needed
             if (serve_api_exists and remote_api) {
                 auto serve_result =
-                    ServeApi::RetrieveTreeFromDistdir(key.content_list,
-                                                      /*sync_tree=*/true);
+                    ServeApi::Instance().RetrieveTreeFromDistdir(
+                        key.content_list,
+                        /*sync_tree=*/true);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // if serve has set up the tree, it must match what we
                     // expect

@@ -73,11 +73,12 @@ void EnsureRootAsAbsent(
             // root itself; this is redundant if root is not already cached
             if (is_cache_hit) {
                 auto serve_result =
-                    ServeApi::RetrieveTreeFromArchive(key.archive.content,
-                                                      key.repo_type,
-                                                      key.subdir,
-                                                      key.pragma_special,
-                                                      /*sync_tree=*/false);
+                    ServeApi::Instance().RetrieveTreeFromArchive(
+                        key.archive.content,
+                        key.repo_type,
+                        key.subdir,
+                        key.pragma_special,
+                        /*sync_tree=*/false);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // if serve has set up the tree, it must match what we
                     // expect
@@ -623,12 +624,13 @@ auto CreateContentGitMap(
                 // request the resolved subdir tree from the serve endpoint, if
                 // given
                 if (serve_api_exists) {
-                    auto serve_result = ServeApi::RetrieveTreeFromArchive(
-                        key.archive.content,
-                        key.repo_type,
-                        key.subdir,
-                        key.pragma_special,
-                        /*sync_tree = */ false);
+                    auto serve_result =
+                        ServeApi::Instance().RetrieveTreeFromArchive(
+                            key.archive.content,
+                            key.repo_type,
+                            key.subdir,
+                            key.pragma_special,
+                            /*sync_tree = */ false);
                     if (std::holds_alternative<std::string>(serve_result)) {
                         // set the workspace root as absent
                         JustMRProgress::Instance().TaskTracker().Stop(

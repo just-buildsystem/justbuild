@@ -1924,7 +1924,7 @@ auto CreateTargetMap(
                     /*is_fatal=*/true);
                 return;
             }
-            if (not ServeApi::CheckServeRemoteExecution()) {
+            if (not ServeApi::Instance().CheckServeRemoteExecution()) {
                 (*logger)(
                     "Inconsistent remote execution endpoint and serve endpoint"
                     "configuration detected.",

@@ -25,7 +25,7 @@
 auto CheckServeHasAbsentRoot(std::string const& tree_id,
                              AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<bool> {
-    if (auto has_tree = ServeApi::CheckRootTree(tree_id)) {
+    if (auto has_tree = ServeApi::Instance().CheckRootTree(tree_id)) {
         return *has_tree;
     }
     (*logger)(fmt::format("Checking that the serve endpoint knows tree "
@@ -64,7 +64,7 @@ auto EnsureAbsentRootOnServe(
         }
     }
     // ask serve endpoint to retrieve the uploaded tree
-    if (not ServeApi::GetTreeFromRemote(tree_id)) {
+    if (not ServeApi::Instance().GetTreeFromRemote(tree_id)) {
         // respond based on no_sync_is_fatal flag
         (*logger)(
             fmt::format("Serve endpoint failed to sync root tree {}.", tree_id),

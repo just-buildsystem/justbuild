@@ -217,7 +217,7 @@ auto CreateContentCASMap(
                 }
                 // check if content is known to remote serve service
                 if (serve_api_exists and remote_api and
-                    ServeApi::ContentInRemoteCAS(key.content)) {
+                    ServeApi::Instance().ContentInRemoteCAS(key.content)) {
                     // try to get content from remote CAS
                     if (remote_api.value()->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = digest,

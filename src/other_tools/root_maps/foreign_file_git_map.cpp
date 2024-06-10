@@ -149,7 +149,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                 /*is_cache_hit=*/false));
             return;
         }
-        auto serve_result = ServeApi::RetrieveTreeFromForeignFile(
+        auto serve_result = ServeApi::Instance().RetrieveTreeFromForeignFile(
             key.archive.content, key.name, key.executable);
         if (std::holds_alternative<std::string>(serve_result)) {
             // if serve has set up the tree, it must match what we
