@@ -20,12 +20,12 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 
-auto CheckServeHasAbsentRoot(std::string const& tree_id,
+auto CheckServeHasAbsentRoot(ServeApi const& serve,
+                             std::string const& tree_id,
                              AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<bool> {
-    if (auto has_tree = ServeApi::Instance().CheckRootTree(tree_id)) {
+    if (auto has_tree = serve.CheckRootTree(tree_id)) {
         return *has_tree;
     }
     (*logger)(fmt::format("Checking that the serve endpoint knows tree "
@@ -36,6 +36,7 @@ auto CheckServeHasAbsentRoot(std::string const& tree_id,
 }
 
 auto EnsureAbsentRootOnServe(
+    ServeApi const& serve,
     std::string const& tree_id,
     std::filesystem::path const& repo_path,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
@@ -64,7 +65,7 @@ auto EnsureAbsentRootOnServe(
         }
     }
     // ask serve endpoint to retrieve the uploaded tree
-    if (not ServeApi::Instance().GetTreeFromRemote(tree_id)) {
+    if (not serve.GetTreeFromRemote(tree_id)) {
         // respond based on no_sync_is_fatal flag
         (*logger)(
             fmt::format("Serve endpoint failed to sync root tree {}.", tree_id),

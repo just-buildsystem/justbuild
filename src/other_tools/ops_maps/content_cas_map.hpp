@@ -25,6 +25,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -83,7 +84,7 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
     MirrorsPtr const& additional_mirrors,
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> ContentCASMap;

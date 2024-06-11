@@ -25,7 +25,6 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -133,14 +132,14 @@ auto CreateDistdirGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> DistdirGitMap {
     auto distdir_to_git = [content_cas_map,
                            import_to_git_map,
                            critical_git_op_map,
-                           serve_api_exists,
+                           serve,
                            local_api,
                            remote_api](auto ts,
                                        auto setter,
@@ -176,7 +175,7 @@ auto CreateDistdirGitMap(
                 [distdir_tree_id = *distdir_tree_id,
                  content_id = key.content_id,
                  key,
-                 serve_api_exists,
+                 serve,
                  remote_api,
                  setter,
                  logger](auto const& values) {
@@ -190,10 +189,10 @@ auto CreateDistdirGitMap(
                     // subdir is "." here, so no need to deal with the Git cache
                     // and we can simply set the workspace root
                     if (key.absent) {
-                        if (serve_api_exists) {
+                        if (serve) {
                             // check if serve endpoint has this root
                             auto has_tree = CheckServeHasAbsentRoot(
-                                distdir_tree_id, logger);
+                                **serve, distdir_tree_id, logger);
                             if (not has_tree) {
                                 return;
                             }
@@ -201,10 +200,9 @@ auto CreateDistdirGitMap(
                                 // try to see if serve endpoint has the
                                 // information to prepare the root itself
                                 auto serve_result =
-                                    ServeApi::Instance()
-                                        .RetrieveTreeFromDistdir(
-                                            key.content_list,
-                                            /*sync_tree=*/false);
+                                    (*serve)->RetrieveTreeFromDistdir(
+                                        key.content_list,
+                                        /*sync_tree=*/false);
                                 if (std::holds_alternative<std::string>(
                                         serve_result)) {
                                     // if serve has set up the tree, it must
@@ -253,6 +251,7 @@ auto CreateDistdirGitMap(
                                     // it to remote CAS for the serve endpoint
                                     // to retrieve it and set up the root
                                     if (not EnsureAbsentRootOnServe(
+                                            **serve,
                                             distdir_tree_id,
                                             StorageConfig::GitRoot(),
                                             &(*remote_api.value()),
@@ -332,9 +331,10 @@ auto CreateDistdirGitMap(
             // up the absent root without actually checking the local status of
             // each content blob individually
             if (key.absent) {
-                if (serve_api_exists) {
+                if (serve) {
                     // first check if serve endpoint has tree
-                    auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
+                    auto has_tree =
+                        CheckServeHasAbsentRoot(**serve, tree_id, logger);
                     if (not has_tree) {
                         return;
                     }
@@ -349,9 +349,8 @@ auto CreateDistdirGitMap(
                     // try to see if serve endpoint has the information to
                     // prepare the root itself
                     auto serve_result =
-                        ServeApi::Instance().RetrieveTreeFromDistdir(
-                            key.content_list,
-                            /*sync_tree=*/false);
+                        (*serve)->RetrieveTreeFromDistdir(key.content_list,
+                                                          /*sync_tree=*/false);
                     if (std::holds_alternative<std::string>(serve_result)) {
                         // if serve has set up the tree, it must match what we
                         // expect
@@ -399,6 +398,7 @@ auto CreateDistdirGitMap(
                         // tell serve to set up the root from the remote CAS
                         // tree; upload can be skipped
                         if (EnsureAbsentRootOnServe(
+                                **serve,
                                 tree_id,
                                 /*repo_path=*/"",
                                 /*remote_api=*/std::nullopt,
@@ -435,6 +435,7 @@ auto CreateDistdirGitMap(
                         // tell serve to set up the root from the remote CAS
                         // tree; upload can be skipped
                         if (EnsureAbsentRootOnServe(
+                                **serve,
                                 tree_id,
                                 /*repo_path=*/"",
                                 /*remote_api=*/std::nullopt,
@@ -482,11 +483,10 @@ auto CreateDistdirGitMap(
             }
             // now ask serve endpoint if it can set up the root; as this is for
             // a present root, a corresponding remote endpoint is needed
-            if (serve_api_exists and remote_api) {
+            if (serve and remote_api) {
                 auto serve_result =
-                    ServeApi::Instance().RetrieveTreeFromDistdir(
-                        key.content_list,
-                        /*sync_tree=*/true);
+                    (*serve)->RetrieveTreeFromDistdir(key.content_list,
+                                                      /*sync_tree=*/true);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // if serve has set up the tree, it must match what we
                     // expect

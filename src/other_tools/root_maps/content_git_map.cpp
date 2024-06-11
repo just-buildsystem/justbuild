@@ -20,7 +20,6 @@
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -56,15 +55,15 @@ namespace {
 void EnsureRootAsAbsent(
     std::string const& tree_id,
     ArchiveRepoInfo const& key,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool is_cache_hit,
     ContentGitMap::SetterPtr const& ws_setter,
     ContentGitMap::LoggerPtr const& logger) {
     // this is an absent root
-    if (serve_api_exists) {
+    if (serve) {
         // check if the serve endpoint has this root
-        auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
+        auto has_tree = CheckServeHasAbsentRoot(**serve, tree_id, logger);
         if (not has_tree) {
             return;
         }
@@ -73,12 +72,11 @@ void EnsureRootAsAbsent(
             // root itself; this is redundant if root is not already cached
             if (is_cache_hit) {
                 auto serve_result =
-                    ServeApi::Instance().RetrieveTreeFromArchive(
-                        key.archive.content,
-                        key.repo_type,
-                        key.subdir,
-                        key.pragma_special,
-                        /*sync_tree=*/false);
+                    (*serve)->RetrieveTreeFromArchive(key.archive.content,
+                                                      key.repo_type,
+                                                      key.subdir,
+                                                      key.pragma_special,
+                                                      /*sync_tree=*/false);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // if serve has set up the tree, it must match what we
                     // expect
@@ -119,6 +117,7 @@ void EnsureRootAsAbsent(
                     // CAS for the serve endpoint to retrieve it and set up the
                     // root
                     if (not EnsureAbsentRootOnServe(
+                            **serve,
                             tree_id,
                             StorageConfig::GitRoot(),
                             &(*remote_api.value()),
@@ -143,7 +142,8 @@ void EnsureRootAsAbsent(
                 // the tree is known locally, so we can upload it to remote
                 // CAS for the serve endpoint to retrieve it and set up the
                 // root
-                if (not EnsureAbsentRootOnServe(tree_id,
+                if (not EnsureAbsentRootOnServe(**serve,
+                                                tree_id,
                                                 StorageConfig::GitRoot(),
                                                 &(*remote_api.value()),
                                                 logger,
@@ -175,7 +175,7 @@ void ResolveContentTree(
     GitCASPtr const& just_git_cas,
     bool is_cache_hit,
     bool is_absent,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
@@ -200,7 +200,7 @@ void ResolveContentTree(
             if (is_absent) {
                 EnsureRootAsAbsent(*resolved_tree_id,
                                    key,
-                                   serve_api_exists,
+                                   serve,
                                    remote_api,
                                    is_cache_hit,
                                    ws_setter,
@@ -231,7 +231,7 @@ void ResolveContentTree(
                  is_cache_hit,
                  key,
                  is_absent,
-                 serve_api_exists,
+                 serve,
                  remote_api,
                  ts,
                  ws_setter,
@@ -273,7 +273,7 @@ void ResolveContentTree(
                          key,
                          tree_id_file,
                          is_absent,
-                         serve_api_exists,
+                         serve,
                          remote_api,
                          is_cache_hit,
                          ws_setter,
@@ -299,7 +299,7 @@ void ResolveContentTree(
                             if (is_absent) {
                                 EnsureRootAsAbsent(resolved_tree_id,
                                                    key,
-                                                   serve_api_exists,
+                                                   serve,
                                                    remote_api,
                                                    is_cache_hit,
                                                    ws_setter,
@@ -339,7 +339,7 @@ void ResolveContentTree(
         if (is_absent) {
             EnsureRootAsAbsent(tree_hash,
                                key,
-                               serve_api_exists,
+                               serve,
                                remote_api,
                                is_cache_hit,
                                ws_setter,
@@ -364,7 +364,7 @@ void WriteIdFileAndSetWSRoot(
     GitCASPtr const& just_git_cas,
     std::filesystem::path const& archive_tree_id_file,
     bool is_absent,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
@@ -408,7 +408,7 @@ void WriteIdFileAndSetWSRoot(
                        just_git_cas,
                        false, /*is_cache_hit*/
                        is_absent,
-                       serve_api_exists,
+                       serve,
                        remote_api,
                        critical_git_op_map,
                        resolve_symlinks_map,
@@ -425,7 +425,7 @@ void ExtractAndImportToGit(
     std::filesystem::path const& content_cas_path,
     std::filesystem::path const& archive_tree_id_file,
     bool is_absent,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
@@ -461,7 +461,7 @@ void ExtractAndImportToGit(
          archive_tree_id_file,
          key,
          is_absent,
-         serve_api_exists,
+         serve,
          remote_api,
          critical_git_op_map,
          resolve_symlinks_map,
@@ -482,7 +482,7 @@ void ExtractAndImportToGit(
                                     values[0]->second, /*just_git_cas*/
                                     archive_tree_id_file,
                                     is_absent,
-                                    serve_api_exists,
+                                    serve,
                                     remote_api,
                                     critical_git_op_map,
                                     resolve_symlinks_map,
@@ -509,7 +509,7 @@ auto CreateContentGitMap(
     CAInfoPtr const& ca_info,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap {
@@ -520,7 +520,7 @@ auto CreateContentGitMap(
                            just_mr_paths,
                            additional_mirrors,
                            ca_info,
-                           serve_api_exists,
+                           serve,
                            remote_api,
                            fetch_absent](auto ts,
                                          auto setter,
@@ -556,7 +556,7 @@ auto CreateContentGitMap(
                 [archive_tree_id = *archive_tree_id,
                  key,
                  fetch_absent,
-                 serve_api_exists,
+                 serve,
                  remote_api,
                  critical_git_op_map,
                  resolve_symlinks_map,
@@ -600,7 +600,7 @@ auto CreateContentGitMap(
                         op_result.git_cas,
                         /*is_cache_hit = */ true,
                         /*is_absent = */ (key.absent and not fetch_absent),
-                        serve_api_exists,
+                        serve,
                         remote_api,
                         critical_git_op_map,
                         resolve_symlinks_map,
@@ -623,14 +623,13 @@ auto CreateContentGitMap(
             if (key.absent and not fetch_absent) {
                 // request the resolved subdir tree from the serve endpoint, if
                 // given
-                if (serve_api_exists) {
-                    auto serve_result =
-                        ServeApi::Instance().RetrieveTreeFromArchive(
-                            key.archive.content,
-                            key.repo_type,
-                            key.subdir,
-                            key.pragma_special,
-                            /*sync_tree = */ false);
+                if (serve) {
+                    auto serve_result = (*serve)->RetrieveTreeFromArchive(
+                        key.archive.content,
+                        key.repo_type,
+                        key.subdir,
+                        key.pragma_special,
+                        /*sync_tree = */ false);
                     if (std::holds_alternative<std::string>(serve_result)) {
                         // set the workspace root as absent
                         JustMRProgress::Instance().TaskTracker().Stop(
@@ -667,7 +666,7 @@ auto CreateContentGitMap(
                                           *content_cas_path,
                                           archive_tree_id_file,
                                           /*is_absent = */ true,
-                                          serve_api_exists,
+                                          serve,
                                           remote_api,
                                           critical_git_op_map,
                                           import_to_git_map,
@@ -703,7 +702,7 @@ auto CreateContentGitMap(
                      just_mr_paths,
                      additional_mirrors,
                      ca_info,
-                     serve_api_exists,
+                     serve,
                      remote_api,
                      ts,
                      setter,
@@ -758,7 +757,7 @@ auto CreateContentGitMap(
                                                       *content_cas_path,
                                                       archive_tree_id_file,
                                                       /*is_absent=*/true,
-                                                      serve_api_exists,
+                                                      serve,
                                                       remote_api,
                                                       critical_git_op_map,
                                                       import_to_git_map,
@@ -797,7 +796,7 @@ auto CreateContentGitMap(
                                                   *content_cas_path,
                                                   archive_tree_id_file,
                                                   /*is_absent=*/true,
-                                                  serve_api_exists,
+                                                  serve,
                                                   remote_api,
                                                   critical_git_op_map,
                                                   import_to_git_map,
@@ -849,7 +848,7 @@ auto CreateContentGitMap(
                                               content_cas_path,
                                               archive_tree_id_file,
                                               /*is_absent=*/false,
-                                              /*serve_api_exists=*/false,
+                                              /*serve=*/std::nullopt,
                                               /*remote_api=*/std::nullopt,
                                               critical_git_op_map,
                                               import_to_git_map,

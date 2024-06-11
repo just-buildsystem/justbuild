@@ -66,6 +66,7 @@
     , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -73,7 +74,6 @@
     , ["src/other_tools/utils", "content"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
@@ -113,6 +113,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -122,7 +123,6 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/system", "system_command"]

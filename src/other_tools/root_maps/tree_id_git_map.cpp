@@ -26,7 +26,8 @@ namespace {
 
 /// \brief Guarantees it terminates by either calling the setter or calling the
 /// logger with fatal.
-void UploadToServeAndSetRoot(std::string const& tree_id,
+void UploadToServeAndSetRoot(ServeApi const& serve,
+                             std::string const& tree_id,
                              ArtifactDigest const& digest,
                              gsl::not_null<IExecutionApi*> const& remote_api,
                              bool ignore_special,
@@ -55,7 +56,8 @@ void UploadToServeAndSetRoot(std::string const& tree_id,
     }
     // tell serve to set up the root from the remote CAS tree;
     // upload can be skipped
-    if (EnsureAbsentRootOnServe(tree_id,
+    if (EnsureAbsentRootOnServe(serve,
+                                tree_id,
                                 /*repo_path=*/"",
                                 /*remote_api=*/std::nullopt,
                                 logger,
@@ -73,6 +75,7 @@ void UploadToServeAndSetRoot(std::string const& tree_id,
 /// \brief Guarantees it terminates by either calling the setter or calling the
 /// logger with fatal.
 void MoveCASTreeToGitAndProcess(
+    ServeApi const& serve,
     std::string const& tree_id,
     ArtifactDigest const& digest,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
@@ -104,7 +107,8 @@ void MoveCASTreeToGitAndProcess(
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
-        [tmp_dir,  // keep tmp_dir alive
+        [&serve,
+         tmp_dir,  // keep tmp_dir alive
          tree_id,
          digest,
          remote_api,
@@ -118,8 +122,13 @@ void MoveCASTreeToGitAndProcess(
             }
             // upload tree from Git cache to remote CAS and tell serve to set up
             // the root from the remote CAS tree; set root as absent on success
-            UploadToServeAndSetRoot(
-                tree_id, digest, remote_api, ignore_special, setter, logger);
+            UploadToServeAndSetRoot(serve,
+                                    tree_id,
+                                    digest,
+                                    remote_api,
+                                    ignore_special,
+                                    setter,
+                                    logger);
         },
         [logger, tmp_dir, tree_id](auto const& msg, bool fatal) {
             (*logger)(fmt::format(
@@ -138,7 +147,7 @@ auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> TreeIdGitMap {
@@ -146,7 +155,7 @@ auto CreateTreeIdGitMap(
                         critical_git_op_map,
                         import_to_git_map,
                         fetch_absent,
-                        serve_api_exists,
+                        serve,
                         local_api,
                         remote_api](auto ts,
                                     auto setter,
@@ -158,10 +167,10 @@ auto CreateTreeIdGitMap(
         // found on the serve endpoint or it can be made available to it;
         // otherwise, error out
         if (key.absent and not fetch_absent) {
-            if (serve_api_exists) {
+            if (serve) {
                 // check serve endpoint
-                auto has_tree =
-                    CheckServeHasAbsentRoot(key.tree_info.hash, logger);
+                auto has_tree = CheckServeHasAbsentRoot(
+                    **serve, key.tree_info.hash, logger);
                 if (not has_tree) {
                     return;
                 }
@@ -191,7 +200,8 @@ auto CreateTreeIdGitMap(
                 if (remote_api.value()->IsAvailable({digest})) {
                     // tell serve to set up the root from the remote CAS tree;
                     // upload can be skipped
-                    if (EnsureAbsentRootOnServe(key.tree_info.hash,
+                    if (EnsureAbsentRootOnServe(**serve,
+                                                key.tree_info.hash,
                                                 /*repo_path=*/"",
                                                 /*remote_api=*/std::nullopt,
                                                 logger,
@@ -228,7 +238,8 @@ auto CreateTreeIdGitMap(
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},
-                    [digest,
+                    [serve,
+                     digest,
                      import_to_git_map,
                      local_api,
                      remote_api,
@@ -275,7 +286,8 @@ auto CreateTreeIdGitMap(
                             // upload tree from Git cache to remote CAS and tell
                             // serve to set up the root from the remote CAS
                             // tree, then set root as absent
-                            UploadToServeAndSetRoot(key.tree_info.hash,
+                            UploadToServeAndSetRoot(**serve,
+                                                    key.tree_info.hash,
                                                     digest,
                                                     *remote_api,
                                                     key.ignore_special,
@@ -289,7 +301,8 @@ auto CreateTreeIdGitMap(
                         if (auto path = cas.TreePath(digest)) {
                             // Move tree locally from CAS to Git cache, then
                             // continue processing it by UploadToServeAndSetRoot
-                            MoveCASTreeToGitAndProcess(key.tree_info.hash,
+                            MoveCASTreeToGitAndProcess(**serve,
+                                                       key.tree_info.hash,
                                                        digest,
                                                        import_to_git_map,
                                                        local_api,

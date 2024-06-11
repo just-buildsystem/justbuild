@@ -21,6 +21,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 
 /// \brief Calls the ServeApi to check whether the serve endpoint has the given
 /// tree available to build against.
@@ -30,6 +31,7 @@
 /// whether the serve endpoint knows the tree on ServeApi call success. The
 /// logger is called with fatal ONLY if this method returns nullopt.
 [[nodiscard]] auto CheckServeHasAbsentRoot(
+    ServeApi const& serve,
     std::string const& tree_id,
     AsyncMapConsumerLoggerPtr const& logger) -> std::optional<bool>;
 
@@ -53,6 +55,7 @@
 /// \returns Status flag, with false if state is deemed fatal, and true
 /// otherwise. Logger is only called with fatal if returning false.
 [[nodiscard]] auto EnsureAbsentRootOnServe(
+    ServeApi const& serve,
     std::string const& tree_id,
     std::filesystem::path const& repo_path,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,

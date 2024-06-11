@@ -18,7 +18,6 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -113,10 +112,11 @@ void UseCacheHit(const std::string& tree_id,
                   /*is_cache_hit=*/true));
 }
 
-void HandleAbsentForeignFile(ForeignFileInfo const& key,
-                             bool serve_api_exists,
-                             ForeignFileGitMap::SetterPtr const& setter,
-                             ForeignFileGitMap::LoggerPtr const& logger) {
+void HandleAbsentForeignFile(
+    ForeignFileInfo const& key,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    ForeignFileGitMap::SetterPtr const& setter,
+    ForeignFileGitMap::LoggerPtr const& logger) {
     // Compute tree in memory
     GitRepo::tree_entries_t entries{};
     auto raw_id = FromHexString(key.archive.content);
@@ -138,8 +138,8 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
         return;
     }
     auto tree_id = ToHexString(tree->first);
-    if (serve_api_exists) {
-        auto has_tree = CheckServeHasAbsentRoot(tree_id, logger);
+    if (serve) {
+        auto has_tree = CheckServeHasAbsentRoot(**serve, tree_id, logger);
         if (not has_tree) {
             return;
         }
@@ -149,7 +149,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                 /*is_cache_hit=*/false));
             return;
         }
-        auto serve_result = ServeApi::Instance().RetrieveTreeFromForeignFile(
+        auto serve_result = (*serve)->RetrieveTreeFromForeignFile(
             key.archive.content, key.name, key.executable);
         if (std::holds_alternative<std::string>(serve_result)) {
             // if serve has set up the tree, it must match what we
@@ -196,18 +196,18 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
 [[nodiscard]] auto CreateForeignFileGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap {
     auto setup_foreign_file =
-        [content_cas_map, import_to_git_map, fetch_absent, serve_api_exists](
+        [content_cas_map, import_to_git_map, fetch_absent, serve](
             auto ts,
             auto setter,
             auto logger,
             auto /* unused */,
             auto const& key) {
             if (key.absent and not fetch_absent) {
-                HandleAbsentForeignFile(key, serve_api_exists, setter, logger);
+                HandleAbsentForeignFile(key, serve, setter, logger);
                 return;
             }
             auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(

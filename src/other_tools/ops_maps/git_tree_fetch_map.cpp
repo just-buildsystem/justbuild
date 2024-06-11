@@ -24,7 +24,6 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/system/system_command.hpp"
@@ -129,7 +128,7 @@ auto CreateGitTreeFetchMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    bool serve_api_exists,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool backup_to_remote,
@@ -138,7 +137,7 @@ auto CreateGitTreeFetchMap(
                           import_to_git_map,
                           git_bin,
                           launcher,
-                          serve_api_exists,
+                          serve,
                           local_api,
                           remote_api,
                           backup_to_remote](auto ts,
@@ -164,7 +163,7 @@ auto CreateGitTreeFetchMap(
              import_to_git_map,
              git_bin,
              launcher,
-             serve_api_exists,
+             serve,
              local_api,
              remote_api,
              backup_to_remote,
@@ -232,12 +231,11 @@ auto CreateGitTreeFetchMap(
                 JustMRProgress::Instance().TaskTracker().Start(key.origin);
                 // check if tree is known to remote serve service and can be
                 // made available in remote CAS
-                if (serve_api_exists and remote_api) {
+                if (serve and remote_api) {
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS
-                    std::ignore =
-                        ServeApi::Instance().TreeInRemoteCAS(key.hash);
+                    std::ignore = (*serve)->TreeInRemoteCAS(key.hash);
                 }
                 // check if tree is in remote CAS, if a remote is given
                 if (remote_api and

@@ -15,15 +15,19 @@
 #include "src/other_tools/just_mr/fetch.hpp"
 
 #include <filesystem>
+#include <optional>
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
@@ -398,31 +402,35 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     bool remote_compatible{common_args.compatible == true};
 
     // setup the API for serving roots
-    auto serve_api_exists = JustMR::Utils::SetupServeApi(
-        common_args.remote_serve_address, auth_args);
+    std::optional<gsl::not_null<const ServeApi*>> serve;
+    if (JustMR::Utils::SetupServeApi(common_args.remote_serve_address,
+                                     auth_args)) {
+        serve = &ServeApi::Instance();
+    }
 
     // check configuration of the serve endpoint provided
-    if (serve_api_exists) {
+    if (serve) {
+        // if we have a remote endpoint explicitly given by the user, it must
+        // match what the serve endpoint expects
+        if (remote_api and common_args.remote_execution_address and
+            not(*serve)->CheckServeRemoteExecution()) {
+            return kExitFetchError;  // this check logs error on failure
+        }
+
         // check the compatibility mode of the serve endpoint
-        auto compatible = ServeApi::Instance().IsCompatible();
+        auto compatible = (*serve)->IsCompatible();
         if (not compatible) {
             Logger::Log(LogLevel::Warning,
                         "Checking compatibility configuration of the provided "
                         "serve endpoint failed. Serve endpoint ignored.");
-            serve_api_exists = false;
+            serve = std::nullopt;
         }
         if (*compatible != remote_compatible) {
             Logger::Log(
                 LogLevel::Warning,
                 "Provided serve endpoint operates in a different compatibility "
                 "mode than stated. Serve endpoint ignored.");
-            serve_api_exists = false;
-        }
-        // if we have a remote endpoint explicitly given by the user, it must
-        // match what the serve endpoint expects
-        if (remote_api and common_args.remote_execution_address and
-            not ServeApi::Instance().CheckServeRemoteExecution()) {
-            return kExitFetchError;  // this check logs error on failure
+            serve = std::nullopt;
         }
     }
 
@@ -435,7 +443,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             common_args.alternative_mirrors,
                             common_args.ca_info,
                             &critical_git_op_map,
-                            serve_api_exists,
+                            serve,
                             &(*local_api),
                             (remote_api and not remote_compatible)
                                 ? std::make_optional(&(*remote_api))
@@ -462,7 +470,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                               &import_to_git_map,
                               common_args.git_path->string(),
                               *common_args.local_launcher,
-                              serve_api_exists,
+                              serve,
                               &(*local_api),
                               (remote_api and not remote_compatible)
                                   ? std::make_optional(&(*remote_api))

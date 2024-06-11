@@ -8,6 +8,7 @@
     , ["@", "json", "", "json"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -22,7 +23,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
@@ -79,6 +79,7 @@
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path_hash"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -109,6 +110,7 @@
     , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -121,7 +123,6 @@
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
@@ -142,12 +143,12 @@
     , ["@", "json", "", "json"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
@@ -169,6 +170,7 @@
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -190,6 +192,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -198,7 +201,6 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   }
 }
