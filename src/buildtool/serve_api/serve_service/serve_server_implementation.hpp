@@ -19,6 +19,7 @@
 
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 
 class ServeServerImpl {
   public:
@@ -50,9 +51,12 @@ class ServeServerImpl {
 
     /// \brief Start the serve service.
     /// \param serve_config RemoteServeConfig to be used.
+    /// \param serve        ServeApi to be used.
     /// \param with_execute Flag specifying if just serve should act also as
     /// just execute (i.e., start remote execution services with same interface)
-    auto Run(RemoteServeConfig const& serve_config, bool with_execute) -> bool;
+    auto Run(RemoteServeConfig const& serve_config,
+             std::optional<gsl::not_null<const ServeApi*>> const& serve,
+             bool with_execute) -> bool;
     ~ServeServerImpl() = default;
 
   private:

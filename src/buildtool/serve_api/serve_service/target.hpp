@@ -34,12 +34,14 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 
 // The target-level cache service.
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
-    explicit TargetService(RemoteServeConfig const& serve_config) noexcept
-        : serve_config_{serve_config} {}
+    TargetService(RemoteServeConfig const& serve_config,
+                  std::optional<gsl::not_null<const ServeApi*>> serve) noexcept
+        : serve_config_{serve_config}, serve_(std::move(serve)) {}
 
     // Given a target-level caching key, returns the computed value. In doing
     // so, it can build on the associated endpoint passing the
@@ -118,6 +120,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
 
   private:
     RemoteServeConfig const& serve_config_;
+    std::optional<gsl::not_null<const ServeApi*>> serve_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
     // type of dispatch list; reduces verbosity

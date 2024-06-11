@@ -867,8 +867,14 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kServe) {
             SetupServeServiceConfig(arguments.service);
+            std::optional<gsl::not_null<const ServeApi*>> serve;
+            if (RemoteServeConfig::Instance().RemoteAddress()) {
+                serve = &ServeApi::Instance();
+            }
+
             if (!ServeServerImpl::Instance().Run(
                     RemoteServeConfig::Instance(),
+                    serve,
                     !RemoteExecutionConfig::RemoteAddress())) {
                 return kExitFailure;
             }

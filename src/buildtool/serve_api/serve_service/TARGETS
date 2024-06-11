@@ -48,6 +48,7 @@
   , "deps":
     [ ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":

@@ -38,7 +38,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -453,13 +452,8 @@ auto TargetService::ServeTarget(
     AnalyseContext analyse_ctx{.repo_config = &repository_config,
                                .target_cache = tc,
                                .statistics = &stats,
-                               .progress = &progress};
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        analyse_ctx.serve = &ServeApi::Instance();
-    }
-#endif  // BOOTSTRAP_BUILD_TOOL
+                               .progress = &progress,
+                               .serve = serve_};
 
     // analyse the configured target
     auto result = AnalyseTarget(&analyse_ctx,
