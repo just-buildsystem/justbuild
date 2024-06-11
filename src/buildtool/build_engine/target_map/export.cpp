@@ -142,8 +142,7 @@ void ExportRule(
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         // if not found locally, try the serve endpoint
-        if (not target_cache_value and
-            RemoteServeConfig::Instance().RemoteAddress()) {
+        if (not target_cache_value and context->serve) {
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());
@@ -153,7 +152,7 @@ void ExportRule(
                             PruneJson(effective_config.ToJson()).dump());
             context->progress->TaskTracker().Start(task);
             auto res =
-                ServeApi::Instance().ServeTarget(*target_cache_key, *repo_key);
+                (*context->serve)->ServeTarget(*target_cache_key, *repo_key);
             // process response from serve endpoint
             if (not res) {
                 // target not found: log to performance, and continue

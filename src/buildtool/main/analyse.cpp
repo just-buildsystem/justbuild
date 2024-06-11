@@ -116,7 +116,7 @@ namespace Target = BuildMaps::Target;
     auto source_targets = Base::CreateSourceTargetMap(
         &directory_entries, context->repo_config, jobs);
     auto absent_target_variables_map =
-        Target::CreateAbsentTargetVariablesMap(jobs);
+        Target::CreateAbsentTargetVariablesMap(context, jobs);
 
     auto absent_target_map = Target::CreateAbsentTargetMap(
         context, result_map, &absent_target_variables_map, jobs, serve_log);
@@ -134,13 +134,7 @@ namespace Target = BuildMaps::Target;
     AnalysedTargetPtr target{};
 
     // we should only report served export targets if a serve endpoint exists
-    bool has_serve{false};
-#ifndef BOOTSTRAP_BUILD_TOOL
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        has_serve = true;
-    }
-#endif  // BOOTSTRAP_BUILD_TOOL
-
+    bool has_serve = context->serve.has_value();
     std::atomic<bool> done{false};
     std::condition_variable cv{};
     auto reporter = ExportsProgressReporter::Reporter(

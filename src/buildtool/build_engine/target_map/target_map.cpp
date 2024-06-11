@@ -1905,7 +1905,7 @@ auto CreateTargetMap(
         else if (context->repo_config
                      ->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
-            if (not RemoteServeConfig::Instance().RemoteAddress()) {
+            if (not context->serve) {
                 (*logger)(
                     fmt::format("Root for target {} is absent, but no serve "
                                 "endpoint was configured. Please provide "
@@ -1914,7 +1914,7 @@ auto CreateTargetMap(
                     /*is_fatal=*/true);
                 return;
             }
-            if (not ServeApi::Instance().CheckServeRemoteExecution()) {
+            if (not(*context->serve)->CheckServeRemoteExecution()) {
                 (*logger)(
                     "Inconsistent remote execution endpoint and serve endpoint"
                     "configuration detected.",

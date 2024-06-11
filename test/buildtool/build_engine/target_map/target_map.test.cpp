@@ -32,6 +32,8 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
@@ -96,9 +98,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -533,9 +538,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -615,9 +623,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -707,9 +718,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -909,9 +923,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -1044,9 +1061,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -1145,9 +1165,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);
@@ -1303,9 +1326,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress};
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
+        ctx.serve = &ServeApi::Instance();
+    }
 
     auto absent_target_variables_map =
-        BuildMaps::Target::CreateAbsentTargetVariablesMap(0);
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
 
     auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
         &ctx, &result_map, &absent_target_variables_map, 0);

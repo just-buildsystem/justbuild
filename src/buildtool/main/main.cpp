@@ -56,6 +56,7 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
@@ -948,6 +949,15 @@ auto main(int argc, char* argv[]) -> int {
             DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+        std::optional<gsl::not_null<const ServeApi*>> serve;
+        if (RemoteServeConfig::Instance().RemoteAddress()) {
+            serve = &ServeApi::Instance();
+        }
+#else
+        std::optional<gsl::not_null<const ServeApi*>> serve;
+#endif  // BOOTSTRAP_BUILD_TOOL
+
+#ifndef BOOTSTRAP_BUILD_TOOL
         auto lock = GarbageCollector::SharedLock();
         if (not lock) {
             return kExitFailure;
@@ -1019,7 +1029,9 @@ auto main(int argc, char* argv[]) -> int {
                 .repo_config = &repo_config,
                 .target_cache = Storage::Instance().TargetCache(),
                 .statistics = &stats,
-                .progress = &exports_progress};
+                .progress = &exports_progress,
+                .serve = serve};
+
             auto result = AnalyseTarget(&analyse_ctx,
                                         id,
                                         &result_map,

@@ -109,6 +109,7 @@
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/main", "analyse_context"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   }
 , "configuration_service":

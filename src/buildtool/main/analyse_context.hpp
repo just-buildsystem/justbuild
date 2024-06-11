@@ -15,10 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP
 
+#include <optional>
+
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 struct AnalyseContext final {
@@ -26,6 +29,7 @@ struct AnalyseContext final {
     ActiveTargetCache const& target_cache;
     gsl::not_null<Statistics*> statistics;
     gsl::not_null<Progress*> progress;
+    std::optional<gsl::not_null<const ServeApi*>> serve;
 };
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP

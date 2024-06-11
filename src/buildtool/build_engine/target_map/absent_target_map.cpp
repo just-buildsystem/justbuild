@@ -76,7 +76,7 @@ void WithFlexibleVariables(
         target_cache_value{std::nullopt};
     target_cache_value = context->target_cache.Read(*target_cache_key);
     bool from_just_serve = false;
-    if (!target_cache_value) {
+    if (not target_cache_value and context->serve) {
         auto task = fmt::format("[{},{}]",
                                 key.target.ToString(),
                                 PruneJson(effective_config.ToJson()).dump());
@@ -86,8 +86,7 @@ void WithFlexibleVariables(
             task,
             key.target.ToString());
         context->progress->TaskTracker().Start(task);
-        auto res =
-            ServeApi::Instance().ServeTarget(*target_cache_key, *repo_key);
+        auto res = (*context->serve)->ServeTarget(*target_cache_key, *repo_key);
         // process response from serve endpoint
         if (not res) {
             // report target not found
@@ -185,10 +184,11 @@ void WithFlexibleVariables(
 
 }  // namespace
 
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
-auto BuildMaps::Target::CreateAbsentTargetVariablesMap(std::size_t jobs)
-    -> AbsentTargetVariablesMap {
+auto BuildMaps::Target::CreateAbsentTargetVariablesMap(
+    const gsl::not_null<AnalyseContext*>& context,
+    std::size_t jobs) -> AbsentTargetVariablesMap {
 #ifdef BOOTSTRAP_BUILD_TOOL
     auto target_variables = [](auto /*ts*/,
                                auto /*setter*/,
@@ -196,21 +196,26 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(std::size_t jobs)
                                auto /*subcaller*/,
                                auto /*key*/) {};
 #else
-    auto target_variables = [](auto /*ts*/,
-                               auto setter,
-                               auto logger,
-                               auto /*subcaller*/,
-                               auto key) {
-        auto flexible_vars_opt = ServeApi::Instance().ServeTargetVariables(
-            key.target_root_id, key.target_file, key.target);
-        if (!flexible_vars_opt) {
+    auto target_variables = [context](auto /*ts*/,
+                                      auto setter,
+                                      auto logger,
+                                      auto /*subcaller*/,
+                                      auto key) {
+        std::optional<std::vector<std::string>> vars;
+        if (context->serve) {
+            vars = (*context->serve)
+                       ->ServeTargetVariables(
+                           key.target_root_id, key.target_file, key.target);
+        }
+
+        if (not vars) {
             (*logger)(fmt::format("Failed to obtain flexible config variables "
                                   "for absent target {}",
                                   key.target),
                       /*fatal=*/true);
             return;
         }
-        (*setter)(std::move(flexible_vars_opt.value()));
+        (*setter)(std::move(vars.value()));
     };
 #endif
     return AbsentTargetVariablesMap{target_variables, jobs};

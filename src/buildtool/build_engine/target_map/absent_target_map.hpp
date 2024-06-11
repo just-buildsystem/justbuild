@@ -48,8 +48,9 @@ using AbsentTargetVariablesMap =
 using ServeFailureLogReporter =
     std::function<void(ConfiguredTarget, std::string)>;
 
-auto CreateAbsentTargetVariablesMap(std::size_t jobs = 0)
-    -> AbsentTargetVariablesMap;
+auto CreateAbsentTargetVariablesMap(
+    const gsl::not_null<AnalyseContext*>& context,
+    std::size_t jobs = 0) -> AbsentTargetVariablesMap;
 
 auto CreateAbsentTargetMap(const gsl::not_null<AnalyseContext*>&,
                            const gsl::not_null<ResultTargetMap*>&,

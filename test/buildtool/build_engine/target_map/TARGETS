@@ -35,6 +35,8 @@
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/main", "analyse_context"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/buildtool/serve_api/remote", "serve_api"]
     , ["utils", "local_hermeticity"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]

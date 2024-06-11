@@ -32,6 +32,7 @@
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
     , ["src/buildtool/storage", "file_chunker"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     , "common"
     , "cli"
     , "version"
@@ -200,6 +201,7 @@
     , ["src/buildtool/progress_reporting", "exports_progress_reporter"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "buildtool", "main"]
   }
