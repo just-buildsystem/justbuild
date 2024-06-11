@@ -75,6 +75,7 @@
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
@@ -87,7 +88,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "config"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , "common"
     ]
   }

@@ -21,10 +21,12 @@
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 
 [[nodiscard]] auto DescribeTarget(
     BuildMaps::Target::ConfiguredTarget const& id,
     gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::optional<gsl::not_null<const ServeApi*>> const& serve,
     std::size_t jobs,
     bool print_json) -> int;
 

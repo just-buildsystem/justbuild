@@ -28,7 +28,6 @@
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
@@ -268,13 +267,14 @@ auto DescribeUserDefinedRule(
 
 auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     gsl::not_null<const RepositoryConfig*> const& repo_config,
+                    std::optional<gsl::not_null<const ServeApi*>> const& serve,
                     std::size_t jobs,
                     bool print_json) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL
     // check if target root is absent
     if (repo_config->TargetRoot(id.target.ToModule().repository)->IsAbsent()) {
         // check that we have a serve endpoint configured
-        if (not RemoteServeConfig::Instance().RemoteAddress()) {
+        if (not serve) {
             Logger::Log(LogLevel::Error,
                         fmt::format("Root for target {} is absent but no serve "
                                     "endpoint was configured. Please provide "
@@ -285,7 +285,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         // check that just serve and the client use same remote execution
         // endpoint; it might make sense in the future to remove or avoid this
         // check, e.g., if remote endpoints are behind proxies.
-        if (not ServeApi::Instance().CheckServeRemoteExecution()) {
+        if (not(*serve)->CheckServeRemoteExecution()) {
             Logger::Log(LogLevel::Error,
                         "Inconsistent remote execution endpoint and serve "
                         "endpoint configuration detected.");
@@ -302,7 +302,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                 repo_name);
             return kExitFailure;
         }
-        if (auto dgst = ServeApi::Instance().ServeTargetDescription(
+        if (auto dgst = (*serve)->ServeTargetDescription(
                 *target_root_id,
                 *(repo_config->TargetFileName(repo_name)),
                 id.target.GetNamedTarget().name)) {

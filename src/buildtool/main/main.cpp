@@ -997,6 +997,7 @@ auto main(int argc, char* argv[]) -> int {
                                  arguments.describe.print_json)
                            : DescribeTarget(*id,
                                             &repo_config,
+                                            serve,
                                             arguments.common.jobs,
                                             arguments.describe.print_json);
             }
