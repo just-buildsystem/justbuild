@@ -60,7 +60,8 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }
 }  // namespace
 
-auto ServeServerImpl::Run(bool with_execute) -> bool {
+auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
+                          bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
     if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
         Logger::Log(LogLevel::Error,
@@ -75,8 +76,8 @@ auto ServeServerImpl::Run(bool with_execute) -> bool {
         return false;
     }
 
-    SourceTreeService sts{};
-    TargetService ts{};
+    SourceTreeService sts{serve_config};
+    TargetService ts{serve_config};
     ConfigurationService cs{};
 
     grpc::ServerBuilder builder;

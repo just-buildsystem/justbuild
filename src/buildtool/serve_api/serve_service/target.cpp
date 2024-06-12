@@ -38,7 +38,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -357,8 +356,11 @@ auto TargetService::ServeTarget(
     // populate the RepositoryConfig instance
     RepositoryConfig repository_config{};
     std::string const main_repo{"0"};  // known predefined main repository name
-    if (auto msg = DetermineRoots(
-            main_repo, *repo_config_path, &repository_config, logger_)) {
+    if (auto msg = DetermineRoots(serve_config_,
+                                  main_repo,
+                                  *repo_config_path,
+                                  &repository_config,
+                                  logger_)) {
         logger_->Emit(LogLevel::Error, "{}", *msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, *msg};
     }
@@ -429,8 +431,7 @@ auto TargetService::ServeTarget(
                               error_msg};
     }
 
-    BuildMaps::Target::ResultTargetMap result_map{
-        RemoteServeConfig::Instance().Jobs()};
+    BuildMaps::Target::ResultTargetMap result_map{serve_config_.Jobs()};
     auto configured_target = BuildMaps::Target::ConfiguredTarget{
         .target = std::move(*entity), .config = std::move(config)};
 
@@ -464,7 +465,7 @@ auto TargetService::ServeTarget(
     auto result = AnalyseTarget(&analyse_ctx,
                                 configured_target,
                                 &result_map,
-                                RemoteServeConfig::Instance().Jobs(),
+                                serve_config_.Jobs(),
                                 std::nullopt /*request_action_input*/,
                                 &logger);
 
@@ -490,20 +491,19 @@ auto TargetService::ServeTarget(
 
     // Clean up result map, now that it is no longer needed
     {
-        TaskSystem ts{RemoteServeConfig::Instance().Jobs()};
+        TaskSystem ts{serve_config_.Jobs()};
         result_map.Clear(&ts);
     }
 
-    auto jobs = RemoteServeConfig::Instance().BuildJobs();
+    auto jobs = serve_config_.BuildJobs();
     if (jobs == 0) {
-        jobs = RemoteServeConfig::Instance().Jobs();
+        jobs = serve_config_.Jobs();
     }
 
     // setup graph traverser
     GraphTraverser::CommandLineArguments traverser_args{};
     traverser_args.jobs = jobs;
-    traverser_args.build.timeout =
-        RemoteServeConfig::Instance().ActionTimeout();
+    traverser_args.build.timeout = serve_config_.ActionTimeout();
     traverser_args.stage = std::nullopt;
     traverser_args.rebuild = std::nullopt;
     GraphTraverser const traverser{
@@ -533,7 +533,7 @@ auto TargetService::ServeTarget(
                             jobs,
                             traverser.GetLocalApi(),
                             traverser.GetRemoteApi(),
-                            RemoteServeConfig::Instance().TCStrategy(),
+                            serve_config_.TCStrategy(),
                             tc,
                             &logger,
                             LogLevel::Error);
@@ -611,8 +611,7 @@ auto TargetService::ServeTargetVariables(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path :
-             RemoteServeConfig::Instance().KnownRepositories()) {
+        for (auto const& path : serve_config_.KnownRepositories()) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;
@@ -767,8 +766,7 @@ auto TargetService::ServeTargetDescription(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path :
-             RemoteServeConfig::Instance().KnownRepositories()) {
+        for (auto const& path : serve_config_.KnownRepositories()) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;

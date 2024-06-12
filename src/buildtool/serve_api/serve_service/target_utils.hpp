@@ -25,6 +25,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 
 // Methods used by ServeTarget remote service
 
@@ -34,7 +35,8 @@
                                 std::shared_ptr<Logger> const& logger) -> bool;
 
 /// \brief For a given tree id, find the known repository that can serve it.
-[[nodiscard]] auto GetServingRepository(std::string const& tree_id,
+[[nodiscard]] auto GetServingRepository(RemoteServeConfig const& serve_config,
+                                        std::string const& tree_id,
                                         std::shared_ptr<Logger> const& logger)
     -> std::optional<std::filesystem::path>;
 
@@ -42,6 +44,7 @@
 /// RepositoryConfig instance.
 /// \returns nullopt on success, error message as a string otherwise.
 [[nodiscard]] auto DetermineRoots(
+    RemoteServeConfig const& serve_config,
     std::string const& main_repo,
     std::filesystem::path const& repo_config_path,
     gsl::not_null<RepositoryConfig*> const& repository_config,

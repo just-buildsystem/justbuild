@@ -21,6 +21,7 @@
     , ["src/buildtool/execution_api/common", "create_execution_api"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
@@ -33,7 +34,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "async_map_utils"]
-    , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
@@ -45,7 +45,10 @@
   , "name": ["serve_server_implementation"]
   , "hdrs": ["serve_server_implementation.hpp"]
   , "srcs": ["serve_server_implementation.cpp"]
-  , "deps": [["src/buildtool/logging", "logging"]]
+  , "deps":
+    [ ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/serve_api/remote", "config"]
+    ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
     [ "source_tree"
@@ -80,6 +83,7 @@
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/common", "create_execution_api"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
@@ -100,7 +104,6 @@
     , ["src/buildtool/main", "build_utils"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/progress_reporting", "progress_reporter"]
-    , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "object_type"]
@@ -134,6 +137,7 @@
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
@@ -144,7 +148,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]

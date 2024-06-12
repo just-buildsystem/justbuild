@@ -34,6 +34,7 @@
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 
 // Service for improved interaction with the target-level cache.
 class SourceTreeService final
@@ -54,6 +55,9 @@ class SourceTreeService final
         ::justbuild::just_serve::CheckRootTreeResponse;
     using GetRemoteTreeResponse =
         ::justbuild::just_serve::GetRemoteTreeResponse;
+
+    explicit SourceTreeService(RemoteServeConfig const& serve_config) noexcept
+        : serve_config_{serve_config} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
@@ -119,6 +123,7 @@ class SourceTreeService final
         GetRemoteTreeResponse* response) -> ::grpc::Status override;
 
   private:
+    RemoteServeConfig const& serve_config_;
     mutable std::shared_mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
 

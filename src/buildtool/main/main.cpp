@@ -868,6 +868,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kServe) {
             SetupServeServiceConfig(arguments.service);
             if (!ServeServerImpl::Instance().Run(
+                    RemoteServeConfig::Instance(),
                     !RemoteExecutionConfig::RemoteAddress())) {
                 return kExitFailure;
             }
