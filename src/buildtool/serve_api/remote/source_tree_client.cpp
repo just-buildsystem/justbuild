@@ -65,7 +65,8 @@ SourceTreeClient::SourceTreeClient(std::string const& server,
 
 auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,
                                        std::string const& subdir,
-                                       bool sync_tree) noexcept -> result_t {
+                                       bool sync_tree) const noexcept
+    -> result_t {
     justbuild::just_serve::ServeCommitTreeRequest request{};
     request.set_commit(commit_id);
     request.set_subdir(subdir);
@@ -96,7 +97,7 @@ auto SourceTreeClient::ServeArchiveTree(
     std::string const& archive_type,
     std::string const& subdir,
     std::optional<PragmaSpecial> const& resolve_symlinks,
-    bool sync_tree) noexcept -> result_t {
+    bool sync_tree) const noexcept -> result_t {
     justbuild::just_serve::ServeArchiveTreeRequest request{};
     request.set_content(content);
     request.set_archive_type(StringToArchiveType(archive_type));
@@ -128,7 +129,7 @@ auto SourceTreeClient::ServeArchiveTree(
 auto SourceTreeClient::ServeDistdirTree(
     std::shared_ptr<std::unordered_map<std::string, std::string>> const&
         distfiles,
-    bool sync_tree) noexcept -> result_t {
+    bool sync_tree) const noexcept -> result_t {
     justbuild::just_serve::ServeDistdirTreeRequest request{};
     for (auto const& [k, v] : *distfiles) {
         auto* distfile = request.add_distfiles();
@@ -160,7 +161,7 @@ auto SourceTreeClient::ServeDistdirTree(
 
 auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
                                             const std::string& name,
-                                            bool executable) noexcept
+                                            bool executable) const noexcept
     -> result_t {
     justbuild::just_serve::ServeDistdirTreeRequest request{};
     auto* distfile = request.add_distfiles();
@@ -189,7 +190,7 @@ auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
     return response.tree();  // success
 }
 
-auto SourceTreeClient::ServeContent(std::string const& content) noexcept
+auto SourceTreeClient::ServeContent(std::string const& content) const noexcept
     -> bool {
     justbuild::just_serve::ServeContentRequest request{};
     request.set_content(content);
@@ -212,7 +213,8 @@ auto SourceTreeClient::ServeContent(std::string const& content) noexcept
     return true;
 }
 
-auto SourceTreeClient::ServeTree(std::string const& tree_id) noexcept -> bool {
+auto SourceTreeClient::ServeTree(std::string const& tree_id) const noexcept
+    -> bool {
     justbuild::just_serve::ServeTreeRequest request{};
     request.set_tree(tree_id);
 
@@ -233,7 +235,7 @@ auto SourceTreeClient::ServeTree(std::string const& tree_id) noexcept -> bool {
     return true;
 }
 
-auto SourceTreeClient::CheckRootTree(std::string const& tree_id) noexcept
+auto SourceTreeClient::CheckRootTree(std::string const& tree_id) const noexcept
     -> std::optional<bool> {
     justbuild::just_serve::CheckRootTreeRequest request{};
     request.set_tree(tree_id);
@@ -260,7 +262,7 @@ auto SourceTreeClient::CheckRootTree(std::string const& tree_id) noexcept
     return true;  // tree found
 }
 
-auto SourceTreeClient::GetRemoteTree(std::string const& tree_id) noexcept
+auto SourceTreeClient::GetRemoteTree(std::string const& tree_id) const noexcept
     -> bool {
     justbuild::just_serve::GetRemoteTreeRequest request{};
     request.set_tree(tree_id);

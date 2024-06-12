@@ -22,7 +22,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 
-auto ConfigurationClient::CheckServeRemoteExecution() noexcept -> bool {
+auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
     auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
     if (!client_remote_address) {
         logger_.Emit(LogLevel::Error,
@@ -101,7 +101,7 @@ auto ConfigurationClient::CheckServeRemoteExecution() noexcept -> bool {
     return false;
 }
 
-auto ConfigurationClient::IsCompatible() noexcept -> std::optional<bool> {
+auto ConfigurationClient::IsCompatible() const noexcept -> std::optional<bool> {
     grpc::ClientContext context;
     justbuild::just_serve::CompatibilityRequest request{};
     justbuild::just_serve::CompatibilityResponse response{};
