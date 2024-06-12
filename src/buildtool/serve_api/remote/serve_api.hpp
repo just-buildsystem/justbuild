@@ -19,6 +19,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <variant>
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -31,22 +32,22 @@
 
 class ServeApi final {
   public:
-    ServeApi(ServeApi const&) = delete;
-    ~ServeApi() = default;
-
-    auto operator=(ServeApi const&) -> ServeApi& = delete;
-    auto operator=(ServeApi&&) -> ServeApi& = delete;
-
-    [[nodiscard]] static auto Instance() noexcept -> ServeApi& {
+    [[nodiscard]] static auto Instance() noexcept -> ServeApi const& {
         static ServeApi instance = ServeApi::init();
         return instance;
     }
+
+    ~ServeApi() noexcept = default;
+    ServeApi(ServeApi const&) = delete;
+    ServeApi(ServeApi&&) = delete;
+    auto operator=(ServeApi const&) -> ServeApi& = delete;
+    auto operator=(ServeApi&&) -> ServeApi& = delete;
 
     [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
                                               std::string const& subdir = ".",
                                               bool sync_tree = false)
         const noexcept -> std::variant<bool, std::string> {
-        return stc_->ServeCommitTree(commit, subdir, sync_tree);
+        return stc_.ServeCommitTree(commit, subdir, sync_tree);
     }
 
     [[nodiscard]] auto RetrieveTreeFromArchive(
@@ -56,7 +57,7 @@ class ServeApi final {
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
         bool sync_tree = false) const noexcept
         -> std::variant<bool, std::string> {
-        return stc_->ServeArchiveTree(
+        return stc_.ServeArchiveTree(
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
 
@@ -65,71 +66,67 @@ class ServeApi final {
             distfiles,
         bool sync_tree = false) const noexcept
         -> std::variant<bool, std::string> {
-        return stc_->ServeDistdirTree(distfiles, sync_tree);
+        return stc_.ServeDistdirTree(distfiles, sync_tree);
     }
 
     [[nodiscard]] auto RetrieveTreeFromForeignFile(
         const std::string& content,
         const std::string& name,
         bool executable) const noexcept -> std::variant<bool, std::string> {
-        return stc_->ServeForeignFileTree(content, name, executable);
+        return stc_.ServeForeignFileTree(content, name, executable);
     }
 
     [[nodiscard]] auto ContentInRemoteCAS(
         std::string const& content) const noexcept -> bool {
-        return stc_->ServeContent(content);
+        return stc_.ServeContent(content);
     }
 
     [[nodiscard]] auto TreeInRemoteCAS(
         std::string const& tree_id) const noexcept -> bool {
-        return stc_->ServeTree(tree_id);
+        return stc_.ServeTree(tree_id);
     }
 
     [[nodiscard]] auto CheckRootTree(std::string const& tree_id) const noexcept
         -> std::optional<bool> {
-        return stc_->CheckRootTree(tree_id);
+        return stc_.CheckRootTree(tree_id);
     }
 
     [[nodiscard]] auto GetTreeFromRemote(
         std::string const& tree_id) const noexcept -> bool {
-        return stc_->GetRemoteTree(tree_id);
+        return stc_.GetRemoteTree(tree_id);
     }
 
     [[nodiscard]] auto ServeTargetVariables(std::string const& target_root_id,
                                             std::string const& target_file,
                                             std::string const& target)
         const noexcept -> std::optional<std::vector<std::string>> {
-        return tc_->ServeTargetVariables(target_root_id, target_file, target);
+        return tc_.ServeTargetVariables(target_root_id, target_file, target);
     }
 
     [[nodiscard]] auto ServeTargetDescription(std::string const& target_root_id,
                                               std::string const& target_file,
                                               std::string const& target)
         const noexcept -> std::optional<ArtifactDigest> {
-        return tc_->ServeTargetDescription(target_root_id, target_file, target);
+        return tc_.ServeTargetDescription(target_root_id, target_file, target);
     }
 
     [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
                                    const std::string& repo_key) const noexcept
         -> std::optional<serve_target_result_t> {
-        return tc_->ServeTarget(key, repo_key);
+        return tc_.ServeTarget(key, repo_key);
     }
 
     [[nodiscard]] auto CheckServeRemoteExecution() const noexcept -> bool {
-        return cc_->CheckServeRemoteExecution();
+        return cc_.CheckServeRemoteExecution();
     }
 
     [[nodiscard]] auto IsCompatible() const noexcept -> std::optional<bool> {
-        return cc_->IsCompatible();
+        return cc_.IsCompatible();
     }
 
   private:
     ServeApi(std::string const& host, Port port) noexcept
-        : stc_{std::make_unique<SourceTreeClient>(host, port)},
-          tc_{std::make_unique<TargetClient>(host, port)},
-          cc_{std::make_unique<ConfigurationClient>(host, port)} {}
-
-    ServeApi(ServeApi&& other) noexcept = default;
+        : stc_{host, port}, tc_{host, port}, cc_{host, port} {}
 
     [[nodiscard]] static auto init() noexcept -> ServeApi {
         auto sadd = RemoteServeConfig::Instance().RemoteAddress();
@@ -137,11 +134,11 @@ class ServeApi final {
     }
 
     // source tree service client
-    std::unique_ptr<SourceTreeClient> stc_;
+    SourceTreeClient const stc_;
     // target service client
-    std::unique_ptr<TargetClient> tc_;
+    TargetClient const tc_;
     // configuration service client
-    std::unique_ptr<ConfigurationClient> cc_;
+    ConfigurationClient const cc_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP
