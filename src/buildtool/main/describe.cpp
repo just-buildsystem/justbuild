@@ -274,7 +274,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
     // check if target root is absent
     if (repo_config->TargetRoot(id.target.ToModule().repository)->IsAbsent()) {
         // check that we have a serve endpoint configured
-        if (not RemoteServeConfig::RemoteAddress()) {
+        if (not RemoteServeConfig::Instance().RemoteAddress()) {
             Logger::Log(LogLevel::Error,
                         fmt::format("Root for target {} is absent but no serve "
                                     "endpoint was configured. Please provide "

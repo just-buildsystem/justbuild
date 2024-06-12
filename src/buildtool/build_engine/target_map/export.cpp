@@ -142,7 +142,8 @@ void ExportRule(
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         // if not found locally, try the serve endpoint
-        if (not target_cache_value and RemoteServeConfig::RemoteAddress()) {
+        if (not target_cache_value and
+            RemoteServeConfig::Instance().RemoteAddress()) {
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());

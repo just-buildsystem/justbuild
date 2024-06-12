@@ -33,76 +33,70 @@ class RemoteServeConfig {
     }
 
     // Set remote execution and cache address, unsets if parsing `address` fails
-    [[nodiscard]] static auto SetRemoteAddress(
-        std::string const& address) noexcept -> bool {
-        auto& inst = Instance();
-        return static_cast<bool>(inst.remote_address_ = ParseAddress(address));
+    [[nodiscard]] auto SetRemoteAddress(std::string const& address) noexcept
+        -> bool {
+        return static_cast<bool>(remote_address_ = ParseAddress(address));
     }
 
     // Set the list of known repositories
-    [[nodiscard]] static auto SetKnownRepositories(
+    [[nodiscard]] auto SetKnownRepositories(
         std::vector<std::filesystem::path> const& repos) noexcept -> bool {
-        auto& inst = Instance();
-        inst.repositories_ = std::vector<std::filesystem::path>(
+        repositories_ = std::vector<std::filesystem::path>(
             std::make_move_iterator(repos.begin()),
             std::make_move_iterator(repos.end()));
-        return repos.size() == inst.repositories_.size();
+        return repos.size() == repositories_.size();
     }
 
     // Set the number of jobs
-    [[nodiscard]] static auto SetJobs(std::size_t jobs) noexcept -> bool {
-        return static_cast<bool>(Instance().jobs_ = jobs);
+    [[nodiscard]] auto SetJobs(std::size_t jobs) noexcept -> bool {
+        return static_cast<bool>(jobs_ = jobs);
     }
 
     // Set the number of build jobs
-    [[nodiscard]] static auto SetBuildJobs(std::size_t build_jobs) noexcept
-        -> bool {
-        return static_cast<bool>(Instance().build_jobs_ = build_jobs);
+    [[nodiscard]] auto SetBuildJobs(std::size_t build_jobs) noexcept -> bool {
+        return static_cast<bool>(build_jobs_ = build_jobs);
     }
 
     // Set the action timeout
-    [[nodiscard]] static auto SetActionTimeout(
+    [[nodiscard]] auto SetActionTimeout(
         std::chrono::milliseconds const& timeout) noexcept -> bool {
-        Instance().timeout_ = timeout;
-        return Instance().timeout_ > std::chrono::seconds{0};
+        timeout_ = timeout;
+        return timeout_ > std::chrono::seconds{0};
     }
 
-    static void SetTCStrategy(TargetCacheWriteStrategy strategy) noexcept {
-        Instance().tc_strategy_ = strategy;
+    void SetTCStrategy(TargetCacheWriteStrategy strategy) noexcept {
+        tc_strategy_ = strategy;
     }
 
     // Remote execution address, if set
-    [[nodiscard]] static auto RemoteAddress() noexcept
+    [[nodiscard]] auto RemoteAddress() const noexcept
         -> std::optional<ServerAddress> {
-        return Instance().remote_address_;
+        return remote_address_;
     }
 
     // Repositories known to 'just serve'
-    [[nodiscard]] static auto KnownRepositories() noexcept
+    [[nodiscard]] auto KnownRepositories() const noexcept
         -> const std::vector<std::filesystem::path>& {
-        return Instance().repositories_;
+        return repositories_;
     }
 
     // Get the number of jobs
-    [[nodiscard]] static auto Jobs() noexcept -> std::size_t {
-        return Instance().jobs_;
-    }
+    [[nodiscard]] auto Jobs() const noexcept -> std::size_t { return jobs_; }
 
     // Get the number of build jobs
-    [[nodiscard]] static auto BuildJobs() noexcept -> std::size_t {
-        return Instance().build_jobs_;
+    [[nodiscard]] auto BuildJobs() const noexcept -> std::size_t {
+        return build_jobs_;
     }
 
     // Get the action timeout
-    [[nodiscard]] static auto ActionTimeout() noexcept
+    [[nodiscard]] auto ActionTimeout() const noexcept
         -> std::chrono::milliseconds {
-        return Instance().timeout_;
+        return timeout_;
     }
 
     // Get the target-level cache write strategy
-    [[nodiscard]] static auto TCStrategy() noexcept
-        -> TargetCacheWriteStrategy {
-        return Instance().tc_strategy_;
+    [[nodiscard]] auto TCStrategy() const noexcept -> TargetCacheWriteStrategy {
+        return tc_strategy_;
     }
 
   private:

@@ -30,7 +30,7 @@ auto ConfigurationClient::CheckServeRemoteExecution() noexcept -> bool {
                      "have been set.");
         return false;
     }
-    auto client_serve_address = RemoteServeConfig::RemoteAddress();
+    auto client_serve_address = RemoteServeConfig::Instance().RemoteAddress();
     if (!client_serve_address) {
         logger_.Emit(
             LogLevel::Error,

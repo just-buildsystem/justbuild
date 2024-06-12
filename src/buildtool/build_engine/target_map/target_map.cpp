@@ -1915,7 +1915,7 @@ auto CreateTargetMap(
 #ifndef BOOTSTRAP_BUILD_TOOL
         else if (repo_config->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
-            if (not RemoteServeConfig::RemoteAddress()) {
+            if (not RemoteServeConfig::Instance().RemoteAddress()) {
                 (*logger)(
                     fmt::format("Root for target {} is absent, but no serve "
                                 "endpoint was configured. Please provide "

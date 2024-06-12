@@ -155,7 +155,7 @@ void SetupServeConfig(ServeArguments const& srvargs,
                       BuildArguments const& bargs,
                       TCArguments const& tc) {
     if (srvargs.remote_serve_address) {
-        if (not RemoteServeConfig::SetRemoteAddress(
+        if (not RemoteServeConfig::Instance().SetRemoteAddress(
                 *srvargs.remote_serve_address)) {
             Logger::Log(LogLevel::Error,
                         "Setting serve service address '{}' failed.",
@@ -164,26 +164,27 @@ void SetupServeConfig(ServeArguments const& srvargs,
         }
     }
     if (not srvargs.repositories.empty() and
-        not RemoteServeConfig::SetKnownRepositories(srvargs.repositories)) {
+        not RemoteServeConfig::Instance().SetKnownRepositories(
+            srvargs.repositories)) {
         Logger::Log(LogLevel::Error,
                     "Setting serve service repositories failed.");
         std::exit(kExitFailure);
     }
     // make parallelism and build options available for remote builds
-    if (not RemoteServeConfig::SetJobs(cargs.jobs)) {
+    if (not RemoteServeConfig::Instance().SetJobs(cargs.jobs)) {
         Logger::Log(LogLevel::Error, "Setting jobs failed.");
         std::exit(kExitFailure);
     }
     if (bargs.build_jobs > 0 and
-        not RemoteServeConfig::SetBuildJobs(bargs.build_jobs)) {
+        not RemoteServeConfig::Instance().SetBuildJobs(bargs.build_jobs)) {
         Logger::Log(LogLevel::Error, "Setting build jobs failed.");
         std::exit(kExitFailure);
     }
-    if (not RemoteServeConfig::SetActionTimeout(bargs.timeout)) {
+    if (not RemoteServeConfig::Instance().SetActionTimeout(bargs.timeout)) {
         Logger::Log(LogLevel::Error, "Setting action timeout failed.");
         std::exit(kExitFailure);
     }
-    RemoteServeConfig::SetTCStrategy(tc.target_cache_write_strategy);
+    RemoteServeConfig::Instance().SetTCStrategy(tc.target_cache_write_strategy);
     if (tc.target_cache_write_strategy == TargetCacheWriteStrategy::Disable) {
         Logger::Log(LogLevel::Info,
                     "Target-level cache writing of serve service is disabled.");

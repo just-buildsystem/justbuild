@@ -422,7 +422,8 @@ auto TargetService::ServeTarget(
                               error_msg};
     }
 
-    BuildMaps::Target::ResultTargetMap result_map{RemoteServeConfig::Jobs()};
+    BuildMaps::Target::ResultTargetMap result_map{
+        RemoteServeConfig::Instance().Jobs()};
     auto configured_target = BuildMaps::Target::ConfiguredTarget{
         .target = std::move(*entity), .config = std::move(config)};
 
@@ -447,7 +448,7 @@ auto TargetService::ServeTarget(
                                 &repository_config,
                                 tc,
                                 &stats,
-                                RemoteServeConfig::Jobs(),
+                                RemoteServeConfig::Instance().Jobs(),
                                 std::nullopt /*request_action_input*/,
                                 &logger);
 
@@ -473,19 +474,20 @@ auto TargetService::ServeTarget(
 
     // Clean up result map, now that it is no longer needed
     {
-        TaskSystem ts{RemoteServeConfig::Jobs()};
+        TaskSystem ts{RemoteServeConfig::Instance().Jobs()};
         result_map.Clear(&ts);
     }
 
-    auto jobs = RemoteServeConfig::BuildJobs();
+    auto jobs = RemoteServeConfig::Instance().BuildJobs();
     if (jobs == 0) {
-        jobs = RemoteServeConfig::Jobs();
+        jobs = RemoteServeConfig::Instance().Jobs();
     }
 
     // setup graph traverser
     GraphTraverser::CommandLineArguments traverser_args{};
     traverser_args.jobs = jobs;
-    traverser_args.build.timeout = RemoteServeConfig::ActionTimeout();
+    traverser_args.build.timeout =
+        RemoteServeConfig::Instance().ActionTimeout();
     traverser_args.stage = std::nullopt;
     traverser_args.rebuild = std::nullopt;
     GraphTraverser const traverser{
@@ -515,7 +517,7 @@ auto TargetService::ServeTarget(
                             jobs,
                             traverser.GetLocalApi(),
                             traverser.GetRemoteApi(),
-                            RemoteServeConfig::TCStrategy(),
+                            RemoteServeConfig::Instance().TCStrategy(),
                             tc,
                             &logger,
                             LogLevel::Error);
@@ -593,7 +595,8 @@ auto TargetService::ServeTargetVariables(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path : RemoteServeConfig::KnownRepositories()) {
+        for (auto const& path :
+             RemoteServeConfig::Instance().KnownRepositories()) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;
@@ -748,7 +751,8 @@ auto TargetService::ServeTargetDescription(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path : RemoteServeConfig::KnownRepositories()) {
+        for (auto const& path :
+             RemoteServeConfig::Instance().KnownRepositories()) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;

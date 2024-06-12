@@ -132,7 +132,7 @@ class ServeApi final {
     ServeApi(ServeApi&& other) noexcept = default;
 
     [[nodiscard]] static auto init() noexcept -> ServeApi {
-        auto sadd = RemoteServeConfig::RemoteAddress();
+        auto sadd = RemoteServeConfig::Instance().RemoteAddress();
         return ServeApi{sadd->host, sadd->port};
     }
 

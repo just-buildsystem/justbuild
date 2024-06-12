@@ -146,7 +146,7 @@ namespace Target = BuildMaps::Target;
     // we should only report served export targets if a serve endpoint exists
     bool has_serve{false};
 #ifndef BOOTSTRAP_BUILD_TOOL
-    if (RemoteServeConfig::RemoteAddress()) {
+    if (RemoteServeConfig::Instance().RemoteAddress()) {
         has_serve = true;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL

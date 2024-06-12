@@ -79,14 +79,15 @@ void wait_for_grpc_to_shutdown() {
     // just serve shares here compatibility and authentication args with
     // remote execution, so no need to do those again
     auto address = ReadRemoteServeAddressFromEnv();
-    if (address and not RemoteServeConfig::SetRemoteAddress(*address)) {
+    if (address and
+        not RemoteServeConfig::Instance().SetRemoteAddress(*address)) {
         Logger::Log(LogLevel::Error, "parsing address '{}' failed.", *address);
         std::exit(EXIT_FAILURE);
     }
 
     auto repos = ReadRemoteServeReposFromEnv();
     if (not repos.empty() and
-        not RemoteServeConfig::SetKnownRepositories(repos)) {
+        not RemoteServeConfig::Instance().SetKnownRepositories(repos)) {
         Logger::Log(LogLevel::Error, "setting serve repos failed.");
         std::exit(EXIT_FAILURE);
     }
@@ -105,7 +106,7 @@ void wait_for_grpc_to_shutdown() {
         std::exit(EXIT_FAILURE);
     }
 
-    return static_cast<bool>(RemoteServeConfig::RemoteAddress());
+    return static_cast<bool>(RemoteServeConfig::Instance().RemoteAddress());
 }
 
 }  // namespace

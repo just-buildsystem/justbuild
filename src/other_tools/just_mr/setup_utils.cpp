@@ -271,7 +271,8 @@ auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
         // setup authentication
         SetupAuthConfig(auth);
         // setup remote
-        if (not RemoteServeConfig::SetRemoteAddress(*remote_serve_addr)) {
+        if (not RemoteServeConfig::Instance().SetRemoteAddress(
+                *remote_serve_addr)) {
             Logger::Log(LogLevel::Error,
                         "setting remote serve service address '{}' failed.",
                         *remote_serve_addr);
