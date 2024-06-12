@@ -32,13 +32,6 @@ auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
                      "have been set.");
         return false;
     }
-    auto client_serve_address = RemoteServeConfig::Instance().RemoteAddress();
-    if (!client_serve_address) {
-        logger_.Emit(
-            LogLevel::Error,
-            "Internal error: the serve endpoint should have been set.");
-        return false;
-    }
 
     grpc::ClientContext context;
     justbuild::just_serve::RemoteExecutionEndpointRequest request{};
@@ -63,10 +56,10 @@ auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
             // NOTE: This check might make sense to be removed altogether in the
             // future, or updated to (at most) a warning.
             if (client_remote_address->ToJson() ==
-                client_serve_address->ToJson()) {
+                client_serve_address_.ToJson()) {
                 return true;
             }
-            serve_msg = client_serve_address->ToJson().dump();
+            serve_msg = client_serve_address_.ToJson().dump();
         }
         else {
             nlohmann::json serve_remote_endpoint{};

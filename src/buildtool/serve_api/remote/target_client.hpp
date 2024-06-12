@@ -27,6 +27,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/create_execution_api.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -51,7 +52,7 @@ using serve_target_result_t =
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class TargetClient {
   public:
-    TargetClient(std::string const& server, Port port) noexcept;
+    explicit TargetClient(ServerAddress const& address) noexcept;
 
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
     /// to the given key.

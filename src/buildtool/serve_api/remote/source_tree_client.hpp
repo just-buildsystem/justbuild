@@ -22,6 +22,7 @@
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -29,7 +30,7 @@
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class SourceTreeClient {
   public:
-    SourceTreeClient(std::string const& server, Port port) noexcept;
+    explicit SourceTreeClient(ServerAddress const& address) noexcept;
 
     // An error + data union type
     using result_t = std::variant<bool, std::string>;

@@ -25,9 +25,9 @@
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-TargetClient::TargetClient(std::string const& server, Port port) noexcept {
+TargetClient::TargetClient(ServerAddress const& address) noexcept {
     stub_ = justbuild::just_serve::Target::NewStub(
-        CreateChannelWithCredentials(server, port));
+        CreateChannelWithCredentials(address.host, address.port));
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,

@@ -28,6 +28,7 @@ class ServeApi final {};
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
@@ -129,12 +130,12 @@ class ServeApi final {
     }
 
   private:
-    ServeApi(std::string const& host, Port port) noexcept
-        : stc_{host, port}, tc_{host, port}, cc_{host, port} {}
+    explicit ServeApi(ServerAddress const& address) noexcept
+        : stc_{address}, tc_{address}, cc_{address} {}
 
     [[nodiscard]] static auto init() noexcept -> ServeApi {
         auto sadd = RemoteServeConfig::Instance().RemoteAddress();
-        return ServeApi{sadd->host, sadd->port};
+        return ServeApi{*sadd};
     }
 
     // source tree service client

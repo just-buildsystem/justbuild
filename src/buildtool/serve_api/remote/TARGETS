@@ -17,6 +17,7 @@
     [ ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/common/remote", "remote_common"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
@@ -32,6 +33,7 @@
   , "deps":
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , "source_tree_client"
     , "target_client"
@@ -48,6 +50,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/common", "create_execution_api"]
@@ -71,6 +74,7 @@
     [ ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common/remote", "client_common"]
+    , ["src/buildtool/common/remote", "remote_common"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
