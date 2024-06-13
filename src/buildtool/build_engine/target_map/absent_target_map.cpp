@@ -86,7 +86,7 @@ void WithFlexibleVariables(
             task,
             key.target.ToString());
         context->progress->TaskTracker().Start(task);
-        auto res = (*context->serve)->ServeTarget(*target_cache_key, *repo_key);
+        auto res = context->serve->ServeTarget(*target_cache_key, *repo_key);
         // process response from serve endpoint
         if (not res) {
             // report target not found
@@ -203,9 +203,8 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(
                                       auto key) {
         std::optional<std::vector<std::string>> vars;
         if (context->serve) {
-            vars = (*context->serve)
-                       ->ServeTargetVariables(
-                           key.target_root_id, key.target_file, key.target);
+            vars = context->serve->ServeTargetVariables(
+                key.target_root_id, key.target_file, key.target);
         }
 
         if (not vars) {

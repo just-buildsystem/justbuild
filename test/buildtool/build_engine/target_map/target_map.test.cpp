@@ -94,13 +94,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -534,13 +533,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -619,13 +617,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -714,13 +711,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -919,13 +915,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -1057,13 +1052,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -1161,13 +1155,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
@@ -1322,13 +1315,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
+    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
-                       .progress = &exports_progress};
-    if (RemoteServeConfig::Instance().RemoteAddress()) {
-        ctx.serve = &ServeApi::Instance();
-    }
+                       .progress = &exports_progress,
+                       .serve = serve};
 
     auto absent_target_variables_map =
         BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);

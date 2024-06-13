@@ -84,7 +84,7 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
     MirrorsPtr const& additional_mirrors,
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> ContentCASMap;

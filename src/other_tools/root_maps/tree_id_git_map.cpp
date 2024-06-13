@@ -147,7 +147,7 @@ auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     std::size_t jobs) -> TreeIdGitMap {
@@ -155,7 +155,7 @@ auto CreateTreeIdGitMap(
                         critical_git_op_map,
                         import_to_git_map,
                         fetch_absent,
-                        serve,
+                        &serve,
                         local_api,
                         remote_api](auto ts,
                                     auto setter,
@@ -169,8 +169,8 @@ auto CreateTreeIdGitMap(
         if (key.absent and not fetch_absent) {
             if (serve) {
                 // check serve endpoint
-                auto has_tree = CheckServeHasAbsentRoot(
-                    **serve, key.tree_info.hash, logger);
+                auto has_tree =
+                    CheckServeHasAbsentRoot(*serve, key.tree_info.hash, logger);
                 if (not has_tree) {
                     return;
                 }
@@ -200,7 +200,7 @@ auto CreateTreeIdGitMap(
                 if (remote_api.value()->IsAvailable({digest})) {
                     // tell serve to set up the root from the remote CAS tree;
                     // upload can be skipped
-                    if (EnsureAbsentRootOnServe(**serve,
+                    if (EnsureAbsentRootOnServe(*serve,
                                                 key.tree_info.hash,
                                                 /*repo_path=*/"",
                                                 /*remote_api=*/std::nullopt,
@@ -238,7 +238,7 @@ auto CreateTreeIdGitMap(
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},
-                    [serve,
+                    [&serve,
                      digest,
                      import_to_git_map,
                      local_api,
@@ -286,7 +286,7 @@ auto CreateTreeIdGitMap(
                             // upload tree from Git cache to remote CAS and tell
                             // serve to set up the root from the remote CAS
                             // tree, then set root as absent
-                            UploadToServeAndSetRoot(**serve,
+                            UploadToServeAndSetRoot(*serve,
                                                     key.tree_info.hash,
                                                     digest,
                                                     *remote_api,
@@ -301,7 +301,7 @@ auto CreateTreeIdGitMap(
                         if (auto path = cas.TreePath(digest)) {
                             // Move tree locally from CAS to Git cache, then
                             // continue processing it by UploadToServeAndSetRoot
-                            MoveCASTreeToGitAndProcess(**serve,
+                            MoveCASTreeToGitAndProcess(*serve,
                                                        key.tree_info.hash,
                                                        digest,
                                                        import_to_git_map,

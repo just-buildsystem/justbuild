@@ -20,7 +20,6 @@
 #include <exception>
 #include <thread>
 
-#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
@@ -120,23 +119,24 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     bool remote_compatible{common_args.compatible == true};
 
     // setup the API for serving roots
-    std::optional<gsl::not_null<const ServeApi*>> serve;
-    if (JustMR::Utils::SetupServeApi(common_args.remote_serve_address,
-                                     auth_args)) {
-        serve = &ServeApi::Instance();
-    }
+    bool serve_api_exists = JustMR::Utils::SetupServeApi(
+        common_args.remote_serve_address, auth_args);
+
+    auto serve = serve_api_exists
+                     ? ServeApi::Create(RemoteServeConfig::Instance())
+                     : std::nullopt;
 
     // check configuration of the serve endpoint provided
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must
         // match what the serve endpoint expects
         if (remote_api and common_args.remote_execution_address and
-            not(*serve)->CheckServeRemoteExecution()) {
+            not serve->CheckServeRemoteExecution()) {
             return std::nullopt;  // this check logs error on failure
         }
 
         // check the compatibility mode of the serve endpoint
-        auto compatible = (*serve)->IsCompatible();
+        auto compatible = serve->IsCompatible();
         if (not compatible) {
             Logger::Log(LogLevel::Warning,
                         "Checking compatibility configuration of the provided "

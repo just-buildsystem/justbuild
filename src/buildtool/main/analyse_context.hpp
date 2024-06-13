@@ -29,7 +29,7 @@ struct AnalyseContext final {
     ActiveTargetCache const& target_cache;
     gsl::not_null<Statistics*> statistics;
     gsl::not_null<Progress*> progress;
-    std::optional<gsl::not_null<const ServeApi*>> serve;
+    std::optional<ServeApi> const& serve;
 };
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP

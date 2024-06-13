@@ -40,8 +40,8 @@
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
     TargetService(RemoteServeConfig const& serve_config,
-                  std::optional<gsl::not_null<const ServeApi*>> serve) noexcept
-        : serve_config_{serve_config}, serve_(std::move(serve)) {}
+                  std::optional<ServeApi> const& serve) noexcept
+        : serve_config_{serve_config}, serve_(serve) {}
 
     // Given a target-level caching key, returns the computed value. In doing
     // so, it can build on the associated endpoint passing the
@@ -120,7 +120,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
 
   private:
     RemoteServeConfig const& serve_config_;
-    std::optional<gsl::not_null<const ServeApi*>> serve_;
+    std::optional<ServeApi> const& serve_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
     // type of dispatch list; reduces verbosity

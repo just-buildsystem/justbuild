@@ -81,7 +81,7 @@ using CommitGitMap =
     MirrorsPtr const& additional_mirrors,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,

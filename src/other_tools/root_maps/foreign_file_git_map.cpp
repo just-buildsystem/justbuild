@@ -112,11 +112,10 @@ void UseCacheHit(const std::string& tree_id,
                   /*is_cache_hit=*/true));
 }
 
-void HandleAbsentForeignFile(
-    ForeignFileInfo const& key,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
-    ForeignFileGitMap::SetterPtr const& setter,
-    ForeignFileGitMap::LoggerPtr const& logger) {
+void HandleAbsentForeignFile(ForeignFileInfo const& key,
+                             std::optional<ServeApi> const& serve,
+                             ForeignFileGitMap::SetterPtr const& setter,
+                             ForeignFileGitMap::LoggerPtr const& logger) {
     // Compute tree in memory
     GitRepo::tree_entries_t entries{};
     auto raw_id = FromHexString(key.archive.content);
@@ -139,7 +138,7 @@ void HandleAbsentForeignFile(
     }
     auto tree_id = ToHexString(tree->first);
     if (serve) {
-        auto has_tree = CheckServeHasAbsentRoot(**serve, tree_id, logger);
+        auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
         if (not has_tree) {
             return;
         }
@@ -149,7 +148,7 @@ void HandleAbsentForeignFile(
                 /*is_cache_hit=*/false));
             return;
         }
-        auto serve_result = (*serve)->RetrieveTreeFromForeignFile(
+        auto serve_result = serve->RetrieveTreeFromForeignFile(
             key.archive.content, key.name, key.executable);
         if (std::holds_alternative<std::string>(serve_result)) {
             // if serve has set up the tree, it must match what we
@@ -196,11 +195,11 @@ void HandleAbsentForeignFile(
 [[nodiscard]] auto CreateForeignFileGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap {
     auto setup_foreign_file =
-        [content_cas_map, import_to_git_map, fetch_absent, serve](
+        [content_cas_map, import_to_git_map, fetch_absent, &serve](
             auto ts,
             auto setter,
             auto logger,

@@ -55,7 +55,7 @@ class ServeServerImpl {
     /// \param with_execute Flag specifying if just serve should act also as
     /// just execute (i.e., start remote execution services with same interface)
     auto Run(RemoteServeConfig const& serve_config,
-             std::optional<gsl::not_null<const ServeApi*>> const& serve,
+             std::optional<ServeApi> const& serve,
              bool with_execute) -> bool;
     ~ServeServerImpl() = default;
 

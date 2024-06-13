@@ -152,7 +152,7 @@ void ExportRule(
                             PruneJson(effective_config.ToJson()).dump());
             context->progress->TaskTracker().Start(task);
             auto res =
-                (*context->serve)->ServeTarget(*target_cache_key, *repo_key);
+                context->serve->ServeTarget(*target_cache_key, *repo_key);
             // process response from serve endpoint
             if (not res) {
                 // target not found: log to performance, and continue

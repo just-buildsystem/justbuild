@@ -62,14 +62,14 @@ void EnsureRootAsAbsent(
     std::string const& tree_id,
     std::filesystem::path const& repo_root,
     GitRepoInfo const& repo_info,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     CommitGitMap::SetterPtr const& ws_setter,
     CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
     if (serve) {
         // check if the serve endpoint has this root
-        auto has_tree = CheckServeHasAbsentRoot(**serve, tree_id, logger);
+        auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
         if (not has_tree) {
             return;
         }
@@ -77,9 +77,9 @@ void EnsureRootAsAbsent(
             // try to see if serve endpoint has the information to prepare the
             // root itself
             auto serve_result =
-                (*serve)->RetrieveTreeFromCommit(repo_info.hash,
-                                                 repo_info.subdir,
-                                                 /*sync_tree = */ false);
+                serve->RetrieveTreeFromCommit(repo_info.hash,
+                                              repo_info.subdir,
+                                              /*sync_tree = */ false);
             if (std::holds_alternative<std::string>(serve_result)) {
                 // if serve has set up the tree, it must match what we expect
                 auto const& served_tree_id =
@@ -115,7 +115,7 @@ void EnsureRootAsAbsent(
                 }
                 // the tree is known locally, so we can upload it to remote CAS
                 // for the serve endpoint to retrieve it and set up the root
-                if (not EnsureAbsentRootOnServe(**serve,
+                if (not EnsureAbsentRootOnServe(*serve,
                                                 tree_id,
                                                 repo_root,
                                                 &(*remote_api.value()),
@@ -411,7 +411,7 @@ void EnsureCommit(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
@@ -514,9 +514,9 @@ void EnsureCommit(
             // if root purely absent, request only the subdir tree
             if (repo_info.absent and not fetch_absent) {
                 auto serve_result =
-                    (*serve)->RetrieveTreeFromCommit(repo_info.hash,
-                                                     repo_info.subdir,
-                                                     /*sync_tree = */ false);
+                    serve->RetrieveTreeFromCommit(repo_info.hash,
+                                                  repo_info.subdir,
+                                                  /*sync_tree = */ false);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     // set the workspace root as absent
                     JustMRProgress::Instance().TaskTracker().Stop(
@@ -545,9 +545,9 @@ void EnsureCommit(
             // we maintain the id file association
             else {
                 auto serve_result =
-                    (*serve)->RetrieveTreeFromCommit(repo_info.hash,
-                                                     /*subdir = */ ".",
-                                                     /*sync_tree = */ true);
+                    serve->RetrieveTreeFromCommit(repo_info.hash,
+                                                  /*subdir = */ ".",
+                                                  /*sync_tree = */ true);
                 if (std::holds_alternative<std::string>(serve_result)) {
                     auto const& root_tree_id =
                         std::get<std::string>(serve_result);
@@ -923,7 +923,7 @@ auto CreateCommitGitMap(
     MirrorsPtr const& additional_mirrors,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool fetch_absent,
@@ -934,7 +934,7 @@ auto CreateCommitGitMap(
                           additional_mirrors,
                           git_bin,
                           launcher,
-                          serve,
+                          &serve,
                           local_api,
                           remote_api,
                           fetch_absent](auto ts,
@@ -975,7 +975,7 @@ auto CreateCommitGitMap(
              import_to_git_map,
              git_bin,
              launcher,
-             serve,
+             &serve,
              local_api,
              remote_api,
              fetch_absent,

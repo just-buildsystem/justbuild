@@ -37,16 +37,23 @@ class ServeApi final {};
 
 class ServeApi final {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> ServeApi const& {
-        static ServeApi instance = ServeApi::init();
-        return instance;
-    }
+    explicit ServeApi(ServerAddress const& address) noexcept
+        : stc_{address}, tc_{address}, cc_{address} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;
     ServeApi(ServeApi&&) = delete;
     auto operator=(ServeApi const&) -> ServeApi& = delete;
     auto operator=(ServeApi&&) -> ServeApi& = delete;
+
+    [[nodiscard]] static auto Create(
+        RemoteServeConfig const& serve_config) noexcept
+        -> std::optional<ServeApi> {
+        if (auto address = serve_config.RemoteAddress()) {
+            return std::make_optional<ServeApi>(*address);
+        }
+        return std::nullopt;
+    }
 
     [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
                                               std::string const& subdir = ".",
@@ -130,14 +137,6 @@ class ServeApi final {
     }
 
   private:
-    explicit ServeApi(ServerAddress const& address) noexcept
-        : stc_{address}, tc_{address}, cc_{address} {}
-
-    [[nodiscard]] static auto init() noexcept -> ServeApi {
-        auto sadd = RemoteServeConfig::Instance().RemoteAddress();
-        return ServeApi{*sadd};
-    }
-
     // source tree service client
     SourceTreeClient const stc_;
     // target service client

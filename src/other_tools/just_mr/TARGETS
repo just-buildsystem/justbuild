@@ -110,7 +110,6 @@
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
@@ -160,7 +159,6 @@
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "json", "", "json"]
-    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]

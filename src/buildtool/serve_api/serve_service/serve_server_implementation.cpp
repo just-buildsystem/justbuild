@@ -60,10 +60,9 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }
 }  // namespace
 
-auto ServeServerImpl::Run(
-    RemoteServeConfig const& serve_config,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
-    bool with_execute) -> bool {
+auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
+                          std::optional<ServeApi> const& serve,
+                          bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
     if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
         Logger::Log(LogLevel::Error,

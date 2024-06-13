@@ -128,7 +128,7 @@ auto CreateGitTreeFetchMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi*> const& local_api,
     std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
     bool backup_to_remote,
@@ -137,7 +137,7 @@ auto CreateGitTreeFetchMap(
                           import_to_git_map,
                           git_bin,
                           launcher,
-                          serve,
+                          &serve,
                           local_api,
                           remote_api,
                           backup_to_remote](auto ts,
@@ -163,7 +163,7 @@ auto CreateGitTreeFetchMap(
              import_to_git_map,
              git_bin,
              launcher,
-             serve,
+             &serve,
              local_api,
              remote_api,
              backup_to_remote,
@@ -235,7 +235,7 @@ auto CreateGitTreeFetchMap(
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS
-                    std::ignore = (*serve)->TreeInRemoteCAS(key.hash);
+                    std::ignore = serve->TreeInRemoteCAS(key.hash);
                 }
                 // check if tree is in remote CAS, if a remote is given
                 if (remote_api and

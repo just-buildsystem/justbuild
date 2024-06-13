@@ -26,7 +26,7 @@
 [[nodiscard]] auto DescribeTarget(
     BuildMaps::Target::ConfiguredTarget const& id,
     gsl::not_null<const RepositoryConfig*> const& repo_config,
-    std::optional<gsl::not_null<const ServeApi*>> const& serve,
+    std::optional<ServeApi> const& serve,
     std::size_t jobs,
     bool print_json) -> int;
 
