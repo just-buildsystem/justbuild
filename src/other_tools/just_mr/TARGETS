@@ -85,7 +85,7 @@
     [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/serve_api/remote", "config"]
     , "cli"
     ]
   , "stage": ["src", "other_tools", "just_mr"]
@@ -98,7 +98,6 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/remote", "bazel"]
-    , ["src/buildtool/serve_api/remote", "config"]
     ]
   }
 , "fetch":

@@ -401,13 +401,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     bool remote_compatible{common_args.compatible == true};
 
     // setup the API for serving roots
-    bool serve_api_exists = JustMR::Utils::SetupServeApi(
+    auto serve_config = JustMR::Utils::CreateServeConfig(
         common_args.remote_serve_address, auth_args);
+    if (not serve_config) {
+        return kExitConfigError;
+    }
 
-    auto serve = serve_api_exists
-                     ? ServeApi::Create(RemoteServeConfig::Instance())
-                     : std::nullopt;
-
+    auto serve = ServeApi::Create(*serve_config);
     // check configuration of the serve endpoint provided
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must

@@ -24,7 +24,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
 /* Setup-related constants and utilities for just-mr */
@@ -69,10 +69,12 @@ void DefaultReachableRepositories(
     MultiRepoRemoteAuthArguments const& auth) noexcept -> IExecutionApi::Ptr;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
-/// \returns Flag stating whether a serve API is available or not.
-[[nodiscard]] auto SetupServeApi(
+/// \returns RemoteServeConfig if initialization was successfull or std::nullopt
+/// if failed.
+[[nodiscard]] auto CreateServeConfig(
     std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) noexcept -> bool;
+    MultiRepoRemoteAuthArguments const& auth) noexcept
+    -> std::optional<RemoteServeConfig>;
 
 }  // namespace Utils
 

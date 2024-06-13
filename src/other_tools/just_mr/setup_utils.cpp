@@ -15,10 +15,8 @@
 #include "src/other_tools/just_mr/setup_utils.hpp"
 
 #include <fstream>
-#include <memory>
-#include <optional>
-#include <string>
 #include <unordered_set>
+#include <variant>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
@@ -28,7 +26,6 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 
 namespace {
@@ -265,22 +262,24 @@ auto GetRemoteApi(std::optional<std::string> const& remote_exec_addr,
     return nullptr;
 }
 
-auto SetupServeApi(std::optional<std::string> const& remote_serve_addr,
-                   MultiRepoRemoteAuthArguments const& auth) noexcept -> bool {
-    if (remote_serve_addr) {
+auto CreateServeConfig(std::optional<std::string> const& remote_serve_addr,
+                       MultiRepoRemoteAuthArguments const& auth) noexcept
+    -> std::optional<RemoteServeConfig> {
+    RemoteServeConfig::Builder builder;
+    auto result = builder.SetRemoteAddress(remote_serve_addr).Build();
+
+    if (auto* config = std::get_if<RemoteServeConfig>(&result)) {
         // setup authentication
         SetupAuthConfig(auth);
-        // setup remote
-        if (not RemoteServeConfig::Instance().SetRemoteAddress(
-                *remote_serve_addr)) {
-            Logger::Log(LogLevel::Error,
-                        "setting remote serve service address '{}' failed.",
-                        *remote_serve_addr);
-            std::exit(kExitConfigError);
-        }
-        return true;
+        return std::move(*config);
     }
-    return false;
+
+    if (auto* error = std::get_if<std::string>(&result)) {
+        Logger::Log(LogLevel::Error, *error);
+        return std::nullopt;
+    }
+    Logger::Log(LogLevel::Error, "Unknown error occured");
+    return std::nullopt;
 }
 
 }  // namespace JustMR::Utils
