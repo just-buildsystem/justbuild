@@ -15,6 +15,7 @@
 #ifndef SERVE_SERVER_IMPLEMENTATION_HPP
 #define SERVE_SERVER_IMPLEMENTATION_HPP
 
+#include <optional>
 #include <string>
 
 #include "src/buildtool/logging/logger.hpp"
@@ -23,31 +24,20 @@
 
 class ServeServerImpl {
   public:
-    ServeServerImpl() noexcept = default;
-    [[nodiscard]] static auto Instance() noexcept -> ServeServerImpl& {
-        static ServeServerImpl x;
-        return x;
-    }
+    [[nodiscard]] static auto Create(
+        std::optional<std::string> interface,
+        std::optional<int> port,
+        std::optional<std::string> info_file,
+        std::optional<std::string> pid_file) noexcept
+        -> std::optional<ServeServerImpl>;
 
-    [[nodiscard]] static auto SetInterface(std::string const& x) noexcept
-        -> bool {
-        Instance().interface_ = x;
-        return true;
-    }
-
-    [[nodiscard]] static auto SetPidFile(std::string const& x) noexcept -> bool;
-
-    [[nodiscard]] static auto SetPort(int x) noexcept -> bool;
-
-    [[nodiscard]] static auto SetInfoFile(std::string const& x) noexcept
-        -> bool;
+    ~ServeServerImpl() noexcept = default;
 
     ServeServerImpl(ServeServerImpl const&) = delete;
-    auto operator=(ServeServerImpl const&) noexcept
-        -> ServeServerImpl& = delete;
+    auto operator=(ServeServerImpl const&) -> ServeServerImpl& = delete;
 
-    ServeServerImpl(ServeServerImpl&&) noexcept = delete;
-    auto operator=(ServeServerImpl&&) noexcept -> ServeServerImpl& = delete;
+    ServeServerImpl(ServeServerImpl&&) noexcept = default;
+    auto operator=(ServeServerImpl&&) noexcept -> ServeServerImpl& = default;
 
     /// \brief Start the serve service.
     /// \param serve_config RemoteServeConfig to be used.
@@ -57,9 +47,10 @@ class ServeServerImpl {
     auto Run(RemoteServeConfig const& serve_config,
              std::optional<ServeApi> const& serve,
              bool with_execute) -> bool;
-    ~ServeServerImpl() = default;
 
   private:
+    ServeServerImpl() noexcept = default;
+
     std::string interface_{"127.0.0.1"};
     int port_{0};
     std::string info_file_{};

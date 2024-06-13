@@ -283,39 +283,6 @@ void SetupExecutionServiceConfig(ServiceArguments const& args) {
     }
 }
 
-void SetupServeServiceConfig(ServiceArguments const& args) {
-    if (args.port) {
-        if (!ServeServerImpl::SetPort(*args.port)) {
-            Logger::Log(LogLevel::Error, "Invalid port '{}'", *args.port);
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.info_file) {
-        if (!ServeServerImpl::SetInfoFile(*args.info_file)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid info-file '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.interface) {
-        if (!ServeServerImpl::SetInterface(*args.interface)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid interface '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.pid_file) {
-        if (!ServeServerImpl::SetPidFile(*args.pid_file)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid pid-file '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-}
-
 void SetupHashFunction() {
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
@@ -865,15 +832,19 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kServe) {
-            SetupServeServiceConfig(arguments.service);
-            auto serve = ServeApi::Create(*serve_config);
-            if (!ServeServerImpl::Instance().Run(
-                    *serve_config,
-                    serve,
-                    !RemoteExecutionConfig::RemoteAddress())) {
-                return kExitFailure;
+            auto serve_server =
+                ServeServerImpl::Create(arguments.service.interface,
+                                        arguments.service.port,
+                                        arguments.service.info_file,
+                                        arguments.service.pid_file);
+            if (serve_server) {
+                auto serve = ServeApi::Create(*serve_config);
+                bool with_execute = not RemoteExecutionConfig::RemoteAddress();
+                return serve_server->Run(*serve_config, serve, with_execute)
+                           ? kExitSuccess
+                           : kExitFailure;
             }
-            return kExitSuccess;
+            return kExitFailure;
         }
 
         // If no execution endpoint was given, the client should default to the
