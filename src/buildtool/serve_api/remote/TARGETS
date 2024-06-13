@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/main", "build_utils"]
+    , ["@", "fmt", "", "fmt"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }

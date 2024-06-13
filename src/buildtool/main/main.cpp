@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
@@ -152,45 +153,38 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     }
 }
 
-void SetupServeConfig(ServeArguments const& srvargs,
-                      CommonArguments const& cargs,
-                      BuildArguments const& bargs,
-                      TCArguments const& tc) {
-    if (srvargs.remote_serve_address) {
-        if (not RemoteServeConfig::Instance().SetRemoteAddress(
-                *srvargs.remote_serve_address)) {
-            Logger::Log(LogLevel::Error,
-                        "Setting serve service address '{}' failed.",
-                        *srvargs.remote_serve_address);
-            std::exit(kExitFailure);
+[[nodiscard]] auto CreateServeConfig(ServeArguments const& srvargs,
+                                     CommonArguments const& cargs,
+                                     BuildArguments const& bargs,
+                                     TCArguments const& tc) noexcept
+    -> std::optional<RemoteServeConfig> {
+    RemoteServeConfig::Builder builder;
+    builder.SetRemoteAddress(srvargs.remote_serve_address)
+        .SetKnownRepositories(srvargs.repositories)
+        .SetJobs(cargs.jobs)
+        .SetActionTimeout(bargs.timeout)
+        .SetTCStrategy(tc.target_cache_write_strategy);
+
+    if (bargs.build_jobs > 0) {
+        builder.SetBuildJobs(bargs.build_jobs);
+    }
+
+    auto result = builder.Build();
+    if (auto* config = std::get_if<RemoteServeConfig>(&result)) {
+        if (config->TCStrategy() == TargetCacheWriteStrategy::Disable) {
+            Logger::Log(
+                LogLevel::Info,
+                "Target-level cache writing of serve service is disabled.");
         }
+        return std::move(*config);
     }
-    if (not srvargs.repositories.empty() and
-        not RemoteServeConfig::Instance().SetKnownRepositories(
-            srvargs.repositories)) {
-        Logger::Log(LogLevel::Error,
-                    "Setting serve service repositories failed.");
-        std::exit(kExitFailure);
+
+    if (auto* error = std::get_if<std::string>(&result)) {
+        Logger::Log(LogLevel::Error, *error);
+        return std::nullopt;
     }
-    // make parallelism and build options available for remote builds
-    if (not RemoteServeConfig::Instance().SetJobs(cargs.jobs)) {
-        Logger::Log(LogLevel::Error, "Setting jobs failed.");
-        std::exit(kExitFailure);
-    }
-    if (bargs.build_jobs > 0 and
-        not RemoteServeConfig::Instance().SetBuildJobs(bargs.build_jobs)) {
-        Logger::Log(LogLevel::Error, "Setting build jobs failed.");
-        std::exit(kExitFailure);
-    }
-    if (not RemoteServeConfig::Instance().SetActionTimeout(bargs.timeout)) {
-        Logger::Log(LogLevel::Error, "Setting action timeout failed.");
-        std::exit(kExitFailure);
-    }
-    RemoteServeConfig::Instance().SetTCStrategy(tc.target_cache_write_strategy);
-    if (tc.target_cache_write_strategy == TargetCacheWriteStrategy::Disable) {
-        Logger::Log(LogLevel::Info,
-                    "Target-level cache writing of serve service is disabled.");
-    }
+    Logger::Log(LogLevel::Error, "Unknown error occured");
+    return std::nullopt;
 }
 
 void SetupAuthConfig(CommonAuthArguments const& authargs,
@@ -845,8 +839,13 @@ auto main(int argc, char* argv[]) -> int {
         SetupFileChunker();
         SetupExecutionConfig(
             arguments.endpoint, arguments.build, arguments.rebuild);
-        SetupServeConfig(
+
+        auto serve_config = CreateServeConfig(
             arguments.serve, arguments.common, arguments.build, arguments.tc);
+        if (not serve_config) {
+            return kExitFailure;
+        }
+
         SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
 
         if (arguments.cmd == SubCommand::kGc) {
@@ -867,9 +866,9 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kServe) {
             SetupServeServiceConfig(arguments.service);
-            auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+            auto serve = ServeApi::Create(*serve_config);
             if (!ServeServerImpl::Instance().Run(
-                    RemoteServeConfig::Instance(),
+                    *serve_config,
                     serve,
                     !RemoteExecutionConfig::RemoteAddress())) {
                 return kExitFailure;
@@ -952,8 +951,7 @@ auto main(int argc, char* argv[]) -> int {
             DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        std::optional<ServeApi> serve =
-            ServeApi::Create(RemoteServeConfig::Instance());
+        std::optional<ServeApi> serve = ServeApi::Create(*serve_config);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL
