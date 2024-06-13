@@ -18,6 +18,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
+#include "test/utils/serve_service/test_serve_config.hpp"
 
 auto const kRootCommit =
     std::string{"e4fc610c60716286b98cf51ad0c8f0d50f3aebb5"};
@@ -30,7 +31,9 @@ auto const kRootSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazSymId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 
 TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
-    auto const address = RemoteServeConfig::Instance().RemoteAddress();
+    auto config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(config);
+    auto const address = config->RemoteAddress();
 
     // Create TLC client
     SourceTreeClient st_client(*address);

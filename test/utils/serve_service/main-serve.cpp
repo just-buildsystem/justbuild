@@ -31,6 +31,7 @@
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/logging/log_config.hpp"
+#include "test/utils/serve_service/test_serve_config.hpp"
 #include "test/utils/shell_quoting.hpp"
 #include "test/utils/test_env.hpp"
 
@@ -78,35 +79,31 @@ void wait_for_grpc_to_shutdown() {
 [[nodiscard]] auto ConfigureServeService() -> bool {
     // just serve shares here compatibility and authentication args with
     // remote execution, so no need to do those again
-    auto address = ReadRemoteServeAddressFromEnv();
-    if (address and
-        not RemoteServeConfig::Instance().SetRemoteAddress(*address)) {
-        Logger::Log(LogLevel::Error, "parsing address '{}' failed.", *address);
-        std::exit(EXIT_FAILURE);
-    }
 
-    auto repos = ReadRemoteServeReposFromEnv();
-    if (not repos.empty() and
-        not RemoteServeConfig::Instance().SetKnownRepositories(repos)) {
-        Logger::Log(LogLevel::Error, "setting serve repos failed.");
-        std::exit(EXIT_FAILURE);
+    // Ensure the config can be read from the environment
+    auto config = TestServeConfig::ReadServeConfigFromEnvironment();
+    if (not config or not config->RemoteAddress()) {
+        return false;
     }
 
     // now actually populate the serve repositories, one bare and one non-bare
-    if (repos.size() != 2) {
+    if (config->KnownRepositories().size() != 2) {
         Logger::Log(LogLevel::Error,
                     "Expected 2 serve repositories in test env.");
         std::exit(EXIT_FAILURE);
     }
-    if (not CreateServeTestRepo(repos[0], kBundlePath, /*is_bare=*/true) or
+
+    auto bare_repo = config->KnownRepositories()[0];
+    auto nonbare_repo = config->KnownRepositories()[1];
+    if (not CreateServeTestRepo(bare_repo, kBundlePath, /*is_bare=*/true) or
         not CreateServeTestRepo(
-            repos[1], kBundlePathSymlinks, /*is_bare=*/false)) {
+            nonbare_repo, kBundlePathSymlinks, /*is_bare=*/false)) {
         Logger::Log(LogLevel::Error,
                     "Failed to setup serve service repositories.");
         std::exit(EXIT_FAILURE);
     }
 
-    return static_cast<bool>(RemoteServeConfig::Instance().RemoteAddress());
+    return true;
 }
 
 }  // namespace

@@ -36,6 +36,7 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
+#include "test/utils/serve_service/test_serve_config.hpp"
 
 namespace {
 
@@ -94,7 +95,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -533,7 +537,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -617,7 +624,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -711,7 +721,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -915,7 +928,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1052,7 +1068,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1155,7 +1174,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1315,7 +1337,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve = ServeApi::Create(RemoteServeConfig::Instance());
+    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    REQUIRE(serve_config);
+
+    auto serve = ServeApi::Create(*serve_config);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = Storage::Instance().TargetCache(),
                        .statistics = &stats,

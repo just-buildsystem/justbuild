@@ -79,6 +79,18 @@
     ]
   , "stage": ["test", "utils"]
   }
+, "test_serve_config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["catch-main-remote-execution"]
+  , "hdrs": ["serve_service/test_serve_config.hpp"]
+  , "deps":
+    [ ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    , "test_env"
+    ]
+  , "stage": ["test", "utils"]
+  }
 , "catch-main-serve":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["catch-main-serve"]
@@ -95,6 +107,7 @@
     , "shell_quoting"
     , "log_config"
     , "test_env"
+    , "test_serve_config"
     ]
   , "stage": ["test", "utils"]
   }

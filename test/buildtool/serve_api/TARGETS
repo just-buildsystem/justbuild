@@ -7,6 +7,8 @@
     [ ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-serve"]
     , ["@", "src", "src/buildtool/serve_api/remote", "source_tree_client"]
+    , ["utils", "test_serve_config"]
+    , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["test", "buildtool", "serve_api"]
   }
