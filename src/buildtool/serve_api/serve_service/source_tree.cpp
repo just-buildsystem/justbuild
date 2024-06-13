@@ -255,7 +255,7 @@ auto SourceTreeService::ServeCommitTree(
         return ::grpc::Status::OK;
     }
     // try given extra repositories, in order
-    for (auto const& path : serve_config_.KnownRepositories()) {
+    for (auto const& path : serve_config_.known_repositories) {
         auto res = GetSubtreeFromCommit(path, commit, subdir, logger_);
         if (std::holds_alternative<std::string>(res)) {
             auto tree_id = std::get<std::string>(res);
@@ -411,7 +411,7 @@ auto SourceTreeService::ResolveContentTree(
         ResolvedGitObject resolved_tree{};
         bool failed{false};
         {
-            TaskSystem ts{serve_config_.Jobs()};
+            TaskSystem ts{serve_config_.jobs};
             resolve_symlinks_map_.ConsumeAfterKeysReady(
                 &ts,
                 {GitObjectToResolve{tree_id,
@@ -746,7 +746,7 @@ auto SourceTreeService::ServeArchiveTree(
             return ::grpc::Status::OK;
         }
         // check known repositories
-        for (auto const& path : serve_config_.KnownRepositories()) {
+        for (auto const& path : serve_config_.known_repositories) {
             auto res =
                 GetSubtreeFromTree(path, *archive_tree_id, subdir, logger_);
             if (std::holds_alternative<std::string>(res)) {
@@ -807,7 +807,7 @@ auto SourceTreeService::ServeArchiveTree(
     }
     if (not content_cas_path) {
         // check if content blob is in a known repository
-        for (auto const& path : serve_config_.KnownRepositories()) {
+        for (auto const& path : serve_config_.known_repositories) {
             auto res = GetBlobFromRepo(path, content, logger_);
             if (std::holds_alternative<std::string>(res)) {
                 // add to CAS
@@ -1052,7 +1052,7 @@ auto SourceTreeService::ServeDistdirTree(
                     return ::grpc::Status::OK;
                 }
                 // check known repositories
-                for (auto const& path : serve_config_.KnownRepositories()) {
+                for (auto const& path : serve_config_.known_repositories) {
                     auto res = GetBlobFromRepo(path, content, logger_);
                     if (std::holds_alternative<std::string>(res)) {
                         // add content to local CAS
@@ -1215,7 +1215,7 @@ auto SourceTreeService::ServeDistdirTree(
         return ::grpc::Status::OK;
     }
     // check if tree is in a known repository
-    for (auto const& path : serve_config_.KnownRepositories()) {
+    for (auto const& path : serve_config_.known_repositories) {
         auto has_tree = IsTreeInRepo(tree_id, path, logger_);
         if (not has_tree) {
             logger_->Emit(LogLevel::Error,
@@ -1321,7 +1321,7 @@ auto SourceTreeService::ServeContent(
         return ::grpc::Status::OK;
     }
     // check if content blob is in a known repository
-    for (auto const& path : serve_config_.KnownRepositories()) {
+    for (auto const& path : serve_config_.known_repositories) {
         auto res = GetBlobFromRepo(path, content, logger_);
         if (std::holds_alternative<std::string>(res)) {
             // upload blob to remote CAS
@@ -1438,7 +1438,7 @@ auto SourceTreeService::ServeTree(
         return ::grpc::Status::OK;
     }
     // check if tree is in a known repository
-    for (auto const& path : serve_config_.KnownRepositories()) {
+    for (auto const& path : serve_config_.known_repositories) {
         auto has_tree = IsTreeInRepo(tree_id, path, logger_);
         if (not has_tree) {
             logger_->Emit(LogLevel::Error,
@@ -1542,7 +1542,7 @@ auto SourceTreeService::CheckRootTree(
         return ::grpc::Status::OK;
     }
     // check if tree is in a known repository
-    for (auto const& path : serve_config_.KnownRepositories()) {
+    for (auto const& path : serve_config_.known_repositories) {
         auto has_tree = IsTreeInRepo(tree_id, path, logger_);
         if (not has_tree) {
             logger_->Emit(LogLevel::Error,

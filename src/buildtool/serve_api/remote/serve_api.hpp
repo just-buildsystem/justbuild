@@ -49,8 +49,8 @@ class ServeApi final {
     [[nodiscard]] static auto Create(
         RemoteServeConfig const& serve_config) noexcept
         -> std::optional<ServeApi> {
-        if (auto address = serve_config.RemoteAddress()) {
-            return std::make_optional<ServeApi>(*address);
+        if (serve_config.remote_address) {
+            return std::make_optional<ServeApi>(*serve_config.remote_address);
         }
         return std::nullopt;
     }

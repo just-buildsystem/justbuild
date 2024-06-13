@@ -33,10 +33,10 @@ auto const kBazSymId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
     auto config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(config);
-    auto const address = config->RemoteAddress();
+    REQUIRE(config->remote_address);
 
     // Create TLC client
-    SourceTreeClient st_client(*address);
+    SourceTreeClient st_client(*config->remote_address);
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);

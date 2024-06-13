@@ -62,7 +62,7 @@ auto GetServingRepository(RemoteServeConfig const& serve_config,
         return StorageConfig::GitRoot();
     }
     // check the known repositories
-    for (auto const& path : serve_config.KnownRepositories()) {
+    for (auto const& path : serve_config.known_repositories) {
         if (IsTreeInRepo(tree_id, path, logger)) {
             return path;
         }

@@ -32,96 +32,23 @@
 struct RemoteServeConfig final {
     class Builder;
 
-    // Obtain global instance
-    [[nodiscard]] static auto Instance() noexcept -> RemoteServeConfig& {
-        static RemoteServeConfig config;
-        return config;
-    }
-
-    // Set remote execution and cache address, unsets if parsing `address` fails
-    [[nodiscard]] auto SetRemoteAddress(std::string const& value) noexcept
-        -> bool {
-        return static_cast<bool>(remote_address = ParseAddress(value));
-    }
-
-    // Set the list of known repositories
-    [[nodiscard]] auto SetKnownRepositories(
-        std::vector<std::filesystem::path> const& value) noexcept -> bool {
-        known_repositories = std::vector<std::filesystem::path>(
-            std::make_move_iterator(value.begin()),
-            std::make_move_iterator(value.end()));
-        return value.size() == known_repositories.size();
-    }
-
-    // Set the number of jobs
-    [[nodiscard]] auto SetJobs(std::size_t value) noexcept -> bool {
-        return static_cast<bool>(jobs = value);
-    }
-
-    // Set the number of build jobs
-    [[nodiscard]] auto SetBuildJobs(std::size_t value) noexcept -> bool {
-        return static_cast<bool>(build_jobs = value);
-    }
-
-    // Set the action timeout
-    [[nodiscard]] auto SetActionTimeout(
-        std::chrono::milliseconds const& value) noexcept -> bool {
-        action_timeout = value;
-        return action_timeout > std::chrono::seconds{0};
-    }
-
-    void SetTCStrategy(TargetCacheWriteStrategy value) noexcept {
-        tc_strategy = value;
-    }
-
-    // Remote execution address, if set
-    [[nodiscard]] auto RemoteAddress() const noexcept
-        -> std::optional<ServerAddress> {
-        return remote_address;
-    }
-
-    // Repositories known to 'just serve'
-    [[nodiscard]] auto KnownRepositories() const noexcept
-        -> const std::vector<std::filesystem::path>& {
-        return known_repositories;
-    }
-
-    // Get the number of jobs
-    [[nodiscard]] auto Jobs() const noexcept -> std::size_t { return jobs; }
-
-    // Get the number of build jobs
-    [[nodiscard]] auto BuildJobs() const noexcept -> std::size_t {
-        return build_jobs;
-    }
-
-    // Get the action timeout
-    [[nodiscard]] auto ActionTimeout() const noexcept
-        -> std::chrono::milliseconds {
-        return action_timeout;
-    }
-
-    // Get the target-level cache write strategy
-    [[nodiscard]] auto TCStrategy() const noexcept -> TargetCacheWriteStrategy {
-        return tc_strategy;
-    }
-
     // Server address of remote execution.
-    std::optional<ServerAddress> remote_address{};
+    std::optional<ServerAddress> const remote_address{};
 
     // Known Git repositories to serve server.
-    std::vector<std::filesystem::path> known_repositories{};
+    std::vector<std::filesystem::path> const known_repositories{};
 
     // Number of jobs
-    std::size_t jobs = 0;
+    std::size_t const jobs = 0;
 
     // Number of build jobs
-    std::size_t build_jobs = 0;
+    std::size_t const build_jobs = 0;
 
     // Action timeout
-    std::chrono::milliseconds action_timeout{};
+    std::chrono::milliseconds const action_timeout{};
 
     // Strategy for synchronizing target-level cache
-    TargetCacheWriteStrategy tc_strategy{TargetCacheWriteStrategy::Sync};
+    TargetCacheWriteStrategy const tc_strategy{TargetCacheWriteStrategy::Sync};
 };
 
 class RemoteServeConfig::Builder final {

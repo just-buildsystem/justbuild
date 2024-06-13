@@ -430,7 +430,7 @@ auto TargetService::ServeTarget(
                               error_msg};
     }
 
-    BuildMaps::Target::ResultTargetMap result_map{serve_config_.Jobs()};
+    BuildMaps::Target::ResultTargetMap result_map{serve_config_.jobs};
     auto configured_target = BuildMaps::Target::ConfiguredTarget{
         .target = std::move(*entity), .config = std::move(config)};
 
@@ -459,7 +459,7 @@ auto TargetService::ServeTarget(
     auto result = AnalyseTarget(&analyse_ctx,
                                 configured_target,
                                 &result_map,
-                                serve_config_.Jobs(),
+                                serve_config_.jobs,
                                 std::nullopt /*request_action_input*/,
                                 &logger);
 
@@ -485,19 +485,19 @@ auto TargetService::ServeTarget(
 
     // Clean up result map, now that it is no longer needed
     {
-        TaskSystem ts{serve_config_.Jobs()};
+        TaskSystem ts{serve_config_.jobs};
         result_map.Clear(&ts);
     }
 
-    auto jobs = serve_config_.BuildJobs();
+    auto jobs = serve_config_.build_jobs;
     if (jobs == 0) {
-        jobs = serve_config_.Jobs();
+        jobs = serve_config_.jobs;
     }
 
     // setup graph traverser
     GraphTraverser::CommandLineArguments traverser_args{};
     traverser_args.jobs = jobs;
-    traverser_args.build.timeout = serve_config_.ActionTimeout();
+    traverser_args.build.timeout = serve_config_.action_timeout;
     traverser_args.stage = std::nullopt;
     traverser_args.rebuild = std::nullopt;
     GraphTraverser const traverser{
@@ -527,7 +527,7 @@ auto TargetService::ServeTarget(
                             jobs,
                             traverser.GetLocalApi(),
                             traverser.GetRemoteApi(),
-                            serve_config_.TCStrategy(),
+                            serve_config_.tc_strategy,
                             tc,
                             &logger,
                             LogLevel::Error);
@@ -605,7 +605,7 @@ auto TargetService::ServeTargetVariables(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path : serve_config_.KnownRepositories()) {
+        for (auto const& path : serve_config_.known_repositories) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;
@@ -760,7 +760,7 @@ auto TargetService::ServeTargetDescription(
     }
     if (not target_file_content) {
         // try given extra repositories, in order
-        for (auto const& path : serve_config_.KnownRepositories()) {
+        for (auto const& path : serve_config_.known_repositories) {
             if (auto res =
                     GetBlobContent(path, root_tree, target_file, logger_)) {
                 tree_found = true;

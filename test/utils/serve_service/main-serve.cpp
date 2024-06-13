@@ -82,19 +82,19 @@ void wait_for_grpc_to_shutdown() {
 
     // Ensure the config can be read from the environment
     auto config = TestServeConfig::ReadServeConfigFromEnvironment();
-    if (not config or not config->RemoteAddress()) {
+    if (not config or not config->remote_address) {
         return false;
     }
 
     // now actually populate the serve repositories, one bare and one non-bare
-    if (config->KnownRepositories().size() != 2) {
+    if (config->known_repositories.size() != 2) {
         Logger::Log(LogLevel::Error,
                     "Expected 2 serve repositories in test env.");
         std::exit(EXIT_FAILURE);
     }
 
-    auto bare_repo = config->KnownRepositories()[0];
-    auto nonbare_repo = config->KnownRepositories()[1];
+    auto const& bare_repo = config->known_repositories[0];
+    auto const& nonbare_repo = config->known_repositories[1];
     if (not CreateServeTestRepo(bare_repo, kBundlePath, /*is_bare=*/true) or
         not CreateServeTestRepo(
             nonbare_repo, kBundlePathSymlinks, /*is_bare=*/false)) {

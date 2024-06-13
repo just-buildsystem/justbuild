@@ -171,7 +171,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
 
     auto result = builder.Build();
     if (auto* config = std::get_if<RemoteServeConfig>(&result)) {
-        if (config->TCStrategy() == TargetCacheWriteStrategy::Disable) {
+        if (config->tc_strategy == TargetCacheWriteStrategy::Disable) {
             Logger::Log(
                 LogLevel::Info,
                 "Target-level cache writing of serve service is disabled.");
