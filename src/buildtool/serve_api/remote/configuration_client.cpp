@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 
 #include <exception>
@@ -113,3 +115,5 @@ auto ConfigurationClient::IsCompatible() const noexcept -> std::optional<bool> {
     }
     return response.compatible();
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

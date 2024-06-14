@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 
 #include <algorithm>
@@ -1684,3 +1686,5 @@ auto SourceTreeService::GetRemoteTree(
     response->set_status(GetRemoteTreeResponse::OK);
     return ::grpc::Status::OK;
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

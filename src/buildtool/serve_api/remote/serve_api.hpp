@@ -15,6 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP
 
+#ifdef BOOTSTRAP_BUILD_TOOL
+class ServeApi final {};
+#else
+
 #include <memory>
 #include <optional>
 #include <string>
@@ -140,5 +144,7 @@ class ServeApi final {
     // configuration service client
     ConfigurationClient const cc_;
 };
+
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_REMOTE_SERVE_API_HPP

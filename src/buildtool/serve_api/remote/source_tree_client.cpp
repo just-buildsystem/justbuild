@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
 #include "src/buildtool/common/remote/client_common.hpp"
@@ -285,3 +287,5 @@ auto SourceTreeClient::GetRemoteTree(std::string const& tree_id) const noexcept
     // success!
     return true;
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

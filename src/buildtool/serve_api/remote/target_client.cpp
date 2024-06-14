@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/remote/target_client.hpp"
 
 #include <exception>
@@ -217,3 +219,5 @@ auto TargetClient::ServeTargetDescription(
     }
     return ArtifactDigest{response.description_id()};
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

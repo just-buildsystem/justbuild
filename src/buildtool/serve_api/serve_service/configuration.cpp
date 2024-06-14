@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 
 #include <optional>
@@ -37,3 +39,5 @@ auto ConfigurationService::Compatibility(
     response->set_compatible(Compatibility::IsCompatible());
     return ::grpc::Status::OK;
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 
 #include <iostream>
@@ -175,3 +177,5 @@ auto ServeServerImpl::Run(bool with_execute) -> bool {
     Instance().port_ = static_cast<int>(*port_num);
     return true;
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL

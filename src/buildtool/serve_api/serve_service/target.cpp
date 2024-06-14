@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/serve_api/serve_service/target.hpp"
 
 #include "fmt/core.h"
@@ -915,3 +917,5 @@ auto TargetService::ServeTargetDescription(
     logger_->Emit(LogLevel::Error, error_msg);
     return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL
