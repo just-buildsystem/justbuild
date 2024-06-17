@@ -107,4 +107,10 @@
   , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
+, "prefix":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["prefix"]
+  , "hdrs": ["prefix.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }

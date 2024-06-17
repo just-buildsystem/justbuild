@@ -23,6 +23,20 @@
   , "stage": ["test", "utils", "cpp"]
   , "private-ldflags": ["-pthread"]
   }
+, "prefix":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["prefix"]
+  , "srcs": ["prefix.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/utils/cpp", "prefix"]
+    ]
+  , "stage": ["test", "utils", "cpp"]
+  }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["path", "file_locking"]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "deps": ["path", "file_locking", "prefix"]
+  }
 }
