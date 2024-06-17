@@ -45,6 +45,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/prefix.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
@@ -594,20 +595,27 @@ class ExecutorImpl {
         auto build_message = [has_err, has_out, &logger, &action, &response]() {
             using namespace std::string_literals;
             auto message = ""s;
+            bool has_both = has_err and has_out;
             if (has_err or has_out) {
-                message += (has_err and has_out ? "Stdout and stderr"s
-                            : has_out           ? "Stdout"s
-                                                : "Stderr"s) +
+                message += (has_both  ? "Output"s
+                            : has_out ? "Stdout"s
+                                      : "Stderr"s) +
                            " of command ";
             }
             message += nlohmann::json(action->Command()).dump() +
                        " in environment " +
                        nlohmann::json(action->Env()).dump() + "\n";
             if (response->HasStdOut()) {
-                message += response->StdOut();
+                if (has_both) {
+                    message += "Stdout:\n";
+                }
+                message += PrefixLines(response->StdOut());
             }
             if (response->HasStdErr()) {
-                message += response->StdErr();
+                if (has_both) {
+                    message += "Stderr:\n";
+                }
+                message += PrefixLines(response->StdErr());
             }
             return message;
         };
