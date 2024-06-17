@@ -27,10 +27,10 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
@@ -59,7 +59,7 @@ class TargetCache {
         if constexpr (kDoGlobalUplink) {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
-                cas_->StoreBlob(StorageConfig::ExecutionBackendDescription());
+                cas_->StoreBlob(RemoteExecutionConfig::DescribeBackend());
             EnsuresAudit(id and ArtifactDigest{*id}.hash() == ComputeShard());
         }
     }
@@ -147,7 +147,7 @@ class TargetCache {
 
     [[nodiscard]] static auto ComputeShard() noexcept -> std::string {
         return ArtifactDigest::Create<ObjectType::File>(
-                   StorageConfig::ExecutionBackendDescription())
+                   RemoteExecutionConfig::DescribeBackend())
             .hash();
     }
 

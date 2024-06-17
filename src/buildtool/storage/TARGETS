@@ -5,7 +5,6 @@
   , "deps":
     [ ["src/buildtool/execution_api/remote", "config"]
     , ["@", "gsl", "", "gsl"]
-    , ["@", "json", "", "json"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
@@ -63,11 +62,11 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/execution_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["src/buildtool/execution_api/remote", "config"]
-    , ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "path_hash"]

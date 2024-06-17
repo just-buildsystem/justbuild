@@ -15,23 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP
 
-#ifdef __unix__
-#include <pwd.h>
-#include <sys/types.h>
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <cstddef>
-#include <exception>
 #include <filesystem>
 #include <string>
 
 #include "gsl/gsl"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -41,28 +30,8 @@
 /// \brief Global storage configuration.
 class StorageConfig {
   public:
-    /// \brief Determine user home directory
-    [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
-        char const* root{nullptr};
-
-#ifdef __unix__
-        root = std::getenv("HOME");
-        if (root == nullptr) {
-            root = getpwuid(getuid())->pw_dir;
-        }
-#endif
-
-        if (root == nullptr) {
-            Logger::Log(LogLevel::Error,
-                        "Cannot determine user home directory.");
-            std::exit(EXIT_FAILURE);
-        }
-
-        return root;
-    }
-
     static inline auto const kDefaultBuildRoot =
-        GetUserHome() / ".cache" / "just";
+        FileSystemManager::GetUserHome() / ".cache" / "just";
 
     [[nodiscard]] static auto Instance() noexcept -> StorageConfig& {
         static StorageConfig config;
@@ -123,47 +92,6 @@ class StorageConfig {
         -> std::filesystem::path {
         return UpdatePathForCompatibility(GenerationCacheRoot(index),
                                           is_compatible);
-    }
-
-    /// \brief String representation of the used execution backend.
-    [[nodiscard]] static auto ExecutionBackendDescription() noexcept
-        -> std::string {
-        auto address = RemoteExecutionConfig::RemoteAddress();
-        auto properties = RemoteExecutionConfig::PlatformProperties();
-        auto dispatch = RemoteExecutionConfig::DispatchList();
-        auto description = nlohmann::json{
-            {"remote_address", address ? address->ToJson() : nlohmann::json{}},
-            {"platform_properties", properties}};
-        if (!dispatch.empty()) {
-            try {
-                // only add the dispatch list, if not empty, so that keys remain
-                // not only more readable, but also backwards compatible with
-                // earlier versions.
-                auto dispatch_list = nlohmann::json::array();
-                for (auto const& [props, endpoint] : dispatch) {
-                    auto entry = nlohmann::json::array();
-                    entry.push_back(nlohmann::json(props));
-                    entry.push_back(endpoint.ToJson());
-                    dispatch_list.push_back(entry);
-                }
-                description["endpoint dispatch list"] = dispatch_list;
-            } catch (std::exception const& e) {
-                Logger::Log(LogLevel::Error,
-                            "Failed to serialize endpoint dispatch list: {}",
-                            e.what());
-            }
-        }
-        try {
-            // json::dump with json::error_handler_t::replace will not throw an
-            // exception if invalid UTF-8 sequences are detected in the input.
-            // Instead, it will replace them with the UTF-8 replacement
-            // character, but still it needs to be inside a try-catch clause to
-            // ensure the noexcept modifier of the enclosing function.
-            return description.dump(
-                2, ' ', false, nlohmann::json::error_handler_t::replace);
-        } catch (...) {
-            return "";
-        }
     }
 
     /// \brief Root directory for all ephemeral directories, i.e., directories

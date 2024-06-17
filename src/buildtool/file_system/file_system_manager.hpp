@@ -18,7 +18,8 @@
 #include <array>
 #include <chrono>
 #include <cstddef>
-#include <cstdio>  // for std::fopen
+#include <cstdio>   // for std::fopen
+#include <cstdlib>  // std::exit, std::getenv
 #include <cstring>
 #include <exception>
 #include <filesystem>
@@ -28,10 +29,13 @@
 
 #ifdef __unix__
 #include <fcntl.h>
+#include <pwd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
 #endif
 
 #include "gsl/gsl"
@@ -137,6 +141,26 @@ class FileSystemManager {
     [[nodiscard]] static auto CreateFileExclusive(
         std::filesystem::path const& file) noexcept -> bool {
         return CreateFileImpl(file) == CreationStatus::Created;
+    }
+
+    /// \brief Determine user home directory
+    [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
+        char const* root{nullptr};
+
+#ifdef __unix__
+        root = std::getenv("HOME");
+        if (root == nullptr) {
+            root = getpwuid(getuid())->pw_dir;
+        }
+#endif
+
+        if (root == nullptr) {
+            Logger::Log(LogLevel::Error,
+                        "Cannot determine user home directory.");
+            std::exit(EXIT_FAILURE);
+        }
+
+        return root;
     }
 
     /// \brief We are POSIX-compliant, therefore we only care about the string

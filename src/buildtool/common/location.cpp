@@ -18,7 +18,6 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 
 auto ReadLocationObject(nlohmann::json const& location,
                         std::optional<std::filesystem::path> const& ws_root)
@@ -43,7 +42,7 @@ auto ReadLocationObject(nlohmann::json const& location,
         root_path = *ws_root;
     }
     if (root == "home") {
-        root_path = StorageConfig::GetUserHome();
+        root_path = FileSystemManager::GetUserHome();
     }
     if (root == "system") {
         root_path = FileSystemManager::GetCurrentDirectory().root_path();

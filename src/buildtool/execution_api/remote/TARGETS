@@ -93,7 +93,10 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "srcs": ["config.cpp"]
-  , "deps": [["src/buildtool/common/remote", "remote_common"]]
+  , "deps":
+    [ ["src/buildtool/common/remote", "remote_common"]
+    , ["@", "json", "", "json"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
     [ ["src/buildtool/file_system", "file_system_manager"]

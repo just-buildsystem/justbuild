@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP
 
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <map>
 #include <optional>
@@ -24,6 +25,7 @@
 #include <utility>
 #include <vector>
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 
 class RemoteExecutionConfig {
@@ -85,6 +87,46 @@ class RemoteExecutionConfig {
     [[nodiscard]] static auto PlatformProperties() noexcept
         -> std::map<std::string, std::string> {
         return Instance().platform_properties_;
+    }
+
+    /// \brief String representation of the used execution backend.
+    [[nodiscard]] static auto DescribeBackend() noexcept -> std::string {
+        auto address = RemoteAddress();
+        auto properties = PlatformProperties();
+        auto dispatch = DispatchList();
+        auto description = nlohmann::json{
+            {"remote_address", address ? address->ToJson() : nlohmann::json{}},
+            {"platform_properties", properties}};
+        if (!dispatch.empty()) {
+            try {
+                // only add the dispatch list, if not empty, so that keys remain
+                // not only more readable, but also backwards compatible with
+                // earlier versions.
+                auto dispatch_list = nlohmann::json::array();
+                for (auto const& [props, endpoint] : dispatch) {
+                    auto entry = nlohmann::json::array();
+                    entry.push_back(nlohmann::json(props));
+                    entry.push_back(endpoint.ToJson());
+                    dispatch_list.push_back(entry);
+                }
+                description["endpoint dispatch list"] = dispatch_list;
+            } catch (std::exception const& e) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to serialize endpoint dispatch list: {}",
+                            e.what());
+            }
+        }
+        try {
+            // json::dump with json::error_handler_t::replace will not throw an
+            // exception if invalid UTF-8 sequences are detected in the input.
+            // Instead, it will replace them with the UTF-8 replacement
+            // character, but still it needs to be inside a try-catch clause to
+            // ensure the noexcept modifier of the enclosing function.
+            return description.dump(
+                2, ' ', false, nlohmann::json::error_handler_t::replace);
+        } catch (...) {
+            return "";
+        }
     }
 
   private:

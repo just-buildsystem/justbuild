@@ -43,6 +43,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/build_engine/expression", "expression"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]

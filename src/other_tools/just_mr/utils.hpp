@@ -25,17 +25,18 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 /* Paths and constants required by just-mr */
 
 auto const kDefaultJustPath = "just";
 auto const kDefaultGitPath = "git";
-auto const kDefaultRCPath = StorageConfig::GetUserHome() / ".just-mrrc";
+auto const kDefaultRCPath = FileSystemManager::GetUserHome() / ".just-mrrc";
 auto const kDefaultBuildRoot = StorageConfig::kDefaultBuildRoot;
 auto const kDefaultCheckoutLocationsFile =
-    StorageConfig::GetUserHome() / ".just-local.json";
-auto const kDefaultDistdirs = StorageConfig::GetUserHome() / ".distfiles";
+    FileSystemManager::GetUserHome() / ".just-local.json";
+auto const kDefaultDistdirs = FileSystemManager::GetUserHome() / ".distfiles";
 
 std::vector<std::string> const kTakeOver = {"bindings",
                                             "target_file_name",
