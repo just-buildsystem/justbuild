@@ -1,5 +1,6 @@
 ---
 Language: Cpp
+Standard: c++20
 BasedOnStyle: Google
 AccessModifierOffset: -2
 AllowAllParametersOfDeclarationOnNextLine: false

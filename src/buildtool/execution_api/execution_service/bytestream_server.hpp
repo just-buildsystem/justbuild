@@ -27,7 +27,7 @@ class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
     // responses are delivered as the results of a server-side streaming RPC.
     auto Read(::grpc::ServerContext* context,
               const ::google::bytestream::ReadRequest* request,
-              ::grpc::ServerWriter< ::google::bytestream::ReadResponse>* writer)
+              ::grpc::ServerWriter<::google::bytestream::ReadResponse>* writer)
         -> ::grpc::Status override;
     // `Write()` is used to send the contents of a resource as a sequence of
     // bytes. The bytes are sent in a sequence of request protos of a
@@ -51,10 +51,9 @@ class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
     // check the `WriteResponse` it receives to determine how much data the
     // service was able to commit and whether the service views the resource as
     // `complete` or not.
-    auto Write(
-        ::grpc::ServerContext* context,
-        ::grpc::ServerReader< ::google::bytestream::WriteRequest>* reader,
-        ::google::bytestream::WriteResponse* response)
+    auto Write(::grpc::ServerContext* context,
+               ::grpc::ServerReader<::google::bytestream::WriteRequest>* reader,
+               ::google::bytestream::WriteResponse* response)
         -> ::grpc::Status override;
     // `QueryWriteStatus()` is used to find the `committed_size` for a resource
     // that is being written, which can then be used as the `write_offset` for
