@@ -24,18 +24,15 @@
 #endif
 
 #include <cstddef>
+#include <exception>
 #include <filesystem>
-#include <functional>
 #include <string>
-#include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -43,17 +40,6 @@
 
 /// \brief Global storage configuration.
 class StorageConfig {
-    struct ConfigData {
-        // Build root directory. All the storage dirs are subdirs of build_root.
-        // By default, build_root is set to $HOME/.cache/just.
-        // If the user uses --local-build-root PATH,
-        // then build_root will be set to PATH.
-        std::filesystem::path build_root{kDefaultBuildRoot};
-
-        // Number of total storage generations (default: two generations).
-        std::size_t num_generations{2};
-    };
-
   public:
     /// \brief Determine user home directory
     [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
@@ -78,6 +64,11 @@ class StorageConfig {
     static inline auto const kDefaultBuildRoot =
         GetUserHome() / ".cache" / "just";
 
+    [[nodiscard]] static auto Instance() noexcept -> StorageConfig& {
+        static StorageConfig config;
+        return config;
+    }
+
     [[nodiscard]] static auto SetBuildRoot(
         std::filesystem::path const& dir) noexcept -> bool {
         if (FileSystemManager::IsRelativePath(dir)) {
@@ -86,24 +77,24 @@ class StorageConfig {
                         dir.string());
             return false;
         }
-        Data().build_root = dir;
+        Instance().build_root_ = dir;
         return true;
     }
 
     /// \brief Specifies the number of storage generations.
     static auto SetNumGenerations(std::size_t num_generations) noexcept
         -> void {
-        Data().num_generations = num_generations;
+        Instance().num_generations_ = num_generations;
     }
 
     /// \brief Number of storage generations.
     [[nodiscard]] static auto NumGenerations() noexcept -> std::size_t {
-        return Data().num_generations;
+        return Instance().num_generations_;
     }
 
     /// \brief Build directory, defaults to user directory if not set
     [[nodiscard]] static auto BuildRoot() noexcept -> std::filesystem::path {
-        return Data().build_root;
+        return Instance().build_root_;
     }
 
     /// \brief Root directory of all storage generations.
@@ -120,7 +111,7 @@ class StorageConfig {
     /// non-compatible protocol types.
     [[nodiscard]] static auto GenerationCacheRoot(std::size_t index) noexcept
         -> std::filesystem::path {
-        ExpectsAudit(index < Data().num_generations);
+        ExpectsAudit(index < Instance().num_generations_);
         auto generation = std::string{"generation-"} + std::to_string(index);
         return CacheRoot() / generation;
     }
@@ -199,10 +190,14 @@ class StorageConfig {
     }
 
   private:
-    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
-        static ConfigData instance{};
-        return instance;
-    }
+    // Build root directory. All the storage dirs are subdirs of build_root.
+    // By default, build_root is set to $HOME/.cache/just.
+    // If the user uses --local-build-root PATH,
+    // then build_root will be set to PATH.
+    std::filesystem::path build_root_{kDefaultBuildRoot};
+
+    // Number of total storage generations (default: two generations).
+    std::size_t num_generations_{2};
 
     // different folder for different caching protocol
     [[nodiscard]] static auto UpdatePathForCompatibility(
