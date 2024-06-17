@@ -32,14 +32,15 @@ void KeepCommitAndSetTree(
     ImportToGitMap::SetterPtr const& setter,
     ImportToGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
-    GitOpKey op_key = {.params =
-                           {
-                               StorageConfig::GitRoot(),     // target_path
-                               commit,                       // git_hash
-                               "",                           // branch
-                               "Keep referenced tree alive"  // message
-                           },
-                       .op_type = GitOpType::KEEP_TAG};
+    GitOpKey op_key = {
+        .params =
+            {
+                StorageConfig::Instance().GitRoot(),  // target_path
+                commit,                               // git_hash
+                "",                                   // branch
+                "Keep referenced tree alive"          // message
+            },
+        .op_type = GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
@@ -132,11 +133,11 @@ auto CreateImportToGitMap(
                 GitOpKey op_key = {
                     .params =
                         {
-                            StorageConfig::GitRoot(),  // target_path
-                            "",                        // git_hash
-                            "",                        // branch
-                            std::nullopt,              // message
-                            true                       // init_bare
+                            StorageConfig::Instance().GitRoot(),  // target_path
+                            "",                                   // git_hash
+                            "",                                   // branch
+                            std::nullopt,                         // message
+                            true                                  // init_bare
                         },
                     .op_type = GitOpType::ENSURE_INIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
@@ -161,11 +162,12 @@ auto CreateImportToGitMap(
                         auto just_git_repo =
                             GitRepoRemote::Open(op_result.git_cas);
                         if (not just_git_repo) {
-                            (*logger)(
-                                fmt::format(
-                                    "Could not open Git cache repository {}",
-                                    StorageConfig::GitRoot().string()),
-                                /*fatal=*/true);
+                            (*logger)(fmt::format("Could not open Git cache "
+                                                  "repository {}",
+                                                  StorageConfig::Instance()
+                                                      .GitRoot()
+                                                      .string()),
+                                      /*fatal=*/true);
                             return;
                         }
                         auto wrapped_logger =
@@ -207,7 +209,7 @@ auto CreateImportToGitMap(
                                              setter,
                                              wrapped_logger);
                     },
-                    [logger, target_path = StorageConfig::GitRoot()](
+                    [logger, target_path = StorageConfig::Instance().GitRoot()](
                         auto const& msg, bool fatal) {
                         (*logger)(fmt::format("While running critical Git "
                                               "op ENSURE_INIT bare for "

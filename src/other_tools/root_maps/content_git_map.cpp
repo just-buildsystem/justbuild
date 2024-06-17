@@ -116,7 +116,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                     if (not EnsureAbsentRootOnServe(
                             *serve,
                             tree_id,
-                            StorageConfig::GitRoot(),
+                            StorageConfig::Instance().GitRoot(),
                             remote_api,
                             logger,
                             /*no_sync_is_fatal=*/true)) {
@@ -139,12 +139,13 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                 // the tree is known locally, so we can upload it to remote
                 // CAS for the serve endpoint to retrieve it and set up the
                 // root
-                if (not EnsureAbsentRootOnServe(*serve,
-                                                tree_id,
-                                                StorageConfig::GitRoot(),
-                                                remote_api,
-                                                logger,
-                                                /*no_sync_is_fatal=*/true)) {
+                if (not EnsureAbsentRootOnServe(
+                        *serve,
+                        tree_id,
+                        StorageConfig::Instance().GitRoot(),
+                        remote_api,
+                        logger,
+                        /*no_sync_is_fatal=*/true)) {
                     return;
                 }
             }
@@ -205,9 +206,10 @@ void ResolveContentTree(
             }
             else {
                 (*ws_setter)(std::pair(
-                    nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                           *resolved_tree_id,
-                                           StorageConfig::GitRoot().string()}),
+                    nlohmann::json::array(
+                        {FileRoot::kGitTreeMarker,
+                         *resolved_tree_id,
+                         StorageConfig::Instance().GitRoot().string()}),
                     /*is_cache_hit=*/is_cache_hit));
             }
         }
@@ -257,7 +259,8 @@ void ResolveContentTree(
                     GitOpKey op_key = {
                         .params =
                             {
-                                StorageConfig::GitRoot(),     // target_path
+                                StorageConfig::Instance()
+                                    .GitRoot(),               // target_path
                                 resolved_tree_id,             // git_hash
                                 "",                           // branch
                                 "Keep referenced tree alive"  // message
@@ -303,15 +306,18 @@ void ResolveContentTree(
                                                    logger);
                             }
                             else {
-                                (*ws_setter)(std::pair(
-                                    nlohmann::json::array(
-                                        {FileRoot::kGitTreeMarker,
-                                         resolved_tree_id,
-                                         StorageConfig::GitRoot().string()}),
-                                    /*is_cache_hit=*/is_cache_hit));
+                                (*ws_setter)(
+                                    std::pair(nlohmann::json::array(
+                                                  {FileRoot::kGitTreeMarker,
+                                                   resolved_tree_id,
+                                                   StorageConfig::Instance()
+                                                       .GitRoot()
+                                                       .string()}),
+                                              /*is_cache_hit=*/is_cache_hit));
                             }
                         },
-                        [logger, target_path = StorageConfig::GitRoot()](
+                        [logger,
+                         target_path = StorageConfig::Instance().GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(
                                 fmt::format("While running critical Git op "
@@ -343,11 +349,12 @@ void ResolveContentTree(
                                logger);
         }
         else {
-            (*ws_setter)(std::pair(
-                nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                       tree_hash,
-                                       StorageConfig::GitRoot().string()}),
-                /*is_cache_hit=*/is_cache_hit));
+            (*ws_setter)(
+                std::pair(nlohmann::json::array(
+                              {FileRoot::kGitTreeMarker,
+                               tree_hash,
+                               StorageConfig::Instance().GitRoot().string()}),
+                          /*is_cache_hit=*/is_cache_hit));
         }
     }
 }
@@ -431,7 +438,7 @@ void ExtractAndImportToGit(
     ContentGitMap::SetterPtr const& setter,
     ContentGitMap::LoggerPtr const& logger) {
     // extract archive
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir(key.repo_type);
+    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir(key.repo_type);
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for {} target {}",
                               key.repo_type,
@@ -538,15 +545,16 @@ auto CreateContentGitMap(
             }
             // ensure Git cache
             // define Git operation to be done
-            GitOpKey op_key = {.params =
-                                   {
-                                       StorageConfig::GitRoot(),  // target_path
-                                       "",                        // git_hash
-                                       "",                        // branch
-                                       std::nullopt,              // message
-                                       true                       // init_bare
-                                   },
-                               .op_type = GitOpType::ENSURE_INIT};
+            GitOpKey op_key = {
+                .params =
+                    {
+                        StorageConfig::Instance().GitRoot(),  // target_path
+                        "",                                   // git_hash
+                        "",                                   // branch
+                        std::nullopt,                         // message
+                        true                                  // init_bare
+                    },
+                .op_type = GitOpType::ENSURE_INIT};
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},
@@ -605,7 +613,7 @@ auto CreateContentGitMap(
                         setter,
                         logger);
                 },
-                [logger, target_path = StorageConfig::GitRoot()](
+                [logger, target_path = StorageConfig::Instance().GitRoot()](
                     auto const& msg, bool fatal) {
                     (*logger)(fmt::format("While running critical Git "
                                           "op ENSURE_INIT for "
@@ -678,11 +686,11 @@ auto CreateContentGitMap(
                 GitOpKey op_key = {
                     .params =
                         {
-                            StorageConfig::GitRoot(),  // target_path
-                            "",                        // git_hash
-                            "",                        // branch
-                            std::nullopt,              // message
-                            true                       // init_bare
+                            StorageConfig::Instance().GitRoot(),  // target_path
+                            "",                                   // git_hash
+                            "",                                   // branch
+                            std::nullopt,                         // message
+                            true                                  // init_bare
                         },
                     .op_type = GitOpType::ENSURE_INIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
@@ -808,7 +816,7 @@ auto CreateContentGitMap(
                                               key.archive.content),
                                   /*fatal=*/true);
                     },
-                    [logger, target_path = StorageConfig::GitRoot()](
+                    [logger, target_path = StorageConfig::Instance().GitRoot()](
                         auto const& msg, bool fatal) {
                         (*logger)(fmt::format("While running critical Git op "
                                               "ENSURE_INIT for target {}:\n{}",

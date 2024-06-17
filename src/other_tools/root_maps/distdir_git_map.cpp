@@ -70,7 +70,7 @@ void ImportFromCASAndSetRoot(
     DistdirGitMap::SetterPtr const& setter,
     DistdirGitMap::LoggerPtr const& logger) {
     // create the links to CAS
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir("distdir");
+    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("distdir");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for "
                               "distdir target {}",
@@ -111,11 +111,12 @@ void ImportFromCASAndSetRoot(
                 return;
             }
             // set the workspace root as present
-            (*setter)(std::pair(
-                nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                       distdir_tree_id,
-                                       StorageConfig::GitRoot().string()}),
-                /*is_cache_hit=*/false));
+            (*setter)(
+                std::pair(nlohmann::json::array(
+                              {FileRoot::kGitTreeMarker,
+                               distdir_tree_id,
+                               StorageConfig::Instance().GitRoot().string()}),
+                          /*is_cache_hit=*/false));
         },
         [logger, target_path = tmp_dir->GetPath()](auto const& msg,
                                                    bool fatal) {
@@ -160,15 +161,16 @@ auto CreateDistdirGitMap(
             }
             // ensure Git cache
             // define Git operation to be done
-            GitOpKey op_key = {.params =
-                                   {
-                                       StorageConfig::GitRoot(),  // target_path
-                                       "",                        // git_hash
-                                       "",                        // branch
-                                       std::nullopt,              // message
-                                       true                       // init_bare
-                                   },
-                               .op_type = GitOpType::ENSURE_INIT};
+            GitOpKey op_key = {
+                .params =
+                    {
+                        StorageConfig::Instance().GitRoot(),  // target_path
+                        "",                                   // git_hash
+                        "",                                   // branch
+                        std::nullopt,                         // message
+                        true                                  // init_bare
+                    },
+                .op_type = GitOpType::ENSURE_INIT};
             critical_git_op_map->ConsumeAfterKeysReady(
                 ts,
                 {std::move(op_key)},
@@ -250,7 +252,7 @@ auto CreateDistdirGitMap(
                                     if (not EnsureAbsentRootOnServe(
                                             *serve,
                                             distdir_tree_id,
-                                            StorageConfig::GitRoot(),
+                                            StorageConfig::Instance().GitRoot(),
                                             remote_api,
                                             logger,
                                             true /*no_sync_is_fatal*/)) {
@@ -275,15 +277,15 @@ auto CreateDistdirGitMap(
                     }
                     else {
                         // set root as present
-                        (*setter)(
-                            std::pair(nlohmann::json::array(
-                                          {FileRoot::kGitTreeMarker,
-                                           distdir_tree_id,
-                                           StorageConfig::GitRoot().string()}),
-                                      /*is_cache_hit=*/true));
+                        (*setter)(std::pair(
+                            nlohmann::json::array(
+                                {FileRoot::kGitTreeMarker,
+                                 distdir_tree_id,
+                                 StorageConfig::Instance().GitRoot().string()}),
+                            /*is_cache_hit=*/true));
                     }
                 },
-                [logger, target_path = StorageConfig::GitRoot()](
+                [logger, target_path = StorageConfig::Instance().GitRoot()](
                     auto const& msg, bool fatal) {
                     (*logger)(fmt::format("While running critical Git op "
                                           "ENSURE_INIT for target {}:\n{}",

@@ -51,7 +51,8 @@ namespace {
 [[nodiscard]] auto IsCacheGitRoot(
     std::filesystem::path const& repo_root) noexcept -> bool {
     return std::filesystem::absolute(ToNormalPath(repo_root)) ==
-           std::filesystem::absolute(ToNormalPath(StorageConfig::GitRoot()));
+           std::filesystem::absolute(
+               ToNormalPath(StorageConfig::Instance().GitRoot()));
 }
 
 /// \brief Helper function for ensuring the serve endpoint, if given, has the
@@ -161,7 +162,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
     auto git_repo = GitRepoRemote::Open(git_cas);  // link fake repo to odb
     if (not git_repo) {
         (*logger)(fmt::format("Could not open cache object database {}",
-                              StorageConfig::GitRoot().string()),
+                              StorageConfig::Instance().GitRoot().string()),
                   /*fatal=*/true);
         return;
     }
@@ -184,7 +185,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
                                    ? FileRoot::kGitTreeIgnoreSpecialMarker
                                    : FileRoot::kGitTreeMarker,
                                *tree_id,
-                               StorageConfig::GitRoot().string()}),
+                               StorageConfig::Instance().GitRoot().string()}),
         false));
 }
 
@@ -447,18 +448,21 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                           /*fatal=*/true);
                 return;
             }
-            auto just_git_cas = GitCAS::Open(StorageConfig::GitRoot());
+            auto just_git_cas =
+                GitCAS::Open(StorageConfig::Instance().GitRoot());
             if (not just_git_cas) {
-                (*logger)(fmt::format("Could not open Git cache database {}",
-                                      StorageConfig::GitRoot().string()),
-                          /*fatal=*/true);
+                (*logger)(
+                    fmt::format("Could not open Git cache database {}",
+                                StorageConfig::Instance().GitRoot().string()),
+                    /*fatal=*/true);
                 return;
             }
             auto just_git_repo = GitRepo::Open(just_git_cas);
             if (not just_git_repo) {
-                (*logger)(fmt::format("Could not open Git cache repository {}",
-                                      StorageConfig::GitRoot().string()),
-                          /*fatal=*/true);
+                (*logger)(
+                    fmt::format("Could not open Git cache repository {}",
+                                StorageConfig::Instance().GitRoot().string()),
+                    /*fatal=*/true);
                 return;
             }
             // extract the subdir tree
@@ -481,7 +485,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             if (repo_info.absent and not fetch_absent) {
                 // try by all available means to generate & set the absent root
                 EnsureRootAsAbsent(*tree_id,
-                                   StorageConfig::GitRoot(),
+                                   StorageConfig::Instance().GitRoot(),
                                    repo_info,
                                    serve,
                                    remote_api,
@@ -490,14 +494,14 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             }
             else {
                 // this root is present
-                (*ws_setter)(
-                    std::pair(nlohmann::json::array(
-                                  {repo_info.ignore_special
-                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                       : FileRoot::kGitTreeMarker,
-                                   *tree_id,
-                                   StorageConfig::GitRoot().string()}),
-                              /*is_cache_hit=*/false));
+                (*ws_setter)(std::pair(
+                    nlohmann::json::array(
+                        {repo_info.ignore_special
+                             ? FileRoot::kGitTreeIgnoreSpecialMarker
+                             : FileRoot::kGitTreeMarker,
+                         *tree_id,
+                         StorageConfig::Instance().GitRoot().string()}),
+                    /*is_cache_hit=*/false));
             }
             // done!
             return;
@@ -546,16 +550,16 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 if (serve_result) {
                     auto const& root_tree_id = *serve_result;
                     // verify if we know the tree already in the local Git cache
-                    GitOpKey op_key = {
-                        .params =
-                            {
-                                StorageConfig::GitRoot(),  // target_path
-                                "",                        // git_hash
-                                "",                        // branch
-                                std::nullopt,              // message
-                                true                       // init_bare
-                            },
-                        .op_type = GitOpType::ENSURE_INIT};
+                    GitOpKey op_key = {.params =
+                                           {
+                                               StorageConfig::Instance()
+                                                   .GitRoot(),  // target_path
+                                               "",              // git_hash
+                                               "",              // branch
+                                               std::nullopt,    // message
+                                               true             // init_bare
+                                           },
+                                       .op_type = GitOpType::ENSURE_INIT};
                     critical_git_op_map->ConsumeAfterKeysReady(
                         ts,
                         {std::move(op_key)},
@@ -586,12 +590,13 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             auto just_git_repo =
                                 GitRepoRemote::Open(op_result.git_cas);
                             if (not just_git_repo) {
-                                (*logger)(
-                                    fmt::format(
-                                        "Could not open Git cache repository "
-                                        "{}",
-                                        StorageConfig::GitRoot().string()),
-                                    /*fatal=*/true);
+                                (*logger)(fmt::format("Could not open Git "
+                                                      "cache repository "
+                                                      "{}",
+                                                      StorageConfig::Instance()
+                                                          .GitRoot()
+                                                          .string()),
+                                          /*fatal=*/true);
                                 return;
                             }
                             // check tree existence
@@ -604,7 +609,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                 "While verifying presence of "
                                                 "tree {} in repository {}:\n{}",
                                                 tree,
-                                                StorageConfig::GitRoot()
+                                                StorageConfig::Instance()
+                                                    .GitRoot()
                                                     .string(),
                                                 msg),
                                             fatal);
@@ -721,8 +727,9 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     repo_info.origin);
                                 // Move tree from local CAS to local Git storage
-                                auto tmp_dir = StorageConfig::CreateTypedTmpDir(
-                                    "fetch-absent-root");
+                                auto tmp_dir =
+                                    StorageConfig::Instance().CreateTypedTmpDir(
+                                        "fetch-absent-root");
                                 if (not tmp_dir) {
                                     (*logger)(
                                         fmt::format(
@@ -825,7 +832,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                           ws_setter,
                                                           logger);
                         },
-                        [logger, target_path = StorageConfig::GitRoot()](
+                        [logger,
+                         target_path = StorageConfig::Instance().GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(fmt::format("While running critical Git "
                                                   "op ENSURE_INIT bare for "

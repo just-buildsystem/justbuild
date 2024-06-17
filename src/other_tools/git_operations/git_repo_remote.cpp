@@ -405,7 +405,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     anon_logger_ptr const& logger) const noexcept
     -> std::optional<std::string> {
     try {
-        auto tmp_dir = StorageConfig::CreateTypedTmpDir("update");
+        auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("update");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for running 'git ls-remote'",
                       /*fatal=*/true);
@@ -540,7 +540,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
     try {
-        auto tmp_dir = StorageConfig::CreateTypedTmpDir("fetch");
+        auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for running 'git fetch'",
                       /*fatal=*/true);

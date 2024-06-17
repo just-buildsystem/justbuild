@@ -48,18 +48,19 @@ auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
         FileSystemManager::IsDirectory(repo_url_as_path)) {
         return repo_url_as_path;
     }
-    return StorageConfig::GitRoot();
+    return StorageConfig::Instance().GitRoot();
 }
 
 auto GetCommitTreeIDFile(std::string const& commit) noexcept
     -> std::filesystem::path {
-    return StorageConfig::BuildRoot() / "commit-tree-map" / commit;
+    return StorageConfig::Instance().BuildRoot() / "commit-tree-map" / commit;
 }
 
 auto GetArchiveTreeIDFile(std::string const& repo_type,
                           std::string const& content) noexcept
     -> std::filesystem::path {
-    return StorageConfig::BuildRoot() / "tree-map" / repo_type / content;
+    return StorageConfig::Instance().BuildRoot() / "tree-map" / repo_type /
+           content;
 }
 
 auto GetForeignFileTreeIDFile(std::string const& content,
@@ -77,13 +78,14 @@ auto GetForeignFileTreeIDFile(std::string const& content,
 
 auto GetDistdirTreeIDFile(std::string const& content) noexcept
     -> std::filesystem::path {
-    return StorageConfig::BuildRoot() / "distfiles-tree-map" / content;
+    return StorageConfig::Instance().BuildRoot() / "distfiles-tree-map" /
+           content;
 }
 
 auto GetResolvedTreeIDFile(std::string const& tree_hash,
                            PragmaSpecial const& pragma_special) noexcept
     -> std::filesystem::path {
-    return StorageConfig::BuildRoot() / "special-tree-map" /
+    return StorageConfig::Instance().BuildRoot() / "special-tree-map" /
            kPragmaSpecialInverseMap.at(pragma_special) / tree_hash;
 }
 

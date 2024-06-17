@@ -70,7 +70,7 @@ class LargeObjectError final {
 class LargeObject final {
   public:
     LargeObject() noexcept
-        : directory_(StorageConfig::CreateTypedTmpDir("splice")),
+        : directory_(StorageConfig::Instance().CreateTypedTmpDir("splice")),
           path_(directory_ ? directory_->GetPath() / "result" : ".") {}
 
     /// \brief Check whether the large object is valid.

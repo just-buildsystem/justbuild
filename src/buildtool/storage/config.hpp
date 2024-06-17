@@ -38,57 +38,57 @@ class StorageConfig {
         return config;
     }
 
-    [[nodiscard]] static auto SetBuildRoot(
-        std::filesystem::path const& dir) noexcept -> bool {
+    [[nodiscard]] auto SetBuildRoot(std::filesystem::path const& dir) noexcept
+        -> bool {
         if (FileSystemManager::IsRelativePath(dir)) {
             Logger::Log(LogLevel::Error,
                         "Build root must be absolute path but got '{}'.",
                         dir.string());
             return false;
         }
-        Instance().build_root_ = dir;
+        build_root_ = dir;
         return true;
     }
 
     /// \brief Specifies the number of storage generations.
-    static auto SetNumGenerations(std::size_t num_generations) noexcept
-        -> void {
-        Instance().num_generations_ = num_generations;
+    auto SetNumGenerations(std::size_t num_generations) noexcept -> void {
+        num_generations_ = num_generations;
     }
 
     /// \brief Number of storage generations.
-    [[nodiscard]] static auto NumGenerations() noexcept -> std::size_t {
-        return Instance().num_generations_;
+    [[nodiscard]] auto NumGenerations() const noexcept -> std::size_t {
+        return num_generations_;
     }
 
     /// \brief Build directory, defaults to user directory if not set
-    [[nodiscard]] static auto BuildRoot() noexcept -> std::filesystem::path {
-        return Instance().build_root_;
+    [[nodiscard]] auto BuildRoot() const noexcept
+        -> std::filesystem::path const& {
+        return build_root_;
     }
 
     /// \brief Root directory of all storage generations.
-    [[nodiscard]] static auto CacheRoot() noexcept -> std::filesystem::path {
+    [[nodiscard]] auto CacheRoot() const noexcept -> std::filesystem::path {
         return BuildRoot() / "protocol-dependent";
     }
 
     /// \brief Directory for the git repository storing various roots
-    [[nodiscard]] static auto GitRoot() noexcept -> std::filesystem::path {
+    [[nodiscard]] auto GitRoot() const noexcept -> std::filesystem::path {
         return BuildRoot() / "git";
     }
 
     /// \brief Root directory of specific storage generation for compatible and
     /// non-compatible protocol types.
-    [[nodiscard]] static auto GenerationCacheRoot(std::size_t index) noexcept
+    [[nodiscard]] auto GenerationCacheRoot(std::size_t index) const noexcept
         -> std::filesystem::path {
-        ExpectsAudit(index < Instance().num_generations_);
+        ExpectsAudit(index < num_generations_);
         auto generation = std::string{"generation-"} + std::to_string(index);
         return CacheRoot() / generation;
     }
 
     /// \brief Storage directory of specific generation and protocol type.
-    [[nodiscard]] static auto GenerationCacheDir(
+    [[nodiscard]] auto GenerationCacheDir(
         std::size_t index,
-        bool is_compatible = Compatibility::IsCompatible()) noexcept
+        bool is_compatible = Compatibility::IsCompatible()) const noexcept
         -> std::filesystem::path {
         return UpdatePathForCompatibility(GenerationCacheRoot(index),
                                           is_compatible);
@@ -96,22 +96,20 @@ class StorageConfig {
 
     /// \brief Root directory for all ephemeral directories, i.e., directories
     /// that can (and should) be removed immediately by garbage collection.
-    [[nodiscard]] static auto EphemeralRoot() noexcept
-        -> std::filesystem::path {
+    [[nodiscard]] auto EphemeralRoot() const noexcept -> std::filesystem::path {
         return GenerationCacheRoot(0) / "ephemeral";
     }
 
     /// \brief Root directory for local action executions; individual actions
     /// create a working directory below this root.
-    [[nodiscard]] static auto ExecutionRoot() noexcept
-        -> std::filesystem::path {
+    [[nodiscard]] auto ExecutionRoot() const noexcept -> std::filesystem::path {
         return EphemeralRoot() / "exec_root";
     }
 
     /// \brief Create a tmp directory with controlled lifetime for specific
     /// operations (archive, zip, file, distdir checkouts; fetch; update).
-    [[nodiscard]] static auto CreateTypedTmpDir(
-        std::string const& type) noexcept -> TmpDirPtr {
+    [[nodiscard]] auto CreateTypedTmpDir(std::string const& type) const noexcept
+        -> TmpDirPtr {
         // try to create parent dir
         auto parent_path = EphemeralRoot() / "tmp-workspaces" / type;
         return TmpDir::Create(parent_path);

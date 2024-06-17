@@ -1714,7 +1714,8 @@ auto GitRepo::LocalFetchViaTmpRepo(std::string const& repo_path,
             Logger::Log(LogLevel::Debug,
                         "Branch local fetch called on a real repository");
         }
-        auto tmp_dir = StorageConfig::CreateTypedTmpDir("local_fetch");
+        auto tmp_dir =
+            StorageConfig::Instance().CreateTypedTmpDir("local_fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for Git repository",
                       /*fatal=*/true);

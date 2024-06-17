@@ -70,7 +70,7 @@ void wait_for_grpc_to_shutdown() {
 [[nodiscard]] auto ConfigureBuildRoot() -> bool {
     auto cache_dir = FileSystemManager::GetCurrentDirectory() / "cache";
     if (not FileSystemManager::CreateDirectoryExclusive(cache_dir) or
-        not StorageConfig::SetBuildRoot(cache_dir)) {
+        not StorageConfig::Instance().SetBuildRoot(cache_dir)) {
         return false;
     }
     // After the build root has been changed, the file roots of the

@@ -123,7 +123,7 @@ void ResolveFilePathTree(
             // available to be able to build against it; the tree is resolved,
             // so it is in our Git cache
             CheckServeAndSetRoot(*resolved_tree_id,
-                                 StorageConfig::GitRoot().string(),
+                                 StorageConfig::Instance().GitRoot().string(),
                                  absent,
                                  serve,
                                  remote_api,
@@ -174,7 +174,8 @@ void ResolveFilePathTree(
                     GitOpKey op_key = {
                         .params =
                             {
-                                StorageConfig::GitRoot(),     // target_path
+                                StorageConfig::Instance()
+                                    .GitRoot(),               // target_path
                                 resolved_tree_id,             // git_hash
                                 "",                           // branch
                                 "Keep referenced tree alive"  // message
@@ -212,14 +213,15 @@ void ResolveFilePathTree(
                             // it; the resolved tree is in the Git cache
                             CheckServeAndSetRoot(
                                 resolved_tree_id,
-                                StorageConfig::GitRoot().string(),
+                                StorageConfig::Instance().GitRoot().string(),
                                 absent,
                                 serve,
                                 remote_api,
                                 ws_setter,
                                 logger);
                         },
-                        [logger, target_path = StorageConfig::GitRoot()](
+                        [logger,
+                         target_path = StorageConfig::Instance().GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(
                                 fmt::format("While running critical Git op "
@@ -341,16 +343,16 @@ auto CreateFilePathGitMap(
                     // resolve tree and set workspace root; tree gets resolved
                     // from source repo into the Git cache, which we first need
                     // to ensure is initialized
-                    GitOpKey op_key = {
-                        .params =
-                            {
-                                StorageConfig::GitRoot(),  // target_path
-                                "",                        // git_hash
-                                "",                        // branch
-                                std::nullopt,              // message
-                                true                       // init_bare
-                            },
-                        .op_type = GitOpType::ENSURE_INIT};
+                    GitOpKey op_key = {.params =
+                                           {
+                                               StorageConfig::Instance()
+                                                   .GitRoot(),  // target_path
+                                               "",              // git_hash
+                                               "",              // branch
+                                               std::nullopt,    // message
+                                               true             // init_bare
+                                           },
+                                       .op_type = GitOpType::ENSURE_INIT};
                     critical_git_op_map->ConsumeAfterKeysReady(
                         ts,
                         {std::move(op_key)},
@@ -390,7 +392,8 @@ auto CreateFilePathGitMap(
                                 setter,
                                 logger);
                         },
-                        [logger, target_path = StorageConfig::GitRoot()](
+                        [logger,
+                         target_path = StorageConfig::Instance().GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(
                                 fmt::format("While running critical Git op "
@@ -423,7 +426,7 @@ auto CreateFilePathGitMap(
                           /*fatal=*/false);
             }
             // it's not a git repo, so import it to git cache
-            auto tmp_dir = StorageConfig::CreateTypedTmpDir("file");
+            auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("file");
             if (not tmp_dir) {
                 (*logger)("Failed to create import-to-git tmp directory!",
                           /*fatal=*/true);
@@ -466,20 +469,21 @@ auto CreateFilePathGitMap(
                     std::string tree = values[0]->first;
                     // resolve tree and set workspace root;
                     // we work on the Git CAS directly
-                    ResolveFilePathTree(StorageConfig::GitRoot().string(),
-                                        fpath.string(),
-                                        tree,
-                                        pragma_special,
-                                        values[0]->second, /*source_cas*/
-                                        values[0]->second, /*target_cas*/
-                                        absent,
-                                        critical_git_op_map,
-                                        resolve_symlinks_map,
-                                        serve,
-                                        remote_api,
-                                        ts,
-                                        setter,
-                                        logger);
+                    ResolveFilePathTree(
+                        StorageConfig::Instance().GitRoot().string(),
+                        fpath.string(),
+                        tree,
+                        pragma_special,
+                        values[0]->second, /*source_cas*/
+                        values[0]->second, /*target_cas*/
+                        absent,
+                        critical_git_op_map,
+                        resolve_symlinks_map,
+                        serve,
+                        remote_api,
+                        ts,
+                        setter,
+                        logger);
                 },
                 [logger, target_path = key.fpath](auto const& msg, bool fatal) {
                     (*logger)(

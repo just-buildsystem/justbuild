@@ -93,16 +93,17 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
                           ApiBundle const& apis,
                           bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
-    if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
+    if (not FileSystemManager::CreateDirectory(
+            StorageConfig::Instance().GitRoot())) {
         Logger::Log(LogLevel::Error,
                     "Could not create directory {}. Aborting",
-                    StorageConfig::GitRoot().string());
+                    StorageConfig::Instance().GitRoot().string());
         return false;
     }
-    if (not GitRepo::InitAndOpen(StorageConfig::GitRoot(), true)) {
+    if (not GitRepo::InitAndOpen(StorageConfig::Instance().GitRoot(), true)) {
         Logger::Log(LogLevel::Error,
                     fmt::format("could not initialize bare git repository {}",
-                                StorageConfig::GitRoot().string()));
+                                StorageConfig::Instance().GitRoot().string()));
         return false;
     }
 

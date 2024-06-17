@@ -43,11 +43,11 @@ void WithRootImportedToGit(ForeignFileInfo const& key,
             fmt::format("Failed to write cache file {}", tree_id_file.string()),
             /*fatal=*/false);
     }
-    (*setter)(
-        std::pair(nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                         result.first,
-                                         StorageConfig::GitRoot().string()}),
-                  /*is_cache_hit=*/false));
+    (*setter)(std::pair(
+        nlohmann::json::array({FileRoot::kGitTreeMarker,
+                               result.first,
+                               StorageConfig::Instance().GitRoot().string()}),
+        /*is_cache_hit=*/false));
 }
 
 void WithFetchedFile(ForeignFileInfo const& key,
@@ -55,7 +55,7 @@ void WithFetchedFile(ForeignFileInfo const& key,
                      gsl::not_null<TaskSystem*> const& ts,
                      ForeignFileGitMap::SetterPtr const& setter,
                      ForeignFileGitMap::LoggerPtr const& logger) {
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir("foreign-file");
+    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("foreign-file");
     auto const& cas = Storage::Instance().CAS();
     auto digest = ArtifactDigest(key.archive.content, 0, key.executable);
     auto content_cas_path = cas.BlobPath(digest, key.executable);
@@ -105,11 +105,11 @@ void UseCacheHit(const std::string& tree_id,
     // We keep the invariant, that, whenever a cache entry is written,
     // the root is in our git root; in particular, the latter is present,
     // initialized, etc; so we can directly write the result.
-    (*setter)(
-        std::pair(nlohmann::json::array({FileRoot::kGitTreeMarker,
-                                         tree_id,
-                                         StorageConfig::GitRoot().string()}),
-                  /*is_cache_hit=*/true));
+    (*setter)(std::pair(
+        nlohmann::json::array({FileRoot::kGitTreeMarker,
+                               tree_id,
+                               StorageConfig::Instance().GitRoot().string()}),
+        /*is_cache_hit=*/true));
 }
 
 void HandleAbsentForeignFile(ForeignFileInfo const& key,

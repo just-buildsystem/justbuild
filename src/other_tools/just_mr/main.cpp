@@ -288,7 +288,7 @@ auto main(int argc, char* argv[]) -> int {
 
         // Setup LocalStorageConfig to store the local_build_root properly
         // and make the cas and git cache roots available
-        if (not StorageConfig::SetBuildRoot(
+        if (not StorageConfig::Instance().SetBuildRoot(
                 *arguments.common.just_mr_paths->root)) {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");

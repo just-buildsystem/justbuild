@@ -100,7 +100,8 @@ class Tree final {
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LargeObjectCAS: split a small tree",
                  "[storage]") {
-    auto temp_dir = StorageConfig::CreateTypedTmpDir("large_object_cas");
+    auto temp_dir =
+        StorageConfig::Instance().CreateTypedTmpDir("large_object_cas");
     REQUIRE(temp_dir);
 
     auto const& cas = Storage::Instance().CAS();
@@ -199,7 +200,9 @@ static void TestLarge() noexcept {
             CHECK(pack_3->size() == pack_1->size());
 
             // Check there are no spliced results in all generations:
-            for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+            for (std::size_t i = 0;
+                 i < StorageConfig::Instance().NumGenerations();
+                 ++i) {
                 auto generation_path =
                     kIsTree ? Storage::Generation(i).CAS().TreePath(digest)
                             : Storage::Generation(i).CAS().BlobPath(digest,
@@ -603,7 +606,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     REQUIRE(split_nested_blob_2);
 
     // Check there are no spliced results in old generations:
-    for (std::size_t i = 1; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 1; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         auto const& generation_cas = Storage::Generation(i).CAS();
         REQUIRE_FALSE(generation_cas.TreePath(*nested_tree_digest));
         REQUIRE_FALSE(generation_cas.TreePath(*large_tree_digest));

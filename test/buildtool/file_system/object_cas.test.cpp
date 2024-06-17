@@ -22,6 +22,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
@@ -29,8 +30,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     SECTION("CAS for files") {
-        ObjectCAS<ObjectType::File> cas{StorageConfig::GenerationCacheDir(0) /
-                                        "casf"};
+        ObjectCAS<ObjectType::File> cas{
+            StorageConfig::Instance().GenerationCacheDir(0) / "casf"};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {
@@ -69,7 +70,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
 
     SECTION("CAS for executables") {
         ObjectCAS<ObjectType::Executable> cas{
-            StorageConfig::GenerationCacheDir(0) / "casx"};
+            StorageConfig::Instance().GenerationCacheDir(0) / "casx"};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

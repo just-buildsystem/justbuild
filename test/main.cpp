@@ -38,7 +38,7 @@ auto main(int argc, char* argv[]) -> int {
      * Hence we set the storage root to a fixed location under TEST_TMPDIR which
      * is set by the test launcher.
      */
-    auto setup_ok = StorageConfig::SetBuildRoot(
+    auto setup_ok = StorageConfig::Instance().SetBuildRoot(
         std::filesystem::path{std::string{std::getenv("TEST_TMPDIR")}} /
         ".test_build_root");
     if (not setup_ok) {

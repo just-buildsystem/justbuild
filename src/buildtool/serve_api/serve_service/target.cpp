@@ -435,7 +435,7 @@ auto TargetService::ServeTarget(
     Progress progress{};
 
     // setup logging for analysis and build; write into a temporary file
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir("serve-target");
+    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("serve-target");
     if (!tmp_dir) {
         auto msg = std::string("Could not create TmpDir");
         logger_->Emit(LogLevel::Error, msg);
@@ -592,8 +592,10 @@ auto TargetService::ServeTargetVariables(
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
     // try in local build root Git cache
-    if (auto res = GetBlobContent(
-            StorageConfig::GitRoot(), root_tree, target_file, logger_)) {
+    if (auto res = GetBlobContent(StorageConfig::Instance().GitRoot(),
+                                  root_tree,
+                                  target_file,
+                                  logger_)) {
         tree_found = true;
         if (res->first) {
             if (not res->second) {
@@ -746,8 +748,10 @@ auto TargetService::ServeTargetDescription(
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
     // try in local build root Git cache
-    if (auto res = GetBlobContent(
-            StorageConfig::GitRoot(), root_tree, target_file, logger_)) {
+    if (auto res = GetBlobContent(StorageConfig::Instance().GitRoot(),
+                                  root_tree,
+                                  target_file,
+                                  logger_)) {
         tree_found = true;
         if (res->first) {
             if (not res->second) {

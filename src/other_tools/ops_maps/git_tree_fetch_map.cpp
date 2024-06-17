@@ -39,7 +39,7 @@ void BackupToRemote(std::string const& tree_id,
                     GitTreeFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     auto repo = RepositoryConfig{};
-    if (repo.SetGitCAS(StorageConfig::GitRoot())) {
+    if (repo.SetGitCAS(StorageConfig::Instance().GitRoot())) {
         auto git_api = GitApi{&repo};
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{
@@ -56,7 +56,7 @@ void BackupToRemote(std::string const& tree_id,
     else {
         // give a warning
         (*logger)(fmt::format("Failed to SetGitCAS at {}",
-                              StorageConfig::GitRoot().string()),
+                              StorageConfig::Instance().GitRoot().string()),
                   /*fatal=*/false);
     }
 }
@@ -73,7 +73,8 @@ void MoveCASTreeToGit(std::string const& tree_id,
                       GitTreeFetchMap::SetterPtr const& setter,
                       GitTreeFetchMap::LoggerPtr const& logger) {
     // Move tree from CAS to local Git storage
-    auto tmp_dir = StorageConfig::CreateTypedTmpDir("fetch-remote-git-tree");
+    auto tmp_dir =
+        StorageConfig::Instance().CreateTypedTmpDir("fetch-remote-git-tree");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp directory for copying "
                               "git-tree {} from remote CAS",
@@ -147,15 +148,16 @@ auto CreateGitTreeFetchMap(
                                             auto const& key) {
         // check whether tree exists already in Git cache;
         // ensure Git cache exists
-        GitOpKey op_key = {.params =
-                               {
-                                   StorageConfig::GitRoot(),  // target_path
-                                   "",                        // git_hash
-                                   "",                        // branch
-                                   std::nullopt,              // message
-                                   true                       // init_bare
-                               },
-                           .op_type = GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {
+            .params =
+                {
+                    StorageConfig::Instance().GitRoot(),  // target_path
+                    "",                                   // git_hash
+                    "",                                   // branch
+                    std::nullopt,                         // message
+                    true                                  // init_bare
+                },
+            .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -182,8 +184,9 @@ auto CreateGitTreeFetchMap(
                 auto git_repo = GitRepoRemote::Open(
                     op_result.git_cas);  // link fake repo to odb
                 if (not git_repo) {
-                    (*logger)(fmt::format("Could not open repository {}",
-                                          StorageConfig::GitRoot().string()),
+                    (*logger)(fmt::format(
+                                  "Could not open repository {}",
+                                  StorageConfig::Instance().GitRoot().string()),
                               /*fatal=*/true);
                     return;
                 }
@@ -258,7 +261,8 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for command execution root
-                auto tmp_dir = StorageConfig::CreateTypedTmpDir("git-tree");
+                auto tmp_dir =
+                    StorageConfig::Instance().CreateTypedTmpDir("git-tree");
                 if (not tmp_dir) {
                     (*logger)(
                         "Failed to create execution root tmp directory for "
@@ -267,7 +271,8 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for storing command result files
-                auto out_dir = StorageConfig::CreateTypedTmpDir("git-tree");
+                auto out_dir =
+                    StorageConfig::Instance().CreateTypedTmpDir("git-tree");
                 if (not out_dir) {
                     (*logger)(
                         "Failed to create results tmp directory for tree id "
@@ -396,7 +401,8 @@ auto CreateGitTreeFetchMap(
                         }
                         // define temp repo path
                         auto tmp_dir =
-                            StorageConfig::CreateTypedTmpDir("git-tree");
+                            StorageConfig::Instance().CreateTypedTmpDir(
+                                "git-tree");
                         ;
                         if (not tmp_dir) {
                             (*logger)(fmt::format("Could not create unique "
@@ -442,7 +448,8 @@ auto CreateGitTreeFetchMap(
                         GitOpKey op_key = {
                             .params =
                                 {
-                                    StorageConfig::GitRoot(),     // target_path
+                                    StorageConfig::Instance()
+                                        .GitRoot(),               // target_path
                                     *op_result.result,            // git_hash
                                     "",                           // branch
                                     "Keep referenced tree alive"  // message
@@ -488,8 +495,8 @@ auto CreateGitTreeFetchMap(
                                   fatal);
                     });
             },
-            [logger, target_path = StorageConfig::GitRoot()](auto const& msg,
-                                                             bool fatal) {
+            [logger, target_path = StorageConfig::Instance().GitRoot()](
+                auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
                                       "ENSURE_INIT bare for target {}:\n{}",
                                       target_path.string(),

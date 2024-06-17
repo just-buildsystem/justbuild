@@ -82,14 +82,16 @@ using Generation = LocalStorage</*kDoGlobalUplink=*/false>;
 class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
   public:
     /// \brief Get the global storage instance.
-    /// Build root is read from \ref StorageConfig::BuildRoot().
+    /// Build root is read from \ref
+    /// StorageConfig::Instance().BuildRoot().
     /// \returns The global storage singleton instance.
     [[nodiscard]] static auto Instance() noexcept -> Storage const& {
         return GetStorage();
     }
 
     /// \brief Get specific storage generation.
-    /// Number of generations is read from \ref StorageConfig::NumGenerations().
+    /// Number of generations is read from \ref
+    /// StorageConfig::Instance().NumGenerations().
     /// \param index    the generation index (0 is latest).
     /// \returns The specific storage generation.
     [[nodiscard]] static auto Generation(std::size_t index) noexcept
@@ -108,16 +110,17 @@ class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
     using LocalStorage<kDefaultDoGlobalUplink>::LocalStorage;
 
     [[nodiscard]] static auto CreateStorage() noexcept -> Storage {
-        return Storage{StorageConfig::GenerationCacheDir(0)};
+        return Storage{StorageConfig::Instance().GenerationCacheDir(0)};
     }
 
     [[nodiscard]] static auto CreateGenerations() noexcept
         -> std::vector<::Generation> {
-        auto count = StorageConfig::NumGenerations();
+        auto count = StorageConfig::Instance().NumGenerations();
         std::vector<::Generation> generations{};
         generations.reserve(count);
         for (std::size_t i = 0; i < count; ++i) {
-            generations.emplace_back(StorageConfig::GenerationCacheDir(i));
+            generations.emplace_back(
+                StorageConfig::Instance().GenerationCacheDir(i));
         }
         return generations;
     }

@@ -129,7 +129,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     -> std::optional<Output> {
     auto exec_path =
-        CreateUniquePath(StorageConfig::ExecutionRoot() /
+        CreateUniquePath(StorageConfig::Instance().ExecutionRoot() /
                          NativeSupport::Unprefix(action_id.hash()));
 
     if (not exec_path) {

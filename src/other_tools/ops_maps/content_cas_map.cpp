@@ -130,15 +130,16 @@ auto CreateContentCASMap(
         }
         // check if content is in Git cache;
         // ensure Git cache
-        GitOpKey op_key = {.params =
-                               {
-                                   StorageConfig::GitRoot(),  // target_path
-                                   "",                        // git_hash
-                                   "",                        // branch
-                                   std::nullopt,              // message
-                                   true                       // init_bare
-                               },
-                           .op_type = GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {
+            .params =
+                {
+                    StorageConfig::Instance().GitRoot(),  // target_path
+                    "",                                   // git_hash
+                    "",                                   // branch
+                    std::nullopt,                         // message
+                    true                                  // init_bare
+                },
+            .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -240,8 +241,8 @@ auto CreateContentCASMap(
                 FetchFromNetwork(
                     key, additional_mirrors, ca_info, setter, logger);
             },
-            [logger, target_path = StorageConfig::GitRoot()](auto const& msg,
-                                                             bool fatal) {
+            [logger, target_path = StorageConfig::Instance().GitRoot()](
+                auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
                                       "ENSURE_INIT for target {}:\n{}",
                                       target_path.string(),

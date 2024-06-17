@@ -110,7 +110,7 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     using LocalConfig = LocalExecutionConfig;
     using RemoteConfig = RemoteExecutionConfig;
     if (not(not eargs.local_root or
-            (StorageConfig::SetBuildRoot(*eargs.local_root))) or
+            (StorageConfig::Instance().SetBuildRoot(*eargs.local_root))) or
         not(not bargs.local_launcher or
             LocalConfig::SetLauncher(*bargs.local_launcher))) {
         Logger::Log(LogLevel::Error, "Failed to configure local execution.");
@@ -881,10 +881,11 @@ auto main(int argc, char* argv[]) -> int {
             ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
-            if (not repo_config.SetGitCAS(StorageConfig::GitRoot())) {
+            if (not repo_config.SetGitCAS(
+                    StorageConfig::Instance().GitRoot())) {
                 Logger::Log(LogLevel::Debug,
                             "Failed set Git CAS {}.",
-                            StorageConfig::GitRoot().string());
+                            StorageConfig::Instance().GitRoot().string());
             }
             return FetchAndInstallArtifacts(main_apis, arguments.fetch)
                        ? kExitSuccess

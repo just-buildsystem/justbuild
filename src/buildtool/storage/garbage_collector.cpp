@@ -64,7 +64,8 @@ auto GarbageCollector::GlobalUplinkBlob(bazel_re::Digest const& digest,
                                         bool is_executable) noexcept -> bool {
     // Try to find blob in all generations.
     auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         // Note that we uplink with _skip_sync_ as we want to prefer hard links
         // from older generations over copies from the companion file/exec CAS.
         if (Storage::Generation(i).CAS().LocalUplinkBlob(
@@ -83,7 +84,8 @@ auto GarbageCollector::GlobalUplinkLargeBlob(
     bazel_re::Digest const& digest) noexcept -> bool {
     // Try to find large entry in all generations.
     auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         if (Storage::Generation(i)
                 .CAS()
                 .LocalUplinkLargeObject<ObjectType::File>(latest_cas, digest)) {
@@ -97,7 +99,8 @@ auto GarbageCollector::GlobalUplinkTree(bazel_re::Digest const& digest) noexcept
     -> bool {
     // Try to find tree in all generations.
     auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         if (Storage::Generation(i).CAS().LocalUplinkTree(
                 latest_cas, digest, /*splice_result=*/true)) {
             return true;
@@ -110,7 +113,8 @@ auto GarbageCollector::GlobalUplinkActionCacheEntry(
     bazel_re::Digest const& action_id) noexcept -> bool {
     // Try to find action-cache entry in all generations.
     auto const& latest_ac = Storage::Generation(0).ActionCache();
-    for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         if (Storage::Generation(i).ActionCache().LocalUplinkEntry(latest_ac,
                                                                   action_id)) {
             return true;
@@ -125,7 +129,8 @@ auto GarbageCollector::GlobalUplinkTargetCacheEntry(
     // Try to find target-cache entry in all generations.
     auto const& latest_tc =
         Storage::Generation(0).TargetCache().WithShard(shard);
-    for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
+    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
+         ++i) {
         if (Storage::Generation(i)
                 .TargetCache()
                 .WithShard(shard)
@@ -145,7 +150,7 @@ auto GarbageCollector::ExclusiveLock() noexcept -> std::optional<LockFile> {
 }
 
 auto GarbageCollector::LockFilePath() noexcept -> std::filesystem::path {
-    return StorageConfig::CacheRoot() / "gc.lock";
+    return StorageConfig::Instance().CacheRoot() / "gc.lock";
 }
 
 auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
@@ -169,8 +174,8 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
             return false;
         }
 
-        for (auto const& entry :
-             std::filesystem::directory_iterator(StorageConfig::CacheRoot())) {
+        for (auto const& entry : std::filesystem::directory_iterator(
+                 StorageConfig::Instance().CacheRoot())) {
             if (entry.path().filename().string().find(remove_me_prefix) == 0) {
                 to_remove.emplace_back(entry.path());
             }
@@ -200,15 +205,15 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // all existing remove-me directories; they're left overs, as the clean
         // up of owned directories is done with a shared lock.
         std::vector<std::filesystem::path> left_over{};
-        for (auto const& entry :
-             std::filesystem::directory_iterator(StorageConfig::CacheRoot())) {
+        for (auto const& entry : std::filesystem::directory_iterator(
+                 StorageConfig::Instance().CacheRoot())) {
             if (entry.path().filename().string().find(kRemoveMe) == 0) {
                 left_over.emplace_back(entry.path());
             }
         }
         for (auto const& d : left_over) {
             auto new_name =
-                StorageConfig::CacheRoot() /
+                StorageConfig::Instance().CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             if (FileSystemManager::Rename(d, new_name)) {
                 to_remove.emplace_back(new_name);
@@ -224,10 +229,10 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Now that the have to exclusive lock, try to move out ephemeral data;
         // as it is still under the generation regime, it is not a huge problem
         // if that fails.
-        auto ephemeral = StorageConfig::EphemeralRoot();
+        auto ephemeral = StorageConfig::Instance().EphemeralRoot();
         if (FileSystemManager::IsDirectory(ephemeral)) {
             auto remove_me_dir =
-                StorageConfig::CacheRoot() /
+                StorageConfig::Instance().CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             if (FileSystemManager::Rename(ephemeral, remove_me_dir)) {
                 to_remove.emplace_back(remove_me_dir);
@@ -252,16 +257,19 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Rotate generations unless told not to do so
         if (not no_rotation) {
             auto remove_me_dir =
-                StorageConfig::CacheRoot() /
+                StorageConfig::Instance().CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             to_remove.emplace_back(remove_me_dir);
-            for (std::size_t i = StorageConfig::NumGenerations(); i > 0; --i) {
-                auto cache_root = StorageConfig::GenerationCacheRoot(i - 1);
+            for (std::size_t i = StorageConfig::Instance().NumGenerations();
+                 i > 0;
+                 --i) {
+                auto cache_root =
+                    StorageConfig::Instance().GenerationCacheRoot(i - 1);
                 if (FileSystemManager::IsDirectory(cache_root)) {
                     auto new_cache_root =
-                        (i == StorageConfig::NumGenerations())
+                        (i == StorageConfig::Instance().NumGenerations())
                             ? remove_me_dir
-                            : StorageConfig::GenerationCacheRoot(i);
+                            : StorageConfig::Instance().GenerationCacheRoot(i);
                     if (not FileSystemManager::Rename(cache_root,
                                                       new_cache_root)) {
                         Logger::Log(LogLevel::Error,
@@ -302,8 +310,8 @@ auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
     // Compactification must be done for both native and compatible storages.
     auto compactify = [threshold](bool compatible) -> bool {
         Compatibility::SetCompatible(compatible);
-        auto const storage =
-            ::Generation(StorageConfig::GenerationCacheDir(0, compatible));
+        auto const storage = ::Generation(
+            StorageConfig::Instance().GenerationCacheDir(0, compatible));
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
                Compactifier::RemoveSpliced(storage.CAS()) and

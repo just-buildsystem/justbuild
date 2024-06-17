@@ -58,8 +58,8 @@ auto GetServingRepository(RemoteServeConfig const& serve_config,
                           std::shared_ptr<Logger> const& logger)
     -> std::optional<std::filesystem::path> {
     // try the Git cache repository
-    if (IsTreeInRepo(tree_id, StorageConfig::GitRoot(), logger)) {
-        return StorageConfig::GitRoot();
+    if (IsTreeInRepo(tree_id, StorageConfig::Instance().GitRoot(), logger)) {
+        return StorageConfig::Instance().GitRoot();
     }
     // check the known repositories
     for (auto const& path : serve_config.known_repositories) {

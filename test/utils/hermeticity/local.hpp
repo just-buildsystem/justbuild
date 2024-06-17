@@ -38,7 +38,7 @@ class HermeticLocalTestFixture {
 
         if (FileSystemManager::RemoveDirectory(case_dir, true) and
             FileSystemManager::CreateDirectoryExclusive(case_dir) and
-            StorageConfig::SetBuildRoot(case_dir)) {
+            StorageConfig::Instance().SetBuildRoot(case_dir)) {
             // After the build root has been changed, the file roots of the
             // static storage instances need to be updated.
             Storage::Reinitialize();
