@@ -18,6 +18,7 @@ taken from user-defined rules described by functional expressions.
   - [Getting Started](doc/tutorial/getting-started.md)
   - [Hello World](doc/tutorial/hello-world.md)
   - [Third-party dependencies](doc/tutorial/third-party-software.md)
+  - [Debugging](doc/tutorial/debugging.md)
   - [Tests](doc/tutorial/tests.md)
   - [Targets versus `FILE`, `GLOB`, and `TREE`](doc/tutorial/target-file-glob-tree.md)
   - [Ensuring reproducibility](doc/tutorial/rebuild.md)
