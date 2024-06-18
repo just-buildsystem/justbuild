@@ -104,14 +104,14 @@ targets are subject to high-level target caching, which allows to skip
 the analysis and traversal of entire subgraphs in the action graph.
 Therefore, we create an export target that exports the target
 `["src", "fmt"]`, with only the variables in the field
-`"flexible_config"` being propagated. The top-level `TARGETS` file
-contains the following content:
+`"flexible_config"` being propagated.
+The top-level `TARGETS` file contains the following content:
 
 ``` {.jsonc srcname="fmt-layer/TARGETS"}
 { "fmt":
   { "type": "export"
   , "target": ["src", "fmt"]
-  , "flexible_config": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
+  , "flexible_config": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV", "DEBUG"]
   }
 }
 ```
@@ -389,7 +389,7 @@ target description for each repository is implemented. For the given
 example, the following `repos.json` defines the overlay
 `"common-targets-layer"`, which is used by `"fmtlib"` and `"gsl-lite"`:
 
-``` {.jsonc srcname="repos.json"}
+``` {.jsonc srcname="repos.gsl-lite.json"}
 { "main": "tutorial"
 , "repositories":
   { "rules-cc":
