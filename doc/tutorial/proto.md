@@ -404,7 +404,7 @@ $
 Adding a test
 -------------
 
-Finally, let's add a test. As we use the `protobuf` repository as
+Now, let's add a test. As we use the `protobuf` repository as
 workspace root, we add the test script ad hoc into a targets file, using
 the `"file_gen"` rule. For debugging a potentially failing test, we also
 keep the intermediate files the test generates. Add to the top-level
@@ -545,4 +545,100 @@ Person ID: 12345
   Updated: 2024-04-19T15:51:27Z
 INFO: Target tainted ["test"].
 $
+```
+
+Debugging with generated files
+------------------------------
+
+Finally, let's look at how debugging using protobufs looks like. In the root
+`TARGETS` file we can add a debug version of the `"list_people"` binary,
+together with the target to stage its respective debug artifacts (as described
+in the chapter on [*Debugging*](./hello-world.md)).
+
+``` {.jsonc srcname="TARGETS"}
+...
+, "list_people debug":
+  { "type": "configure"
+  , "target": "list_people"
+  , "config":
+    { "type": "let*"
+    , "bindings": [["DEBUG", true]]
+    , "body": {"type": "env", "vars": ["DEBUG"]}
+    }
+  }
+, "list_people debug staged":
+  { "type": ["@", "rules", "CC", "install-with-deps"]
+  , "targets": ["list_people debug"]
+  }
+...
+```
+
+The debugging target can then be installed to a directory of our choosing.
+
+``` sh
+$ just-mr install "list_people debug staged" -o .ext/debug
+INFO: Performing repositories setup
+INFO: Found 23 repositories to set up
+INFO: Setup finished, exec ["just","install","-C","...","list_people debug staged","-o",".ext/debug"]
+INFO: Requested target is [["@","","","list_people debug staged"],{}]
+INFO: Analysed target [["@","","","list_people debug staged"],{}]
+INFO: Export targets found: 0 cached, 90 uncached, 0 not eligible for caching
+INFO: Discovered 419 actions, 89 trees, 1 blobs
+INFO: Building [["@","","","list_people debug staged"],{}].
+[...]
+INFO: Processed 419 actions, 1 cache hits.
+INFO: Artifacts can be found in:
+        /tmp/tutorial/.ext/debug/bin/list_people [2cc2f0efa28327bdf7d49f5d2cafcc25c1693a4c:41761464:x]
+        /tmp/tutorial/.ext/debug/include/absl/algorithm/algorithm.h [59aeed7d264d927e44648428056cc9c489fad844:2190:f]
+        /tmp/tutorial/.ext/debug/include/absl/algorithm/container.h [c7bafae1477cf2bb88928b92d0248cb8a146814c:78387:f]
+        ...
+        /tmp/tutorial/.ext/debug/include/absl/types/variant.h [ac93464bf8d0f63f745b8461daa7698a91caf6f7:34055:f]
+        /tmp/tutorial/.ext/debug/include/absl/utility/utility.h [fc0d1f65516a3da1341f639577acb4fdab64fe0d:8711:f]
+        /tmp/tutorial/.ext/debug/include/addressbook.pb.h [964e2745b22e5920f291801db91f2c73ed5435ad:44427:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/any.h [03ddf3f54386e158b1f2575c158f1106d7265a24:5302:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/any.pb.h [b9c4ada87b05a3fdeef134e561d4ce010040728e:15844:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/any.proto [eff44e5099da27f7fb1ef14bb34902ccf4250b89:6154:f]
+        ...
+        /tmp/tutorial/.ext/debug/include/google/protobuf/wrappers.pb.h [02819d3219fe8ffcaf67cee25b7a73ab6e934f24:69964:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/wrappers.proto [1959fa55a4e7f284a9d6a78a447c5d89d137e87c:4044:f]
+        /tmp/tutorial/.ext/debug/include/utf8_validity.h [4a8d75b3b46d569526b9ae36814e71f1dab476d7:692:f]
+        /tmp/tutorial/.ext/debug/include/zconf.h [fb76ffe312ae45cf5d5d5e448f81e06fa79ab874:16682:f]
+        /tmp/tutorial/.ext/debug/include/zlib.h [6b7244f9943219c7b6e5a08d4913f2a15810d0c4:96778:f]
+        /tmp/tutorial/.ext/debug/work/absl/algorithm/algorithm.h [59aeed7d264d927e44648428056cc9c489fad844:2190:f]
+        /tmp/tutorial/.ext/debug/work/absl/algorithm/container.h [c7bafae1477cf2bb88928b92d0248cb8a146814c:78387:f]
+        ...
+        /tmp/tutorial/.ext/debug/work/absl/types/span.h [88cd75954084d0df6d774fc038f243fdc1140942:27228:f]
+        /tmp/tutorial/.ext/debug/work/absl/types/variant.h [ac93464bf8d0f63f745b8461daa7698a91caf6f7:34055:f]
+        /tmp/tutorial/.ext/debug/work/absl/utility/utility.h [fc0d1f65516a3da1341f639577acb4fdab64fe0d:8711:f]
+        /tmp/tutorial/.ext/debug/work/addressbook.pb.cc [b19ba7ad01dbf9c701f58b2b511845da2f0e8171:36687:f]
+        /tmp/tutorial/.ext/debug/work/addressbook.pb.h [964e2745b22e5920f291801db91f2c73ed5435ad:44427:f]
+        ...
+        /tmp/tutorial/.ext/debug/work/google/protobuf/any.h [03ddf3f54386e158b1f2575c158f1106d7265a24:5302:f]
+        /tmp/tutorial/.ext/debug/work/google/protobuf/any.pb.h [b9c4ada87b05a3fdeef134e561d4ce010040728e:15844:f]
+        /tmp/tutorial/.ext/debug/work/google/protobuf/any.proto [eff44e5099da27f7fb1ef14bb34902ccf4250b89:6154:f]
+        ...
+        /tmp/tutorial/.ext/debug/work/list_people.cc [b309c596804739007510f06ff62c12898275fec7:2268:f]
+        ...
+        /tmp/tutorial/.ext/debug/work/zlib.h [6b7244f9943219c7b6e5a08d4913f2a15810d0c4:96778:f]
+        /tmp/tutorial/.ext/debug/work/zutil.c [b1c5d2d3c6daf5a4b7a337dafe3e862ca177b41c:7179:f]
+        /tmp/tutorial/.ext/debug/work/zutil.h [902a304cc2d913d5548e0489c0c451790208c96f:7247:f]
+INFO: Backing up artifacts of 90 export targets
+```
+
+As the command requires (re)building many targets in debug mode, some of the
+resulting output was replaced with `"..."` for brevity.
+What needs to be noted here is that for each (directly or transitively)
+included proto file the corresponding _generated_ `.pb.h` header file and
+`.pb.cc` source file get staged as well, ensuring that also all needed proto
+symbols will be available to a debugger.
+
+In order to debug now this binary, one can, for example, use the
+`addressbook.data` file generated by the previous test, staged accordingly, as
+input database for the `list_people` binary.
+
+``` sh
+$ just-mr install test -o .ext/test_data
+[...]
+$ cd .ext/debug
+$ gdb --args bin/list_people ../test_data/work/addressbook.data
 ```
