@@ -25,6 +25,7 @@
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -446,7 +447,7 @@ auto ExecutionServiceImpl::Execute(
     const ::bazel_re::ExecuteRequest* request,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);

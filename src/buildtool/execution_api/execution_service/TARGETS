@@ -14,7 +14,7 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , "operation_cache"
@@ -37,7 +37,7 @@
     , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/storage", "storage"]
+    [ ["src/buildtool/storage", "config"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "verify_hash"]
     ]
@@ -59,7 +59,7 @@
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "verify_hash"]
     , "cas_utils"
     ]
@@ -107,7 +107,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "verify_hash"]
     ]
   }

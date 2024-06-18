@@ -36,6 +36,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/main/version.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
@@ -347,7 +348,7 @@ auto main(int argc, char* argv[]) -> int {
                             forward_build_root,
                             my_name);
         }
-        auto lock = GarbageCollector::SharedLock();
+        auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
         if (not lock) {
             return kExitGenericFailure;
         }

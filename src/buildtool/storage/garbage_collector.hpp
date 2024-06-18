@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 
 // forward declarations
@@ -82,14 +83,19 @@ class GarbageCollector {
         bool no_rotation = false) noexcept -> bool;
 
     /// \brief Acquire shared lock to prevent garbage collection from running.
+    /// \param storage_config   Storage to be locked.
     /// \returns The acquired lock file on success or nullopt otherwise.
-    [[nodiscard]] auto static SharedLock() noexcept -> std::optional<LockFile>;
-
-  private:
-    [[nodiscard]] auto static ExclusiveLock() noexcept
+    [[nodiscard]] auto static SharedLock(
+        StorageConfig const& storage_config) noexcept
         -> std::optional<LockFile>;
 
-    [[nodiscard]] auto static LockFilePath() noexcept -> std::filesystem::path;
+  private:
+    [[nodiscard]] auto static ExclusiveLock(
+        StorageConfig const& storage_config) noexcept
+        -> std::optional<LockFile>;
+
+    [[nodiscard]] auto static LockFilePath(
+        StorageConfig const& storage_config) noexcept -> std::filesystem::path;
 
     /// \brief Remove spliced objects from the youngest generation and split
     /// objects that are larger than the threshold.

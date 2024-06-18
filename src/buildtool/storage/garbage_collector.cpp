@@ -34,7 +34,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/compactifier.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -141,16 +140,19 @@ auto GarbageCollector::GlobalUplinkTargetCacheEntry(
     return false;
 }
 
-auto GarbageCollector::SharedLock() noexcept -> std::optional<LockFile> {
-    return LockFile::Acquire(LockFilePath(), /*is_shared=*/true);
+auto GarbageCollector::SharedLock(StorageConfig const& storage_config) noexcept
+    -> std::optional<LockFile> {
+    return LockFile::Acquire(LockFilePath(storage_config), /*is_shared=*/true);
 }
 
-auto GarbageCollector::ExclusiveLock() noexcept -> std::optional<LockFile> {
-    return LockFile::Acquire(LockFilePath(), /*is_shared=*/false);
+auto GarbageCollector::ExclusiveLock(
+    StorageConfig const& storage_config) noexcept -> std::optional<LockFile> {
+    return LockFile::Acquire(LockFilePath(storage_config), /*is_shared=*/false);
 }
 
-auto GarbageCollector::LockFilePath() noexcept -> std::filesystem::path {
-    return StorageConfig::Instance().CacheRoot() / "gc.lock";
+auto GarbageCollector::LockFilePath(
+    StorageConfig const& storage_config) noexcept -> std::filesystem::path {
+    return storage_config.CacheRoot() / "gc.lock";
 }
 
 auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
@@ -167,7 +169,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // With a shared lock, we can remove all directories with the given prefix,
     // as we own the process id.
     {
-        auto lock = SharedLock();
+        auto lock = SharedLock(StorageConfig::Instance());
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to get a shared lock the local build root");
@@ -194,7 +196,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // after releasing the shared lock, wait to get an exclusive lock for doing
     // the critical renaming
     {
-        auto lock = ExclusiveLock();
+        auto lock = ExclusiveLock(StorageConfig::Instance());
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to exclusively lock the local build root");
@@ -287,7 +289,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // have to remove
     bool success{};
     {
-        auto lock = SharedLock();
+        auto lock = SharedLock(StorageConfig::Instance());
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to get a shared lock the local build root");

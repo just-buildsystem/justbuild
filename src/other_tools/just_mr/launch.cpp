@@ -23,6 +23,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/setup.hpp"
@@ -61,7 +62,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
         // Read the config file if needed
         if (kKnownJustSubcommands.at(*subcommand).config) {
-            lock = GarbageCollector::SharedLock();
+            lock = GarbageCollector::SharedLock(StorageConfig::Instance());
             if (not lock) {
                 return kExitGenericFailure;
             }

@@ -23,6 +23,7 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
@@ -61,7 +62,7 @@ auto BytestreamServiceImpl::Read(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
 
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
@@ -125,7 +126,7 @@ auto BytestreamServiceImpl::Write(
                  *hash,
                  request.write_offset(),
                  request.finish_write());
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);

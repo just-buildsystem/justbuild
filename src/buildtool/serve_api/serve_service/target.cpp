@@ -129,7 +129,7 @@ auto TargetService::ServeTarget(
         ArtifactDigest{request->target_cache_key_id()};
 
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto msg = std::string("Could not acquire gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
@@ -880,7 +880,7 @@ auto TargetService::ServeTargetDescription(
     }
 
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto error_msg = fmt::format("Could not acquire gc SharedLock");
         logger_->Emit(LogLevel::Error, error_msg);

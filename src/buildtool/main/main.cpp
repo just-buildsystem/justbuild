@@ -909,7 +909,7 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        auto lock = GarbageCollector::SharedLock();
+        auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
         if (not lock) {
             return kExitFailure;
         }

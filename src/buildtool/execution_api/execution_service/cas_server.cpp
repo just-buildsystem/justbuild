@@ -27,6 +27,7 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -62,7 +63,7 @@ auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
     ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str =
             fmt::format("FindMissingBlobs: could not acquire SharedLock");
@@ -119,7 +120,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchUpdateBlobsRequest* request,
     ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str =
             fmt::format("BatchUpdateBlobs: could not acquire SharedLock");
@@ -183,7 +184,7 @@ auto CASServiceImpl::BatchReadBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchReadBlobsRequest* request,
     ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         auto str = fmt::format("BatchReadBlobs: Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -265,7 +266,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     }
 
     // Acquire garbage collection lock.
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (not lock) {
         auto str =
             fmt::format("SplitBlob: could not acquire garbage collection lock");
@@ -331,7 +332,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
                  request->chunk_digests().size());
 
     // Acquire garbage collection lock.
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (not lock) {
         auto str = fmt::format(
             "SpliceBlob: could not acquire garbage collection lock");

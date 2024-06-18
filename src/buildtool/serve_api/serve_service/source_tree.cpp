@@ -775,7 +775,7 @@ auto SourceTreeService::ServeArchiveTree(
         return ::grpc::Status::OK;
     }
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
@@ -985,7 +985,7 @@ auto SourceTreeService::ServeDistdirTree(
     const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
@@ -1276,7 +1276,7 @@ auto SourceTreeService::ServeContent(
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeContentResponse::INTERNAL_ERROR);
@@ -1386,7 +1386,7 @@ auto SourceTreeService::ServeTree(
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
@@ -1520,7 +1520,7 @@ auto SourceTreeService::CheckRootTree(
     CheckRootTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
@@ -1622,7 +1622,7 @@ auto SourceTreeService::GetRemoteTree(
     GetRemoteTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock();
+    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);

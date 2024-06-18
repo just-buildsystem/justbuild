@@ -16,6 +16,7 @@
     , ["src/buildtool/main", "retry"]
     , ["src/buildtool/main", "version"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , "cli"
     , "exit_codes"
     , "fetch"
@@ -195,6 +196,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     , "exit_codes"
     , "setup"
     , "utils"
