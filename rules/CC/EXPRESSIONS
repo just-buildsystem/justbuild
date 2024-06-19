@@ -1475,9 +1475,14 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "DEBUG"}
           , "then":
-            { "type": "let*"
-            , "bindings": [["deps-provider", "debug-hdrs"]]
-            , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "let*"
+                , "bindings": [["deps-provider", "debug-hdrs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+                }
+              , {"type": "var", "name": "compile-deps"}
+              ]
             }
           , "else": {"type": "empty_map"}
           }
