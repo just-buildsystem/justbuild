@@ -18,6 +18,7 @@
 #include <optional>
 #include <string>
 
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -46,6 +47,7 @@ class ServeServerImpl {
     /// just execute (i.e., start remote execution services with same interface)
     auto Run(RemoteServeConfig const& serve_config,
              std::optional<ServeApi> const& serve,
+             ApiBundle const& apis,
              bool with_execute) -> bool;
 
   private:

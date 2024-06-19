@@ -50,15 +50,15 @@ auto TargetService::GetDispatchList(
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
-    if (!local_api_->IsAvailable(dispatch_digest) and
-        !remote_api_->RetrieveToCas({dispatch_info}, &*local_api_)) {
+    if (not apis_.local->IsAvailable(dispatch_digest) and
+        not apis_.remote->RetrieveToCas({dispatch_info}, &*apis_.local)) {
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
                               fmt::format("Could not retrieve blob {} from "
                                           "remote-execution endpoint",
                                           dispatch_info.ToString())};
     }
     // get blob content
-    auto const& dispatch_str = local_api_->RetrieveToMemory(dispatch_info);
+    auto const& dispatch_str = apis_.local->RetrieveToMemory(dispatch_info);
     if (not dispatch_str) {
         // this should not fail unless something really broke...
         return ::grpc::Status{
@@ -106,10 +106,10 @@ auto TargetService::HandleFailureLog(
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
     // upload log blob to remote
-    if (!local_api_->RetrieveToCas(
+    if (not apis_.local->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
                                   .type = ObjectType::File}},
-            &*remote_api_)) {
+            &*apis_.remote)) {
         auto msg =
             fmt::format("Failed to upload to remote CAS the failed {} log {}",
                         failure_scope,
@@ -143,7 +143,7 @@ auto TargetService::ServeTarget(
     }
 
     // start filling in the backend description
-    auto address = RemoteExecutionConfig::RemoteAddress();
+    auto const address = RemoteExecutionConfig::RemoteAddress();
     // read in the execution properties and add it to the description;
     // Important: we will need to pass these platform properties also to the
     // executor (via the graph_traverser) in order for the build to be properly
@@ -236,7 +236,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
         artifacts.emplace_back(target_entry->second);  // add the tc value
-        if (!local_api_->RetrieveToCas(artifacts, &*remote_api_)) {
+        if (not apis_.local->RetrieveToCas(artifacts, &*apis_.remote)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
@@ -253,8 +253,9 @@ auto TargetService::ServeTarget(
     auto const& target_cache_key_info = Artifact::ObjectInfo{
         .digest = target_cache_key_digest, .type = ObjectType::File};
 
-    if (!local_api_->IsAvailable(target_cache_key_digest) and
-        !remote_api_->RetrieveToCas({target_cache_key_info}, &*local_api_)) {
+    if (not apis_.local->IsAvailable(target_cache_key_digest) and
+        not apis_.remote->RetrieveToCas({target_cache_key_info},
+                                        &*apis_.local)) {
         auto msg = fmt::format(
             "Could not retrieve blob {} from remote-execution endpoint",
             target_cache_key_info.ToString());
@@ -263,7 +264,7 @@ auto TargetService::ServeTarget(
     }
 
     auto const& target_description_str =
-        local_api_->RetrieveToMemory(target_cache_key_info);
+        apis_.local->RetrieveToMemory(target_cache_key_info);
     if (not target_description_str) {
         // this should not fail unless something really broke...
         auto msg = fmt::format(
@@ -330,11 +331,11 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
     ArtifactDigest repo_key_dgst{repo_key->String(), 0, /*is_tree=*/false};
-    if (!local_api_->IsAvailable(repo_key_dgst) and
-        !remote_api_->RetrieveToCas(
+    if (not apis_.local->IsAvailable(repo_key_dgst) and
+        not apis_.remote->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = repo_key_dgst,
                                   .type = ObjectType::File}},
-            &*local_api_)) {
+            &*apis_.local)) {
         auto msg = fmt::format(
             "Could not retrieve blob {} from remote-execution endpoint",
             repo_key->String());
@@ -494,50 +495,62 @@ auto TargetService::ServeTarget(
         jobs = serve_config_.jobs;
     }
 
-    // setup graph traverser
-    GraphTraverser::CommandLineArguments traverser_args{};
-    traverser_args.jobs = jobs;
-    traverser_args.build.timeout = serve_config_.action_timeout;
-    traverser_args.stage = std::nullopt;
-    traverser_args.rebuild = std::nullopt;
-    GraphTraverser const traverser{
-        std::move(traverser_args),
-        &repository_config,
-        std::move(platform_properties),
-        std::move(dispatch_list),
-        &stats,
-        &progress,
-        ProgressReporter::Reporter(&stats, &progress, &logger),
-        &logger};
+    {
+        // setup graph traverser
+        GraphTraverser::CommandLineArguments traverser_args{};
+        traverser_args.jobs = jobs;
+        traverser_args.build.timeout = serve_config_.action_timeout;
+        traverser_args.stage = std::nullopt;
+        traverser_args.rebuild = std::nullopt;
 
-    // perform build
-    auto build_result = traverser.BuildAndStage(
-        artifacts, runfiles, actions, blobs, trees, std::move(cache_artifacts));
+        // Use a new ApiBundle that knows about local repository config for
+        // traversing.
+        ApiBundle const local_apis{&repository_config, address};
+        GraphTraverser const traverser{
+            std::move(traverser_args),
+            &repository_config,
+            std::move(platform_properties),
+            std::move(dispatch_list),
+            &stats,
+            &progress,
+            &local_apis,
+            ProgressReporter::Reporter(&stats, &progress, &logger),
+            &logger};
 
-    if (not build_result) {
-        // report failure locally, to keep track of it...
-        logger_->Emit(LogLevel::Warning,
-                      "Build for target {} failed",
-                      configured_target.target.ToString());
-        return HandleFailureLog(tmp_log, "build", response);
-    }
+        // perform build
+        auto build_result = traverser.BuildAndStage(artifacts,
+                                                    runfiles,
+                                                    actions,
+                                                    blobs,
+                                                    trees,
+                                                    std::move(cache_artifacts));
 
-    WriteTargetCacheEntries(cache_targets,
-                            build_result->extra_infos,
-                            jobs,
-                            traverser.GetLocalApi(),
-                            traverser.GetRemoteApi(),
-                            serve_config_.tc_strategy,
-                            tc,
-                            &logger,
-                            LogLevel::Error);
+        if (not build_result) {
+            // report failure locally, to keep track of it...
+            logger_->Emit(LogLevel::Warning,
+                          "Build for target {} failed",
+                          configured_target.target.ToString());
+            return HandleFailureLog(tmp_log, "build", response);
+        }
 
-    if (build_result->failed_artifacts) {
-        // report failure locally, to keep track of it...
-        logger_->Emit(LogLevel::Warning,
-                      "Build result for target {} contains failed artifacts ",
-                      configured_target.target.ToString());
-        return HandleFailureLog(tmp_log, "artifacts", response);
+        WriteTargetCacheEntries(cache_targets,
+                                build_result->extra_infos,
+                                jobs,
+                                &*local_apis.local,
+                                &*local_apis.remote,
+                                serve_config_.tc_strategy,
+                                tc,
+                                &logger,
+                                LogLevel::Error);
+
+        if (build_result->failed_artifacts) {
+            // report failure locally, to keep track of it...
+            logger_->Emit(
+                LogLevel::Warning,
+                "Build result for target {} contains failed artifacts ",
+                configured_target.target.ToString());
+            return HandleFailureLog(tmp_log, "artifacts", response);
+        }
     }
 
     // now that the target cache key is in, make sure remote CAS has all
@@ -554,7 +567,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
         tc_artifacts.emplace_back(target_entry->second);  // add the tc value
-        if (!local_api_->RetrieveToCas(tc_artifacts, &*remote_api_)) {
+        if (not apis_.local->RetrieveToCas(tc_artifacts, &*apis_.remote)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
@@ -895,10 +908,10 @@ auto TargetService::ServeTargetDescription(
             Storage::Instance().CAS().StoreBlob(description_str,
                                                 /*is_executable=*/false)) {
         auto const& artifact_dgst = ArtifactDigest{*dgst};
-        if (not local_api_->RetrieveToCas(
+        if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = artifact_dgst,
                                       .type = ObjectType::File}},
-                &*remote_api_)) {
+                &*apis_.remote)) {
             auto error_msg = fmt::format(
                 "Failed to upload to remote cas the description blob {}",
                 artifact_dgst.hash());

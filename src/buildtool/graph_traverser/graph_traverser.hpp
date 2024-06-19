@@ -37,12 +37,10 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -83,6 +81,7 @@ class GraphTraverser {
                               ServerAddress>> dispatch_list,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
+        gsl::not_null<ApiBundle const*> const& apis,
         progress_reporter_t reporter,
         Logger const* logger = nullptr)
         : clargs_{std::move(clargs)},
@@ -91,10 +90,7 @@ class GraphTraverser {
           dispatch_list_{std::move(dispatch_list)},
           stats_{stats},
           progress_{progress},
-          local_api_{CreateExecutionApi(std::nullopt,
-                                        std::make_optional(repo_config))},
-          remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                                         std::make_optional(repo_config))},
+          apis_{*apis},
           reporter_{std::move(reporter)},
           logger_{logger} {}
 
@@ -160,8 +156,8 @@ class GraphTraverser {
         }
 
         if (clargs_.stage->remember) {
-            if (not remote_api_->ParallelRetrieveToCas(
-                    *object_infos, GetLocalApi(), clargs_.jobs, true)) {
+            if (not apis_.remote->ParallelRetrieveToCas(
+                    *object_infos, &*apis_.local, clargs_.jobs, true)) {
                 Logger::Log(logger_,
                             LogLevel::Warning,
                             "Failed to copy objects to CAS");
@@ -228,14 +224,6 @@ class GraphTraverser {
             artifact_descriptions, {}, action_descriptions, blobs, trees);
     }
 
-    [[nodiscard]] auto GetLocalApi() const -> gsl::not_null<IExecutionApi*> {
-        return &(*local_api_);
-    }
-
-    [[nodiscard]] auto GetRemoteApi() const -> gsl::not_null<IExecutionApi*> {
-        return &(*remote_api_);
-    }
-
   private:
     CommandLineArguments const clargs_;
     gsl::not_null<const RepositoryConfig*> repo_config_;
@@ -244,8 +232,7 @@ class GraphTraverser {
         dispatch_list_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
-    gsl::not_null<IExecutionApi::Ptr> const local_api_;
-    gsl::not_null<IExecutionApi::Ptr> const remote_api_;
+    ApiBundle const& apis_;
     progress_reporter_t reporter_;
     Logger const* logger_{nullptr};
 
@@ -321,7 +308,7 @@ class GraphTraverser {
                     &container,
                     ArtifactBlob{std::move(digest), blob, /*is_exec=*/false},
                     /*exception_is_fatal=*/true,
-                    [&api = remote_api_](ArtifactBlobContainer&& blobs) {
+                    [&api = apis_.remote](ArtifactBlobContainer&& blobs) {
                         return api->Upload(std::move(blobs));
                     },
                     logger_)) {
@@ -329,7 +316,7 @@ class GraphTraverser {
             }
         }
         // Upload remaining blobs.
-        return remote_api_->Upload(std::move(container));
+        return apis_.remote->Upload(std::move(container));
     }
 
     /// \brief Adds the artifacts to be retrieved to the graph
@@ -373,8 +360,8 @@ class GraphTraverser {
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         Executor executor{repo_config_,
-                          &(*local_api_),
-                          &(*remote_api_),
+                          &*apis_.local,
+                          &*apis_.remote,
                           platform_properties_,
                           dispatch_list_,
                           stats_,
@@ -403,11 +390,10 @@ class GraphTraverser {
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
         auto api_cached =
-            CreateExecutionApi(RemoteExecutionConfig::CacheAddress(),
-                               std::make_optional(repo_config_));
+            apis_.CreateRemote(RemoteExecutionConfig::CacheAddress());
         Rebuilder executor{repo_config_,
-                           &(*local_api_),
-                           &(*remote_api_),
+                           &(*apis_.local),
+                           &(*apis_.remote),
                            &(*api_cached),
                            platform_properties_,
                            dispatch_list_,
@@ -611,8 +597,8 @@ class GraphTraverser {
         auto output_paths = PrepareOutputPaths(rel_paths);
 
         if (not output_paths or
-            not remote_api_->RetrieveToPaths(
-                object_infos, *output_paths, &(*GetLocalApi()))) {
+            not apis_.remote->RetrieveToPaths(
+                object_infos, *output_paths, &*apis_.local)) {
             Logger::Log(
                 logger_, LogLevel::Error, "Could not retrieve outputs.");
             return std::nullopt;
@@ -691,7 +677,7 @@ class GraphTraverser {
                 if (paths[i] == *(clargs_.build.print_to_stdout)) {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
-                        if (not remote_api_->RetrieveToFds(
+                        if (not apis_.remote->RetrieveToFds(
                                 {*info},
                                 {dup(fileno(stdout))},
                                 /*raw_tree=*/false)) {
@@ -716,7 +702,7 @@ class GraphTraverser {
             auto target_path = ToNormalPath(std::filesystem::path{
                                                 *clargs_.build.print_to_stdout})
                                    .relative_path();
-            auto remote = GetRemoteApi();
+            auto remote = apis_.remote;
             for (std::size_t i = 0; i < paths.size(); i++) {
                 auto const& path = paths[i];
                 auto relpath = target_path.lexically_relative(path);
@@ -732,9 +718,9 @@ class GraphTraverser {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
                         auto new_info =
-                            RetrieveSubPathId(*info, remote, relpath);
+                            RetrieveSubPathId(*info, &*remote, relpath);
                         if (new_info) {
-                            if (not remote_api_->RetrieveToFds(
+                            if (not apis_.remote->RetrieveToFds(
                                     {*new_info},
                                     {dup(fileno(stdout))},
                                     /*raw_tree=*/false)) {

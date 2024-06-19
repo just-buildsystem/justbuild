@@ -13,6 +13,7 @@
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
+    , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
     , ["utils", "test_env"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]

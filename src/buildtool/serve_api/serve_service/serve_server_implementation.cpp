@@ -90,6 +90,7 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
 
 auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
                           std::optional<ServeApi> const& serve,
+                          ApiBundle const& apis,
                           bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
     if (not FileSystemManager::CreateDirectory(StorageConfig::GitRoot())) {
@@ -106,7 +107,7 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     }
 
     SourceTreeService sts{serve_config};
-    TargetService ts{serve_config, serve};
+    TargetService ts{serve_config, serve, &apis};
     ConfigurationService cs{};
 
     grpc::ServerBuilder builder;

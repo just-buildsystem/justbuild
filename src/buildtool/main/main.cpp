@@ -68,6 +68,7 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -838,9 +839,12 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.info_file,
                                         arguments.service.pid_file);
             if (serve_server) {
+                ApiBundle const serve_apis{
+                    std::nullopt, RemoteExecutionConfig::RemoteAddress()};
                 auto serve = ServeApi::Create(*serve_config);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
-                return serve_server->Run(*serve_config, serve, with_execute)
+                return serve_server->Run(
+                           *serve_config, serve, serve_apis, with_execute)
                            ? kExitSuccess
                            : kExitFailure;
             }
@@ -887,6 +891,8 @@ auto main(int argc, char* argv[]) -> int {
         if (not SetupRetryConfig(arguments.retry)) {
             std::exit(kExitFailure);
         }
+        ApiBundle const main_apis{&repo_config,
+                                  RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),
@@ -897,6 +903,7 @@ auto main(int argc, char* argv[]) -> int {
             RemoteExecutionConfig::DispatchList(),
             &stats,
             &progress,
+            &main_apis,
             ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
@@ -905,14 +912,13 @@ auto main(int argc, char* argv[]) -> int {
                             "Failed set Git CAS {}.",
                             StorageConfig::GitRoot().string());
             }
-            return FetchAndInstallArtifacts(traverser.GetRemoteApi(),
-                                            traverser.GetLocalApi(),
-                                            arguments.fetch)
+            return FetchAndInstallArtifacts(
+                       &*main_apis.remote, &*main_apis.local, arguments.fetch)
                        ? kExitSuccess
                        : kExitFailure;
         }
         if (arguments.cmd == SubCommand::kAddToCas) {
-            return AddArtifactsToCas(arguments.to_add, traverser.GetRemoteApi())
+            return AddArtifactsToCas(arguments.to_add, &*main_apis.remote)
                        ? kExitSuccess
                        : kExitFailure;
         }
@@ -1098,8 +1104,8 @@ auto main(int argc, char* argv[]) -> int {
                         cache_targets,
                         build_result->extra_infos,
                         jobs,
-                        traverser.GetLocalApi(),
-                        traverser.GetRemoteApi(),
+                        &*main_apis.local,
+                        &*main_apis.remote,
                         arguments.tc.target_cache_write_strategy,
                         Storage::Instance().TargetCache(),
                         nullptr,

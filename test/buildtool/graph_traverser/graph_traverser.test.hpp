@@ -27,6 +27,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/jsonfs.hpp"
@@ -156,12 +157,15 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
                             &progress,
+                            &apis,
                             [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -181,6 +185,8 @@ inline void SetLauncher() {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
+        ApiBundle const apis{p.GetRepoConfig(),
+                             RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const gt_get_exec{
             clargs_exec.gtargs,
             p.GetRepoConfig(),
@@ -188,6 +194,7 @@ inline void SetLauncher() {
             RemoteExecutionConfig::DispatchList(),
             &stats,
             &progress,
+            &apis,
             [](auto done, auto cv) {}};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
@@ -214,12 +221,15 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
                             &progress,
+                            &apis,
                             [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -242,12 +252,15 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
                             &progress,
+                            &apis,
                             [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -264,6 +277,7 @@ inline void SetLauncher() {
         RemoteExecutionConfig::DispatchList(),
         &stats,
         &progress,
+        &apis,
         [](auto done, auto cv) {}};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
@@ -290,12 +304,15 @@ inline void SetLauncher() {
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{full_hello_world.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
                                    RemoteExecutionConfig::PlatformProperties(),
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
                                    &progress,
+                                   &apis,
                                    [](auto done, auto cv) {}};
     auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
@@ -318,6 +335,7 @@ inline void SetLauncher() {
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
                             &progress,
+                            &apis,
                             [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -342,12 +360,15 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
     SetLauncher();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
                       &progress,
+                      &apis,
                       [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -377,12 +398,15 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
     SetLauncher();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
                       &progress,
+                      &apis,
                       [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -412,12 +436,15 @@ static void TestTreesUsed(bool is_hermetic = true) {
     SetLauncher();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
                       &progress,
+                      &apis,
                       [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -447,12 +474,15 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
     SetLauncher();
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
                       &progress,
+                      &apis,
                       [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -480,6 +510,8 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
 
     Statistics stats{};
     Progress progress{};
+    ApiBundle const apis{p.GetRepoConfig(),
+                         RemoteExecutionConfig::RemoteAddress()};
 
     {
         SetLauncher();
@@ -490,6 +522,7 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                 RemoteExecutionConfig::DispatchList(),
                                 &stats,
                                 &progress,
+                                &apis,
                                 [](auto done, auto cv) {}};
         auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
@@ -510,6 +543,7 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
                                    &progress,
+                                   &apis,
                                    [](auto done, auto cv) {}};
     REQUIRE(gt_output.BuildAndStage(clargs_output.graph_description,
                                     clargs_output.artifacts));
@@ -528,6 +562,7 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
         RemoteExecutionConfig::DispatchList(),
         &stats,
         &progress,
+        &apis,
         [](auto done, auto cv) {}};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
@@ -545,6 +580,7 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
                                    &progress,
+                                   &apis,
                                    [](auto done, auto cv) {}};
     REQUIRE(gt_ctimes.BuildAndStage(clargs_ctimes.graph_description,
                                     clargs_ctimes.artifacts));

@@ -33,6 +33,7 @@
     , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
     , ["src/buildtool/storage", "file_chunker"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , "common"
     , "cli"
     , "version"

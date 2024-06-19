@@ -40,8 +40,9 @@
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
     TargetService(RemoteServeConfig const& serve_config,
-                  std::optional<ServeApi> const& serve) noexcept
-        : serve_config_{serve_config}, serve_(serve) {}
+                  std::optional<ServeApi> const& serve,
+                  gsl::not_null<ApiBundle const*> const& apis) noexcept
+        : serve_config_{serve_config}, serve_{serve}, apis_{*apis} {}
 
     // Given a target-level caching key, returns the computed value. In doing
     // so, it can build on the associated endpoint passing the
@@ -121,20 +122,12 @@ class TargetService final : public justbuild::just_serve::Target::Service {
   private:
     RemoteServeConfig const& serve_config_;
     std::optional<ServeApi> const& serve_;
+    ApiBundle const& apis_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
     // type of dispatch list; reduces verbosity
     using dispatch_t = std::vector<
         std::pair<std::map<std::string, std::string>, ServerAddress>>;
-
-    // remote execution endpoint used for remote building
-    gsl::not_null<IExecutionApi::Ptr> const remote_api_{
-        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                           std::nullopt,
-                           "serve-remote-execution")};
-    // used for storing and retrieving target-level cache entries
-    gsl::not_null<IExecutionApi::Ptr> const local_api_{
-        CreateExecutionApi(std::nullopt)};
 
     /// \brief Get from remote and parse the endpoint configuration. The method
     /// also ensures the content has the expected format.
