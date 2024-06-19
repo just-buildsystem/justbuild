@@ -84,7 +84,7 @@
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
     , ["src/buildtool/execution_api/remote", "config"]
-    , ["src/buildtool/execution_api/common", "create_execution_api"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "config"]

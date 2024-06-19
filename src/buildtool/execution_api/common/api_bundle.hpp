@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CREATE_EXECUTION_API_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CREATE_EXECUTION_API_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP
 
 #include <memory>
 #include <optional>
@@ -45,4 +45,20 @@
     return std::make_unique<LocalApi>(repo_config);
 }
 
-#endif
+/// \brief Utility structure for instantiation of local and remote apis at the
+/// same time. If the remote api cannot be instantiated, it falls back to
+/// exactly the same instance that local api is (&*remote == & *local).
+struct ApiBundle final {
+    explicit ApiBundle(
+        std::optional<gsl::not_null<const RepositoryConfig*>> const&
+            repo_config,
+        std::optional<ServerAddress> const& remote_address);
+
+    [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
+        const -> gsl::not_null<std::shared_ptr<IExecutionApi>>;
+
+    gsl::not_null<std::shared_ptr<IExecutionApi>> const local;
+    gsl::not_null<std::shared_ptr<IExecutionApi>> const remote;
+};
+
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP

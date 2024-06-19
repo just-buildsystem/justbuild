@@ -54,7 +54,7 @@
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/execution_api/common", "create_execution_api"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/storage", "storage"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]

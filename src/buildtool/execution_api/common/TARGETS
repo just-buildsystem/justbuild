@@ -32,10 +32,11 @@
   , "hdrs": ["bytestream_common.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
-, "create_execution_api":
+, "api_bundle":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["create_execution_api"]
-  , "hdrs": ["create_execution_api.hpp"]
+  , "name": ["api_bundle"]
+  , "hdrs": ["api_bundle.hpp"]
+  , "srcs": ["api_bundle.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
     [ ["src/buildtool/common", "config"]
@@ -43,6 +44,7 @@
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     ]
+  , "private-deps": [["src/buildtool/execution_api/bazel_msg", "bazel_msg"]]
   }
 , "message_limits":
   { "type": ["@", "rules", "CC", "library"]

@@ -13,7 +13,7 @@
     , ["src/buildtool/execution_engine/traverser", "traverser"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
-    , ["src/buildtool/execution_api/common", "create_execution_api"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/execution_api/remote", "config"]
