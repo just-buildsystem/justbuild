@@ -161,7 +161,8 @@ inline void SetLauncher() {
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
-                            &progress};
+                            &progress,
+                            [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -186,7 +187,8 @@ inline void SetLauncher() {
             RemoteExecutionConfig::PlatformProperties(),
             RemoteExecutionConfig::DispatchList(),
             &stats,
-            &progress};
+            &progress,
+            [](auto done, auto cv) {}};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
@@ -217,7 +219,8 @@ inline void SetLauncher() {
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
-                            &progress};
+                            &progress,
+                            [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -244,7 +247,8 @@ inline void SetLauncher() {
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
-                            &progress};
+                            &progress,
+                            [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -259,7 +263,8 @@ inline void SetLauncher() {
         RemoteExecutionConfig::PlatformProperties(),
         RemoteExecutionConfig::DispatchList(),
         &stats,
-        &progress};
+        &progress,
+        [](auto done, auto cv) {}};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
@@ -290,7 +295,8 @@ inline void SetLauncher() {
                                    RemoteExecutionConfig::PlatformProperties(),
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
-                                   &progress};
+                                   &progress,
+                                   [](auto done, auto cv) {}};
     auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
 
@@ -311,7 +317,8 @@ inline void SetLauncher() {
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
                             &stats,
-                            &progress};
+                            &progress,
+                            [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -340,7 +347,8 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
-                      &progress};
+                      &progress,
+                      [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -374,7 +382,8 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
-                      &progress};
+                      &progress,
+                      [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -408,7 +417,8 @@ static void TestTreesUsed(bool is_hermetic = true) {
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
-                      &progress};
+                      &progress,
+                      [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -442,7 +452,8 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
                       RemoteExecutionConfig::PlatformProperties(),
                       RemoteExecutionConfig::DispatchList(),
                       &stats,
-                      &progress};
+                      &progress,
+                      [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -478,7 +489,8 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                 RemoteExecutionConfig::PlatformProperties(),
                                 RemoteExecutionConfig::DispatchList(),
                                 &stats,
-                                &progress};
+                                &progress,
+                                [](auto done, auto cv) {}};
         auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -497,7 +509,8 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                    RemoteExecutionConfig::PlatformProperties(),
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
-                                   &progress};
+                                   &progress,
+                                   [](auto done, auto cv) {}};
     REQUIRE(gt_output.BuildAndStage(clargs_output.graph_description,
                                     clargs_output.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -514,7 +527,8 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
         RemoteExecutionConfig::PlatformProperties(),
         RemoteExecutionConfig::DispatchList(),
         &stats,
-        &progress};
+        &progress,
+        [](auto done, auto cv) {}};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -530,7 +544,8 @@ static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
                                    RemoteExecutionConfig::PlatformProperties(),
                                    RemoteExecutionConfig::DispatchList(),
                                    &stats,
-                                   &progress};
+                                   &progress,
+                                   [](auto done, auto cv) {}};
     REQUIRE(gt_ctimes.BuildAndStage(clargs_ctimes.graph_description,
                                     clargs_ctimes.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 2);

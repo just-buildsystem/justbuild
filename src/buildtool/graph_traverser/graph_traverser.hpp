@@ -82,26 +82,6 @@ class GraphTraverser {
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
         gsl::not_null<Statistics*> const& stats,
-        gsl::not_null<Progress*> const& progress)
-        : clargs_{std::move(clargs)},
-          repo_config_{repo_config},
-          platform_properties_{std::move(platform_properties)},
-          dispatch_list_{std::move(dispatch_list)},
-          stats_{stats},
-          progress_{progress},
-          local_api_{CreateExecutionApi(std::nullopt,
-                                        std::make_optional(repo_config))},
-          remote_api_{CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                                         std::make_optional(repo_config))},
-          reporter_{[](auto done, auto cv) {}} {}
-
-    explicit GraphTraverser(
-        CommandLineArguments clargs,
-        gsl::not_null<const RepositoryConfig*> const& repo_config,
-        std::map<std::string, std::string> platform_properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch_list,
-        gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         progress_reporter_t reporter,
         Logger const* logger = nullptr)
