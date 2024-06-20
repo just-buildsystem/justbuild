@@ -20,12 +20,11 @@
 #include <filesystem>
 #include <optional>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 
 auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
-                       gsl::not_null<IExecutionApi*> const& api,
+                       IExecutionApi const& api,
                        const std::filesystem::path& sub_path)
     -> std::optional<Artifact::ObjectInfo>;
 

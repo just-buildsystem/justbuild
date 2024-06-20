@@ -25,8 +25,8 @@
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
     explicit ExecutionServiceImpl(
-        gsl::not_null<IExecutionApi*> const& local_api) noexcept
-        : api_{local_api} {}
+        gsl::not_null<IExecutionApi const*> const& local_api) noexcept
+        : api_{*local_api} {}
     // Execute an action remotely.
     //
     // In order to execute an action, the client must first upload all of the
@@ -111,7 +111,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
 
   private:
     gsl::not_null<Storage const*> storage_ = &Storage::Instance();
-    gsl::not_null<IExecutionApi*> const api_;
+    IExecutionApi const& api_;
     Logger logger_{"execution-service"};
 
     [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)

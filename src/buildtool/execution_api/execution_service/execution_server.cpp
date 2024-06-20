@@ -133,7 +133,7 @@ auto ExecutionServiceImpl::GetIExecutionAction(
 
     auto env_vars = GetEnvVars(*c);
 
-    auto i_execution_action = api_->CreateAction(
+    auto i_execution_action = api_.CreateAction(
         ArtifactDigest{action.input_root_digest()},
         {c->arguments().begin(), c->arguments().end()},
         {c->output_files().begin(), c->output_files().end()},

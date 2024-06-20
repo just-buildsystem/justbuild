@@ -24,7 +24,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 
 [[nodiscard]] auto GenerateArchive(
-    gsl::not_null<IExecutionApi*> const& api,
+    IExecutionApi const& api,
     const Artifact::ObjectInfo& artifact,
     const std::optional<std::filesystem::path>& output_path) -> bool;
 

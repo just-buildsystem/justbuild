@@ -21,10 +21,9 @@
 #include "src/buildtool/logging/logger.hpp"
 
 auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
-                       gsl::not_null<IExecutionApi*> const& api,
+                       IExecutionApi const& api,
                        const std::filesystem::path& sub_path)
     -> std::optional<Artifact::ObjectInfo> {
-
     std::filesystem::path sofar{};
     for (auto const& segment : sub_path) {
         if (object_info.type != ObjectType::Tree) {
@@ -34,7 +33,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                         segment.string());
             break;
         }
-        auto data = api->RetrieveToMemory(object_info);
+        auto data = api.RetrieveToMemory(object_info);
         if (not data) {
             Logger::Log(LogLevel::Error,
                         "Failed to retrieve artifact {} at path '{}'",

@@ -6,7 +6,6 @@
   , "deps":
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["@", "gsl", "", "gsl"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]

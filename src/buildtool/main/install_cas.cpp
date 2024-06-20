@@ -87,7 +87,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
     if (clargs.sub_path) {
         std::filesystem::path sofar{};
         auto new_object_info =
-            RetrieveSubPathId(object_info, &*apis.remote, *clargs.sub_path);
+            RetrieveSubPathId(object_info, *apis.remote, *clargs.sub_path);
         if (new_object_info) {
             object_info = *new_object_info;
         }
@@ -120,7 +120,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
                         object_info.ToString());
             return false;
         }
-        return GenerateArchive(&*apis.remote, object_info, out);
+        return GenerateArchive(*apis.remote, object_info, out);
     }
 
     if (out) {

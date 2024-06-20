@@ -702,7 +702,7 @@ class GraphTraverser {
             auto target_path = ToNormalPath(std::filesystem::path{
                                                 *clargs_.build.print_to_stdout})
                                    .relative_path();
-            auto remote = apis_.remote;
+            auto const& remote = *apis_.remote;
             for (std::size_t i = 0; i < paths.size(); i++) {
                 auto const& path = paths[i];
                 auto relpath = target_path.lexically_relative(path);
@@ -718,12 +718,11 @@ class GraphTraverser {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
                         auto new_info =
-                            RetrieveSubPathId(*info, &*remote, relpath);
+                            RetrieveSubPathId(*info, remote, relpath);
                         if (new_info) {
-                            if (not apis_.remote->RetrieveToFds(
-                                    {*new_info},
-                                    {dup(fileno(stdout))},
-                                    /*raw_tree=*/false)) {
+                            if (not remote.RetrieveToFds({*new_info},
+                                                         {dup(fileno(stdout))},
+                                                         /*raw_tree=*/false)) {
                                 Logger::Log(logger_,
                                             LogLevel::Error,
                                             "Failed to retrieve artifact {} at "

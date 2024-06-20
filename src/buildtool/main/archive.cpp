@@ -49,13 +49,13 @@ void archive_entry_cleanup(archive_entry* entry) {
 
 // NOLINTNEXTLINE(misc-no-recursion)
 auto add_to_archive(archive* archive,
-                    gsl::not_null<IExecutionApi*> const& api,
+                    IExecutionApi const& api,
                     const Artifact::ObjectInfo& artifact,
                     const std::filesystem::path& location) -> bool {
     auto constexpr kExecutable = 0555;
     auto constexpr kFile = 0444;
 
-    auto payload = api->RetrieveToMemory(artifact);
+    auto payload = api.RetrieveToMemory(artifact);
     if (not payload) {
         Logger::Log(LogLevel::Error,
                     "Failed to retrieve artifact {}",
@@ -124,7 +124,7 @@ auto add_to_archive(archive* archive,
 }  // namespace
 
 [[nodiscard]] auto GenerateArchive(
-    gsl::not_null<IExecutionApi*> const& api,
+    IExecutionApi const& api,
     const Artifact::ObjectInfo& artifact,
     const std::optional<std::filesystem::path>& output_path) -> bool {
 
