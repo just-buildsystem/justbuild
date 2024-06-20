@@ -149,7 +149,7 @@ class TestApi : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& /*unused*/,
         std::vector<std::filesystem::path> const& /*unused*/,
-        std::optional<gsl::not_null<IExecutionApi*>> const& /* unused */)
+        std::optional<gsl::not_null<const IExecutionApi*>> const& /* unused */)
         const noexcept -> bool final {
         return false;  // not needed by Executor
     }
@@ -161,8 +161,7 @@ class TestApi : public IExecutionApi {
     }
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& unused,
-        gsl::not_null<IExecutionApi*> const& /*unused*/) const noexcept
-        -> bool final {
+        IExecutionApi const& /*unused*/) const noexcept -> bool final {
         // Note that a false-positive "free-nonheap-object" warning is thrown by
         // gcc 12.2 with GNU libstdc++, if the caller passes a temporary vector
         // that is not used by this function. Therefore, we explicitly use this

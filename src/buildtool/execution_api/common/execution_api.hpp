@@ -70,7 +70,7 @@ class IExecutionApi {
     [[nodiscard]] virtual auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
+        std::optional<gsl::not_null<const IExecutionApi*>> const& alternative =
             std::nullopt) const noexcept -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
@@ -88,7 +88,7 @@ class IExecutionApi {
     /// resolved and its containing file artifacts are recursively retrieved.
     [[nodiscard]] virtual auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool = 0;
+        IExecutionApi const& api) const noexcept -> bool = 0;
 
     /// \brief A variant of RetrieveToCas that is allowed to internally use
     /// the specified number of threads to carry out the task in parallel.
@@ -98,7 +98,7 @@ class IExecutionApi {
     /// the remote blobs.
     [[nodiscard]] virtual auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::size_t /* jobs */,
         bool /* use_blob_splitting */) const noexcept -> bool {
         return RetrieveToCas(artifacts_info, api);

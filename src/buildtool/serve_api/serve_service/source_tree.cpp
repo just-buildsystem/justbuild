@@ -227,7 +227,7 @@ auto SourceTreeService::ServeCommitTree(
             if (not git_api.RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::Tree}},
-                    &(*apis_.remote))) {
+                    *apis_.remote)) {
                 logger_->Emit(LogLevel::Error,
                               "Failed to sync tree {} from local Git cache",
                               tree_id);
@@ -283,7 +283,7 @@ auto SourceTreeService::ServeCommitTree(
                 if (not git_api.RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
-                        &(*apis_.remote))) {
+                        *apis_.remote)) {
                     logger_->Emit(
                         LogLevel::Error,
                         "Failed to sync tree {} from known repository {}",
@@ -346,7 +346,7 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync tree {} from repository {}",
                           tree_id,
@@ -832,7 +832,7 @@ auto SourceTreeService::ServeArchiveTree(
                 apis_.remote->RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::File}},
-                    &(*apis_.local)))) {
+                    *apis_.local))) {
             // content could not be found
             response->set_status(ServeArchiveTreeResponse::NOT_FOUND);
             return ::grpc::Status::OK;
@@ -964,7 +964,7 @@ auto SourceTreeService::DistdirImportToGit(
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync tree {} from local CAS",
                           tree_id);
@@ -1100,7 +1100,7 @@ auto SourceTreeService::ServeDistdirTree(
                                     .type = kv.executable()
                                                 ? ObjectType::Executable
                                                 : ObjectType::File}},
-                                &(*apis_.local))) {
+                                *apis_.local)) {
                             logger_->Emit(LogLevel::Error,
                                           "Failed to retrieve content {} from "
                                           "remote to local CAS",
@@ -1198,7 +1198,7 @@ auto SourceTreeService::ServeDistdirTree(
             if (not git_api.RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::Tree}},
-                    &(*apis_.remote))) {
+                    *apis_.remote)) {
                 logger_->Emit(LogLevel::Error,
                               "Failed to sync tree {} from local CAS",
                               tree_id);
@@ -1250,7 +1250,7 @@ auto SourceTreeService::ServeDistdirTree(
                 if (not git_api.RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
-                        &(*apis_.remote))) {
+                        *apis_.remote)) {
                     logger_->Emit(LogLevel::Error,
                                   "Failed to sync tree {} from local CAS",
                                   tree_id);
@@ -1299,7 +1299,7 @@ auto SourceTreeService::ServeContent(
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::File}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync content {} from local Git cache",
                           content);
@@ -1335,7 +1335,7 @@ auto SourceTreeService::ServeContent(
             if (not git_api.RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::File}},
-                    &(*apis_.remote))) {
+                    *apis_.remote)) {
                 logger_->Emit(
                     LogLevel::Error,
                     "Failed to sync content {} from known repository {}",
@@ -1363,7 +1363,7 @@ auto SourceTreeService::ServeContent(
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::File}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync content {} from local CAS",
                           content);
@@ -1424,7 +1424,7 @@ auto SourceTreeService::ServeTree(
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync tree {} from local Git cache",
                           tree_id);
@@ -1469,7 +1469,7 @@ auto SourceTreeService::ServeTree(
             if (not git_api.RetrieveToCas(
                     {Artifact::ObjectInfo{.digest = digest,
                                           .type = ObjectType::Tree}},
-                    &(*apis_.remote))) {
+                    *apis_.remote)) {
                 logger_->Emit(LogLevel::Error,
                               "Failed to sync tree {} from known repository {}",
                               tree_id,
@@ -1496,7 +1496,7 @@ auto SourceTreeService::ServeTree(
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                &(*apis_.remote))) {
+                *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to sync tree {} from local CAS",
                           tree_id);

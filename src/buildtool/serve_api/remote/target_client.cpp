@@ -38,7 +38,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                                const std::string& repo_key) const noexcept
     -> std::optional<serve_target_result_t> {
     // make sure the blob containing the key is in the remote cas
-    if (!apis_.local->RetrieveToCas({key.Id()}, &*apis_.remote)) {
+    if (!apis_.local->RetrieveToCas({key.Id()}, *apis_.remote)) {
         return serve_target_result_t{
             std::in_place_index<1>,
             fmt::format("Failed to retrieve to remote cas ObjectInfo {}",
@@ -48,7 +48,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     if (!apis_.local->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = ArtifactDigest{repo_key, 0, false},
                                   .type = ObjectType::File}},
-            &*apis_.remote)) {
+            *apis_.remote)) {
         return serve_target_result_t{
             std::in_place_index<1>,
             fmt::format("Failed to retrieve to remote cas blob {}", repo_key)};
@@ -94,7 +94,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     }
     auto const& dispatch_info = Artifact::ObjectInfo{
         .digest = ArtifactDigest{*dispatch_dgst}, .type = ObjectType::File};
-    if (!apis_.local->RetrieveToCas({dispatch_info}, &*apis_.remote)) {
+    if (!apis_.local->RetrieveToCas({dispatch_info}, *apis_.remote)) {
         return serve_target_result_t{
             std::in_place_index<1>,
             fmt::format("Failed to upload blob {} to remote cas",
@@ -127,7 +127,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
             auto const& obj_info = Artifact::ObjectInfo{
                 .digest = target_value_dgst, .type = ObjectType::File};
             if (!apis_.local->IsAvailable(target_value_dgst)) {
-                if (!apis_.remote->RetrieveToCas({obj_info}, &*apis_.local)) {
+                if (!apis_.remote->RetrieveToCas({obj_info}, *apis_.local)) {
                     return serve_target_result_t{
                         std::in_place_index<1>,
                         fmt::format(

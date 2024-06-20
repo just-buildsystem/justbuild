@@ -723,7 +723,7 @@ void EnsureCommit(
                                     {Artifact::ObjectInfo{
                                         .digest = root_digest,
                                         .type = ObjectType::Tree}},
-                                    local_api)) {
+                                    *local_api)) {
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     repo_info.origin);
                                 // Move tree from local CAS to local Git storage

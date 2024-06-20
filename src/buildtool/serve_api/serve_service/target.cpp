@@ -51,7 +51,7 @@ auto TargetService::GetDispatchList(
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
     if (not apis_.local->IsAvailable(dispatch_digest) and
-        not apis_.remote->RetrieveToCas({dispatch_info}, &*apis_.local)) {
+        not apis_.remote->RetrieveToCas({dispatch_info}, *apis_.local)) {
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
                               fmt::format("Could not retrieve blob {} from "
                                           "remote-execution endpoint",
@@ -109,7 +109,7 @@ auto TargetService::HandleFailureLog(
     if (not apis_.local->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
                                   .type = ObjectType::File}},
-            &*apis_.remote)) {
+            *apis_.remote)) {
         auto msg =
             fmt::format("Failed to upload to remote CAS the failed {} log {}",
                         failure_scope,
@@ -236,7 +236,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
         artifacts.emplace_back(target_entry->second);  // add the tc value
-        if (not apis_.local->RetrieveToCas(artifacts, &*apis_.remote)) {
+        if (not apis_.local->RetrieveToCas(artifacts, *apis_.remote)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
@@ -255,7 +255,7 @@ auto TargetService::ServeTarget(
 
     if (not apis_.local->IsAvailable(target_cache_key_digest) and
         not apis_.remote->RetrieveToCas({target_cache_key_info},
-                                        &*apis_.local)) {
+                                        *apis_.local)) {
         auto msg = fmt::format(
             "Could not retrieve blob {} from remote-execution endpoint",
             target_cache_key_info.ToString());
@@ -335,7 +335,7 @@ auto TargetService::ServeTarget(
         not apis_.remote->RetrieveToCas(
             {Artifact::ObjectInfo{.digest = repo_key_dgst,
                                   .type = ObjectType::File}},
-            &*apis_.local)) {
+            *apis_.local)) {
         auto msg = fmt::format(
             "Could not retrieve blob {} from remote-execution endpoint",
             repo_key->String());
@@ -566,7 +566,7 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
         tc_artifacts.emplace_back(target_entry->second);  // add the tc value
-        if (not apis_.local->RetrieveToCas(tc_artifacts, &*apis_.remote)) {
+        if (not apis_.local->RetrieveToCas(tc_artifacts, *apis_.remote)) {
             auto msg = fmt::format(
                 "Failed to upload to remote cas the artifacts referenced in "
                 "the target cache entry {}",
@@ -910,7 +910,7 @@ auto TargetService::ServeTargetDescription(
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = artifact_dgst,
                                       .type = ObjectType::File}},
-                &*apis_.remote)) {
+                *apis_.remote)) {
             auto error_msg = fmt::format(
                 "Failed to upload to remote cas the description blob {}",
                 artifact_dgst.hash());

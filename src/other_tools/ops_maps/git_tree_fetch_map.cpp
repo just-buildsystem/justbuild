@@ -45,7 +45,7 @@ void BackupToRemote(std::string const& tree_id,
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
                     .type = ObjectType::Tree}},
-                remote_api)) {
+                *remote_api)) {
             // give a warning
             (*logger)(fmt::format(
                           "Failed to back up tree {} from local CAS to remote",
@@ -243,7 +243,7 @@ auto CreateGitTreeFetchMap(
                     remote_api.value()->RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
-                        local_api)) {
+                        *local_api)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);
                     MoveCASTreeToGit(
                         key.hash,

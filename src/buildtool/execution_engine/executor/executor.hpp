@@ -113,7 +113,7 @@ class ExecutorImpl {
             if (not api->ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
                         *root_digest, ObjectType::Tree, /* failed= */ false}},
-                    &(*alternative_api),
+                    *alternative_api,
                     /* jobs= */ 1,
                     /* use_blob_splitting= */ true)) {
                 Logger::Log(LogLevel::Error,
@@ -149,7 +149,7 @@ class ExecutorImpl {
                 for (auto const& [path, info] : artifacts) {
                     object_infos.emplace_back(info);
                 }
-                if (not alternative_api->RetrieveToCas(object_infos, api)) {
+                if (not alternative_api->RetrieveToCas(object_infos, *api)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed to retrieve back artifacts from "
                                 "dispatch endpoint");
@@ -197,7 +197,7 @@ class ExecutorImpl {
                 // Check if requested artifact is available in local CAS and
                 // upload to remote CAS in case it is.
                 if (local_api->IsAvailable(object_info_opt->digest) and
-                    local_api->RetrieveToCas({*object_info_opt}, remote_api)) {
+                    local_api->RetrieveToCas({*object_info_opt}, *remote_api)) {
                     return true;
                 }
 

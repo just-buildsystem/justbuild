@@ -314,7 +314,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
             auto const& desc_info =
                 Artifact::ObjectInfo{.digest = *dgst, .type = ObjectType::File};
             if (!apis.local->IsAvailable(*dgst)) {
-                if (!apis.remote->RetrieveToCas({desc_info}, &*apis.local)) {
+                if (!apis.remote->RetrieveToCas({desc_info}, *apis.local)) {
                     Logger::Log(LogLevel::Error,
                                 "Failed to retrieve blob {} from remote CAS",
                                 desc_info.ToString());

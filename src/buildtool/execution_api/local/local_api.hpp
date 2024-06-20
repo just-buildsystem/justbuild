@@ -78,8 +78,9 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<gsl::not_null<IExecutionApi*>> const& /*alternative*/ =
-            std::nullopt) const noexcept -> bool final {
+        std::optional<
+            gsl::not_null<const IExecutionApi*>> const& /*alternative*/
+        = std::nullopt) const noexcept -> bool final {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and output paths.");
@@ -171,10 +172,9 @@ class LocalApi final : public IExecutionApi {
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool final {
-
+        IExecutionApi const& api) const noexcept -> bool final {
         // Return immediately if target CAS is this CAS
-        if (this == api) {
+        if (this == &api) {
             return true;
         }
 
@@ -237,15 +237,15 @@ class LocalApi final : public IExecutionApi {
                                  IsExecutableObject(info.type)},
                     /*exception_is_fatal=*/true,
                     [&api](ArtifactBlobContainer&& blobs) {
-                        return api->Upload(std::move(blobs),
-                                           /*skip_find_missing=*/true);
+                        return api.Upload(std::move(blobs),
+                                          /*skip_find_missing=*/true);
                     })) {
                 return false;
             }
         }
 
         // Upload remaining blobs to remote CAS.
-        return api->Upload(std::move(container), /*skip_find_missing=*/true);
+        return api.Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] auto RetrieveToMemory(
@@ -299,7 +299,7 @@ class LocalApi final : public IExecutionApi {
 
         if (Compatibility::IsCompatible()) {
             return CommonUploadTreeCompatible(
-                this,
+                *this,
                 *build_root,
                 [&cas = storage_->CAS()](
                     std::vector<bazel_re::Digest> const& digests,
@@ -313,7 +313,7 @@ class LocalApi final : public IExecutionApi {
                 });
         }
 
-        return CommonUploadTreeNative(this, *build_root);
+        return CommonUploadTreeNative(*this, *build_root);
     }
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept

@@ -112,7 +112,7 @@ auto CreateTargetCacheWriterMap(
                         auto downloader = [apis, &jobs, strategy](auto infos) {
                             return apis->remote->ParallelRetrieveToCas(
                                 infos,
-                                &*apis->local,
+                                *apis->local,
                                 jobs,
                                 strategy == TargetCacheWriteStrategy::Split);
                         };

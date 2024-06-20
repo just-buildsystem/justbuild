@@ -56,7 +56,7 @@ auto EnsureAbsentRootOnServe(
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
                     .type = ObjectType::Tree}},
-                *remote_api)) {
+                **remote_api)) {
             (*logger)(fmt::format("Failed to sync tree {} from repository {}",
                                   tree_id,
                                   repo_path.string()),

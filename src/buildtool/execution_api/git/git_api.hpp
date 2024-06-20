@@ -54,8 +54,9 @@ class GitApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<gsl::not_null<IExecutionApi*>> const& /*alternative*/ =
-            std::nullopt) const noexcept -> bool override {
+        std::optional<
+            gsl::not_null<const IExecutionApi*>> const& /*alternative*/
+        = std::nullopt) const noexcept -> bool override {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and output paths.");
@@ -175,10 +176,9 @@ class GitApi final : public IExecutionApi {
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) const noexcept
-        -> bool override {
+        IExecutionApi const& api) const noexcept -> bool override {
         // Return immediately if target CAS is this CAS
-        if (this == api) {
+        if (this == &api) {
             return true;
         }
 
@@ -238,14 +238,14 @@ class GitApi final : public IExecutionApi {
                                              IsExecutableObject(entry->Type())},
                                 /*exception_is_fatal=*/true,
                                 [&api](ArtifactBlobContainer&& blobs) -> bool {
-                                    return api->Upload(std::move(blobs));
+                                    return api.Upload(std::move(blobs));
                                 })) {
                             return false;
                         }
                     }
                 }
                 // Upload remaining blobs.
-                if (not api->Upload(std::move(tree_deps_only_blobs))) {
+                if (not api.Upload(std::move(tree_deps_only_blobs))) {
                     return false;
                 }
                 content = tree->RawData();
@@ -270,15 +270,15 @@ class GitApi final : public IExecutionApi {
                                  IsExecutableObject(info.type)},
                     /*exception_is_fatal=*/true,
                     [&api](ArtifactBlobContainer&& blobs) {
-                        return api->Upload(std::move(blobs),
-                                           /*skip_find_missing=*/true);
+                        return api.Upload(std::move(blobs),
+                                          /*skip_find_missing=*/true);
                     })) {
                 return false;
             }
         }
 
         // Upload remaining blobs to remote CAS.
-        return api->Upload(std::move(container), /*skip_find_missing=*/true);
+        return api.Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] auto RetrieveToMemory(

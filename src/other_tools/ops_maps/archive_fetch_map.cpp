@@ -40,7 +40,7 @@ void ProcessContent(
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{content, 0, /*is_tree=*/false},
                     .type = ObjectType::File}},
-                *remote_api)) {
+                **remote_api)) {
             // give a warning
             (*logger)(fmt::format("Failed to back up content {} from local CAS "
                                   "to remote",

@@ -82,9 +82,8 @@ auto CommonRetrieveToFds(
 }
 
 /// NOLINTNEXTLINE(misc-no-recursion)
-auto CommonUploadBlobTree(
-    BlobTreePtr const& blob_tree,
-    gsl::not_null<const IExecutionApi*> const& api) noexcept -> bool {
+auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
+                          IExecutionApi const& api) noexcept -> bool {
     // Create digest list from blobs for batch availability check.
     auto missing_blobs_info = GetMissingArtifactsInfo<BlobTreePtr>(
         api, blob_tree->begin(), blob_tree->end(), [](BlobTreePtr const& node) {
@@ -115,19 +114,19 @@ auto CommonUploadBlobTree(
                     std::move(node->Blob()),
                     /*exception_is_fatal=*/false,
                     [&api](ArtifactBlobContainer&& blobs) -> bool {
-                        return api->Upload(std::move(blobs),
-                                           /*skip_find_missing=*/true);
+                        return api.Upload(std::move(blobs),
+                                          /*skip_find_missing=*/true);
                     })) {
                 return false;
             }
         }
     }
     // Transfer any remaining blobs.
-    return api->Upload(std::move(container), /*skip_find_missing=*/true);
+    return api.Upload(std::move(container), /*skip_find_missing=*/true);
 }
 
 auto CommonUploadTreeCompatible(
-    gsl::not_null<const IExecutionApi*> const& api,
+    IExecutionApi const& api,
     DirectoryTreePtr const& build_root,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest> {
@@ -141,8 +140,8 @@ auto CommonUploadTreeCompatible(
                     ArtifactDigest{blob.digest}, blob.data, blob.is_exec}),
                 /*exception_is_fatal=*/false,
                 [&api](ArtifactBlobContainer&& container) -> bool {
-                    return api->Upload(std::move(container),
-                                       /*skip_find_missing=*/false);
+                    return api.Upload(std::move(container),
+                                      /*skip_find_missing=*/false);
                 });
         });
     if (not digest) {
@@ -156,14 +155,14 @@ auto CommonUploadTreeCompatible(
         return oss.str();
     });
     // Upload remaining blobs.
-    if (not api->Upload(std::move(blobs), /*skip_find_missing=*/false)) {
+    if (not api.Upload(std::move(blobs), /*skip_find_missing=*/false)) {
         Logger::Log(LogLevel::Debug, "failed to upload blobs for build root.");
         return std::nullopt;
     }
     return ArtifactDigest{*digest};
 }
 
-auto CommonUploadTreeNative(gsl::not_null<const IExecutionApi*> const& api,
+auto CommonUploadTreeNative(IExecutionApi const& api,
                             DirectoryTreePtr const& build_root) noexcept
     -> std::optional<ArtifactDigest> {
     auto blob_tree = BlobTree::FromDirectoryTree(build_root);
@@ -175,14 +174,14 @@ auto CommonUploadTreeNative(gsl::not_null<const IExecutionApi*> const& api,
     auto tree_blob = (*blob_tree)->Blob();
     // Upload blob tree if tree is not available at the remote side (content
     // first).
-    if (not api->IsAvailable(tree_blob.digest)) {
+    if (not api.IsAvailable(tree_blob.digest)) {
         if (not CommonUploadBlobTree(*blob_tree, api)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload blob tree for build root.");
             return std::nullopt;
         }
-        if (not api->Upload(ArtifactBlobContainer{{tree_blob}},
-                            /*skip_find_missing=*/true)) {
+        if (not api.Upload(ArtifactBlobContainer{{tree_blob}},
+                           /*skip_find_missing=*/true)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload tree blob for build root.");
             return std::nullopt;

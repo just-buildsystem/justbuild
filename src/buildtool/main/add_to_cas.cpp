@@ -107,7 +107,7 @@ auto AddArtifactsToCas(ToAddArguments const& clargs, ApiBundle const& apis)
     auto object = std::vector<Artifact::ObjectInfo>{
         Artifact::ObjectInfo{ArtifactDigest(*digest), *object_type, false}};
 
-    if (not apis.local->RetrieveToCas(object, &*apis.remote)) {
+    if (not apis.local->RetrieveToCas(object, *apis.remote)) {
         Logger::Log(LogLevel::Error,
                     "Failed to upload artifact to remote endpoint");
         return false;

@@ -77,7 +77,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
 
     if (clargs.remember) {
         if (not apis.remote->ParallelRetrieveToCas(
-                {object_info}, &*apis.local, 1, true)) {
+                {object_info}, *apis.local, 1, true)) {
             Logger::Log(LogLevel::Warning,
                         "Failed to copy artifact {} to local CAS",
                         object_info.ToString());

@@ -40,7 +40,7 @@ void UploadToServeAndSetRoot(ServeApi const& serve,
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                remote_api)) {
+                *remote_api)) {
             (*logger)(fmt::format("Failed to sync tree {} from local Git cache "
                                   "to remote CAS",
                                   tree_id),

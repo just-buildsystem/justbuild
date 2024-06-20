@@ -51,7 +51,7 @@ namespace {
 
 [[nodiscard]] auto RetrieveToCas(
     std::vector<bazel_re::Digest> const& digests,
-    gsl::not_null<const IExecutionApi*> const& api,
+    IExecutionApi const& api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
         info_map) noexcept -> bool {
@@ -78,8 +78,8 @@ namespace {
                     std::move(blob),
                     /*exception_is_fatal=*/true,
                     [&api](ArtifactBlobContainer&& blobs) {
-                        return api->Upload(std::move(blobs),
-                                           /*skip_find_missing=*/true);
+                        return api.Upload(std::move(blobs),
+                                          /*skip_find_missing=*/true);
                     })) {
                 return false;
             }
@@ -93,19 +93,19 @@ namespace {
     }
 
     // Upload remaining blobs to other CAS.
-    return api->Upload(std::move(container), /*skip_find_missing=*/true);
+    return api.Upload(std::move(container), /*skip_find_missing=*/true);
 }
 
 [[nodiscard]] auto RetrieveToCasSplitted(
     Artifact::ObjectInfo const& artifact_info,
-    gsl::not_null<const IExecutionApi*> const& this_api,
-    gsl::not_null<const IExecutionApi*> const& other_api,
+    IExecutionApi const& this_api,
+    IExecutionApi const& other_api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
         info_map) noexcept -> bool {
 
     // Split blob into chunks at the remote side and retrieve chunk digests.
-    auto chunk_digests = this_api->SplitBlob(artifact_info.digest);
+    auto chunk_digests = this_api.SplitBlob(artifact_info.digest);
     if (not chunk_digests) {
         // If blob splitting failed, fall back to regular fetching.
         return ::RetrieveToCas(
@@ -118,7 +118,7 @@ namespace {
     auto unique_digests =
         std::vector<ArtifactDigest>{digest_set.begin(), digest_set.end()};
 
-    auto missing_artifact_digests = other_api->IsAvailable(unique_digests);
+    auto missing_artifact_digests = other_api.IsAvailable(unique_digests);
 
     auto missing_digests = std::vector<bazel_re::Digest>{};
     missing_digests.reserve(digest_set.size());
@@ -133,7 +133,7 @@ namespace {
     }
 
     // Assemble blob from chunks.
-    auto digest = other_api->SpliceBlob(artifact_info.digest, *chunk_digests);
+    auto digest = other_api.SpliceBlob(artifact_info.digest, *chunk_digests);
     if (not digest) {
         // If blob splicing failed, fall back to regular fetching.
         return ::RetrieveToCas(
@@ -221,7 +221,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
-    std::optional<gsl::not_null<IExecutionApi*>> const& alternative)
+    std::optional<gsl::not_null<const IExecutionApi*>> const& alternative)
     const noexcept -> bool {
     if (artifacts_info.size() != output_paths.size()) {
         Logger::Log(LogLevel::Warning,
@@ -315,10 +315,9 @@ auto BazelApi::CreateAction(
 // NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::RetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
-    gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool {
-
+    IExecutionApi const& api) const noexcept -> bool {
     // Return immediately if target CAS is this CAS
-    if (this == api) {
+    if (this == &api) {
         return true;
     }
 
@@ -361,12 +360,11 @@ auto BazelApi::CreateAction(
 /// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::ParallelRetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
-    gsl::not_null<IExecutionApi*> const& api,
+    IExecutionApi const& api,
     std::size_t jobs,
     bool use_blob_splitting) const noexcept -> bool {
-
     // Return immediately if target CAS is this CAS
-    if (this == api) {
+    if (this == &api) {
         return true;
     }
 
@@ -410,9 +408,9 @@ auto BazelApi::CreateAction(
                           &info_map = missing_artifacts_info->back_map,
                           use_blob_splitting]() {
                 if (use_blob_splitting and network_->BlobSplitSupport() and
-                            api->BlobSpliceSupport()
+                            api.BlobSpliceSupport()
                         ? ::RetrieveToCasSplitted(
-                              info, this, api, network_, info_map)
+                              info, *this, api, network_, info_map)
                         : ::RetrieveToCas(
                               {info.digest}, api, network_, info_map)) {
                     return;
@@ -461,7 +459,7 @@ auto BazelApi::CreateAction(
 
     if (Compatibility::IsCompatible()) {
         return CommonUploadTreeCompatible(
-            this,
+            *this,
             *build_root,
             [&network = network_](std::vector<bazel_re::Digest> const& digests,
                                   std::vector<std::string>* targets) {
@@ -475,7 +473,7 @@ auto BazelApi::CreateAction(
             });
     }
 
-    return CommonUploadTreeNative(this, *build_root);
+    return CommonUploadTreeNative(*this, *build_root);
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(

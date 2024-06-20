@@ -62,7 +62,7 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
+        std::optional<gsl::not_null<const IExecutionApi*>> const& alternative =
             std::nullopt) const noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToFds(
@@ -72,13 +72,13 @@ class BazelApi final : public IExecutionApi {
 
     [[nodiscard]] auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::size_t jobs,
         bool use_blob_splitting) const noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool final;
+        IExecutionApi const& api) const noexcept -> bool final;
 
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool skip_find_missing) const noexcept

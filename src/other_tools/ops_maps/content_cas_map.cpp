@@ -221,7 +221,7 @@ auto CreateContentCASMap(
                     if (remote_api.value()->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = digest,
                                                   .type = ObjectType::File}},
-                            local_api)) {
+                            *local_api)) {
                         JustMRProgress::Instance().TaskTracker().Stop(
                             key.origin);
                         (*setter)(nullptr);
@@ -233,7 +233,7 @@ auto CreateContentCASMap(
                     remote_api.value()->RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::File}},
-                        local_api)) {
+                        *local_api)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);
                     (*setter)(nullptr);
                     return;
