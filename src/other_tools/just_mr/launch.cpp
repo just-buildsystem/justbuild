@@ -167,7 +167,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     }
     // forward remote execution and mutual TLS arguments
     if (supports_remote) {
-        if (common_args.compatible == true) {
+        if (common_args.compatible) {
             cmd.emplace_back("--compatible");
         }
         if (common_args.remote_execution_address) {

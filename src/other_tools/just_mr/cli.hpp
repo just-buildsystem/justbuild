@@ -55,7 +55,7 @@ struct MultiRepoCommonArguments {
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
     std::vector<std::string> defines{};
     std::optional<std::string> remote_execution_address;
-    std::optional<bool> compatible{std::nullopt};
+    bool compatible{false};
     std::optional<std::string> remote_serve_address;
     bool fetch_absent{false};
 };

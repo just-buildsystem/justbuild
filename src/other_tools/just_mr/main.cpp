@@ -330,8 +330,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
             // check setup configuration arguments for validity
-            if (arguments.common.compatible == true and
-                arguments.common.fetch_absent) {
+            if (arguments.common.compatible and arguments.common.fetch_absent) {
                 Logger::Log(LogLevel::Error,
                             "Fetching absent repositories only available in "
                             "native mode!");
@@ -361,8 +360,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kSetup or
             arguments.cmd == SubCommand::kSetupEnv) {
             // check setup configuration arguments for validity
-            if (arguments.common.compatible == true and
-                arguments.common.fetch_absent) {
+            if (arguments.common.compatible and arguments.common.fetch_absent) {
                 Logger::Log(LogLevel::Error,
                             "Fetching absent repositories only available in "
                             "native mode!");
@@ -396,7 +394,7 @@ auto main(int argc, char* argv[]) -> int {
         // Run subcommand `fetch`
         if (arguments.cmd == SubCommand::kFetch) {
             // check fetch configuration arguments for validity
-            if (arguments.common.compatible == true) {
+            if (arguments.common.compatible) {
                 if (arguments.common.remote_execution_address and
                     arguments.fetch.backup_to_remote) {
                     Logger::Log(

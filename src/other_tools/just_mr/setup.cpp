@@ -116,7 +116,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                     common_args.remote_serve_address,
                                     auth_args);
     IExecutionApi::Ptr local_api{std::make_unique<LocalApi>()};
-    bool remote_compatible{common_args.compatible == true};
+    bool remote_compatible{common_args.compatible};
 
     // setup the API for serving roots
     auto serve_config = JustMR::Utils::CreateServeConfig(
@@ -144,7 +144,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                         "serve endpoint failed.");
             serve = std::nullopt;
         }
-        if (*compatible != remote_compatible) {
+        if (*compatible != common_args.compatible) {
             Logger::Log(
                 LogLevel::Warning,
                 "Provided serve endpoint operates in a different compatibility "
