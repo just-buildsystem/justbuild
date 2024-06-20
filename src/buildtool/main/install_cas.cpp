@@ -22,6 +22,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #include "src/buildtool/main/archive.hpp"
 #endif
@@ -70,15 +71,13 @@ namespace {
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-auto FetchAndInstallArtifacts(
-    gsl::not_null<IExecutionApi*> const& api,
-    gsl::not_null<IExecutionApi*> const& alternative_api,
-    FetchArguments const& clargs) -> bool {
+auto FetchAndInstallArtifacts(ApiBundle const& apis,
+                              FetchArguments const& clargs) -> bool {
     auto object_info = ObjectInfoFromLiberalString(clargs.object_id);
 
     if (clargs.remember) {
-        if (not api->ParallelRetrieveToCas(
-                {object_info}, alternative_api, 1, true)) {
+        if (not apis.remote->ParallelRetrieveToCas(
+                {object_info}, &*apis.local, 1, true)) {
             Logger::Log(LogLevel::Warning,
                         "Failed to copy artifact {} to local CAS",
                         object_info.ToString());
@@ -88,7 +87,7 @@ auto FetchAndInstallArtifacts(
     if (clargs.sub_path) {
         std::filesystem::path sofar{};
         auto new_object_info =
-            RetrieveSubPathId(object_info, api, *clargs.sub_path);
+            RetrieveSubPathId(object_info, &*apis.remote, *clargs.sub_path);
         if (new_object_info) {
             object_info = *new_object_info;
         }
@@ -121,12 +120,12 @@ auto FetchAndInstallArtifacts(
                         object_info.ToString());
             return false;
         }
-        return GenerateArchive(api, object_info, out);
+        return GenerateArchive(&*apis.remote, object_info, out);
     }
 
     if (out) {
-        if (not api->RetrieveToPaths(
-                {object_info}, {*out}, &(*alternative_api))) {
+        if (not apis.remote->RetrieveToPaths(
+                {object_info}, {*out}, &*apis.local)) {
             Logger::Log(LogLevel::Error, "failed to retrieve artifact.");
             return false;
         }
@@ -137,7 +136,7 @@ auto FetchAndInstallArtifacts(
                     out->string());
     }
     else {  // dump to stdout
-        if (not api->RetrieveToFds(
+        if (not apis.remote->RetrieveToFds(
                 {object_info}, {dup(fileno(stdout))}, clargs.raw_tree)) {
             Logger::Log(LogLevel::Error, "failed to dump artifact.");
             return false;

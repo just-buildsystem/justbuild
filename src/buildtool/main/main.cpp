@@ -912,13 +912,12 @@ auto main(int argc, char* argv[]) -> int {
                             "Failed set Git CAS {}.",
                             StorageConfig::GitRoot().string());
             }
-            return FetchAndInstallArtifacts(
-                       &*main_apis.remote, &*main_apis.local, arguments.fetch)
+            return FetchAndInstallArtifacts(main_apis, arguments.fetch)
                        ? kExitSuccess
                        : kExitFailure;
         }
         if (arguments.cmd == SubCommand::kAddToCas) {
-            return AddArtifactsToCas(arguments.to_add, &*main_apis.remote)
+            return AddArtifactsToCas(arguments.to_add, main_apis)
                        ? kExitSuccess
                        : kExitFailure;
         }
@@ -1105,8 +1104,7 @@ auto main(int argc, char* argv[]) -> int {
                         cache_targets,
                         build_result->extra_infos,
                         jobs,
-                        &*main_apis.local,
-                        &*main_apis.remote,
+                        main_apis,
                         arguments.tc.target_cache_write_strategy,
                         Storage::Instance().TargetCache(),
                         nullptr,

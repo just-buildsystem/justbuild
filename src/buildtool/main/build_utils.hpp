@@ -27,9 +27,9 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -70,8 +70,7 @@ using TargetCacheWriterMap =
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
     std::size_t jobs,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api,
+    gsl::not_null<ApiBundle const*> const& apis,
     TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync,
     TargetCache<true> const& tc = Storage::Instance().TargetCache())
     -> TargetCacheWriterMap;
@@ -89,8 +88,7 @@ void WriteTargetCacheEntries(
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
     std::size_t jobs,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api,
+    ApiBundle const& apis,
     TargetCacheWriteStrategy strategy = TargetCacheWriteStrategy::Sync,
     TargetCache<true> const& tc = Storage::Instance().TargetCache(),
     Logger const* logger = nullptr,

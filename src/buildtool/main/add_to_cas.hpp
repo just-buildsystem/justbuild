@@ -16,13 +16,11 @@
 #define INCLUDED_SRC_BUILDTOOL_MAIN_ADD_TO_CAS_HPP
 #ifndef BOOTSTRAP_BUILD_TOOL
 
-#include "gsl/gsl"
 #include "src/buildtool/common/cli.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 
-[[nodiscard]] auto AddArtifactsToCas(
-    ToAddArguments const& clargs,
-    gsl::not_null<IExecutionApi*> const& remote_api) -> bool;
+[[nodiscard]] auto AddArtifactsToCas(ToAddArguments const& clargs,
+                                     ApiBundle const& apis) -> bool;
 
 #endif
 #endif

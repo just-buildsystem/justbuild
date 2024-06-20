@@ -68,12 +68,11 @@ auto CreateTargetCacheWriterMap(
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
     std::size_t jobs,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api,
+    gsl::not_null<ApiBundle const*> const& apis,
     TargetCacheWriteStrategy strategy,
     TargetCache<true> const& tc) -> TargetCacheWriterMap {
     auto write_tc_entry =
-        [cache_targets, extra_infos, jobs, local_api, remote_api, strategy, tc](
+        [cache_targets, extra_infos, jobs, apis, strategy, tc](
             auto /*ts*/,
             auto setter,
             auto logger,
@@ -107,23 +106,13 @@ auto CreateTargetCacheWriterMap(
             if (auto implied_targets = entry->ToImpliedIds(key.digest.hash())) {
                 (*subcaller)(
                     *implied_targets,
-                    [tc_key,
-                     entry,
-                     jobs,
-                     local_api,
-                     remote_api,
-                     strategy,
-                     tc,
-                     setter,
-                     logger]([[maybe_unused]] auto const& values) {
+                    [tc_key, entry, jobs, apis, strategy, tc, setter, logger](
+                        [[maybe_unused]] auto const& values) {
                         // create parallel artifacts downloader
-                        auto downloader = [&local_api,
-                                           &remote_api,
-                                           &jobs,
-                                           strategy](auto infos) {
-                            return remote_api->ParallelRetrieveToCas(
+                        auto downloader = [apis, &jobs, strategy](auto infos) {
+                            return apis->remote->ParallelRetrieveToCas(
                                 infos,
-                                local_api,
+                                &*apis->local,
                                 jobs,
                                 strategy == TargetCacheWriteStrategy::Split);
                         };
@@ -155,8 +144,7 @@ void WriteTargetCacheEntries(
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
         extra_infos,
     std::size_t jobs,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api,
+    ApiBundle const& apis,
     TargetCacheWriteStrategy strategy,
     TargetCache<true> const& tc,
     Logger const* logger,
@@ -172,7 +160,7 @@ void WriteTargetCacheEntries(
     }
     // set up writer map
     auto tc_writer_map = CreateTargetCacheWriterMap(
-        cache_targets, extra_infos, jobs, local_api, remote_api, strategy, tc);
+        cache_targets, extra_infos, jobs, &apis, strategy, tc);
     std::vector<Artifact::ObjectInfo> cache_targets_ids;
     cache_targets_ids.reserve(cache_targets.size());
     for (auto const& [k, _] : cache_targets) {

@@ -21,17 +21,16 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/cli.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #endif
 
 [[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s) noexcept
     -> Artifact::ObjectInfo;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-[[nodiscard]] auto FetchAndInstallArtifacts(
-    gsl::not_null<IExecutionApi*> const& api,
-    gsl::not_null<IExecutionApi*> const& alternative_api,
-    FetchArguments const& clargs) -> bool;
+[[nodiscard]] auto FetchAndInstallArtifacts(ApiBundle const& apis,
+                                            FetchArguments const& clargs)
+    -> bool;
 #endif
 
 #endif  // INCLUDED_SRC_BUILDTOOL_MAIN_INSTALL_CAS_HPP

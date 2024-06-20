@@ -120,7 +120,7 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "main"]
@@ -131,6 +131,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/utils", "subobject"]
+    , ["src/buildtool/execution_api/common", "common"]
     , "archive"
     ]
   }
@@ -140,14 +141,13 @@
   , "hdrs": ["add_to_cas.hpp"]
   , "srcs": ["add_to_cas.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "cli"]
-    , ["src/buildtool/execution_api/common", "common"]
+    [ ["src/buildtool/common", "cli"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -295,12 +295,11 @@
   , "hdrs": ["build_utils.hpp"]
   , "srcs": ["build_utils.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/build_engine/analysed_target", "target"]
+    [ ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/storage", "storage"]
@@ -308,6 +307,7 @@
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
     [ ["src/buildtool/multithreading", "async_map_utils"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     ]
   }

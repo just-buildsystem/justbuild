@@ -23,14 +23,13 @@
 
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
-auto AddArtifactsToCas(ToAddArguments const& clargs,
-                       gsl::not_null<IExecutionApi*> const& remote_api)
+auto AddArtifactsToCas(ToAddArguments const& clargs, ApiBundle const& apis)
     -> bool {
 
     auto const& cas = Storage::Instance().CAS();
@@ -108,7 +107,7 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
     auto object = std::vector<Artifact::ObjectInfo>{
         Artifact::ObjectInfo{ArtifactDigest(*digest), *object_type, false}};
 
-    if (not LocalApi().RetrieveToCas(object, remote_api)) {
+    if (not apis.local->RetrieveToCas(object, &*apis.remote)) {
         Logger::Log(LogLevel::Error,
                     "Failed to upload artifact to remote endpoint");
         return false;
