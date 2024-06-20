@@ -128,6 +128,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "DEBUG"
     , "name"
     , "stage"
     , "service support"

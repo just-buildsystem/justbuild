@@ -273,7 +273,7 @@
     ]
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
-  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
+  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV", "DEBUG"]
   , "implicit":
     {"defaults": [["./", "..", "defaults"]], "proto-defaults": ["defaults"]}
   , "imports": {"protoc-compile": "protoc-compile"}
@@ -302,7 +302,7 @@
     ]
   , "string_fields": ["name", "stage"]
   , "target_fields": ["srcs", "deps"]
-  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV"]
+  , "config_vars": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV", "DEBUG"]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
     , "proto-defaults": ["service defaults"]
