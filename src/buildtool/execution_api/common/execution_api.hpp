@@ -57,7 +57,7 @@ class IExecutionApi {
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) noexcept
+        std::map<std::string, std::string> const& properties) const noexcept
         -> IExecutionAction::Ptr = 0;
 
     /// \brief Retrieve artifacts from CAS and store to specified paths.
@@ -71,7 +71,7 @@ class IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
         std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
-            std::nullopt) noexcept -> bool = 0;
+            std::nullopt) const noexcept -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
     /// Tree artifacts are not resolved and instead the tree object will be
@@ -81,14 +81,14 @@ class IExecutionApi {
     [[nodiscard]] virtual auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) noexcept -> bool = 0;
+        bool raw_tree) const noexcept -> bool = 0;
 
     /// \brief Synchronization of artifacts between two CASes. Retrieves
     /// artifacts from one CAS and writes to another CAS. Tree artifacts are
     /// resolved and its containing file artifacts are recursively retrieved.
     [[nodiscard]] virtual auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool = 0;
+        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool = 0;
 
     /// \brief A variant of RetrieveToCas that is allowed to internally use
     /// the specified number of threads to carry out the task in parallel.
@@ -100,14 +100,14 @@ class IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api,
         std::size_t /* jobs */,
-        bool /* use_blob_splitting */) noexcept -> bool {
+        bool /* use_blob_splitting */) const noexcept -> bool {
         return RetrieveToCas(artifacts_info, api);
     }
 
     /// \brief Retrieve one artifact from CAS and make it available for
     /// furter in-memory processing
     [[nodiscard]] virtual auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info) noexcept
+        Artifact::ObjectInfo const& artifact_info) const noexcept
         -> std::optional<std::string> = 0;
 
     /// \brief Upload blobs to CAS. Uploads only the blobs that are not yet
@@ -115,13 +115,13 @@ class IExecutionApi {
     /// \param blobs                Container of blobs to upload.
     /// \param skip_find_missing    Skip finding missing blobs, just upload all.
     /// NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] virtual auto Upload(ArtifactBlobContainer&& blobs,
-                                      bool skip_find_missing = false) noexcept
-        -> bool = 0;
+    [[nodiscard]] virtual auto Upload(
+        ArtifactBlobContainer&& blobs,
+        bool skip_find_missing = false) const noexcept -> bool = 0;
 
     [[nodiscard]] virtual auto UploadTree(
-        std::vector<DependencyGraph::NamedArtifactNodePtr> const&
-            artifacts) noexcept -> std::optional<ArtifactDigest> = 0;
+        std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts)
+        const noexcept -> std::optional<ArtifactDigest> = 0;
 
     [[nodiscard]] virtual auto IsAvailable(
         ArtifactDigest const& digest) const noexcept -> bool = 0;

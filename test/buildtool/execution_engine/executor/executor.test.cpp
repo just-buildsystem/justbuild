@@ -136,31 +136,32 @@ class TestApi : public IExecutionApi {
     explicit TestApi(TestApiConfig config) noexcept
         : config_{std::move(config)} {}
 
-    auto CreateAction(
+    [[nodiscard]] auto CreateAction(
         ArtifactDigest const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::map<std::string, std::string> const& /*unused*/,
-        std::map<std::string, std::string> const& /*unused*/) noexcept
+        std::map<std::string, std::string> const& /*unused*/) const noexcept
         -> IExecutionAction::Ptr final {
         return IExecutionAction::Ptr{new TestAction(config_)};
     }
-    auto RetrieveToPaths(
+    [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& /*unused*/,
         std::vector<std::filesystem::path> const& /*unused*/,
-        std::optional<
-            gsl::not_null<IExecutionApi*>> const& /* unused */) noexcept
-        -> bool final {
+        std::optional<gsl::not_null<IExecutionApi*>> const& /* unused */)
+        const noexcept -> bool final {
         return false;  // not needed by Executor
     }
-    auto RetrieveToFds(std::vector<Artifact::ObjectInfo> const& /*unused*/,
-                       std::vector<int> const& /*unused*/,
-                       bool /*unused*/) noexcept -> bool final {
+    [[nodiscard]] auto RetrieveToFds(
+        std::vector<Artifact::ObjectInfo> const& /*unused*/,
+        std::vector<int> const& /*unused*/,
+        bool /*unused*/) const noexcept -> bool final {
         return false;  // not needed by Executor
     }
-    auto RetrieveToCas(std::vector<Artifact::ObjectInfo> const& unused,
-                       gsl::not_null<IExecutionApi*> const& /*unused*/) noexcept
+    [[nodiscard]] auto RetrieveToCas(
+        std::vector<Artifact::ObjectInfo> const& unused,
+        gsl::not_null<IExecutionApi*> const& /*unused*/) const noexcept
         -> bool final {
         // Note that a false-positive "free-nonheap-object" warning is thrown by
         // gcc 12.2 with GNU libstdc++, if the caller passes a temporary vector
@@ -169,26 +170,29 @@ class TestApi : public IExecutionApi {
         // irrelevant for testing though.
         return unused.empty();  // not needed by Executor
     }
-    auto RetrieveToMemory(
-        Artifact::ObjectInfo const& /*artifact_info*/) noexcept
+    [[nodiscard]] auto RetrieveToMemory(
+        Artifact::ObjectInfo const& /*artifact_info*/) const noexcept
         -> std::optional<std::string> override {
         return std::nullopt;  // not needed by Executor
     }
-    auto Upload(ArtifactBlobContainer&& blobs, bool /*unused*/) noexcept
-        -> bool final {
+    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
+                              bool /*unused*/) const noexcept -> bool final {
         auto blob_range = blobs.Blobs();
         return std::all_of(
             blob_range.begin(), blob_range.end(), [this](auto const& blob) {
-                return config_.artifacts[*blob.data]
-                           .uploads  // for local artifacts
-                       or config_.artifacts[blob.digest.hash()]
-                              .uploads;  // for known and action artifacts
+                // for local artifacts
+                auto it1 = config_.artifacts.find(*blob.data);
+                if (it1 != config_.artifacts.end() and it1->second.uploads) {
+                    return true;
+                }
+                // for known and action artifacts
+                auto it2 = config_.artifacts.find(blob.digest.hash());
+                return it2 != config_.artifacts.end() and it2->second.uploads;
             });
     }
-    auto UploadTree(
-        std::vector<
-            DependencyGraph::NamedArtifactNodePtr> const& /*unused*/) noexcept
-        -> std::optional<ArtifactDigest> final {
+    [[nodiscard]] auto UploadTree(
+        std::vector<DependencyGraph::NamedArtifactNodePtr> const& /*unused*/)
+        const noexcept -> std::optional<ArtifactDigest> final {
         return ArtifactDigest{};  // not needed by Executor
     }
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept

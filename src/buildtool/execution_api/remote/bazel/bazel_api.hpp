@@ -49,13 +49,13 @@ class BazelApi final : public IExecutionApi {
     auto operator=(BazelApi&&) -> BazelApi& = delete;
     ~BazelApi() final;
 
-    auto CreateAction(
+    [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) noexcept
+        std::map<std::string, std::string> const& properties) const noexcept
         -> IExecutionAction::Ptr final;
 
     // NOLINTNEXTLINE(google-default-arguments)
@@ -63,29 +63,30 @@ class BazelApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
         std::optional<gsl::not_null<IExecutionApi*>> const& alternative =
-            std::nullopt) noexcept -> bool final;
+            std::nullopt) const noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) noexcept -> bool final;
+        bool raw_tree) const noexcept -> bool final;
 
     [[nodiscard]] auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         gsl::not_null<IExecutionApi*> const& api,
         std::size_t jobs,
-        bool use_blob_splitting) noexcept -> bool final;
+        bool use_blob_splitting) const noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool final;
+        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool final;
 
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
-                              bool skip_find_missing) noexcept -> bool final;
+                              bool skip_find_missing) const noexcept
+        -> bool final;
 
     [[nodiscard]] auto UploadTree(
-        std::vector<DependencyGraph::NamedArtifactNodePtr> const&
-            artifacts) noexcept -> std::optional<ArtifactDigest> final;
+        std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts)
+        const noexcept -> std::optional<ArtifactDigest> final;
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final;
@@ -94,7 +95,7 @@ class BazelApi final : public IExecutionApi {
         const noexcept -> std::vector<ArtifactDigest> final;
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info) noexcept
+        Artifact::ObjectInfo const& artifact_info) const noexcept
         -> std::optional<std::string> final;
 
     [[nodiscard]] auto SplitBlob(ArtifactDigest const& blob_digest)

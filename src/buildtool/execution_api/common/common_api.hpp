@@ -61,7 +61,7 @@ struct MissingArtifactsInfo {
 /// original given type, or nullopt in case of exceptions.
 template <typename T>
 [[nodiscard]] auto GetMissingArtifactsInfo(
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<const IExecutionApi*> const& api,
     typename std::vector<T>::const_iterator const& begin,
     typename std::vector<T>::const_iterator const& end,
     typename std::function<ArtifactDigest(T const&)> const& converter) noexcept
@@ -85,18 +85,18 @@ template <typename T>
 /// \brief Upload missing blobs from a given BlobTree.
 [[nodiscard]] auto CommonUploadBlobTree(
     BlobTreePtr const& blob_tree,
-    gsl::not_null<IExecutionApi*> const& api) noexcept -> bool;
+    gsl::not_null<const IExecutionApi*> const& api) noexcept -> bool;
 
 /// \brief Runs the compatible branch of local/bazel UploadTree API.
 [[nodiscard]] auto CommonUploadTreeCompatible(
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<const IExecutionApi*> const& api,
     DirectoryTreePtr const& build_root,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest>;
 
 /// \brief Runs the native branch of local/bazel UploadTree API.
 [[nodiscard]] auto CommonUploadTreeNative(
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<const IExecutionApi*> const& api,
     DirectoryTreePtr const& build_root) noexcept
     -> std::optional<ArtifactDigest>;
 

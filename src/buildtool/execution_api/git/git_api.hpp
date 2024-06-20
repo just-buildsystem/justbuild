@@ -38,13 +38,13 @@ class GitApi final : public IExecutionApi {
     GitApi() = delete;
     explicit GitApi(gsl::not_null<const RepositoryConfig*> const& repo_config)
         : repo_config_{repo_config} {}
-    auto CreateAction(
+    [[nodiscard]] auto CreateAction(
         ArtifactDigest const& /*root_digest*/,
         std::vector<std::string> const& /*command*/,
         std::vector<std::string> const& /*output_files*/,
         std::vector<std::string> const& /*output_dirs*/,
         std::map<std::string, std::string> const& /*env_vars*/,
-        std::map<std::string, std::string> const& /*properties*/) noexcept
+        std::map<std::string, std::string> const& /*properties*/) const noexcept
         -> IExecutionAction::Ptr final {
         // Execution not supported from git cas
         return nullptr;
@@ -55,7 +55,7 @@ class GitApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
         std::optional<gsl::not_null<IExecutionApi*>> const& /*alternative*/ =
-            std::nullopt) noexcept -> bool override {
+            std::nullopt) const noexcept -> bool override {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and output paths.");
@@ -106,7 +106,7 @@ class GitApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) noexcept -> bool override {
+        bool raw_tree) const noexcept -> bool override {
         if (artifacts_info.size() != fds.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and file descriptors.");
@@ -175,7 +175,8 @@ class GitApi final : public IExecutionApi {
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool override {
+        gsl::not_null<IExecutionApi*> const& api) const noexcept
+        -> bool override {
         // Return immediately if target CAS is this CAS
         if (this == api) {
             return true;
@@ -281,14 +282,14 @@ class GitApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info) noexcept
+        Artifact::ObjectInfo const& artifact_info) const noexcept
         -> std::optional<std::string> override {
         return repo_config_->ReadBlobFromGitCAS(artifact_info.digest.hash());
     }
 
     /// NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& /*blobs*/,
-                              bool /*skip_find_missing*/ = false) noexcept
+                              bool /*skip_find_missing*/ = false) const noexcept
         -> bool override {
         // Upload to git cas not supported
         return false;
@@ -296,7 +297,8 @@ class GitApi final : public IExecutionApi {
 
     [[nodiscard]] auto UploadTree(
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
-        /*artifacts*/) noexcept -> std::optional<ArtifactDigest> override {
+        /*artifacts*/) const noexcept
+        -> std::optional<ArtifactDigest> override {
         // Upload to git cas not supported
         return std::nullopt;
     }

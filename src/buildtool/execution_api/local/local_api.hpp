@@ -57,13 +57,13 @@ class LocalApi final : public IExecutionApi {
                           repo_config = std::nullopt)
         : repo_config_{std::move(repo_config)} {}
 
-    auto CreateAction(
+    [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) noexcept
+        std::map<std::string, std::string> const& properties) const noexcept
         -> IExecutionAction::Ptr final {
         return IExecutionAction::Ptr{new LocalAction{storage_,
                                                      root_digest,
@@ -79,7 +79,7 @@ class LocalApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
         std::optional<gsl::not_null<IExecutionApi*>> const& /*alternative*/ =
-            std::nullopt) noexcept -> bool final {
+            std::nullopt) const noexcept -> bool final {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and output paths.");
@@ -143,7 +143,7 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) noexcept -> bool final {
+        bool raw_tree) const noexcept -> bool final {
         auto dumper = StreamDumper<LocalCasReader>{storage_->CAS()};
         return CommonRetrieveToFds(
             artifacts_info,
@@ -171,7 +171,7 @@ class LocalApi final : public IExecutionApi {
     // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
-        gsl::not_null<IExecutionApi*> const& api) noexcept -> bool final {
+        gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool final {
 
         // Return immediately if target CAS is this CAS
         if (this == api) {
@@ -249,7 +249,7 @@ class LocalApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto RetrieveToMemory(
-        Artifact::ObjectInfo const& artifact_info) noexcept
+        Artifact::ObjectInfo const& artifact_info) const noexcept
         -> std::optional<std::string> override {
         std::optional<std::filesystem::path> location{};
         if (IsTreeObject(artifact_info.type)) {
@@ -271,7 +271,7 @@ class LocalApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
-                              bool /*skip_find_missing*/) noexcept
+                              bool /*skip_find_missing*/) const noexcept
         -> bool final {
         for (auto const& blob : blobs.Blobs()) {
             auto const is_tree = NativeSupport::IsTree(
@@ -288,8 +288,8 @@ class LocalApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto UploadTree(
-        std::vector<DependencyGraph::NamedArtifactNodePtr> const&
-            artifacts) noexcept -> std::optional<ArtifactDigest> final {
+        std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts)
+        const noexcept -> std::optional<ArtifactDigest> final {
         auto build_root = DirectoryTree::FromNamedArtifacts(artifacts);
         if (not build_root) {
             Logger::Log(LogLevel::Debug,

@@ -82,9 +82,9 @@ auto CommonRetrieveToFds(
 }
 
 /// NOLINTNEXTLINE(misc-no-recursion)
-auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
-                          gsl::not_null<IExecutionApi*> const& api) noexcept
-    -> bool {
+auto CommonUploadBlobTree(
+    BlobTreePtr const& blob_tree,
+    gsl::not_null<const IExecutionApi*> const& api) noexcept -> bool {
     // Create digest list from blobs for batch availability check.
     auto missing_blobs_info = GetMissingArtifactsInfo<BlobTreePtr>(
         api, blob_tree->begin(), blob_tree->end(), [](BlobTreePtr const& node) {
@@ -127,7 +127,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
 }
 
 auto CommonUploadTreeCompatible(
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<const IExecutionApi*> const& api,
     DirectoryTreePtr const& build_root,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest> {
@@ -163,7 +163,7 @@ auto CommonUploadTreeCompatible(
     return ArtifactDigest{*digest};
 }
 
-auto CommonUploadTreeNative(gsl::not_null<IExecutionApi*> const& api,
+auto CommonUploadTreeNative(gsl::not_null<const IExecutionApi*> const& api,
                             DirectoryTreePtr const& build_root) noexcept
     -> std::optional<ArtifactDigest> {
     auto blob_tree = BlobTree::FromDirectoryTree(build_root);

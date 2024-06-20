@@ -51,7 +51,7 @@ namespace {
 
 [[nodiscard]] auto RetrieveToCas(
     std::vector<bazel_re::Digest> const& digests,
-    gsl::not_null<IExecutionApi*> const& api,
+    gsl::not_null<const IExecutionApi*> const& api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
         info_map) noexcept -> bool {
@@ -98,8 +98,8 @@ namespace {
 
 [[nodiscard]] auto RetrieveToCasSplitted(
     Artifact::ObjectInfo const& artifact_info,
-    gsl::not_null<IExecutionApi*> const& this_api,
-    gsl::not_null<IExecutionApi*> const& other_api,
+    gsl::not_null<const IExecutionApi*> const& this_api,
+    gsl::not_null<const IExecutionApi*> const& other_api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
         info_map) noexcept -> bool {
@@ -206,7 +206,7 @@ auto BazelApi::CreateAction(
     std::vector<std::string> const& output_files,
     std::vector<std::string> const& output_dirs,
     std::map<std::string, std::string> const& env_vars,
-    std::map<std::string, std::string> const& properties) noexcept
+    std::map<std::string, std::string> const& properties) const noexcept
     -> IExecutionAction::Ptr {
     return std::unique_ptr<BazelAction>{new BazelAction{network_,
                                                         root_digest,
@@ -221,8 +221,8 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
-    std::optional<gsl::not_null<IExecutionApi*>> const& alternative) noexcept
-    -> bool {
+    std::optional<gsl::not_null<IExecutionApi*>> const& alternative)
+    const noexcept -> bool {
     if (artifacts_info.size() != output_paths.size()) {
         Logger::Log(LogLevel::Warning,
                     "different number of digests and output paths.");
@@ -299,7 +299,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
-    bool raw_tree) noexcept -> bool {
+    bool raw_tree) const noexcept -> bool {
     auto dumper = StreamDumper<BazelNetworkReader>{network_->CreateReader()};
     return CommonRetrieveToFds(
         artifacts_info,
@@ -315,7 +315,7 @@ auto BazelApi::CreateAction(
 // NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::RetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
-    gsl::not_null<IExecutionApi*> const& api) noexcept -> bool {
+    gsl::not_null<IExecutionApi*> const& api) const noexcept -> bool {
 
     // Return immediately if target CAS is this CAS
     if (this == api) {
@@ -363,7 +363,7 @@ auto BazelApi::CreateAction(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     gsl::not_null<IExecutionApi*> const& api,
     std::size_t jobs,
-    bool use_blob_splitting) noexcept -> bool {
+    bool use_blob_splitting) const noexcept -> bool {
 
     // Return immediately if target CAS is this CAS
     if (this == api) {
@@ -431,7 +431,7 @@ auto BazelApi::CreateAction(
 }
 
 [[nodiscard]] auto BazelApi::RetrieveToMemory(
-    Artifact::ObjectInfo const& artifact_info) noexcept
+    Artifact::ObjectInfo const& artifact_info) const noexcept
     -> std::optional<std::string> {
     auto reader = network_->CreateReader();
     if (auto blob = reader.ReadSingleBlob(artifact_info.digest)) {
@@ -441,7 +441,8 @@ auto BazelApi::CreateAction(
 }
 
 [[nodiscard]] auto BazelApi::Upload(ArtifactBlobContainer&& blobs,
-                                    bool skip_find_missing) noexcept -> bool {
+                                    bool skip_find_missing) const noexcept
+    -> bool {
     auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));
     return bazel_blobs ? network_->UploadBlobs(std::move(*bazel_blobs),
                                                skip_find_missing)
@@ -449,8 +450,8 @@ auto BazelApi::CreateAction(
 }
 
 [[nodiscard]] auto BazelApi::UploadTree(
-    std::vector<DependencyGraph::NamedArtifactNodePtr> const&
-        artifacts) noexcept -> std::optional<ArtifactDigest> {
+    std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts)
+    const noexcept -> std::optional<ArtifactDigest> {
     auto build_root = DirectoryTree::FromNamedArtifacts(artifacts);
     if (not build_root) {
         Logger::Log(LogLevel::Debug,
