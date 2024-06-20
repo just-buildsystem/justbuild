@@ -18,6 +18,8 @@
 #include <fstream>
 #include <string>
 
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
+
 class ServerImpl {
   public:
     ServerImpl() noexcept = default;
@@ -45,7 +47,7 @@ class ServerImpl {
     ServerImpl(ServerImpl&&) noexcept = delete;
     auto operator=(ServerImpl&&) noexcept -> ServerImpl& = delete;
 
-    auto Run() -> bool;
+    auto Run(ApiBundle const& apis) -> bool;
     ~ServerImpl() = default;
 
   private:

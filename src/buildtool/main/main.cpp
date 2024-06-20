@@ -826,7 +826,9 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
-            if (!ServerImpl::Instance().Run()) {
+            ApiBundle const exec_apis{std::nullopt,
+                                      RemoteExecutionConfig::RemoteAddress()};
+            if (!ServerImpl::Instance().Run(exec_apis)) {
                 return kExitFailure;
             }
             return kExitSuccess;

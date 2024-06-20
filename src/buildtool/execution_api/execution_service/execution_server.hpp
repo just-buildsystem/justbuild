@@ -18,13 +18,15 @@
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
-    ExecutionServiceImpl() = default;
+    explicit ExecutionServiceImpl(
+        gsl::not_null<IExecutionApi*> const& local_api) noexcept
+        : api_{local_api} {}
     // Execute an action remotely.
     //
     // In order to execute an action, the client must first upload all of the
@@ -109,7 +111,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
 
   private:
     gsl::not_null<Storage const*> storage_ = &Storage::Instance();
-    IExecutionApi::Ptr api_{new LocalApi()};
+    gsl::not_null<IExecutionApi*> const api_;
     Logger logger_{"execution-service"};
 
     [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)

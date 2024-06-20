@@ -7,7 +7,7 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
@@ -38,7 +38,6 @@
     ]
   , "private-deps":
     [ ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "verify_hash"]
     ]
@@ -71,6 +70,7 @@
   , "hdrs": ["server_implementation.hpp"]
   , "srcs": ["server_implementation.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
+  , "deps": [["src/buildtool/execution_api/common", "api_bundle"]]
   , "private-deps":
     [ "execution_server"
     , "ac_server"
@@ -83,7 +83,6 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/auth", "auth"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["@", "fmt", "", "fmt"]
@@ -110,7 +109,6 @@
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/utils/cpp", "verify_hash"]
     ]
   }

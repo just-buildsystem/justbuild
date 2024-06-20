@@ -54,8 +54,8 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }
 }  // namespace
 
-auto ServerImpl::Run() -> bool {
-    ExecutionServiceImpl es{};
+auto ServerImpl::Run(ApiBundle const& apis) -> bool {
+    ExecutionServiceImpl es{&*apis.local};
     ActionCacheServiceImpl ac{};
     CASServiceImpl cas{};
     BytestreamServiceImpl b{};
