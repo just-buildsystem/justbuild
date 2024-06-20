@@ -48,7 +48,6 @@
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/main/cli.hpp"
 #include "src/buildtool/main/constants.hpp"
-#include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/diagnose.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
 #include "src/buildtool/main/install_cas.hpp"
@@ -73,6 +72,7 @@
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
+#include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/serve.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
@@ -974,6 +974,7 @@ auto main(int argc, char* argv[]) -> int {
                            : DescribeTarget(*id,
                                             &repo_config,
                                             serve,
+                                            main_apis,
                                             arguments.common.jobs,
                                             arguments.describe.print_json);
             }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef BOOTSTRAP_BUILD_TOOL
+
 #include "src/buildtool/main/describe.hpp"
 
 #include <iostream>
@@ -24,11 +26,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
-#ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
 
@@ -268,9 +265,9 @@ auto DescribeUserDefinedRule(
 auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     gsl::not_null<const RepositoryConfig*> const& repo_config,
                     std::optional<ServeApi> const& serve,
+                    ApiBundle const& apis,
                     std::size_t jobs,
                     bool print_json) -> int {
-#ifndef BOOTSTRAP_BUILD_TOOL
     // check if target root is absent
     if (repo_config->TargetRoot(id.target.ToModule().repository)->IsAbsent()) {
         // check that we have a serve endpoint configured
@@ -314,23 +311,17 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                           << std::endl;
                 return kExitSuccess;
             }
-            // get description from remote CAS
-            auto const local_api = CreateExecutionApi(
-                std::nullopt, std::make_optional(repo_config));
-            auto const remote_api =
-                CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                                   std::make_optional(repo_config));
             auto const& desc_info =
                 Artifact::ObjectInfo{.digest = *dgst, .type = ObjectType::File};
-            if (!local_api->IsAvailable(*dgst)) {
-                if (!remote_api->RetrieveToCas({desc_info}, &*local_api)) {
+            if (!apis.local->IsAvailable(*dgst)) {
+                if (!apis.remote->RetrieveToCas({desc_info}, &*apis.local)) {
                     Logger::Log(LogLevel::Error,
                                 "Failed to retrieve blob {} from remote CAS",
                                 desc_info.ToString());
                     return kExitFailure;
                 }
             }
-            auto const desc_str = local_api->RetrieveToMemory(desc_info);
+            auto const desc_str = apis.local->RetrieveToMemory(desc_info);
             if (not desc_str) {
                 Logger::Log(LogLevel::Error,
                             "Could not load in memory blob {}",
@@ -377,7 +368,6 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     id.target.ToJson().dump());
         return kExitFailure;
     }
-#endif  // BOOTSTRAP_BUILD_TOOL
 
     // process with a present target root
     auto targets_file_map = Base::CreateTargetsFileMap(repo_config, jobs);
@@ -463,3 +453,5 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
     }
     return DescribeUserDefinedRule(*rule_name, repo_config, jobs, print_json);
 }
+
+#endif  // BOOTSTRAP_BUILD_TOOL
