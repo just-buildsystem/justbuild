@@ -52,7 +52,8 @@ using serve_target_result_t =
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class TargetClient {
   public:
-    explicit TargetClient(ServerAddress const& address) noexcept;
+    explicit TargetClient(ServerAddress const& address,
+                          gsl::not_null<ApiBundle const*> const& apis) noexcept;
 
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
     /// to the given key.
@@ -86,14 +87,9 @@ class TargetClient {
         const noexcept -> std::optional<ArtifactDigest>;
 
   private:
+    ApiBundle const& apis_;
     std::unique_ptr<justbuild::just_serve::Target::Stub> stub_;
     Logger logger_{"RemoteTargetClient"};
-    gsl::not_null<IExecutionApi::Ptr> const remote_api_{
-        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                           std::nullopt,
-                           "remote-execution")};
-    gsl::not_null<IExecutionApi::Ptr> const local_api_{
-        CreateExecutionApi(std::nullopt)};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_SERVE_API_TARGET_CLIENT_HPP

@@ -29,6 +29,7 @@ class ServeApi final {};
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
@@ -37,8 +38,9 @@ class ServeApi final {};
 
 class ServeApi final {
   public:
-    explicit ServeApi(ServerAddress const& address) noexcept
-        : stc_{address}, tc_{address}, cc_{address} {}
+    explicit ServeApi(ServerAddress const& address,
+                      gsl::not_null<ApiBundle const*> const& apis) noexcept
+        : stc_{address}, tc_{address, apis}, cc_{address} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;
@@ -47,10 +49,12 @@ class ServeApi final {
     auto operator=(ServeApi&&) -> ServeApi& = delete;
 
     [[nodiscard]] static auto Create(
-        RemoteServeConfig const& serve_config) noexcept
+        RemoteServeConfig const& serve_config,
+        gsl::not_null<ApiBundle const*> const& apis) noexcept
         -> std::optional<ServeApi> {
         if (serve_config.remote_address) {
-            return std::make_optional<ServeApi>(*serve_config.remote_address);
+            return std::make_optional<ServeApi>(*serve_config.remote_address,
+                                                apis);
         }
         return std::nullopt;
     }

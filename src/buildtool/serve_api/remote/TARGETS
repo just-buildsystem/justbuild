@@ -36,6 +36,7 @@
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , "source_tree_client"
     , "target_client"
     , "configuration_client"

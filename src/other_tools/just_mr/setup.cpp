@@ -127,7 +127,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
-    auto serve = ServeApi::Create(*serve_config);
+    auto serve = ServeApi::Create(*serve_config, &apis);
 
     // check configuration of the serve endpoint provided
     if (serve) {

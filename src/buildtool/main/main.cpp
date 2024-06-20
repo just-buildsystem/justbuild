@@ -841,7 +841,7 @@ auto main(int argc, char* argv[]) -> int {
             if (serve_server) {
                 ApiBundle const serve_apis{
                     std::nullopt, RemoteExecutionConfig::RemoteAddress()};
-                auto serve = ServeApi::Create(*serve_config);
+                auto serve = ServeApi::Create(*serve_config, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
                 return serve_server->Run(
                            *serve_config, serve, serve_apis, with_execute)
@@ -928,7 +928,8 @@ auto main(int argc, char* argv[]) -> int {
             DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        std::optional<ServeApi> serve = ServeApi::Create(*serve_config);
+        std::optional<ServeApi> serve =
+            ServeApi::Create(*serve_config, &main_apis);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL

@@ -408,7 +408,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    auto serve = ServeApi::Create(*serve_config);
+    auto serve = ServeApi::Create(*serve_config, &apis);
     // check configuration of the serve endpoint provided
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must
