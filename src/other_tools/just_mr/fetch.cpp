@@ -20,8 +20,8 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -393,12 +393,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     }
 
     // setup the APIs for archive fetches; only happens if in native mode
-    auto remote_api =
-        JustMR::Utils::GetRemoteApi(common_args.remote_execution_address,
-                                    common_args.remote_serve_address,
-                                    auth_args);
-    IExecutionApi::Ptr local_api{std::make_unique<LocalApi>()};
-    bool remote_compatible{common_args.compatible};
+    JustMR::Utils::SetupRemoteConfig(common_args.remote_execution_address,
+                                     common_args.remote_serve_address,
+                                     auth_args);
+
+    ApiBundle const apis{std::nullopt, RemoteExecutionConfig::RemoteAddress()};
+    bool const has_remote_api =
+        apis.local != apis.remote and not common_args.compatible;
 
     // setup the API for serving roots
     auto serve_config = JustMR::Utils::CreateServeConfig(
@@ -412,7 +413,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must
         // match what the serve endpoint expects
-        if (remote_api and common_args.remote_execution_address and
+        if (common_args.remote_execution_address and
             not serve->CheckServeRemoteExecution()) {
             return kExitFetchError;  // this check logs error on failure
         }
@@ -438,26 +439,24 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
 
-    auto content_cas_map =
-        CreateContentCASMap(common_args.just_mr_paths,
-                            common_args.alternative_mirrors,
-                            common_args.ca_info,
-                            &critical_git_op_map,
-                            serve,
-                            &(*local_api),
-                            (remote_api and not remote_compatible)
-                                ? std::make_optional(&(*remote_api))
-                                : std::nullopt,
-                            common_args.jobs);
-
-    auto archive_fetch_map = CreateArchiveFetchMap(
-        &content_cas_map,
-        *fetch_dir,
-        &(*local_api),
-        (fetch_args.backup_to_remote and remote_api and not remote_compatible)
-            ? std::make_optional(&(*remote_api))
-            : std::nullopt,
+    auto content_cas_map = CreateContentCASMap(
+        common_args.just_mr_paths,
+        common_args.alternative_mirrors,
+        common_args.ca_info,
+        &critical_git_op_map,
+        serve,
+        &(*apis.local),
+        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
         common_args.jobs);
+
+    auto archive_fetch_map =
+        CreateArchiveFetchMap(&content_cas_map,
+                              *fetch_dir,
+                              &(*apis.local),
+                              (fetch_args.backup_to_remote and has_remote_api)
+                                  ? std::make_optional(&(*apis.remote))
+                                  : std::nullopt,
+                              common_args.jobs);
 
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map,
@@ -465,18 +464,16 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                              *common_args.local_launcher,
                              common_args.jobs);
 
-    auto git_tree_fetch_map =
-        CreateGitTreeFetchMap(&critical_git_op_map,
-                              &import_to_git_map,
-                              common_args.git_path->string(),
-                              *common_args.local_launcher,
-                              serve,
-                              &(*local_api),
-                              (remote_api and not remote_compatible)
-                                  ? std::make_optional(&(*remote_api))
-                                  : std::nullopt,
-                              fetch_args.backup_to_remote,
-                              common_args.jobs);
+    auto git_tree_fetch_map = CreateGitTreeFetchMap(
+        &critical_git_op_map,
+        &import_to_git_map,
+        common_args.git_path->string(),
+        *common_args.local_launcher,
+        serve,
+        &(*apis.local),
+        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
+        fetch_args.backup_to_remote,
+        common_args.jobs);
 
     // set up progress observer
     JustMRProgress::Instance().SetTotal(static_cast<int>(nr_a + nr_gt));

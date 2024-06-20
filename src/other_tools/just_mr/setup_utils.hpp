@@ -23,7 +23,6 @@
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
@@ -61,12 +60,9 @@ void DefaultReachableRepositories(
     std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
 
-/// \brief Get a remote API instance based on just-mr arguments.
-/// \returns Pointer to a configured remote API, or nullptr.
-[[nodiscard]] auto GetRemoteApi(
-    std::optional<std::string> const& remote_exec_addr,
-    std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) noexcept -> IExecutionApi::Ptr;
+void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
+                       std::optional<std::string> const& remote_serve_addr,
+                       MultiRepoRemoteAuthArguments const& auth) noexcept;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
 /// \returns RemoteServeConfig if initialization was successfull or std::nullopt

@@ -7,6 +7,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
@@ -15,9 +16,7 @@
     [ ["@", "fmt", "", "fmt"]
     , "root_utils"
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "git_repo"]
@@ -116,7 +115,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , "root_utils"
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "git_repo"]

@@ -84,7 +84,6 @@
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/expression", "expression"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/serve_api/remote", "config"]
     , "cli"
     ]
@@ -96,8 +95,6 @@
     , ["src/buildtool/logging", "logging"]
     , "exit_codes"
     , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["src/buildtool/execution_api/remote", "bazel"]
     ]
   }
 , "fetch":
@@ -123,7 +120,7 @@
     , ["src/other_tools/utils", "parse_archive"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
@@ -177,7 +174,7 @@
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]

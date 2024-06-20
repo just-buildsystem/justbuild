@@ -21,8 +21,6 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -236,30 +234,25 @@ auto ReadConfiguration(
     }
 }
 
-auto GetRemoteApi(std::optional<std::string> const& remote_exec_addr,
-                  std::optional<std::string> const& remote_serve_addr,
-                  MultiRepoRemoteAuthArguments const& auth) noexcept
-    -> IExecutionApi::Ptr {
+void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
+                       std::optional<std::string> const& remote_serve_addr,
+                       MultiRepoRemoteAuthArguments const& auth) noexcept {
     // if only a serve endpoint address is given, we assume it is one that acts
     // also as remote-execution
     auto remote_addr = remote_exec_addr ? remote_exec_addr : remote_serve_addr;
-    if (remote_addr) {
-        // setup authentication
-        SetupAuthConfig(auth);
-        // setup remote
-        if (not RemoteExecutionConfig::SetRemoteAddress(*remote_addr)) {
-            Logger::Log(LogLevel::Error,
-                        "setting remote execution address '{}' failed.",
-                        *remote_addr);
-            std::exit(kExitConfigError);
-        }
-        auto address = RemoteExecutionConfig::RemoteAddress();
-        ExecutionConfiguration config;
-        config.skip_cache_lookup = false;
-        return std::make_unique<BazelApi>(
-            "remote-execution", address->host, address->port, config);
+    if (not remote_addr) {
+        return;
     }
-    return nullptr;
+
+    // setup authentication
+    SetupAuthConfig(auth);
+    // setup remote
+    if (not RemoteExecutionConfig::SetRemoteAddress(*remote_addr)) {
+        Logger::Log(LogLevel::Error,
+                    "setting remote execution address '{}' failed.",
+                    *remote_addr);
+        std::exit(kExitConfigError);
+    }
 }
 
 auto CreateServeConfig(std::optional<std::string> const& remote_serve_addr,

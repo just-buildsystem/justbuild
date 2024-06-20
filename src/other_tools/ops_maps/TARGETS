@@ -72,7 +72,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/other_tools/utils", "content"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
@@ -96,7 +95,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/other_tools/just_mr", "utils"]
-    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
@@ -120,7 +118,6 @@
     [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "config"]
