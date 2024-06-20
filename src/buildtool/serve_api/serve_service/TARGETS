@@ -35,6 +35,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/archive", "archive_ops"]
+    , ["src/buildtool/execution_api/git", "git"]
     ]
   }
 , "serve_server_implementation":

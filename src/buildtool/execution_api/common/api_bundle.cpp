@@ -15,6 +15,8 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
 ApiBundle::ApiBundle(
     std::optional<gsl::not_null<const RepositoryConfig*>> const& repo_config,

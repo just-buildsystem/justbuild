@@ -128,6 +128,7 @@
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
+    , ["src/buildtool/execution_api/git", "git"]
     , ["@", "fmt", "", "fmt"]
     ]
   }

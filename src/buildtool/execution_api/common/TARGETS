@@ -39,12 +39,15 @@
   , "srcs": ["api_bundle.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
-    [ ["src/buildtool/common", "config"]
+    [ "common"
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/common/remote", "remote_common"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     ]
-  , "private-deps": [["src/buildtool/execution_api/bazel_msg", "bazel_msg"]]
   }
 , "message_limits":
   { "type": ["@", "rules", "CC", "library"]

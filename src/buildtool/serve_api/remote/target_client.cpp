@@ -23,7 +23,9 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 TargetClient::TargetClient(ServerAddress const& address,
                            gsl::not_null<ApiBundle const*> const& apis) noexcept
