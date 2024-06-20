@@ -56,7 +56,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto ExecuteAction(
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::map<std::string, std::string> const& properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> const& dispatch_list,
@@ -110,7 +110,7 @@ class ExecutorImpl {
         auto alternative_api =
             GetAlternativeEndpoint(properties, dispatch_list);
         if (alternative_api) {
-            if (not api->ParallelRetrieveToCas(
+            if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
                         *root_digest, ObjectType::Tree, /* failed= */ false}},
                     *alternative_api,
@@ -123,13 +123,13 @@ class ExecutorImpl {
             }
         }
 
-        auto remote_action = (alternative_api ? &(*alternative_api) : api)
-                                 ->CreateAction(*root_digest,
-                                                action->Command(),
-                                                action->OutputFilePaths(),
-                                                action->OutputDirPaths(),
-                                                action->Env(),
-                                                properties);
+        auto remote_action = (alternative_api ? *alternative_api : api)
+                                 .CreateAction(*root_digest,
+                                               action->Command(),
+                                               action->OutputFilePaths(),
+                                               action->OutputDirPaths(),
+                                               action->Env(),
+                                               properties);
 
         if (remote_action == nullptr) {
             logger.Emit(LogLevel::Error,
@@ -149,7 +149,7 @@ class ExecutorImpl {
                 for (auto const& [path, info] : artifacts) {
                     object_infos.emplace_back(info);
                 }
-                if (not alternative_api->RetrieveToCas(object_infos, *api)) {
+                if (not alternative_api->RetrieveToCas(object_infos, api)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed to retrieve back artifacts from "
                                 "dispatch endpoint");
@@ -170,8 +170,8 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<IExecutionApi*> const& remote_api,
-        gsl::not_null<IExecutionApi*> const& local_api) noexcept -> bool {
+        IExecutionApi const& remote_api,
+        IExecutionApi const& local_api) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
         auto const file_path_opt = artifact->Content().FilePath();
         // If there is no object info and no file path, the artifact can not be
@@ -193,11 +193,11 @@ class ExecutorImpl {
                     << std::endl;
                 return oss.str();
             });
-            if (not remote_api->IsAvailable(object_info_opt->digest)) {
+            if (not remote_api.IsAvailable(object_info_opt->digest)) {
                 // Check if requested artifact is available in local CAS and
                 // upload to remote CAS in case it is.
-                if (local_api->IsAvailable(object_info_opt->digest) and
-                    local_api->RetrieveToCas({*object_info_opt}, *remote_api)) {
+                if (local_api.IsAvailable(object_info_opt->digest) and
+                    local_api.RetrieveToCas({*object_info_opt}, remote_api)) {
                     return true;
                 }
 
@@ -252,10 +252,9 @@ class ExecutorImpl {
     /// \param[in] tree     The git tree to be uploaded.
     /// \returns True if the upload was successful, False in case of any error.
     // NOLINTNEXTLINE(misc-no-recursion)
-    [[nodiscard]] static auto VerifyOrUploadTree(
-        gsl::not_null<IExecutionApi*> const& api,
-        GitTree const& tree) noexcept -> bool {
-
+    [[nodiscard]] static auto VerifyOrUploadTree(IExecutionApi const& api,
+                                                 GitTree const& tree) noexcept
+        -> bool {
         // create list of digests for batch check of CAS availability
         std::vector<ArtifactDigest> digests;
         std::unordered_map<ArtifactDigest, gsl::not_null<GitTreeEntryPtr>>
@@ -283,7 +282,7 @@ class ExecutorImpl {
         });
 
         // find missing digests
-        auto missing_digests = api->IsAvailable(digests);
+        auto missing_digests = api.IsAvailable(digests);
 
         // process missing trees
         for (auto const& digest : missing_digests) {
@@ -316,15 +315,15 @@ class ExecutorImpl {
                                      IsExecutableObject(entry->Type())},
                         /*exception_is_fatal=*/true,
                         [&api](ArtifactBlobContainer&& blobs) {
-                            return api->Upload(std::move(blobs),
-                                               /*skip_find_missing=*/true);
+                            return api.Upload(std::move(blobs),
+                                              /*skip_find_missing=*/true);
                         })) {
                     return false;
                 }
             }
         }
         // upload remaining blobs
-        return api->Upload(std::move(container), /*skip_find_missing=*/true);
+        return api.Upload(std::move(container), /*skip_find_missing=*/true);
     }
 
     /// \brief Lookup blob via digest in local git repositories and upload.
@@ -334,7 +333,7 @@ class ExecutorImpl {
     /// \param hash         The git-sha1 hash of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadGitArtifact(
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info,
@@ -367,11 +366,11 @@ class ExecutorImpl {
             return false;
         }
 
-        return api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-                               info.digest,
-                               std::move(*content),
-                               IsExecutableObject(info.type)}}},
-                           /*skip_find_missing=*/true);
+        return api.Upload(ArtifactBlobContainer{{ArtifactBlob{
+                              info.digest,
+                              std::move(*content),
+                              IsExecutableObject(info.type)}}},
+                          /*skip_find_missing=*/true);
     }
 
     [[nodiscard]] static auto ReadGitBlob(
@@ -413,7 +412,7 @@ class ExecutorImpl {
     /// \param info         The info of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
@@ -437,7 +436,7 @@ class ExecutorImpl {
     /// \param file_path    The path of the file to be read
     /// \returns The computed object info on success
     [[nodiscard]] static auto UploadFile(
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::filesystem::path const& file_path) noexcept
@@ -455,7 +454,7 @@ class ExecutorImpl {
             return std::nullopt;
         }
         auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
-        if (not api->Upload(ArtifactBlobContainer{
+        if (not api.Upload(ArtifactBlobContainer{
                 {ArtifactBlob{digest,
                               std::move(*content),
                               IsExecutableObject(*object_type)}}})) {
@@ -483,7 +482,7 @@ class ExecutorImpl {
     /// \param api          The endpoint required for uploading
     /// \param artifacts    The artifacts to create the root tree digest from
     [[nodiscard]] static auto CreateRootDigest(
-        gsl::not_null<IExecutionApi*> const& api,
+        IExecutionApi const& api,
         std::vector<DependencyGraph::NamedArtifactNodePtr> const&
             artifacts) noexcept -> std::optional<ArtifactDigest> {
         if (artifacts.size() == 1 and
@@ -495,7 +494,7 @@ class ExecutorImpl {
                 return info->digest;
             }
         }
-        return api->UploadTree(artifacts);
+        return api.UploadTree(artifacts);
     }
     /// \brief Check that all outputs expected from the action description
     /// are present in the artifacts map
@@ -701,8 +700,8 @@ class Executor {
   public:
     explicit Executor(
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<IExecutionApi*> const& local_api,
-        gsl::not_null<IExecutionApi*> const& remote_api,
+        gsl::not_null<IExecutionApi const*> const& local_api,
+        gsl::not_null<IExecutionApi const*> const& remote_api,
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
@@ -711,8 +710,8 @@ class Executor {
         Logger const* logger = nullptr,  // log in caller logger, if given
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
-          local_api_{local_api},
-          remote_api_{remote_api},
+          local_api_{*local_api},
+          remote_api_{*remote_api},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
           stats_{stats},
@@ -787,8 +786,8 @@ class Executor {
 
   private:
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    gsl::not_null<IExecutionApi*> local_api_;
-    gsl::not_null<IExecutionApi*> remote_api_;
+    IExecutionApi const& local_api_;
+    IExecutionApi const& remote_api_;
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
@@ -811,9 +810,9 @@ class Rebuilder {
     /// \param timeout      Timeout for action execution.
     Rebuilder(
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<IExecutionApi*> const& local_api,
-        gsl::not_null<IExecutionApi*> const& remote_api,
-        gsl::not_null<IExecutionApi*> const& api_cached,
+        gsl::not_null<IExecutionApi const*> const& local_api,
+        gsl::not_null<IExecutionApi const*> const& remote_api,
+        gsl::not_null<IExecutionApi const*> const& api_cached,
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
@@ -821,9 +820,9 @@ class Rebuilder {
         gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
-          local_api_{local_api},
-          remote_api_{remote_api},
-          api_cached_{api_cached},
+          local_api_{*local_api},
+          remote_api_{*remote_api},
+          api_cached_{*api_cached},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
           stats_{stats},
@@ -899,9 +898,9 @@ class Rebuilder {
 
   private:
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    gsl::not_null<IExecutionApi*> local_api_;
-    gsl::not_null<IExecutionApi*> remote_api_;
-    gsl::not_null<IExecutionApi*> api_cached_;
+    IExecutionApi const& local_api_;
+    IExecutionApi const& remote_api_;
+    IExecutionApi const& api_cached_;
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;

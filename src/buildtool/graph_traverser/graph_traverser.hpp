@@ -392,9 +392,9 @@ class GraphTraverser {
         auto api_cached =
             apis_.CreateRemote(RemoteExecutionConfig::CacheAddress());
         Rebuilder executor{repo_config_,
-                           &(*apis_.local),
-                           &(*apis_.remote),
-                           &(*api_cached),
+                           &*apis_.local,
+                           &*apis_.remote,
+                           &*api_cached,
                            platform_properties_,
                            dispatch_list_,
                            stats_,
