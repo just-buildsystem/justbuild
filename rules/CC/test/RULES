@@ -50,7 +50,7 @@
       , ""
       , "This running of the test is carried out by the implicit dependency"
       , "on the target \"runner\". By setting this target in the target layer"
-      , "of this rues repository (instead of letting it default to the"
+      , "of this rules repository (instead of letting it default to the"
       , "respective file), the C/C++ test environment can be modified globally."
       ]
     , "private-hdrs":
