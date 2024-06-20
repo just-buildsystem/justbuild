@@ -106,7 +106,7 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
         return false;
     }
 
-    SourceTreeService sts{serve_config};
+    SourceTreeService sts{serve_config, &apis};
     TargetService ts{serve_config, serve, &apis};
     ConfigurationService cs{};
 

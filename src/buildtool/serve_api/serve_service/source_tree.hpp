@@ -56,8 +56,10 @@ class SourceTreeService final
     using GetRemoteTreeResponse =
         ::justbuild::just_serve::GetRemoteTreeResponse;
 
-    explicit SourceTreeService(RemoteServeConfig const& serve_config) noexcept
-        : serve_config_{serve_config} {}
+    explicit SourceTreeService(
+        RemoteServeConfig const& serve_config,
+        gsl::not_null<ApiBundle const*> const& apis) noexcept
+        : serve_config_{serve_config}, apis_{*apis} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
@@ -124,17 +126,9 @@ class SourceTreeService final
 
   private:
     RemoteServeConfig const& serve_config_;
+    ApiBundle const& apis_;
     mutable std::shared_mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
-
-    // remote execution endpoint
-    gsl::not_null<IExecutionApi::Ptr> const remote_api_{
-        CreateExecutionApi(RemoteExecutionConfig::RemoteAddress(),
-                           std::nullopt,
-                           "serve-remote-execution")};
-    // local api
-    gsl::not_null<IExecutionApi::Ptr> const local_api_{
-        CreateExecutionApi(std::nullopt)};
     // symlinks resolver map
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};
 
