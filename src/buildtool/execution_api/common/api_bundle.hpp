@@ -33,10 +33,10 @@ struct ApiBundle final {
         std::optional<ServerAddress> const& remote_address);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
-        const -> gsl::not_null<std::shared_ptr<IExecutionApi>>;
+        const -> gsl::not_null<IExecutionApi::Ptr>;
 
-    gsl::not_null<std::shared_ptr<IExecutionApi>> const local;
-    gsl::not_null<std::shared_ptr<IExecutionApi>> const remote;
+    gsl::not_null<IExecutionApi::Ptr> const local;
+    gsl::not_null<IExecutionApi::Ptr> const remote;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP

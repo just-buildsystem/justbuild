@@ -34,7 +34,7 @@
 /// Can be used to create actions.
 class IExecutionApi {
   public:
-    using Ptr = std::unique_ptr<IExecutionApi>;
+    using Ptr = std::shared_ptr<IExecutionApi const>;
 
     IExecutionApi() = default;
     IExecutionApi(IExecutionApi const&) = delete;

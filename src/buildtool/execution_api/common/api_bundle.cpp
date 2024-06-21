@@ -25,7 +25,7 @@ ApiBundle::ApiBundle(
       remote{CreateRemote(remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
-    -> gsl::not_null<std::shared_ptr<IExecutionApi>> {
+    -> gsl::not_null<IExecutionApi::Ptr> {
     if (address) {
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
