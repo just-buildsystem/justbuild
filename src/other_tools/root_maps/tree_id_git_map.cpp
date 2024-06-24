@@ -26,13 +26,14 @@ namespace {
 
 /// \brief Guarantees it terminates by either calling the setter or calling the
 /// logger with fatal.
-void UploadToServeAndSetRoot(ServeApi const& serve,
-                             std::string const& tree_id,
-                             ArtifactDigest const& digest,
-                             gsl::not_null<IExecutionApi*> const& remote_api,
-                             bool ignore_special,
-                             TreeIdGitMap::SetterPtr const& setter,
-                             TreeIdGitMap::LoggerPtr const& logger) {
+void UploadToServeAndSetRoot(
+    ServeApi const& serve,
+    std::string const& tree_id,
+    ArtifactDigest const& digest,
+    gsl::not_null<IExecutionApi const*> const& remote_api,
+    bool ignore_special,
+    TreeIdGitMap::SetterPtr const& setter,
+    TreeIdGitMap::LoggerPtr const& logger) {
     // upload to remote CAS
     auto repo_config = RepositoryConfig{};
     if (repo_config.SetGitCAS(StorageConfig::GitRoot())) {
@@ -79,8 +80,8 @@ void MoveCASTreeToGitAndProcess(
     std::string const& tree_id,
     ArtifactDigest const& digest,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    gsl::not_null<IExecutionApi*> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    gsl::not_null<IExecutionApi const*> const& remote_api,
     bool ignore_special,
     gsl::not_null<TaskSystem*> const& ts,
     TreeIdGitMap::SetterPtr const& setter,
@@ -148,8 +149,8 @@ auto CreateTreeIdGitMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
     std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     std::size_t jobs) -> TreeIdGitMap {
     auto tree_to_git = [git_tree_fetch_map,
                         critical_git_op_map,

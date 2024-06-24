@@ -35,7 +35,7 @@
 namespace {
 
 void BackupToRemote(std::string const& tree_id,
-                    gsl::not_null<IExecutionApi*> const& remote_api,
+                    gsl::not_null<IExecutionApi const*> const& remote_api,
                     GitTreeFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     auto repo = RepositoryConfig{};
@@ -67,8 +67,8 @@ void MoveCASTreeToGit(
     std::string const& tree_id,
     ArtifactDigest const& digest,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     bool backup_to_remote,
     gsl::not_null<TaskSystem*> const& ts,
     GitTreeFetchMap::SetterPtr const& setter,
@@ -130,8 +130,8 @@ auto CreateGitTreeFetchMap(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap {
     auto tree_to_cache = [critical_git_op_map,

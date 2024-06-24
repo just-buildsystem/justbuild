@@ -70,8 +70,8 @@ using TreeIdGitMap =
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
     std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     std::size_t jobs) -> TreeIdGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP

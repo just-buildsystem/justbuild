@@ -39,7 +39,7 @@ auto EnsureAbsentRootOnServe(
     ServeApi const& serve,
     std::string const& tree_id,
     std::filesystem::path const& repo_path,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     AsyncMapConsumerLoggerPtr const& logger,
     bool no_sync_is_fatal) -> bool {
     if (remote_api) {

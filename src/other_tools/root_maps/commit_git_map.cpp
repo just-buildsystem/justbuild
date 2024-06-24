@@ -63,7 +63,7 @@ void EnsureRootAsAbsent(
     std::filesystem::path const& repo_root,
     GitRepoInfo const& repo_info,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     CommitGitMap::SetterPtr const& ws_setter,
     CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
@@ -412,8 +412,8 @@ void EnsureCommit(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     bool fetch_absent,
     gsl::not_null<TaskSystem*> const& ts,
     CommitGitMap::SetterPtr const& ws_setter,
@@ -924,8 +924,8 @@ auto CreateCommitGitMap(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi*>> const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,
