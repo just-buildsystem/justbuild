@@ -149,8 +149,8 @@ class TestApi : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& /*unused*/,
         std::vector<std::filesystem::path> const& /*unused*/,
-        std::optional<gsl::not_null<const IExecutionApi*>> const& /* unused */)
-        const noexcept -> bool final {
+        IExecutionApi::OptionalPtr const& /* unused */) const noexcept
+        -> bool final {
         return false;  // not needed by Executor
     }
     [[nodiscard]] auto RetrieveToFds(

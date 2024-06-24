@@ -150,7 +150,7 @@ auto CreateTreeIdGitMap(
     bool fetch_absent,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs) -> TreeIdGitMap {
     auto tree_to_git = [git_tree_fetch_map,
                         critical_git_op_map,

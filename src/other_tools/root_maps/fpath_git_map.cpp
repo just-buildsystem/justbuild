@@ -33,14 +33,13 @@ namespace {
 /// \brief Does the serve endpoint checks and sets the workspace root.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void CheckServeAndSetRoot(
-    std::string const& tree_id,
-    std::string const& repo_root,
-    bool absent,
-    std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    FilePathGitMap::SetterPtr const& ws_setter,
-    FilePathGitMap::LoggerPtr const& logger) {
+void CheckServeAndSetRoot(std::string const& tree_id,
+                          std::string const& repo_root,
+                          bool absent,
+                          std::optional<ServeApi> const& serve,
+                          IExecutionApi::OptionalPtr const& remote_api,
+                          FilePathGitMap::SetterPtr const& ws_setter,
+                          FilePathGitMap::LoggerPtr const& logger) {
     // if serve endpoint is given, try to ensure it has this tree available to
     // be able to build against it. If root is not absent, do not fail if we
     // don't have a suitable remote endpoint, but warn user nonetheless.
@@ -102,7 +101,7 @@ void ResolveFilePathTree(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     gsl::not_null<TaskSystem*> const& ts,
     FilePathGitMap::SetterPtr const& ws_setter,
     FilePathGitMap::LoggerPtr const& logger) {
@@ -256,7 +255,7 @@ auto CreateFilePathGitMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs,
     std::string multi_repo_tool_name,
     std::string build_tool_name) -> FilePathGitMap {

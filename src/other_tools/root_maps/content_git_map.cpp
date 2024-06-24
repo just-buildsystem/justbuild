@@ -52,14 +52,13 @@ namespace {
 /// root if it was marked absent.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureRootAsAbsent(
-    std::string const& tree_id,
-    ArchiveRepoInfo const& key,
-    std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    bool is_cache_hit,
-    ContentGitMap::SetterPtr const& ws_setter,
-    ContentGitMap::LoggerPtr const& logger) {
+void EnsureRootAsAbsent(std::string const& tree_id,
+                        ArchiveRepoInfo const& key,
+                        std::optional<ServeApi> const& serve,
+                        IExecutionApi::OptionalPtr const& remote_api,
+                        bool is_cache_hit,
+                        ContentGitMap::SetterPtr const& ws_setter,
+                        ContentGitMap::LoggerPtr const& logger) {
     // this is an absent root
     if (serve) {
         // check if the serve endpoint has this root
@@ -176,7 +175,7 @@ void ResolveContentTree(
     bool is_cache_hit,
     bool is_absent,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
@@ -365,7 +364,7 @@ void WriteIdFileAndSetWSRoot(
     std::filesystem::path const& archive_tree_id_file,
     bool is_absent,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<TaskSystem*> const& ts,
@@ -426,7 +425,7 @@ void ExtractAndImportToGit(
     std::filesystem::path const& archive_tree_id_file,
     bool is_absent,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
@@ -510,7 +509,7 @@ auto CreateContentGitMap(
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap {
     auto gitify_content = [content_cas_map,

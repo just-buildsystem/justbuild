@@ -54,8 +54,7 @@ class GitApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<
-            gsl::not_null<const IExecutionApi*>> const& /*alternative*/
+        IExecutionApi::OptionalPtr const& /*alternative*/
         = std::nullopt) const noexcept -> bool override {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,

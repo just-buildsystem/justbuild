@@ -78,9 +78,8 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        std::optional<
-            gsl::not_null<const IExecutionApi*>> const& /*alternative*/
-        = std::nullopt) const noexcept -> bool final {
+        IExecutionApi::OptionalPtr const& /*alternative*/ =
+            std::nullopt) const noexcept -> bool final {
         if (artifacts_info.size() != output_paths.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and output paths.");

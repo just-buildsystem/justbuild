@@ -30,7 +30,7 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     std::filesystem::path const& fetch_dir,  // should exist!
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs) -> ArchiveFetchMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP

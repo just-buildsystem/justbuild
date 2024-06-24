@@ -26,14 +26,13 @@
 
 namespace {
 
-void ProcessContent(
-    std::filesystem::path const& content_path,
-    std::filesystem::path const& target_name,
-    gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    std::string const& content,
-    ArchiveFetchMap::SetterPtr const& setter,
-    ArchiveFetchMap::LoggerPtr const& logger) {
+void ProcessContent(std::filesystem::path const& content_path,
+                    std::filesystem::path const& target_name,
+                    gsl::not_null<IExecutionApi const*> const& local_api,
+                    IExecutionApi::OptionalPtr const& remote_api,
+                    std::string const& content,
+                    ArchiveFetchMap::SetterPtr const& setter,
+                    ArchiveFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     if (remote_api) {
         if (not local_api->RetrieveToCas(
@@ -68,12 +67,11 @@ void ProcessContent(
 
 }  // namespace
 
-auto CreateArchiveFetchMap(
-    gsl::not_null<ContentCASMap*> const& content_cas_map,
-    std::filesystem::path const& fetch_dir,
-    gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    std::size_t jobs) -> ArchiveFetchMap {
+auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
+                           std::filesystem::path const& fetch_dir,
+                           gsl::not_null<IExecutionApi const*> const& local_api,
+                           IExecutionApi::OptionalPtr const& remote_api,
+                           std::size_t jobs) -> ArchiveFetchMap {
     auto fetch_archive = [content_cas_map, fetch_dir, local_api, remote_api](
                              auto ts,
                              auto setter,

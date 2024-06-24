@@ -58,14 +58,13 @@ namespace {
 /// root if it was marked absent.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureRootAsAbsent(
-    std::string const& tree_id,
-    std::filesystem::path const& repo_root,
-    GitRepoInfo const& repo_info,
-    std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    CommitGitMap::SetterPtr const& ws_setter,
-    CommitGitMap::LoggerPtr const& logger) {
+void EnsureRootAsAbsent(std::string const& tree_id,
+                        std::filesystem::path const& repo_root,
+                        GitRepoInfo const& repo_info,
+                        std::optional<ServeApi> const& serve,
+                        IExecutionApi::OptionalPtr const& remote_api,
+                        CommitGitMap::SetterPtr const& ws_setter,
+                        CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
     if (serve) {
         // check if the serve endpoint has this root
@@ -401,23 +400,22 @@ void NetworkFetchAndSetPresentRoot(
 /// the root.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureCommit(
-    GitRepoInfo const& repo_info,
-    std::filesystem::path const& repo_root,
-    std::string const& fetch_repo,
-    MirrorsPtr const& additional_mirrors,
-    GitCASPtr const& git_cas,
-    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    std::string const& git_bin,
-    std::vector<std::string> const& launcher,
-    std::optional<ServeApi> const& serve,
-    gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    bool fetch_absent,
-    gsl::not_null<TaskSystem*> const& ts,
-    CommitGitMap::SetterPtr const& ws_setter,
-    CommitGitMap::LoggerPtr const& logger) {
+void EnsureCommit(GitRepoInfo const& repo_info,
+                  std::filesystem::path const& repo_root,
+                  std::string const& fetch_repo,
+                  MirrorsPtr const& additional_mirrors,
+                  GitCASPtr const& git_cas,
+                  gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+                  gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+                  std::string const& git_bin,
+                  std::vector<std::string> const& launcher,
+                  std::optional<ServeApi> const& serve,
+                  gsl::not_null<IExecutionApi const*> const& local_api,
+                  IExecutionApi::OptionalPtr const& remote_api,
+                  bool fetch_absent,
+                  gsl::not_null<TaskSystem*> const& ts,
+                  CommitGitMap::SetterPtr const& ws_setter,
+                  CommitGitMap::LoggerPtr const& logger) {
     // link fake repo to odb
     auto git_repo = GitRepoRemote::Open(git_cas);
     if (not git_repo) {
@@ -925,7 +923,7 @@ auto CreateCommitGitMap(
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,

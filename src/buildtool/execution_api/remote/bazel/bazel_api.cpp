@@ -221,8 +221,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
-    std::optional<gsl::not_null<const IExecutionApi*>> const& alternative)
-    const noexcept -> bool {
+    IExecutionApi::OptionalPtr const& alternative) const noexcept -> bool {
     if (artifacts_info.size() != output_paths.size()) {
         Logger::Log(LogLevel::Warning,
                     "different number of digests and output paths.");

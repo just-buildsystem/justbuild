@@ -63,16 +63,15 @@ void BackupToRemote(std::string const& tree_id,
 
 /// \brief Moves the root tree from local CAS to the Git cache and sets the
 /// root.
-void MoveCASTreeToGit(
-    std::string const& tree_id,
-    ArtifactDigest const& digest,
-    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
-    bool backup_to_remote,
-    gsl::not_null<TaskSystem*> const& ts,
-    GitTreeFetchMap::SetterPtr const& setter,
-    GitTreeFetchMap::LoggerPtr const& logger) {
+void MoveCASTreeToGit(std::string const& tree_id,
+                      ArtifactDigest const& digest,
+                      gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+                      gsl::not_null<IExecutionApi const*> const& local_api,
+                      IExecutionApi::OptionalPtr const& remote_api,
+                      bool backup_to_remote,
+                      gsl::not_null<TaskSystem*> const& ts,
+                      GitTreeFetchMap::SetterPtr const& setter,
+                      GitTreeFetchMap::LoggerPtr const& logger) {
     // Move tree from CAS to local Git storage
     auto tmp_dir = StorageConfig::CreateTypedTmpDir("fetch-remote-git-tree");
     if (not tmp_dir) {
@@ -131,7 +130,7 @@ auto CreateGitTreeFetchMap(
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap {
     auto tree_to_cache = [critical_git_op_map,

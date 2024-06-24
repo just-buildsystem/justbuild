@@ -110,7 +110,7 @@ auto CreateContentCASMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs) -> ContentCASMap {
     auto ensure_in_cas = [just_mr_paths,
                           additional_mirrors,

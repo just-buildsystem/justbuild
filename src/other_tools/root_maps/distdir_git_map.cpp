@@ -134,7 +134,7 @@ auto CreateDistdirGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs) -> DistdirGitMap {
     auto distdir_to_git = [content_cas_map,
                            import_to_git_map,

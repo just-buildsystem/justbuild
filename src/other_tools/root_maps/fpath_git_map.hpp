@@ -55,7 +55,7 @@ using FilePathGitMap = AsyncMapConsumer<FpathInfo, nlohmann::json>;
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     std::optional<ServeApi> const& serve,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     std::size_t jobs,
     std::string multi_repo_tool_name,
     std::string build_tool_name) -> FilePathGitMap;

@@ -83,7 +83,7 @@ using CommitGitMap =
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    std::optional<gsl::not_null<IExecutionApi const*>> const& remote_api,
+    IExecutionApi::OptionalPtr const& remote_api,
     bool fetch_absent,
     std::size_t jobs) -> CommitGitMap;
 
