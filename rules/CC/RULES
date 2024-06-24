@@ -21,6 +21,7 @@
     , "PATH"
     , "SYSTEM_TOOLS"
     ]
+  , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH", "DEBUG"]
   , "field_doc":
     { "base": ["Other targets (using the same rule) to inherit values from."]
     , "toolchain":
@@ -77,7 +78,16 @@
       , "with \":\". Specifying this field extends values from \"base\"."
       ]
     }
-  , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
+  , "config_doc":
+    { "ARCH":
+      [ "The unqualified architecture. Is taken as a default for \"HOST_ARCH\""
+      , "and \"TARGET_ARCH\" if not set."
+      ]
+    , "HOST_ARCH":
+      ["The architecture on which the build actions are carried out."]
+    , "TARGET_ARCH": ["The architecture for which to build."]
+    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    }
   , "imports":
     { "base-provides": "defaults-base-provides"
     , "base-provides-++": "defaults-base-provides-++"
@@ -91,6 +101,7 @@
     , "cflags-files-deps": "cflags-files-deps"
     , "ldflags-files-deps": "ldflags-files-deps"
     , "for host": ["transitions", "for host"]
+    , "debug-deps": "debug-deps"
     }
   , "config_transitions":
     {"toolchain": [{"type": "CALL_EXPRESSION", "name": "for host"}]}
@@ -300,6 +311,33 @@
         , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
         ]
       , ["package", {"type": "env", "vars": ["cflags-files", "ldflags-files"]}]
+      , [ "debug-srcs"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "let*"
+            , "bindings": [["deps-provider", "debug-srcs"]]
+            , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "debug-hdrs"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "map_union"
+            , "$1":
+              [ { "type": "let*"
+                , "bindings": [["deps-provider", "debug-hdrs"]]
+                , "body": {"type": "CALL_EXPRESSION", "name": "debug-deps"}
+                }
+              , {"type": "var", "name": "compile-deps"}
+              ]
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
       ]
     , "body":
       { "type": "RESULT"
@@ -321,6 +359,8 @@
           , "link-deps"
           , "link-args"
           , "package"
+          , "debug-srcs"
+          , "debug-hdrs"
           ]
         }
       }
