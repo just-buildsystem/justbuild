@@ -125,7 +125,7 @@ Export targets
 
 As export targets play the role of interfaces between repositories, it
 is important that they be documented as well. Again, export targets are
-described as a JSON object with fixed set of keys amd we use the keys
+described as a JSON object with fixed set of keys and we use the keys
 `"doc"` and `"config_doc"` for documentation. Here `"doc"` is an array of
 strings describing the targeted in general and `"config_doc"` is a map
 from (some of) the variables of the `"flexible_config"` to an array of
