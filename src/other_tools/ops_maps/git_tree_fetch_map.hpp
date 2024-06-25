@@ -62,7 +62,7 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap;
 

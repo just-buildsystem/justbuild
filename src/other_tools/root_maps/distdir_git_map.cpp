@@ -134,7 +134,7 @@ auto CreateDistdirGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     std::size_t jobs) -> DistdirGitMap {
     auto distdir_to_git = [content_cas_map,
                            import_to_git_map,
@@ -236,7 +236,7 @@ auto CreateDistdirGitMap(
                                             /*fatal=*/true);
                                         return;
                                     }
-                                    if (not remote_api) {
+                                    if (remote_api == nullptr) {
                                         (*logger)(
                                             fmt::format(
                                                 "Missing or incompatible "
@@ -254,7 +254,7 @@ auto CreateDistdirGitMap(
                                             *serve,
                                             distdir_tree_id,
                                             StorageConfig::GitRoot(),
-                                            &(*remote_api.value()),
+                                            remote_api,
                                             logger,
                                             true /*no_sync_is_fatal*/)) {
                                         return;
@@ -384,7 +384,7 @@ auto CreateDistdirGitMap(
                         return;
                     }
                     // we cannot continue without a suitable remote set up
-                    if (not remote_api) {
+                    if (remote_api == nullptr) {
                         (*logger)(fmt::format(
                                       "Cannot create workspace root {} as "
                                       "absent for the provided serve endpoint.",
@@ -394,14 +394,14 @@ auto CreateDistdirGitMap(
                     }
                     // try to supply the serve endpoint with the tree via the
                     // remote CAS
-                    if (remote_api.value()->IsAvailable({digest})) {
+                    if (remote_api->IsAvailable({digest})) {
                         // tell serve to set up the root from the remote CAS
                         // tree; upload can be skipped
                         if (EnsureAbsentRootOnServe(
                                 *serve,
                                 tree_id,
                                 /*repo_path=*/"",
-                                /*remote_api=*/std::nullopt,
+                                /*remote_api=*/nullptr,
                                 logger,
                                 /*no_sync_is_fatal=*/true)) {
                             // set workspace root as absent
@@ -425,7 +425,7 @@ auto CreateDistdirGitMap(
                                 {Artifact::ObjectInfo{
                                     .digest = digest,
                                     .type = ObjectType::Tree}},
-                                **remote_api)) {
+                                *remote_api)) {
                             (*logger)(fmt::format("Failed to sync tree {} from "
                                                   "local CAS with remote CAS.",
                                                   tree_id),
@@ -438,7 +438,7 @@ auto CreateDistdirGitMap(
                                 *serve,
                                 tree_id,
                                 /*repo_path=*/"",
-                                /*remote_api=*/std::nullopt,
+                                /*remote_api=*/nullptr,
                                 logger,
                                 /*no_sync_is_fatal=*/true)) {
                             // set workspace root as absent
@@ -483,7 +483,7 @@ auto CreateDistdirGitMap(
             }
             // now ask serve endpoint if it can set up the root; as this is for
             // a present root, a corresponding remote endpoint is needed
-            if (serve and remote_api) {
+            if (serve and remote_api != nullptr) {
                 auto serve_result =
                     serve->RetrieveTreeFromDistdir(key.content_list,
                                                    /*sync_tree=*/true);

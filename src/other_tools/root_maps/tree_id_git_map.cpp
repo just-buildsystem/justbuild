@@ -26,14 +26,13 @@ namespace {
 
 /// \brief Guarantees it terminates by either calling the setter or calling the
 /// logger with fatal.
-void UploadToServeAndSetRoot(
-    ServeApi const& serve,
-    std::string const& tree_id,
-    ArtifactDigest const& digest,
-    gsl::not_null<IExecutionApi const*> const& remote_api,
-    bool ignore_special,
-    TreeIdGitMap::SetterPtr const& setter,
-    TreeIdGitMap::LoggerPtr const& logger) {
+void UploadToServeAndSetRoot(ServeApi const& serve,
+                             std::string const& tree_id,
+                             ArtifactDigest const& digest,
+                             IExecutionApi const& remote_api,
+                             bool ignore_special,
+                             TreeIdGitMap::SetterPtr const& setter,
+                             TreeIdGitMap::LoggerPtr const& logger) {
     // upload to remote CAS
     auto repo_config = RepositoryConfig{};
     if (repo_config.SetGitCAS(StorageConfig::GitRoot())) {
@@ -41,7 +40,7 @@ void UploadToServeAndSetRoot(
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
-                *remote_api)) {
+                remote_api)) {
             (*logger)(fmt::format("Failed to sync tree {} from local Git cache "
                                   "to remote CAS",
                                   tree_id),
@@ -60,7 +59,7 @@ void UploadToServeAndSetRoot(
     if (EnsureAbsentRootOnServe(serve,
                                 tree_id,
                                 /*repo_path=*/"",
-                                /*remote_api=*/std::nullopt,
+                                /*remote_api=*/nullptr,
                                 logger,
                                 /*no_sync_is_fatal=*/true)) {
         // set workspace root as absent
@@ -126,7 +125,7 @@ void MoveCASTreeToGitAndProcess(
             UploadToServeAndSetRoot(serve,
                                     tree_id,
                                     digest,
-                                    remote_api,
+                                    *remote_api,
                                     ignore_special,
                                     setter,
                                     logger);
@@ -150,7 +149,7 @@ auto CreateTreeIdGitMap(
     bool fetch_absent,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     std::size_t jobs) -> TreeIdGitMap {
     auto tree_to_git = [git_tree_fetch_map,
                         critical_git_op_map,
@@ -187,7 +186,7 @@ auto CreateTreeIdGitMap(
                     return;
                 }
                 // we cannot continue without a suitable remote set up
-                if (not remote_api) {
+                if (remote_api == nullptr) {
                     (*logger)(
                         fmt::format("Cannot create workspace root {} as absent "
                                     "for the provided serve endpoint.",
@@ -198,13 +197,13 @@ auto CreateTreeIdGitMap(
                 // check if tree in already in remote CAS
                 auto digest =
                     ArtifactDigest{key.tree_info.hash, 0, /*is_tree=*/true};
-                if (remote_api.value()->IsAvailable({digest})) {
+                if (remote_api->IsAvailable({digest})) {
                     // tell serve to set up the root from the remote CAS tree;
                     // upload can be skipped
                     if (EnsureAbsentRootOnServe(*serve,
                                                 key.tree_info.hash,
                                                 /*repo_path=*/"",
-                                                /*remote_api=*/std::nullopt,
+                                                /*remote_api=*/nullptr,
                                                 logger,
                                                 /*no_sync_is_fatal=*/true)) {
                         // set workspace root as absent
@@ -307,7 +306,7 @@ auto CreateTreeIdGitMap(
                                                        digest,
                                                        import_to_git_map,
                                                        local_api,
-                                                       *remote_api,
+                                                       remote_api,
                                                        key.ignore_special,
                                                        ts,
                                                        setter,

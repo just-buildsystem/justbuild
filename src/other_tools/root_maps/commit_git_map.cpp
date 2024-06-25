@@ -62,7 +62,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                         std::filesystem::path const& repo_root,
                         GitRepoInfo const& repo_info,
                         std::optional<ServeApi> const& serve,
-                        IExecutionApi::OptionalPtr const& remote_api,
+                        IExecutionApi const* remote_api,
                         CommitGitMap::SetterPtr const& ws_setter,
                         CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
@@ -103,7 +103,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                               /*fatal=*/true);
                     return;
                 }
-                if (not remote_api) {
+                if (remote_api == nullptr) {
                     (*logger)(
                         fmt::format("Missing or incompatible remote-execution "
                                     "endpoint needed to sync workspace root {} "
@@ -117,7 +117,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                 if (not EnsureAbsentRootOnServe(*serve,
                                                 tree_id,
                                                 repo_root,
-                                                &(*remote_api.value()),
+                                                remote_api,
                                                 logger,
                                                 true /*no_sync_is_fatal*/)) {
                     return;
@@ -411,7 +411,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   std::vector<std::string> const& launcher,
                   std::optional<ServeApi> const& serve,
                   gsl::not_null<IExecutionApi const*> const& local_api,
-                  IExecutionApi::OptionalPtr const& remote_api,
+                  IExecutionApi const* remote_api,
                   bool fetch_absent,
                   gsl::not_null<TaskSystem*> const& ts,
                   CommitGitMap::SetterPtr const& ws_setter,
@@ -716,8 +716,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             // try to get root tree from remote CAS
                             auto root_digest = ArtifactDigest{
                                 root_tree_id, 0, /*is_tree=*/true};
-                            if (remote_api and
-                                remote_api.value()->RetrieveToCas(
+                            if (remote_api != nullptr and
+                                remote_api->RetrieveToCas(
                                     {Artifact::ObjectInfo{
                                         .digest = root_digest,
                                         .type = ObjectType::Tree}},
@@ -923,7 +923,7 @@ auto CreateCommitGitMap(
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     bool fetch_absent,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,

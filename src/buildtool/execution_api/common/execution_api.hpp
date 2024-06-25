@@ -35,7 +35,6 @@
 class IExecutionApi {
   public:
     using Ptr = std::shared_ptr<IExecutionApi const>;
-    using OptionalPtr = std::optional<gsl::not_null<IExecutionApi const*>>;
 
     IExecutionApi() = default;
     IExecutionApi(IExecutionApi const&) = delete;
@@ -71,8 +70,7 @@ class IExecutionApi {
     [[nodiscard]] virtual auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi::OptionalPtr const& alternative =
-            std::nullopt) const noexcept -> bool = 0;
+        IExecutionApi const* alternative = nullptr) const noexcept -> bool = 0;
 
     /// \brief Retrieve artifacts from CAS and write to file descriptors.
     /// Tree artifacts are not resolved and instead the tree object will be

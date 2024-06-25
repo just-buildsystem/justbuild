@@ -56,7 +56,7 @@ using DistdirGitMap =
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     std::size_t jobs) -> DistdirGitMap;
 
 namespace std {

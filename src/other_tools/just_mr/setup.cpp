@@ -159,15 +159,15 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
 
-    auto content_cas_map = CreateContentCASMap(
-        common_args.just_mr_paths,
-        common_args.alternative_mirrors,
-        common_args.ca_info,
-        &critical_git_op_map,
-        serve,
-        &(*apis.local),
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        common_args.jobs);
+    auto content_cas_map =
+        CreateContentCASMap(common_args.just_mr_paths,
+                            common_args.alternative_mirrors,
+                            common_args.ca_info,
+                            &critical_git_op_map,
+                            serve,
+                            &(*apis.local),
+                            has_remote_api ? &*apis.remote : nullptr,
+                            common_args.jobs);
 
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map,
@@ -175,44 +175,44 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                              *common_args.local_launcher,
                              common_args.jobs);
 
-    auto git_tree_fetch_map = CreateGitTreeFetchMap(
-        &critical_git_op_map,
-        &import_to_git_map,
-        common_args.git_path->string(),
-        *common_args.local_launcher,
-        serve,
-        &(*apis.local),
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        false, /* backup_to_remote */
-        common_args.jobs);
+    auto git_tree_fetch_map =
+        CreateGitTreeFetchMap(&critical_git_op_map,
+                              &import_to_git_map,
+                              common_args.git_path->string(),
+                              *common_args.local_launcher,
+                              serve,
+                              &(*apis.local),
+                              has_remote_api ? &*apis.remote : nullptr,
+                              false, /* backup_to_remote */
+                              common_args.jobs);
 
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
-    auto commit_git_map = CreateCommitGitMap(
-        &critical_git_op_map,
-        &import_to_git_map,
-        common_args.just_mr_paths,
-        common_args.alternative_mirrors,
-        common_args.git_path->string(),
-        *common_args.local_launcher,
-        serve,
-        &(*apis.local),
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        common_args.fetch_absent,
-        common_args.jobs);
+    auto commit_git_map =
+        CreateCommitGitMap(&critical_git_op_map,
+                           &import_to_git_map,
+                           common_args.just_mr_paths,
+                           common_args.alternative_mirrors,
+                           common_args.git_path->string(),
+                           *common_args.local_launcher,
+                           serve,
+                           &(*apis.local),
+                           has_remote_api ? &*apis.remote : nullptr,
+                           common_args.fetch_absent,
+                           common_args.jobs);
 
-    auto content_git_map = CreateContentGitMap(
-        &content_cas_map,
-        &import_to_git_map,
-        common_args.just_mr_paths,
-        common_args.alternative_mirrors,
-        common_args.ca_info,
-        &resolve_symlinks_map,
-        &critical_git_op_map,
-        serve,
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        common_args.fetch_absent,
-        common_args.jobs);
+    auto content_git_map =
+        CreateContentGitMap(&content_cas_map,
+                            &import_to_git_map,
+                            common_args.just_mr_paths,
+                            common_args.alternative_mirrors,
+                            common_args.ca_info,
+                            &resolve_symlinks_map,
+                            &critical_git_op_map,
+                            serve,
+                            has_remote_api ? &*apis.remote : nullptr,
+                            common_args.fetch_absent,
+                            common_args.jobs);
 
     auto foreign_file_git_map =
         CreateForeignFileGitMap(&content_cas_map,
@@ -227,30 +227,30 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         &import_to_git_map,
         &resolve_symlinks_map,
         serve,
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
+        has_remote_api ? &*apis.remote : nullptr,
         common_args.jobs,
         multi_repo_tool_name,
         common_args.just_path ? common_args.just_path->string()
                               : kDefaultJustPath);
 
-    auto distdir_git_map = CreateDistdirGitMap(
-        &content_cas_map,
-        &import_to_git_map,
-        &critical_git_op_map,
-        serve,
-        &(*apis.local),
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        common_args.jobs);
+    auto distdir_git_map =
+        CreateDistdirGitMap(&content_cas_map,
+                            &import_to_git_map,
+                            &critical_git_op_map,
+                            serve,
+                            &(*apis.local),
+                            has_remote_api ? &*apis.remote : nullptr,
+                            common_args.jobs);
 
-    auto tree_id_git_map = CreateTreeIdGitMap(
-        &git_tree_fetch_map,
-        &critical_git_op_map,
-        &import_to_git_map,
-        common_args.fetch_absent,
-        serve,
-        &(*apis.local),
-        has_remote_api ? std::make_optional(&(*apis.remote)) : std::nullopt,
-        common_args.jobs);
+    auto tree_id_git_map =
+        CreateTreeIdGitMap(&git_tree_fetch_map,
+                           &critical_git_op_map,
+                           &import_to_git_map,
+                           common_args.fetch_absent,
+                           serve,
+                           &(*apis.local),
+                           has_remote_api ? &*apis.remote : nullptr,
+                           common_args.jobs);
 
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,

@@ -38,10 +38,10 @@ auto CheckServeHasAbsentRoot(ServeApi const& serve,
 auto EnsureAbsentRootOnServe(ServeApi const& serve,
                              std::string const& tree_id,
                              std::filesystem::path const& repo_path,
-                             IExecutionApi::OptionalPtr const& remote_api,
+                             IExecutionApi const* remote_api,
                              AsyncMapConsumerLoggerPtr const& logger,
                              bool no_sync_is_fatal) -> bool {
-    if (remote_api) {
+    if (remote_api != nullptr) {
         // upload tree to remote CAS
         auto repo = RepositoryConfig{};
         if (not repo.SetGitCAS(repo_path)) {
@@ -55,7 +55,7 @@ auto EnsureAbsentRootOnServe(ServeApi const& serve,
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
                     .type = ObjectType::Tree}},
-                **remote_api)) {
+                *remote_api)) {
             (*logger)(fmt::format("Failed to sync tree {} from repository {}",
                                   tree_id,
                                   repo_path.string()),

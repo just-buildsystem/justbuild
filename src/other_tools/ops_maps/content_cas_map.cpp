@@ -110,7 +110,7 @@ auto CreateContentCASMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     std::size_t jobs) -> ContentCASMap {
     auto ensure_in_cas = [just_mr_paths,
                           additional_mirrors,
@@ -215,10 +215,10 @@ auto CreateContentCASMap(
                     return;
                 }
                 // check if content is known to remote serve service
-                if (serve and remote_api and
+                if (serve and remote_api != nullptr and
                     serve->ContentInRemoteCAS(key.content)) {
                     // try to get content from remote CAS
-                    if (remote_api.value()->RetrieveToCas(
+                    if (remote_api->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = digest,
                                                   .type = ObjectType::File}},
                             *local_api)) {
@@ -229,8 +229,8 @@ auto CreateContentCASMap(
                     }
                 }
                 // check remote execution endpoint, if given
-                if (remote_api and
-                    remote_api.value()->RetrieveToCas(
+                if (remote_api != nullptr and
+                    remote_api->RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::File}},
                         *local_api)) {

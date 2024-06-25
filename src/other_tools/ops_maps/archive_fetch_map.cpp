@@ -29,17 +29,17 @@ namespace {
 void ProcessContent(std::filesystem::path const& content_path,
                     std::filesystem::path const& target_name,
                     gsl::not_null<IExecutionApi const*> const& local_api,
-                    IExecutionApi::OptionalPtr const& remote_api,
+                    IExecutionApi const* remote_api,
                     std::string const& content,
                     ArchiveFetchMap::SetterPtr const& setter,
                     ArchiveFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
-    if (remote_api) {
+    if (remote_api != nullptr) {
         if (not local_api->RetrieveToCas(
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{content, 0, /*is_tree=*/false},
                     .type = ObjectType::File}},
-                **remote_api)) {
+                *remote_api)) {
             // give a warning
             (*logger)(fmt::format("Failed to back up content {} from local CAS "
                                   "to remote",
@@ -70,7 +70,7 @@ void ProcessContent(std::filesystem::path const& content_path,
 auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                            std::filesystem::path const& fetch_dir,
                            gsl::not_null<IExecutionApi const*> const& local_api,
-                           IExecutionApi::OptionalPtr const& remote_api,
+                           IExecutionApi const* remote_api,
                            std::size_t jobs) -> ArchiveFetchMap {
     auto fetch_archive = [content_cas_map, fetch_dir, local_api, remote_api](
                              auto ts,

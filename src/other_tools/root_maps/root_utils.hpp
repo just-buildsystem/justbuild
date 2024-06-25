@@ -58,7 +58,7 @@
     ServeApi const& serve,
     std::string const& tree_id,
     std::filesystem::path const& repo_path,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     AsyncMapConsumerLoggerPtr const& logger,
     bool no_sync_is_fatal) -> bool;
 

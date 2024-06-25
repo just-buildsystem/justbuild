@@ -35,7 +35,7 @@
 namespace {
 
 void BackupToRemote(std::string const& tree_id,
-                    gsl::not_null<IExecutionApi const*> const& remote_api,
+                    IExecutionApi const& remote_api,
                     GitTreeFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     auto repo = RepositoryConfig{};
@@ -45,7 +45,7 @@ void BackupToRemote(std::string const& tree_id,
                 {Artifact::ObjectInfo{
                     .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
                     .type = ObjectType::Tree}},
-                *remote_api)) {
+                remote_api)) {
             // give a warning
             (*logger)(fmt::format(
                           "Failed to back up tree {} from local CAS to remote",
@@ -67,7 +67,7 @@ void MoveCASTreeToGit(std::string const& tree_id,
                       ArtifactDigest const& digest,
                       gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                       gsl::not_null<IExecutionApi const*> const& local_api,
-                      IExecutionApi::OptionalPtr const& remote_api,
+                      IExecutionApi const* remote_api,
                       bool backup_to_remote,
                       gsl::not_null<TaskSystem*> const& ts,
                       GitTreeFetchMap::SetterPtr const& setter,
@@ -106,7 +106,7 @@ void MoveCASTreeToGit(std::string const& tree_id,
                 return;
             }
             // backup to remote if needed and in compatibility mode
-            if (backup_to_remote and remote_api) {
+            if (backup_to_remote and remote_api != nullptr) {
                 BackupToRemote(tree_id, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
@@ -130,7 +130,7 @@ auto CreateGitTreeFetchMap(
     std::vector<std::string> const& launcher,
     std::optional<ServeApi> const& serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     bool backup_to_remote,
     std::size_t jobs) -> GitTreeFetchMap {
     auto tree_to_cache = [critical_git_op_map,
@@ -204,7 +204,7 @@ auto CreateGitTreeFetchMap(
                 }
                 if (*tree_found) {
                     // backup to remote if needed and in native mode
-                    if (backup_to_remote and remote_api) {
+                    if (backup_to_remote and remote_api != nullptr) {
                         BackupToRemote(key.hash, *remote_api, logger);
                     }
                     // success
@@ -231,15 +231,15 @@ auto CreateGitTreeFetchMap(
                 JustMRProgress::Instance().TaskTracker().Start(key.origin);
                 // check if tree is known to remote serve service and can be
                 // made available in remote CAS
-                if (serve and remote_api) {
+                if (serve and remote_api != nullptr) {
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS
                     std::ignore = serve->TreeInRemoteCAS(key.hash);
                 }
                 // check if tree is in remote CAS, if a remote is given
-                if (remote_api and
-                    remote_api.value()->RetrieveToCas(
+                if (remote_api != nullptr and
+                    remote_api->RetrieveToCas(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
                         *local_api)) {
@@ -463,7 +463,8 @@ auto CreateGitTreeFetchMap(
                                 JustMRProgress::Instance().TaskTracker().Stop(
                                     key.origin);
                                 // backup to remote if needed and in native mode
-                                if (backup_to_remote and remote_api) {
+                                if (backup_to_remote and
+                                    remote_api != nullptr) {
                                     BackupToRemote(
                                         key.hash, *remote_api, logger);
                                 }

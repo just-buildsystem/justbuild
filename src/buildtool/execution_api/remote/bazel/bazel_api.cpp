@@ -221,7 +221,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
-    IExecutionApi::OptionalPtr const& alternative) const noexcept -> bool {
+    IExecutionApi const* alternative) const noexcept -> bool {
     if (artifacts_info.size() != output_paths.size()) {
         Logger::Log(LogLevel::Warning,
                     "different number of digests and output paths.");
@@ -233,16 +233,15 @@ auto BazelApi::CreateAction(
     std::vector<std::size_t> artifact_pos{};
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
-        if (alternative and alternative.value()->IsAvailable(info.digest)) {
-            if (not alternative.value()->RetrieveToPaths({info},
-                                                         {output_paths[i]})) {
+        if (alternative != nullptr and alternative->IsAvailable(info.digest)) {
+            if (not alternative->RetrieveToPaths({info}, {output_paths[i]})) {
                 return false;
             }
         }
         else {
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto request_remote_tree = alternative.has_value()
+                auto request_remote_tree = alternative != nullptr
                                                ? std::make_optional(info.digest)
                                                : std::nullopt;
                 auto reader = TreeReader<BazelNetworkReader>{

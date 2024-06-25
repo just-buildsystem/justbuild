@@ -44,7 +44,7 @@ using ContentGitMap =
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::optional<ServeApi> const& serve,
-    IExecutionApi::OptionalPtr const& remote_api,
+    IExecutionApi const* remote_api,
     bool fetch_absent,
     std::size_t jobs) -> ContentGitMap;
 
