@@ -76,6 +76,7 @@ auto const kInstallRuleFields =
 auto const kConfigureRuleFields =
     std::unordered_set<std::string>{"arguments_config",
                                     "config",
+                                    "doc",
                                     "tainted",
                                     "target",
                                     "type"};

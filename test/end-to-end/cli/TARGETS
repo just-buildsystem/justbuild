@@ -60,6 +60,12 @@
   , "test": ["log-limit.sh"]
   , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
+, "describe":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["describe"]
+  , "test": ["describe.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -75,6 +81,7 @@
         , "git cas -P"
         , "install --archive"
         , "conflict report"
+        , "describe"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}

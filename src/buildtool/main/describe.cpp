@@ -431,6 +431,17 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                 PrintFields(*flexible_config, config_doc, " - ", "   | ");
             }
         }
+        else if (*rule_it == "configure") {
+            auto target = desc.find("target");
+            auto doc = desc.find("doc");
+            if (doc != desc.end()) {
+                PrintDoc(*doc, " | ");
+            }
+            if (target != desc.end()) {
+                std::cout << "The target to be configured is defined as "
+                          << target->dump() << "." << std::endl;
+            }
+        }
         return kExitSuccess;
     }
     auto rule_name = BuildMaps::Base::ParseEntityNameFromJson(
