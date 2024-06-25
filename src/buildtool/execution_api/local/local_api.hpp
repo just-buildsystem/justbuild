@@ -53,9 +53,8 @@
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
   public:
-    explicit LocalApi(std::optional<gsl::not_null<const RepositoryConfig*>>
-                          repo_config = std::nullopt)
-        : repo_config_{std::move(repo_config)} {}
+    explicit LocalApi(RepositoryConfig const* repo_config = nullptr) noexcept
+        : repo_config_{repo_config} {}
 
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
@@ -99,8 +98,8 @@ class LocalApi final : public IExecutionApi {
                         // fall back to git
                         return false;
                     }
-                    if (repo_config_ and
-                        not GitApi(repo_config_.value())
+                    if (repo_config_ != nullptr and
+                        not GitApi(repo_config_)
                                 .RetrieveToPaths({info}, {output_paths[i]})) {
                         return false;
                     }
@@ -118,8 +117,8 @@ class LocalApi final : public IExecutionApi {
                         // fall back to git
                         return false;
                     }
-                    if (repo_config_ and
-                        not GitApi(repo_config_.value())
+                    if (repo_config_ != nullptr and
+                        not GitApi(repo_config_)
                                 .RetrieveToPaths({info}, {output_paths[i]})) {
                         return false;
                     }
@@ -152,15 +151,15 @@ class LocalApi final : public IExecutionApi {
                                  gsl::not_null<FILE*> const& out) {
                 return dumper.DumpToStream(info, out, raw_tree);
             },
-            [&repo_config = repo_config_, &raw_tree](
+            [repo_config = repo_config_, &raw_tree](
                 Artifact::ObjectInfo const& info, int fd) {
                 if (Compatibility::IsCompatible()) {
                     // infos not available, and in compatible mode cannot
                     // fall back to git
                     return false;
                 }
-                if (repo_config and
-                    not GitApi(repo_config.value())
+                if (repo_config != nullptr and
+                    not GitApi(repo_config)
                             .RetrieveToFds({info}, {fd}, raw_tree)) {
                     return false;
                 }
@@ -262,9 +261,8 @@ class LocalApi final : public IExecutionApi {
         if (location) {
             content = FileSystemManager::ReadFile(*location);
         }
-        if ((not content) and repo_config_) {
-            content =
-                GitApi(repo_config_.value()).RetrieveToMemory(artifact_info);
+        if ((not content) and repo_config_ != nullptr) {
+            content = GitApi(repo_config_).RetrieveToMemory(artifact_info);
         }
         return content;
     }
@@ -409,7 +407,7 @@ class LocalApi final : public IExecutionApi {
     }
 
   private:
-    std::optional<gsl::not_null<const RepositoryConfig*>> repo_config_{};
+    RepositoryConfig const* const repo_config_ = nullptr;
     gsl::not_null<Storage const*> storage_ = &Storage::Instance();
 };
 

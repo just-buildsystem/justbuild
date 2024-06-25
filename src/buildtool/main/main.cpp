@@ -826,7 +826,7 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
-            ApiBundle const exec_apis{std::nullopt,
+            ApiBundle const exec_apis{nullptr,
                                       RemoteExecutionConfig::RemoteAddress()};
             if (!ServerImpl::Instance().Run(exec_apis)) {
                 return kExitFailure;
@@ -842,7 +842,7 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.pid_file);
             if (serve_server) {
                 ApiBundle const serve_apis{
-                    std::nullopt, RemoteExecutionConfig::RemoteAddress()};
+                    nullptr, RemoteExecutionConfig::RemoteAddress()};
                 auto serve = ServeApi::Create(*serve_config, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
                 return serve_server->Run(

@@ -27,10 +27,8 @@
 /// same time. If the remote api cannot be instantiated, it falls back to
 /// exactly the same instance that local api is (&*remote == & *local).
 struct ApiBundle final {
-    explicit ApiBundle(
-        std::optional<gsl::not_null<const RepositoryConfig*>> const&
-            repo_config,
-        std::optional<ServerAddress> const& remote_address);
+    explicit ApiBundle(RepositoryConfig const* repo_config,
+                       std::optional<ServerAddress> const& remote_address);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
         const -> gsl::not_null<IExecutionApi::Ptr>;
