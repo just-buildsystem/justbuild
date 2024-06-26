@@ -1053,7 +1053,7 @@ auto main(int argc, char* argv[]) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL
                 Logger::Log(LogLevel::Info,
                             "Analysed target {}",
-                            result->id.ToString());
+                            result->id.ToShortString());
 
                 {
                     auto cached = stats.ExportsCachedCounter();
@@ -1093,7 +1093,7 @@ auto main(int argc, char* argv[]) -> int {
                     result->modified ? fmt::format(" input of action {} of",
                                                    *(result->modified))
                                      : "",
-                    result->id.ToString());
+                    result->id.ToShortString());
 
                 auto build_result =
                     traverser.BuildAndStage(artifacts,
