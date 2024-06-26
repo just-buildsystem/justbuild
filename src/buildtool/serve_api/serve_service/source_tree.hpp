@@ -57,9 +57,9 @@ class SourceTreeService final
         ::justbuild::just_serve::GetRemoteTreeResponse;
 
     explicit SourceTreeService(
-        RemoteServeConfig const& serve_config,
+        gsl::not_null<RemoteServeConfig const*> const& serve_config,
         gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : serve_config_{serve_config}, apis_{*apis} {}
+        : serve_config_{*serve_config}, apis_{*apis} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //

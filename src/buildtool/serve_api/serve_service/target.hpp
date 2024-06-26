@@ -39,10 +39,11 @@
 // The target-level cache service.
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
-    explicit TargetService(RemoteServeConfig const& serve_config,
-                           gsl::not_null<ApiBundle const*> const& apis,
-                           ServeApi const* serve = nullptr) noexcept
-        : serve_config_{serve_config}, apis_{*apis}, serve_{serve} {}
+    explicit TargetService(
+        gsl::not_null<RemoteServeConfig const*> const& serve_config,
+        gsl::not_null<ApiBundle const*> const& apis,
+        ServeApi const* serve = nullptr) noexcept
+        : serve_config_{*serve_config}, apis_{*apis}, serve_{serve} {}
 
     // Given a target-level caching key, returns the computed value. In doing
     // so, it can build on the associated endpoint passing the
