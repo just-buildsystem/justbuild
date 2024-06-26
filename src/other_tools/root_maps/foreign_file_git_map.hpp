@@ -34,7 +34,7 @@ using ForeignFileGitMap =
 [[nodiscard]] auto CreateForeignFileGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap;
 

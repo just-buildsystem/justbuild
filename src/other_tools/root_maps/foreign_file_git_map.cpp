@@ -113,7 +113,7 @@ void UseCacheHit(const std::string& tree_id,
 }
 
 void HandleAbsentForeignFile(ForeignFileInfo const& key,
-                             std::optional<ServeApi> const& serve,
+                             ServeApi const* serve,
                              ForeignFileGitMap::SetterPtr const& setter,
                              ForeignFileGitMap::LoggerPtr const& logger) {
     // Compute tree in memory
@@ -137,7 +137,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
         return;
     }
     auto tree_id = ToHexString(tree->first);
-    if (serve) {
+    if (serve != nullptr) {
         auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
         if (not has_tree) {
             return;
@@ -195,11 +195,11 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
 [[nodiscard]] auto CreateForeignFileGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap {
     auto setup_foreign_file =
-        [content_cas_map, import_to_git_map, fetch_absent, &serve](
+        [content_cas_map, import_to_git_map, fetch_absent, serve](
             auto ts,
             auto setter,
             auto logger,

@@ -41,7 +41,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
   public:
     explicit TargetService(RemoteServeConfig const& serve_config,
                            gsl::not_null<ApiBundle const*> const& apis,
-                           ServeApi const* const serve = nullptr) noexcept
+                           ServeApi const* serve = nullptr) noexcept
         : serve_config_{serve_config}, apis_{*apis}, serve_{serve} {}
 
     // Given a target-level caching key, returns the computed value. In doing

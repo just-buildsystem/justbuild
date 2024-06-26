@@ -108,7 +108,7 @@ auto CreateContentCASMap(
     MirrorsPtr const& additional_mirrors,
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> ContentCASMap {
@@ -116,7 +116,7 @@ auto CreateContentCASMap(
                           additional_mirrors,
                           ca_info,
                           critical_git_op_map,
-                          &serve,
+                          serve,
                           local_api,
                           remote_api](auto ts,
                                       auto setter,
@@ -149,7 +149,7 @@ auto CreateContentCASMap(
              just_mr_paths,
              additional_mirrors,
              ca_info,
-             &serve,
+             serve,
              local_api,
              remote_api,
              setter,
@@ -215,7 +215,7 @@ auto CreateContentCASMap(
                     return;
                 }
                 // check if content is known to remote serve service
-                if (serve and remote_api != nullptr and
+                if (serve != nullptr and remote_api != nullptr and
                     serve->ContentInRemoteCAS(key.content)) {
                     // try to get content from remote CAS
                     if (remote_api->RetrieveToCas(

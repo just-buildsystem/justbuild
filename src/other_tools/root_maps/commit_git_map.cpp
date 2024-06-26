@@ -61,12 +61,12 @@ namespace {
 void EnsureRootAsAbsent(std::string const& tree_id,
                         std::filesystem::path const& repo_root,
                         GitRepoInfo const& repo_info,
-                        std::optional<ServeApi> const& serve,
+                        ServeApi const* serve,
                         IExecutionApi const* remote_api,
                         CommitGitMap::SetterPtr const& ws_setter,
                         CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
-    if (serve) {
+    if (serve != nullptr) {
         // check if the serve endpoint has this root
         auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
         if (not has_tree) {
@@ -409,7 +409,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                   std::string const& git_bin,
                   std::vector<std::string> const& launcher,
-                  std::optional<ServeApi> const& serve,
+                  ServeApi const* serve,
                   gsl::not_null<IExecutionApi const*> const& local_api,
                   IExecutionApi const* remote_api,
                   bool fetch_absent,
@@ -508,7 +508,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         // no id file association exists
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
         // check if commit is known to remote serve service
-        if (serve) {
+        if (serve != nullptr) {
             // if root purely absent, request only the subdir tree
             if (repo_info.absent and not fetch_absent) {
                 auto serve_result =
@@ -921,7 +921,7 @@ auto CreateCommitGitMap(
     MirrorsPtr const& additional_mirrors,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,
@@ -932,7 +932,7 @@ auto CreateCommitGitMap(
                           additional_mirrors,
                           git_bin,
                           launcher,
-                          &serve,
+                          serve,
                           local_api,
                           remote_api,
                           fetch_absent](auto ts,
@@ -973,7 +973,7 @@ auto CreateCommitGitMap(
              import_to_git_map,
              git_bin,
              launcher,
-             &serve,
+             serve,
              local_api,
              remote_api,
              fetch_absent,

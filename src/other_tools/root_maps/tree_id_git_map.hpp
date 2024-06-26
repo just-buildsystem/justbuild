@@ -69,7 +69,7 @@ using TreeIdGitMap =
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> TreeIdGitMap;

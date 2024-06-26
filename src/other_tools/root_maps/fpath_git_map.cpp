@@ -36,14 +36,14 @@ namespace {
 void CheckServeAndSetRoot(std::string const& tree_id,
                           std::string const& repo_root,
                           bool absent,
-                          std::optional<ServeApi> const& serve,
+                          ServeApi const* serve,
                           IExecutionApi const* remote_api,
                           FilePathGitMap::SetterPtr const& ws_setter,
                           FilePathGitMap::LoggerPtr const& logger) {
     // if serve endpoint is given, try to ensure it has this tree available to
     // be able to build against it. If root is not absent, do not fail if we
     // don't have a suitable remote endpoint, but warn user nonetheless.
-    if (serve) {
+    if (serve != nullptr) {
         auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
         if (not has_tree) {
             return;  // fatal
@@ -100,7 +100,7 @@ void ResolveFilePathTree(
     bool absent,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     IExecutionApi const* remote_api,
     gsl::not_null<TaskSystem*> const& ts,
     FilePathGitMap::SetterPtr const& ws_setter,
@@ -145,7 +145,7 @@ void ResolveFilePathTree(
                  tree_hash,
                  tree_id_file,
                  absent,
-                 &serve,
+                 serve,
                  remote_api,
                  ts,
                  ws_setter,
@@ -186,7 +186,7 @@ void ResolveFilePathTree(
                         [resolved_tree_id,
                          tree_id_file,
                          absent,
-                         &serve,
+                         serve,
                          remote_api,
                          ws_setter,
                          logger](auto const& values) {
@@ -254,7 +254,7 @@ auto CreateFilePathGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     IExecutionApi const* remote_api,
     std::size_t jobs,
     std::string multi_repo_tool_name,
@@ -263,7 +263,7 @@ auto CreateFilePathGitMap(
                        critical_git_op_map,
                        import_to_git_map,
                        resolve_symlinks_map,
-                       &serve,
+                       serve,
                        remote_api,
                        multi_repo_tool_name,
                        build_tool_name](auto ts,
@@ -302,7 +302,7 @@ auto CreateFilePathGitMap(
                  repo_root = std::move(*repo_root),
                  critical_git_op_map,
                  resolve_symlinks_map,
-                 &serve,
+                 serve,
                  remote_api,
                  ts,
                  setter,
@@ -362,7 +362,7 @@ auto CreateFilePathGitMap(
                          absent,
                          critical_git_op_map,
                          resolve_symlinks_map,
-                         &serve,
+                         serve,
                          remote_api,
                          ts,
                          setter,
@@ -451,7 +451,7 @@ auto CreateFilePathGitMap(
                  absent = key.absent,
                  critical_git_op_map,
                  resolve_symlinks_map,
-                 &serve,
+                 serve,
                  remote_api,
                  ts,
                  setter,

@@ -147,7 +147,7 @@ auto CreateTreeIdGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     bool fetch_absent,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> TreeIdGitMap {
@@ -155,7 +155,7 @@ auto CreateTreeIdGitMap(
                         critical_git_op_map,
                         import_to_git_map,
                         fetch_absent,
-                        &serve,
+                        serve,
                         local_api,
                         remote_api](auto ts,
                                     auto setter,
@@ -167,7 +167,7 @@ auto CreateTreeIdGitMap(
         // found on the serve endpoint or it can be made available to it;
         // otherwise, error out
         if (key.absent and not fetch_absent) {
-            if (serve) {
+            if (serve != nullptr) {
                 // check serve endpoint
                 auto has_tree =
                     CheckServeHasAbsentRoot(*serve, key.tree_info.hash, logger);
@@ -238,7 +238,7 @@ auto CreateTreeIdGitMap(
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},
-                    [&serve,
+                    [serve,
                      digest,
                      import_to_git_map,
                      local_api,

@@ -132,14 +132,14 @@ auto CreateDistdirGitMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-    std::optional<ServeApi> const& serve,
+    ServeApi const* serve,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> DistdirGitMap {
     auto distdir_to_git = [content_cas_map,
                            import_to_git_map,
                            critical_git_op_map,
-                           &serve,
+                           serve,
                            local_api,
                            remote_api](auto ts,
                                        auto setter,
@@ -175,7 +175,7 @@ auto CreateDistdirGitMap(
                 [distdir_tree_id = *distdir_tree_id,
                  content_id = key.content_id,
                  key,
-                 &serve,
+                 serve,
                  remote_api,
                  setter,
                  logger](auto const& values) {
@@ -189,7 +189,7 @@ auto CreateDistdirGitMap(
                     // subdir is "." here, so no need to deal with the Git cache
                     // and we can simply set the workspace root
                     if (key.absent) {
-                        if (serve) {
+                        if (serve != nullptr) {
                             // check if serve endpoint has this root
                             auto has_tree = CheckServeHasAbsentRoot(
                                 *serve, distdir_tree_id, logger);
@@ -331,7 +331,7 @@ auto CreateDistdirGitMap(
             // up the absent root without actually checking the local status of
             // each content blob individually
             if (key.absent) {
-                if (serve) {
+                if (serve != nullptr) {
                     // first check if serve endpoint has tree
                     auto has_tree =
                         CheckServeHasAbsentRoot(*serve, tree_id, logger);
@@ -483,7 +483,7 @@ auto CreateDistdirGitMap(
             }
             // now ask serve endpoint if it can set up the root; as this is for
             // a present root, a corresponding remote endpoint is needed
-            if (serve and remote_api != nullptr) {
+            if (serve != nullptr and remote_api != nullptr) {
                 auto serve_result =
                     serve->RetrieveTreeFromDistdir(key.content_list,
                                                    /*sync_tree=*/true);
