@@ -26,6 +26,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 extern "C" {
@@ -293,6 +294,7 @@ class GitRepo {
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto LocalFetchViaTmpRepo(
+        StorageConfig const& storage_config,
         std::string const& repo_path,
         std::optional<std::string> const& branch,
         anon_logger_ptr const& logger) noexcept -> bool;

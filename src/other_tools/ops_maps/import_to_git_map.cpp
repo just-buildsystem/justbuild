@@ -181,6 +181,7 @@ auto CreateImportToGitMap(
                                               fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
+                                StorageConfig::Instance(),
                                 target_path.string(),
                                 std::nullopt,
                                 std::vector<std::string>{} /* inherit_env */,

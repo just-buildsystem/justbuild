@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/storage/config.hpp"
 
 extern "C" {
 struct git_config;
@@ -87,6 +88,7 @@ class GitRepoRemote : public GitRepo {
     /// Returns the commit hash, as a string, or nullopt if failure.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto UpdateCommitViaTmpRepo(
+        StorageConfig const& storage_config,
         std::string const& repo_url,
         std::string const& branch,
         std::vector<std::string> const& inherit_env,
@@ -103,6 +105,7 @@ class GitRepoRemote : public GitRepo {
     /// Returns a success flag.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto FetchViaTmpRepo(
+        StorageConfig const& storage_config,
         std::string const& repo_url,
         std::optional<std::string> const& branch,
         std::vector<std::string> const& inherit_env,

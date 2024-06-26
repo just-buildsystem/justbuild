@@ -50,6 +50,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/buildtool/storage", "config"]
     ]
   }
 , "content_cas_map":

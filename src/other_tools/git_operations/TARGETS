@@ -26,13 +26,15 @@
   , "name": ["git_repo_remote"]
   , "hdrs": ["git_repo_remote.hpp"]
   , "srcs": ["git_repo_remote.cpp"]
-  , "deps": [["src/buildtool/file_system", "git_repo"]]
+  , "deps":
+    [ ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/storage", "config"]
+    ]
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/file_system", "git_utils"]
-    , ["src/buildtool/storage", "config"]
     , ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
     , ["@", "json", "", "json"]

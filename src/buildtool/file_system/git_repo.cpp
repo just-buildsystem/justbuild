@@ -23,7 +23,6 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -1701,7 +1700,8 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-auto GitRepo::LocalFetchViaTmpRepo(std::string const& repo_path,
+auto GitRepo::LocalFetchViaTmpRepo(StorageConfig const& storage_config,
+                                   std::string const& repo_path,
                                    std::optional<std::string> const& branch,
                                    anon_logger_ptr const& logger) noexcept
     -> bool {
@@ -1714,8 +1714,7 @@ auto GitRepo::LocalFetchViaTmpRepo(std::string const& repo_path,
             Logger::Log(LogLevel::Debug,
                         "Branch local fetch called on a real repository");
         }
-        auto tmp_dir =
-            StorageConfig::Instance().CreateTypedTmpDir("local_fetch");
+        auto tmp_dir = storage_config.CreateTypedTmpDir("local_fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for Git repository",
                       /*fatal=*/true);

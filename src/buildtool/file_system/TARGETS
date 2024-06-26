@@ -118,6 +118,7 @@
     , "git_types"
     , ["src/buildtool/common", "bazel_types"]
     , ["src/utils/cpp", "expected"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
@@ -129,7 +130,6 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/storage", "config"]
     ]
   , "cflags": ["-pthread"]
   }

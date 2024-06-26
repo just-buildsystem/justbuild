@@ -423,6 +423,7 @@ auto CreateGitTreeFetchMap(
                                         fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
+                                StorageConfig::Instance(),
                                 target_path.string(),
                                 std::nullopt,
                                 key.inherit_env,

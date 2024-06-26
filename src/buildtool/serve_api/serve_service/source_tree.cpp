@@ -546,7 +546,8 @@ auto SourceTreeService::CommonImportToGit(
         });
     // fetch the new commit into the Git CAS via tmp directory; the call is
     // thread-safe, so it needs no guarding
-    if (not just_git_repo->LocalFetchViaTmpRepo(root_path.string(),
+    if (not just_git_repo->LocalFetchViaTmpRepo(StorageConfig::Instance(),
+                                                root_path.string(),
                                                 /*branch=*/std::nullopt,
                                                 wrapped_logger)) {
         return unexpected{err};

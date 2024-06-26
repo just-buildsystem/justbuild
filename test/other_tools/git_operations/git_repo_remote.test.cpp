@@ -26,6 +26,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "test/utils/shell_quoting.hpp"
@@ -250,8 +251,13 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
                 *repo_fetch_all->CheckCommitExists(kRootCommit, logger));
 
             // fetch all with base refspecs
-            REQUIRE(repo_fetch_all->FetchViaTmpRepo(
-                *repo_path, std::nullopt, {}, "git", {}, logger));
+            REQUIRE(repo_fetch_all->FetchViaTmpRepo(StorageConfig::Instance(),
+                                                    *repo_path,
+                                                    std::nullopt,
+                                                    {},
+                                                    "git",
+                                                    {},
+                                                    logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
@@ -269,8 +275,14 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
                 *repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
 
             // fetch all
-            REQUIRE(repo_fetch_wRefspec->FetchViaTmpRepo(
-                *repo_path, "master", {}, "git", {}, logger));
+            REQUIRE(
+                repo_fetch_wRefspec->FetchViaTmpRepo(StorageConfig::Instance(),
+                                                     *repo_path,
+                                                     "master",
+                                                     {},
+                                                     "git",
+                                                     {},
+                                                     logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
@@ -284,8 +296,14 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
         REQUIRE(repo_commit_upd);
 
         // do remote ls
-        auto fetched_commit = repo_commit_upd->UpdateCommitViaTmpRepo(
-            *repo_path, "master", {}, "git", {}, logger);
+        auto fetched_commit =
+            repo_commit_upd->UpdateCommitViaTmpRepo(StorageConfig::Instance(),
+                                                    *repo_path,
+                                                    "master",
+                                                    {},
+                                                    "git",
+                                                    {},
+                                                    logger);
 
         REQUIRE(fetched_commit);
         CHECK(*fetched_commit == kRootCommit);
@@ -345,28 +363,31 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                         } break;
                         case 1: {
                             // fetch with base refspecs
-                            CHECK(
-                                target_repo->FetchViaTmpRepo(*remote_repo_path,
-                                                             std::nullopt,
-                                                             {},
-                                                             "git",
-                                                             {},
-                                                             logger));
+                            CHECK(target_repo->FetchViaTmpRepo(
+                                StorageConfig::Instance(),
+                                *remote_repo_path,
+                                std::nullopt,
+                                {},
+                                "git",
+                                {},
+                                logger));
                         } break;
                         case 2: {
                             // fetch specific branch
-                            CHECK(
-                                target_repo->FetchViaTmpRepo(*remote_repo_path,
-                                                             "master",
-                                                             {},
-                                                             "git",
-                                                             {},
-                                                             logger));
+                            CHECK(target_repo->FetchViaTmpRepo(
+                                StorageConfig::Instance(),
+                                *remote_repo_path,
+                                "master",
+                                {},
+                                "git",
+                                {},
+                                logger));
                         } break;
                         case 3: {
                             // do remote ls
                             auto fetched_commit =
                                 target_repo->UpdateCommitViaTmpRepo(
+                                    StorageConfig::Instance(),
                                     *remote_repo_path,
                                     "master",
                                     {},

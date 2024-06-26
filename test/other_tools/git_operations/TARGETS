@@ -36,6 +36,7 @@
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/other_tools/git_operations", "git_repo_remote"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/utils/cpp", "atomic"]
     , ["utils", "shell_quoting"]
     ]

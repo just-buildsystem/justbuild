@@ -29,6 +29,7 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "test/utils/shell_quoting.hpp"
@@ -418,7 +419,7 @@ TEST_CASE("Single-threaded fake repository operations -- batch 1",
 
             // fetch all with base refspecs
             REQUIRE(repo_fetch_all->LocalFetchViaTmpRepo(
-                *repo_path, std::nullopt, logger));
+                StorageConfig::Instance(), *repo_path, std::nullopt, logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
@@ -437,7 +438,7 @@ TEST_CASE("Single-threaded fake repository operations -- batch 1",
 
             // fetch branch
             REQUIRE(repo_fetch_branch->LocalFetchViaTmpRepo(
-                *repo_path, "master", logger));
+                StorageConfig::Instance(), *repo_path, "master", logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
@@ -728,7 +729,10 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             REQUIRE(remote_repo->IsRepoFake());
                             // fetch all
                             REQUIRE(remote_repo->LocalFetchViaTmpRepo(
-                                *remote_repo_path, std::nullopt, logger));
+                                StorageConfig::Instance(),
+                                *remote_repo_path,
+                                std::nullopt,
+                                logger));
                         } break;
                     }
                 },

@@ -254,7 +254,8 @@ void NetworkFetchAndSetPresentRoot(
                 err_messages += fmt::format(
                     "While attempting fetch from URL {}:\n{}\n", mirror, msg);
             });
-        if (git_repo->FetchViaTmpRepo(mirror,
+        if (git_repo->FetchViaTmpRepo(StorageConfig::Instance(),
+                                      mirror,
                                       repo_info.branch,
                                       repo_info.inherit_env,
                                       git_bin,

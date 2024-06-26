@@ -16,6 +16,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -48,12 +49,14 @@ auto CreateGitUpdateMap(GitCASPtr const& git_cas,
         // update commit
         auto id = fmt::format("{}:{}", key.repo, key.branch);
         JustMRProgress::Instance().TaskTracker().Start(id);
-        auto new_commit = git_repo->UpdateCommitViaTmpRepo(key.repo,
-                                                           key.branch,
-                                                           key.inherit_env,
-                                                           git_bin,
-                                                           launcher,
-                                                           wrapped_logger);
+        auto new_commit =
+            git_repo->UpdateCommitViaTmpRepo(StorageConfig::Instance(),
+                                             key.repo,
+                                             key.branch,
+                                             key.inherit_env,
+                                             git_bin,
+                                             launcher,
+                                             wrapped_logger);
         JustMRProgress::Instance().TaskTracker().Stop(id);
         if (not new_commit) {
             return;

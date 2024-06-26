@@ -22,7 +22,6 @@
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
 
@@ -397,6 +396,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
 }
 
 auto GitRepoRemote::UpdateCommitViaTmpRepo(
+    StorageConfig const& storage_config,
     std::string const& repo_url,
     std::string const& branch,
     std::vector<std::string> const& inherit_env,
@@ -405,7 +405,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     anon_logger_ptr const& logger) const noexcept
     -> std::optional<std::string> {
     try {
-        auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("update");
+        auto tmp_dir = storage_config.CreateTypedTmpDir("update");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for running 'git ls-remote'",
                       /*fatal=*/true);
@@ -532,7 +532,8 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
     }
 }
 
-auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
+auto GitRepoRemote::FetchViaTmpRepo(StorageConfig const& storage_config,
+                                    std::string const& repo_url,
                                     std::optional<std::string> const& branch,
                                     std::vector<std::string> const& inherit_env,
                                     std::string const& git_bin,
@@ -540,7 +541,7 @@ auto GitRepoRemote::FetchViaTmpRepo(std::string const& repo_url,
                                     anon_logger_ptr const& logger) noexcept
     -> bool {
     try {
-        auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("fetch");
+        auto tmp_dir = storage_config.CreateTypedTmpDir("fetch");
         if (not tmp_dir) {
             (*logger)("Failed to create temp dir for running 'git fetch'",
                       /*fatal=*/true);
