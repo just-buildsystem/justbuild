@@ -76,7 +76,7 @@ void WithFlexibleVariables(
         target_cache_value{std::nullopt};
     target_cache_value = context->target_cache->Read(*target_cache_key);
     bool from_just_serve = false;
-    if (not target_cache_value and context->serve) {
+    if (not target_cache_value and context->serve != nullptr) {
         auto task = fmt::format("[{},{}]",
                                 key.target.ToString(),
                                 PruneJson(effective_config.ToJson()).dump());
@@ -202,7 +202,7 @@ auto BuildMaps::Target::CreateAbsentTargetVariablesMap(
                                       auto /*subcaller*/,
                                       auto key) {
         std::optional<std::vector<std::string>> vars;
-        if (context->serve) {
+        if (context->serve != nullptr) {
             vars = context->serve->ServeTargetVariables(
                 key.target_root_id, key.target_file, key.target);
         }

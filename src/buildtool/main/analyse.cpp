@@ -134,11 +134,12 @@ namespace Target = BuildMaps::Target;
     AnalysedTargetPtr target{};
 
     // we should only report served export targets if a serve endpoint exists
-    bool has_serve = context->serve.has_value();
-    std::atomic<bool> done{false};
-    std::condition_variable cv{};
+    bool const has_serve = context->serve != nullptr;
     auto reporter = ExportsProgressReporter::Reporter(
         context->statistics, context->progress, has_serve, logger);
+
+    std::atomic<bool> done{false};
+    std::condition_variable cv{};
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

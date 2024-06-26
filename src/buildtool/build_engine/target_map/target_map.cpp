@@ -1905,7 +1905,7 @@ auto CreateTargetMap(
         else if (context->repo_config
                      ->TargetRoot(key.target.ToModule().repository)
                      ->IsAbsent()) {
-            if (not context->serve) {
+            if (context->serve == nullptr) {
                 (*logger)(
                     fmt::format("Root for target {} is absent, but no serve "
                                 "endpoint was configured. Please provide "

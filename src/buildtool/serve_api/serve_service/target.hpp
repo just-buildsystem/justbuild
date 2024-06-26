@@ -39,10 +39,10 @@
 // The target-level cache service.
 class TargetService final : public justbuild::just_serve::Target::Service {
   public:
-    TargetService(RemoteServeConfig const& serve_config,
-                  std::optional<ServeApi> const& serve,
-                  gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : serve_config_{serve_config}, serve_{serve}, apis_{*apis} {}
+    explicit TargetService(RemoteServeConfig const& serve_config,
+                           gsl::not_null<ApiBundle const*> const& apis,
+                           ServeApi const* const serve = nullptr) noexcept
+        : serve_config_{serve_config}, apis_{*apis}, serve_{serve} {}
 
     // Given a target-level caching key, returns the computed value. In doing
     // so, it can build on the associated endpoint passing the
@@ -121,8 +121,8 @@ class TargetService final : public justbuild::just_serve::Target::Service {
 
   private:
     RemoteServeConfig const& serve_config_;
-    std::optional<ServeApi> const& serve_;
     ApiBundle const& apis_;
+    ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
     // type of dispatch list; reduces verbosity

@@ -143,7 +143,7 @@ void ExportRule(
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         // if not found locally, try the serve endpoint
-        if (not target_cache_value and context->serve) {
+        if (not target_cache_value and context->serve != nullptr) {
             Logger::Log(LogLevel::Debug,
                         "Querying serve endpoint for export target {}",
                         key.target.ToString());

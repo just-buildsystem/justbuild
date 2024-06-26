@@ -107,7 +107,7 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     }
 
     SourceTreeService sts{serve_config, &apis};
-    TargetService ts{serve_config, serve, &apis};
+    TargetService ts{serve_config, &apis, serve ? &*serve : nullptr};
     ConfigurationService cs{};
 
     grpc::ServerBuilder builder;

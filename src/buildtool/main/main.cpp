@@ -1010,7 +1010,7 @@ auto main(int argc, char* argv[]) -> int {
                 .target_cache = &Storage::Instance().TargetCache(),
                 .statistics = &stats,
                 .progress = &exports_progress,
-                .serve = serve};
+                .serve = serve ? &*serve : nullptr};
 
             auto result = AnalyseTarget(&analyse_ctx,
                                         id,

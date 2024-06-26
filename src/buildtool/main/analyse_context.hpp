@@ -15,8 +15,6 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP
 
-#include <optional>
-
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -29,7 +27,7 @@ struct AnalyseContext final {
     gsl::not_null<ActiveTargetCache const*> const target_cache;
     gsl::not_null<Statistics*> const statistics;
     gsl::not_null<Progress*> const progress;
-    std::optional<ServeApi> const& serve;
+    ServeApi const* const serve = nullptr;
 };
 
 #endif  // INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_CONTEXT_HPP
