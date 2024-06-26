@@ -25,10 +25,10 @@
 #include "src/buildtool/storage/target_cache.hpp"
 
 struct AnalyseContext final {
-    gsl::not_null<const RepositoryConfig*> repo_config;
-    ActiveTargetCache const& target_cache;
-    gsl::not_null<Statistics*> statistics;
-    gsl::not_null<Progress*> progress;
+    gsl::not_null<RepositoryConfig const*> const repo_config;
+    gsl::not_null<ActiveTargetCache const*> const target_cache;
+    gsl::not_null<Statistics*> const statistics;
+    gsl::not_null<Progress*> const progress;
     std::optional<ServeApi> const& serve;
 };
 

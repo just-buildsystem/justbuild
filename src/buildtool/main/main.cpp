@@ -1007,7 +1007,7 @@ auto main(int argc, char* argv[]) -> int {
             Progress exports_progress{};
             AnalyseContext analyse_ctx{
                 .repo_config = &repo_config,
-                .target_cache = Storage::Instance().TargetCache(),
+                .target_cache = &Storage::Instance().TargetCache(),
                 .statistics = &stats,
                 .progress = &exports_progress,
                 .serve = serve};

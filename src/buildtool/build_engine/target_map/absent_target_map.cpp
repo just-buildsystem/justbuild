@@ -64,7 +64,7 @@ void WithFlexibleVariables(
                   /*fatal=*/true);
         return;
     }
-    auto target_cache_key = context->target_cache.ComputeKey(
+    auto target_cache_key = context->target_cache->ComputeKey(
         *repo_key, target_name, effective_config);
     if (not target_cache_key) {
         (*logger)(fmt::format("Could not produce cache key for target {}",
@@ -74,7 +74,7 @@ void WithFlexibleVariables(
     }
     std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>
         target_cache_value{std::nullopt};
-    target_cache_value = context->target_cache.Read(*target_cache_key);
+    target_cache_value = context->target_cache->Read(*target_cache_key);
     bool from_just_serve = false;
     if (not target_cache_value and context->serve) {
         auto task = fmt::format("[{},{}]",

@@ -102,7 +102,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -545,7 +545,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -633,7 +633,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -731,7 +731,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -939,7 +939,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -1080,7 +1080,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -1187,7 +1187,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};
@@ -1351,7 +1351,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = Storage::Instance().TargetCache(),
+                       .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve};

@@ -131,13 +131,14 @@ void ExportRule(
     auto const& target_name = key.target.GetNamedTarget();
     auto repo_key = context->repo_config->RepositoryKey(target_name.repository);
     auto target_cache_key = repo_key
-                                ? context->target_cache.ComputeKey(
+                                ? context->target_cache->ComputeKey(
                                       *repo_key, target_name, effective_config)
                                 : std::nullopt;
 
     if (target_cache_key) {
         // first try to get value from local target cache
-        auto target_cache_value = context->target_cache.Read(*target_cache_key);
+        auto target_cache_value =
+            context->target_cache->Read(*target_cache_key);
         bool from_just_serve{false};
 
 #ifndef BOOTSTRAP_BUILD_TOOL

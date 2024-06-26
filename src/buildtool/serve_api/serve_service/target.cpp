@@ -451,7 +451,7 @@ auto TargetService::ServeTarget(
     Logger logger{"serve-target", {LogSinkFile::CreateFactory(tmp_log)}};
 
     AnalyseContext analyse_ctx{.repo_config = &repository_config,
-                               .target_cache = tc,
+                               .target_cache = &tc,
                                .statistics = &stats,
                                .progress = &progress,
                                .serve = serve_};
