@@ -374,8 +374,8 @@ auto SourceTreeService::ResolveContentTree(
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
     if (resolve_special) {
         // get the resolved tree
-        auto tree_id_file =
-            StorageUtils::GetResolvedTreeIDFile(tree_id, *resolve_special);
+        auto tree_id_file = StorageUtils::GetResolvedTreeIDFile(
+            StorageConfig::Instance(), tree_id, *resolve_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -711,8 +711,8 @@ auto SourceTreeService::ServeArchiveTree(
         SymlinksResolveToPragmaSpecial(request->resolve_symlinks());
 
     // check for archive_tree_id_file
-    auto archive_tree_id_file =
-        StorageUtils::GetArchiveTreeIDFile(archive_type, content);
+    auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
+        StorageConfig::Instance(), archive_type, content);
     if (FileSystemManager::Exists(archive_tree_id_file)) {
         // read archive_tree_id from file tree_id_file
         auto archive_tree_id =
@@ -792,7 +792,8 @@ auto SourceTreeService::ServeArchiveTree(
             StorageConfig::Instance().GitRoot(), content, logger_);
         if (res) {
             // add to CAS
-            content_cas_path = StorageUtils::AddToCAS(*res);
+            content_cas_path =
+                StorageUtils::AddToCAS(Storage::Instance(), *res);
         }
         if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(
@@ -810,7 +811,8 @@ auto SourceTreeService::ServeArchiveTree(
             auto res = GetBlobFromRepo(path, content, logger_);
             if (res) {
                 // add to CAS
-                content_cas_path = StorageUtils::AddToCAS(*res);
+                content_cas_path =
+                    StorageUtils::AddToCAS(Storage::Instance(), *res);
                 if (content_cas_path) {
                     break;
                 }

@@ -80,6 +80,8 @@
   , "deps":
     [ ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , "config"
+    , "storage"
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
@@ -88,8 +90,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
-    , "config"
-    , "storage"
     ]
   }
 , "file_chunker":

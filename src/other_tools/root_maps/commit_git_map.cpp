@@ -435,7 +435,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         return;
     }
     if (not is_commit_present.value()) {
-        auto tree_id_file = StorageUtils::GetCommitTreeIDFile(repo_info.hash);
+        auto tree_id_file = StorageUtils::GetCommitTreeIDFile(
+            StorageConfig::Instance(), repo_info.hash);
         // Check if we have stored a file association between commit and tree;
         // if an association file exists, the respective tree MUST be in the
         // Git cache
@@ -950,8 +951,8 @@ auto CreateCommitGitMap(
         if (fetch_repo_path) {
             fetch_repo = std::filesystem::absolute(*fetch_repo_path).string();
         }
-        std::filesystem::path repo_root =
-            StorageUtils::GetGitRoot(just_mr_paths, fetch_repo);
+        std::filesystem::path repo_root = StorageUtils::GetGitRoot(
+            StorageConfig::Instance(), just_mr_paths, fetch_repo);
         // ensure git repo
         // define Git operation to be done
         GitOpKey op_key = {

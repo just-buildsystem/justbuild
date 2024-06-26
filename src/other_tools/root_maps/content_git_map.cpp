@@ -182,8 +182,8 @@ void ResolveContentTree(
     ContentGitMap::LoggerPtr const& logger) {
     if (key.pragma_special) {
         // get the resolved tree
-        auto tree_id_file =
-            StorageUtils::GetResolvedTreeIDFile(tree_hash, *key.pragma_special);
+        auto tree_id_file = StorageUtils::GetResolvedTreeIDFile(
+            StorageConfig::Instance(), tree_hash, *key.pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -532,7 +532,7 @@ auto CreateContentGitMap(
                                          auto /* unused */,
                                          auto const& key) {
         auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-            key.repo_type, key.archive.content);
+            StorageConfig::Instance(), key.repo_type, key.archive.content);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
             // read archive_tree_id from file tree_id_file
             auto archive_tree_id =
@@ -788,8 +788,8 @@ auto CreateContentGitMap(
                                  : std::filesystem::path(key.archive.fetch_url)
                                        .filename()
                                        .string());
-                        StorageUtils::AddDistfileToCAS(repo_distfile,
-                                                       just_mr_paths);
+                        StorageUtils::AddDistfileToCAS(
+                            Storage::Instance(), repo_distfile, just_mr_paths);
                         // check if content is in CAS now
                         if (auto content_cas_path =
                                 cas.BlobPath(digest, /*is_executable=*/false)) {

@@ -75,7 +75,7 @@ void FetchFromNetwork(ArchiveContent const& key,
         }
     }
     // add the fetched data to CAS
-    auto path = StorageUtils::AddToCAS(*data);
+    auto path = StorageUtils::AddToCAS(Storage::Instance(), *data);
     // check one last time if content is in CAS now
     if (not path) {
         (*logger)(fmt::format("Failed to store fetched content from {}",
@@ -206,7 +206,8 @@ auto CreateContentCASMap(
                                   : std::filesystem::path(key.fetch_url)
                                         .filename()
                                         .string());
-                StorageUtils::AddDistfileToCAS(repo_distfile, just_mr_paths);
+                StorageUtils::AddDistfileToCAS(
+                    Storage::Instance(), repo_distfile, just_mr_paths);
                 // check if content is in CAS now
                 if (cas.BlobPath(digest, /*is_executable=*/false)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);

@@ -32,6 +32,7 @@
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
@@ -380,5 +381,5 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
     // if successful, return the output config
-    return StorageUtils::AddToCAS(mr_config.dump(2));
+    return StorageUtils::AddToCAS(Storage::Instance(), mr_config.dump(2));
 }

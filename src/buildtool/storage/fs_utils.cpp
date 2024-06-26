@@ -14,6 +14,7 @@
 
 #include "src/buildtool/storage/fs_utils.hpp"
 
+#include <tuple>  //std::ignore
 #include <unordered_map>
 #include <utility>
 
@@ -21,13 +22,12 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace StorageUtils {
 
-auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
+auto GetGitRoot(StorageConfig const& storage_config,
+                LocalPathsPtr const& just_mr_paths,
                 std::string const& repo_url) noexcept -> std::filesystem::path {
     if (just_mr_paths->git_checkout_locations.contains(repo_url)) {
         if (just_mr_paths->git_checkout_locations[repo_url].is_string()) {
@@ -48,26 +48,29 @@ auto GetGitRoot(LocalPathsPtr const& just_mr_paths,
         FileSystemManager::IsDirectory(repo_url_as_path)) {
         return repo_url_as_path;
     }
-    return StorageConfig::Instance().GitRoot();
+    return storage_config.GitRoot();
 }
 
-auto GetCommitTreeIDFile(std::string const& commit) noexcept
+auto GetCommitTreeIDFile(StorageConfig const& storage_config,
+                         std::string const& commit) noexcept
     -> std::filesystem::path {
-    return StorageConfig::Instance().BuildRoot() / "commit-tree-map" / commit;
+    return storage_config.BuildRoot() / "commit-tree-map" / commit;
 }
 
-auto GetArchiveTreeIDFile(std::string const& repo_type,
+auto GetArchiveTreeIDFile(StorageConfig const& storage_config,
+                          std::string const& repo_type,
                           std::string const& content) noexcept
     -> std::filesystem::path {
-    return StorageConfig::Instance().BuildRoot() / "tree-map" / repo_type /
-           content;
+    return storage_config.BuildRoot() / "tree-map" / repo_type / content;
 }
 
-auto GetForeignFileTreeIDFile(std::string const& content,
+auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
+                              std::string const& content,
                               std::string const& name,
                               bool executable) noexcept
     -> std::filesystem::path {
     return GetDistdirTreeIDFile(
+        storage_config,
         HashFunction::ComputeBlobHash(
             nlohmann::json(
                 std::unordered_map<std::string, std::pair<std::string, bool>>{
@@ -76,16 +79,17 @@ auto GetForeignFileTreeIDFile(std::string const& content,
             .HexString());
 }
 
-auto GetDistdirTreeIDFile(std::string const& content) noexcept
+auto GetDistdirTreeIDFile(StorageConfig const& storage_config,
+                          std::string const& content) noexcept
     -> std::filesystem::path {
-    return StorageConfig::Instance().BuildRoot() / "distfiles-tree-map" /
-           content;
+    return storage_config.BuildRoot() / "distfiles-tree-map" / content;
 }
 
-auto GetResolvedTreeIDFile(std::string const& tree_hash,
+auto GetResolvedTreeIDFile(StorageConfig const& storage_config,
+                           std::string const& tree_hash,
                            PragmaSpecial const& pragma_special) noexcept
     -> std::filesystem::path {
-    return StorageConfig::Instance().BuildRoot() / "special-tree-map" /
+    return storage_config.BuildRoot() / "special-tree-map" /
            kPragmaSpecialInverseMap.at(pragma_special) / tree_hash;
 }
 
@@ -107,10 +111,10 @@ auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
     return FileSystemManager::Rename(tmp_file.string(), tree_id_file);
 }
 
-auto AddToCAS(std::string const& data) noexcept
+auto AddToCAS(Storage const& storage, std::string const& data) noexcept
     -> std::optional<std::filesystem::path> {
     // get file CAS instance
-    auto const& cas = Storage::Instance().CAS();
+    auto const& cas = storage.CAS();
     // write to cas
     auto digest = cas.StoreBlob(data);
     if (digest) {
@@ -119,15 +123,15 @@ auto AddToCAS(std::string const& data) noexcept
     return std::nullopt;
 }
 
-void AddDistfileToCAS(std::filesystem::path const& distfile,
+void AddDistfileToCAS(Storage const& storage,
+                      std::filesystem::path const& distfile,
                       LocalPathsPtr const& just_mr_paths) noexcept {
-    auto const& cas = Storage::Instance().CAS();
+    auto const& cas = storage.CAS();
     for (auto const& dirpath : just_mr_paths->distdirs) {
         auto candidate = dirpath / distfile;
         if (FileSystemManager::Exists(candidate)) {
             // try to add to CAS
-            [[maybe_unused]] auto digest =
-                cas.StoreBlob(candidate, /*is_executable=*/false);
+            std::ignore = cas.StoreBlob(candidate, /*is_executable=*/false);
         }
     }
 }

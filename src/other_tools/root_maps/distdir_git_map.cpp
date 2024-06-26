@@ -147,8 +147,8 @@ auto CreateDistdirGitMap(
                                        auto logger,
                                        auto /* unused */,
                                        auto const& key) {
-        auto distdir_tree_id_file =
-            StorageUtils::GetDistdirTreeIDFile(key.content_id);
+        auto distdir_tree_id_file = StorageUtils::GetDistdirTreeIDFile(
+            StorageConfig::Instance(), key.content_id);
         if (FileSystemManager::Exists(distdir_tree_id_file)) {
             // read distdir_tree_id from file tree_id_file
             auto distdir_tree_id =

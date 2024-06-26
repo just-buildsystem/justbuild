@@ -107,8 +107,8 @@ void ResolveFilePathTree(
     FilePathGitMap::LoggerPtr const& logger) {
     if (pragma_special) {
         // get the resolved tree
-        auto tree_id_file =
-            StorageUtils::GetResolvedTreeIDFile(tree_hash, *pragma_special);
+        auto tree_id_file = StorageUtils::GetResolvedTreeIDFile(
+            StorageConfig::Instance(), tree_hash, *pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
