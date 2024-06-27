@@ -797,7 +797,9 @@ auto main(int argc, char* argv[]) -> int {
             ApiBundle const exec_apis{/*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
-            if (!ServerImpl::Instance().Run(exec_apis)) {
+            if (not ServerImpl::Instance().Run(StorageConfig::Instance(),
+                                               Storage::Instance(),
+                                               exec_apis)) {
                 return kExitFailure;
             }
             return kExitSuccess;

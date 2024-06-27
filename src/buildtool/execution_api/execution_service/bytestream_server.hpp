@@ -18,10 +18,16 @@
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
   public:
+    explicit BytestreamServiceImpl(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage) noexcept
+        : storage_config_{*storage_config}, storage_{*storage} {}
+
     // `Read()` is used to retrieve the contents of a resource as a sequence
     // of bytes. The bytes are returned in a sequence of responses, and the
     // responses are delivered as the results of a server-side streaming RPC.
@@ -76,7 +82,8 @@ class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
         -> ::grpc::Status override;
 
   private:
-    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
+    StorageConfig const& storage_config_;
+    Storage const& storage_;
     Logger logger_{"execution-service:bytestream"};
 };
 

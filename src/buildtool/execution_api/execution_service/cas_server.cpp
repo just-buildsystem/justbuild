@@ -27,7 +27,6 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -63,7 +62,7 @@ auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
     ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str =
             fmt::format("FindMissingBlobs: could not acquire SharedLock");
@@ -83,12 +82,12 @@ auto CASServiceImpl::FindMissingBlobs(
         }
         logger_.Emit(LogLevel::Trace, "FindMissingBlobs: {}", hash);
         if (NativeSupport::IsTree(hash)) {
-            if (!storage_->CAS().TreePath(x)) {
+            if (not storage_.CAS().TreePath(x)) {
                 auto* d = response->add_missing_blob_digests();
                 d->CopyFrom(x);
             }
         }
-        else if (!storage_->CAS().BlobPath(x, false)) {
+        else if (not storage_.CAS().BlobPath(x, false)) {
             auto* d = response->add_missing_blob_digests();
             d->CopyFrom(x);
         }
@@ -120,7 +119,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchUpdateBlobsRequest* request,
     ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str =
             fmt::format("BatchUpdateBlobs: could not acquire SharedLock");
@@ -143,13 +142,13 @@ auto CASServiceImpl::BatchUpdateBlobs(
             // In native mode: for trees, check whether the tree invariant holds
             // before storing the actual tree object.
             if (auto err = CASUtils::EnsureTreeInvariant(
-                    x.digest(), x.data(), *storage_)) {
+                    x.digest(), x.data(), storage_)) {
                 auto str = fmt::format("BatchUpdateBlobs: {}", *err);
                 logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
                                       str};
             }
-            auto const& dgst = storage_->CAS().StoreTree(x.data());
+            auto const& dgst = storage_.CAS().StoreTree(x.data());
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload tree {}", hash);
@@ -163,7 +162,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
             }
         }
         else {
-            auto const& dgst = storage_->CAS().StoreBlob(x.data(), false);
+            auto const& dgst = storage_.CAS().StoreBlob(x.data(), false);
             if (!dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload blob {}", hash);
@@ -184,7 +183,7 @@ auto CASServiceImpl::BatchReadBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchReadBlobsRequest* request,
     ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str = fmt::format("BatchReadBlobs: Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -195,10 +194,10 @@ auto CASServiceImpl::BatchReadBlobs(
         r->mutable_digest()->CopyFrom(digest);
         std::optional<std::filesystem::path> path;
         if (NativeSupport::IsTree(digest.hash())) {
-            path = storage_->CAS().TreePath(digest);
+            path = storage_.CAS().TreePath(digest);
         }
         else {
-            path = storage_->CAS().BlobPath(digest, false);
+            path = storage_.CAS().BlobPath(digest, false);
         }
         if (!path) {
             google::rpc::Status status;
@@ -266,7 +265,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     }
 
     // Acquire garbage collection lock.
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
         auto str =
             fmt::format("SplitBlob: could not acquire garbage collection lock");
@@ -275,11 +274,11 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     }
 
     // Split blob into chunks.
-    auto split_result =
-        chunking_algorithm == ::bazel_re::ChunkingAlgorithm_Value::
-                                  ChunkingAlgorithm_Value_IDENTITY
-            ? CASUtils::SplitBlobIdentity(blob_digest, *storage_)
-            : CASUtils::SplitBlobFastCDC(blob_digest, *storage_);
+    auto split_result = chunking_algorithm ==
+                                ::bazel_re::ChunkingAlgorithm_Value::
+                                    ChunkingAlgorithm_Value_IDENTITY
+                            ? CASUtils::SplitBlobIdentity(blob_digest, storage_)
+                            : CASUtils::SplitBlobFastCDC(blob_digest, storage_);
 
     if (not split_result) {
         auto const& status = split_result.error();
@@ -332,7 +331,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
                  request->chunk_digests().size());
 
     // Acquire garbage collection lock.
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
         auto str = fmt::format(
             "SpliceBlob: could not acquire garbage collection lock");
@@ -346,7 +345,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
               request->chunk_digests().cend(),
               std::back_inserter(chunk_digests));
     auto splice_result =
-        CASUtils::SpliceBlob(blob_digest, chunk_digests, *storage_);
+        CASUtils::SpliceBlob(blob_digest, chunk_digests, storage_);
     if (not splice_result) {
         auto const& status = splice_result.error();
         auto str = fmt::format("SpliceBlob: {}", status.error_message());

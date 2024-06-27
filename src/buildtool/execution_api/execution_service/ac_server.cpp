@@ -16,7 +16,6 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -31,13 +30,13 @@ auto ActionCacheServiceImpl::GetActionResult(
     logger_.Emit(LogLevel::Trace,
                  "GetActionResult: {}",
                  request->action_digest().hash());
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    auto x = storage_->ActionCache().CachedResult(request->action_digest());
+    auto x = storage_.ActionCache().CachedResult(request->action_digest());
     if (!x) {
         return grpc::Status{
             grpc::StatusCode::NOT_FOUND,

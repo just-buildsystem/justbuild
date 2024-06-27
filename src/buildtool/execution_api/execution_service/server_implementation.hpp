@@ -19,6 +19,8 @@
 #include <string>
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class ServerImpl {
   public:
@@ -47,7 +49,9 @@ class ServerImpl {
     ServerImpl(ServerImpl&&) noexcept = delete;
     auto operator=(ServerImpl&&) noexcept -> ServerImpl& = delete;
 
-    auto Run(ApiBundle const& apis) -> bool;
+    auto Run(StorageConfig const& storage_config,
+             Storage const& storage,
+             ApiBundle const& apis) -> bool;
     ~ServerImpl() = default;
 
   private:

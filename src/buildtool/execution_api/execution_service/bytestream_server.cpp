@@ -23,7 +23,6 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
@@ -62,7 +61,7 @@ auto BytestreamServiceImpl::Read(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
 
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
@@ -73,12 +72,12 @@ auto BytestreamServiceImpl::Read(
 
     if (NativeSupport::IsTree(*hash)) {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
-        path = storage_->CAS().TreePath(static_cast<bazel_re::Digest>(dgst));
+        path = storage_.CAS().TreePath(static_cast<bazel_re::Digest>(dgst));
     }
     else {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, false};
-        path = storage_->CAS().BlobPath(static_cast<bazel_re::Digest>(dgst),
-                                        false);
+        path =
+            storage_.CAS().BlobPath(static_cast<bazel_re::Digest>(dgst), false);
     }
     if (!path) {
         auto str = fmt::format("could not find {}", *hash);
@@ -126,14 +125,13 @@ auto BytestreamServiceImpl::Write(
                  *hash,
                  request.write_offset(),
                  request.finish_write());
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    auto tmp_dir =
-        StorageConfig::Instance().CreateTypedTmpDir("execution-service");
+    auto tmp_dir = storage_config_.CreateTypedTmpDir("execution-service");
     if (!tmp_dir) {
         return ::grpc::Status{::grpc::StatusCode::INTERNAL,
                               "could not create TmpDir"};
@@ -150,14 +148,14 @@ auto BytestreamServiceImpl::Write(
                  static_cast<std::streamsize>(request.data().size()));
     }
     if (NativeSupport::IsTree(*hash)) {
-        if (not storage_->CAS().StoreTree</*kOwner=*/true>(tmp)) {
+        if (not storage_.CAS().StoreTree</*kOwner=*/true>(tmp)) {
             auto str = fmt::format("could not store tree {}", *hash);
             logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
         }
     }
     else {
-        if (not storage_->CAS().StoreBlob</*kOwner=*/true>(
+        if (not storage_.CAS().StoreBlob</*kOwner=*/true>(
                 tmp, /*is_executable=*/false)) {
             auto str = fmt::format("could not store blob {}", *hash);
             logger_.Emit(LogLevel::Error, "{}", str);

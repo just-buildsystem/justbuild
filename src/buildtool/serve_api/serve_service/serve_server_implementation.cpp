@@ -123,10 +123,11 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
 
     // the user has not given any remote-execution endpoint
     // so we start a "just-execute instance" on the same process
-    [[maybe_unused]] ExecutionServiceImpl es{&*apis.local};
-    [[maybe_unused]] ActionCacheServiceImpl ac{};
-    [[maybe_unused]] CASServiceImpl cas{};
-    [[maybe_unused]] BytestreamServiceImpl b{};
+    [[maybe_unused]] ExecutionServiceImpl es{
+        &storage_config, &storage, &*apis.local};
+    [[maybe_unused]] ActionCacheServiceImpl ac{&storage_config, &storage};
+    [[maybe_unused]] CASServiceImpl cas{&storage_config, &storage};
+    [[maybe_unused]] BytestreamServiceImpl b{&storage_config, &storage};
     [[maybe_unused]] CapabilitiesServiceImpl cap{};
     [[maybe_unused]] OperarationsServiceImpl op{};
     if (with_execute) {

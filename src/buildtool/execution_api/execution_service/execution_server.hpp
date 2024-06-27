@@ -20,13 +20,19 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
     explicit ExecutionServiceImpl(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage,
         gsl::not_null<IExecutionApi const*> const& local_api) noexcept
-        : api_{*local_api} {}
+        : storage_config_{*storage_config},
+          storage_{*storage},
+          api_{*local_api} {}
+
     // Execute an action remotely.
     //
     // In order to execute an action, the client must first upload all of the
@@ -110,7 +116,8 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         -> ::grpc::Status override;
 
   private:
-    gsl::not_null<Storage const*> storage_ = &Storage::Instance();
+    StorageConfig const& storage_config_;
+    Storage const& storage_;
     IExecutionApi const& api_;
     Logger logger_{"execution-service"};
 

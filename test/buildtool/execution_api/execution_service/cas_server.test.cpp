@@ -20,6 +20,8 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 namespace {
@@ -42,7 +44,8 @@ namespace {
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "CAS Service: upload incomplete tree",
                  "[execution_service]") {
-    auto cas_server = CASServiceImpl{};
+    auto cas_server =
+        CASServiceImpl{&StorageConfig::Instance(), &Storage::Instance()};
     auto instance_name = std::string{"remote-execution"};
 
     // Create an empty tree.

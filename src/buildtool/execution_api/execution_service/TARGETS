@@ -11,10 +11,10 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , "operation_cache"
@@ -35,12 +35,10 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
-    [ ["src/buildtool/storage", "config"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/utils/cpp", "verify_hash"]
-    ]
+    [["src/buildtool/logging", "log_level"], ["src/utils/cpp", "verify_hash"]]
   }
 , "cas_server":
   { "type": ["@", "rules", "CC", "library"]
@@ -54,12 +52,12 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "verify_hash"]
     , "cas_utils"
     ]
@@ -70,7 +68,11 @@
   , "hdrs": ["server_implementation.hpp"]
   , "srcs": ["server_implementation.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
-  , "deps": [["src/buildtool/execution_api/common", "api_bundle"]]
+  , "deps":
+    [ ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
   , "private-deps":
     [ "execution_server"
     , "ac_server"
@@ -100,6 +102,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
@@ -107,7 +110,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "verify_hash"]
     ]
   }

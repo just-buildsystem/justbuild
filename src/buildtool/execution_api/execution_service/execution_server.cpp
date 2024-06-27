@@ -25,7 +25,6 @@
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -46,7 +45,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
-    auto path = storage_->CAS().BlobPath(request->action_digest(), false);
+    auto path = storage_.CAS().BlobPath(request->action_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                request->action_digest().hash());
@@ -69,8 +68,8 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         return {std::nullopt, *error_msg};
     }
     path = Compatibility::IsCompatible()
-               ? storage_->CAS().BlobPath(action.input_root_digest(), false)
-               : storage_->CAS().TreePath(action.input_root_digest());
+               ? storage_.CAS().BlobPath(action.input_root_digest(), false)
+               : storage_.CAS().TreePath(action.input_root_digest());
 
     if (!path) {
         auto str = fmt::format("could not retrieve input root {} from cas",
@@ -88,7 +87,7 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
-    auto path = storage_->CAS().BlobPath(action.command_digest(), false);
+    auto path = storage_.CAS().BlobPath(action.command_digest(), false);
     if (!path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                action.command_digest().hash());
@@ -355,7 +354,7 @@ auto ExecutionServiceImpl::AddResult(
     IExecutionResponse::Ptr const& i_execution_response,
     std::string const& action_hash) const noexcept
     -> std::optional<std::string> {
-    if (not AddOutputPaths(response, i_execution_response, *storage_)) {
+    if (not AddOutputPaths(response, i_execution_response, storage_)) {
         auto str = fmt::format("Error in creating output paths of action {}",
                                action_hash);
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -364,8 +363,8 @@ auto ExecutionServiceImpl::AddResult(
     auto* result = response->mutable_result();
     result->set_exit_code(i_execution_response->ExitCode());
     if (i_execution_response->HasStdErr()) {
-        auto dgst = storage_->CAS().StoreBlob(i_execution_response->StdErr(),
-                                              /*is_executable=*/false);
+        auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdErr(),
+                                             /*is_executable=*/false);
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stderr of action {}", action_hash);
@@ -375,8 +374,8 @@ auto ExecutionServiceImpl::AddResult(
         result->mutable_stderr_digest()->CopyFrom(*dgst);
     }
     if (i_execution_response->HasStdOut()) {
-        auto dgst = storage_->CAS().StoreBlob(i_execution_response->StdOut(),
-                                              /*is_executable=*/false);
+        auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdOut(),
+                                             /*is_executable=*/false);
         if (!dgst) {
             auto str =
                 fmt::format("Could not store stdout of action {}", action_hash);
@@ -418,9 +417,9 @@ auto ExecutionServiceImpl::StoreActionResult(
     ::bazel_re::ExecuteResponse const& execute_response,
     ::bazel_re::Action const& action) const noexcept
     -> std::optional<std::string> {
-    if (i_execution_response->ExitCode() == 0 && !action.do_not_cache() &&
-        !storage_->ActionCache().StoreResult(request->action_digest(),
-                                             execute_response.result())) {
+    if (i_execution_response->ExitCode() == 0 and not action.do_not_cache() and
+        not storage_.ActionCache().StoreResult(request->action_digest(),
+                                               execute_response.result())) {
         auto str = fmt::format("Could not store action result for action {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -447,7 +446,7 @@ auto ExecutionServiceImpl::Execute(
     const ::bazel_re::ExecuteRequest* request,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
-    auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+    auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);

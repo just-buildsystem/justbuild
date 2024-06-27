@@ -14,6 +14,8 @@
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "execution_service"]
