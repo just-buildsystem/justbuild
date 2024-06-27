@@ -67,21 +67,13 @@ auto TargetService::GetDispatchList(
                         dispatch_info.ToString())};
     }
     // parse content
-    try {
-        auto parsed = ParseDispatch(*dispatch_str);
-        if (parsed.index() == 0) {
-            // pass the parsing error forward
-            return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                                  std::get<0>(parsed)};
-        }
-        return std::get<1>(parsed);
-    } catch (std::exception const& e) {
-        return ::grpc::Status{::grpc::StatusCode::INTERNAL,
-                              fmt::format("Parsing dispatch blob {} "
-                                          "unexpectedly failed with:\n{}",
-                                          dispatch_digest.hash(),
-                                          e.what())};
+    auto parsed = ParseDispatch(*dispatch_str);
+    if (not parsed) {
+        // pass the parsing error forward
+        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                              std::move(parsed).error()};
     }
+    return *std::move(parsed);
 }
 
 auto TargetService::HandleFailureLog(

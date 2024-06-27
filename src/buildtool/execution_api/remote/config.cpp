@@ -28,11 +28,11 @@
     try {
         if (auto dispatch_info = FileSystemManager::ReadFile(filename)) {
             auto parsed = ParseDispatch(*dispatch_info);
-            if (parsed.index() == 0) {
-                Logger::Log(LogLevel::Warning, std::get<0>(parsed));
+            if (not parsed) {
+                Logger::Log(LogLevel::Warning, std::move(parsed).error());
                 return false;
             }
-            Instance().dispatch_ = std::move(std::get<1>(parsed));
+            Instance().dispatch_ = *std::move(parsed);
             return true;
         }
         Logger::Log(LogLevel::Warning,

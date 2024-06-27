@@ -29,7 +29,12 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["remote_common"]
   , "hdrs": ["remote_common.hpp"]
-  , "deps": [["@", "fmt", "", "fmt"], ["@", "json", "", "json"], "port"]
+  , "deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/utils/cpp", "expected"]
+    , "port"
+    ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
 , "retry_parameters":
