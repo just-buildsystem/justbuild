@@ -814,10 +814,15 @@ auto main(int argc, char* argv[]) -> int {
                     /*repo_config=*/nullptr,
                     &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
-                auto serve = ServeApi::Create(*serve_config, &serve_apis);
+                auto serve = ServeApi::Create(
+                    *serve_config, &Storage::Instance(), &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
-                return serve_server->Run(
-                           *serve_config, serve, serve_apis, with_execute)
+                return serve_server->Run(*serve_config,
+                                         StorageConfig::Instance(),
+                                         Storage::Instance(),
+                                         serve,
+                                         serve_apis,
+                                         with_execute)
                            ? kExitSuccess
                            : kExitFailure;
             }
@@ -903,7 +908,7 @@ auto main(int argc, char* argv[]) -> int {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         std::optional<ServeApi> serve =
-            ServeApi::Create(*serve_config, &main_apis);
+            ServeApi::Create(*serve_config, &Storage::Instance(), &main_apis);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL

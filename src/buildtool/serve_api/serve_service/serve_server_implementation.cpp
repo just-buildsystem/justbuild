@@ -43,7 +43,6 @@
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 #include "src/buildtool/serve_api/serve_service/target.hpp"
-#include "src/buildtool/storage/config.hpp"
 
 namespace {
 template <typename T>
@@ -89,26 +88,31 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
 }
 
 auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
+                          StorageConfig const& storage_config,
+                          Storage const& storage,
                           std::optional<ServeApi> const& serve,
                           ApiBundle const& apis,
                           bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
-    if (not FileSystemManager::CreateDirectory(
-            StorageConfig::Instance().GitRoot())) {
+    if (not FileSystemManager::CreateDirectory(storage_config.GitRoot())) {
         Logger::Log(LogLevel::Error,
                     "Could not create directory {}. Aborting",
-                    StorageConfig::Instance().GitRoot().string());
+                    storage_config.GitRoot().string());
         return false;
     }
-    if (not GitRepo::InitAndOpen(StorageConfig::Instance().GitRoot(), true)) {
+    if (not GitRepo::InitAndOpen(storage_config.GitRoot(), true)) {
         Logger::Log(LogLevel::Error,
                     fmt::format("could not initialize bare git repository {}",
-                                StorageConfig::Instance().GitRoot().string()));
+                                storage_config.GitRoot().string()));
         return false;
     }
 
-    SourceTreeService sts{&serve_config, &apis};
-    TargetService ts{&serve_config, &apis, serve ? &*serve : nullptr};
+    SourceTreeService sts{&serve_config, &storage_config, &storage, &apis};
+    TargetService ts{&serve_config,
+                     &storage_config,
+                     &storage,
+                     &apis,
+                     serve ? &*serve : nullptr};
     ConfigurationService cs{};
 
     grpc::ServerBuilder builder;

@@ -44,6 +44,7 @@
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/utils/cpp", "expected"]
+    , ["src/buildtool/storage", "storage"]
     , "source_tree_client"
     , "target_client"
     , "configuration_client"

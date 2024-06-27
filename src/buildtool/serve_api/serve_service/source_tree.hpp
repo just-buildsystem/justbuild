@@ -35,6 +35,8 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 // Service for improved interaction with the target-level cache.
@@ -59,8 +61,13 @@ class SourceTreeService final
 
     explicit SourceTreeService(
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage,
         gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : serve_config_{*serve_config}, apis_{*apis} {}
+        : serve_config_{*serve_config},
+          storage_{*storage},
+          storage_config_{*storage_config},
+          apis_{*apis} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
@@ -127,6 +134,8 @@ class SourceTreeService final
 
   private:
     RemoteServeConfig const& serve_config_;
+    StorageConfig const& storage_config_;
+    Storage const& storage_;
     ApiBundle const& apis_;
     mutable std::shared_mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};

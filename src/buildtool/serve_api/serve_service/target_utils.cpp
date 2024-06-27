@@ -25,8 +25,6 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 auto IsTreeInRepo(std::string const& tree_id,
                   std::filesystem::path const& repo_path,
@@ -54,12 +52,13 @@ auto IsTreeInRepo(std::string const& tree_id,
 }
 
 auto GetServingRepository(RemoteServeConfig const& serve_config,
+                          StorageConfig const& storage_config,
                           std::string const& tree_id,
                           std::shared_ptr<Logger> const& logger)
     -> std::optional<std::filesystem::path> {
     // try the Git cache repository
-    if (IsTreeInRepo(tree_id, StorageConfig::Instance().GitRoot(), logger)) {
-        return StorageConfig::Instance().GitRoot();
+    if (IsTreeInRepo(tree_id, storage_config.GitRoot(), logger)) {
+        return storage_config.GitRoot();
     }
     // check the known repositories
     for (auto const& path : serve_config.known_repositories) {
@@ -71,6 +70,7 @@ auto GetServingRepository(RemoteServeConfig const& serve_config,
 }
 
 auto DetermineRoots(RemoteServeConfig const& serve_config,
+                    StorageConfig const& storage_config,
                     std::string const& main_repo,
                     std::filesystem::path const& repo_config_path,
                     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -103,6 +103,7 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
         // root parser
         auto parse_keyword_root =
             [&serve_config,
+             &storage_config,
              &desc = desc,
              &repo = repo,
              &error_msg = error_msg,
@@ -122,8 +123,8 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
                     }
                     // find the serving repository for the root tree
                     auto tree_id = *parsed_root->first.GetAbsentTreeId();
-                    auto repo_path =
-                        GetServingRepository(serve_config, tree_id, logger);
+                    auto repo_path = GetServingRepository(
+                        serve_config, storage_config, tree_id, logger);
                     if (not repo_path) {
                         error_msg = fmt::format(
                             "{} tree {} is not known", keyword, tree_id);

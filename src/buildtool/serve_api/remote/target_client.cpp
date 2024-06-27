@@ -25,11 +25,11 @@
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 TargetClient::TargetClient(ServerAddress const& address,
+                           gsl::not_null<Storage const*> const& storage,
                            gsl::not_null<ApiBundle const*> const& apis) noexcept
-    : apis_{*apis} {
+    : storage_{*storage}, apis_{*apis} {
     stub_ = justbuild::just_serve::Target::NewStub(
         CreateChannelWithCredentials(address.host, address.port, &apis->auth));
 }
@@ -84,8 +84,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                         ex.what())};
     }
 
-    auto dispatch_dgst =
-        Storage::Instance().CAS().StoreBlob(dispatch_list.dump(2));
+    auto dispatch_dgst = storage_.CAS().StoreBlob(dispatch_list.dump(2));
     if (not dispatch_dgst) {
         return serve_target_result_t{
             std::in_place_index<1>,

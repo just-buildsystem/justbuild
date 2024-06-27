@@ -126,6 +126,7 @@
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "update":

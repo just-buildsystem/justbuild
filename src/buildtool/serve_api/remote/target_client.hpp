@@ -30,6 +30,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 
@@ -53,6 +54,7 @@ using serve_target_result_t =
 class TargetClient {
   public:
     explicit TargetClient(ServerAddress const& address,
+                          gsl::not_null<Storage const*> const& storage,
                           gsl::not_null<ApiBundle const*> const& apis) noexcept;
 
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
@@ -87,6 +89,7 @@ class TargetClient {
         const noexcept -> std::optional<ArtifactDigest>;
 
   private:
+    Storage const& storage_;
     ApiBundle const& apis_;
     std::unique_ptr<justbuild::just_serve::Target::Stub> stub_;
     Logger logger_{"RemoteTargetClient"};

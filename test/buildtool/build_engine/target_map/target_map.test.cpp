@@ -103,7 +103,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -548,7 +548,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -638,7 +638,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -738,7 +738,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -948,7 +948,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1091,7 +1091,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1200,7 +1200,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,
@@ -1366,7 +1366,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{
         /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &apis);
+    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
                        .statistics = &stats,

@@ -36,14 +36,16 @@ class ServeApi final {};
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "src/buildtool/serve_api/remote/target_client.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 class ServeApi final {
   public:
     explicit ServeApi(ServerAddress const& address,
+                      gsl::not_null<Storage const*> const& storage,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
         : stc_{address, &apis->auth},
-          tc_{address, apis},
+          tc_{address, storage, apis},
           cc_{address, &apis->auth} {}
 
     ~ServeApi() noexcept = default;
@@ -54,11 +56,12 @@ class ServeApi final {
 
     [[nodiscard]] static auto Create(
         RemoteServeConfig const& serve_config,
+        gsl::not_null<Storage const*> const& storage,
         gsl::not_null<ApiBundle const*> const& apis) noexcept
         -> std::optional<ServeApi> {
         if (serve_config.remote_address) {
-            return std::make_optional<ServeApi>(*serve_config.remote_address,
-                                                apis);
+            return std::make_optional<ServeApi>(
+                *serve_config.remote_address, storage, apis);
         }
         return std::nullopt;
     }
