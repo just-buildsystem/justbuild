@@ -14,7 +14,6 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 
-#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
@@ -35,15 +34,16 @@ auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
     return std::nullopt;
 }
 
-auto RepositoryConfig::RepositoryKey(std::string const& repo) const noexcept
+auto RepositoryConfig::RepositoryKey(Storage const& storage,
+                                     std::string const& repo) const noexcept
     -> std::optional<std::string> {
     auto const& unique = DeduplicateRepo(repo);
     if (auto const* data = Data(unique)) {
         // compute key only once (thread-safe)
         return data->key.SetOnceAndGet(
-            [this, &unique]() -> std::optional<std::string> {
+            [this, &storage, &unique]() -> std::optional<std::string> {
                 if (auto graph = BuildGraphForRepository(unique)) {
-                    auto const& cas = Storage::Instance().CAS();
+                    auto const& cas = storage.CAS();
                     if (auto digest = cas.StoreBlob(graph->dump(2))) {
                         return ArtifactDigest{*digest}.hash();
                     }

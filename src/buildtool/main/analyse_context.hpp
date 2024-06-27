@@ -20,11 +20,11 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 struct AnalyseContext final {
     gsl::not_null<RepositoryConfig const*> const repo_config;
-    gsl::not_null<ActiveTargetCache const*> const target_cache;
+    gsl::not_null<Storage const*> const storage;
     gsl::not_null<Statistics*> const statistics;
     gsl::not_null<Progress*> const progress;
     ServeApi const* const serve = nullptr;

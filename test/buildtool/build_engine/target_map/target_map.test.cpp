@@ -109,7 +109,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -557,7 +557,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -650,7 +650,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -753,7 +753,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -966,7 +966,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1112,7 +1112,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1224,7 +1224,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1393,7 +1393,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
                          RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .target_cache = &Storage::Instance().TargetCache(),
+                       .storage = &Storage::Instance(),
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};

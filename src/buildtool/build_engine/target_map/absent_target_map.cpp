@@ -24,6 +24,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/json.hpp"
@@ -57,14 +58,15 @@ void WithFlexibleVariables(
     // TODO(asartori): avoid code duplication in export.cpp
     context->statistics->IncrementExportsFoundCounter();
     auto target_name = key.target.GetNamedTarget();
-    auto repo_key = context->repo_config->RepositoryKey(target_name.repository);
+    auto repo_key = context->repo_config->RepositoryKey(*context->storage,
+                                                        target_name.repository);
     if (!repo_key) {
         (*logger)(fmt::format("Failed to obtain repository key for repo \"{}\"",
                               target_name.repository),
                   /*fatal=*/true);
         return;
     }
-    auto target_cache_key = context->target_cache->ComputeKey(
+    auto target_cache_key = context->storage->TargetCache().ComputeKey(
         *repo_key, target_name, effective_config);
     if (not target_cache_key) {
         (*logger)(fmt::format("Could not produce cache key for target {}",
@@ -74,7 +76,8 @@ void WithFlexibleVariables(
     }
     std::optional<std::pair<TargetCacheEntry, Artifact::ObjectInfo>>
         target_cache_value{std::nullopt};
-    target_cache_value = context->target_cache->Read(*target_cache_key);
+    target_cache_value =
+        context->storage->TargetCache().Read(*target_cache_key);
     bool from_just_serve = false;
     if (not target_cache_value and context->serve != nullptr) {
         auto task = fmt::format("[{},{}]",

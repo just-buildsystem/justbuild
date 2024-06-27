@@ -28,6 +28,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 class RepositoryConfig {
 
@@ -136,7 +137,8 @@ class RepositoryConfig {
 
     // Obtain repository's cache key if the repository is content fixed or
     // std::nullopt otherwise.
-    [[nodiscard]] auto RepositoryKey(std::string const& repo) const noexcept
+    [[nodiscard]] auto RepositoryKey(Storage const& storage,
+                                     std::string const& repo) const noexcept
         -> std::optional<std::string>;
 
     // used for testing

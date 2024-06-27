@@ -120,7 +120,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig config{};
 
     CHECK(config.Info("missing") == nullptr);
-    CHECK_FALSE(config.RepositoryKey("missing"));
+    CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "missing"));
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -130,7 +130,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     SECTION("for single fixed repository") {
         config.SetInfo("foo", CreateFixedRepoInfo());
-        auto key = config.RepositoryKey("foo");
+        auto key = config.RepositoryKey(Storage::Instance(), "foo");
         REQUIRE(key);
 
         // verify created graph from CAS
@@ -140,15 +140,15 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     SECTION("for fixed repositories with same missing dependency") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz"}}));
-        CHECK_FALSE(config.RepositoryKey("foo"));
-        CHECK_FALSE(config.RepositoryKey("bar"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "bar"));
     }
 
     SECTION("for fixed repositories with different missing dependency") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz1"}}));
-        CHECK_FALSE(config.RepositoryKey("foo"));
-        CHECK_FALSE(config.RepositoryKey("bar"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "bar"));
     }
 }
 
@@ -159,14 +159,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     SECTION("for single file repository") {
         config.SetInfo("foo", CreateFileRepoInfo());
-        CHECK_FALSE(config.RepositoryKey("foo"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
     }
 
     SECTION("for graph with leaf dependency as file") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"bar", "bar"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"baz", "baz"}}));
         config.SetInfo("baz", CreateFileRepoInfo());
-        CHECK_FALSE(config.RepositoryKey("foo"));
+        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
     }
 }
 
@@ -186,8 +186,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", Copy(baz));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey("foo");
-        auto bar_key = config.RepositoryKey("bar");
+        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
+        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
@@ -205,8 +205,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", Copy(baz));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey("foo");
-        auto bar_key = config.RepositoryKey("bar");
+        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
+        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
@@ -223,8 +223,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "bar"}}));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey("foo");
-        auto bar_key = config.RepositoryKey("bar");
+        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
+        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
@@ -239,10 +239,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "baz1"}}));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey("foo");
-        auto bar_key = config.RepositoryKey("bar");
-        auto baz0_key = config.RepositoryKey("baz0");
-        auto baz1_key = config.RepositoryKey("baz1");
+        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
+        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
+        auto baz0_key = config.RepositoryKey(Storage::Instance(), "baz0");
+        auto baz1_key = config.RepositoryKey(Storage::Instance(), "baz1");
         CHECK(foo_key);
         CHECK(bar_key);
         CHECK(baz0_key);

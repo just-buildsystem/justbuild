@@ -39,6 +39,7 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
+#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -443,7 +444,7 @@ auto TargetService::ServeTarget(
     Logger logger{"serve-target", {LogSinkFile::CreateFactory(tmp_log)}};
 
     AnalyseContext analyse_ctx{.repo_config = &repository_config,
-                               .target_cache = &tc,
+                               .storage = &storage_,
                                .statistics = &stats,
                                .progress = &progress,
                                .serve = serve_};

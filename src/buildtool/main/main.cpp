@@ -991,12 +991,11 @@ auto main(int argc, char* argv[]) -> int {
 
             // create progress tracker for export targets
             Progress exports_progress{};
-            AnalyseContext analyse_ctx{
-                .repo_config = &repo_config,
-                .target_cache = &Storage::Instance().TargetCache(),
-                .statistics = &stats,
-                .progress = &exports_progress,
-                .serve = serve ? &*serve : nullptr};
+            AnalyseContext analyse_ctx{.repo_config = &repo_config,
+                                       .storage = &Storage::Instance(),
+                                       .statistics = &stats,
+                                       .progress = &exports_progress,
+                                       .serve = serve ? &*serve : nullptr};
 
             auto result = AnalyseTarget(&analyse_ctx,
                                         id,
