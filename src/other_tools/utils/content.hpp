@@ -18,7 +18,6 @@
 #include <optional>
 #include <string>
 #include <utility>  // std::move
-#include <variant>
 
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
@@ -26,6 +25,7 @@
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 // Utilities related to the content of an archive
 
@@ -44,14 +44,13 @@
 
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// Tries not only a given remote, but also all associated remote locations.
-/// \returns An error + data union, with the error message at index 0 and the
-/// fetched data at index 1.
+/// \returns The fetched data on success or an unexpected error as string.
 [[nodiscard]] static auto NetworkFetchWithMirrors(
     std::string const& fetch_url,
     std::vector<std::string> const& mirrors,
     CAInfoPtr const& ca_info,
     MirrorsPtr const& additional_mirrors) noexcept
-    -> std::variant<std::string, std::string> {
+    -> expected<std::string, std::string> {
     // keep all remotes tried, to report in case fetch fails
     std::string remotes_buffer{};
     std::optional<std::string> data{std::nullopt};
@@ -81,10 +80,10 @@
         // add local mirror to buffer
         remotes_buffer.append(fmt::format("\n> {}", mirror));
     }
-    return data ? std::variant<std::string, std::string>(std::in_place_index<1>,
-                                                         *data)
-                : std::variant<std::string, std::string>(std::in_place_index<0>,
-                                                         remotes_buffer);
+    if (not data) {
+        return unexpected{remotes_buffer};
+    }
+    return *data;
 }
 
 template <Hasher::HashType type>

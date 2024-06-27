@@ -41,15 +41,13 @@ void FetchFromNetwork(ArchiveContent const& key,
         return;
     }
     // now do the actual fetch
-    auto res = NetworkFetchWithMirrors(
+    auto data = NetworkFetchWithMirrors(
         key.fetch_url, key.mirrors, ca_info, additional_mirrors);
-    auto* data =
-        std::get_if<1>(&res);  // get pointer to fetched data, or nullptr
-    if (data == nullptr) {
+    if (not data) {
         (*logger)(fmt::format("Failed to fetch a file with id {} from provided "
                               "remotes:{}",
                               key.content,
-                              std::get<0>(res)),
+                              data.error()),
                   /*fatal=*/true);
         return;
     }
