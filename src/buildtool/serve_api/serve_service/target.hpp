@@ -21,7 +21,6 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -35,6 +34,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 // The target-level cache service.
 class TargetService final : public justbuild::just_serve::Target::Service {
@@ -132,11 +132,11 @@ class TargetService final : public justbuild::just_serve::Target::Service {
 
     /// \brief Get from remote and parse the endpoint configuration. The method
     /// also ensures the content has the expected format.
-    /// \returns An error + data union, with a pair of grpc status at index 0
-    /// and the dispatch list stored as a JSON object at index 1.
+    /// \returns The dispatch list stored as JSON object on success or an
+    /// unexpected error as grpc::Status.
     [[nodiscard]] auto GetDispatchList(
         ArtifactDigest const& dispatch_digest) noexcept
-        -> std::variant<::grpc::Status, dispatch_t>;
+        -> expected<dispatch_t, ::grpc::Status>;
 
     /// \brief Handles the processing of the log after a failed analysis or
     /// build. Will populate the response as needed and set the status to be

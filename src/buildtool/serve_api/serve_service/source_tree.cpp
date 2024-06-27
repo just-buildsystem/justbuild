@@ -100,7 +100,8 @@ auto SourceTreeService::GetSubtreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,
     std::string const& subdir,
-    std::shared_ptr<Logger> const& logger) -> std::variant<bool, std::string> {
+    std::shared_ptr<Logger> const& logger)
+    -> expected<std::string, GitLookupError> {
     if (auto git_cas = GitCAS::Open(repo_path)) {
         if (auto repo = GitRepo::Open(git_cas)) {
             // wrap logger for GitRepo call
@@ -117,22 +118,18 @@ auto SourceTreeService::GetSubtreeFromCommit(
                                      msg);
                     }
                 });
-            auto res =
-                repo->GetSubtreeFromCommit(commit, subdir, wrapped_logger);
-            if (not res) {
-                return res.error() == GitLookupError::Fatal;
-            }
-            return *std::move(res);
+            return repo->GetSubtreeFromCommit(commit, subdir, wrapped_logger);
         }
     }
-    return true;  // fatal failure
+    return unexpected{GitLookupError::Fatal};
 }
 
 auto SourceTreeService::GetSubtreeFromTree(
     std::filesystem::path const& repo_path,
     std::string const& tree_id,
     std::string const& subdir,
-    std::shared_ptr<Logger> const& logger) -> std::variant<bool, std::string> {
+    std::shared_ptr<Logger> const& logger)
+    -> expected<std::string, GitLookupError> {
     if (auto git_cas = GitCAS::Open(repo_path)) {
         if (auto repo = GitRepo::Open(git_cas)) {
             // wrap logger for GitRepo call
@@ -153,16 +150,16 @@ auto SourceTreeService::GetSubtreeFromTree(
                     repo->GetSubtreeFromTree(tree_id, subdir, wrapped_logger)) {
                 return *subtree_id;
             }
-            return false;  // non-fatal failure
+            return unexpected{GitLookupError::NotFound};  // non-fatal failure
         }
     }
-    return true;  // fatal failure
+    return unexpected{GitLookupError::Fatal};
 }
 
 auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                                         std::string const& blob_id,
                                         std::shared_ptr<Logger> const& logger)
-    -> std::variant<bool, std::string> {
+    -> expected<std::string, GitLookupError> {
     if (auto git_cas = GitCAS::Open(repo_path)) {
         if (auto repo = GitRepo::Open(git_cas)) {
             // wrap logger for GitRepo call
@@ -179,14 +176,15 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
                 });
             auto res = repo->TryReadBlob(blob_id, wrapped_logger);
             if (not res.first) {
-                return true;  // fatal failure
+                return unexpected{GitLookupError::Fatal};
             }
             if (not res.second) {
                 logger->Emit(LogLevel::Debug,
                              "Blob {} not found in repository {}",
                              blob_id,
                              repo_path.string());
-                return false;  // non-fatal failure
+                return unexpected{
+                    GitLookupError::NotFound};  // non-fatal failure
             }
             return res.second.value();
         }
@@ -194,7 +192,7 @@ auto SourceTreeService::GetBlobFromRepo(std::filesystem::path const& repo_path,
     // failed to open repository
     logger->Emit(
         LogLevel::Debug, "Failed to open repository {}", repo_path.string());
-    return true;  // fatal failure
+    return unexpected{GitLookupError::Fatal};
 }
 
 auto SourceTreeService::ServeCommitTree(
@@ -206,8 +204,8 @@ auto SourceTreeService::ServeCommitTree(
     // try in local build root Git cache
     auto res =
         GetSubtreeFromCommit(StorageConfig::GitRoot(), commit, subdir, logger_);
-    if (std::holds_alternative<std::string>(res)) {
-        auto tree_id = std::get<std::string>(res);
+    if (res) {
+        auto tree_id = *std::move(res);
         if (request->sync_tree()) {
             // sync tree with remote CAS; only possible in native mode
             if (Compatibility::IsCompatible()) {
@@ -247,7 +245,7 @@ auto SourceTreeService::ServeCommitTree(
         return ::grpc::Status::OK;
     }
     // report fatal failure
-    if (std::get<bool>(res)) {
+    if (res.error() == GitLookupError::Fatal) {
         logger_->Emit(LogLevel::Error,
                       "Failed while retrieving subtree {} of commit {} from "
                       "repository {}",
@@ -260,8 +258,8 @@ auto SourceTreeService::ServeCommitTree(
     // try given extra repositories, in order
     for (auto const& path : serve_config_.known_repositories) {
         auto res = GetSubtreeFromCommit(path, commit, subdir, logger_);
-        if (std::holds_alternative<std::string>(res)) {
-            auto tree_id = std::get<std::string>(res);
+        if (res) {
+            auto tree_id = *std::move(res);
             if (request->sync_tree()) {
                 // sync tree with remote CAS; only possible in native mode
                 if (Compatibility::IsCompatible()) {
@@ -305,7 +303,7 @@ auto SourceTreeService::ServeCommitTree(
             return ::grpc::Status::OK;
         }
         // report fatal failure
-        if (std::get<bool>(res)) {
+        if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(LogLevel::Error,
                           "Failed while retrieving subtree {} of commit {} "
                           "from repository {}",
@@ -498,16 +496,13 @@ auto SourceTreeService::ResolveContentTree(
 
 auto SourceTreeService::CommonImportToGit(
     std::filesystem::path const& root_path,
-    std::string const& commit_message)
-    -> std::variant<std::string, std::string> {
-    using result_t = std::variant<std::string, std::string>;
+    std::string const& commit_message) -> expected<std::string, std::string> {
     // do the initial commit; no need to guard, as the tmp location is unique
     auto git_repo = GitRepo::InitAndOpen(root_path,
                                          /*is_bare=*/false);
     if (not git_repo) {
-        auto str = fmt::format("Could not initialize repository {}",
-                               root_path.string());
-        return result_t(std::in_place_index<0>, str);
+        return unexpected{fmt::format("Could not initialize repository {}",
+                                      root_path.string())};
     }
     // wrap logger for GitRepo call
     std::string err;
@@ -524,20 +519,18 @@ auto SourceTreeService::CommonImportToGit(
     auto commit_hash =
         git_repo->StageAndCommitAllAnonymous(commit_message, wrapped_logger);
     if (not commit_hash) {
-        return result_t(std::in_place_index<0>, err);
+        return unexpected{err};
     }
     // open the Git CAS repo
     auto just_git_cas = GitCAS::Open(StorageConfig::GitRoot());
     if (not just_git_cas) {
-        auto str = fmt::format("Failed to open Git ODB at {}",
-                               StorageConfig::GitRoot().string());
-        return result_t(std::in_place_index<0>, str);
+        return unexpected{fmt::format("Failed to open Git ODB at {}",
+                                      StorageConfig::GitRoot().string())};
     }
     auto just_git_repo = GitRepo::Open(just_git_cas);
     if (not just_git_repo) {
-        auto str = fmt::format("Failed to open Git repository {}",
-                               StorageConfig::GitRoot().string());
-        return result_t(std::in_place_index<0>, str);
+        return unexpected{fmt::format("Failed to open Git repository {}",
+                                      StorageConfig::GitRoot().string())};
     }
     // wrap logger for GitRepo call
     err.clear();
@@ -554,7 +547,7 @@ auto SourceTreeService::CommonImportToGit(
     if (not just_git_repo->LocalFetchViaTmpRepo(root_path.string(),
                                                 /*branch=*/std::nullopt,
                                                 wrapped_logger)) {
-        return result_t(std::in_place_index<0>, err);
+        return unexpected{err};
     }
     // wrap logger for GitRepo call
     err.clear();
@@ -575,15 +568,15 @@ auto SourceTreeService::CommonImportToGit(
         // open real repository at Git CAS location
         auto git_repo = GitRepo::Open(StorageConfig::GitRoot());
         if (not git_repo) {
-            auto str = fmt::format("Failed to open Git CAS repository {}",
-                                   StorageConfig::GitRoot().string());
-            return result_t(std::in_place_index<0>, str);
+            return unexpected{
+                fmt::format("Failed to open Git CAS repository {}",
+                            StorageConfig::GitRoot().string())};
         }
         // Important: message must be consistent with just-mr!
         if (not git_repo->KeepTag(*commit_hash,
                                   "Keep referenced tree alive",  // message
                                   wrapped_logger)) {
-            return result_t(std::in_place_index<0>, err);
+            return unexpected{err};
         }
     }
     // wrap logger for GitRepo call
@@ -600,10 +593,10 @@ auto SourceTreeService::CommonImportToGit(
     auto res =
         just_git_repo->GetSubtreeFromCommit(*commit_hash, ".", wrapped_logger);
     if (not res) {
-        return result_t(std::in_place_index<0>, err);
+        return unexpected{err};
     }
     // return the root tree id
-    return result_t(std::in_place_index<1>, *std::move(res));
+    return *std::move(res);
 }
 
 auto SourceTreeService::ArchiveImportToGit(
@@ -619,13 +612,13 @@ auto SourceTreeService::ArchiveImportToGit(
     auto commit_message =
         fmt::format("Content of {} {}", archive_type, content);
     auto res = CommonImportToGit(unpack_path, commit_message);
-    if (res.index() == 0) {
+    if (not res) {
         // report the error
-        logger_->Emit(LogLevel::Error, "{}", std::get<0>(res));
+        logger_->Emit(LogLevel::Error, "{}", res.error());
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    auto const& tree_id = std::get<1>(res);
+    auto const& tree_id = *res;
     // write to tree id file
     if (not StorageUtils::WriteTreeIDFile(archive_tree_id_file, tree_id)) {
         logger_->Emit(LogLevel::Error,
@@ -732,8 +725,8 @@ auto SourceTreeService::ServeArchiveTree(
         // check local build root Git cache
         auto res = GetSubtreeFromTree(
             StorageConfig::GitRoot(), *archive_tree_id, subdir, logger_);
-        if (std::holds_alternative<std::string>(res)) {
-            return ResolveContentTree(std::get<std::string>(res),  // tree_id
+        if (res) {
+            return ResolveContentTree(*res,  // tree_id
                                       StorageConfig::GitRoot(),
                                       /*repo_is_git_cache=*/true,
                                       resolve_special,
@@ -741,7 +734,7 @@ auto SourceTreeService::ServeArchiveTree(
                                       response);
         }
         // check for fatal error
-        if (std::get<bool>(res)) {
+        if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(LogLevel::Error,
                           "Failed to open repository {}",
                           StorageConfig::GitRoot().string());
@@ -752,17 +745,16 @@ auto SourceTreeService::ServeArchiveTree(
         for (auto const& path : serve_config_.known_repositories) {
             auto res =
                 GetSubtreeFromTree(path, *archive_tree_id, subdir, logger_);
-            if (std::holds_alternative<std::string>(res)) {
-                return ResolveContentTree(
-                    std::get<std::string>(res),  // tree_id
-                    path,
-                    /*repo_is_git_cache=*/false,
-                    resolve_special,
-                    request->sync_tree(),
-                    response);
+            if (res) {
+                return ResolveContentTree(*res,  // tree_id
+                                          path,
+                                          /*repo_is_git_cache=*/false,
+                                          resolve_special,
+                                          request->sync_tree(),
+                                          response);
             }
             // check for fatal error
-            if (std::get<bool>(res)) {
+            if (res.error() == GitLookupError::Fatal) {
                 logger_->Emit(LogLevel::Error,
                               "Failed to open repository {}",
                               path.string());
@@ -793,12 +785,11 @@ auto SourceTreeService::ServeArchiveTree(
         not content_cas_path) {
         // check if content blob is in Git cache
         auto res = GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_);
-        if (std::holds_alternative<std::string>(res)) {
+        if (res) {
             // add to CAS
-            content_cas_path =
-                StorageUtils::AddToCAS(std::get<std::string>(res));
+            content_cas_path = StorageUtils::AddToCAS(*res);
         }
-        if (std::get<bool>(res)) {
+        if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(
                 LogLevel::Error,
                 "Failed while trying to retrieve content {} from repository {}",
@@ -812,15 +803,14 @@ auto SourceTreeService::ServeArchiveTree(
         // check if content blob is in a known repository
         for (auto const& path : serve_config_.known_repositories) {
             auto res = GetBlobFromRepo(path, content, logger_);
-            if (std::holds_alternative<std::string>(res)) {
+            if (res) {
                 // add to CAS
-                content_cas_path =
-                    StorageUtils::AddToCAS(std::get<std::string>(res));
+                content_cas_path = StorageUtils::AddToCAS(*res);
                 if (content_cas_path) {
                     break;
                 }
             }
-            if (std::get<bool>(res)) {
+            if (res.error() == GitLookupError::Fatal) {
                 logger_->Emit(LogLevel::Error,
                               "Failed while trying to retrieve content {} from "
                               "repository {}",
@@ -926,13 +916,13 @@ auto SourceTreeService::DistdirImportToGit(
     // Important: commit message must match that in just-mr!
     auto commit_message = fmt::format("Content of distdir {}", content_id);
     auto res = CommonImportToGit(tmp_path, commit_message);
-    if (res.index() == 0) {
+    if (not res) {
         // report the error
-        logger_->Emit(LogLevel::Error, "{}", std::get<0>(res));
+        logger_->Emit(LogLevel::Error, "{}", res.error());
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    auto tree_id = std::get<1>(res);
+    auto tree_id = *std::move(res);
     // check the committed tree matches what we expect
     if (tree_id != distdir_tree_id) {
         // something is very wrong...
@@ -1027,10 +1017,9 @@ auto SourceTreeService::ServeDistdirTree(
             // check local Git cache
             auto res =
                 GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_);
-            if (std::holds_alternative<std::string>(res)) {
+            if (res) {
                 // add content to local CAS
-                auto stored_blob =
-                    cas.StoreBlob(std::get<std::string>(res), kv.executable());
+                auto stored_blob = cas.StoreBlob(*res, kv.executable());
                 if (not stored_blob) {
                     logger_->Emit(LogLevel::Error,
                                   "Failed to store content {} from local Git "
@@ -1044,7 +1033,7 @@ auto SourceTreeService::ServeDistdirTree(
                 blob_digest = NativeSupport::Unprefix(stored_blob->hash());
             }
             else {
-                if (std::get<bool>(res)) {
+                if (res.error() == GitLookupError::Fatal) {
                     logger_->Emit(LogLevel::Error,
                                   "Failed while trying to retrieve content {} "
                                   "from repository {}",
@@ -1057,10 +1046,9 @@ auto SourceTreeService::ServeDistdirTree(
                 // check known repositories
                 for (auto const& path : serve_config_.known_repositories) {
                     auto res = GetBlobFromRepo(path, content, logger_);
-                    if (std::holds_alternative<std::string>(res)) {
+                    if (res) {
                         // add content to local CAS
-                        auto stored_blob = cas.StoreBlob(
-                            std::get<std::string>(res), kv.executable());
+                        auto stored_blob = cas.StoreBlob(*res, kv.executable());
                         if (not stored_blob) {
                             logger_->Emit(LogLevel::Error,
                                           "Failed to store content {} from "
@@ -1076,7 +1064,7 @@ auto SourceTreeService::ServeDistdirTree(
                             NativeSupport::Unprefix(stored_blob->hash());
                         break;
                     }
-                    if (std::get<bool>(res)) {
+                    if (res.error() == GitLookupError::Fatal) {
                         logger_->Emit(
                             LogLevel::Error,
                             "Failed while trying to retrieve content {} from "
@@ -1290,7 +1278,7 @@ auto SourceTreeService::ServeContent(
     auto const digest = ArtifactDigest{content, 0, /*is_tree=*/false};
     // check if content blob is in Git cache
     auto res = GetBlobFromRepo(StorageConfig::GitRoot(), content, logger_);
-    if (std::holds_alternative<std::string>(res)) {
+    if (res) {
         // upload blob to remote CAS
         auto repo = RepositoryConfig{};
         if (not repo.SetGitCAS(StorageConfig::GitRoot())) {
@@ -1315,7 +1303,7 @@ auto SourceTreeService::ServeContent(
         response->set_status(ServeContentResponse::OK);
         return ::grpc::Status::OK;
     }
-    if (std::get<bool>(res)) {
+    if (res.error() == GitLookupError::Fatal) {
         logger_->Emit(LogLevel::Error,
                       "Failed while checking for content {} in repository {}",
                       content,
@@ -1326,7 +1314,7 @@ auto SourceTreeService::ServeContent(
     // check if content blob is in a known repository
     for (auto const& path : serve_config_.known_repositories) {
         auto res = GetBlobFromRepo(path, content, logger_);
-        if (std::holds_alternative<std::string>(res)) {
+        if (res) {
             // upload blob to remote CAS
             auto repo = RepositoryConfig{};
             if (not repo.SetGitCAS(path)) {
@@ -1353,7 +1341,7 @@ auto SourceTreeService::ServeContent(
             response->set_status(ServeContentResponse::OK);
             return ::grpc::Status::OK;
         }
-        if (std::get<bool>(res)) {
+        if (res.error() == GitLookupError::Fatal) {
             auto str = fmt::format(
                 "Failed while checking for content {} in repository {}",
                 content,
@@ -1592,13 +1580,13 @@ auto SourceTreeService::CheckRootTree(
             tmp_dir->GetPath(),
             fmt::format("Content of tree {}", tree_id)  // message
         );
-        if (res.index() == 0) {
+        if (not res) {
             // report the error
-            logger_->Emit(LogLevel::Error, "{}", std::get<0>(res));
+            logger_->Emit(LogLevel::Error, "{}", res.error());
             response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
-        auto const& imported_tree_id = std::get<1>(res);
+        auto const& imported_tree_id = *res;
         // sanity check
         if (imported_tree_id != tree_id) {
             logger_->Emit(
@@ -1664,13 +1652,13 @@ auto SourceTreeService::GetRemoteTree(
         CommonImportToGit(tmp_dir->GetPath(),
                           fmt::format("Content of tree {}", tree_id)  // message
         );
-    if (res.index() == 0) {
+    if (not res) {
         // report the error
-        logger_->Emit(LogLevel::Error, "{}", std::get<0>(res));
+        logger_->Emit(LogLevel::Error, "{}", res.error());
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    auto const& imported_tree_id = std::get<1>(res);
+    auto const& imported_tree_id = *res;
     // sanity check
     if (imported_tree_id != tree_id) {
         logger_->Emit(

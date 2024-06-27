@@ -22,7 +22,6 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -31,10 +30,12 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 // Service for improved interaction with the target-level cache.
 class SourceTreeService final
@@ -133,37 +134,33 @@ class SourceTreeService final
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};
 
     /// \brief Check if commit exists and tries to get the subtree if found.
-    /// \returns An error + data union, where at index 0 is a failure type flag
-    /// and at index 1 is the subtree hash on success. The failure flag is false
-    /// if commit was not found and true if failed otherwise.
+    /// \returns The subtree hash on success or an unexpected error (fatal or
+    /// commit was not found).
     [[nodiscard]] static auto GetSubtreeFromCommit(
         std::filesystem::path const& repo_path,
         std::string const& commit,
         std::string const& subdir,
         std::shared_ptr<Logger> const& logger)
-        -> std::variant<bool, std::string>;
+        -> expected<std::string, GitLookupError>;
 
     /// \brief Check if tree exists and tries to get the subtree if found.
-    /// \returns An error + data union, where at index 0 is a failure type flag
-    /// and at index 1 is the subtree hash on success. The failure flag is true
-    /// if repository could not be opened (i.e., fatal failure), false if the
-    /// check for the subtree itself failed.
+    /// \returns The subtree hash on success or an unexpected error (fatal or
+    /// subtree not found).
     [[nodiscard]] static auto GetSubtreeFromTree(
         std::filesystem::path const& repo_path,
         std::string const& tree_id,
         std::string const& subdir,
         std::shared_ptr<Logger> const& logger)
-        -> std::variant<bool, std::string>;
+        -> expected<std::string, GitLookupError>;
 
     /// \brief Tries to retrieve the blob from a repository.
-    /// \returns An error + data union, where at index 0 is a failure type flag
-    /// and at index 1 is the subtree hash on success. The failure flag is false
-    /// if blob was not found and true if failed otherwise.
+    /// \returns The subtree hash on success or an unexpected error (fatal or
+    /// blob not found).
     [[nodiscard]] static auto GetBlobFromRepo(
         std::filesystem::path const& repo_path,
         std::string const& blob_id,
         std::shared_ptr<Logger> const& logger)
-        -> std::variant<bool, std::string>;
+        -> expected<std::string, GitLookupError>;
 
     [[nodiscard]] auto SyncArchive(std::string const& tree_id,
                                    std::filesystem::path const& repo_path,
@@ -182,12 +179,11 @@ class SourceTreeService final
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
 
     /// \brief Common import-to-git utility, used by both archives and distdirs.
-    /// \returns An error + data union, where at index 0 is the error message on
-    /// failure and at index 1 is the root tree id of the committed directory on
-    /// success.
+    /// \returns The root tree id on of the committed directory on success or an
+    /// unexpected error as string.
     [[nodiscard]] auto CommonImportToGit(std::filesystem::path const& root_path,
                                          std::string const& commit_message)
-        -> std::variant<std::string, std::string>;
+        -> expected<std::string, std::string>;
 
     [[nodiscard]] auto ArchiveImportToGit(
         std::filesystem::path const& unpack_path,

@@ -46,32 +46,34 @@
 
 auto TargetService::GetDispatchList(
     ArtifactDigest const& dispatch_digest) noexcept
-    -> std::variant<::grpc::Status, dispatch_t> {
+    -> expected<dispatch_t, ::grpc::Status> {
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
     if (not apis_.local->IsAvailable(dispatch_digest) and
         not apis_.remote->RetrieveToCas({dispatch_info}, *apis_.local)) {
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              fmt::format("Could not retrieve blob {} from "
-                                          "remote-execution endpoint",
-                                          dispatch_info.ToString())};
+        return unexpected{
+            ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                           fmt::format("Could not retrieve blob {} from "
+                                       "remote-execution endpoint",
+                                       dispatch_info.ToString())}};
     }
     // get blob content
     auto const& dispatch_str = apis_.local->RetrieveToMemory(dispatch_info);
     if (not dispatch_str) {
         // this should not fail unless something really broke...
-        return ::grpc::Status{
+        return unexpected{::grpc::Status{
             ::grpc::StatusCode::INTERNAL,
             fmt::format("Unexpected failure in reading blob {} from CAS",
-                        dispatch_info.ToString())};
+                        dispatch_info.ToString())}};
     }
     // parse content
     auto parsed = ParseDispatch(*dispatch_str);
     if (not parsed) {
         // pass the parsing error forward
-        return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
-                              std::move(parsed).error()};
+        return unexpected{
+            ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
+                           std::move(parsed).error()}};
     }
     return *std::move(parsed);
 }
@@ -155,14 +157,14 @@ auto TargetService::ServeTarget(
     }
     auto const& dispatch_info_digest = ArtifactDigest{request->dispatch_info()};
     auto res = GetDispatchList(dispatch_info_digest);
-    if (res.index() == 0) {
-        auto err = std::get<0>(res);
+    if (not res) {
+        auto err = move(res).error();
         logger_->Emit(LogLevel::Error, "{}", err.error_message());
         return err;
     }
     // keep dispatch list, as it needs to be passed to the executor (via the
     // graph_traverser)
-    auto dispatch_list = std::get<1>(res);
+    auto dispatch_list = *res;
     // parse dispatch list to json and add to description
     auto dispatch_json = nlohmann::json::array();
     try {

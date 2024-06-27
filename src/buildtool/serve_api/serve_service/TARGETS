@@ -19,9 +19,11 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/file_system", "git_types"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
@@ -84,6 +86,7 @@
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
