@@ -190,7 +190,7 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     auto use_tls = false;
     if (authargs.tls_ca_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetCACertificate(*authargs.tls_ca_cert)) {
+        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
                         authargs.tls_ca_cert->string());
@@ -199,7 +199,7 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     }
     if (client_authargs.tls_client_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetClientCertificate(
+        if (not Auth::TLS::Instance().SetClientCertificate(
                 *client_authargs.tls_client_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
@@ -209,7 +209,8 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     }
     if (client_authargs.tls_client_key) {
         use_tls = true;
-        if (not Auth::TLS::SetClientKey(*client_authargs.tls_client_key)) {
+        if (not Auth::TLS::Instance().SetClientKey(
+                *client_authargs.tls_client_key)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' key.",
                         client_authargs.tls_client_key->string());
@@ -219,7 +220,7 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
 
     if (server_authargs.tls_server_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetServerCertificate(
+        if (not Auth::TLS::Instance().SetServerCertificate(
                 *server_authargs.tls_server_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
@@ -229,7 +230,8 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     }
     if (server_authargs.tls_server_key) {
         use_tls = true;
-        if (not Auth::TLS::SetServerKey(*server_authargs.tls_server_key)) {
+        if (not Auth::TLS::Instance().SetServerKey(
+                *server_authargs.tls_server_key)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' key.",
                         server_authargs.tls_server_key->string());
@@ -238,7 +240,7 @@ void SetupAuthConfig(CommonAuthArguments const& authargs,
     }
 
     if (use_tls) {
-        if (not Auth::TLS::Validate()) {
+        if (not Auth::TLS::Instance().Validate()) {
             std::exit(kExitFailure);
         }
     }

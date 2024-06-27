@@ -32,7 +32,7 @@ void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
     bool use_tls{false};
     if (authargs.tls_ca_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetCACertificate(*authargs.tls_ca_cert)) {
+        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
                         authargs.tls_ca_cert->string());
@@ -41,7 +41,8 @@ void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
     }
     if (authargs.tls_client_cert) {
         use_tls = true;
-        if (not Auth::TLS::SetClientCertificate(*authargs.tls_client_cert)) {
+        if (not Auth::TLS::Instance().SetClientCertificate(
+                *authargs.tls_client_cert)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' certificate.",
                         authargs.tls_client_cert->string());
@@ -50,7 +51,7 @@ void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
     }
     if (authargs.tls_client_key) {
         use_tls = true;
-        if (not Auth::TLS::SetClientKey(*authargs.tls_client_key)) {
+        if (not Auth::TLS::Instance().SetClientKey(*authargs.tls_client_key)) {
             Logger::Log(LogLevel::Error,
                         "Could not read '{}' key.",
                         authargs.tls_client_key->string());
@@ -59,7 +60,7 @@ void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
     }
 
     if (use_tls) {
-        if (not Auth::TLS::Validate()) {
+        if (not Auth::TLS::Instance().Validate()) {
             std::exit(kExitConfigError);
         }
     }

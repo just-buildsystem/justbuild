@@ -34,9 +34,9 @@ class Auth {
         return instance;
     }
 
-    static void SetAuthMethod(AuthMethod x) { Instance().auth_ = x; }
-    [[nodiscard]] static auto GetAuthMethod() noexcept -> AuthMethod {
-        return Instance().auth_;
+    void SetAuthMethod(AuthMethod x) { auth_ = x; }
+    [[nodiscard]] auto GetAuthMethod() const noexcept -> AuthMethod {
+        return auth_;
     }
 
     class TLS {
@@ -46,54 +46,54 @@ class Auth {
             return instance;
         }
 
-        [[nodiscard]] static auto CACert() noexcept -> const std::string& {
-            return Instance().ca_cert_;
+        [[nodiscard]] auto CACert() const noexcept -> const std::string& {
+            return ca_cert_;
         }
 
-        [[nodiscard]] static auto ClientCert() noexcept -> const std::string& {
-            return Instance().client_cert_;
+        [[nodiscard]] auto ClientCert() const noexcept -> const std::string& {
+            return client_cert_;
         }
 
-        [[nodiscard]] static auto ClientKey() noexcept -> const std::string& {
-            return Instance().client_key_;
+        [[nodiscard]] auto ClientKey() const noexcept -> const std::string& {
+            return client_key_;
         }
 
-        [[nodiscard]] static auto ServerCert() noexcept -> const std::string& {
-            return Instance().server_cert_;
+        [[nodiscard]] auto ServerCert() const noexcept -> const std::string& {
+            return server_cert_;
         }
 
-        [[nodiscard]] static auto ServerKey() noexcept -> const std::string& {
-            return Instance().server_key_;
+        [[nodiscard]] auto ServerKey() const noexcept -> const std::string& {
+            return server_key_;
         }
 
-        [[nodiscard]] static auto SetCACertificate(
+        [[nodiscard]] auto SetCACertificate(
             std::filesystem::path const& cert_file) noexcept -> bool {
-            return set(cert_file, &Instance().ca_cert_);
+            return set(cert_file, &ca_cert_);
         }
 
-        [[nodiscard]] static auto SetClientCertificate(
+        [[nodiscard]] auto SetClientCertificate(
             std::filesystem::path const& cert_file) noexcept -> bool {
-            return set(cert_file, &Instance().client_cert_);
+            return set(cert_file, &client_cert_);
         }
 
-        [[nodiscard]] static auto SetClientKey(
+        [[nodiscard]] auto SetClientKey(
             std::filesystem::path const& key_file) noexcept -> bool {
-            return set(key_file, &Instance().client_key_);
+            return set(key_file, &client_key_);
         }
 
-        [[nodiscard]] static auto SetServerCertificate(
+        [[nodiscard]] auto SetServerCertificate(
             std::filesystem::path const& cert_file) noexcept -> bool {
-            return set(cert_file, &Instance().server_cert_);
+            return set(cert_file, &server_cert_);
         }
 
-        [[nodiscard]] static auto SetServerKey(
+        [[nodiscard]] auto SetServerKey(
             std::filesystem::path const& key_file) noexcept -> bool {
-            return set(key_file, &Instance().server_key_);
+            return set(key_file, &server_key_);
         }
         // must be called after the parsing of cmd line arguments
         // we ensure that either both tls_client_cert or tls_client_key are set
         // or none of the two.
-        [[nodiscard]] static auto Validate() noexcept -> bool {
+        [[nodiscard]] auto Validate() const noexcept -> bool {
             if (CACert().empty()) {
                 Logger::Log(LogLevel::Error, "Please provide tls-ca-cert");
                 return false;
@@ -137,7 +137,7 @@ class Auth {
         [[nodiscard]] static auto set(
             std::filesystem::path const& x,
             gsl::not_null<std::string*> const& member) noexcept -> bool {
-            Auth::SetAuthMethod(AuthMethod::kTLS);
+            Auth::Instance().SetAuthMethod(AuthMethod::kTLS);
             try {
                 // if the file does not exist, it will throw an exception
                 auto file = std::filesystem::canonical(x);

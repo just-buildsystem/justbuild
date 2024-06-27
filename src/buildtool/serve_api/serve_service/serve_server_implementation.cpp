@@ -134,12 +134,13 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     }
 
     std::shared_ptr<grpc::ServerCredentials> creds;
-    if (Auth::GetAuthMethod() == AuthMethod::kTLS) {
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
         auto tls_opts = grpc::SslServerCredentialsOptions{};
 
-        tls_opts.pem_root_certs = Auth::TLS::CACert();
+        tls_opts.pem_root_certs = Auth::TLS::Instance().CACert();
         grpc::SslServerCredentialsOptions::PemKeyCertPair keycert = {
-            Auth::TLS::ServerKey(), Auth::TLS::ServerCert()};
+            Auth::TLS::Instance().ServerKey(),
+            Auth::TLS::Instance().ServerCert()};
 
         tls_opts.pem_key_cert_pairs.emplace_back(keycert);
 

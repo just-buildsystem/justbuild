@@ -36,10 +36,11 @@
 
     std::shared_ptr<grpc::ChannelCredentials> creds;
     std::string address = server + ':' + std::to_string(port);
-    if (Auth::GetAuthMethod() == AuthMethod::kTLS) {
-        auto tls_opts = grpc::SslCredentialsOptions{Auth::TLS::CACert(),
-                                                    Auth::TLS::ClientKey(),
-                                                    Auth::TLS::ClientCert()};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auto tls_opts =
+            grpc::SslCredentialsOptions{Auth::TLS::Instance().CACert(),
+                                        Auth::TLS::Instance().ClientKey(),
+                                        Auth::TLS::Instance().ClientCert()};
         creds = grpc::SslCredentials(tls_opts);
     }
     else {
