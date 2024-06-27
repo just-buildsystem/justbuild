@@ -113,4 +113,10 @@
   , "hdrs": ["prefix.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "expected":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["expected"]
+  , "hdrs": ["expected.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
