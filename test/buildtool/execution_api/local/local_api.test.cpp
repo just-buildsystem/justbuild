@@ -17,12 +17,17 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 namespace {
 
-auto const kApiFactory = []() { return IExecutionApi::Ptr{new LocalApi()}; };
+auto const kApiFactory = []() {
+    return IExecutionApi::Ptr{
+        new LocalApi(&StorageConfig::Instance(), &Storage::Instance())};
+};
 
 }  // namespace
 

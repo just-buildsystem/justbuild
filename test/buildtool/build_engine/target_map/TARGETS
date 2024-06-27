@@ -33,6 +33,7 @@
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/main", "analyse_context"]
     , ["@", "src", "src/buildtool/common", "config"]

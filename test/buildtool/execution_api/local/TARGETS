@@ -13,6 +13,8 @@
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["utils", "local_hermeticity"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }
@@ -26,6 +28,8 @@
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["buildtool/execution_api/common", "api_test"]
     , ["utils", "local_hermeticity"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }

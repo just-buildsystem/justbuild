@@ -794,7 +794,9 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
-            ApiBundle const exec_apis{/*repo_config=*/nullptr,
+            ApiBundle const exec_apis{&StorageConfig::Instance(),
+                                      &Storage::Instance(),
+                                      /*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
             if (not ServerImpl::Instance().Run(StorageConfig::Instance(),
@@ -813,6 +815,8 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.pid_file);
             if (serve_server) {
                 ApiBundle const serve_apis{
+                    &StorageConfig::Instance(),
+                    &Storage::Instance(),
                     /*repo_config=*/nullptr,
                     &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
@@ -871,7 +875,9 @@ auto main(int argc, char* argv[]) -> int {
         if (not SetupRetryConfig(arguments.retry)) {
             std::exit(kExitFailure);
         }
-        ApiBundle const main_apis{&repo_config,
+        ApiBundle const main_apis{&StorageConfig::Instance(),
+                                  &Storage::Instance(),
+                                  &repo_config,
                                   &*auth_config,
                                   RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const traverser{

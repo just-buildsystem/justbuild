@@ -31,7 +31,6 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system_command.hpp"
 
 namespace {
@@ -58,9 +57,9 @@ class BuildCleanupAnchor {
 };
 
 [[nodiscard]] auto CreateDigestFromLocalOwnedTree(
-    gsl::not_null<Storage const*> const& storage,
+    Storage const& storage,
     std::filesystem::path const& dir_path) -> std::optional<bazel_re::Digest> {
-    auto const& cas = storage->CAS();
+    auto const& cas = storage.CAS();
     auto store_blob = [&cas](std::filesystem::path const& path,
                              auto is_exec) -> std::optional<bazel_re::Digest> {
         return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
@@ -97,14 +96,14 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (do_cache) {
-        if (auto result = storage_->ActionCache().CachedResult(action)) {
+        if (auto result = storage_.ActionCache().CachedResult(action)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
                 return IExecutionResponse::Ptr{
                     new LocalResponse{action.hash(),
                                       {std::move(*result), /*is_cached=*/true},
-                                      storage_}};
+                                      &storage_}};
             }
         }
     }
@@ -116,10 +115,10 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                 auto action_id = CreateActionDigest(root_digest_, false).hash();
                 output->is_cached = true;
                 return IExecutionResponse::Ptr{new LocalResponse{
-                    std::move(action_id), std::move(*output), storage_}};
+                    std::move(action_id), std::move(*output), &storage_}};
             }
-            return IExecutionResponse::Ptr{
-                new LocalResponse{action.hash(), std::move(*output), storage_}};
+            return IExecutionResponse::Ptr{new LocalResponse{
+                action.hash(), std::move(*output), &storage_}};
         }
     }
 
@@ -129,7 +128,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     -> std::optional<Output> {
     auto exec_path =
-        CreateUniquePath(StorageConfig::Instance().ExecutionRoot() /
+        CreateUniquePath(storage_config_.ExecutionRoot() /
                          NativeSupport::Unprefix(action_id.hash()));
 
     if (not exec_path) {
@@ -169,8 +168,8 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 
         if (CollectAndStoreOutputs(&result.action, build_root)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
-                if (not storage_->ActionCache().StoreResult(action_id,
-                                                            result.action)) {
+                if (not storage_.ActionCache().StoreResult(action_id,
+                                                           result.action)) {
                     logger_.Emit(LogLevel::Warning,
                                  "failed to store action results");
                 }
@@ -192,7 +191,7 @@ auto LocalAction::StageInput(std::filesystem::path const& target_path,
     }
 
     auto blob_path =
-        storage_->CAS().BlobPath(info.digest, IsExecutableObject(info.type));
+        storage_.CAS().BlobPath(info.digest, IsExecutableObject(info.type));
 
     if (not blob_path) {
         logger_.Emit(LogLevel::Error,
@@ -222,7 +221,7 @@ auto LocalAction::StageInputs(
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
-    auto reader = TreeReader<LocalCasReader>{storage_->CAS()};
+    auto reader = TreeReader<LocalCasReader>{storage_.CAS()};
     auto result = reader.RecursivelyReadTreeLeafs(
         root_digest_, exec_path, /*include_trees=*/true);
     if (not result) {
@@ -291,7 +290,7 @@ auto LocalAction::CollectOutputFileOrSymlink(
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(file_path);
-        if (content and storage_->CAS().StoreBlob(*content)) {
+        if (content and storage_.CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -300,8 +299,8 @@ auto LocalAction::CollectOutputFileOrSymlink(
     }
     else if (IsFileObject(*type)) {
         bool is_executable = IsExecutableObject(*type);
-        auto digest = storage_->CAS().StoreBlob</*kOwner=*/true>(file_path,
-                                                                 is_executable);
+        auto digest =
+            storage_.CAS().StoreBlob</*kOwner=*/true>(file_path, is_executable);
         if (digest) {
             auto out_file = bazel_re::OutputFile{};
             out_file.set_path(local_path);
@@ -330,7 +329,7 @@ auto LocalAction::CollectOutputDirOrSymlink(
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(dir_path);
-        if (content and storage_->CAS().StoreBlob(*content)) {
+        if (content and storage_.CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -417,7 +416,7 @@ auto LocalAction::CollectAndStoreOutputs(
 
 auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)
     const noexcept -> gsl::owner<bazel_re::Digest*> {
-    if (auto digest = storage_->CAS().StoreBlob</*kOwner=*/true>(
+    if (auto digest = storage_.CAS().StoreBlob</*kOwner=*/true>(
             file_path, /*is_executable=*/false)) {
         return new bazel_re::Digest{std::move(*digest)};
     }

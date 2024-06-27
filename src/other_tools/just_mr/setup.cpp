@@ -31,6 +31,7 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
@@ -123,7 +124,9 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
-    ApiBundle const apis{/*repo_config=*/nullptr,
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
                          &*auth_config,
                          RemoteExecutionConfig::RemoteAddress()};
 

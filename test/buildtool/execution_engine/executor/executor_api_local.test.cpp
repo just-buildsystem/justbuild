@@ -21,6 +21,8 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 #include "test/utils/hermeticity/local.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
@@ -29,8 +31,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload blob",
                  "[executor]") {
     RepositoryConfig repo_config{};
-    TestBlobUpload(&repo_config,
-                   [&] { return std::make_unique<LocalApi>(&repo_config); });
+    TestBlobUpload(&repo_config, [&] {
+        return std::make_unique<LocalApi>(
+            &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+    });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -45,7 +49,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &repo_config,
         &stats,
         &progress,
-        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        [&] {
+            return std::make_unique<LocalApi>(
+                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+        },
         &*auth_config);
 }
 
@@ -61,7 +68,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &repo_config,
         &stats,
         &progress,
-        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        [&] {
+            return std::make_unique<LocalApi>(
+                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+        },
         &*auth_config);
 }
 
@@ -77,7 +87,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &repo_config,
         &stats,
         &progress,
-        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        [&] {
+            return std::make_unique<LocalApi>(
+                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+        },
         &*auth_config);
 }
 
@@ -93,6 +106,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &repo_config,
         &stats,
         &progress,
-        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        [&] {
+            return std::make_unique<LocalApi>(
+                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+        },
         &*auth_config);
 }

@@ -26,6 +26,8 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 
 namespace {
@@ -60,7 +62,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalExecution: No input, no output",
                  "[execution_api]") {
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&repo_config);
+    auto api = LocalApi(
+        &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
 
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
@@ -106,7 +109,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalExecution: No input, no output, env variables used",
                  "[execution_api]") {
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&repo_config);
+    auto api = LocalApi(
+        &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
 
     std::string test_content("test from env var");
     std::vector<std::string> const cmdline = {
@@ -156,7 +160,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalExecution: No input, create output",
                  "[execution_api]") {
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&repo_config);
+    auto api = LocalApi(
+        &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -212,7 +217,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalExecution: One input copied to output",
                  "[execution_api]") {
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&repo_config);
+    auto api = LocalApi(
+        &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -282,7 +288,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LocalExecution: Cache failed action's result",
                  "[execution_api]") {
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&repo_config);
+    auto api = LocalApi(
+        &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
 
     auto flag = GetTestDir() / "flag";
     std::vector<std::string> const cmdline = {

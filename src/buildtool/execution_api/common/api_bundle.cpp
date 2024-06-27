@@ -18,10 +18,14 @@
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
-ApiBundle::ApiBundle(RepositoryConfig const* repo_config,
+ApiBundle::ApiBundle(gsl::not_null<StorageConfig const*> const& storage_config,
+                     gsl::not_null<Storage const*> const& storage,
+                     RepositoryConfig const* repo_config,
                      gsl::not_null<Auth const*> const& authentication,
                      std::optional<ServerAddress> const& remote_address)
-    : local{std::make_shared<LocalApi>(repo_config)},  // needed by remote
+    : local{std::make_shared<LocalApi>(storage_config,
+                                       storage,
+                                       repo_config)},  // needed by remote
       auth{*authentication},                           // needed by remote
       remote{CreateRemote(remote_address)} {}
 

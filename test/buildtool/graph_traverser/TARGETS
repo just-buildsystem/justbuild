@@ -15,6 +15,8 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

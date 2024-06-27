@@ -38,6 +38,8 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/json.hpp"
 
 // NOLINTNEXTLINE(google-build-namespaces)
@@ -160,8 +162,11 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -188,8 +193,11 @@ inline void SetLauncher() {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        ApiBundle const apis{
-            p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+        ApiBundle const apis{&StorageConfig::Instance(),
+                             &Storage::Instance(),
+                             p.GetRepoConfig(),
+                             auth,
+                             RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const gt_get_exec{
             clargs_exec.gtargs,
             p.GetRepoConfig(),
@@ -226,8 +234,11 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -258,8 +269,11 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -311,7 +325,9 @@ inline void SetLauncher() {
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{full_hello_world.GetRepoConfig(),
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         full_hello_world.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
@@ -369,8 +385,11 @@ static void TestBlobsUploadedAndUsed(gsl::not_null<Auth const*> const& auth,
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -409,8 +428,11 @@ static void TestEnvironmentVariablesSetAndUsed(
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -448,8 +470,11 @@ static void TestTreesUsed(gsl::not_null<Auth const*> const& auth,
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -487,8 +512,11 @@ static void TestNestedTreesUsed(gsl::not_null<Auth const*> const& auth,
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -524,8 +552,11 @@ static void TestFlakyHelloWorldDetected(gsl::not_null<Auth const*> const& auth,
 
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{
-        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         p.GetRepoConfig(),
+                         auth,
+                         RemoteExecutionConfig::RemoteAddress()};
 
     {
         SetLauncher();

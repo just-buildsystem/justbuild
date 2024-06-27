@@ -27,6 +27,7 @@
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
 class LocalApi;
@@ -57,7 +58,8 @@ class LocalAction final : public IExecutionAction {
 
   private:
     Logger logger_{"LocalExecution"};
-    gsl::not_null<Storage const*> storage_;
+    StorageConfig const& storage_config_;
+    Storage const& storage_;
     ArtifactDigest root_digest_{};
     std::vector<std::string> cmdline_{};
     std::vector<std::string> output_files_{};
@@ -68,6 +70,7 @@ class LocalAction final : public IExecutionAction {
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
     explicit LocalAction(
+        gsl::not_null<StorageConfig const*> storage_config,
         gsl::not_null<Storage const*> const& storage,
         ArtifactDigest root_digest,
         std::vector<std::string> command,
@@ -75,7 +78,8 @@ class LocalAction final : public IExecutionAction {
         std::vector<std::string> output_dirs,
         std::map<std::string, std::string> env_vars,
         std::map<std::string, std::string> const& properties) noexcept
-        : storage_{storage},
+        : storage_config_{*storage_config},
+          storage_{*storage},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
           output_files_{std::move(output_files)},

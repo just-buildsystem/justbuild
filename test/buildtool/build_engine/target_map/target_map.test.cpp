@@ -36,6 +36,7 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/local.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
@@ -101,8 +102,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -546,8 +550,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -636,8 +643,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -736,8 +746,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -946,8 +959,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -1089,8 +1105,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -1198,8 +1217,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),
@@ -1364,8 +1386,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     REQUIRE(serve_config);
 
     Auth auth{};
-    ApiBundle const apis{
-        /*repo_config=*/nullptr, &auth, RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{&StorageConfig::Instance(),
+                         &Storage::Instance(),
+                         /*repo_config=*/nullptr,
+                         &auth,
+                         RemoteExecutionConfig::RemoteAddress()};
     auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
                        .target_cache = &Storage::Instance().TargetCache(),

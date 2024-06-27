@@ -54,6 +54,8 @@
     , ["utils", "local_hermeticity"]
     , ["utils", "test_auth_config"]
     , ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }

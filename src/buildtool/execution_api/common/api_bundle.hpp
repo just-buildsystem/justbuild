@@ -23,14 +23,19 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 /// \brief Utility structure for instantiation of local and remote apis at the
 /// same time. If the remote api cannot be instantiated, it falls back to
 /// exactly the same instance that local api is (&*remote == & *local).
 struct ApiBundle final {
-    explicit ApiBundle(RepositoryConfig const* repo_config,
-                       gsl::not_null<Auth const*> const& authentication,
-                       std::optional<ServerAddress> const& remote_address);
+    explicit ApiBundle(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage,
+        RepositoryConfig const* repo_config,
+        gsl::not_null<Auth const*> const& authentication,
+        std::optional<ServerAddress> const& remote_address);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
         const -> gsl::not_null<IExecutionApi::Ptr>;

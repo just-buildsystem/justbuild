@@ -43,6 +43,8 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
     [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]

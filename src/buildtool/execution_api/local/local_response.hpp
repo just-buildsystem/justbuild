@@ -42,8 +42,8 @@ class LocalResponse final : public IExecutionResponse {
         return (output_.action.stdout_digest().size_bytes() != 0);
     }
     auto StdErr() noexcept -> std::string final {
-        if (auto path = storage_->CAS().BlobPath(output_.action.stderr_digest(),
-                                                 /*is_executable=*/false)) {
+        if (auto path = storage_.CAS().BlobPath(output_.action.stderr_digest(),
+                                                /*is_executable=*/false)) {
             if (auto content = FileSystemManager::ReadFile(*path)) {
                 return std::move(*content);
             }
@@ -52,8 +52,8 @@ class LocalResponse final : public IExecutionResponse {
         return {};
     }
     auto StdOut() noexcept -> std::string final {
-        if (auto path = storage_->CAS().BlobPath(output_.action.stdout_digest(),
-                                                 /*is_executable=*/false)) {
+        if (auto path = storage_.CAS().BlobPath(output_.action.stdout_digest(),
+                                                /*is_executable=*/false)) {
             if (auto content = FileSystemManager::ReadFile(*path)) {
                 return std::move(*content);
             }
@@ -87,7 +87,7 @@ class LocalResponse final : public IExecutionResponse {
   private:
     std::string action_id_{};
     LocalAction::Output output_{};
-    gsl::not_null<Storage const*> storage_;
+    Storage const& storage_;
     ArtifactInfos artifacts_{};
     DirSymlinks dir_symlinks_{};
     bool populated_{false};
@@ -98,7 +98,7 @@ class LocalResponse final : public IExecutionResponse {
         gsl::not_null<Storage const*> const& storage) noexcept
         : action_id_{std::move(action_id)},
           output_{std::move(output)},
-          storage_{storage} {}
+          storage_{*storage} {}
 
     [[nodiscard]] auto Populate() noexcept -> bool {
         if (populated_) {
