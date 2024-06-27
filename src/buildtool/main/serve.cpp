@@ -45,11 +45,11 @@ namespace {
     -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
     if (location.IsNotNull()) {
         auto res = ReadLocationObject(location->ToJson(), std::nullopt);
-        if (res.index() == 0) {
-            Logger::Log(LogLevel::Error, std::get<0>(res));
+        if (not res) {
+            Logger::Log(LogLevel::Error, res.error());
             std::exit(kExitFailure);
         }
-        return std::get<1>(res);
+        return *res;
     }
     return std::nullopt;
 }

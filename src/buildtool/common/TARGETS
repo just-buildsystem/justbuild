@@ -150,7 +150,7 @@
   , "name": ["location"]
   , "hdrs": ["location.hpp"]
   , "srcs": ["location.cpp"]
-  , "deps": [["@", "json", "", "json"]]
+  , "deps": [["@", "json", "", "json"], ["src/utils/cpp", "expected"]]
   , "stage": ["src", "buildtool", "common"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]

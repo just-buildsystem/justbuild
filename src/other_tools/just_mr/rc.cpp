@@ -37,11 +37,11 @@ namespace {
     -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
     if (location.IsNotNull()) {
         auto res = ReadLocationObject(location->ToJson(), ws_root);
-        if (res.index() == 0) {
-            Logger::Log(LogLevel::Error, std::get<0>(res));
+        if (not res) {
+            Logger::Log(LogLevel::Error, res.error());
             std::exit(kExitConfigError);
         }
-        return std::get<1>(res);
+        return *res;
     }
     return std::nullopt;
 }
@@ -52,11 +52,11 @@ namespace {
     std::optional<std::filesystem::path> const& ws_root)
     -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>> {
     auto res = ReadLocationObject(location, ws_root);
-    if (res.index() == 0) {
-        Logger::Log(LogLevel::Error, std::get<0>(res));
+    if (not res) {
+        Logger::Log(LogLevel::Error, res.error());
         std::exit(kExitConfigError);
     }
-    return std::get<1>(res);
+    return *res;
 }
 
 [[nodiscard]] auto ReadOptionalLocationList(

@@ -17,17 +17,16 @@
 #include <string>
 #include <unordered_set>
 #include <utility>
-#include <variant>
 
 #include "nlohmann/json.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 using location_res_t = std::pair<std::filesystem::path, std::filesystem::path>;
 
 /// \brief Parse a location object stored in a JSON object.
-/// \returns An error + data union, where at index 0 is the string message on
-/// fatal failure, and at index 1 is an optional parsed location (nullopt if
-/// location should be ignored) on success.
+/// \returns optional parsed location (nullopt if location should be ignored) on
+/// success or unexpected error as string.
 [[nodiscard]] auto ReadLocationObject(
     nlohmann::json const& location,
     std::optional<std::filesystem::path> const& ws_root)
-    -> std::variant<std::string, std::optional<location_res_t>>;
+    -> expected<std::optional<location_res_t>, std::string>;

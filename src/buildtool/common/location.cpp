@@ -22,9 +22,10 @@
 
 auto ReadLocationObject(nlohmann::json const& location,
                         std::optional<std::filesystem::path> const& ws_root)
-    -> std::variant<std::string, std::optional<location_res_t>> {
+    -> expected<std::optional<location_res_t>, std::string> {
     if (not location.contains("path") or not location.contains("root")) {
-        return fmt::format("Malformed location object: {}", location.dump(-1));
+        return unexpected(
+            fmt::format("Malformed location object: {}", location.dump(-1)));
     }
     auto root = location["root"].get<std::string>();
     auto path = location["path"].get<std::string>();
@@ -37,7 +38,7 @@ auto ReadLocationObject(nlohmann::json const& location,
             Logger::Log(LogLevel::Warning,
                         "Not in workspace root, ignoring location {}.",
                         location.dump(-1));
-            return std::nullopt;
+            return std::optional<location_res_t>{std::nullopt};
         }
         root_path = *ws_root;
     }
@@ -47,8 +48,9 @@ auto ReadLocationObject(nlohmann::json const& location,
     if (root == "system") {
         root_path = FileSystemManager::GetCurrentDirectory().root_path();
     }
-    return std::make_pair(std::filesystem::weakly_canonical(
-                              std::filesystem::absolute(root_path / path)),
-                          std::filesystem::weakly_canonical(
-                              std::filesystem::absolute(root_path / base)));
+    return std::optional<location_res_t>{
+        std::make_pair(std::filesystem::weakly_canonical(
+                           std::filesystem::absolute(root_path / path)),
+                       std::filesystem::weakly_canonical(
+                           std::filesystem::absolute(root_path / base)))};
 }
