@@ -18,8 +18,10 @@
 
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 [[nodiscard]] auto AddArtifactsToCas(ToAddArguments const& clargs,
+                                     Storage const& storage,
                                      ApiBundle const& apis) -> bool;
 
 #endif

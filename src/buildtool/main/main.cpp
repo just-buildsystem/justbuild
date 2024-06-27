@@ -905,7 +905,8 @@ auto main(int argc, char* argv[]) -> int {
                        : kExitFailure;
         }
         if (arguments.cmd == SubCommand::kAddToCas) {
-            return AddArtifactsToCas(arguments.to_add, main_apis)
+            return AddArtifactsToCas(
+                       arguments.to_add, Storage::Instance(), main_apis)
                        ? kExitSuccess
                        : kExitFailure;
         }

@@ -141,6 +141,7 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
@@ -149,7 +150,6 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "buildtool", "main"]
   }

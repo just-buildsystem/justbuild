@@ -27,12 +27,11 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
-auto AddArtifactsToCas(ToAddArguments const& clargs, ApiBundle const& apis)
-    -> bool {
-
-    auto const& cas = Storage::Instance().CAS();
+auto AddArtifactsToCas(ToAddArguments const& clargs,
+                       Storage const& storage,
+                       ApiBundle const& apis) -> bool {
+    auto const& cas = storage.CAS();
     std::optional<bazel_re::Digest> digest{};
     auto object_location = clargs.location;
 
