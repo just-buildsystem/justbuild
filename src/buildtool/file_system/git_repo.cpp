@@ -1060,9 +1060,9 @@ auto GitRepo::KeepTree(std::string const& tree_id,
 auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                                    std::string const& subdir,
                                    anon_logger_ptr const& logger) noexcept
-    -> std::variant<bool, std::string> {
+    -> expected<std::string, GitLookupError> {
 #ifdef BOOTSTRAP_BUILD_TOOL
-    return true;
+    return unexpected{GitLookupError::Fatal};
 #else
     try {
         // preferably with a "fake" repository!
@@ -1083,7 +1083,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                             GetGitCAS()->git_path_.string(),
                             GitLastError()),
                 true /*fatal*/);
-            return true;  // fatal failure
+            return unexpected{GitLookupError::Fatal};
         }
 
         git_commit* commit_ptr{nullptr};
@@ -1096,7 +1096,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                       true /*fatal*/);
             // cleanup resources
             git_commit_free(commit_ptr);
-            return false;  // non-fatal failure
+            return unexpected{GitLookupError::NotFound};  // non-fatal failure
         }
         auto commit_obj = std::unique_ptr<git_commit, decltype(&commit_closer)>(
             commit_ptr, commit_closer);
@@ -1113,7 +1113,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                       true /*fatal*/);
             // cleanup resources
             git_tree_free(tree_ptr);
-            return true;  // fatal failure
+            return unexpected{GitLookupError::Fatal};
         }
         auto tree = std::unique_ptr<git_tree, decltype(&tree_closer)>(
             tree_ptr, tree_closer);
@@ -1132,7 +1132,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                     true /*fatal*/);
                 // cleanup resources
                 git_tree_entry_free(subtree_entry_ptr);
-                return true;  // fatal failure
+                return unexpected{GitLookupError::Fatal};
             }
             auto subtree_entry =
                 std::unique_ptr<git_tree_entry, decltype(&tree_entry_closer)>(
@@ -1149,7 +1149,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
         Logger::Log(LogLevel::Error,
                     "get subtree from commit failed with:\n{}",
                     ex.what());
-        return true;  // fatal failure
+        return unexpected{GitLookupError::Fatal};
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
@@ -1274,10 +1274,10 @@ auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
         auto subdir = std::filesystem::relative(fpath, *root).string();
         // get subtree from head commit and subdir
         auto res = GetSubtreeFromCommit(head_commit, subdir, wrapped_logger);
-        if (std::holds_alternative<bool>(res)) {
+        if (not res) {
             return std::nullopt;
         }
-        return std::get<std::string>(res);
+        return *std::move(res);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "get subtree from path failed with:\n{}",

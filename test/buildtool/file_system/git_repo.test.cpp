@@ -19,7 +19,6 @@
 #include <optional>
 #include <string>
 #include <thread>
-#include <variant>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
@@ -468,15 +467,15 @@ TEST_CASE("Single-threaded fake repository operations -- batch 2",
         SECTION("Get base tree id") {
             auto entry_root_c =
                 repo->GetSubtreeFromCommit(kRootCommit, ".", logger);
-            REQUIRE(std::holds_alternative<std::string>(entry_root_c));
-            CHECK(std::get<std::string>(entry_root_c) == kRootId);
+            REQUIRE(entry_root_c);
+            CHECK(*entry_root_c == kRootId);
         }
 
         SECTION("Get inner tree id") {
             auto entry_baz_c =
                 repo->GetSubtreeFromCommit(kRootCommit, "baz", logger);
-            REQUIRE(std::holds_alternative<std::string>(entry_baz_c));
-            CHECK(std::get<std::string>(entry_baz_c) == kBazId);
+            REQUIRE(entry_baz_c);
+            CHECK(*entry_baz_c == kBazId);
         }
     }
 
@@ -621,9 +620,8 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             auto entry_baz_c =
                                 remote_repo->GetSubtreeFromCommit(
                                     kRootCommit, "baz", logger);
-                            REQUIRE(std::holds_alternative<std::string>(
-                                entry_baz_c));
-                            CHECK(std::get<std::string>(entry_baz_c) == kBazId);
+                            REQUIRE(entry_baz_c);
+                            CHECK(*entry_baz_c == kBazId);
                         } break;
                         case 1: {
                             auto remote_repo = GitRepo::Open(remote_cas);

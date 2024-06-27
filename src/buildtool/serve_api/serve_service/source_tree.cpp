@@ -117,7 +117,12 @@ auto SourceTreeService::GetSubtreeFromCommit(
                                      msg);
                     }
                 });
-            return repo->GetSubtreeFromCommit(commit, subdir, wrapped_logger);
+            auto res =
+                repo->GetSubtreeFromCommit(commit, subdir, wrapped_logger);
+            if (not res) {
+                return res.error() == GitLookupError::Fatal;
+            }
+            return *std::move(res);
         }
     }
     return true;  // fatal failure
@@ -594,11 +599,11 @@ auto SourceTreeService::CommonImportToGit(
     // get the root tree of this commit; this is thread-safe
     auto res =
         just_git_repo->GetSubtreeFromCommit(*commit_hash, ".", wrapped_logger);
-    if (not std::holds_alternative<std::string>(res)) {
+    if (not res) {
         return result_t(std::in_place_index<0>, err);
     }
     // return the root tree id
-    return result_t(std::in_place_index<1>, std::get<std::string>(res));
+    return result_t(std::in_place_index<1>, *std::move(res));
 }
 
 auto SourceTreeService::ArchiveImportToGit(

@@ -70,11 +70,11 @@ void KeepCommitAndSetTree(
                 });
             auto res = just_git_repo->GetSubtreeFromCommit(
                 commit, ".", wrapped_logger);
-            if (not std::holds_alternative<std::string>(res)) {
+            if (not res) {
                 return;
             }
-            (*setter)(std::pair<std::string, GitCASPtr>(
-                std::get<std::string>(res), just_git_cas));
+            (*setter)(std::pair<std::string, GitCASPtr>(*std::move(res),
+                                                        just_git_cas));
         },
         [logger, commit, target_path](auto const& msg, bool fatal) {
             (*logger)(fmt::format("While running critical Git op KEEP_TAG for "

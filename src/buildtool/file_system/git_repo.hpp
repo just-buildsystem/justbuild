@@ -21,11 +21,12 @@
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
-#include <variant>
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 extern "C" {
 struct git_repository;
@@ -194,15 +195,12 @@ class GitRepo {
 
     /// \brief Get the tree id of a subtree given the root commit
     /// Calling it from a fake repository allows thread-safe use.
-    /// Returns an error + data union, where at index 0 is a flag stating the
-    /// nature of the error on failure (true is fatal, false is non-fatal, i.e.,
-    /// commit not found), and at index 1 is the subtree hash on success.
-    /// It guarantees the logger is called exactly once with fatal if failure.
+    /// Returns the subtree hash on success or an unexpected error.
     [[nodiscard]] auto GetSubtreeFromCommit(
         std::string const& commit,
         std::string const& subdir,
         anon_logger_ptr const& logger) noexcept
-        -> std::variant<bool, std::string>;
+        -> expected<std::string, GitLookupError>;
 
     /// \brief Get the tree id of a subtree given the root tree hash
     /// Calling it from a fake repository allows thread-safe use.

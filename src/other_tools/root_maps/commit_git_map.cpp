@@ -340,7 +340,7 @@ void NetworkFetchAndSetPresentRoot(
                 // get tree id and return workspace root
                 auto res = git_repo->GetSubtreeFromCommit(
                     repo_info.hash, repo_info.subdir, wrapped_logger);
-                if (not std::holds_alternative<std::string>(res)) {
+                if (not res) {
                     return;
                 }
                 // set the workspace root as present
@@ -350,7 +350,7 @@ void NetworkFetchAndSetPresentRoot(
                                   {repo_info.ignore_special
                                        ? FileRoot::kGitTreeIgnoreSpecialMarker
                                        : FileRoot::kGitTreeMarker,
-                                   std::get<std::string>(res),  // subtree id
+                                   *std::move(res),  // subtree id
                                    repo_root}),
                               /*is_cache_hit=*/false));
             },
@@ -380,7 +380,7 @@ void NetworkFetchAndSetPresentRoot(
         // get tree id and return workspace root
         auto res = git_repo->GetSubtreeFromCommit(
             repo_info.hash, repo_info.subdir, wrapped_logger);
-        if (not std::holds_alternative<std::string>(res)) {
+        if (not res) {
             return;
         }
         // set the workspace root as present
@@ -389,7 +389,7 @@ void NetworkFetchAndSetPresentRoot(
             nlohmann::json::array({repo_info.ignore_special
                                        ? FileRoot::kGitTreeIgnoreSpecialMarker
                                        : FileRoot::kGitTreeMarker,
-                                   std::get<std::string>(res),  // subtree id
+                                   *std::move(res),  // subtree id
                                    repo_root}),
             /*is_cache_hit=*/false));
     }
@@ -882,10 +882,10 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         // get tree id and return workspace root
         auto res = git_repo->GetSubtreeFromCommit(
             repo_info.hash, repo_info.subdir, wrapped_logger);
-        if (not std::holds_alternative<std::string>(res)) {
+        if (not res) {
             return;
         }
-        auto subtree = std::get<std::string>(res);
+        auto subtree = *std::move(res);
         // set the workspace root
         if (repo_info.absent and not fetch_absent) {
             // try by all available means to generate and set the absent root

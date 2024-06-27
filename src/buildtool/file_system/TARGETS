@@ -113,7 +113,12 @@
   , "name": ["git_repo"]
   , "hdrs": ["git_repo.hpp"]
   , "srcs": ["git_repo.cpp"]
-  , "deps": ["git_cas", ["src/buildtool/common", "bazel_types"]]
+  , "deps":
+    [ "git_cas"
+    , "git_types"
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/utils/cpp", "expected"]
+    ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
@@ -142,6 +147,12 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
     ]
+  }
+, "git_types":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_types"]
+  , "hdrs": ["git_types.hpp"]
+  , "stage": ["src", "buildtool", "file_system"]
   }
 , "file_root":
   { "type": ["@", "rules", "CC", "library"]
