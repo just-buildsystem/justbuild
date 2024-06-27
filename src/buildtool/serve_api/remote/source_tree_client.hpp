@@ -18,13 +18,14 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <variant>
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 /// Implements client side for SourceTree service defined in:
 /// src/buildtool/serve_api/serve_service/just_serve.proto
@@ -33,7 +34,7 @@ class SourceTreeClient {
     explicit SourceTreeClient(ServerAddress const& address) noexcept;
 
     // An error + data union type
-    using result_t = std::variant<bool, std::string>;
+    using result_t = expected<std::string, GitLookupError>;
 
     /// \brief Retrieve the Git tree of a given commit, if known by the
     /// endpoint. It is a fatal error if the commit is known to the endpoint but
@@ -41,9 +42,8 @@ class SourceTreeClient {
     /// \param[in] commit_id Hash of the Git commit to look up.
     /// \param[in] subdir Relative path of the tree inside commit.
     /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
-    /// \returns An error + data union, where at index 0 we return a fatal flag,
-    /// with false meaning non-fatal failure (commit or subtree not found), and
-    /// at index 1 the tree identifier on success.
+    /// \returns The tree identifier on success or an unexpected error (fatal or
+    /// commit or subtree not found).
     [[nodiscard]] auto ServeCommitTree(std::string const& commit_id,
                                        std::string const& subdir,
                                        bool sync_tree) const noexcept
@@ -58,9 +58,8 @@ class SourceTreeClient {
     /// \param[in] resolve_symlinks Optional enum to state how symlinks in the
     /// archive should be handled if the tree has to be actually computed.
     /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
-    /// \returns An error + data union, where at index 0 we return a fatal flag,
-    /// with false meaning non-fatal failure (content blob not found), and at
-    /// index 1 the tree identifier on success.
+    /// \returns The tree identifier on success or an unexpected error (fatal or
+    /// content blob not found).
     [[nodiscard]] auto ServeArchiveTree(
         std::string const& content,
         std::string const& archive_type,
@@ -74,9 +73,8 @@ class SourceTreeClient {
     /// \param[in] distfiles Mapping from distfile names to content blob ids.
     /// \param[in] sync_tree Sync tree and all ditfile blobs to the
     /// remote-execution endpoint.
-    /// \returns An error + data union, where at index 0 we return a fatal flag,
-    /// with false meaning non-fatal failure (at least one distfile blob
-    /// missing), and at index 1 the tree identifier on success.
+    /// \returns The tree identifier on success or an unexpected error (fatal or
+    /// at least one distfile blob missing).
     [[nodiscard]] auto ServeDistdirTree(
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,

@@ -28,20 +28,15 @@ class TestServeConfig final {
     [[nodiscard]] static auto ReadServeConfigFromEnvironment() noexcept
         -> std::optional<RemoteServeConfig> {
         RemoteServeConfig::Builder builder;
-        auto result = builder.SetRemoteAddress(ReadRemoteServeAddressFromEnv())
+        auto config = builder.SetRemoteAddress(ReadRemoteServeAddressFromEnv())
                           .SetKnownRepositories(ReadRemoteServeReposFromEnv())
                           .Build();
 
-        if (auto* config = std::get_if<RemoteServeConfig>(&result)) {
-            return std::move(*config);
+        if (config) {
+            return *std::move(config);
         }
 
-        if (auto* error = std::get_if<std::string>(&result)) {
-            Logger::Log(LogLevel::Error, *error);
-            return std::nullopt;
-        }
-
-        Logger::Log(LogLevel::Error, "Unknown error occured.");
+        Logger::Log(LogLevel::Error, config.error());
         return std::nullopt;
     }
 };

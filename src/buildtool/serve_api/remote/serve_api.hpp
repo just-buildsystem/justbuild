@@ -23,18 +23,19 @@ class ServeApi final {};
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <variant>
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "src/buildtool/serve_api/remote/target_client.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class ServeApi final {
   public:
@@ -62,7 +63,7 @@ class ServeApi final {
     [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
                                               std::string const& subdir = ".",
                                               bool sync_tree = false)
-        const noexcept -> std::variant<bool, std::string> {
+        const noexcept -> expected<std::string, GitLookupError> {
         return stc_.ServeCommitTree(commit, subdir, sync_tree);
     }
 
@@ -72,7 +73,7 @@ class ServeApi final {
         std::string const& subdir = ".",
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
         bool sync_tree = false) const noexcept
-        -> std::variant<bool, std::string> {
+        -> expected<std::string, GitLookupError> {
         return stc_.ServeArchiveTree(
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
@@ -81,14 +82,14 @@ class ServeApi final {
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,
         bool sync_tree = false) const noexcept
-        -> std::variant<bool, std::string> {
+        -> expected<std::string, GitLookupError> {
         return stc_.ServeDistdirTree(distfiles, sync_tree);
     }
 
-    [[nodiscard]] auto RetrieveTreeFromForeignFile(
-        const std::string& content,
-        const std::string& name,
-        bool executable) const noexcept -> std::variant<bool, std::string> {
+    [[nodiscard]] auto RetrieveTreeFromForeignFile(const std::string& content,
+                                                   const std::string& name,
+                                                   bool executable)
+        const noexcept -> expected<std::string, GitLookupError> {
         return stc_.ServeForeignFileTree(content, name, executable);
     }
 

@@ -203,12 +203,10 @@ auto CreateDistdirGitMap(
                                     serve->RetrieveTreeFromDistdir(
                                         key.content_list,
                                         /*sync_tree=*/false);
-                                if (std::holds_alternative<std::string>(
-                                        serve_result)) {
+                                if (serve_result) {
                                     // if serve has set up the tree, it must
                                     // match what we expect
-                                    auto const& served_tree_id =
-                                        std::get<std::string>(serve_result);
+                                    auto const& served_tree_id = *serve_result;
                                     if (distdir_tree_id != served_tree_id) {
                                         (*logger)(
                                             fmt::format(
@@ -224,9 +222,8 @@ auto CreateDistdirGitMap(
                                     // check if serve failure was due to distdir
                                     // content not being found or it is
                                     // otherwise fatal
-                                    auto const& is_fatal =
-                                        std::get<bool>(serve_result);
-                                    if (is_fatal) {
+                                    if (serve_result.error() ==
+                                        GitLookupError::Fatal) {
                                         (*logger)(
                                             fmt::format(
                                                 "Serve endpoint failed to set "
@@ -351,11 +348,10 @@ auto CreateDistdirGitMap(
                     auto serve_result =
                         serve->RetrieveTreeFromDistdir(key.content_list,
                                                        /*sync_tree=*/false);
-                    if (std::holds_alternative<std::string>(serve_result)) {
+                    if (serve_result) {
                         // if serve has set up the tree, it must match what we
                         // expect
-                        auto const& served_tree_id =
-                            std::get<std::string>(serve_result);
+                        auto const& served_tree_id = *serve_result;
                         if (tree_id != served_tree_id) {
                             (*logger)(
                                 fmt::format("Mismatch in served root tree "
@@ -374,8 +370,7 @@ auto CreateDistdirGitMap(
                     }
                     // check if serve failure was due to distdir content not
                     // being found or it is otherwise fatal
-                    auto const& is_fatal = std::get<bool>(serve_result);
-                    if (is_fatal) {
+                    if (serve_result.error() == GitLookupError::Fatal) {
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up root "
                                         "from known distdir content {}",
@@ -487,11 +482,10 @@ auto CreateDistdirGitMap(
                 auto serve_result =
                     serve->RetrieveTreeFromDistdir(key.content_list,
                                                    /*sync_tree=*/true);
-                if (std::holds_alternative<std::string>(serve_result)) {
+                if (serve_result) {
                     // if serve has set up the tree, it must match what we
                     // expect
-                    auto const& served_tree_id =
-                        std::get<std::string>(serve_result);
+                    auto const& served_tree_id = *serve_result;
                     if (tree_id != served_tree_id) {
                         (*logger)(fmt::format("Mismatch in served root tree "
                                               "id:\nexpected {}, but got {}",
@@ -507,8 +501,7 @@ auto CreateDistdirGitMap(
                 else {
                     // check if serve failure was due to distdir content not
                     // being found or it is otherwise fatal
-                    auto const& is_fatal = std::get<bool>(serve_result);
-                    if (is_fatal) {
+                    if (serve_result.error() == GitLookupError::Fatal) {
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up root "
                                         "from known distdir content {}",

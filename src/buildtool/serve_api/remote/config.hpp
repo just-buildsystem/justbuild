@@ -22,12 +22,12 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "fmt/core.h"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/main/build_utils.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 struct RemoteServeConfig final {
     class Builder;
@@ -94,7 +94,7 @@ class RemoteServeConfig::Builder final {
     /// \brief Finalize building and create RemoteServeConfig.
     /// \return RemoteServeConfig on success or an error on failure.
     [[nodiscard]] auto Build() noexcept
-        -> std::variant<RemoteServeConfig, std::string> {
+        -> expected<RemoteServeConfig, std::string> {
         // To not duplicate default arguments of RemoteServeConfig in builder,
         // create a default config and copy default arguments from there.
         RemoteServeConfig const default_config;
@@ -103,8 +103,9 @@ class RemoteServeConfig::Builder final {
         if (remote_address_.has_value()) {
             remote_address = ParseAddress(*remote_address_);
             if (not remote_address) {
-                return fmt::format("Setting serve service address '{}' failed.",
-                                   *remote_address_);
+                return unexpected{
+                    fmt::format("Setting serve service address '{}' failed.",
+                                *remote_address_)};
             }
         }
 
@@ -117,7 +118,7 @@ class RemoteServeConfig::Builder final {
         if (jobs_.has_value()) {
             jobs = *jobs_;
             if (jobs == 0) {
-                return "Setting jobs failed.";
+                return unexpected{std::string{"Setting jobs failed."}};
             }
         }
 
@@ -125,7 +126,7 @@ class RemoteServeConfig::Builder final {
         if (build_jobs_.has_value()) {
             build_jobs = *build_jobs_;
             if (build_jobs == 0) {
-                return "Setting build jobs failed.";
+                return unexpected{std::string{"Setting build jobs failed."}};
             }
         }
 
@@ -134,7 +135,8 @@ class RemoteServeConfig::Builder final {
             action_timeout = *action_timeout_;
             if (bool const valid = action_timeout > std::chrono::seconds{0};
                 not valid) {
-                return "Setting action timeout failed.";
+                return unexpected{
+                    std::string{"Setting action timeout failed."}};
             }
         }
 

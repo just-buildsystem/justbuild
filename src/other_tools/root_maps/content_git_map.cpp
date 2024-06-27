@@ -76,11 +76,10 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                                                    key.subdir,
                                                    key.pragma_special,
                                                    /*sync_tree=*/false);
-                if (std::holds_alternative<std::string>(serve_result)) {
+                if (serve_result) {
                     // if serve has set up the tree, it must match what we
                     // expect
-                    auto const& served_tree_id =
-                        std::get<std::string>(serve_result);
+                    auto const& served_tree_id = *serve_result;
                     if (tree_id != served_tree_id) {
                         (*logger)(fmt::format("Mismatch in served root tree "
                                               "id:\nexpected {}, but got {}",
@@ -93,8 +92,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                 else {
                     // check if serve failure was due to archive content not
                     // being found or it is otherwise fatal
-                    auto const& is_fatal = std::get<bool>(serve_result);
-                    if (is_fatal) {
+                    if (serve_result.error() == GitLookupError::Fatal) {
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up "
                                         "root from known archive content {}",
@@ -629,21 +627,19 @@ auto CreateContentGitMap(
                                                        key.subdir,
                                                        key.pragma_special,
                                                        /*sync_tree = */ false);
-                    if (std::holds_alternative<std::string>(serve_result)) {
+                    if (serve_result) {
                         // set the workspace root as absent
                         JustMRProgress::Instance().TaskTracker().Stop(
                             key.archive.origin);
                         (*setter)(std::pair(
                             nlohmann::json::array(
-                                {FileRoot::kGitTreeMarker,
-                                 std::get<std::string>(serve_result)}),
+                                {FileRoot::kGitTreeMarker, *serve_result}),
                             /*is_cache_hit = */ false));
                         return;
                     }
                     // check if serve failure was due to archive content
                     // not being found or it is otherwise fatal
-                    auto const& is_fatal = std::get<bool>(serve_result);
-                    if (is_fatal) {
+                    if (serve_result.error() == GitLookupError::Fatal) {
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up root "
                                         "from known archive content {}",

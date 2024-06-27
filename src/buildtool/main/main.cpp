@@ -170,21 +170,17 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
         builder.SetBuildJobs(bargs.build_jobs);
     }
 
-    auto result = builder.Build();
-    if (auto* config = std::get_if<RemoteServeConfig>(&result)) {
+    auto config = builder.Build();
+    if (config) {
         if (config->tc_strategy == TargetCacheWriteStrategy::Disable) {
             Logger::Log(
                 LogLevel::Info,
                 "Target-level cache writing of serve service is disabled.");
         }
-        return std::move(*config);
+        return *std::move(config);
     }
 
-    if (auto* error = std::get_if<std::string>(&result)) {
-        Logger::Log(LogLevel::Error, *error);
-        return std::nullopt;
-    }
-    Logger::Log(LogLevel::Error, "Unknown error occured");
+    Logger::Log(LogLevel::Error, config.error());
     return std::nullopt;
 }
 

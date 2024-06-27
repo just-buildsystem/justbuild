@@ -150,10 +150,10 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
         }
         auto serve_result = serve->RetrieveTreeFromForeignFile(
             key.archive.content, key.name, key.executable);
-        if (std::holds_alternative<std::string>(serve_result)) {
+        if (serve_result) {
             // if serve has set up the tree, it must match what we
             // expect
-            auto const& served_tree_id = std::get<std::string>(serve_result);
+            auto const& served_tree_id = *serve_result;
             if (tree_id != served_tree_id) {
                 (*logger)(fmt::format("Mismatch in served root tree "
                                       "id: expected {}, but got {}",
@@ -168,8 +168,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                 /*is_cache_hit=*/false));
             return;
         }
-        auto const& is_fatal = std::get<bool>(serve_result);
-        if (is_fatal) {
+        if (serve_result.error() == GitLookupError::Fatal) {
             (*logger)(fmt::format("Serve endpoint failed to set up root "
                                   "from known foreign-file content {}",
                                   key.archive.content),

@@ -79,16 +79,18 @@ auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return true;  // fatal failure
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeCommitTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeCommitTree response returned with {}",
                      static_cast<int>(response.status()));
-        return /*fatal = */ (
+        return unexpected{
             response.status() !=
-            ::justbuild::just_serve::ServeCommitTreeResponse::NOT_FOUND);
+                    ::justbuild::just_serve::ServeCommitTreeResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
     return response.tree();  // success
 }
@@ -113,16 +115,18 @@ auto SourceTreeClient::ServeArchiveTree(
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return true;  // fatal failure
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeArchiveTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeArchiveTree response returned with {}",
                      static_cast<int>(response.status()));
-        return /*fatal = */ (
+        return unexpected{
             response.status() !=
-            ::justbuild::just_serve::ServeArchiveTreeResponse::NOT_FOUND);
+                    ::justbuild::just_serve::ServeArchiveTreeResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
     return response.tree();  // success
 }
@@ -146,16 +150,18 @@ auto SourceTreeClient::ServeDistdirTree(
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return true;  // fatal failure
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeDistdirTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeDistdirTree response returned with {}",
                      static_cast<int>(response.status()));
-        return /*fatal = */ (
+        return unexpected{
             response.status() !=
-            ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND);
+                    ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
     return response.tree();  // success
 }
@@ -176,7 +182,7 @@ auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return true;  // fatal failure
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeDistdirTreeResponse::OK) {
@@ -184,9 +190,11 @@ auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
                      "ServeDistdirTree called for foreign file response "
                      "returned with {}",
                      static_cast<int>(response.status()));
-        return /*fatal = */ (
+        return unexpected{
             response.status() !=
-            ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND);
+                    ::justbuild::just_serve::ServeDistdirTreeResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
     return response.tree();  // success
 }
