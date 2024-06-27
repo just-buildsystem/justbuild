@@ -341,19 +341,17 @@ class LocalApi final : public IExecutionApi {
         Logger::Log(LogLevel::Debug, "SplitBlob({})", blob_digest.hash());
         auto split_result = CASUtils::SplitBlobFastCDC(
             static_cast<bazel_re::Digest>(blob_digest), *storage_);
-        if (std::holds_alternative<grpc::Status>(split_result)) {
-            auto* status = std::get_if<grpc::Status>(&split_result);
-            Logger::Log(LogLevel::Error, status->error_message());
+        if (not split_result) {
+            Logger::Log(LogLevel::Error, split_result.error().error_message());
             return std::nullopt;
         }
-        auto* chunk_digests =
-            std::get_if<std::vector<bazel_re::Digest>>(&split_result);
+        auto const& chunk_digests = *split_result;
         Logger::Log(LogLevel::Debug, [&blob_digest, &chunk_digests]() {
             std::stringstream ss{};
             ss << "Split blob " << blob_digest.hash() << ":"
-               << blob_digest.size() << " into " << chunk_digests->size()
+               << blob_digest.size() << " into " << chunk_digests.size()
                << " chunks: [ ";
-            for (auto const& chunk_digest : *chunk_digests) {
+            for (auto const& chunk_digest : chunk_digests) {
                 ss << chunk_digest.hash() << ":" << chunk_digest.size_bytes()
                    << " ";
             }
@@ -361,10 +359,10 @@ class LocalApi final : public IExecutionApi {
             return ss.str();
         });
         auto artifact_digests = std::vector<ArtifactDigest>{};
-        artifact_digests.reserve(chunk_digests->size());
+        artifact_digests.reserve(chunk_digests.size());
         std::transform(
-            chunk_digests->cbegin(),
-            chunk_digests->cend(),
+            chunk_digests.cbegin(),
+            chunk_digests.cend(),
             std::back_inserter(artifact_digests),
             [](auto const& digest) { return ArtifactDigest{digest}; });
         return artifact_digests;
@@ -393,13 +391,11 @@ class LocalApi final : public IExecutionApi {
             });
         auto splice_result = CASUtils::SpliceBlob(
             static_cast<bazel_re::Digest>(blob_digest), digests, *storage_);
-        if (std::holds_alternative<grpc::Status>(splice_result)) {
-            auto* status = std::get_if<grpc::Status>(&splice_result);
-            Logger::Log(LogLevel::Error, status->error_message());
+        if (not splice_result) {
+            Logger::Log(LogLevel::Error, splice_result.error().error_message());
             return std::nullopt;
         }
-        auto* digest = std::get_if<bazel_re::Digest>(&splice_result);
-        return ArtifactDigest{*digest};
+        return ArtifactDigest{*std::move(splice_result)};
     }
 
     [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final {

@@ -17,12 +17,12 @@
 
 #include <optional>
 #include <string>
-#include <variant>
 #include <vector>
 
 #include "grpcpp/support/status.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class CASUtils {
   public:
@@ -34,18 +34,18 @@ class CASUtils {
     [[nodiscard]] static auto SplitBlobIdentity(
         bazel_re::Digest const& blob_digest,
         Storage const& storage) noexcept
-        -> std::variant<std::vector<bazel_re::Digest>, grpc::Status>;
+        -> expected<std::vector<bazel_re::Digest>, grpc::Status>;
 
     [[nodiscard]] static auto SplitBlobFastCDC(
         bazel_re::Digest const& blob_digest,
         Storage const& storage) noexcept
-        -> std::variant<std::vector<bazel_re::Digest>, grpc::Status>;
+        -> expected<std::vector<bazel_re::Digest>, grpc::Status>;
 
     [[nodiscard]] static auto SpliceBlob(
         bazel_re::Digest const& blob_digest,
         std::vector<bazel_re::Digest> const& chunk_digests,
         Storage const& storage) noexcept
-        -> std::variant<bazel_re::Digest, grpc::Status>;
+        -> expected<bazel_re::Digest, grpc::Status>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_EXECUTION_SERVICE_CAS_UTILS_HPP

@@ -280,14 +280,14 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
             ? CASUtils::SplitBlobIdentity(blob_digest, *storage_)
             : CASUtils::SplitBlobFastCDC(blob_digest, *storage_);
 
-    if (std::holds_alternative<grpc::Status>(split_result)) {
-        auto status = std::get<grpc::Status>(split_result);
+    if (not split_result) {
+        auto const& status = split_result.error();
         auto str = fmt::format("SplitBlob: {}", status.error_message());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
     }
 
-    auto chunk_digests = std::get<std::vector<bazel_re::Digest>>(split_result);
+    auto const& chunk_digests = *split_result;
     logger_.Emit(LogLevel::Debug, [&blob_digest, &chunk_digests]() {
         std::stringstream ss{};
         ss << "Split blob " << blob_digest.hash() << ":"
@@ -346,13 +346,13 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
               std::back_inserter(chunk_digests));
     auto splice_result =
         CASUtils::SpliceBlob(blob_digest, chunk_digests, *storage_);
-    if (std::holds_alternative<grpc::Status>(splice_result)) {
-        auto status = std::get<grpc::Status>(splice_result);
+    if (not splice_result) {
+        auto const& status = splice_result.error();
         auto str = fmt::format("SpliceBlob: {}", status.error_message());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
     }
-    auto digest = std::get<bazel_re::Digest>(splice_result);
+    auto const& digest = *splice_result;
     if (auto err = CheckDigestConsistency(blob_digest, digest)) {
         auto str = fmt::format("SpliceBlob: {}", *err);
         logger_.Emit(LogLevel::Error, "{}", str);

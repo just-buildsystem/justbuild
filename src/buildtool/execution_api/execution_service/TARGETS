@@ -159,6 +159,7 @@
     [ ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
