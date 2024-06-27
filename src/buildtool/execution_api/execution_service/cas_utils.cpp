@@ -93,14 +93,11 @@ auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
                      : storage.CAS().SplitBlob(blob_digest);
 
     // Process result:
-    if (auto* result = std::get_if<std::vector<bazel_re::Digest>>(&split)) {
-        return std::move(*result);
+    if (split) {
+        return *std::move(split);
     }
     // Process errors
-    if (auto* error = std::get_if<LargeObjectError>(&split)) {
-        return ToGrpc(std::move(*error));
-    }
-    return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
+    return ToGrpc(std::move(split).error());
 }
 
 auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
@@ -114,12 +111,8 @@ auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
             : storage.CAS().SpliceBlob(blob_digest, chunk_digests, false);
 
     // Process result:
-    if (auto* result = std::get_if<bazel_re::Digest>(&splice)) {
-        return std::move(*result);
+    if (splice) {
+        return *std::move(splice);
     }
-    // Process errors
-    if (auto* error = std::get_if<LargeObjectError>(&splice)) {
-        return ToGrpc(std::move(*error));
-    }
-    return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
+    return ToGrpc(std::move(splice).error());
 }

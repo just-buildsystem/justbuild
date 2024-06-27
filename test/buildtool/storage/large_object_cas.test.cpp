@@ -116,12 +116,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     // Split must be successful:
     auto split_pack = large_cas.Split(digest);
-    auto* parts = std::get_if<std::vector<bazel_re::Digest>>(&split_pack);
-    REQUIRE(parts);
+    REQUIRE(split_pack);
 
     // The result must contain one blob digest:
-    CHECK(parts->size() == 1);
-    CHECK_FALSE(NativeSupport::IsTree(parts->front().hash()));
+    CHECK(split_pack->size() == 1);
+    CHECK_FALSE(NativeSupport::IsTree(split_pack->front().hash()));
 }
 
 // Test splitting of a large object. The split must be successful and the entry
@@ -148,9 +147,8 @@ static void TestLarge() noexcept {
 
         // Split the large object:
         auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* split = std::get_if<std::vector<bazel_re::Digest>>(&pack_1);
-        CHECK(split);
-        CHECK(split->size() > 1);
+        CHECK(pack_1);
+        CHECK(pack_1->size() > 1);
 
         CHECK(FileSystemManager::RemoveFile(path));
         CHECK_FALSE(FileSystemManager::IsFile(path));
@@ -159,9 +157,8 @@ static void TestLarge() noexcept {
             // Check the second call loads the entry from the large CAS:
             auto pack_2 =
                 kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-            auto* split_2 = std::get_if<std::vector<bazel_re::Digest>>(&pack_2);
-            CHECK(split_2);
-            CHECK(split_2->size() == split->size());
+            CHECK(pack_2);
+            CHECK(pack_2->size() == pack_1->size());
 
             // There must be no spliced file:
             CHECK_FALSE(FileSystemManager::IsFile(path));
@@ -198,9 +195,8 @@ static void TestLarge() noexcept {
             auto pack_3 = kIsTree
                               ? Storage::Generation(0).CAS().SplitTree(digest)
                               : Storage::Generation(0).CAS().SplitBlob(digest);
-            auto* split_3 = std::get_if<std::vector<bazel_re::Digest>>(&pack_3);
-            REQUIRE(split_3);
-            CHECK(split_3->size() == split->size());
+            REQUIRE(pack_3);
+            CHECK(pack_3->size() == pack_1->size());
 
             // Check there are no spliced results in all generations:
             for (std::size_t i = 0; i < StorageConfig::NumGenerations(); ++i) {
@@ -238,10 +234,9 @@ static void TestSmall() noexcept {
 
         // Split the small object:
         auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* split = std::get_if<std::vector<bazel_re::Digest>>(&pack_1);
-        CHECK(split);
-        CHECK(split->size() == 1);
-        CHECK_FALSE(NativeSupport::IsTree(split->front().hash()));
+        CHECK(pack_1);
+        CHECK(pack_1->size() == 1);
+        CHECK_FALSE(NativeSupport::IsTree(pack_1->front().hash()));
 
         // Test that there is no large entry in the storage:
         // To ensure there is no split of the initial object, it is removed:
@@ -251,16 +246,15 @@ static void TestSmall() noexcept {
         // The part of a small executable is the same file but without the
         // execution permission. It must be deleted too.
         if constexpr (kIsExec) {
-            auto part_path = cas.BlobPath(split->front(), false);
+            auto part_path = cas.BlobPath(pack_1->front(), false);
             CHECK(part_path);
             CHECK(FileSystemManager::RemoveFile(*part_path));
         }
 
         // Split must not find the large entry:
         auto pack_2 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* error_2 = std::get_if<LargeObjectError>(&pack_2);
-        CHECK(error_2);
-        CHECK(error_2->Code() == LargeObjectErrorCode::FileNotFound);
+        CHECK_FALSE(pack_2);
+        CHECK(pack_2.error().Code() == LargeObjectErrorCode::FileNotFound);
 
         // There must be no spliced file:
         CHECK_FALSE(FileSystemManager::IsFile(path));
@@ -296,9 +290,8 @@ static void TestEmpty() noexcept {
 
         // Split the empty object:
         auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* split = std::get_if<std::vector<bazel_re::Digest>>(&pack_1);
-        CHECK(split);
-        CHECK(split->empty());
+        CHECK(pack_1);
+        CHECK(pack_1->empty());
 
         // Test that there is no large entry in the storage:
         // To ensure there is no split of the initial object, it is removed:
@@ -307,9 +300,8 @@ static void TestEmpty() noexcept {
 
         // Split must not find the large entry:
         auto pack_2 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* error_2 = std::get_if<LargeObjectError>(&pack_2);
-        CHECK(error_2);
-        CHECK(error_2->Code() == LargeObjectErrorCode::FileNotFound);
+        CHECK_FALSE(pack_2);
+        CHECK(pack_2.error().Code() == LargeObjectErrorCode::FileNotFound);
 
         // There must be no spliced file:
         CHECK_FALSE(FileSystemManager::IsFile(path));
@@ -347,15 +339,14 @@ static void TestExternal() noexcept {
 
         // Split the object:
         auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        auto* split = std::get_if<std::vector<bazel_re::Digest>>(&pack_1);
-        CHECK(split);
-        CHECK(split->size() > 1);
+        CHECK(pack_1);
+        CHECK(pack_1->size() > 1);
 
         // External source is emulated by moving the large entry to an older
         // generation and promoting the parts of the entry to the youngest
         // generation:
         REQUIRE(GarbageCollector::TriggerGarbageCollection());
-        for (auto const& part : *split) {
+        for (auto const& part : *pack_1) {
             static constexpr bool is_executable = false;
             REQUIRE(cas.BlobPath(part, is_executable));
         }
@@ -373,8 +364,8 @@ static void TestExternal() noexcept {
 
             // Reconstruct the result from parts:
             std::ignore = kIsTree
-                              ? youngest.SpliceTree(digest, *split)
-                              : youngest.SpliceBlob(digest, *split, kIsExec);
+                              ? youngest.SpliceTree(digest, *pack_1)
+                              : youngest.SpliceBlob(digest, *pack_1, kIsExec);
             CHECK(FileSystemManager::IsFile(path));
         }
 
@@ -400,11 +391,10 @@ static void TestExternal() noexcept {
             // Invalidation is simulated by reconstructing the small_digest
             // object from the parts of the initial object:
             auto splice =
-                kIsTree ? youngest.SpliceTree(small_digest, *split)
-                        : youngest.SpliceBlob(small_digest, *split, kIsExec);
-            auto* error = std::get_if<LargeObjectError>(&splice);
-            REQUIRE(error);
-            CHECK(error->Code() == LargeObjectErrorCode::InvalidResult);
+                kIsTree ? youngest.SpliceTree(small_digest, *pack_1)
+                        : youngest.SpliceBlob(small_digest, *pack_1, kIsExec);
+            REQUIRE_FALSE(splice);
+            CHECK(splice.error().Code() == LargeObjectErrorCode::InvalidResult);
 
             // The initial entry must not be affected:
             REQUIRE(FileSystemManager::IsFile(path));
@@ -413,10 +403,10 @@ static void TestExternal() noexcept {
         if constexpr (kIsTree) {
             SECTION("Tree invariants check fails") {
                 // Check splice fails due to the tree invariants check.
-                auto splice = youngest.SpliceTree(digest, *split);
-                auto* error = std::get_if<LargeObjectError>(&splice);
-                REQUIRE(error);
-                CHECK(error->Code() == LargeObjectErrorCode::InvalidTree);
+                auto splice = youngest.SpliceTree(digest, *pack_1);
+                REQUIRE_FALSE(splice);
+                CHECK(splice.error().Code() ==
+                      LargeObjectErrorCode::InvalidTree);
             }
         }
     }
@@ -444,7 +434,7 @@ static void TestCompactification() {
         REQUIRE(object);
         auto& [digest, path] = *object;
         auto result = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
-        REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&result) != nullptr);
+        REQUIRE(result);
 
         // For trees the size must be increased to exceed the internal
         // compactification threshold:
@@ -575,13 +565,13 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 
     // Split large entries:
     auto split_nested_tree = cas.SplitTree(*nested_tree_digest);
-    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_nested_tree));
+    REQUIRE(split_nested_tree);
 
     auto split_nested_blob = cas.SplitBlob(*nested_blob_digest);
-    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_nested_blob));
+    REQUIRE(split_nested_blob);
 
     auto split_large_tree = cas.SplitTree(*large_tree_digest);
-    REQUIRE(std::get_if<std::vector<bazel_re::Digest>>(&split_large_tree));
+    REQUIRE(split_large_tree);
 
     // Remove the spliced results:
     REQUIRE(FileSystemManager::RemoveFile(*nested_tree_path));
@@ -607,10 +597,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     // However, they might be reconstructed on request because there entries are
     // in the latest generation:
     auto split_nested_tree_2 = latest_cas.SplitTree(*nested_tree_digest);
-    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_tree_2));
+    REQUIRE(split_nested_tree_2);
 
     auto split_nested_blob_2 = latest_cas.SplitBlob(*nested_blob_digest);
-    REQUIRE_FALSE(std::get_if<LargeObjectError>(&split_nested_blob_2));
+    REQUIRE(split_nested_blob_2);
 
     // Check there are no spliced results in old generations:
     for (std::size_t i = 1; i < StorageConfig::NumGenerations(); ++i) {

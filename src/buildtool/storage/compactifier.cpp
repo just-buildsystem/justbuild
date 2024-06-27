@@ -19,7 +19,6 @@
 #include <filesystem>
 #include <functional>
 #include <optional>
-#include <variant>
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
@@ -283,21 +282,18 @@ template <ObjectType kType>
     // Split the entry:
     auto split_result = IsTreeObject(kType) ? task.cas.SplitTree(*digest)
                                             : task.cas.SplitBlob(*digest);
-    auto* parts = std::get_if<std::vector<bazel_re::Digest>>(&split_result);
-    if (parts == nullptr) {
-        auto* error = std::get_if<LargeObjectError>(&split_result);
-        auto const error_message = error ? std::move(*error).Message() : "";
+    if (not split_result) {
         task.Log(LogLevel::Error,
                  "Failed to split {}\nDigest: {}\nMessage: {}",
                  path.string(),
                  digest->hash(),
-                 error_message);
+                 std::move(split_result).error().Message());
         return false;
     }
 
     // If the file cannot actually be split (the threshold is too low), the
     // file must not be deleted.
-    if (parts->size() < 2) {
+    if (split_result->size() < 2) {
         task.Log(LogLevel::Debug,
                  "{} cannot be compactified. The compactification "
                  "threshold is too low.",

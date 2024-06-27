@@ -19,13 +19,13 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 template <bool>
@@ -124,7 +124,7 @@ class LargeObjectCAS final {
     /// \return             A set of chunks the resulting object is composed of
     /// or an error on failure.
     [[nodiscard]] auto Split(bazel_re::Digest const& digest) const noexcept
-        -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>>;
+        -> expected<std::vector<bazel_re::Digest>, LargeObjectError>;
 
     /// \brief Splice an object based on the reconstruction rules from the
     /// storage. This method doesn't check whether the result of splicing is
@@ -133,7 +133,7 @@ class LargeObjectCAS final {
     /// \return             A temporary directory that contains a single file
     /// "result" on success or an error on failure.
     [[nodiscard]] auto TrySplice(bazel_re::Digest const& digest) const noexcept
-        -> std::variant<LargeObjectError, LargeObject>;
+        -> expected<LargeObject, LargeObjectError>;
 
     /// \brief Splice an object from parts. This method doesn't check whether
     /// the result of splicing is already in the CAS.
@@ -143,7 +143,7 @@ class LargeObjectCAS final {
     /// "result" on success or an error on failure.
     [[nodiscard]] auto Splice(bazel_re::Digest const& digest,
                               std::vector<bazel_re::Digest> const& parts)
-        const noexcept -> std::variant<LargeObjectError, LargeObject>;
+        const noexcept -> expected<LargeObject, LargeObjectError>;
 
     /// \brief Uplink large entry from this generation to latest LocalCAS
     /// generation. For the large entry it's parts get promoted first and then

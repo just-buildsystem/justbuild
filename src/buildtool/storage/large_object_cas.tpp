@@ -119,7 +119,7 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::WriteEntry(
 template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
     bazel_re::Digest const& digest) const noexcept
-    -> std::variant<LargeObjectError, std::vector<bazel_re::Digest>> {
+    -> expected<std::vector<bazel_re::Digest>, LargeObjectError> {
     if (auto large_entry = ReadEntry(digest)) {
         return std::move(*large_entry);
     }
@@ -138,17 +138,17 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
     }
 
     if (not file_path) {
-        return LargeObjectError{
-            LargeObjectErrorCode::FileNotFound,
-            fmt::format("could not find {}", digest.hash())};
+        return unexpected{
+            LargeObjectError{LargeObjectErrorCode::FileNotFound,
+                             fmt::format("could not find {}", digest.hash())}};
     }
 
     // Split file into chunks:
     FileChunker chunker{*file_path};
     if (not chunker.IsOpen()) {
-        return LargeObjectError{
-            LargeObjectErrorCode::Internal,
-            fmt::format("could not split {}", digest.hash())};
+        return unexpected{
+            LargeObjectError{LargeObjectErrorCode::Internal,
+                             fmt::format("could not split {}", digest.hash())}};
     }
 
     std::vector<bazel_re::Digest> parts;
@@ -156,19 +156,19 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
         while (auto chunk = chunker.NextChunk()) {
             auto part = local_cas_.StoreBlob(*chunk, /*is_executable=*/false);
             if (not part) {
-                return LargeObjectError{LargeObjectErrorCode::Internal,
-                                        "could not store a part."};
+                return unexpected{LargeObjectError{
+                    LargeObjectErrorCode::Internal, "could not store a part."}};
             }
             parts.push_back(std::move(*part));
         }
     } catch (...) {
-        return LargeObjectError{LargeObjectErrorCode::Internal,
-                                "an unknown error occured."};
+        return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
+                                           "an unknown error occured."}};
     }
     if (not chunker.Finished()) {
-        return LargeObjectError{
-            LargeObjectErrorCode::Internal,
-            fmt::format("could not split {}", digest.hash())};
+        return unexpected{
+            LargeObjectError{LargeObjectErrorCode::Internal,
+                             fmt::format("could not split {}", digest.hash())}};
     }
 
     std::ignore = WriteEntry(digest, parts);
@@ -178,12 +178,12 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(
 template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::TrySplice(
     bazel_re::Digest const& digest) const noexcept
-    -> std::variant<LargeObjectError, LargeObject> {
+    -> expected<LargeObject, LargeObjectError> {
     auto parts = ReadEntry(digest);
     if (not parts) {
-        return LargeObjectError{
+        return unexpected{LargeObjectError{
             LargeObjectErrorCode::FileNotFound,
-            fmt::format("could not find large entry for {}", digest.hash())};
+            fmt::format("could not find large entry for {}", digest.hash())}};
     }
     return Splice(digest, *parts);
 }
@@ -192,14 +192,14 @@ template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
     bazel_re::Digest const& digest,
     std::vector<bazel_re::Digest> const& parts) const noexcept
-    -> std::variant<LargeObjectError, LargeObject> {
+    -> expected<LargeObject, LargeObjectError> {
     // Create temporary space for splicing:
     LargeObject large_object;
     if (not large_object.IsValid()) {
-        return LargeObjectError{
+        return unexpected{LargeObjectError{
             LargeObjectErrorCode::Internal,
             fmt::format("could not create a temporary space for {}",
-                        digest.hash())};
+                        digest.hash())}};
     }
 
     // Splice the object from parts
@@ -208,32 +208,32 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
         for (auto const& part : parts) {
             auto part_path = local_cas_.BlobPath(part, /*is_executable=*/false);
             if (not part_path) {
-                return LargeObjectError{
+                return unexpected{LargeObjectError{
                     LargeObjectErrorCode::FileNotFound,
-                    fmt::format("could not find the part {}", part.hash())};
+                    fmt::format("could not find the part {}", part.hash())}};
             }
 
             auto part_content = FileSystemManager::ReadFile(*part_path);
             if (not part_content) {
-                return LargeObjectError{
+                return unexpected{LargeObjectError{
                     LargeObjectErrorCode::Internal,
                     fmt::format("could not read the part content {}",
-                                part.hash())};
+                                part.hash())}};
             }
 
             if (stream.good()) {
                 stream << *part_content;
             }
             else {
-                return LargeObjectError{
+                return unexpected{LargeObjectError{
                     LargeObjectErrorCode::Internal,
-                    fmt::format("could not splice {}", digest.hash())};
+                    fmt::format("could not splice {}", digest.hash())}};
             }
         }
         stream.close();
     } catch (...) {
-        return LargeObjectError{LargeObjectErrorCode::Internal,
-                                "an unknown error occured"};
+        return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
+                                           "an unknown error occured"}};
     }
     return large_object;
 }

@@ -54,6 +54,7 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/utils/cpp", "file_locking"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "expected"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["@", "fmt", "", "fmt"]

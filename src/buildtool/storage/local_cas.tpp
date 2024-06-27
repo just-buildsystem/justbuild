@@ -284,9 +284,8 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::TrySplice(
     -> std::optional<LargeObject> {
     auto spliced = IsTreeObject(kType) ? cas_tree_large_.TrySplice(digest)
                                        : cas_file_large_.TrySplice(digest);
-    auto* large = std::get_if<LargeObject>(&spliced);
-    return large and large->IsValid() ? std::optional{std::move(*large)}
-                                      : std::nullopt;
+    return spliced and spliced->IsValid() ? std::optional{std::move(*spliced)}
+                                          : std::nullopt;
 }
 
 template <bool kDoGlobalUplink>
@@ -343,7 +342,7 @@ template <ObjectType kType>
 auto LocalCAS<kDoGlobalUplink>::Splice(
     bazel_re::Digest const& digest,
     std::vector<bazel_re::Digest> const& parts) const noexcept
-    -> std::variant<LargeObjectError, bazel_re::Digest> {
+    -> expected<bazel_re::Digest, LargeObjectError> {
     static constexpr bool kIsTree = IsTreeObject(kType);
     static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -353,39 +352,32 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
     }
 
     // Splice the result from parts:
-    std::optional<LargeObject> large_object;
     auto splice_result = kIsTree ? cas_tree_large_.Splice(digest, parts)
                                  : cas_file_large_.Splice(digest, parts);
-    if (auto* result = std::get_if<LargeObject>(&splice_result)) {
-        large_object = *result;
+    if (not splice_result) {
+        return unexpected{std::move(splice_result).error()};
     }
-    else if (auto* error = std::get_if<LargeObjectError>(&splice_result)) {
-        return std::move(*error);
-    }
-    else {
-        return LargeObjectError{
-            LargeObjectErrorCode::Internal,
-            fmt::format("could not splice {}", digest.hash())};
-    }
+
+    auto const& large_object = *splice_result;
 
     // Check digest consistency:
     // Using Store{Tree, Blob} to calculate the resulting hash and later
     // decide whether the result is valid is unreasonable, because these
     // methods can refer to a file that existed before. The direct hash
     // calculation is done instead.
-    auto const file_path = large_object->GetPath();
+    auto const& file_path = large_object.GetPath();
     auto spliced_digest = ObjectCAS<kType>::CreateDigest(file_path);
     if (not spliced_digest) {
-        return LargeObjectError{LargeObjectErrorCode::Internal,
-                                "could not calculate digest"};
+        return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
+                                           "could not calculate digest"}};
     }
 
     if (not detail::CheckDigestConsistency(*spliced_digest, digest)) {
-        return LargeObjectError{
+        return unexpected{LargeObjectError{
             LargeObjectErrorCode::InvalidResult,
             fmt::format("actual result {} differs from the expected one {}",
                         spliced_digest->hash(),
-                        digest.hash())};
+                        digest.hash())}};
     }
 
     // Check tree invariants:
@@ -394,12 +386,12 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
             // Read tree entries:
             auto const tree_data = FileSystemManager::ReadFile(file_path);
             if (not tree_data) {
-                return LargeObjectError{
+                return unexpected{LargeObjectError{
                     LargeObjectErrorCode::Internal,
-                    fmt::format("could not read tree {}", digest.hash())};
+                    fmt::format("could not read tree {}", digest.hash())}};
             }
             if (auto error = CheckTreeInvariant(digest, *tree_data)) {
-                return std::move(*error);
+                return unexpected{std::move(*error)};
             }
         }
     }
@@ -410,8 +402,9 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
     if (stored_digest) {
         return std::move(*stored_digest);
     }
-    return LargeObjectError{LargeObjectErrorCode::Internal,
-                            fmt::format("could not splice {}", digest.hash())};
+    return unexpected{
+        LargeObjectError{LargeObjectErrorCode::Internal,
+                         fmt::format("could not splice {}", digest.hash())}};
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP
