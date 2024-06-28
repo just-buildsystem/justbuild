@@ -19,7 +19,6 @@
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
@@ -69,15 +68,19 @@ void ProcessContent(std::filesystem::path const& content_path,
 
 auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
                            std::filesystem::path const& fetch_dir,
+                           gsl::not_null<Storage const*> const& storage,
                            gsl::not_null<IExecutionApi const*> const& local_api,
                            IExecutionApi const* remote_api,
                            std::size_t jobs) -> ArchiveFetchMap {
-    auto fetch_archive = [content_cas_map, fetch_dir, local_api, remote_api](
-                             auto ts,
-                             auto setter,
-                             auto logger,
-                             auto /* unused */,
-                             auto const& key) {
+    auto fetch_archive = [content_cas_map,
+                          fetch_dir,
+                          storage,
+                          local_api,
+                          remote_api](auto ts,
+                                      auto setter,
+                                      auto logger,
+                                      auto /* unused */,
+                                      auto const& key) {
         // get corresponding distfile
         auto distfile =
             (key.distfile
@@ -89,13 +92,14 @@ auto CreateArchiveFetchMap(gsl::not_null<ContentCASMap*> const& content_cas_map,
             ts,
             {key},
             [target_name,
+             storage,
              local_api,
              remote_api,
              content = key.content,
              setter,
              logger]([[maybe_unused]] auto const& values) {
                 // content is in local CAS now
-                auto const& cas = Storage::Instance().CAS();
+                auto const& cas = storage->CAS();
                 auto content_path =
                     cas.BlobPath(ArtifactDigest{content, 0, /*is_tree=*/false},
                                  /*is_executable=*/false)

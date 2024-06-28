@@ -18,9 +18,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_storage.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -32,6 +30,7 @@ namespace {
 void FetchFromNetwork(ArchiveContent const& key,
                       MirrorsPtr const& additional_mirrors,
                       CAInfoPtr const& ca_info,
+                      Storage const& storage,
                       ContentCASMap::SetterPtr const& setter,
                       ContentCASMap::LoggerPtr const& logger) {
     // first, check that mandatory fields are provided
@@ -75,7 +74,7 @@ void FetchFromNetwork(ArchiveContent const& key,
         }
     }
     // add the fetched data to CAS
-    auto path = StorageUtils::AddToCAS(Storage::Instance(), *data);
+    auto path = StorageUtils::AddToCAS(storage, *data);
     // check one last time if content is in CAS now
     if (not path) {
         (*logger)(fmt::format("Failed to store fetched content from {}",
@@ -84,7 +83,7 @@ void FetchFromNetwork(ArchiveContent const& key,
         return;
     }
     // check that the data we stored actually produces the requested digest
-    auto const& cas = Storage::Instance().CAS();
+    auto const& cas = storage.CAS();
     if (not cas.BlobPath(ArtifactDigest{key.content, 0, /*is_tree=*/false},
                          /*is_executable=*/false)) {
         (*logger)(
@@ -107,6 +106,8 @@ auto CreateContentCASMap(
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<Storage const*> const& storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> ContentCASMap {
@@ -115,6 +116,8 @@ auto CreateContentCASMap(
                           ca_info,
                           critical_git_op_map,
                           serve,
+                          storage,
+                          storage_config,
                           local_api,
                           remote_api](auto ts,
                                       auto setter,
@@ -123,23 +126,21 @@ auto CreateContentCASMap(
                                       auto const& key) {
         auto digest = ArtifactDigest(key.content, 0, false);
         // check local CAS
-        auto const& cas = Storage::Instance().CAS();
-        if (cas.BlobPath(digest, /*is_executable=*/false)) {
+        if (local_api->IsAvailable(digest)) {
             (*setter)(nullptr);
             return;
         }
         // check if content is in Git cache;
         // ensure Git cache
-        GitOpKey op_key = {
-            .params =
-                {
-                    StorageConfig::Instance().GitRoot(),  // target_path
-                    "",                                   // git_hash
-                    "",                                   // branch
-                    std::nullopt,                         // message
-                    true                                  // init_bare
-                },
-            .op_type = GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {.params =
+                               {
+                                   storage_config->GitRoot(),  // target_path
+                                   "",                         // git_hash
+                                   "",                         // branch
+                                   std::nullopt,               // message
+                                   true                        // init_bare
+                               },
+                           .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -149,6 +150,7 @@ auto CreateContentCASMap(
              additional_mirrors,
              ca_info,
              serve,
+             storage,
              local_api,
              remote_api,
              setter,
@@ -183,7 +185,7 @@ auto CreateContentCASMap(
                     // blob check failed
                     return;
                 }
-                auto const& cas = Storage::Instance().CAS();
+                auto const& cas = storage->CAS();
                 if (res.second) {
                     // blob found; add it to CAS
                     if (not cas.StoreBlob(*res.second,
@@ -207,7 +209,7 @@ auto CreateContentCASMap(
                                         .filename()
                                         .string());
                 StorageUtils::AddDistfileToCAS(
-                    Storage::Instance(), repo_distfile, just_mr_paths);
+                    *storage, repo_distfile, just_mr_paths);
                 // check if content is in CAS now
                 if (cas.BlobPath(digest, /*is_executable=*/false)) {
                     JustMRProgress::Instance().TaskTracker().Stop(key.origin);
@@ -240,10 +242,10 @@ auto CreateContentCASMap(
                 }
                 // revert to network fetch
                 FetchFromNetwork(
-                    key, additional_mirrors, ca_info, setter, logger);
+                    key, additional_mirrors, ca_info, *storage, setter, logger);
             },
-            [logger, target_path = StorageConfig::Instance().GitRoot()](
-                auto const& msg, bool fatal) {
+            [logger, target_path = storage_config->GitRoot()](auto const& msg,
+                                                              bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
                                       "ENSURE_INIT for target {}:\n{}",
                                       target_path.string(),

@@ -26,7 +26,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -37,6 +36,7 @@
 auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                      MultiRepoCommonArguments const& common_args,
                      MultiRepoUpdateArguments const& update_args,
+                     StorageConfig const& storage_config,
                      std::string multi_repo_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories update");
@@ -191,7 +191,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
         }
     }
     // Create fake repo for the anonymous remotes
-    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("update");
+    auto tmp_dir = storage_config.CreateTypedTmpDir("update");
     if (not tmp_dir) {
         Logger::Log(LogLevel::Error, "Failed to create commit update tmp dir");
         return kExitUpdateError;
@@ -220,6 +220,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
     auto git_update_map = CreateGitUpdateMap(git_repo->GetGitCAS(),
                                              common_args.git_path->string(),
                                              *common_args.local_launcher,
+                                             &storage_config,
                                              common_args.jobs);
 
     // set up progress observer

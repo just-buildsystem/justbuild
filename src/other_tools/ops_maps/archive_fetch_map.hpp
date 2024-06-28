@@ -21,6 +21,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 /// \brief Maps an archive content hash to a status flag.
@@ -29,6 +30,7 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
 [[nodiscard]] auto CreateArchiveFetchMap(
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     std::filesystem::path const& fetch_dir,  // should exist!
+    gsl::not_null<Storage const*> const& storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> ArchiveFetchMap;

@@ -18,15 +18,14 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 
 void WithRootImportedToGit(ForeignFileInfo const& key,
+                           StorageConfig const& storage_config,
                            std::pair<std::string, GitCASPtr> const& result,
                            ForeignFileGitMap::SetterPtr const& setter,
                            ForeignFileGitMap::LoggerPtr const& logger) {
@@ -34,11 +33,8 @@ void WithRootImportedToGit(ForeignFileInfo const& key,
         (*logger)("Importing to git failed", /*fatal=*/true);
         return;
     }
-    auto tree_id_file =
-        StorageUtils::GetForeignFileTreeIDFile(StorageConfig::Instance(),
-                                               key.archive.content,
-                                               key.name,
-                                               key.executable);
+    auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(
+        storage_config, key.archive.content, key.name, key.executable);
     auto cache_written =
         StorageUtils::WriteTreeIDFile(tree_id_file, result.first);
     if (not cache_written) {
@@ -46,20 +42,22 @@ void WithRootImportedToGit(ForeignFileInfo const& key,
             fmt::format("Failed to write cache file {}", tree_id_file.string()),
             /*fatal=*/false);
     }
-    (*setter)(std::pair(
-        nlohmann::json::array({FileRoot::kGitTreeMarker,
-                               result.first,
-                               StorageConfig::Instance().GitRoot().string()}),
-        /*is_cache_hit=*/false));
+    (*setter)(
+        std::pair(nlohmann::json::array({FileRoot::kGitTreeMarker,
+                                         result.first,
+                                         storage_config.GitRoot().string()}),
+                  /*is_cache_hit=*/false));
 }
 
 void WithFetchedFile(ForeignFileInfo const& key,
+                     gsl::not_null<StorageConfig const*> const& storage_config,
+                     Storage const& storage,
                      gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                      gsl::not_null<TaskSystem*> const& ts,
                      ForeignFileGitMap::SetterPtr const& setter,
                      ForeignFileGitMap::LoggerPtr const& logger) {
-    auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("foreign-file");
-    auto const& cas = Storage::Instance().CAS();
+    auto tmp_dir = storage_config->CreateTypedTmpDir("foreign-file");
+    auto const& cas = storage.CAS();
     auto digest = ArtifactDigest(key.archive.content, 0, key.executable);
     auto content_cas_path = cas.BlobPath(digest, key.executable);
     if (not content_cas_path) {
@@ -90,9 +88,11 @@ void WithFetchedFile(ForeignFileInfo const& key,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
          key,
+         storage_config,
          setter,
          logger](auto const& values) {
-            WithRootImportedToGit(key, *values[0], setter, logger);
+            WithRootImportedToGit(
+                key, *storage_config, *values[0], setter, logger);
         },
         [logger, target_path = tmp_dir->GetPath()](auto const& msg,
                                                    bool fatal) {
@@ -103,16 +103,17 @@ void WithFetchedFile(ForeignFileInfo const& key,
         });
 }
 
-void UseCacheHit(const std::string& tree_id,
+void UseCacheHit(StorageConfig const& storage_config,
+                 const std::string& tree_id,
                  ForeignFileGitMap::SetterPtr const& setter) {
     // We keep the invariant, that, whenever a cache entry is written,
     // the root is in our git root; in particular, the latter is present,
     // initialized, etc; so we can directly write the result.
-    (*setter)(std::pair(
-        nlohmann::json::array({FileRoot::kGitTreeMarker,
-                               tree_id,
-                               StorageConfig::Instance().GitRoot().string()}),
-        /*is_cache_hit=*/true));
+    (*setter)(
+        std::pair(nlohmann::json::array({FileRoot::kGitTreeMarker,
+                                         tree_id,
+                                         storage_config.GitRoot().string()}),
+                  /*is_cache_hit=*/true));
 }
 
 void HandleAbsentForeignFile(ForeignFileInfo const& key,
@@ -198,25 +199,26 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
     gsl::not_null<ContentCASMap*> const& content_cas_map,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<Storage const*> const& storage,
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap {
     auto setup_foreign_file = [content_cas_map,
                                import_to_git_map,
                                fetch_absent,
-                               serve](auto ts,
-                                      auto setter,
-                                      auto logger,
-                                      auto /* unused */,
-                                      auto const& key) {
+                               serve,
+                               storage,
+                               storage_config](auto ts,
+                                               auto setter,
+                                               auto logger,
+                                               auto /* unused */,
+                                               auto const& key) {
         if (key.absent and not fetch_absent) {
             HandleAbsentForeignFile(key, serve, setter, logger);
             return;
         }
-        auto tree_id_file =
-            StorageUtils::GetForeignFileTreeIDFile(StorageConfig::Instance(),
-                                                   key.archive.content,
-                                                   key.name,
-                                                   key.executable);
+        auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(
+            *storage_config, key.archive.content, key.name, key.executable);
         if (FileSystemManager::Exists(tree_id_file)) {
             auto tree_id = FileSystemManager::ReadFile(tree_id_file);
             if (not tree_id) {
@@ -225,15 +227,26 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                           /*fatal=*/true);
                 return;
             }
-            UseCacheHit(*tree_id, setter);
+            UseCacheHit(*storage_config, *tree_id, setter);
             return;
         }
         content_cas_map->ConsumeAfterKeysReady(
             ts,
             {key.archive},
-            [key, import_to_git_map, setter, logger, ts](
-                [[maybe_unused]] auto const& values) {
-                WithFetchedFile(key, import_to_git_map, ts, setter, logger);
+            [key,
+             import_to_git_map,
+             storage,
+             storage_config,
+             setter,
+             logger,
+             ts]([[maybe_unused]] auto const& values) {
+                WithFetchedFile(key,
+                                storage_config,
+                                *storage,
+                                import_to_git_map,
+                                ts,
+                                setter,
+                                logger);
             },
             [logger, content = key.archive.content](auto const& msg,
                                                     bool fatal) {

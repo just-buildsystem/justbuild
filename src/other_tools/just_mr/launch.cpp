@@ -38,6 +38,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
               MultiRepoRemoteAuthArguments const& auth_args,
               RetryArguments const& retry_args,
               ForwardOnlyArguments const& launch_fwd,
+              StorageConfig const& storage_config,
+              Storage const& storage,
               bool forward_build_root,
               std::string multi_repo_tool_name) -> int {
     // check if subcmd_name can be taken from additional args
@@ -62,7 +64,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
         // Read the config file if needed
         if (kKnownJustSubcommands.at(*subcommand).config) {
-            lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+            lock = GarbageCollector::SharedLock(storage_config);
             if (not lock) {
                 return kExitGenericFailure;
             }
@@ -75,6 +77,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                                             setup_args,
                                             just_cmd_args,
                                             auth_args,
+                                            storage_config,
+                                            storage,
                                             /*interactive=*/false,
                                             std::move(multi_repo_tool_name));
             if (not mr_config_path) {

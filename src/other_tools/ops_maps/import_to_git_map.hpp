@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "gsl/gsl"
+#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -65,6 +66,7 @@ using ImportToGitMap =
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    gsl::not_null<StorageConfig const*> const& storage_config,
     std::size_t jobs) -> ImportToGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_IMPORT_TO_GIT_MAP_HPP

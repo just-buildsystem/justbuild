@@ -22,7 +22,6 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
@@ -101,6 +100,7 @@ void ResolveFilePathTree(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
     IExecutionApi const* remote_api,
     gsl::not_null<TaskSystem*> const& ts,
     FilePathGitMap::SetterPtr const& ws_setter,
@@ -108,7 +108,7 @@ void ResolveFilePathTree(
     if (pragma_special) {
         // get the resolved tree
         auto tree_id_file = StorageUtils::GetResolvedTreeIDFile(
-            StorageConfig::Instance(), tree_hash, *pragma_special);
+            *storage_config, tree_hash, *pragma_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -123,7 +123,7 @@ void ResolveFilePathTree(
             // available to be able to build against it; the tree is resolved,
             // so it is in our Git cache
             CheckServeAndSetRoot(*resolved_tree_id,
-                                 StorageConfig::Instance().GitRoot().string(),
+                                 storage_config->GitRoot().string(),
                                  absent,
                                  serve,
                                  remote_api,
@@ -146,6 +146,7 @@ void ResolveFilePathTree(
                  tree_id_file,
                  absent,
                  serve,
+                 storage_config,
                  remote_api,
                  ts,
                  ws_setter,
@@ -174,8 +175,7 @@ void ResolveFilePathTree(
                     GitOpKey op_key = {
                         .params =
                             {
-                                StorageConfig::Instance()
-                                    .GitRoot(),               // target_path
+                                storage_config->GitRoot(),    // target_path
                                 resolved_tree_id,             // git_hash
                                 "",                           // branch
                                 "Keep referenced tree alive"  // message
@@ -188,6 +188,7 @@ void ResolveFilePathTree(
                          tree_id_file,
                          absent,
                          serve,
+                         storage_config,
                          remote_api,
                          ws_setter,
                          logger](auto const& values) {
@@ -213,15 +214,14 @@ void ResolveFilePathTree(
                             // it; the resolved tree is in the Git cache
                             CheckServeAndSetRoot(
                                 resolved_tree_id,
-                                StorageConfig::Instance().GitRoot().string(),
+                                storage_config->GitRoot().string(),
                                 absent,
                                 serve,
                                 remote_api,
                                 ws_setter,
                                 logger);
                         },
-                        [logger,
-                         target_path = StorageConfig::Instance().GitRoot()](
+                        [logger, target_path = storage_config->GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(
                                 fmt::format("While running critical Git op "
@@ -257,6 +257,7 @@ auto CreateFilePathGitMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
     IExecutionApi const* remote_api,
     std::size_t jobs,
     std::string multi_repo_tool_name,
@@ -266,6 +267,7 @@ auto CreateFilePathGitMap(
                        import_to_git_map,
                        resolve_symlinks_map,
                        serve,
+                       storage_config,
                        remote_api,
                        multi_repo_tool_name,
                        build_tool_name](auto ts,
@@ -305,6 +307,7 @@ auto CreateFilePathGitMap(
                  critical_git_op_map,
                  resolve_symlinks_map,
                  serve,
+                 storage_config,
                  remote_api,
                  ts,
                  setter,
@@ -343,16 +346,16 @@ auto CreateFilePathGitMap(
                     // resolve tree and set workspace root; tree gets resolved
                     // from source repo into the Git cache, which we first need
                     // to ensure is initialized
-                    GitOpKey op_key = {.params =
-                                           {
-                                               StorageConfig::Instance()
-                                                   .GitRoot(),  // target_path
-                                               "",              // git_hash
-                                               "",              // branch
-                                               std::nullopt,    // message
-                                               true             // init_bare
-                                           },
-                                       .op_type = GitOpType::ENSURE_INIT};
+                    GitOpKey op_key = {
+                        .params =
+                            {
+                                storage_config->GitRoot(),  // target_path
+                                "",                         // git_hash
+                                "",                         // branch
+                                std::nullopt,               // message
+                                true                        // init_bare
+                            },
+                        .op_type = GitOpType::ENSURE_INIT};
                     critical_git_op_map->ConsumeAfterKeysReady(
                         ts,
                         {std::move(op_key)},
@@ -365,6 +368,7 @@ auto CreateFilePathGitMap(
                          critical_git_op_map,
                          resolve_symlinks_map,
                          serve,
+                         storage_config,
                          remote_api,
                          ts,
                          setter,
@@ -387,13 +391,13 @@ auto CreateFilePathGitMap(
                                 critical_git_op_map,
                                 resolve_symlinks_map,
                                 serve,
+                                storage_config,
                                 remote_api,
                                 ts,
                                 setter,
                                 logger);
                         },
-                        [logger,
-                         target_path = StorageConfig::Instance().GitRoot()](
+                        [logger, target_path = storage_config->GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(
                                 fmt::format("While running critical Git op "
@@ -426,7 +430,7 @@ auto CreateFilePathGitMap(
                           /*fatal=*/false);
             }
             // it's not a git repo, so import it to git cache
-            auto tmp_dir = StorageConfig::Instance().CreateTypedTmpDir("file");
+            auto tmp_dir = storage_config->CreateTypedTmpDir("file");
             if (not tmp_dir) {
                 (*logger)("Failed to create import-to-git tmp directory!",
                           /*fatal=*/true);
@@ -455,6 +459,7 @@ auto CreateFilePathGitMap(
                  critical_git_op_map,
                  resolve_symlinks_map,
                  serve,
+                 storage_config,
                  remote_api,
                  ts,
                  setter,
@@ -469,21 +474,21 @@ auto CreateFilePathGitMap(
                     std::string tree = values[0]->first;
                     // resolve tree and set workspace root;
                     // we work on the Git CAS directly
-                    ResolveFilePathTree(
-                        StorageConfig::Instance().GitRoot().string(),
-                        fpath.string(),
-                        tree,
-                        pragma_special,
-                        values[0]->second, /*source_cas*/
-                        values[0]->second, /*target_cas*/
-                        absent,
-                        critical_git_op_map,
-                        resolve_symlinks_map,
-                        serve,
-                        remote_api,
-                        ts,
-                        setter,
-                        logger);
+                    ResolveFilePathTree(storage_config->GitRoot().string(),
+                                        fpath.string(),
+                                        tree,
+                                        pragma_special,
+                                        values[0]->second, /*source_cas*/
+                                        values[0]->second, /*target_cas*/
+                                        absent,
+                                        critical_git_op_map,
+                                        resolve_symlinks_map,
+                                        serve,
+                                        storage_config,
+                                        remote_api,
+                                        ts,
+                                        setter,
+                                        logger);
                 },
                 [logger, target_path = key.fpath](auto const& msg, bool fatal) {
                     (*logger)(

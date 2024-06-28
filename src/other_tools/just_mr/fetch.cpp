@@ -28,8 +28,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
@@ -46,6 +44,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoFetchArguments const& fetch_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
+                    StorageConfig const& storage_config,
+                    Storage const& storage,
                     std::string multi_repository_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories fetch");
@@ -405,8 +405,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+    ApiBundle const apis{&storage_config,
+                         &storage,
                          /*repo_config=*/nullptr,
                          &*auth_config,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -421,7 +421,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     // check configuration of the serve endpoint provided
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must
@@ -458,6 +458,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             common_args.ca_info,
                             &critical_git_op_map,
                             serve ? &*serve : nullptr,
+                            &storage_config,
+                            &storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.jobs);
@@ -465,6 +467,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     auto archive_fetch_map = CreateArchiveFetchMap(
         &content_cas_map,
         *fetch_dir,
+        &storage,
         &(*apis.local),
         (fetch_args.backup_to_remote and has_remote_api) ? &*apis.remote
                                                          : nullptr,
@@ -474,6 +477,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         CreateImportToGitMap(&critical_git_op_map,
                              common_args.git_path->string(),
                              *common_args.local_launcher,
+                             &storage_config,
                              common_args.jobs);
 
     auto git_tree_fetch_map =
@@ -482,6 +486,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                               common_args.git_path->string(),
                               *common_args.local_launcher,
                               serve ? &*serve : nullptr,
+                              &storage_config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               fetch_args.backup_to_remote,

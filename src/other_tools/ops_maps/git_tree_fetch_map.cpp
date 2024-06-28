@@ -25,8 +25,6 @@
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -35,11 +33,12 @@
 namespace {
 
 void BackupToRemote(std::string const& tree_id,
+                    StorageConfig const& storage_config,
                     IExecutionApi const& remote_api,
                     GitTreeFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     auto repo = RepositoryConfig{};
-    if (repo.SetGitCAS(StorageConfig::Instance().GitRoot())) {
+    if (repo.SetGitCAS(storage_config.GitRoot())) {
         auto git_api = GitApi{&repo};
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{
@@ -56,7 +55,7 @@ void BackupToRemote(std::string const& tree_id,
     else {
         // give a warning
         (*logger)(fmt::format("Failed to SetGitCAS at {}",
-                              StorageConfig::Instance().GitRoot().string()),
+                              storage_config.GitRoot().string()),
                   /*fatal=*/false);
     }
 }
@@ -66,6 +65,7 @@ void BackupToRemote(std::string const& tree_id,
 void MoveCASTreeToGit(std::string const& tree_id,
                       ArtifactDigest const& digest,
                       gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+                      gsl::not_null<StorageConfig const*> const& storage_config,
                       gsl::not_null<IExecutionApi const*> const& local_api,
                       IExecutionApi const* remote_api,
                       bool backup_to_remote,
@@ -73,8 +73,7 @@ void MoveCASTreeToGit(std::string const& tree_id,
                       GitTreeFetchMap::SetterPtr const& setter,
                       GitTreeFetchMap::LoggerPtr const& logger) {
     // Move tree from CAS to local Git storage
-    auto tmp_dir =
-        StorageConfig::Instance().CreateTypedTmpDir("fetch-remote-git-tree");
+    auto tmp_dir = storage_config->CreateTypedTmpDir("fetch-remote-git-tree");
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp directory for copying "
                               "git-tree {} from remote CAS",
@@ -97,6 +96,7 @@ void MoveCASTreeToGit(std::string const& tree_id,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
          tree_id,
+         storage_config,
          remote_api,
          backup_to_remote,
          setter,
@@ -108,7 +108,7 @@ void MoveCASTreeToGit(std::string const& tree_id,
             }
             // backup to remote if needed and in compatibility mode
             if (backup_to_remote and remote_api != nullptr) {
-                BackupToRemote(tree_id, *remote_api, logger);
+                BackupToRemote(tree_id, *storage_config, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
         },
@@ -130,6 +130,7 @@ auto CreateGitTreeFetchMap(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool backup_to_remote,
@@ -139,6 +140,7 @@ auto CreateGitTreeFetchMap(
                           git_bin,
                           launcher,
                           serve,
+                          storage_config,
                           local_api,
                           remote_api,
                           backup_to_remote](auto ts,
@@ -148,16 +150,15 @@ auto CreateGitTreeFetchMap(
                                             auto const& key) {
         // check whether tree exists already in Git cache;
         // ensure Git cache exists
-        GitOpKey op_key = {
-            .params =
-                {
-                    StorageConfig::Instance().GitRoot(),  // target_path
-                    "",                                   // git_hash
-                    "",                                   // branch
-                    std::nullopt,                         // message
-                    true                                  // init_bare
-                },
-            .op_type = GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {.params =
+                               {
+                                   storage_config->GitRoot(),  // target_path
+                                   "",                         // git_hash
+                                   "",                         // branch
+                                   std::nullopt,               // message
+                                   true                        // init_bare
+                               },
+                           .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
@@ -166,6 +167,7 @@ auto CreateGitTreeFetchMap(
              git_bin,
              launcher,
              serve,
+             storage_config,
              local_api,
              remote_api,
              backup_to_remote,
@@ -184,9 +186,8 @@ auto CreateGitTreeFetchMap(
                 auto git_repo = GitRepoRemote::Open(
                     op_result.git_cas);  // link fake repo to odb
                 if (not git_repo) {
-                    (*logger)(fmt::format(
-                                  "Could not open repository {}",
-                                  StorageConfig::Instance().GitRoot().string()),
+                    (*logger)(fmt::format("Could not open repository {}",
+                                          storage_config->GitRoot().string()),
                               /*fatal=*/true);
                     return;
                 }
@@ -208,7 +209,8 @@ auto CreateGitTreeFetchMap(
                 if (*tree_found) {
                     // backup to remote if needed and in native mode
                     if (backup_to_remote and remote_api != nullptr) {
-                        BackupToRemote(key.hash, *remote_api, logger);
+                        BackupToRemote(
+                            key.hash, *storage_config, *remote_api, logger);
                     }
                     // success
                     (*setter)(true /*cache hit*/);
@@ -216,12 +218,12 @@ auto CreateGitTreeFetchMap(
                 }
                 // check if tree is known to local CAS
                 auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
-                auto const& cas = Storage::Instance().CAS();
-                if (auto path = cas.TreePath(digest)) {
+                if (local_api->IsAvailable(digest)) {
                     // import tree to Git cache
                     MoveCASTreeToGit(key.hash,
                                      digest,
                                      import_to_git_map,
+                                     storage_config,
                                      local_api,
                                      remote_api,
                                      backup_to_remote,
@@ -251,6 +253,7 @@ auto CreateGitTreeFetchMap(
                         key.hash,
                         digest,
                         import_to_git_map,
+                        storage_config,
                         local_api,
                         remote_api,
                         false,  // tree already in remote, so ignore backing up
@@ -261,8 +264,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for command execution root
-                auto tmp_dir =
-                    StorageConfig::Instance().CreateTypedTmpDir("git-tree");
+                auto tmp_dir = storage_config->CreateTypedTmpDir("git-tree");
                 if (not tmp_dir) {
                     (*logger)(
                         "Failed to create execution root tmp directory for "
@@ -271,8 +273,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for storing command result files
-                auto out_dir =
-                    StorageConfig::Instance().CreateTypedTmpDir("git-tree");
+                auto out_dir = storage_config->CreateTypedTmpDir("git-tree");
                 if (not out_dir) {
                     (*logger)(
                         "Failed to create results tmp directory for tree id "
@@ -322,6 +323,7 @@ auto CreateGitTreeFetchMap(
                      key,
                      git_bin,
                      launcher,
+                     storage_config,
                      remote_api,
                      backup_to_remote,
                      ts,
@@ -401,8 +403,7 @@ auto CreateGitTreeFetchMap(
                         }
                         // define temp repo path
                         auto tmp_dir =
-                            StorageConfig::Instance().CreateTypedTmpDir(
-                                "git-tree");
+                            storage_config->CreateTypedTmpDir("git-tree");
                         ;
                         if (not tmp_dir) {
                             (*logger)(fmt::format("Could not create unique "
@@ -423,7 +424,7 @@ auto CreateGitTreeFetchMap(
                                         fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
-                                StorageConfig::Instance(),
+                                *storage_config,
                                 target_path.string(),
                                 std::nullopt,
                                 key.inherit_env,
@@ -449,8 +450,7 @@ auto CreateGitTreeFetchMap(
                         GitOpKey op_key = {
                             .params =
                                 {
-                                    StorageConfig::Instance()
-                                        .GitRoot(),               // target_path
+                                    storage_config->GitRoot(),    // target_path
                                     *op_result.result,            // git_hash
                                     "",                           // branch
                                     "Keep referenced tree alive"  // message
@@ -459,8 +459,12 @@ auto CreateGitTreeFetchMap(
                         critical_git_op_map->ConsumeAfterKeysReady(
                             ts,
                             {std::move(op_key)},
-                            [remote_api, backup_to_remote, key, setter, logger](
-                                auto const& values) {
+                            [remote_api,
+                             storage_config,
+                             backup_to_remote,
+                             key,
+                             setter,
+                             logger](auto const& values) {
                                 GitOpValue op_result = *values[0];
                                 // check flag
                                 if (not op_result.result) {
@@ -473,8 +477,10 @@ auto CreateGitTreeFetchMap(
                                 // backup to remote if needed and in native mode
                                 if (backup_to_remote and
                                     remote_api != nullptr) {
-                                    BackupToRemote(
-                                        key.hash, *remote_api, logger);
+                                    BackupToRemote(key.hash,
+                                                   *storage_config,
+                                                   *remote_api,
+                                                   logger);
                                 }
                                 // success
                                 (*setter)(false /*no cache hit*/);
@@ -496,8 +502,8 @@ auto CreateGitTreeFetchMap(
                                   fatal);
                     });
             },
-            [logger, target_path = StorageConfig::Instance().GitRoot()](
-                auto const& msg, bool fatal) {
+            [logger, target_path = storage_config->GitRoot()](auto const& msg,
+                                                              bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
                                       "ENSURE_INIT bare for target {}:\n{}",
                                       target_path.string(),

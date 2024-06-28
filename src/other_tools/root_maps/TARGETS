@@ -10,6 +10,8 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -22,9 +24,7 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
@@ -47,6 +47,7 @@
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -54,7 +55,6 @@
     , "root_utils"
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -79,6 +79,7 @@
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "path_hash"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -89,7 +90,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/utils/cpp", "tmp_dir"]
@@ -110,6 +110,8 @@
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -121,8 +123,6 @@
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -142,14 +142,14 @@
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "tmp_dir"]
     , "root_utils"
     ]
@@ -169,6 +169,7 @@
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
@@ -177,8 +178,6 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_root"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "root_utils":

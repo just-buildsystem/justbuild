@@ -18,6 +18,8 @@
 #include <filesystem>
 #include <optional>
 
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
 /// \brief Runs execvp for configured command. Only returns if execvp fails.
@@ -30,6 +32,8 @@
     MultiRepoRemoteAuthArguments const& auth_args,
     RetryArguments const& retry_args,
     ForwardOnlyArguments const& launch_fwd,
+    StorageConfig const& storage_config,
+    Storage const& storage,
     bool forward_build_root,
     std::string multi_repo_tool_name) -> int;
 

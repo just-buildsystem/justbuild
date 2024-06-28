@@ -104,7 +104,12 @@
   , "name": ["fetch"]
   , "hdrs": ["fetch.hpp"]
   , "srcs": ["fetch.cpp"]
-  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , "cli"
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
@@ -126,8 +131,6 @@
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "update":
@@ -135,7 +138,11 @@
   , "name": ["update"]
   , "hdrs": ["update.hpp"]
   , "srcs": ["update.cpp"]
-  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , "cli"
+    , ["src/buildtool/storage", "config"]
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
@@ -156,7 +163,12 @@
   , "name": ["setup"]
   , "hdrs": ["setup.hpp"]
   , "srcs": ["setup.cpp"]
-  , "deps": [["src/buildtool/build_engine/expression", "expression"], "cli"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , "cli"
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "json", "", "json"]
@@ -183,8 +195,6 @@
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/storage", "config"]
     ]
   }
 , "launch":
@@ -192,15 +202,17 @@
   , "name": ["launch"]
   , "hdrs": ["launch.hpp"]
   , "srcs": ["launch.cpp"]
-  , "deps": ["cli"]
+  , "deps":
+    [ "cli"
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/storage", "config"]
     , "exit_codes"
     , "setup"
     , "utils"

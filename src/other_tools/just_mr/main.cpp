@@ -345,6 +345,8 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.auth,
                             arguments.retry,
                             arguments.launch_fwd,
+                            StorageConfig::Instance(),
+                            Storage::Instance(),
                             forward_build_root,
                             my_name);
         }
@@ -373,6 +375,8 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.setup,
                 arguments.just_cmd,
                 arguments.auth,
+                StorageConfig::Instance(),
+                Storage::Instance(),
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv),
                 my_name);
             // dump resulting config to stdout
@@ -388,8 +392,11 @@ auto main(int argc, char* argv[]) -> int {
 
         // Run subcommand `update`
         if (arguments.cmd == SubCommand::kUpdate) {
-            return MultiRepoUpdate(
-                config, arguments.common, arguments.update, my_name);
+            return MultiRepoUpdate(config,
+                                   arguments.common,
+                                   arguments.update,
+                                   StorageConfig::Instance(),
+                                   my_name);
         }
 
         // Run subcommand `fetch`
@@ -416,6 +423,8 @@ auto main(int argc, char* argv[]) -> int {
                                   arguments.setup,
                                   arguments.fetch,
                                   arguments.auth,
+                                  StorageConfig::Instance(),
+                                  Storage::Instance(),
                                   my_name);
         }
 

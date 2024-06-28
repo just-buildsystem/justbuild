@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -51,9 +52,11 @@ struct hash<RepoDescriptionForUpdating> {
 };
 }  // namespace std
 
-[[nodiscard]] auto CreateGitUpdateMap(GitCASPtr const& git_cas,
-                                      std::string const& git_bin,
-                                      std::vector<std::string> const& launcher,
-                                      std::size_t jobs) -> GitUpdateMap;
+[[nodiscard]] auto CreateGitUpdateMap(
+    GitCASPtr const& git_cas,
+    std::string const& git_bin,
+    std::vector<std::string> const& launcher,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    std::size_t jobs) -> GitUpdateMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP

@@ -22,13 +22,13 @@
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "path_hash"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
     ]
@@ -42,6 +42,7 @@
     [ ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -50,7 +51,6 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
-    , ["src/buildtool/storage", "config"]
     ]
   }
 , "content_cas_map":
@@ -68,19 +68,18 @@
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/other_tools/utils", "content"]
     , ["src/buildtool/file_system", "file_storage"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
-    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "archive_fetch_map":
@@ -92,6 +91,7 @@
     [ ["@", "gsl", "", "gsl"]
     , "content_cas_map"
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -114,6 +114,7 @@
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -122,8 +123,6 @@
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/system", "system_command"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]

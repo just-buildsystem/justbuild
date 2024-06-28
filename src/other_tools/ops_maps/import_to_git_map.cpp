@@ -18,7 +18,6 @@
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 
 namespace {
@@ -28,19 +27,19 @@ void KeepCommitAndSetTree(
     std::string const& commit,
     std::filesystem::path const& target_path,
     GitCASPtr const& just_git_cas,
+    StorageConfig const& storage_config,
     gsl::not_null<TaskSystem*> const& ts,
     ImportToGitMap::SetterPtr const& setter,
     ImportToGitMap::LoggerPtr const& logger) {
     // Keep tag for commit
-    GitOpKey op_key = {
-        .params =
-            {
-                StorageConfig::Instance().GitRoot(),  // target_path
-                commit,                               // git_hash
-                "",                                   // branch
-                "Keep referenced tree alive"          // message
-            },
-        .op_type = GitOpType::KEEP_TAG};
+    GitOpKey op_key = {.params =
+                           {
+                               storage_config.GitRoot(),     // target_path
+                               commit,                       // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TAG};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
@@ -93,13 +92,16 @@ auto CreateImportToGitMap(
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    gsl::not_null<StorageConfig const*> const& storage_config,
     std::size_t jobs) -> ImportToGitMap {
-    auto import_to_git = [critical_git_op_map, git_bin, launcher](
-                             auto ts,
-                             auto setter,
-                             auto logger,
-                             auto /*unused*/,
-                             auto const& key) {
+    auto import_to_git = [critical_git_op_map,
+                          git_bin,
+                          launcher,
+                          storage_config](auto ts,
+                                          auto setter,
+                                          auto logger,
+                                          auto /*unused*/,
+                                          auto const& key) {
         // Perform initial commit at import location: init + add . + commit
         GitOpKey op_key = {.params =
                                {
@@ -118,6 +120,7 @@ auto CreateImportToGitMap(
              target_path = key.target_path,
              git_bin,
              launcher,
+             storage_config,
              ts,
              setter,
              logger](auto const& values) {
@@ -133,11 +136,11 @@ auto CreateImportToGitMap(
                 GitOpKey op_key = {
                     .params =
                         {
-                            StorageConfig::Instance().GitRoot(),  // target_path
-                            "",                                   // git_hash
-                            "",                                   // branch
-                            std::nullopt,                         // message
-                            true                                  // init_bare
+                            storage_config->GitRoot(),  // target_path
+                            "",                         // git_hash
+                            "",                         // branch
+                            std::nullopt,               // message
+                            true                        // init_bare
                         },
                     .op_type = GitOpType::ENSURE_INIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
@@ -148,6 +151,7 @@ auto CreateImportToGitMap(
                      target_path,
                      git_bin,
                      launcher,
+                     storage_config,
                      ts,
                      setter,
                      logger](auto const& values) {
@@ -162,12 +166,11 @@ auto CreateImportToGitMap(
                         auto just_git_repo =
                             GitRepoRemote::Open(op_result.git_cas);
                         if (not just_git_repo) {
-                            (*logger)(fmt::format("Could not open Git cache "
-                                                  "repository {}",
-                                                  StorageConfig::Instance()
-                                                      .GitRoot()
-                                                      .string()),
-                                      /*fatal=*/true);
+                            (*logger)(
+                                fmt::format("Could not open Git cache "
+                                            "repository {}",
+                                            storage_config->GitRoot().string()),
+                                /*fatal=*/true);
                             return;
                         }
                         auto wrapped_logger =
@@ -181,7 +184,7 @@ auto CreateImportToGitMap(
                                               fatal);
                                 });
                         if (not just_git_repo->FetchViaTmpRepo(
-                                StorageConfig::Instance(),
+                                *storage_config,
                                 target_path.string(),
                                 std::nullopt,
                                 std::vector<std::string>{} /* inherit_env */,
@@ -206,11 +209,12 @@ auto CreateImportToGitMap(
                                              commit,
                                              target_path,
                                              op_result.git_cas, /*just_git_cas*/
+                                             *storage_config,
                                              ts,
                                              setter,
                                              wrapped_logger);
                     },
-                    [logger, target_path = StorageConfig::Instance().GitRoot()](
+                    [logger, target_path = storage_config->GitRoot()](
                         auto const& msg, bool fatal) {
                         (*logger)(fmt::format("While running critical Git "
                                               "op ENSURE_INIT bare for "
