@@ -28,7 +28,6 @@
 #include "fmt/core.h"
 #include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
@@ -134,13 +133,12 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     }
 
     std::shared_ptr<grpc::ServerCredentials> creds;
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+    if (apis.auth != nullptr) {
         auto tls_opts = grpc::SslServerCredentialsOptions{};
 
-        tls_opts.pem_root_certs = Auth::TLS::Instance().CACert();
+        tls_opts.pem_root_certs = apis.auth->CACert();
         grpc::SslServerCredentialsOptions::PemKeyCertPair keycert = {
-            Auth::TLS::Instance().ServerKey(),
-            Auth::TLS::Instance().ServerCert()};
+            apis.auth->ServerKey(), apis.auth->ServerCert()};
 
         tls_opts.pem_key_cert_pairs.emplace_back(keycert);
 

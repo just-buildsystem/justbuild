@@ -81,7 +81,6 @@
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/auth", "auth"]
     , ["@", "json", "", "json"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/execution_api/remote", "config"]
