@@ -17,11 +17,13 @@
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <optional>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "gsl/gsl"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
@@ -29,7 +31,6 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
@@ -50,14 +51,12 @@ class TargetCache {
     using ArtifactDownloader =
         std::function<bool(std::vector<Artifact::ObjectInfo> const&)>;
 
-    TargetCache(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
-                std::filesystem::path const& store_path,
-                std::optional<std::string> const& explicit_shard = std::nullopt)
+    explicit TargetCache(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
+                         std::filesystem::path const& store_path)
         : cas_{std::move(cas)},
-          file_store_{explicit_shard ? store_path / *explicit_shard
-                                     : store_path / ComputeShard()},
-          explicit_shard_{explicit_shard} {
-        if (kDoGlobalUplink && not explicit_shard) {
+          file_store_{store_path / ComputeShard()},
+          explicit_shard_{std::nullopt} {
+        if constexpr (kDoGlobalUplink) {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
                 cas_->StoreBlob(StorageConfig::ExecutionBackendDescription());
@@ -73,10 +72,7 @@ class TargetCache {
     /// valid path.
     [[nodiscard]] auto WithShard(const std::optional<std::string>& shard) const
         -> TargetCache {
-        return shard
-                   ? TargetCache<kDoGlobalUplink>(
-                         cas_, file_store_.StorageRoot().parent_path(), *shard)
-                   : *this;
+        return shard ? TargetCache<kDoGlobalUplink>(*this, *shard) : *this;
     }
 
     TargetCache(TargetCache const&) = default;
@@ -136,6 +132,13 @@ class TargetCache {
                 /*kSetEpochTime=*/false>
         file_store_;
     std::optional<std::string> explicit_shard_{std::nullopt};
+
+    explicit TargetCache(TargetCache const& other,
+                         std::string const& explicit_shard)
+        : cas_{other.cas_},
+          file_store_{other.file_store_.StorageRoot().parent_path() /
+                      explicit_shard},
+          explicit_shard_{explicit_shard} {}
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
