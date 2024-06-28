@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <vector>
 
@@ -37,34 +38,34 @@
 template <bool kDoGlobalUplink>
 class LocalStorage {
   public:
-    explicit LocalStorage(std::filesystem::path const& storage_path)
-        : cas_{std::make_shared<LocalCAS<kDoGlobalUplink>>(storage_path /
-                                                           "cas")},
-          ac_{cas_, storage_path / "ac"},
-          tc_{cas_, storage_path / "tc"} {}
+    static constexpr std::size_t kYoungest = 0U;
+
+    using CAS_t = LocalCAS<kDoGlobalUplink>;
+    using AC_t = LocalAC<kDoGlobalUplink>;
+    using TC_t = ::TargetCache<kDoGlobalUplink>;
+
+    explicit LocalStorage(GenerationConfig const& config)
+        : cas_{std::make_shared<CAS_t>(config)},
+          ac_{std::make_shared<AC_t>(&*cas_, config)},
+          tc_{std::make_shared<TC_t>(&*cas_, config)} {}
 
     /// \brief Get the CAS instance.
-    [[nodiscard]] auto CAS() const noexcept
-        -> LocalCAS<kDoGlobalUplink> const& {
-        return *cas_;
-    }
+    [[nodiscard]] auto CAS() const noexcept -> CAS_t const& { return *cas_; }
 
     /// \brief Get the action cache instance.
-    [[nodiscard]] auto ActionCache() const noexcept
-        -> LocalAC<kDoGlobalUplink> const& {
-        return ac_;
+    [[nodiscard]] auto ActionCache() const noexcept -> AC_t const& {
+        return *ac_;
     }
 
     /// \brief Get the target cache instance.
-    [[nodiscard]] auto TargetCache() const noexcept
-        -> TargetCache<kDoGlobalUplink> const& {
-        return tc_;
+    [[nodiscard]] auto TargetCache() const noexcept -> TC_t const& {
+        return *tc_;
     }
 
   private:
-    gsl::not_null<std::shared_ptr<LocalCAS<kDoGlobalUplink>>> cas_;
-    LocalAC<kDoGlobalUplink> ac_;
-    ::TargetCache<kDoGlobalUplink> tc_;
+    std::shared_ptr<CAS_t const> cas_;
+    std::shared_ptr<AC_t const> ac_;
+    std::shared_ptr<TC_t const> tc_;
 };
 
 #ifdef BOOTSTRAP_BUILD_TOOL
@@ -110,7 +111,9 @@ class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
     using LocalStorage<kDefaultDoGlobalUplink>::LocalStorage;
 
     [[nodiscard]] static auto CreateStorage() noexcept -> Storage {
-        return Storage{StorageConfig::Instance().GenerationCacheDir(0)};
+        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(
+            Storage::kYoungest);
+        return Storage{gen_config};
     }
 
     [[nodiscard]] static auto CreateGenerations() noexcept
@@ -119,8 +122,9 @@ class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
         std::vector<::Generation> generations{};
         generations.reserve(count);
         for (std::size_t i = 0; i < count; ++i) {
-            generations.emplace_back(
-                StorageConfig::Instance().GenerationCacheDir(i));
+            auto gen_config =
+                StorageConfig::Instance().CreateGenerationConfig(i);
+            generations.emplace_back(gen_config);
         }
         return generations;
     }

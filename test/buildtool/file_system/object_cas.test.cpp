@@ -29,9 +29,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
     std::string test_content{"test"};
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
+    auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
+
     SECTION("CAS for files") {
-        ObjectCAS<ObjectType::File> cas{
-            StorageConfig::Instance().GenerationCacheDir(0) / "casf"};
+        ObjectCAS<ObjectType::File> cas{gen_config.cas_f};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {
@@ -69,8 +70,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
     }
 
     SECTION("CAS for executables") {
-        ObjectCAS<ObjectType::Executable> cas{
-            StorageConfig::Instance().GenerationCacheDir(0) / "casx"};
+        ObjectCAS<ObjectType::Executable> cas{gen_config.cas_x};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

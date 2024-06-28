@@ -22,6 +22,7 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
@@ -43,9 +44,9 @@ class LocalAC {
     /// Local AC generation used by GC without global uplink.
     using LocalGenerationAC = LocalAC</*kDoGlobalUplink=*/false>;
 
-    LocalAC(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
-            std::filesystem::path const& store_path) noexcept
-        : cas_{std::move(cas)}, file_store_{store_path} {};
+    explicit LocalAC(gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
+                     GenerationConfig const& config) noexcept
+        : cas_{*cas}, file_store_{config.action_cache} {};
 
     LocalAC(LocalAC const&) = default;
     LocalAC(LocalAC&&) noexcept = default;
@@ -88,7 +89,7 @@ class LocalAC {
         kDoGlobalUplink ? StoreMode::LastWins : StoreMode::FirstWins;
 
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("LocalAC")};
-    gsl::not_null<std::shared_ptr<LocalCAS<kDoGlobalUplink>>> cas_;
+    LocalCAS<kDoGlobalUplink> const& cas_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
 

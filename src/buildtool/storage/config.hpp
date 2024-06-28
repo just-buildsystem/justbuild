@@ -27,6 +27,19 @@
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
+class StorageConfig;
+
+struct GenerationConfig final {
+    gsl::not_null<StorageConfig const*> const storage_config;
+    std::filesystem::path const cas_f;
+    std::filesystem::path const cas_x;
+    std::filesystem::path const cas_t;
+    std::filesystem::path const cas_large_f;
+    std::filesystem::path const cas_large_t;
+    std::filesystem::path const action_cache;
+    std::filesystem::path const target_cache;
+};
+
 /// \brief Global storage configuration.
 class StorageConfig {
   public:
@@ -76,22 +89,12 @@ class StorageConfig {
         return BuildRoot() / "git";
     }
 
-    /// \brief Root directory of specific storage generation for compatible and
-    /// non-compatible protocol types.
+    /// \brief Root directory of specific storage generation
     [[nodiscard]] auto GenerationCacheRoot(std::size_t index) const noexcept
         -> std::filesystem::path {
         ExpectsAudit(index < num_generations_);
         auto generation = std::string{"generation-"} + std::to_string(index);
         return CacheRoot() / generation;
-    }
-
-    /// \brief Storage directory of specific generation and protocol type.
-    [[nodiscard]] auto GenerationCacheDir(
-        std::size_t index,
-        bool is_compatible = Compatibility::IsCompatible()) const noexcept
-        -> std::filesystem::path {
-        return UpdatePathForCompatibility(GenerationCacheRoot(index),
-                                          is_compatible);
     }
 
     /// \brief Root directory for all ephemeral directories, i.e., directories
@@ -114,6 +117,25 @@ class StorageConfig {
         auto parent_path = EphemeralRoot() / "tmp-workspaces" / type;
         return TmpDir::Create(parent_path);
     }
+
+    [[nodiscard]] auto CreateGenerationConfig(
+        std::size_t generation) const noexcept -> GenerationConfig {
+        bool const compatible = Compatibility::IsCompatible();
+        auto const cache_root = GenerationCacheRoot(generation);
+        auto const cache_dir =
+            UpdatePathForCompatibility(cache_root, compatible);
+
+        return GenerationConfig{
+            .storage_config = this,
+            .cas_f = cache_dir / "casf",
+            .cas_x = cache_dir / "casx",
+            .cas_t = cache_dir / (compatible ? "casf" : "cast"),
+            .cas_large_f = cache_dir / "cas-large-f",
+            .cas_large_t =
+                cache_dir / (compatible ? "cas-large-f" : "cas-large-t"),
+            .action_cache = cache_dir / "ac",
+            .target_cache = cache_dir / "tc"};
+    };
 
   private:
     // Build root directory. All the storage dirs are subdirs of build_root.

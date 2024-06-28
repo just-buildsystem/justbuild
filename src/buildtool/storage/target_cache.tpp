@@ -30,7 +30,7 @@ auto TargetCache<kDoGlobalUplink>::Store(
     if (not DownloadKnownArtifacts(value, downloader)) {
         return false;
     }
-    if (auto digest = cas_->StoreBlob(value.ToJson().dump(2))) {
+    if (auto digest = cas_.StoreBlob(value.ToJson().dump(2))) {
         auto data =
             Artifact::ObjectInfo{ArtifactDigest{*digest}, ObjectType::File}
                 .ToString();
@@ -57,7 +57,7 @@ auto TargetCache<kDoGlobalUplink>::ComputeKey(
              nlohmann::json{target_name.module, target_name.name}.dump()},
             {"effective_config", effective_config.ToString()}};
         if (auto target_key =
-                cas_->StoreBlob(target_desc.dump(2), /*is_executable=*/false)) {
+                cas_.StoreBlob(target_desc.dump(2), /*is_executable=*/false)) {
             return TargetCacheKey{
                 {ArtifactDigest{*target_key}, ObjectType::File}};
         }
@@ -92,7 +92,7 @@ auto TargetCache<kDoGlobalUplink>::Read(
         return std::nullopt;
     }
     if (auto info = Artifact::ObjectInfo::FromString(*entry)) {
-        if (auto path = cas_->BlobPath(info->digest, /*is_executable=*/false)) {
+        if (auto path = cas_.BlobPath(info->digest, /*is_executable=*/false)) {
             if (auto value = FileSystemManager::ReadFile(*path)) {
                 try {
                     return std::make_pair(
@@ -147,7 +147,7 @@ requires(kIsLocalGeneration) auto TargetCache<kDoGlobalUplink>::
 
     // Determine target cache entry blob path of given generation.
     auto cache_entry =
-        cas_->BlobPath(entry_info->digest, /*is_executable=*/false);
+        cas_.BlobPath(entry_info->digest, /*is_executable=*/false);
     if (not cache_entry) {
         return false;
     }
@@ -182,21 +182,20 @@ requires(kIsLocalGeneration) auto TargetCache<kDoGlobalUplink>::
     // Uplink referenced artifacts.
     for (auto const& info : artifacts_info) {
         if (info.type == ObjectType::Tree) {
-            if (not cas_->LocalUplinkTree(*latest.cas_, info.digest)) {
+            if (not cas_.LocalUplinkTree(latest.cas_, info.digest)) {
                 return false;
             }
         }
-        else if (not cas_->LocalUplinkBlob(*latest.cas_,
-                                           info.digest,
-                                           IsExecutableObject(info.type))) {
+        else if (not cas_.LocalUplinkBlob(
+                     latest.cas_, info.digest, IsExecutableObject(info.type))) {
             return false;
         }
     }
 
     // Uplink target cache entry blob.
-    if (not cas_->LocalUplinkBlob(*latest.cas_,
-                                  entry_info->digest,
-                                  /*is_executable=*/false)) {
+    if (not cas_.LocalUplinkBlob(latest.cas_,
+                                 entry_info->digest,
+                                 /*is_executable=*/false)) {
         return false;
     }
 

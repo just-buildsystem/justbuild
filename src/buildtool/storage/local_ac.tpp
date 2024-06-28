@@ -24,7 +24,7 @@ auto LocalAC<kDoGlobalUplink>::StoreResult(
     bazel_re::Digest const& action_id,
     bazel_re::ActionResult const& result) const noexcept -> bool {
     auto bytes = result.SerializeAsString();
-    auto digest = cas_->StoreBlob(bytes);
+    auto digest = cas_.StoreBlob(bytes);
     return (digest and
             file_store_.AddFromBytes(NativeSupport::Unprefix(action_id.hash()),
                                      digest->SerializeAsString()));
@@ -95,14 +95,14 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
 
     // Uplink result content
     for (auto const& file : result->output_files()) {
-        if (not cas_->LocalUplinkBlob(
-                *latest.cas_, file.digest(), file.is_executable())) {
+        if (not cas_.LocalUplinkBlob(
+                latest.cas_, file.digest(), file.is_executable())) {
             return false;
         }
     }
     for (auto const& link : result->output_file_symlinks()) {
-        if (not cas_->LocalUplinkBlob(
-                *latest.cas_,
+        if (not cas_.LocalUplinkBlob(
+                latest.cas_,
                 bazel_re::Digest(
                     ArtifactDigest::Create<ObjectType::File>(link.target())),
                 /*is_executable=*/false)) {
@@ -110,8 +110,8 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         }
     }
     for (auto const& link : result->output_directory_symlinks()) {
-        if (not cas_->LocalUplinkBlob(
-                *latest.cas_,
+        if (not cas_.LocalUplinkBlob(
+                latest.cas_,
                 bazel_re::Digest(
                     ArtifactDigest::Create<ObjectType::File>(link.target())),
                 /*is_executable=*/false)) {
@@ -119,15 +119,15 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         }
     }
     for (auto const& directory : result->output_directories()) {
-        if (not cas_->LocalUplinkTree(*latest.cas_, directory.tree_digest())) {
+        if (not cas_.LocalUplinkTree(latest.cas_, directory.tree_digest())) {
             return false;
         }
     }
 
     // Uplink result (cache value)
-    if (not cas_->LocalUplinkBlob(*latest.cas_,
-                                  result_digest,
-                                  /*is_executable=*/false)) {
+    if (not cas_.LocalUplinkBlob(latest.cas_,
+                                 result_digest,
+                                 /*is_executable=*/false)) {
         return false;
     }
 
@@ -140,7 +140,7 @@ template <bool kDoGlobalUplink>
 auto LocalAC<kDoGlobalUplink>::ReadResult(bazel_re::Digest const& digest)
     const noexcept -> std::optional<bazel_re::ActionResult> {
     bazel_re::ActionResult result{};
-    if (auto src_path = cas_->BlobPath(digest, /*is_executable=*/false)) {
+    if (auto src_path = cas_.BlobPath(digest, /*is_executable=*/false)) {
         auto const bytes = FileSystemManager::ReadFile(*src_path);
         if (bytes.has_value() and result.ParseFromString(*bytes)) {
             return result;

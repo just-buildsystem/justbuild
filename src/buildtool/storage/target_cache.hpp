@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
@@ -51,15 +52,16 @@ class TargetCache {
     using ArtifactDownloader =
         std::function<bool(std::vector<Artifact::ObjectInfo> const&)>;
 
-    explicit TargetCache(std::shared_ptr<LocalCAS<kDoGlobalUplink>> cas,
-                         std::filesystem::path const& store_path)
-        : cas_{std::move(cas)},
-          file_store_{store_path / ComputeShard()},
+    explicit TargetCache(
+        gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
+        GenerationConfig const& config)
+        : cas_{*cas},
+          file_store_{config.target_cache / ComputeShard()},
           explicit_shard_{std::nullopt} {
         if constexpr (kDoGlobalUplink) {
             // write backend description (shard) to CAS
             [[maybe_unused]] auto id =
-                cas_->StoreBlob(RemoteExecutionConfig::DescribeBackend());
+                cas_.StoreBlob(RemoteExecutionConfig::DescribeBackend());
             EnsuresAudit(id and ArtifactDigest{*id}.hash() == ComputeShard());
         }
     }
@@ -126,7 +128,7 @@ class TargetCache {
         kDoGlobalUplink ? StoreMode::LastWins : StoreMode::FirstWins;
 
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("TargetCache")};
-    gsl::not_null<std::shared_ptr<LocalCAS<kDoGlobalUplink>>> cas_;
+    LocalCAS<kDoGlobalUplink> const& cas_;
     FileStorage<ObjectType::File,
                 kStoreMode,
                 /*kSetEpochTime=*/false>

@@ -194,7 +194,7 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
     std::vector<bazel_re::Digest> const& parts) const noexcept
     -> expected<LargeObject, LargeObjectError> {
     // Create temporary space for splicing:
-    LargeObject large_object;
+    LargeObject large_object(storage_config_);
     if (not large_object.IsValid()) {
         return unexpected{LargeObjectError{
             LargeObjectErrorCode::Internal,

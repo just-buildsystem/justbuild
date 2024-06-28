@@ -23,6 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -44,15 +45,12 @@ class LocalCAS {
     /// Note that the base path is concatenated by a single character
     /// 'f'/'x'/'t' for each internally used physical CAS.
     /// \param base     The base path for the CAS.
-    explicit LocalCAS(std::filesystem::path const& base)
-        : cas_file_{base.string() + 'f', Uplinker<ObjectType::File>()},
-          cas_exec_{base.string() + 'x', Uplinker<ObjectType::Executable>()},
-          cas_tree_{base.string() + (Compatibility::IsCompatible() ? 'f' : 't'),
-                    Uplinker<ObjectType::Tree>()},
-          cas_file_large_{*this, base.string() + "-large-f"},
-          cas_tree_large_{*this,
-                          base.string() + "-large-" +
-                              (Compatibility::IsCompatible() ? 'f' : 't')} {}
+    explicit LocalCAS(GenerationConfig const& config)
+        : cas_file_{config.cas_f, Uplinker<ObjectType::File>()},
+          cas_exec_{config.cas_x, Uplinker<ObjectType::Executable>()},
+          cas_tree_{config.cas_t, Uplinker<ObjectType::Tree>()},
+          cas_file_large_{this, config},
+          cas_tree_large_{this, config} {}
 
     /// \brief Obtain path to the storage root.
     /// \param type             Type of the storage to be obtained.

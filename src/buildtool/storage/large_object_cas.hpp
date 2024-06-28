@@ -69,8 +69,8 @@ class LargeObjectError final {
 /// \brief Stores a temporary directory containing a result of splicing.
 class LargeObject final {
   public:
-    LargeObject() noexcept
-        : directory_(StorageConfig::Instance().CreateTypedTmpDir("splice")),
+    explicit LargeObject(StorageConfig const& storage_config) noexcept
+        : directory_(storage_config.CreateTypedTmpDir("splice")),
           path_(directory_ ? directory_->GetPath() / "result" : ".") {}
 
     /// \brief Check whether the large object is valid.
@@ -96,9 +96,13 @@ class LargeObject final {
 template <bool kDoGlobalUplink, ObjectType kType>
 class LargeObjectCAS final {
   public:
-    LargeObjectCAS(LocalCAS<kDoGlobalUplink> const& local_cas,
-                   std::filesystem::path const& store_path) noexcept
-        : local_cas_(local_cas), file_store_(store_path) {}
+    explicit LargeObjectCAS(
+        gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& local_cas,
+        GenerationConfig const& config) noexcept
+        : local_cas_(*local_cas),
+          file_store_(IsTreeObject(kType) ? config.cas_large_t
+                                          : config.cas_large_f),
+          storage_config_{*config.storage_config} {}
 
     LargeObjectCAS(LargeObjectCAS const&) = delete;
     LargeObjectCAS(LargeObjectCAS&&) = delete;
@@ -167,6 +171,7 @@ class LargeObjectCAS final {
         kDoGlobalUplink ? StoreMode::LastWins : StoreMode::FirstWins;
 
     LocalCAS<kDoGlobalUplink> const& local_cas_;
+    StorageConfig const& storage_config_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
 

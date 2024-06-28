@@ -100,13 +100,7 @@ class Tree final {
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LargeObjectCAS: split a small tree",
                  "[storage]") {
-    auto temp_dir =
-        StorageConfig::Instance().CreateTypedTmpDir("large_object_cas");
-    REQUIRE(temp_dir);
-
     auto const& cas = Storage::Instance().CAS();
-    LargeObjectCAS<true, ObjectType::Tree> const large_cas(
-        cas, temp_dir->GetPath() / "root_1");
 
     // Create a small tree:
     using LargeTestUtils::Tree;
@@ -116,7 +110,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto const& [digest, path] = *small;
 
     // Split must be successful:
-    auto split_pack = large_cas.Split(digest);
+    auto split_pack = cas.SplitTree(digest);
     REQUIRE(split_pack);
 
     // The result must contain one blob digest:
