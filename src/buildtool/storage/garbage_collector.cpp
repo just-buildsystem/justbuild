@@ -155,8 +155,9 @@ auto GarbageCollector::LockFilePath(
     return storage_config.CacheRoot() / "gc.lock";
 }
 
-auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
-    -> bool {
+auto GarbageCollector::TriggerGarbageCollection(
+    StorageConfig const& storage_config,
+    bool no_rotation) noexcept -> bool {
     auto const kRemoveMe = std::string{"remove-me"};
 
     auto pid = CreateProcessUniqueId();
@@ -169,15 +170,15 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // With a shared lock, we can remove all directories with the given prefix,
     // as we own the process id.
     {
-        auto lock = SharedLock(StorageConfig::Instance());
+        auto lock = SharedLock(storage_config);
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to get a shared lock the local build root");
             return false;
         }
 
-        for (auto const& entry : std::filesystem::directory_iterator(
-                 StorageConfig::Instance().CacheRoot())) {
+        for (auto const& entry :
+             std::filesystem::directory_iterator(storage_config.CacheRoot())) {
             if (entry.path().filename().string().find(remove_me_prefix) == 0) {
                 to_remove.emplace_back(entry.path());
             }
@@ -196,7 +197,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // after releasing the shared lock, wait to get an exclusive lock for doing
     // the critical renaming
     {
-        auto lock = ExclusiveLock(StorageConfig::Instance());
+        auto lock = ExclusiveLock(storage_config);
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to exclusively lock the local build root");
@@ -207,15 +208,15 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // all existing remove-me directories; they're left overs, as the clean
         // up of owned directories is done with a shared lock.
         std::vector<std::filesystem::path> left_over{};
-        for (auto const& entry : std::filesystem::directory_iterator(
-                 StorageConfig::Instance().CacheRoot())) {
+        for (auto const& entry :
+             std::filesystem::directory_iterator(storage_config.CacheRoot())) {
             if (entry.path().filename().string().find(kRemoveMe) == 0) {
                 left_over.emplace_back(entry.path());
             }
         }
         for (auto const& d : left_over) {
             auto new_name =
-                StorageConfig::Instance().CacheRoot() /
+                storage_config.CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             if (FileSystemManager::Rename(d, new_name)) {
                 to_remove.emplace_back(new_name);
@@ -231,10 +232,10 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Now that the have to exclusive lock, try to move out ephemeral data;
         // as it is still under the generation regime, it is not a huge problem
         // if that fails.
-        auto ephemeral = StorageConfig::Instance().EphemeralRoot();
+        auto ephemeral = storage_config.EphemeralRoot();
         if (FileSystemManager::IsDirectory(ephemeral)) {
             auto remove_me_dir =
-                StorageConfig::Instance().CacheRoot() /
+                storage_config.CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             if (FileSystemManager::Rename(ephemeral, remove_me_dir)) {
                 to_remove.emplace_back(remove_me_dir);
@@ -250,7 +251,8 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Compactification must take place before rotating generations.
         // Otherwise, an interruption of the process during compactification
         // would lead to an invalid old generation.
-        if (not GarbageCollector::Compactify(kMaxBatchTransferSize)) {
+        if (not GarbageCollector::Compactify(storage_config,
+                                             kMaxBatchTransferSize)) {
             Logger::Log(LogLevel::Error,
                         "Failed to compactify the youngest generation.");
             return false;
@@ -259,19 +261,16 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
         // Rotate generations unless told not to do so
         if (not no_rotation) {
             auto remove_me_dir =
-                StorageConfig::Instance().CacheRoot() /
+                storage_config.CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             to_remove.emplace_back(remove_me_dir);
-            for (std::size_t i = StorageConfig::Instance().NumGenerations();
-                 i > 0;
-                 --i) {
-                auto cache_root =
-                    StorageConfig::Instance().GenerationCacheRoot(i - 1);
+            for (std::size_t i = storage_config.NumGenerations(); i > 0; --i) {
+                auto cache_root = storage_config.GenerationCacheRoot(i - 1);
                 if (FileSystemManager::IsDirectory(cache_root)) {
                     auto new_cache_root =
-                        (i == StorageConfig::Instance().NumGenerations())
+                        (i == storage_config.NumGenerations())
                             ? remove_me_dir
-                            : StorageConfig::Instance().GenerationCacheRoot(i);
+                            : storage_config.GenerationCacheRoot(i);
                     if (not FileSystemManager::Rename(cache_root,
                                                       new_cache_root)) {
                         Logger::Log(LogLevel::Error,
@@ -289,7 +288,7 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     // have to remove
     bool success{};
     {
-        auto lock = SharedLock(StorageConfig::Instance());
+        auto lock = SharedLock(storage_config);
         if (not lock) {
             Logger::Log(LogLevel::Error,
                         "Failed to get a shared lock the local build root");
@@ -301,7 +300,8 @@ auto GarbageCollector::TriggerGarbageCollection(bool no_rotation) noexcept
     return success;
 }
 
-auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
+auto GarbageCollector::Compactify(StorageConfig const& storage_config,
+                                  size_t threshold) noexcept -> bool {
     const bool mode = Compatibility::IsCompatible();
 
     // Return to the initial compatibility mode once done:
@@ -310,10 +310,10 @@ auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
     });
 
     // Compactification must be done for both native and compatible storages.
-    auto compactify = [threshold](bool compatible) -> bool {
+    auto compactify = [&storage_config, threshold](bool compatible) -> bool {
         Compatibility::SetCompatible(compatible);
-        auto const storage = ::Generation(
-            StorageConfig::Instance().GenerationCacheDir(0, compatible));
+        auto const storage =
+            ::Generation(storage_config.GenerationCacheDir(0, compatible));
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
                Compactifier::RemoveSpliced(storage.CAS()) and

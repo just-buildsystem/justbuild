@@ -177,7 +177,8 @@ static void TestLarge() noexcept {
 
         SECTION("Uplinking") {
             // Increment generation:
-            CHECK(GarbageCollector::TriggerGarbageCollection());
+            CHECK(GarbageCollector::TriggerGarbageCollection(
+                StorageConfig::Instance()));
 
             // Check implicit splice:
             auto spliced_path =
@@ -348,7 +349,8 @@ static void TestExternal() noexcept {
         // External source is emulated by moving the large entry to an older
         // generation and promoting the parts of the entry to the youngest
         // generation:
-        REQUIRE(GarbageCollector::TriggerGarbageCollection());
+        REQUIRE(GarbageCollector::TriggerGarbageCollection(
+            StorageConfig::Instance()));
         for (auto const& part : *pack_1) {
             static constexpr bool is_executable = false;
             REQUIRE(cas.BlobPath(part, is_executable));
@@ -475,8 +477,9 @@ static void TestCompactification() {
 
         // Compactify the youngest generation:
         // Generation rotation is disabled to exclude uplinking.
-        static constexpr bool no_rotation = true;
-        REQUIRE(GarbageCollector::TriggerGarbageCollection(no_rotation));
+        static constexpr bool kNoRotation = true;
+        REQUIRE(GarbageCollector::TriggerGarbageCollection(
+            StorageConfig::Instance(), kNoRotation));
 
         // All entries must be deleted during compactification, and for blobs
         // and executables there are no synchronized entries in the storage:
@@ -582,7 +585,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     REQUIRE(FileSystemManager::RemoveFile(*large_tree_path));
 
     // Rotate generations:
-    REQUIRE(GarbageCollector::TriggerGarbageCollection());
+    REQUIRE(
+        GarbageCollector::TriggerGarbageCollection(StorageConfig::Instance()));
 
     // Ask to splice the large tree:
     auto result_path = cas.TreePath(*large_tree_digest);

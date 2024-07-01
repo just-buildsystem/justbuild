@@ -786,7 +786,7 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kGc) {
             if (GarbageCollector::TriggerGarbageCollection(
-                    arguments.gc.no_rotate)) {
+                    StorageConfig::Instance(), arguments.gc.no_rotate)) {
                 return kExitSuccess;
             }
             return kExitFailure;

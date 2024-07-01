@@ -80,6 +80,7 @@ class GarbageCollector {
     /// will include rotation of generations and deleting the oldest generation.
     /// \returns true on success.
     [[nodiscard]] auto static TriggerGarbageCollection(
+        StorageConfig const& storage_config,
         bool no_rotation = false) noexcept -> bool;
 
     /// \brief Acquire shared lock to prevent garbage collection from running.
@@ -102,7 +103,8 @@ class GarbageCollector {
     /// \param threshold    Compactification threshold.
     /// \return True if the youngest generation does not contain splicable
     /// objects afterwards.
-    [[nodiscard]] auto static Compactify(size_t threshold) noexcept -> bool;
+    [[nodiscard]] auto static Compactify(StorageConfig const& storage_config,
+                                         size_t threshold) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP
