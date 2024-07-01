@@ -301,9 +301,9 @@ auto GarbageCollector::Compactify(size_t threshold) noexcept -> bool {
 
     // Compactification must be done for both native and compatible storages.
     auto compactify = [threshold](bool compatible) -> bool {
+        Compatibility::SetCompatible(compatible);
         auto const storage =
             ::Generation(StorageConfig::GenerationCacheDir(0, compatible));
-        Compatibility::SetCompatible(compatible);
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
                Compactifier::RemoveSpliced(storage.CAS()) and
