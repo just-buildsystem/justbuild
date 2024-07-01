@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
@@ -31,11 +32,13 @@
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class ConfigurationClient {
   public:
-    explicit ConfigurationClient(ServerAddress address) noexcept
+    explicit ConfigurationClient(ServerAddress address,
+                                 Auth::TLS const* auth) noexcept
         : client_serve_address_{std::move(address)},
           stub_{justbuild::just_serve::Configuration::NewStub(
               CreateChannelWithCredentials(client_serve_address_.host,
-                                           client_serve_address_.port))} {}
+                                           client_serve_address_.port,
+                                           auth))} {}
 
     [[nodiscard]] auto CheckServeRemoteExecution() const noexcept -> bool;
 

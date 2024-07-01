@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
@@ -31,7 +32,9 @@
 /// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L144
 class BazelAcClient {
   public:
-    explicit BazelAcClient(std::string const& server, Port port) noexcept;
+    explicit BazelAcClient(std::string const& server,
+                           Port port,
+                           Auth::TLS const* auth) noexcept;
 
     [[nodiscard]] auto GetActionResult(
         std::string const& instance_name,

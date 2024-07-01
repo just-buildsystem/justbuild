@@ -20,6 +20,7 @@
 #include <unordered_map>
 
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
@@ -31,7 +32,8 @@
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class SourceTreeClient {
   public:
-    explicit SourceTreeClient(ServerAddress const& address) noexcept;
+    explicit SourceTreeClient(ServerAddress const& address,
+                              Auth::TLS const* auth) noexcept;
 
     // An error + data union type
     using result_t = expected<std::string, GitLookupError>;

@@ -26,6 +26,7 @@
 
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
@@ -80,9 +81,11 @@ class ByteStreamClient {
         }
     };
 
-    explicit ByteStreamClient(std::string const& server, Port port) noexcept {
+    explicit ByteStreamClient(std::string const& server,
+                              Port port,
+                              Auth::TLS const* auth) noexcept {
         stub_ = google::bytestream::ByteStream::NewStub(
-            CreateChannelWithCredentials(server, port));
+            CreateChannelWithCredentials(server, port, auth));
     }
 
     [[nodiscard]] auto IncrementalRead(

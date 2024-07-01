@@ -36,7 +36,7 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
     REQUIRE(config->remote_address);
 
     // Create TLC client
-    SourceTreeClient st_client(*config->remote_address);
+    SourceTreeClient st_client(*config->remote_address, nullptr);
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);

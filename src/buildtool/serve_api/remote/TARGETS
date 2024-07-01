@@ -16,7 +16,8 @@
   , "hdrs": ["source_tree_client.hpp"]
   , "srcs": ["source_tree_client.cpp"]
   , "deps":
-    [ ["src/buildtool/common/remote", "port"]
+    [ ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/file_system", "git_types"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/logging", "logging"]
@@ -34,7 +35,8 @@
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
   , "deps":
-    [ ["src/buildtool/common", "common"]
+    [ ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/file_system", "git_types"]
@@ -78,7 +80,8 @@
   , "hdrs": ["configuration_client.hpp"]
   , "srcs": ["configuration_client.cpp"]
   , "deps":
-    [ ["src/buildtool/common/remote", "port"]
+    [ ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/common/remote", "remote_common"]

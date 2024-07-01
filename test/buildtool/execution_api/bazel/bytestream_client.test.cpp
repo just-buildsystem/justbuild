@@ -13,9 +13,11 @@
 // limitations under the License.
 
 #include <cstddef>
+#include <optional>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
@@ -27,7 +29,12 @@ constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 
 TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
-    auto stream = ByteStreamClient{info->host, info->port};
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+    auto stream =
+        ByteStreamClient{info->host, info->port, auth ? &*auth : nullptr};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     SECTION("Upload small blob") {
@@ -105,7 +112,12 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
 TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
-    auto stream = ByteStreamClient{info->host, info->port};
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+    auto stream =
+        ByteStreamClient{info->host, info->port, auth ? &*auth : nullptr};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     SECTION("Upload small blobs") {

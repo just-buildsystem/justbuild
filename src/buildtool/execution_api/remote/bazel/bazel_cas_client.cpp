@@ -173,10 +173,12 @@ namespace {
 
 }  // namespace
 
-BazelCasClient::BazelCasClient(std::string const& server, Port port) noexcept
-    : stream_{std::make_unique<ByteStreamClient>(server, port)} {
+BazelCasClient::BazelCasClient(std::string const& server,
+                               Port port,
+                               Auth::TLS const* auth) noexcept
+    : stream_{std::make_unique<ByteStreamClient>(server, port, auth)} {
     stub_ = bazel_re::ContentAddressableStorage::NewStub(
-        CreateChannelWithCredentials(server, port));
+        CreateChannelWithCredentials(server, port, auth));
 }
 
 auto BazelCasClient::FindMissingBlobs(

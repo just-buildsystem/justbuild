@@ -59,9 +59,10 @@ auto PragmaSpecialToSymlinksResolve(
 
 }  // namespace
 
-SourceTreeClient::SourceTreeClient(ServerAddress const& address) noexcept {
+SourceTreeClient::SourceTreeClient(ServerAddress const& address,
+                                   Auth::TLS const* auth) noexcept {
     stub_ = justbuild::just_serve::SourceTree::NewStub(
-        CreateChannelWithCredentials(address.host, address.port));
+        CreateChannelWithCredentials(address.host, address.port, auth));
 }
 
 auto SourceTreeClient::ServeCommitTree(std::string const& commit_id,

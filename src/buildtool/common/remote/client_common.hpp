@@ -32,15 +32,14 @@
 
 [[maybe_unused]] [[nodiscard]] static inline auto CreateChannelWithCredentials(
     std::string const& server,
-    Port port) noexcept {
+    Port port,
+    Auth::TLS const* auth) noexcept {
 
     std::shared_ptr<grpc::ChannelCredentials> creds;
     std::string address = server + ':' + std::to_string(port);
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auto tls_opts =
-            grpc::SslCredentialsOptions{Auth::TLS::Instance().CACert(),
-                                        Auth::TLS::Instance().ClientKey(),
-                                        Auth::TLS::Instance().ClientCert()};
+    if (auth != nullptr) {
+        auto tls_opts = grpc::SslCredentialsOptions{
+            auth->CACert(), auth->ClientKey(), auth->ClientCert()};
         creds = grpc::SslCredentials(tls_opts);
     }
     else {

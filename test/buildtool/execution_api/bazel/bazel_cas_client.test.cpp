@@ -13,11 +13,13 @@
 // limitations under the License.
 
 #include <functional>  // std::equal_to
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -31,8 +33,13 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("test");
 
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
     // Create CAS client
-    BazelCasClient cas_client(info->host, info->port);
+    BazelCasClient cas_client(info->host, info->port, auth ? &*auth : nullptr);
 
     SECTION("Valid digest and blob") {
         // digest of "test"

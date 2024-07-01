@@ -18,10 +18,12 @@
 #include <algorithm>  // std::transform, std::copy
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -80,7 +82,12 @@
     auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
     blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
-    BazelCasClient cas_client(info->host, info->port);
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    BazelCasClient cas_client(info->host, info->port, auth ? &*auth : nullptr);
 
     std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
     blob_ptrs.reserve(blobs.size());

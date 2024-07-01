@@ -24,6 +24,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -189,10 +190,10 @@ namespace {
 BazelApi::BazelApi(std::string const& instance_name,
                    std::string const& host,
                    Port port,
-                   [[maybe_unused]] Auth::TLS const* auth,
+                   Auth::TLS const* auth,
                    ExecutionConfiguration const& exec_config) noexcept {
-    network_ =
-        std::make_shared<BazelNetwork>(instance_name, host, port, exec_config);
+    network_ = std::make_shared<BazelNetwork>(
+        instance_name, host, port, auth, exec_config);
 }
 
 // implement move constructor in cpp, where all members are complete types

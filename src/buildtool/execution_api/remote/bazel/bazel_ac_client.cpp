@@ -20,9 +20,11 @@
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-BazelAcClient::BazelAcClient(std::string const& server, Port port) noexcept {
+BazelAcClient::BazelAcClient(std::string const& server,
+                             Port port,
+                             Auth::TLS const* auth) noexcept {
     stub_ = bazel_re::ActionCache::NewStub(
-        CreateChannelWithCredentials(server, port));
+        CreateChannelWithCredentials(server, port, auth));
 }
 
 auto BazelAcClient::GetActionResult(

@@ -24,6 +24,7 @@ class ServeApi final {};
 #include <string>
 #include <unordered_map>
 
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -41,7 +42,9 @@ class ServeApi final {
   public:
     explicit ServeApi(ServerAddress const& address,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : stc_{address}, tc_{address, apis}, cc_{address} {}
+        : stc_{address, apis->auth},
+          tc_{address, apis},
+          cc_{address, apis->auth} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;

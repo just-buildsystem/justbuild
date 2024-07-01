@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -38,6 +39,7 @@ class BazelNetwork {
     explicit BazelNetwork(std::string instance_name,
                           std::string const& host,
                           Port port,
+                          Auth::TLS const* auth,
                           ExecutionConfiguration const& exec_config) noexcept;
 
     /// \brief Check if digest exists in CAS

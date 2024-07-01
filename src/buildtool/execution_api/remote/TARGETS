@@ -22,6 +22,7 @@
     ]
   , "deps":
     [ "config"
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -77,6 +78,7 @@
   , "private-deps":
     [ "bazel_network"
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/execution_api/common", "common"]

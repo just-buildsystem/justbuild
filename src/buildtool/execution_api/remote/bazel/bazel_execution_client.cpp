@@ -57,9 +57,10 @@ auto DebugString(grpc::Status const& status) -> std::string {
 }  // namespace
 
 BazelExecutionClient::BazelExecutionClient(std::string const& server,
-                                           Port port) noexcept {
+                                           Port port,
+                                           Auth::TLS const* auth) noexcept {
     stub_ = bazel_re::Execution::NewStub(
-        CreateChannelWithCredentials(server, port));
+        CreateChannelWithCredentials(server, port, auth));
 }
 
 auto BazelExecutionClient::Execute(std::string const& instance_name,

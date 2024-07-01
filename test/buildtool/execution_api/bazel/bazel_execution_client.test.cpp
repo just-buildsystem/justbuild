@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <optional>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -30,7 +32,13 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(content));
 
-    BazelExecutionClient execution_client(info->host, info->port);
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    BazelExecutionClient execution_client(
+        info->host, info->port, auth ? &*auth : nullptr);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -98,7 +106,13 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(content));
 
-    BazelExecutionClient execution_client(info->host, info->port);
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    BazelExecutionClient execution_client(
+        info->host, info->port, auth ? &*auth : nullptr);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;

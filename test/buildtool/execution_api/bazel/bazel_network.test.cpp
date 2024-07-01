@@ -13,10 +13,12 @@
 // limitations under the License.
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -30,7 +32,12 @@ constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
     std::string instance_name{"remote-execution"};
-    auto network = BazelNetwork{instance_name, info->host, info->port, {}};
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+    auto network = BazelNetwork{
+        instance_name, info->host, info->port, auth ? &*auth : nullptr, {}};
 
     std::string content_foo("foo");
     std::string content_bar("bar");
@@ -75,7 +82,12 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
     std::string instance_name{"remote-execution"};
-    auto network = BazelNetwork{instance_name, info->host, info->port, {}};
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+    auto network = BazelNetwork{
+        instance_name, info->host, info->port, auth ? &*auth : nullptr, {}};
 
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob

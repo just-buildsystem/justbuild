@@ -24,12 +24,13 @@
 BazelNetwork::BazelNetwork(std::string instance_name,
                            std::string const& host,
                            Port port,
+                           Auth::TLS const* auth,
                            ExecutionConfiguration const& exec_config) noexcept
     : instance_name_{std::move(instance_name)},
       exec_config_{exec_config},
-      cas_{std::make_unique<BazelCasClient>(host, port)},
-      ac_{std::make_unique<BazelAcClient>(host, port)},
-      exec_{std::make_unique<BazelExecutionClient>(host, port)} {}
+      cas_{std::make_unique<BazelCasClient>(host, port, auth)},
+      ac_{std::make_unique<BazelAcClient>(host, port, auth)},
+      exec_{std::make_unique<BazelExecutionClient>(host, port, auth)} {}
 
 auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
     -> bool {
