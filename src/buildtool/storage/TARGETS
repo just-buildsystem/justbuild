@@ -31,6 +31,7 @@
     , "large_object_cas.hpp"
     , "large_object_cas.tpp"
     , "compactifier.hpp"
+    , "uplinker.hpp"
     ]
   , "private-hdrs": ["compactification_task.hpp"]
   , "srcs":
@@ -38,6 +39,7 @@
     , "garbage_collector.cpp"
     , "compactifier.cpp"
     , "compactification_task.cpp"
+    , "uplinker.cpp"
     ]
   , "deps":
     [ "config"
