@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -42,6 +43,7 @@ class BazelApi final : public IExecutionApi {
     BazelApi(std::string const& instance_name,
              std::string const& host,
              Port port,
+             Auth::TLS const* auth,
              ExecutionConfiguration const& exec_config) noexcept;
     BazelApi(BazelApi const&) = delete;
     BazelApi(BazelApi&& other) noexcept;

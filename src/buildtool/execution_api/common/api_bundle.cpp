@@ -19,8 +19,10 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
 ApiBundle::ApiBundle(RepositoryConfig const* repo_config,
+                     Auth::TLS const* authentication,
                      std::optional<ServerAddress> const& remote_address)
-    : local{std::make_shared<LocalApi>(repo_config)},
+    : local{std::make_shared<LocalApi>(repo_config)},  // needed by remote
+      auth{authentication},                            // needed by remote
       remote{CreateRemote(remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
@@ -29,7 +31,7 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
         return std::make_shared<BazelApi>(
-            "remote-execution", address->host, address->port, config);
+            "remote-execution", address->host, address->port, auth, config);
     }
     return local;
 }

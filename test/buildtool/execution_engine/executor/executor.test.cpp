@@ -280,8 +280,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -293,8 +299,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -306,8 +318,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(not runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -342,8 +360,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -358,8 +382,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -374,8 +404,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -393,8 +429,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -409,8 +451,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -428,8 +476,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Executor runner{
-            &repo_config, api.get(), api.get(), {}, {}, &stats, &progress};
+        Executor runner{&repo_config,
+                        api.get(),
+                        api.get(),
+                        /*properties=*/{},
+                        /*dispatch_list=*/{},
+                        /*auth=*/nullptr,
+                        &stats,
+                        &progress};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));

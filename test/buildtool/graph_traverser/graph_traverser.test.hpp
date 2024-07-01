@@ -18,6 +18,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -26,6 +27,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -150,6 +152,7 @@ inline void SetLauncher() {
 }  // namespace
 
 [[maybe_unused]] static void TestHelloWorldCopyMessage(
+    Auth::TLS const* auth,
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
@@ -157,8 +160,8 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -185,8 +188,8 @@ inline void SetLauncher() {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        ApiBundle const apis{p.GetRepoConfig(),
-                             RemoteExecutionConfig::RemoteAddress()};
+        ApiBundle const apis{
+            p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const gt_get_exec{
             clargs_exec.gtargs,
             p.GetRepoConfig(),
@@ -214,15 +217,16 @@ inline void SetLauncher() {
     }
 }
 
-[[maybe_unused]] static void TestCopyLocalFile(bool is_hermetic = true) {
+[[maybe_unused]] static void TestCopyLocalFile(Auth::TLS const* auth,
+                                               bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -245,6 +249,7 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestSequencePrinterBuildLibraryOnly(
+    Auth::TLS const* auth,
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
@@ -252,8 +257,8 @@ inline void SetLauncher() {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -296,6 +301,7 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestHelloWorldWithKnownSource(
+    Auth::TLS const* auth,
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
@@ -305,6 +311,7 @@ inline void SetLauncher() {
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{full_hello_world.GetRepoConfig(),
+                         auth,
                          RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
@@ -353,15 +360,16 @@ inline void SetLauncher() {
     }
 }
 
-static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
+static void TestBlobsUploadedAndUsed(Auth::TLS const* auth,
+                                     bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -391,15 +399,16 @@ static void TestBlobsUploadedAndUsed(bool is_hermetic = true) {
     }
 }
 
-static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
+static void TestEnvironmentVariablesSetAndUsed(Auth::TLS const* auth,
+                                               bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -429,15 +438,15 @@ static void TestEnvironmentVariablesSetAndUsed(bool is_hermetic = true) {
     }
 }
 
-static void TestTreesUsed(bool is_hermetic = true) {
+static void TestTreesUsed(Auth::TLS const* auth, bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -467,15 +476,16 @@ static void TestTreesUsed(bool is_hermetic = true) {
     }
 }
 
-static void TestNestedTreesUsed(bool is_hermetic = true) {
+static void TestNestedTreesUsed(Auth::TLS const* auth,
+                                bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -505,13 +515,14 @@ static void TestNestedTreesUsed(bool is_hermetic = true) {
     }
 }
 
-static void TestFlakyHelloWorldDetected(bool /*is_hermetic*/ = true) {
+static void TestFlakyHelloWorldDetected(Auth::TLS const* auth,
+                                        bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{p.GetRepoConfig(),
-                         RemoteExecutionConfig::RemoteAddress()};
+    ApiBundle const apis{
+        p.GetRepoConfig(), auth, RemoteExecutionConfig::RemoteAddress()};
 
     {
         SetLauncher();

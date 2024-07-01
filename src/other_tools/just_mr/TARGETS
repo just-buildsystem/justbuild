@@ -107,6 +107,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , "exit_codes"
@@ -155,6 +156,7 @@
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "json", "", "json"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]

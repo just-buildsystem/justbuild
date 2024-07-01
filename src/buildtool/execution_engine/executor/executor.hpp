@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
@@ -60,6 +61,7 @@ class ExecutorImpl {
         std::map<std::string, std::string> const& properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> const& dispatch_list,
+        Auth::TLS const* auth,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
         gsl::not_null<Statistics*> const& stats,
@@ -108,7 +110,7 @@ class ExecutorImpl {
         }
 
         auto alternative_api =
-            GetAlternativeEndpoint(properties, dispatch_list);
+            GetAlternativeEndpoint(properties, dispatch_list, auth);
         if (alternative_api) {
             if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -665,8 +667,8 @@ class ExecutorImpl {
     [[nodiscard]] static inline auto GetAlternativeEndpoint(
         const std::map<std::string, std::string>& properties,
         const std::vector<std::pair<std::map<std::string, std::string>,
-                                    ServerAddress>>& dispatch_list)
-        -> std::unique_ptr<BazelApi> {
+                                    ServerAddress>>& dispatch_list,
+        const Auth::TLS* auth) -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] : dispatch_list) {
             bool match = true;
             for (auto const& [k, v] : pred) {
@@ -685,6 +687,7 @@ class ExecutorImpl {
                     "alternative remote execution",
                     endpoint.host,
                     endpoint.port,
+                    auth,
                     config);
             }
         }
@@ -705,6 +708,7 @@ class Executor {
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
+        Auth::TLS const* auth,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         Logger const* logger = nullptr,  // log in caller logger, if given
@@ -714,6 +718,7 @@ class Executor {
           remote_api_{*remote_api},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
+          auth_{auth},
           stats_{stats},
           progress_{progress},
           logger_{logger},
@@ -736,6 +741,7 @@ class Executor {
                 Impl::MergeProperties(properties_,
                                       action->ExecutionProperties()),
                 dispatch_list_,
+                auth_,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
                 stats_,
@@ -754,6 +760,7 @@ class Executor {
             remote_api_,
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
+            auth_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
             stats_,
@@ -791,6 +798,7 @@ class Executor {
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
+    Auth::TLS const* auth_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     Logger const* logger_;
@@ -816,6 +824,7 @@ class Rebuilder {
         std::map<std::string, std::string> properties,
         std::vector<std::pair<std::map<std::string, std::string>,
                               ServerAddress>> dispatch_list,
+        Auth::TLS const* auth,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
@@ -825,6 +834,7 @@ class Rebuilder {
           api_cached_{*api_cached},
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
+          auth_{auth},
           stats_{stats},
           progress_{progress},
           timeout_{timeout} {}
@@ -840,6 +850,7 @@ class Rebuilder {
             remote_api_,
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
+            auth_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
             stats_,
@@ -856,6 +867,7 @@ class Rebuilder {
             api_cached_,
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
+            auth_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
             stats_,
@@ -904,6 +916,7 @@ class Rebuilder {
     std::map<std::string, std::string> properties_;
     std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
         dispatch_list_;
+    Auth::TLS const* auth_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;

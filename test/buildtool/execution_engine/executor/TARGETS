@@ -2,6 +2,21 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["executor_api_tests"]
   , "hdrs": ["executor_api.test.hpp"]
+  , "deps":
+    [ ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/common", "artifact_description"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
+    , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
+    , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/progress_reporting", "progress"]
+    , ["utils", "test_env"]
+    , ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
 , "executor":
@@ -29,12 +44,11 @@
   , "data": ["test_data"]
   , "private-deps":
     [ "executor_api_tests"
-    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
-    , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]
@@ -50,7 +64,7 @@
   , "data": ["test_data"]
   , "private-deps":
     [ "executor_api_tests"
-    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]

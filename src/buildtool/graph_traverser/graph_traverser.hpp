@@ -364,6 +364,7 @@ class GraphTraverser {
                           &*apis_.remote,
                           platform_properties_,
                           dispatch_list_,
+                          apis_.auth,
                           stats_,
                           progress_,
                           logger_,
@@ -397,6 +398,7 @@ class GraphTraverser {
                            &*api_cached,
                            platform_properties_,
                            dispatch_list_,
+                           apis_.auth,
                            stats_,
                            progress_,
                            clargs_.build.timeout};

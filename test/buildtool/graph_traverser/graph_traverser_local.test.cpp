@@ -19,53 +19,53 @@
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Output created when entry point is local artifact",
                  "[graph_traverser]") {
-    TestCopyLocalFile();
+    TestCopyLocalFile(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Output created and contents are correct",
                  "[graph_traverser]") {
-    TestHelloWorldCopyMessage();
+    TestHelloWorldCopyMessage(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Actions are not re-run",
                  "[graph_traverser]") {
-    TestSequencePrinterBuildLibraryOnly();
+    TestSequencePrinterBuildLibraryOnly(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: KNOWN artifact",
                  "[graph_traverser]") {
-    TestHelloWorldWithKnownSource();
+    TestHelloWorldWithKnownSource(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Blobs uploaded and correctly used",
                  "[graph_traverser]") {
-    TestBlobsUploadedAndUsed();
+    TestBlobsUploadedAndUsed(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Environment variables are set and used",
                  "[graph_traverser]") {
-    TestEnvironmentVariablesSetAndUsed();
+    TestEnvironmentVariablesSetAndUsed(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Trees correctly used",
                  "[graph_traverser]") {
-    TestTreesUsed();
+    TestTreesUsed(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Nested trees correctly used",
                  "[graph_traverser]") {
-    TestNestedTreesUsed();
+    TestNestedTreesUsed(/*auth=*/nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Detect flaky actions",
                  "[graph_traverser]") {
-    TestFlakyHelloWorldDetected();
+    TestFlakyHelloWorldDetected(/*auth=*/nullptr);
 }

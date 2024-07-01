@@ -40,6 +40,7 @@
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
     [ "common"
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common/remote", "remote_common"]
     ]

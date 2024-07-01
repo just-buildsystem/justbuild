@@ -60,16 +60,17 @@ void DefaultReachableRepositories(
     std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
 
-void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
-                       std::optional<std::string> const& remote_serve_addr,
-                       MultiRepoRemoteAuthArguments const& auth) noexcept;
+void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept;
+
+void SetupRemoteConfig(
+    std::optional<std::string> const& remote_exec_addr,
+    std::optional<std::string> const& remote_serve_addr) noexcept;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
-/// \returns RemoteServeConfig if initialization was successfull or std::nullopt
+/// \returns RemoteServeConfig if initialization was successful or std::nullopt
 /// if failed.
 [[nodiscard]] auto CreateServeConfig(
-    std::optional<std::string> const& remote_serve_addr,
-    MultiRepoRemoteAuthArguments const& auth) noexcept
+    std::optional<std::string> const& remote_serve_addr) noexcept
     -> std::optional<RemoteServeConfig>;
 
 }  // namespace Utils

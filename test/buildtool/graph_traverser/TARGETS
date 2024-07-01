@@ -5,6 +5,7 @@
   , "deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "json", "", "json"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
@@ -40,6 +41,7 @@
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-remote-execution"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

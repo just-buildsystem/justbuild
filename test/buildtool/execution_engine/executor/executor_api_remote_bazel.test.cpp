@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <optional>
+
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -25,10 +28,17 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     auto const& info = RemoteExecutionConfig::RemoteAddress();
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
 
     TestBlobUpload(&repo_config, [&] {
-        return BazelApi::Ptr{
-            new BazelApi{"remote-execution", info->host, info->port, config}};
+        return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                          info->host,
+                                          info->port,
+                                          auth ? &*auth : nullptr,
+                                          config}};
     });
 }
 
@@ -41,14 +51,23 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
     TestHelloWorldCompilation(
         &repo_config,
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info->host, info->port, config}};
+            return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                              info->host,
+                                              info->port,
+                                              auth ? &*auth : nullptr,
+                                              config}};
         },
+        auth ? &*auth : nullptr,
         false /* not hermetic */);
 }
 
@@ -61,14 +80,23 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
     TestGreeterCompilation(
         &repo_config,
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info->host, info->port, config}};
+            return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                              info->host,
+                                              info->port,
+                                              auth ? &*auth : nullptr,
+                                              config}};
         },
+        auth ? &*auth : nullptr,
         false /* not hermetic */);
 }
 
@@ -81,14 +109,23 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
     TestUploadAndDownloadTrees(
         &repo_config,
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info->host, info->port, config}};
+            return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                              info->host,
+                                              info->port,
+                                              auth ? &*auth : nullptr,
+                                              config}};
         },
+        auth ? &*auth : nullptr,
         false /* not hermetic */);
 }
 
@@ -101,13 +138,22 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
     TestRetrieveOutputDirectories(
         &repo_config,
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{
-                "remote-execution", info->host, info->port, config}};
+            return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                              info->host,
+                                              info->port,
+                                              auth ? &*auth : nullptr,
+                                              config}};
         },
+        auth ? &*auth : nullptr,
         false /* not hermetic */);
 }

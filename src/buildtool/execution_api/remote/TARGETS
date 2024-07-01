@@ -65,6 +65,7 @@
   , "srcs": ["bazel/bazel_api.cpp"]
   , "deps":
     [ "config"
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "gsl", "", "gsl"]

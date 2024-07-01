@@ -20,6 +20,7 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -394,16 +395,25 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
 
     // setup the APIs for archive fetches; only happens if in native mode
     JustMR::Utils::SetupRemoteConfig(common_args.remote_execution_address,
-                                     common_args.remote_serve_address,
-                                     auth_args);
+                                     common_args.remote_serve_address);
 
-    ApiBundle const apis{nullptr, RemoteExecutionConfig::RemoteAddress()};
+    // setup authentication
+    JustMR::Utils::SetupAuthConfig(auth_args);
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    ApiBundle const apis{/*repo_config=*/nullptr,
+                         auth ? &*auth : nullptr,
+                         RemoteExecutionConfig::RemoteAddress()};
+
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;
 
     // setup the API for serving roots
-    auto serve_config = JustMR::Utils::CreateServeConfig(
-        common_args.remote_serve_address, auth_args);
+    auto serve_config =
+        JustMR::Utils::CreateServeConfig(common_args.remote_serve_address);
     if (not serve_config) {
         return kExitConfigError;
     }

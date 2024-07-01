@@ -88,6 +88,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-remote-execution"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
     , ["buildtool/execution_api/common", "api_test"]
     ]

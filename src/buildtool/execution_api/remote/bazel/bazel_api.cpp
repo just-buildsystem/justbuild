@@ -189,6 +189,7 @@ namespace {
 BazelApi::BazelApi(std::string const& instance_name,
                    std::string const& host,
                    Port port,
+                   [[maybe_unused]] Auth::TLS const* auth,
                    ExecutionConfiguration const& exec_config) noexcept {
     network_ =
         std::make_shared<BazelNetwork>(instance_name, host, port, exec_config);

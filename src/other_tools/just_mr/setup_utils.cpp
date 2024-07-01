@@ -26,48 +26,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 
-namespace {
-
-void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
-    bool use_tls{false};
-    if (authargs.tls_ca_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        authargs.tls_ca_cert->string());
-            std::exit(kExitConfigError);
-        }
-    }
-    if (authargs.tls_client_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientCertificate(
-                *authargs.tls_client_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        authargs.tls_client_cert->string());
-            std::exit(kExitConfigError);
-        }
-    }
-    if (authargs.tls_client_key) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientKey(*authargs.tls_client_key)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' key.",
-                        authargs.tls_client_key->string());
-            std::exit(kExitConfigError);
-        }
-    }
-
-    if (use_tls) {
-        if (not Auth::TLS::Instance().Validate()) {
-            std::exit(kExitConfigError);
-        }
-    }
-}
-
-}  // namespace
-
 namespace JustMR::Utils {
 
 void ReachableRepositories(
@@ -235,9 +193,47 @@ auto ReadConfiguration(
     }
 }
 
-void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
-                       std::optional<std::string> const& remote_serve_addr,
-                       MultiRepoRemoteAuthArguments const& auth) noexcept {
+void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
+    bool use_tls{false};
+    if (authargs.tls_ca_cert) {
+        use_tls = true;
+        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' certificate.",
+                        authargs.tls_ca_cert->string());
+            std::exit(kExitConfigError);
+        }
+    }
+    if (authargs.tls_client_cert) {
+        use_tls = true;
+        if (not Auth::TLS::Instance().SetClientCertificate(
+                *authargs.tls_client_cert)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' certificate.",
+                        authargs.tls_client_cert->string());
+            std::exit(kExitConfigError);
+        }
+    }
+    if (authargs.tls_client_key) {
+        use_tls = true;
+        if (not Auth::TLS::Instance().SetClientKey(*authargs.tls_client_key)) {
+            Logger::Log(LogLevel::Error,
+                        "Could not read '{}' key.",
+                        authargs.tls_client_key->string());
+            std::exit(kExitConfigError);
+        }
+    }
+
+    if (use_tls) {
+        if (not Auth::TLS::Instance().Validate()) {
+            std::exit(kExitConfigError);
+        }
+    }
+}
+
+void SetupRemoteConfig(
+    std::optional<std::string> const& remote_exec_addr,
+    std::optional<std::string> const& remote_serve_addr) noexcept {
     // if only a serve endpoint address is given, we assume it is one that acts
     // also as remote-execution
     auto remote_addr = remote_exec_addr ? remote_exec_addr : remote_serve_addr;
@@ -245,8 +241,6 @@ void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
         return;
     }
 
-    // setup authentication
-    SetupAuthConfig(auth);
     // setup remote
     if (not RemoteExecutionConfig::SetRemoteAddress(*remote_addr)) {
         Logger::Log(LogLevel::Error,
@@ -256,15 +250,13 @@ void SetupRemoteConfig(std::optional<std::string> const& remote_exec_addr,
     }
 }
 
-auto CreateServeConfig(std::optional<std::string> const& remote_serve_addr,
-                       MultiRepoRemoteAuthArguments const& auth) noexcept
+auto CreateServeConfig(
+    std::optional<std::string> const& remote_serve_addr) noexcept
     -> std::optional<RemoteServeConfig> {
     RemoteServeConfig::Builder builder;
     auto config = builder.SetRemoteAddress(remote_serve_addr).Build();
 
     if (config) {
-        // setup authentication
-        SetupAuthConfig(auth);
         return *std::move(config);
     }
 

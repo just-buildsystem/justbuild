@@ -24,6 +24,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
@@ -93,6 +94,7 @@ static inline void RunHelloWorldCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     bool is_hermetic = true,
     int expected_queued = 0,
     int expected_cached = 0) {
@@ -131,6 +133,7 @@ static inline void RunHelloWorldCompilation(
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
                     RemoteExecutionConfig::DispatchList(),
+                    auth,
                     stats,
                     progress};
 
@@ -165,6 +168,7 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     std::string const& greetcpp,
     bool is_hermetic = true,
     int expected_queued = 0,
@@ -251,6 +255,7 @@ static inline void RunGreeterCompilation(
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
                     RemoteExecutionConfig::DispatchList(),
+                    auth,
                     stats,
                     progress};
 
@@ -298,18 +303,19 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 1 action queued, 0 results from cache
     // NOLINTNEXTLINE
     RunHelloWorldCompilation(
-        repo_config, stats, progress, factory, is_hermetic, 1, 0);
+        repo_config, stats, progress, factory, auth, is_hermetic, 1, 0);
 
     SECTION("Running same compilation again") {
         // expecting 2 actions queued, 1 result from cache
         // NOLINTNEXTLINE
         RunHelloWorldCompilation(
-            repo_config, stats, progress, factory, is_hermetic, 2, 1);
+            repo_config, stats, progress, factory, auth, is_hermetic, 2, 1);
     }
 }
 
@@ -318,12 +324,20 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 3 action queued, 0 results from cache
     // NOLINTNEXTLINE
-    RunGreeterCompilation(
-        repo_config, stats, progress, factory, "greet.cpp", is_hermetic, 3, 0);
+    RunGreeterCompilation(repo_config,
+                          stats,
+                          progress,
+                          factory,
+                          auth,
+                          "greet.cpp",
+                          is_hermetic,
+                          3,
+                          0);
 
     SECTION("Running same compilation again") {
         // expecting 6 actions queued, 3 results from cache
@@ -331,6 +345,7 @@ static inline void RunGreeterCompilation(
                               stats,
                               progress,
                               factory,
+                              auth,
                               "greet.cpp",
                               is_hermetic,
                               6,  // NOLINT
@@ -343,6 +358,7 @@ static inline void RunGreeterCompilation(
                               stats,
                               progress,
                               factory,
+                              auth,
                               "greet_mod.cpp",
                               is_hermetic,
                               6,  // NOLINT
@@ -355,6 +371,7 @@ static inline void TestUploadAndDownloadTrees(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     bool /*is_hermetic*/ = true,
     int /*expected_queued*/ = 0,
     int /*expected_cached*/ = 0) {
@@ -399,6 +416,7 @@ static inline void TestUploadAndDownloadTrees(
                     api.get(),
                     RemoteExecutionConfig::PlatformProperties(),
                     RemoteExecutionConfig::DispatchList(),
+                    auth,
                     stats,
                     progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
@@ -507,6 +525,7 @@ static inline void TestRetrieveOutputDirectories(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
+    Auth::TLS const* auth,
     bool /*is_hermetic*/ = true,
     int /*expected_queued*/ = 0,
     int /*expected_cached*/ = 0) {
@@ -560,6 +579,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
                         RemoteExecutionConfig::DispatchList(),
+                        auth,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -610,6 +630,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
                         RemoteExecutionConfig::DispatchList(),
+                        auth,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -676,6 +697,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         RemoteExecutionConfig::PlatformProperties(),
                         RemoteExecutionConfig::DispatchList(),
+                        auth,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -747,6 +769,7 @@ static inline void TestRetrieveOutputDirectories(
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
+                            auth,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));
@@ -771,6 +794,7 @@ static inline void TestRetrieveOutputDirectories(
                             api.get(),
                             RemoteExecutionConfig::PlatformProperties(),
                             RemoteExecutionConfig::DispatchList(),
+                            auth,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));

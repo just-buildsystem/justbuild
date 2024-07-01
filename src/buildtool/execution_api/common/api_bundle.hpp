@@ -19,6 +19,7 @@
 #include <optional>
 
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -28,12 +29,14 @@
 /// exactly the same instance that local api is (&*remote == & *local).
 struct ApiBundle final {
     explicit ApiBundle(RepositoryConfig const* repo_config,
+                       Auth::TLS const* authentication,
                        std::optional<ServerAddress> const& remote_address);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
         const -> gsl::not_null<IExecutionApi::Ptr>;
 
-    gsl::not_null<IExecutionApi::Ptr> const local;
+    gsl::not_null<IExecutionApi::Ptr> const local;  // needed by remote
+    Auth::TLS const* auth;                          // needed by remote
     gsl::not_null<IExecutionApi::Ptr> const remote;
 };
 

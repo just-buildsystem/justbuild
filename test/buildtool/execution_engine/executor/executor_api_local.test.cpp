@@ -13,8 +13,10 @@
 // limitations under the License.
 
 #include <memory>
+#include <optional>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
@@ -38,9 +40,18 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    TestHelloWorldCompilation(&repo_config, &stats, &progress, [&] {
-        return std::make_unique<LocalApi>(&repo_config);
-    });
+
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    TestHelloWorldCompilation(
+        &repo_config,
+        &stats,
+        &progress,
+        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        auth ? &*auth : nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -49,9 +60,18 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    TestGreeterCompilation(&repo_config, &stats, &progress, [&] {
-        return std::make_unique<LocalApi>(&repo_config);
-    });
+
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    TestGreeterCompilation(
+        &repo_config,
+        &stats,
+        &progress,
+        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        auth ? &*auth : nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -60,9 +80,18 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    TestUploadAndDownloadTrees(&repo_config, &stats, &progress, [&] {
-        return std::make_unique<LocalApi>(&repo_config);
-    });
+
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    TestUploadAndDownloadTrees(
+        &repo_config,
+        &stats,
+        &progress,
+        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        auth ? &*auth : nullptr);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -71,7 +100,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    TestRetrieveOutputDirectories(&repo_config, &stats, &progress, [&] {
-        return std::make_unique<LocalApi>(&repo_config);
-    });
+
+    std::optional<Auth::TLS> auth = {};
+    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
+        auth = Auth::TLS::Instance();
+    }
+
+    TestRetrieveOutputDirectories(
+        &repo_config,
+        &stats,
+        &progress,
+        [&] { return std::make_unique<LocalApi>(&repo_config); },
+        auth ? &*auth : nullptr);
 }
