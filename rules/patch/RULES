@@ -168,6 +168,7 @@
     , "sh-TOOLCHAIN": ["CC", "default-TOOLCHAIN"]
     , "sh-PATH": ["CC", "default-PATH"]
     , "sh": ["shell", "sh"]
+    , "list_provider": ["./", "..", "field_list_provider"]
     }
   , "expression":
     { "type": "let*"
@@ -186,6 +187,26 @@
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
           , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "bin dirs"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "defaults"], ["provider", "bin dirs"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+          }
+        ]
+      , [ "bin dirs"
+        , { "type": "foreach"
+          , "range": {"type": "var", "name": "bin dirs"}
+          , "body":
+            { "type": "join"
+            , "$1":
+              [ "./"
+              , {"type": "var", "name": "TOOLCHAIN_DIR"}
+              , "/"
+              , {"type": "var", "name": "_"}
+              ]
+            }
           }
         ]
       , [ "NON_SYSTEM_TOOLS"
@@ -242,6 +263,7 @@
                   , "$1":
                     [ {"type": "CALL_EXPRESSION", "name": "default-PATH"}
                     , {"type": "CALL_EXPRESSION", "name": "sh-PATH"}
+                    , {"type": "var", "name": "bin dirs"}
                     , { "type": "if"
                       , "cond": {"type": "var", "name": "ENV_PATH"}
                       , "then": [{"type": "var", "name": "ENV_PATH"}]
