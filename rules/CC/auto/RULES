@@ -162,6 +162,7 @@
     , "default-TOOLCHAIN": ["./", "..", "default-TOOLCHAIN"]
     , "default-NON_SYSTEM_TOOLS": ["./", "..", "default-NON_SYSTEM_TOOLS"]
     , "map_provider": ["./", "../..", "field_map_provider"]
+    , "list_provider": ["./", "../..", "field_list_provider"]
     , "sh": ["./", "../../shell", "sh"]
     , "sh-PATH": ["./", "../../shell", "PATH"]
     }
@@ -241,6 +242,27 @@
           , "body": {"type": "CALL_EXPRESSION", "name": "sh"}
           }
         ]
+      , [ "bin dirs"
+        , { "type": "let*"
+          , "bindings":
+            [["fieldname", "shell defaults"], ["provider", "bin dirs"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+          }
+        ]
+      , [ "bin dirs"
+        , { "type": "foreach"
+          , "range": {"type": "var", "name": "bin dirs"}
+          , "body":
+            { "type": "join"
+            , "$1":
+              [ "./"
+              , {"type": "var", "name": "TOOLCHAIN_DIR"}
+              , "/"
+              , {"type": "var", "name": "_"}
+              ]
+            }
+          }
+        ]
       , [ "NON_SYSTEM_TOOLS"
         , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
         ]
@@ -283,6 +305,7 @@
                       , "bindings": [["fieldname", "shell defaults"]]
                       , "body": {"type": "CALL_EXPRESSION", "name": "sh-PATH"}
                       }
+                    , {"type": "var", "name": "bin dirs"}
                     ]
                   }
                 }
