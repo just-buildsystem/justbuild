@@ -8,7 +8,7 @@
     , "meaningful use of this rule."
     ]
   , "target_fields": ["base", "toolchain"]
-  , "string_fields": ["sh", "PATH"]
+  , "string_fields": ["sh", "PATH", "bin dirs"]
   , "field_doc":
     { "base": ["Other targets (using the same rule) to inherit values from."]
     , "toolchain":
@@ -26,6 +26,10 @@
     , "PATH":
       [ "Paths for looking up system tools."
       , "Specifying this field extends values from \"base\"."
+      ]
+    , "bin dirs":
+      [ "Directories of the toolchain that contain additional binaries."
+      , "Shell-specific rules will add those into PATH."
       ]
     }
   , "config_vars": ["ARCH", "HOST_ARCH", "TARGET_ARCH"]
@@ -132,12 +136,23 @@
             }
           }
         ]
+      , [ "bin dirs"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "FIELD", "name": "bin dirs"}
+            , { "type": "let*"
+              , "bindings": [["provider", "bin dirs"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+              }
+            ]
+          }
+        ]
       ]
     , "body":
       { "type": "RESULT"
       , "provides":
         { "type": "env"
-        , "vars": ["TOOLCHAIN", "sh", "NON_SYSTEM_TOOLS", "PATH"]
+        , "vars": ["TOOLCHAIN", "sh", "NON_SYSTEM_TOOLS", "PATH", "bin dirs"]
         }
       }
     }
