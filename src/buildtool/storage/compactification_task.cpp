@@ -14,9 +14,11 @@
 
 #include "src/buildtool/storage/compactification_task.hpp"
 
+#include <array>
 #include <atomic>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>  //std::move
 #include <vector>
 
@@ -24,13 +26,14 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/utils/cpp/path_hash.hpp"
 
 namespace {
 [[nodiscard]] auto GetObjectTask(CompactificationTask const& task,
                                  ObjectType type) noexcept
     -> CompactificationTask::ObjectTask const&;
 
-[[nodiscard]] auto GetFilterTypes(CompactificationTask const& task) noexcept
+[[nodiscard]] auto GetFilterTypes(CompactificationTask const& task)
     -> std::vector<ObjectType>;
 
 using FilterResult = std::optional<std::vector<std::filesystem::path>>;
@@ -45,8 +48,8 @@ using FilterResult = std::optional<std::vector<std::filesystem::path>>;
     {
         TaskSystem ts;
         // Filter entries to create execution tasks:
-        for (auto type : GetFilterTypes(task)) {
-            try {
+        try {
+            for (auto type : GetFilterTypes(task)) {
                 auto tstask =
                     [result = &scan_results[type], &failed, type, &task] {
                         *result = ::FilterEntries(task, type);
@@ -55,10 +58,10 @@ using FilterResult = std::optional<std::vector<std::filesystem::path>>;
                         }
                     };
                 ts.QueueTask(std::move(tstask));
-            } catch (...) {
-                ts.Shutdown();
-                return false;
             }
+        } catch (...) {
+            ts.Shutdown();
+            return false;
         }
     }
 
@@ -102,12 +105,22 @@ namespace {
     Ensures(false);  // unreachable
 }
 
-[[nodiscard]] auto GetFilterTypes(CompactificationTask const& task) noexcept
+[[nodiscard]] auto GetFilterTypes(CompactificationTask const& task)
     -> std::vector<ObjectType> {
-    return task.large ? std::vector{ObjectType::File, ObjectType::Tree}
-                      : std::vector{ObjectType::File,
-                                    ObjectType::Tree,
-                                    ObjectType::Executable};
+    static constexpr std::array kObjectTypes{
+        ObjectType::File, ObjectType::Tree, ObjectType::Executable};
+
+    // Ensure that types point to unique disk locations.
+    // Duplication of roots leads to duplication of tasks.
+    std::vector<ObjectType> result;
+    std::unordered_set<std::filesystem::path> unique_roots;
+    for (ObjectType type : kObjectTypes) {
+        auto root = task.cas.StorageRoot(type, task.large);
+        if (unique_roots.insert(std::move(root)).second) {
+            result.emplace_back(type);
+        }
+    }
+    return result;
 }
 
 [[nodiscard]] auto FilterEntries(CompactificationTask const& task,
