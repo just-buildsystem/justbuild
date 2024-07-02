@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -38,7 +39,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/json.hpp"
-#include "test/utils/test_env.hpp"
 
 // NOLINTNEXTLINE(google-build-namespaces)
 namespace {
@@ -152,7 +152,7 @@ inline void SetLauncher() {
 }  // namespace
 
 [[maybe_unused]] static void TestHelloWorldCopyMessage(
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
@@ -217,8 +217,9 @@ inline void SetLauncher() {
     }
 }
 
-[[maybe_unused]] static void TestCopyLocalFile(Auth::TLS const* auth,
-                                               bool is_hermetic = true) {
+[[maybe_unused]] static void TestCopyLocalFile(
+    gsl::not_null<Auth const*> const& auth,
+    bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
     SetLauncher();
@@ -249,7 +250,7 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestSequencePrinterBuildLibraryOnly(
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
@@ -301,7 +302,7 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestHelloWorldWithKnownSource(
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
@@ -360,7 +361,7 @@ inline void SetLauncher() {
     }
 }
 
-static void TestBlobsUploadedAndUsed(Auth::TLS const* auth,
+static void TestBlobsUploadedAndUsed(gsl::not_null<Auth const*> const& auth,
                                      bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
@@ -399,8 +400,9 @@ static void TestBlobsUploadedAndUsed(Auth::TLS const* auth,
     }
 }
 
-static void TestEnvironmentVariablesSetAndUsed(Auth::TLS const* auth,
-                                               bool is_hermetic = true) {
+static void TestEnvironmentVariablesSetAndUsed(
+    gsl::not_null<Auth const*> const& auth,
+    bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
@@ -438,7 +440,8 @@ static void TestEnvironmentVariablesSetAndUsed(Auth::TLS const* auth,
     }
 }
 
-static void TestTreesUsed(Auth::TLS const* auth, bool is_hermetic = true) {
+static void TestTreesUsed(gsl::not_null<Auth const*> const& auth,
+                          bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
@@ -476,7 +479,7 @@ static void TestTreesUsed(Auth::TLS const* auth, bool is_hermetic = true) {
     }
 }
 
-static void TestNestedTreesUsed(Auth::TLS const* auth,
+static void TestNestedTreesUsed(gsl::not_null<Auth const*> const& auth,
                                 bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
@@ -515,7 +518,7 @@ static void TestNestedTreesUsed(Auth::TLS const* auth,
     }
 }
 
-static void TestFlakyHelloWorldDetected(Auth::TLS const* auth,
+static void TestFlakyHelloWorldDetected(gsl::not_null<Auth const*> const& auth,
                                         bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 

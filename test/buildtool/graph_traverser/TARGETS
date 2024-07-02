@@ -15,7 +15,6 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
-    , ["utils", "test_env"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
@@ -29,6 +28,7 @@
     , ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
     , ["utils", "local_hermeticity"]
+    , ["utils", "test_auth_config"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
@@ -41,7 +41,7 @@
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-remote-execution"]
-    , ["@", "src", "src/buildtool/auth", "auth"]
+    , ["utils", "test_auth_config"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

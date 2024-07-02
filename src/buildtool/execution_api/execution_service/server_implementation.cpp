@@ -70,13 +70,15 @@ auto ServerImpl::Run(ApiBundle const& apis) -> bool {
         .RegisterService(&cap)
         .RegisterService(&op);
 
+    // check authentication credentials; currently only TLS/SSL is supported
     std::shared_ptr<grpc::ServerCredentials> creds;
-    if (apis.auth != nullptr) {
+    if (const auto* tls_auth = std::get_if<Auth::TLS>(&apis.auth.method);
+        tls_auth != nullptr) {
         auto tls_opts = grpc::SslServerCredentialsOptions{};
 
-        tls_opts.pem_root_certs = apis.auth->CACert();
+        tls_opts.pem_root_certs = tls_auth->ca_cert;
         grpc::SslServerCredentialsOptions::PemKeyCertPair keycert = {
-            apis.auth->ServerKey(), apis.auth->ServerCert()};
+            tls_auth->server_key, tls_auth->server_cert};
 
         tls_opts.pem_key_cert_pairs.emplace_back(keycert);
 

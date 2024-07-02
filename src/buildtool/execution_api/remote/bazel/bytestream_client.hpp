@@ -83,7 +83,7 @@ class ByteStreamClient {
 
     explicit ByteStreamClient(std::string const& server,
                               Port port,
-                              Auth::TLS const* auth) noexcept {
+                              gsl::not_null<Auth const*> const& auth) noexcept {
         stub_ = google::bytestream::ByteStream::NewStub(
             CreateChannelWithCredentials(server, port, auth));
     }

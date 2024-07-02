@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -34,7 +35,7 @@ class BazelAcClient {
   public:
     explicit BazelAcClient(std::string const& server,
                            Port port,
-                           Auth::TLS const* auth) noexcept;
+                           gsl::not_null<Auth const*> const& auth) noexcept;
 
     [[nodiscard]] auto GetActionResult(
         std::string const& instance_name,

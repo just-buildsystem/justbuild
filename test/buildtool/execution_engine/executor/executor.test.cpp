@@ -23,6 +23,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -280,12 +281,13 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -299,12 +301,13 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -318,12 +321,13 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -360,12 +364,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -382,12 +387,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -404,12 +410,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -429,12 +436,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -451,12 +459,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 
@@ -476,12 +485,13 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
+        Auth auth{};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
-                        /*auth=*/nullptr,
+                        &auth,
                         &stats,
                         &progress};
 

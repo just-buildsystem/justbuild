@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
@@ -32,8 +33,9 @@
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class ConfigurationClient {
   public:
-    explicit ConfigurationClient(ServerAddress address,
-                                 Auth::TLS const* auth) noexcept
+    explicit ConfigurationClient(
+        ServerAddress address,
+        gsl::not_null<Auth const*> const& auth) noexcept
         : client_serve_address_{std::move(address)},
           stub_{justbuild::just_serve::Configuration::NewStub(
               CreateChannelWithCredentials(client_serve_address_.host,

@@ -42,9 +42,9 @@ class ServeApi final {
   public:
     explicit ServeApi(ServerAddress const& address,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : stc_{address, apis->auth},
+        : stc_{address, &apis->auth},
           tc_{address, apis},
-          cc_{address, apis->auth} {}
+          cc_{address, &apis->auth} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;

@@ -82,7 +82,8 @@
   , "hdrs": ["setup_utils.hpp"]
   , "srcs": ["setup_utils.cpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    [ ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/serve_api/remote", "config"]
     , "cli"
@@ -94,7 +95,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , "exit_codes"
-    , ["src/buildtool/auth", "auth"]
     ]
   }
 , "fetch":

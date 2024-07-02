@@ -14,7 +14,6 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 
-#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
@@ -22,7 +21,7 @@
 
 BazelAcClient::BazelAcClient(std::string const& server,
                              Port port,
-                             Auth::TLS const* auth) noexcept {
+                             gsl::not_null<Auth const*> const& auth) noexcept {
     stub_ = bazel_re::ActionCache::NewStub(
         CreateChannelWithCredentials(server, port, auth));
 }

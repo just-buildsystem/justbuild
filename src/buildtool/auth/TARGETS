@@ -6,6 +6,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "auth"]
   }

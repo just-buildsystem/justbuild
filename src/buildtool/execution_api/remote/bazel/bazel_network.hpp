@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -39,7 +40,7 @@ class BazelNetwork {
     explicit BazelNetwork(std::string instance_name,
                           std::string const& host,
                           Port port,
-                          Auth::TLS const* auth,
+                          gsl::not_null<Auth const*> const& auth,
                           ExecutionConfiguration const& exec_config) noexcept;
 
     /// \brief Check if digest exists in CAS

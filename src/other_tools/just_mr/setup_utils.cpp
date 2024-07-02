@@ -19,7 +19,6 @@
 #include <variant>
 
 #include "nlohmann/json.hpp"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -193,42 +192,28 @@ auto ReadConfiguration(
     }
 }
 
-void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept {
-    bool use_tls{false};
-    if (authargs.tls_ca_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        authargs.tls_ca_cert->string());
-            std::exit(kExitConfigError);
+auto CreateAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept
+    -> std::optional<Auth> {
+
+    Auth::TLS::Builder tls_builder;
+    tls_builder.SetCACertificate(authargs.tls_ca_cert)
+        .SetClientCertificate(authargs.tls_client_cert)
+        .SetClientKey(authargs.tls_client_key);
+
+    // create auth config (including validation)
+    auto result = tls_builder.Build();
+    if (result) {
+        if (*result) {
+            // correctly configured TLS/SSL certification
+            return *std::move(*result);
         }
-    }
-    if (authargs.tls_client_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientCertificate(
-                *authargs.tls_client_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        authargs.tls_client_cert->string());
-            std::exit(kExitConfigError);
-        }
-    }
-    if (authargs.tls_client_key) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientKey(*authargs.tls_client_key)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' key.",
-                        authargs.tls_client_key->string());
-            std::exit(kExitConfigError);
-        }
+        Logger::Log(LogLevel::Error, result->error());
+        return std::nullopt;
     }
 
-    if (use_tls) {
-        if (not Auth::TLS::Instance().Validate()) {
-            std::exit(kExitConfigError);
-        }
-    }
+    // no TLS/SSL configuration was given, and we currently support no other
+    // certification method, so return an empty config (no certification)
+    return Auth{};
 }
 
 void SetupRemoteConfig(

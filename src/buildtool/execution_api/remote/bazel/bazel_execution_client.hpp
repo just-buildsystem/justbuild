@@ -22,6 +22,7 @@
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "google/longrunning/operations.pb.h"
+#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -55,9 +56,10 @@ class BazelExecutionClient {
         }
     };
 
-    explicit BazelExecutionClient(std::string const& server,
-                                  Port port,
-                                  Auth::TLS const* auth) noexcept;
+    explicit BazelExecutionClient(
+        std::string const& server,
+        Port port,
+        gsl::not_null<Auth const*> const& auth) noexcept;
 
     [[nodiscard]] auto Execute(std::string const& instance_name,
                                bazel_re::Digest const& action_digest,

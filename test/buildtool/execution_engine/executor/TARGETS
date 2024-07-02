@@ -13,7 +13,6 @@
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
-    , ["utils", "test_env"]
     , ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
     ]
@@ -24,7 +23,8 @@
   , "name": ["executor"]
   , "srcs": ["executor.test.cpp"]
   , "private-deps":
-    [ ["@", "src", "src/buildtool/common", "artifact_factory"]
+    [ ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
@@ -44,7 +44,6 @@
   , "data": ["test_data"]
   , "private-deps":
     [ "executor_api_tests"
-    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
@@ -53,6 +52,7 @@
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]
     , ["utils", "local_hermeticity"]
+    , ["utils", "test_auth_config"]
     , ["@", "catch2", "", "catch2"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
@@ -64,7 +64,6 @@
   , "data": ["test_data"]
   , "private-deps":
     [ "executor_api_tests"
-    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
@@ -72,6 +71,7 @@
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]
+    , ["utils", "test_auth_config"]
     , ["@", "catch2", "", "catch2"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]

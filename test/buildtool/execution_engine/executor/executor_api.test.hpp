@@ -24,7 +24,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
@@ -36,7 +35,6 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
-#include "test/utils/test_env.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 
@@ -94,7 +92,7 @@ static inline void RunHelloWorldCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true,
     int expected_queued = 0,
     int expected_cached = 0) {
@@ -168,7 +166,7 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     std::string const& greetcpp,
     bool is_hermetic = true,
     int expected_queued = 0,
@@ -303,7 +301,7 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 1 action queued, 0 results from cache
@@ -324,7 +322,7 @@ static inline void RunGreeterCompilation(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     SetupConfig(repo_config);
     // expecting 3 action queued, 0 results from cache
@@ -371,7 +369,7 @@ static inline void TestUploadAndDownloadTrees(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool /*is_hermetic*/ = true,
     int /*expected_queued*/ = 0,
     int /*expected_cached*/ = 0) {
@@ -525,7 +523,7 @@ static inline void TestRetrieveOutputDirectories(
     gsl::not_null<Statistics*> const& stats,
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
-    Auth::TLS const* auth,
+    gsl::not_null<Auth const*> const& auth,
     bool /*is_hermetic*/ = true,
     int /*expected_queued*/ = 0,
     int /*expected_cached*/ = 0) {

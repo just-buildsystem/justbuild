@@ -184,66 +184,32 @@ void SetupExecutionConfig(EndpointArguments const& eargs,
     return std::nullopt;
 }
 
-void SetupAuthConfig(CommonAuthArguments const& authargs,
-                     ClientAuthArguments const& client_authargs,
-                     ServerAuthArguments const& server_authargs) {
-    auto use_tls = false;
-    if (authargs.tls_ca_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetCACertificate(*authargs.tls_ca_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        authargs.tls_ca_cert->string());
-            std::exit(kExitFailure);
+[[nodiscard]] auto CreateAuthConfig(
+    CommonAuthArguments const& authargs,
+    ClientAuthArguments const& client_authargs,
+    ServerAuthArguments const& server_authargs) noexcept
+    -> std::optional<Auth> {
+    Auth::TLS::Builder tls_builder;
+    tls_builder.SetCACertificate(authargs.tls_ca_cert)
+        .SetClientCertificate(client_authargs.tls_client_cert)
+        .SetClientKey(client_authargs.tls_client_key)
+        .SetServerCertificate(server_authargs.tls_server_cert)
+        .SetServerKey(server_authargs.tls_server_key);
+
+    // create auth config (including validation)
+    auto result = tls_builder.Build();
+    if (result) {
+        if (*result) {
+            // correctly configured TLS/SSL certification
+            return *std::move(*result);
         }
-    }
-    if (client_authargs.tls_client_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientCertificate(
-                *client_authargs.tls_client_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        client_authargs.tls_client_cert->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (client_authargs.tls_client_key) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetClientKey(
-                *client_authargs.tls_client_key)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' key.",
-                        client_authargs.tls_client_key->string());
-            std::exit(kExitFailure);
-        }
+        Logger::Log(LogLevel::Error, result->error());
+        return std::nullopt;
     }
 
-    if (server_authargs.tls_server_cert) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetServerCertificate(
-                *server_authargs.tls_server_cert)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' certificate.",
-                        server_authargs.tls_server_cert->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (server_authargs.tls_server_key) {
-        use_tls = true;
-        if (not Auth::TLS::Instance().SetServerKey(
-                *server_authargs.tls_server_key)) {
-            Logger::Log(LogLevel::Error,
-                        "Could not read '{}' key.",
-                        server_authargs.tls_server_key->string());
-            std::exit(kExitFailure);
-        }
-    }
-
-    if (use_tls) {
-        if (not Auth::TLS::Instance().Validate()) {
-            std::exit(kExitFailure);
-        }
-    }
+    // no TLS/SSL configuration was given, and we currently support no other
+    // certification method, so return an empty config (no certification)
+    return Auth{};
 }
 
 void SetupExecutionServiceConfig(ServiceArguments const& args) {
@@ -812,10 +778,10 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
-        SetupAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
-        std::optional<Auth::TLS> auth = {};
-        if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-            auth = Auth::TLS::Instance();
+        auto auth_config =
+            CreateAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
+        if (not auth_config) {
+            return kExitFailure;
         }
 
         if (arguments.cmd == SubCommand::kGc) {
@@ -829,7 +795,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{/*repo_config=*/nullptr,
-                                      auth ? &*auth : nullptr,
+                                      &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
             if (!ServerImpl::Instance().Run(exec_apis)) {
                 return kExitFailure;
@@ -846,7 +812,7 @@ auto main(int argc, char* argv[]) -> int {
             if (serve_server) {
                 ApiBundle const serve_apis{
                     /*repo_config=*/nullptr,
-                    auth ? &*auth : nullptr,
+                    &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
                 auto serve = ServeApi::Create(*serve_config, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
@@ -899,7 +865,7 @@ auto main(int argc, char* argv[]) -> int {
             std::exit(kExitFailure);
         }
         ApiBundle const main_apis{&repo_config,
-                                  auth ? &*auth : nullptr,
+                                  &*auth_config,
                                   RemoteExecutionConfig::RemoteAddress()};
         GraphTraverser const traverser{
             {jobs,

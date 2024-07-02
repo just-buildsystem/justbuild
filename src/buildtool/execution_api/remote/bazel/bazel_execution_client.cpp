@@ -17,7 +17,6 @@
 #include <utility>  // std::move
 
 #include "grpcpp/grpcpp.h"
-#include "gsl/gsl"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -56,9 +55,10 @@ auto DebugString(grpc::Status const& status) -> std::string {
 
 }  // namespace
 
-BazelExecutionClient::BazelExecutionClient(std::string const& server,
-                                           Port port,
-                                           Auth::TLS const* auth) noexcept {
+BazelExecutionClient::BazelExecutionClient(
+    std::string const& server,
+    Port port,
+    gsl::not_null<Auth const*> const& auth) noexcept {
     stub_ = bazel_re::Execution::NewStub(
         CreateChannelWithCredentials(server, port, auth));
 }

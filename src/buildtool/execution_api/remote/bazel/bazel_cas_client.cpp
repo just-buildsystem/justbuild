@@ -175,7 +175,7 @@ namespace {
 
 BazelCasClient::BazelCasClient(std::string const& server,
                                Port port,
-                               Auth::TLS const* auth) noexcept
+                               gsl::not_null<Auth const*> const& auth) noexcept
     : stream_{std::make_unique<ByteStreamClient>(server, port, auth)} {
     stub_ = bazel_re::ContentAddressableStorage::NewStub(
         CreateChannelWithCredentials(server, port, auth));

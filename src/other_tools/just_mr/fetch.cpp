@@ -398,14 +398,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                      common_args.remote_serve_address);
 
     // setup authentication
-    JustMR::Utils::SetupAuthConfig(auth_args);
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
+    auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
+    if (not auth_config) {
+        return kExitConfigError;
     }
 
     ApiBundle const apis{/*repo_config=*/nullptr,
-                         auth ? &*auth : nullptr,
+                         &*auth_config,
                          RemoteExecutionConfig::RemoteAddress()};
 
     bool const has_remote_api =

@@ -21,9 +21,11 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <variant>
 
 #include "fmt/core.h"
 #include "grpcpp/grpcpp.h"
+#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -33,16 +35,18 @@
 [[maybe_unused]] [[nodiscard]] static inline auto CreateChannelWithCredentials(
     std::string const& server,
     Port port,
-    Auth::TLS const* auth) noexcept {
+    gsl::not_null<Auth const*> const& auth) noexcept {
 
     std::shared_ptr<grpc::ChannelCredentials> creds;
     std::string address = server + ':' + std::to_string(port);
-    if (auth != nullptr) {
+    if (const auto* tls_auth = std::get_if<Auth::TLS>(&auth->method);
+        tls_auth != nullptr) {
         auto tls_opts = grpc::SslCredentialsOptions{
-            auth->CACert(), auth->ClientKey(), auth->ClientCert()};
+            tls_auth->ca_cert, tls_auth->client_key, tls_auth->client_cert};
         creds = grpc::SslCredentials(tls_opts);
     }
     else {
+        // currently only TLS/SSL is supported
         creds = grpc::InsecureChannelCredentials();
     }
     return grpc::CreateChannel(address, creds);

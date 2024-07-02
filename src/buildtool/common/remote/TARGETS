@@ -5,6 +5,7 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , "port"

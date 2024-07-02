@@ -16,6 +16,7 @@
 #include <variant>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
@@ -36,7 +37,8 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
     REQUIRE(config->remote_address);
 
     // Create TLC client
-    SourceTreeClient st_client(*config->remote_address, nullptr);
+    Auth auth{};
+    SourceTreeClient st_client(*config->remote_address, &auth);
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);

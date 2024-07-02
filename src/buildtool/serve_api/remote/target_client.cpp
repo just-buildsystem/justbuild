@@ -31,7 +31,7 @@ TargetClient::TargetClient(ServerAddress const& address,
                            gsl::not_null<ApiBundle const*> const& apis) noexcept
     : apis_{*apis} {
     stub_ = justbuild::just_serve::Target::NewStub(
-        CreateChannelWithCredentials(address.host, address.port, apis->auth));
+        CreateChannelWithCredentials(address.host, address.port, &apis->auth));
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,

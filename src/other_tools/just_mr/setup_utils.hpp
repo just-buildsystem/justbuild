@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
@@ -60,7 +61,9 @@ void DefaultReachableRepositories(
     std::optional<std::filesystem::path> const& absent_file_opt) noexcept
     -> std::shared_ptr<Configuration>;
 
-void SetupAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept;
+[[nodiscard]] auto CreateAuthConfig(
+    MultiRepoRemoteAuthArguments const& authargs) noexcept
+    -> std::optional<Auth>;
 
 void SetupRemoteConfig(
     std::optional<std::string> const& remote_exec_addr,

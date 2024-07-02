@@ -16,7 +16,8 @@
   , "hdrs": ["source_tree_client.hpp"]
   , "srcs": ["source_tree_client.cpp"]
   , "deps":
-    [ ["src/buildtool/auth", "auth"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/file_system", "git_types"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
@@ -80,7 +81,8 @@
   , "hdrs": ["configuration_client.hpp"]
   , "srcs": ["configuration_client.cpp"]
   , "deps":
-    [ ["src/buildtool/auth", "auth"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common/remote", "client_common"]

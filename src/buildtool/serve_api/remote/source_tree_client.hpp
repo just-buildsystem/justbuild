@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/port.hpp"
@@ -33,7 +34,7 @@
 class SourceTreeClient {
   public:
     explicit SourceTreeClient(ServerAddress const& address,
-                              Auth::TLS const* auth) noexcept;
+                              gsl::not_null<Auth const*> const& auth) noexcept;
 
     // An error + data union type
     using result_t = expected<std::string, GitLookupError>;

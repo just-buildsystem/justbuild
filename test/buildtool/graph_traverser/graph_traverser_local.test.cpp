@@ -13,59 +13,70 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
 #include "test/utils/hermeticity/local.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Output created when entry point is local artifact",
                  "[graph_traverser]") {
-    TestCopyLocalFile(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestCopyLocalFile(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Output created and contents are correct",
                  "[graph_traverser]") {
-    TestHelloWorldCopyMessage(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestHelloWorldCopyMessage(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Actions are not re-run",
                  "[graph_traverser]") {
-    TestSequencePrinterBuildLibraryOnly(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestSequencePrinterBuildLibraryOnly(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: KNOWN artifact",
                  "[graph_traverser]") {
-    TestHelloWorldWithKnownSource(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestHelloWorldWithKnownSource(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Blobs uploaded and correctly used",
                  "[graph_traverser]") {
-    TestBlobsUploadedAndUsed(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestBlobsUploadedAndUsed(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Environment variables are set and used",
                  "[graph_traverser]") {
-    TestEnvironmentVariablesSetAndUsed(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestEnvironmentVariablesSetAndUsed(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Trees correctly used",
                  "[graph_traverser]") {
-    TestTreesUsed(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestTreesUsed(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Nested trees correctly used",
                  "[graph_traverser]") {
-    TestNestedTreesUsed(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestNestedTreesUsed(&auth);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Local: Detect flaky actions",
                  "[graph_traverser]") {
-    TestFlakyHelloWorldDetected(/*auth=*/nullptr);
+    Auth auth{}; /*no TLS needed*/
+    TestFlakyHelloWorldDetected(&auth);
 }

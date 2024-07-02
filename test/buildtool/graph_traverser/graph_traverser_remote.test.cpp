@@ -12,88 +12,73 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <optional>
-
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/auth/authentication.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 
 TEST_CASE("Remote: Output created and contents are correct",
           "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestHelloWorldCopyMessage(auth ? &*auth : nullptr,
-                              false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestHelloWorldCopyMessage(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Output created when entry point is local artifact",
           "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestCopyLocalFile(auth ? &*auth : nullptr, false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestCopyLocalFile(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Actions are not re-run", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestSequencePrinterBuildLibraryOnly(auth ? &*auth : nullptr,
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestSequencePrinterBuildLibraryOnly(&*auth_config,
                                         false /* not hermetic */);
 }
 
 TEST_CASE("Remote: KNOWN artifact", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestHelloWorldWithKnownSource(auth ? &*auth : nullptr,
-                                  false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestHelloWorldWithKnownSource(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Blobs uploaded and correctly used", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestBlobsUploadedAndUsed(auth ? &*auth : nullptr, false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestBlobsUploadedAndUsed(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Environment variables are set and used",
           "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestEnvironmentVariablesSetAndUsed(auth ? &*auth : nullptr,
-                                       false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestEnvironmentVariablesSetAndUsed(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Trees correctly used", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestTreesUsed(auth ? &*auth : nullptr, false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestTreesUsed(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Nested trees correctly used", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestNestedTreesUsed(auth ? &*auth : nullptr, false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestNestedTreesUsed(&*auth_config, false /* not hermetic */);
 }
 
 TEST_CASE("Remote: Detect flaky actions", "[graph_traverser]") {
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    TestFlakyHelloWorldDetected(auth ? &*auth : nullptr,
-                                false /* not hermetic */);
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+
+    TestFlakyHelloWorldDetected(&*auth_config, false /* not hermetic */);
 }

@@ -13,29 +13,22 @@
 // limitations under the License.
 
 #include <cstdlib>
-#include <optional>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
-#include "test/utils/test_env.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 
 namespace {
 
 auto const kApiFactory = []() {
     static auto const& server = RemoteExecutionConfig::RemoteAddress();
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-    return IExecutionApi::Ptr{new BazelApi{"remote-execution",
-                                           server->host,
-                                           server->port,
-                                           auth ? &*auth : nullptr,
-                                           {}}};
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
+    return IExecutionApi::Ptr{new BazelApi{
+        "remote-execution", server->host, server->port, &*auth_config, {}}};
 };
 
 }  // namespace

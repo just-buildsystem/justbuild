@@ -28,6 +28,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 
 [[nodiscard]] static inline auto CreateAction(
     std::string const& instance_name,
@@ -82,12 +83,12 @@
     auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
     blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    if (not auth_config) {
+        return nullptr;
     }
 
-    BazelCasClient cas_client(info->host, info->port, auth ? &*auth : nullptr);
+    BazelCasClient cas_client(info->host, info->port, &*auth_config);
 
     std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
     blob_ptrs.reserve(blobs.size());

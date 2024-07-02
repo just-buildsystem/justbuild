@@ -13,10 +13,8 @@
 // limitations under the License.
 
 #include <memory>
-#include <optional>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
@@ -25,6 +23,7 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 #include "test/utils/hermeticity/local.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload blob",
@@ -40,18 +39,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
     TestHelloWorldCompilation(
         &repo_config,
         &stats,
         &progress,
         [&] { return std::make_unique<LocalApi>(&repo_config); },
-        auth ? &*auth : nullptr);
+        &*auth_config);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -60,18 +55,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
     TestGreeterCompilation(
         &repo_config,
         &stats,
         &progress,
         [&] { return std::make_unique<LocalApi>(&repo_config); },
-        auth ? &*auth : nullptr);
+        &*auth_config);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -80,18 +71,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
     TestUploadAndDownloadTrees(
         &repo_config,
         &stats,
         &progress,
         [&] { return std::make_unique<LocalApi>(&repo_config); },
-        auth ? &*auth : nullptr);
+        &*auth_config);
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
@@ -100,16 +87,12 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-
-    std::optional<Auth::TLS> auth = {};
-    if (Auth::Instance().GetAuthMethod() == AuthMethod::kTLS) {
-        auth = Auth::TLS::Instance();
-    }
-
+    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    REQUIRE(auth_config);
     TestRetrieveOutputDirectories(
         &repo_config,
         &stats,
         &progress,
         [&] { return std::make_unique<LocalApi>(&repo_config); },
-        auth ? &*auth : nullptr);
+        &*auth_config);
 }

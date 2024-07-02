@@ -28,6 +28,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/logging/log_config.hpp"
+#include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/test_env.hpp"
 
 namespace {
@@ -42,9 +43,12 @@ void wait_for_grpc_to_shutdown() {
 /// \returns true   If remote execution was successfully configured.
 [[nodiscard]] auto ConfigureRemoteExecution() -> bool {
     ReadCompatibilityFromEnv();
-    if (not ReadTLSAuthArgsFromEnv()) {
-        return false;
+
+    // Ensure authentication config is available
+    if (not TestAuthConfig::ReadAuthConfigFromEnvironment()) {
+        std::exit(EXIT_FAILURE);
     }
+
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
                                   : HashFunction::JustHash::Native);

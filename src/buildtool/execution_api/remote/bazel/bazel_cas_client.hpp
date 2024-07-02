@@ -40,7 +40,7 @@ class BazelCasClient {
   public:
     explicit BazelCasClient(std::string const& server,
                             Port port,
-                            Auth::TLS const* auth) noexcept;
+                            gsl::not_null<Auth const*> const& auth) noexcept;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance

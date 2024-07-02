@@ -24,7 +24,7 @@
 BazelNetwork::BazelNetwork(std::string instance_name,
                            std::string const& host,
                            Port port,
-                           Auth::TLS const* auth,
+                           gsl::not_null<Auth const*> const& auth,
                            ExecutionConfiguration const& exec_config) noexcept
     : instance_name_{std::move(instance_name)},
       exec_config_{exec_config},

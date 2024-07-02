@@ -43,7 +43,7 @@ class BazelApi final : public IExecutionApi {
     BazelApi(std::string const& instance_name,
              std::string const& host,
              Port port,
-             Auth::TLS const* auth,
+             gsl::not_null<Auth const*> const& auth,
              ExecutionConfiguration const& exec_config) noexcept;
     BazelApi(BazelApi const&) = delete;
     BazelApi(BazelApi&& other) noexcept;
