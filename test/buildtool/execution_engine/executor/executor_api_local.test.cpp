@@ -24,24 +24,24 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Executor<LocalApi>: Upload blob",
-                 "[executor]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("Executor<LocalApi>: Upload blob", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig repo_config{};
     TestBlobUpload(&repo_config, [&] {
         return std::make_unique<LocalApi>(
-            &StorageConfig::Instance(), &storage, &repo_config);
+            &storage_config.Get(), &storage, &repo_config);
     });
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Executor<LocalApi>: Compile hello world",
-                 "[executor]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("Executor<LocalApi>: Compile hello world", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -53,15 +53,15 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &storage, &repo_config);
+                &storage_config.Get(), &storage, &repo_config);
         },
         &*auth_config);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Executor<LocalApi>: Compile greeter",
-                 "[executor]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("Executor<LocalApi>: Compile greeter", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -73,15 +73,15 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &storage, &repo_config);
+                &storage_config.Get(), &storage, &repo_config);
         },
         &*auth_config);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Executor<LocalApi>: Upload and download trees",
-                 "[executor]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("Executor<LocalApi>: Upload and download trees", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -93,15 +93,15 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &storage, &repo_config);
+                &storage_config.Get(), &storage, &repo_config);
         },
         &*auth_config);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Executor<LocalApi>: Retrieve output directories",
-                 "[executor]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("Executor<LocalApi>: Retrieve output directories", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -113,7 +113,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &storage, &repo_config);
+                &storage_config.Get(), &storage, &repo_config);
         },
         &*auth_config);
 }

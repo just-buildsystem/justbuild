@@ -39,7 +39,7 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "serve_api"]
-    , ["utils", "local_hermeticity"]
+    , ["utils", "test_storage_config"]
     , ["utils", "test_serve_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]

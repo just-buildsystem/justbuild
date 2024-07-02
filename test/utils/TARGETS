@@ -39,17 +39,16 @@
     ]
   , "stage": ["test", "utils"]
   }
-, "local_hermeticity":
+, "test_storage_config":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["local_hermeticity"]
-  , "hdrs": ["hermeticity/local.hpp"]
+  , "name": ["test_storage_config"]
+  , "hdrs": ["hermeticity/test_storage_config.hpp"]
   , "deps":
-    [ ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/execution_api/local", "config"]
-    , ["@", "src", "src/buildtool/execution_api/local", "local"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -73,7 +72,6 @@
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
-    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/file_system", "git_context"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]

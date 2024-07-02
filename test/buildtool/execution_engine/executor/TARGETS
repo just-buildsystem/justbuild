@@ -51,7 +51,7 @@
     , ["@", "src", "src/buildtool/execution_engine/executor", "executor"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]
-    , ["utils", "local_hermeticity"]
+    , ["utils", "test_storage_config"]
     , ["utils", "test_auth_config"]
     , ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/storage", "storage"]

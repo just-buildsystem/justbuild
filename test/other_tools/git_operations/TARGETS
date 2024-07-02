@@ -39,6 +39,7 @@
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/utils/cpp", "atomic"]
     , ["utils", "shell_quoting"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "other_tools", "git_operations"]
   }

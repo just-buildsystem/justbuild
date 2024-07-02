@@ -27,8 +27,9 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 
@@ -115,21 +116,21 @@ template <class T>
 
 }  // namespace
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Test missing repository",
-                 "[repository_config]") {
+TEST_CASE("Test missing repository", "[repository_config]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig config{};
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     CHECK(config.Info("missing") == nullptr);
     CHECK_FALSE(config.RepositoryKey(storage, "missing"));
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Compute key of fixed repository",
-                 "[repository_config]") {
+TEST_CASE("Compute key of fixed repository", "[repository_config]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig config{};
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SECTION("for single fixed repository") {
         config.SetInfo("foo", CreateFixedRepoInfo());
@@ -156,11 +157,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Compute key of file repository",
-                 "[repository_config]") {
+TEST_CASE("Compute key of file repository", "[repository_config]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig config{};
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SECTION("for single file repository") {
         config.SetInfo("foo", CreateFileRepoInfo());
@@ -175,11 +176,11 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "Compare key of two repos with same content",
-                 "[repository_config]") {
+TEST_CASE("Compare key of two repos with same content", "[repository_config]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     RepositoryConfig config{};
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     // create two different repo infos with same content (baz should be same)
     config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));

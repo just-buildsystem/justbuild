@@ -29,8 +29,10 @@
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
-    , ["utils", "local_hermeticity"]
     , ["utils", "test_auth_config"]
+    , ["utils", "test_storage_config"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
@@ -44,6 +46,8 @@
     , ["@", "catch2", "", "catch2"]
     , ["utils", "catch-main-remote-execution"]
     , ["utils", "test_auth_config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

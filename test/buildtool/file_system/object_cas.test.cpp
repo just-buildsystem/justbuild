@@ -23,13 +23,14 @@
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "ObjectCAS", "[file_system]") {
+TEST_CASE("ObjectCAS", "[file_system]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto gen_config = storage_config.Get().CreateGenerationConfig(0);
+
     std::string test_content{"test"};
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
-
-    auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
 
     SECTION("CAS for files") {
         ObjectCAS<ObjectType::File> cas{gen_config.cas_f};

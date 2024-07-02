@@ -51,8 +51,10 @@
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["utils", "local_hermeticity"]
+    , ["utils", "test_storage_config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }

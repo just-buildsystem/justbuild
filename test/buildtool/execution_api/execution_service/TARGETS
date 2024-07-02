@@ -5,7 +5,7 @@
   , "private-deps":
     [ ["", "catch-main"]
     , ["@", "catch2", "", "catch2"]
-    , ["utils", "local_hermeticity"]
+    , ["utils", "test_storage_config"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/execution_service"

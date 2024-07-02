@@ -20,92 +20,91 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 class FactoryApi final {
   public:
     explicit FactoryApi(
-        gsl::not_null<Storage const*> const& storage,
-        gsl::not_null<StorageConfig const*> const& storage_config) noexcept
-        : storage_{*storage}, storage_config_{*storage_config} {}
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage) noexcept
+        : storage_config_{*storage_config}, storage_{*storage} {}
 
     [[nodiscard]] auto operator()() const -> IExecutionApi::Ptr {
-        return IExecutionApi::Ptr{
-            new LocalApi{&StorageConfig::Instance(), &storage_}};
+        return IExecutionApi::Ptr{new LocalApi{&storage_config_, &storage_}};
     }
 
   private:
-    Storage const& storage_;
     StorageConfig const& storage_config_;
+    Storage const& storage_;
 };
 
 }  // namespace
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: No input, no output",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: No input, no output", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestNoInputNoOutput(api_factory, {}, /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: No input, create output",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: No input, create output", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestNoInputCreateOutput(api_factory, {}, /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: One input copied to output",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: One input copied to output", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestOneInputCopiedToOutput(api_factory, {}, /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: Non-zero exit code, create output",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: Non-zero exit code, create output", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestNonZeroExitCodeCreateOutput(api_factory, {});
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: Retrieve two identical trees to path",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: Retrieve two identical trees to path", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestRetrieveTwoIdenticalTreesToPath(
         api_factory, {}, "two_trees", /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: Retrieve file and symlink with same content to "
-                 "path",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: Retrieve file and symlink with same content to path",
+          "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestRetrieveFileAndSymlinkWithSameContentToPath(
         api_factory, {}, "file_and_symlink", /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: Retrieve mixed blobs and trees",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: Retrieve mixed blobs and trees", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestRetrieveMixedBlobsAndTrees(
         api_factory, {}, "blobs_and_trees", /*is_hermetic=*/true);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAPI: Create directory prior to execution",
-                 "[execution_api]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-    FactoryApi api_factory(&storage, &StorageConfig::Instance());
+TEST_CASE("LocalAPI: Create directory prior to execution", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    FactoryApi api_factory(&storage_config.Get(), &storage);
+
     TestCreateDirPriorToExecution(api_factory, {}, /*is_hermetic=*/true);
 }

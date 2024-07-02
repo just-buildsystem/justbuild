@@ -32,6 +32,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/shell_quoting.hpp"
 
 namespace {
@@ -277,6 +278,8 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
 // warning
 TEST_CASE("Single-threaded fake repository operations -- batch 1",
           "[git_repo]") {
+    auto const storage_config = TestStorageConfig::Create();
+
     auto repo_path = TestUtils::CreateTestRepoWithCheckout();
     REQUIRE(repo_path);
     auto cas = GitCAS::Open(*repo_path);
@@ -419,7 +422,7 @@ TEST_CASE("Single-threaded fake repository operations -- batch 1",
 
             // fetch all with base refspecs
             REQUIRE(repo_fetch_all->LocalFetchViaTmpRepo(
-                StorageConfig::Instance(), *repo_path, std::nullopt, logger));
+                storage_config.Get(), *repo_path, std::nullopt, logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_all->CheckCommitExists(kRootCommit, logger));
@@ -438,7 +441,7 @@ TEST_CASE("Single-threaded fake repository operations -- batch 1",
 
             // fetch branch
             REQUIRE(repo_fetch_branch->LocalFetchViaTmpRepo(
-                StorageConfig::Instance(), *repo_path, "master", logger));
+                storage_config.Get(), *repo_path, "master", logger));
 
             // check commit is there after fetch
             CHECK(*repo_fetch_branch->CheckCommitExists(kRootCommit, logger));
@@ -580,6 +583,8 @@ TEST_CASE("Single-threaded fake repository operations -- batch 2",
 }
 
 TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
+    auto const storage_config = TestStorageConfig::Create();
+
     /*
     Test all fake repository operations while being done in parallel.
     They are supposed to be thread-safe, so no conflicts should exist.
@@ -608,8 +613,11 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
         constexpr int NUM_CASES = 10;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
-                [&remote_cas, &remote_repo_path, &logger, &starting_signal](
-                    int tid) {
+                [&storage_config,
+                 &remote_cas,
+                 &remote_repo_path,
+                 &logger,
+                 &starting_signal](int tid) {
                     starting_signal.wait(false);
                     // cases based on thread number
                     switch (tid % NUM_CASES) {
@@ -729,7 +737,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                             REQUIRE(remote_repo->IsRepoFake());
                             // fetch all
                             REQUIRE(remote_repo->LocalFetchViaTmpRepo(
-                                StorageConfig::Instance(),
+                                storage_config.Get(),
                                 *remote_repo_path,
                                 std::nullopt,
                                 logger));

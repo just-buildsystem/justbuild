@@ -27,7 +27,6 @@
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/test_env.hpp"
@@ -68,23 +67,10 @@ void wait_for_grpc_to_shutdown() {
     return static_cast<bool>(RemoteExecutionConfig::RemoteAddress());
 }
 
-[[nodiscard]] auto ConfigureBuildRoot() -> bool {
-    auto cache_dir = FileSystemManager::GetCurrentDirectory() / "cache";
-    if (not FileSystemManager::CreateDirectoryExclusive(cache_dir) or
-        not StorageConfig::Instance().SetBuildRoot(cache_dir)) {
-        return false;
-    }
-    return true;
-}
-
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
-
-    if (not ConfigureBuildRoot()) {
-        return EXIT_FAILURE;
-    }
 
     if (not ConfigureRemoteExecution()) {
         return EXIT_FAILURE;

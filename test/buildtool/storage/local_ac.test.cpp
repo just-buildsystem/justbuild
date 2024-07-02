@@ -22,7 +22,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 [[nodiscard]] static auto RunDummyExecution(
     gsl::not_null<LocalAC<true> const*> const& ac,
@@ -30,11 +30,9 @@
     bazel_re::Digest const& action_id,
     std::string const& seed) -> bool;
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAC: Single action, single result",
-                 "[storage]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
+TEST_CASE("LocalAC: Single action, single result", "[storage]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
@@ -45,11 +43,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK(ac_result);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAC: Two different actions, two different results",
-                 "[storage]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
+TEST_CASE("LocalAC: Two different actions, two different results",
+          "[storage]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
@@ -76,11 +73,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK(result_content1 != result_content2);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAC: Two different actions, same two results",
-                 "[storage]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
+TEST_CASE("LocalAC: Two different actions, same two results", "[storage]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
@@ -107,11 +102,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK(result_content1 == result_content2);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "LocalAC: Same two actions, two different results",
-                 "[storage]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
+TEST_CASE("LocalAC: Same two actions, two different results", "[storage]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 

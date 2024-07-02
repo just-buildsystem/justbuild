@@ -22,7 +22,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 [[nodiscard]] auto Upload(
@@ -41,12 +41,11 @@ namespace {
 }
 }  // namespace
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "CAS Service: upload incomplete tree",
-                 "[execution_service]") {
-    auto const storage = Storage::Create(&StorageConfig::Instance());
+TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
 
-    auto cas_server = CASServiceImpl{&StorageConfig::Instance(), &storage};
+    auto cas_server = CASServiceImpl{&storage_config.Get(), &storage};
     auto instance_name = std::string{"remote-execution"};
 
     // Create an empty tree.

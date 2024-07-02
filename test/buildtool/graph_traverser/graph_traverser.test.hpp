@@ -154,17 +154,17 @@ inline void SetLauncher() {
 }  // namespace
 
 [[maybe_unused]] static void TestHelloWorldCopyMessage(
+    StorageConfig const& storage_config,
+    Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
-
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -195,7 +195,7 @@ inline void SetLauncher() {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        ApiBundle const apis{&StorageConfig::Instance(),
+        ApiBundle const apis{&storage_config,
                              &storage,
                              p.GetRepoConfig(),
                              auth,
@@ -228,17 +228,17 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestCopyLocalFile(
+    StorageConfig const& storage_config,
+    Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("copy_local_file");
-
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -265,17 +265,17 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestSequencePrinterBuildLibraryOnly(
+    StorageConfig const& storage_config,
+    Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
-
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -322,18 +322,18 @@ inline void SetLauncher() {
 }
 
 [[maybe_unused]] static void TestHelloWorldWithKnownSource(
+    StorageConfig const& storage_config,
+    Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
-
-    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SetLauncher();
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          full_hello_world.GetRepoConfig(),
                          auth,
@@ -385,17 +385,17 @@ inline void SetLauncher() {
     }
 }
 
-static void TestBlobsUploadedAndUsed(gsl::not_null<Auth const*> const& auth,
+static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
+                                     Storage const& storage,
+                                     gsl::not_null<Auth const*> const& auth,
                                      bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -430,17 +430,17 @@ static void TestBlobsUploadedAndUsed(gsl::not_null<Auth const*> const& auth,
 }
 
 static void TestEnvironmentVariablesSetAndUsed(
+    StorageConfig const& storage_config,
+    Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
     bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -474,17 +474,17 @@ static void TestEnvironmentVariablesSetAndUsed(
     }
 }
 
-static void TestTreesUsed(gsl::not_null<Auth const*> const& auth,
+static void TestTreesUsed(StorageConfig const& storage_config,
+                          Storage const& storage,
+                          gsl::not_null<Auth const*> const& auth,
                           bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -518,17 +518,17 @@ static void TestTreesUsed(gsl::not_null<Auth const*> const& auth,
     }
 }
 
-static void TestNestedTreesUsed(gsl::not_null<Auth const*> const& auth,
+static void TestNestedTreesUsed(StorageConfig const& storage_config,
+                                Storage const& storage,
+                                gsl::not_null<Auth const*> const& auth,
                                 bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     SetLauncher();
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,
@@ -562,15 +562,15 @@ static void TestNestedTreesUsed(gsl::not_null<Auth const*> const& auth,
     }
 }
 
-static void TestFlakyHelloWorldDetected(gsl::not_null<Auth const*> const& auth,
+static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
+                                        Storage const& storage,
+                                        gsl::not_null<Auth const*> const& auth,
                                         bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     Statistics stats{};
     Progress progress{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config,
                          &storage,
                          p.GetRepoConfig(),
                          auth,

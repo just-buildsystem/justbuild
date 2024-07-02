@@ -38,7 +38,7 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "test/utils/hermeticity/local.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 
 namespace {
@@ -79,7 +79,10 @@ auto SetupConfig() -> RepositoryConfig {
 
 }  // namespace
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
+TEST_CASE("simple targets", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -101,9 +104,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -526,9 +528,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "configuration deduplication",
-                 "[target_map]") {
+TEST_CASE("configuration deduplication", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -550,10 +553,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
-
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -621,9 +622,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK(analysis_result.actions.size() == 2);
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "generator functions in string arguments",
-                 "[target_map]") {
+TEST_CASE("generator functions in string arguments", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -645,9 +647,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -727,7 +728,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
+TEST_CASE("built-in rules", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -749,9 +753,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -941,7 +944,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
+TEST_CASE("target reference", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -963,9 +969,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -1088,7 +1093,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
+TEST_CASE("trees", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -1110,9 +1118,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -1199,9 +1206,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture,
-                 "RESULT error reporting",
-                 "[target_map]") {
+TEST_CASE("RESULT error reporting", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -1223,9 +1231,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
@@ -1371,7 +1378,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     }
 }
 
-TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
+TEST_CASE("wrong arguments", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
@@ -1393,9 +1403,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
-    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
-    ApiBundle const apis{&StorageConfig::Instance(),
+    ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          /*repo_config=*/nullptr,
                          &auth,
