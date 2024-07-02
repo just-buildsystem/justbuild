@@ -19,6 +19,7 @@
 #include <string>
 #include <variant>
 
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "test/utils/test_env.hpp"

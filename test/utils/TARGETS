@@ -81,7 +81,7 @@
   }
 , "test_serve_config":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["catch-main-remote-execution"]
+  , "name": ["test_serve_config"]
   , "hdrs": ["serve_service/test_serve_config.hpp"]
   , "deps":
     [ ["@", "src", "src/buildtool/serve_api/remote", "config"]
