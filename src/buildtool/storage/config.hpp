@@ -24,6 +24,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -40,59 +41,35 @@ struct GenerationConfig final {
     std::filesystem::path const target_cache;
 };
 
-/// \brief Global storage configuration.
-class StorageConfig {
-  public:
+struct StorageConfig final {
+    class Builder;
+
     static inline auto const kDefaultBuildRoot =
         FileSystemManager::GetUserHome() / ".cache" / "just";
 
-    [[nodiscard]] static auto Instance() noexcept -> StorageConfig& {
-        static StorageConfig config;
-        return config;
-    }
+    // Build root directory. All the storage dirs are subdirs of build_root.
+    // By default, build_root is set to $HOME/.cache/just.
+    // If the user uses --local-build-root PATH,
+    // then build_root will be set to PATH.
+    std::filesystem::path const build_root = kDefaultBuildRoot;
 
-    [[nodiscard]] auto SetBuildRoot(std::filesystem::path const& dir) noexcept
-        -> bool {
-        if (FileSystemManager::IsRelativePath(dir)) {
-            Logger::Log(LogLevel::Error,
-                        "Build root must be absolute path but got '{}'.",
-                        dir.string());
-            return false;
-        }
-        build_root_ = dir;
-        return true;
-    }
-
-    /// \brief Specifies the number of storage generations.
-    auto SetNumGenerations(std::size_t num_generations) noexcept -> void {
-        num_generations_ = num_generations;
-    }
-
-    /// \brief Number of storage generations.
-    [[nodiscard]] auto NumGenerations() const noexcept -> std::size_t {
-        return num_generations_;
-    }
-
-    /// \brief Build directory, defaults to user directory if not set
-    [[nodiscard]] auto BuildRoot() const noexcept
-        -> std::filesystem::path const& {
-        return build_root_;
-    }
+    // Number of total storage generations (default: two generations).
+    std::size_t const num_generations = 2;
 
     /// \brief Root directory of all storage generations.
     [[nodiscard]] auto CacheRoot() const noexcept -> std::filesystem::path {
-        return BuildRoot() / "protocol-dependent";
+        return build_root / "protocol-dependent";
     }
 
     /// \brief Directory for the git repository storing various roots
     [[nodiscard]] auto GitRoot() const noexcept -> std::filesystem::path {
-        return BuildRoot() / "git";
+        return build_root / "git";
     }
 
     /// \brief Root directory of specific storage generation
     [[nodiscard]] auto GenerationCacheRoot(std::size_t index) const noexcept
         -> std::filesystem::path {
-        ExpectsAudit(index < num_generations_);
+        ExpectsAudit(index < num_generations);
         auto generation = std::string{"generation-"} + std::to_string(index);
         return CacheRoot() / generation;
     }
@@ -138,21 +115,59 @@ class StorageConfig {
     };
 
   private:
-    // Build root directory. All the storage dirs are subdirs of build_root.
-    // By default, build_root is set to $HOME/.cache/just.
-    // If the user uses --local-build-root PATH,
-    // then build_root will be set to PATH.
-    std::filesystem::path build_root_{kDefaultBuildRoot};
-
-    // Number of total storage generations (default: two generations).
-    std::size_t num_generations_{2};
-
     // different folder for different caching protocol
     [[nodiscard]] static auto UpdatePathForCompatibility(
         std::filesystem::path const& dir,
         bool is_compatible) -> std::filesystem::path {
         return dir / (is_compatible ? "compatible-sha256" : "git-sha1");
+    };
+};
+
+class StorageConfig::Builder final {
+  public:
+    auto SetBuildRoot(std::filesystem::path value) noexcept -> Builder& {
+        build_root_ = std::move(value);
+        return *this;
     }
+
+    /// \brief Specifies the number of storage generations.
+    auto SetNumGenerations(std::size_t value) noexcept -> Builder& {
+        num_generations_ = value;
+        return *this;
+    }
+
+    [[nodiscard]] auto Build() const noexcept
+        -> expected<StorageConfig, std::string> {
+        // To not duplicate default arguments of StorageConfig in builder,
+        // create a default config and copy default arguments from there.
+        StorageConfig const default_config;
+
+        auto build_root = default_config.build_root;
+        if (build_root_.has_value()) {
+            build_root = *build_root_;
+            if (FileSystemManager::IsRelativePath(build_root)) {
+                return unexpected(fmt::format(
+                    "Build root must be absolute path but got '{}'.",
+                    build_root.string()));
+            }
+        }
+
+        auto num_generations = default_config.num_generations;
+        if (num_generations_.has_value()) {
+            num_generations = *num_generations_;
+            if (num_generations == 0) {
+                return unexpected(std::string{
+                    "The number of generations must be greater than 0."});
+            }
+        }
+
+        return StorageConfig{.build_root = std::move(build_root),
+                             .num_generations = num_generations};
+    }
+
+  private:
+    std::optional<std::filesystem::path> build_root_;
+    std::optional<std::size_t> num_generations_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP

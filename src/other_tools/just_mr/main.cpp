@@ -198,6 +198,22 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     }
 }
 
+[[nodiscard]] auto CreateStorageConfig(
+    MultiRepoCommonArguments const& args) noexcept
+    -> std::optional<StorageConfig> {
+    StorageConfig::Builder builder;
+    if (args.just_mr_paths->root.has_value()) {
+        builder.SetBuildRoot(*args.just_mr_paths->root);
+    }
+
+    auto config = builder.Build();
+    if (config) {
+        return *std::move(config);
+    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
+}
+
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
@@ -289,14 +305,14 @@ auto main(int argc, char* argv[]) -> int {
 
         // Setup LocalStorageConfig to store the local_build_root properly
         // and make the cas and git cache roots available
-        if (not StorageConfig::Instance().SetBuildRoot(
-                *arguments.common.just_mr_paths->root)) {
+        auto storage_config = CreateStorageConfig(arguments.common);
+        if (not storage_config) {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");
             return kExitGenericFailure;
         }
 
-        auto const storage = Storage::Create(&StorageConfig::Instance());
+        auto const storage = Storage::Create(&*storage_config);
 
         // check for conflicts in main repo name
         if ((not arguments.setup.sub_all) and arguments.common.main and
@@ -347,12 +363,12 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.auth,
                             arguments.retry,
                             arguments.launch_fwd,
-                            StorageConfig::Instance(),
+                            *storage_config,
                             storage,
                             forward_build_root,
                             my_name);
         }
-        auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+        auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {
             return kExitGenericFailure;
         }
@@ -377,7 +393,7 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.setup,
                 arguments.just_cmd,
                 arguments.auth,
-                StorageConfig::Instance(),
+                *storage_config,
                 storage,
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv),
                 my_name);
@@ -397,7 +413,7 @@ auto main(int argc, char* argv[]) -> int {
             return MultiRepoUpdate(config,
                                    arguments.common,
                                    arguments.update,
-                                   StorageConfig::Instance(),
+                                   *storage_config,
                                    my_name);
         }
 
@@ -425,7 +441,7 @@ auto main(int argc, char* argv[]) -> int {
                                   arguments.setup,
                                   arguments.fetch,
                                   arguments.auth,
-                                  StorageConfig::Instance(),
+                                  *storage_config,
                                   storage,
                                   my_name);
         }

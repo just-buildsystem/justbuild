@@ -41,18 +41,23 @@ class TestStorageConfig final {
             std::filesystem::path{std::string{std::getenv("TEST_TMPDIR")}} /
             ".test_build_root";
 
-        StorageConfig config = StorageConfig::Instance();
         auto temp_dir = TmpDir::Create(test_tempdir);
-        if (temp_dir == nullptr or
-            not config.SetBuildRoot(temp_dir->GetPath())) {
+        if (temp_dir == nullptr) {
             Logger::Log(LogLevel::Error,
                         "failed to create a test-local cache dir");
+            std::exit(EXIT_FAILURE);
+        }
+
+        StorageConfig::Builder builder;
+        auto config = builder.SetBuildRoot(temp_dir->GetPath()).Build();
+        if (not config) {
+            Logger::Log(LogLevel::Error, config.error());
             std::exit(EXIT_FAILURE);
         }
         Logger::Log(LogLevel::Debug,
                     "created test-local cache dir {}",
                     temp_dir->GetPath().string());
-        return TestStorageConfig{std::move(temp_dir), std::move(config)};
+        return TestStorageConfig{std::move(temp_dir), *std::move(config)};
     }
 
     [[nodiscard]] auto Get() const noexcept -> StorageConfig const& {

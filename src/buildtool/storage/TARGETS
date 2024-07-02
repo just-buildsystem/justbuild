@@ -11,6 +11,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "tmp_dir"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   }

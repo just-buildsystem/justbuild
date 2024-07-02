@@ -20,13 +20,21 @@
 
 [[nodiscard]] static auto CreateConfig() -> StorageConfig {
     auto cache_dir = FileSystemManager::GetCurrentDirectory() / "cache";
-    auto storage_config = StorageConfig::Instance();
     if (not FileSystemManager::RemoveDirectory(cache_dir, true) or
-        not FileSystemManager::CreateDirectoryExclusive(cache_dir) or
-        not storage_config.SetBuildRoot(cache_dir)) {
+        not FileSystemManager::CreateDirectoryExclusive(cache_dir)) {
+        Logger::Log(LogLevel::Error,
+                    "failed to create a test-local cache dir {}",
+                    cache_dir.string());
         std::exit(EXIT_FAILURE);
     }
-    return storage_config;
+
+    StorageConfig::Builder builder;
+    auto config = builder.SetBuildRoot(cache_dir).Build();
+    if (not config) {
+        Logger::Log(LogLevel::Error, config.error());
+        std::exit(EXIT_FAILURE);
+    }
+    return *std::move(config);
 }
 
 TEST_CASE("Remote: Output created and contents are correct",

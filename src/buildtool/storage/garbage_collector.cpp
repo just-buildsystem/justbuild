@@ -175,11 +175,11 @@ auto GarbageCollector::TriggerGarbageCollection(
                 storage_config.CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
             to_remove.emplace_back(remove_me_dir);
-            for (std::size_t i = storage_config.NumGenerations(); i > 0; --i) {
+            for (std::size_t i = storage_config.num_generations; i > 0; --i) {
                 auto cache_root = storage_config.GenerationCacheRoot(i - 1);
                 if (FileSystemManager::IsDirectory(cache_root)) {
                     auto new_cache_root =
-                        (i == storage_config.NumGenerations())
+                        (i == storage_config.num_generations)
                             ? remove_me_dir
                             : storage_config.GenerationCacheRoot(i);
                     if (not FileSystemManager::Rename(cache_root,

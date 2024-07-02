@@ -195,7 +195,7 @@ static void TestLarge(StorageConfig const& storage_config,
             CHECK(pack_3->size() == pack_1->size());
 
             // Check there are no spliced results in all generations:
-            for (std::size_t i = 0; i < storage_config.NumGenerations(); ++i) {
+            for (std::size_t i = 0; i < storage_config.num_generations; ++i) {
                 auto const storage = ::Generation::Create(&storage_config);
                 auto generation_path =
                     kIsTree ? storage.CAS().TreePath(digest)
@@ -605,7 +605,7 @@ TEST_CASE("LargeObjectCAS: uplink nested large objects", "[storage]") {
     REQUIRE(split_nested_blob_2);
 
     // Check there are no spliced results in old generations:
-    for (std::size_t i = 1; i < storage_config.Get().NumGenerations(); ++i) {
+    for (std::size_t i = 1; i < storage_config.Get().num_generations; ++i) {
         auto const storage =
             ::Generation::Create(&storage_config.Get(), /*generation=*/i);
         auto const& generation_cas = storage.CAS();

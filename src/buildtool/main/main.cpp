@@ -102,17 +102,29 @@ void SetupLogging(LogArguments const& clargs) {
     }
 }
 
+[[nodiscard]] auto CreateStorageConfig(EndpointArguments const& eargs) noexcept
+    -> std::optional<StorageConfig> {
+    StorageConfig::Builder builder;
+    if (eargs.local_root.has_value()) {
+        builder.SetBuildRoot(*eargs.local_root);
+    }
+
+    auto config = builder.Build();
+    if (config) {
+        return *std::move(config);
+    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
+}
+
 #ifndef BOOTSTRAP_BUILD_TOOL
 void SetupExecutionConfig(EndpointArguments const& eargs,
                           BuildArguments const& bargs,
                           RebuildArguments const& rargs) {
-    using StorageConfig = StorageConfig;
     using LocalConfig = LocalExecutionConfig;
     using RemoteConfig = RemoteExecutionConfig;
-    if (not(not eargs.local_root or
-            (StorageConfig::Instance().SetBuildRoot(*eargs.local_root))) or
-        not(not bargs.local_launcher or
-            LocalConfig::SetLauncher(*bargs.local_launcher))) {
+    if (bargs.local_launcher and
+        not LocalConfig::SetLauncher(*bargs.local_launcher)) {
         Logger::Log(LogLevel::Error, "Failed to configure local execution.");
         std::exit(kExitFailure);
     }
@@ -783,12 +795,17 @@ auto main(int argc, char* argv[]) -> int {
         if (not auth_config) {
             return kExitFailure;
         }
+#endif
+        auto const storage_config = CreateStorageConfig(arguments.endpoint);
+        if (not storage_config) {
+            return kExitFailure;
+        }
+        auto const storage = Storage::Create(&*storage_config);
 
-        auto const storage = Storage::Create(&StorageConfig::Instance());
-
+#ifndef BOOTSTRAP_BUILD_TOOL
         if (arguments.cmd == SubCommand::kGc) {
             if (GarbageCollector::TriggerGarbageCollection(
-                    StorageConfig::Instance(), arguments.gc.no_rotate)) {
+                    *storage_config, arguments.gc.no_rotate)) {
                 return kExitSuccess;
             }
             return kExitFailure;
@@ -796,13 +813,13 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
-            ApiBundle const exec_apis{&StorageConfig::Instance(),
+            ApiBundle const exec_apis{&*storage_config,
                                       &storage,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
             if (not ServerImpl::Instance().Run(
-                    StorageConfig::Instance(), storage, exec_apis)) {
+                    *storage_config, storage, exec_apis)) {
                 return kExitFailure;
             }
             return kExitSuccess;
@@ -816,7 +833,7 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.pid_file);
             if (serve_server) {
                 ApiBundle const serve_apis{
-                    &StorageConfig::Instance(),
+                    &*storage_config,
                     &storage,
                     /*repo_config=*/nullptr,
                     &*auth_config,
@@ -825,7 +842,7 @@ auto main(int argc, char* argv[]) -> int {
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
                 return serve_server->Run(*serve_config,
-                                         StorageConfig::Instance(),
+                                         *storage_config,
                                          storage,
                                          serve,
                                          serve_apis,
@@ -876,7 +893,7 @@ auto main(int argc, char* argv[]) -> int {
         if (not SetupRetryConfig(arguments.retry)) {
             std::exit(kExitFailure);
         }
-        ApiBundle const main_apis{&StorageConfig::Instance(),
+        ApiBundle const main_apis{&*storage_config,
                                   &storage,
                                   &repo_config,
                                   &*auth_config,
@@ -895,11 +912,10 @@ auto main(int argc, char* argv[]) -> int {
             ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
-            if (not repo_config.SetGitCAS(
-                    StorageConfig::Instance().GitRoot())) {
+            if (not repo_config.SetGitCAS(storage_config->GitRoot())) {
                 Logger::Log(LogLevel::Debug,
                             "Failed set Git CAS {}.",
-                            StorageConfig::Instance().GitRoot().string());
+                            storage_config->GitRoot().string());
             }
             return FetchAndInstallArtifacts(main_apis, arguments.fetch)
                        ? kExitSuccess
@@ -923,7 +939,7 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        auto lock = GarbageCollector::SharedLock(StorageConfig::Instance());
+        auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {
             return kExitFailure;
         }

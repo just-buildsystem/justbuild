@@ -32,8 +32,8 @@ namespace {
     gsl::not_null<StorageConfig const*> const& storage_config) noexcept
     -> std::vector<Generation> {
     std::vector<Generation> generations;
-    generations.reserve(storage_config->NumGenerations());
-    for (std::size_t i = 0; i < storage_config->NumGenerations(); ++i) {
+    generations.reserve(storage_config->num_generations);
+    for (std::size_t i = 0; i < storage_config->num_generations; ++i) {
         generations.emplace_back(Generation::Create(storage_config,
                                                     /*generation=*/i));
     }
