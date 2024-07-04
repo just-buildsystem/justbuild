@@ -58,17 +58,46 @@
   , "test": ["error-reporting.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "identical-inputs (real)":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["identical-inputs"]
+  , "test": ["identical-inputs.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
+, "identical-inputs":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "identical-inputs (real)"
+  , "arguments_config": ["TIMEOUT_SCALE"]
+  , "config":
+    { "type": "singleton_map"
+    , "key": "TIMEOUT_SCALE"
+    , "value":
+      { "type": "*"
+      , "$1": [3, {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}]
+      }
+    }
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
+  , "arguments_config": ["DROP_IO_HEAVY_TESTS"]
   , "deps":
-    [ "equality"
-    , "equality-timeout"
-    , "equality-properties"
-    , "trees"
-    , "conflicts"
-    , "incomplete-retry"
-    , "error-reporting"
-    ]
+    { "type": "++"
+    , "$1":
+      [ [ "equality"
+        , "equality-timeout"
+        , "equality-properties"
+        , "trees"
+        , "conflicts"
+        , "incomplete-retry"
+        , "error-reporting"
+        ]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DROP_IO_HEAVY_TESTS"}
+        , "else": ["identical-inputs"]
+        }
+      ]
+    }
   }
 }
