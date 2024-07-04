@@ -85,8 +85,9 @@ template <class T>
 }
 
 // Read graph from CAS
-[[nodiscard]] auto ReadGraph(std::string const& hash) -> nlohmann::json {
-    auto const& cas = Storage::Instance().CAS();
+[[nodiscard]] auto ReadGraph(Storage const& storage, std::string const& hash)
+    -> nlohmann::json {
+    auto const& cas = storage.CAS();
     auto blob = cas.BlobPath(
         ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false},
         /*is_executable=*/false);
@@ -118,37 +119,40 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Test missing repository",
                  "[repository_config]") {
     RepositoryConfig config{};
+    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     CHECK(config.Info("missing") == nullptr);
-    CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "missing"));
+    CHECK_FALSE(config.RepositoryKey(storage, "missing"));
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compute key of fixed repository",
                  "[repository_config]") {
     RepositoryConfig config{};
+    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SECTION("for single fixed repository") {
         config.SetInfo("foo", CreateFixedRepoInfo());
-        auto key = config.RepositoryKey(Storage::Instance(), "foo");
+        auto key = config.RepositoryKey(storage, "foo");
         REQUIRE(key);
 
         // verify created graph from CAS
-        CHECK(ReadGraph(*key) == BuildGraph({config.Info("foo")}, {{}}));
+        CHECK(ReadGraph(storage, *key) ==
+              BuildGraph({config.Info("foo")}, {{}}));
     }
 
     SECTION("for fixed repositories with same missing dependency") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz"}}));
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "bar"));
+        CHECK_FALSE(config.RepositoryKey(storage, "foo"));
+        CHECK_FALSE(config.RepositoryKey(storage, "bar"));
     }
 
     SECTION("for fixed repositories with different missing dependency") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz1"}}));
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "bar"));
+        CHECK_FALSE(config.RepositoryKey(storage, "foo"));
+        CHECK_FALSE(config.RepositoryKey(storage, "bar"));
     }
 }
 
@@ -156,17 +160,18 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compute key of file repository",
                  "[repository_config]") {
     RepositoryConfig config{};
+    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     SECTION("for single file repository") {
         config.SetInfo("foo", CreateFileRepoInfo());
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
+        CHECK_FALSE(config.RepositoryKey(storage, "foo"));
     }
 
     SECTION("for graph with leaf dependency as file") {
         config.SetInfo("foo", CreateFixedRepoInfo({{"bar", "bar"}}));
         config.SetInfo("bar", CreateFixedRepoInfo({{"baz", "baz"}}));
         config.SetInfo("baz", CreateFileRepoInfo());
-        CHECK_FALSE(config.RepositoryKey(Storage::Instance(), "foo"));
+        CHECK_FALSE(config.RepositoryKey(storage, "foo"));
     }
 }
 
@@ -174,6 +179,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Compare key of two repos with same content",
                  "[repository_config]") {
     RepositoryConfig config{};
+    auto const storage = Storage::Create(&StorageConfig::Instance());
 
     // create two different repo infos with same content (baz should be same)
     config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));
@@ -186,14 +192,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", Copy(baz));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
-        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
+        auto foo_key = config.RepositoryKey(storage, "foo");
+        auto bar_key = config.RepositoryKey(storage, "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
 
         // verify created graph from CAS
-        CHECK(ReadGraph(*foo_key) ==
+        CHECK(ReadGraph(storage, *foo_key) ==
               BuildGraph({config.Info("foo"), config.Info("baz0")},
                          {{{"dep", "1"}}, {}}));
     }
@@ -205,14 +211,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", Copy(baz));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
-        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
+        auto foo_key = config.RepositoryKey(storage, "foo");
+        auto bar_key = config.RepositoryKey(storage, "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
 
         // verify created graph from CAS
-        CHECK(ReadGraph(*foo_key) ==
+        CHECK(ReadGraph(storage, *foo_key) ==
               BuildGraph({config.Info("foo"), config.Info("baz0")},
                          {{{"dep", "1"}}, {{"foo", "0"}, {"bar", "0"}}}));
     }
@@ -223,14 +229,14 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "bar"}}));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
-        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
+        auto foo_key = config.RepositoryKey(storage, "foo");
+        auto bar_key = config.RepositoryKey(storage, "bar");
         REQUIRE(foo_key);
         REQUIRE(bar_key);
         CHECK(*foo_key == *bar_key);
 
         // verify created graph from CAS
-        CHECK(ReadGraph(*foo_key) ==
+        CHECK(ReadGraph(storage, *foo_key) ==
               BuildGraph({config.Info("foo")}, {{{"dep", "0"}}}));
     }
 
@@ -239,10 +245,10 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "baz1"}}));
 
         // check if computed key is same
-        auto foo_key = config.RepositoryKey(Storage::Instance(), "foo");
-        auto bar_key = config.RepositoryKey(Storage::Instance(), "bar");
-        auto baz0_key = config.RepositoryKey(Storage::Instance(), "baz0");
-        auto baz1_key = config.RepositoryKey(Storage::Instance(), "baz1");
+        auto foo_key = config.RepositoryKey(storage, "foo");
+        auto bar_key = config.RepositoryKey(storage, "bar");
+        auto baz0_key = config.RepositoryKey(storage, "baz0");
+        auto baz1_key = config.RepositoryKey(storage, "baz1");
         CHECK(foo_key);
         CHECK(bar_key);
         CHECK(baz0_key);
@@ -252,7 +258,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         CHECK(*baz0_key == *baz1_key);
 
         // verify created graph from CAS
-        CHECK(ReadGraph(*foo_key) ==
+        CHECK(ReadGraph(storage, *foo_key) ==
               BuildGraph({config.Info("foo")}, {{{"dep", "0"}}}));
     }
 }

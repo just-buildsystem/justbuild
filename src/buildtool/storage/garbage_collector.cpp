@@ -223,8 +223,7 @@ auto GarbageCollector::Compactify(StorageConfig const& storage_config,
     // Compactification must be done for both native and compatible storages.
     auto compactify = [&storage_config, threshold](bool compatible) -> bool {
         Compatibility::SetCompatible(compatible);
-        auto gen_config = storage_config.CreateGenerationConfig(0);
-        auto const storage = ::Generation(gen_config);
+        auto const storage = ::Generation::Create(&storage_config);
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
                Compactifier::RemoveSpliced(storage.CAS()) and

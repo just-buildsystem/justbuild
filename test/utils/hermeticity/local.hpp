@@ -41,7 +41,6 @@ class HermeticLocalTestFixture {
             StorageConfig::Instance().SetBuildRoot(case_dir)) {
             // After the build root has been changed, the file roots of the
             // static storage instances need to be updated.
-            Storage::Reinitialize();
             Logger::Log(LogLevel::Debug,
                         "created test-local cache dir {}",
                         case_dir.string());

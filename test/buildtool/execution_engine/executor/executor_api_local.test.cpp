@@ -30,16 +30,18 @@
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload blob",
                  "[executor]") {
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     RepositoryConfig repo_config{};
     TestBlobUpload(&repo_config, [&] {
         return std::make_unique<LocalApi>(
-            &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+            &StorageConfig::Instance(), &storage, &repo_config);
     });
 }
 
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Compile hello world",
                  "[executor]") {
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -51,7 +53,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+                &StorageConfig::Instance(), &storage, &repo_config);
         },
         &*auth_config);
 }
@@ -59,6 +61,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Compile greeter",
                  "[executor]") {
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -70,7 +73,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+                &StorageConfig::Instance(), &storage, &repo_config);
         },
         &*auth_config);
 }
@@ -78,6 +81,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Upload and download trees",
                  "[executor]") {
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -89,7 +93,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+                &StorageConfig::Instance(), &storage, &repo_config);
         },
         &*auth_config);
 }
@@ -97,6 +101,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "Executor<LocalApi>: Retrieve output directories",
                  "[executor]") {
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -108,7 +113,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
         &progress,
         [&] {
             return std::make_unique<LocalApi>(
-                &StorageConfig::Instance(), &Storage::Instance(), &repo_config);
+                &StorageConfig::Instance(), &storage, &repo_config);
         },
         &*auth_config);
 }

@@ -44,8 +44,9 @@ namespace {
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "CAS Service: upload incomplete tree",
                  "[execution_service]") {
-    auto cas_server =
-        CASServiceImpl{&StorageConfig::Instance(), &Storage::Instance()};
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
+    auto cas_server = CASServiceImpl{&StorageConfig::Instance(), &storage};
     auto instance_name = std::string{"remote-execution"};
 
     // Create an empty tree.

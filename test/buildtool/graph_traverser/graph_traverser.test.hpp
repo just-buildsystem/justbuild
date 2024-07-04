@@ -158,12 +158,14 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -194,7 +196,7 @@ inline void SetLauncher() {
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         ApiBundle const apis{&StorageConfig::Instance(),
-                             &Storage::Instance(),
+                             &storage,
                              p.GetRepoConfig(),
                              auth,
                              RemoteExecutionConfig::RemoteAddress()};
@@ -230,12 +232,14 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -265,12 +269,14 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -320,13 +326,15 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          full_hello_world.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -382,11 +390,13 @@ static void TestBlobsUploadedAndUsed(gsl::not_null<Auth const*> const& auth,
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -425,11 +435,13 @@ static void TestEnvironmentVariablesSetAndUsed(
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -467,11 +479,13 @@ static void TestTreesUsed(gsl::not_null<Auth const*> const& auth,
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -509,11 +523,13 @@ static void TestNestedTreesUsed(gsl::not_null<Auth const*> const& auth,
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     SetLauncher();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -550,10 +566,12 @@ static void TestFlakyHelloWorldDetected(gsl::not_null<Auth const*> const& auth,
                                         bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};

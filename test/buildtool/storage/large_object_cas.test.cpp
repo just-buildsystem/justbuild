@@ -100,7 +100,8 @@ class Tree final {
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LargeObjectCAS: split a small tree",
                  "[storage]") {
-    auto const& cas = Storage::Instance().CAS();
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+    auto const& cas = storage.CAS();
 
     // Create a small tree:
     using LargeTestUtils::Tree;
@@ -125,6 +126,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 template <ObjectType kType>
 static void TestLarge() noexcept {
     SECTION("Large") {
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         static constexpr bool kIsTree = IsTreeObject(kType);
         static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -132,7 +135,7 @@ static void TestLarge() noexcept {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = Storage::Instance().CAS();
+        auto const& cas = storage.CAS();
 
         // Create a large object:
         auto object = TestType::Create(
@@ -188,9 +191,8 @@ static void TestLarge() noexcept {
             CHECK_FALSE(FileSystemManager::IsFile(path));
 
             // Call split with disabled uplinking:
-            auto gen_config =
-                StorageConfig::Instance().CreateGenerationConfig(0);
-            ::Generation youngest_storage{gen_config};
+            auto const youngest_storage =
+                ::Generation::Create(&StorageConfig::Instance());
             auto pack_3 = kIsTree ? youngest_storage.CAS().SplitTree(digest)
                                   : youngest_storage.CAS().SplitBlob(digest);
             REQUIRE(pack_3);
@@ -200,9 +202,8 @@ static void TestLarge() noexcept {
             for (std::size_t i = 0;
                  i < StorageConfig::Instance().NumGenerations();
                  ++i) {
-                auto gen_config1 =
-                    StorageConfig::Instance().CreateGenerationConfig(i);
-                ::Generation storage{gen_config1};
+                auto const storage = ::Generation::Create(
+                    &StorageConfig::Instance(), /*generation=*/i);
                 auto generation_path =
                     kIsTree ? storage.CAS().TreePath(digest)
                             : storage.CAS().BlobPath(digest, kIsExec);
@@ -219,6 +220,8 @@ static void TestLarge() noexcept {
 template <ObjectType kType>
 static void TestSmall() noexcept {
     SECTION("Small") {
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         static constexpr bool kIsTree = IsTreeObject(kType);
         static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -226,7 +229,7 @@ static void TestSmall() noexcept {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = Storage::Instance().CAS();
+        auto const& cas = storage.CAS();
 
         // Create a small object:
         auto object = TestType::Create(
@@ -275,6 +278,8 @@ static void TestSmall() noexcept {
 template <ObjectType kType>
 static void TestEmpty() noexcept {
     SECTION("Empty") {
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         static constexpr bool kIsTree = IsTreeObject(kType);
         static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -282,7 +287,7 @@ static void TestEmpty() noexcept {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = Storage::Instance().CAS();
+        auto const& cas = storage.CAS();
 
         // Create an empty object:
         auto object = TestType::Create(
@@ -324,6 +329,8 @@ static void TestEmpty() noexcept {
 template <ObjectType kType>
 static void TestExternal() noexcept {
     SECTION("External") {
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         static constexpr bool kIsTree = IsTreeObject(kType);
         static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -331,7 +338,7 @@ static void TestExternal() noexcept {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = Storage::Instance().CAS();
+        auto const& cas = storage.CAS();
 
         // Create a large object:
         auto object = TestType::Create(
@@ -354,8 +361,7 @@ static void TestExternal() noexcept {
             REQUIRE(cas.BlobPath(part, is_executable));
         }
 
-        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
-        ::Generation const youngest{gen_config};
+        auto const youngest = ::Generation::Create(&StorageConfig::Instance());
 
         SECTION("Proper request") {
             if constexpr (kIsTree) {
@@ -424,6 +430,8 @@ static void TestExternal() noexcept {
 template <ObjectType kType>
 static void TestCompactification() {
     SECTION("Compactify") {
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         static constexpr bool kIsTree = IsTreeObject(kType);
         static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -431,7 +439,7 @@ static void TestCompactification() {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = Storage::Instance().CAS();
+        auto const& cas = storage.CAS();
 
         // Create a large object and split it:
         auto object = TestType::Create(
@@ -470,8 +478,7 @@ static void TestCompactification() {
                            : cas.BlobPath(digest, kIsExec);
         };
 
-        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
-        ::Generation const latest{gen_config};
+        auto const latest = ::Generation::Create(&StorageConfig::Instance());
 
         REQUIRE(get_path(latest.CAS(), digest).has_value());
         REQUIRE(get_path(latest.CAS(), digest_2).has_value());
@@ -536,7 +543,9 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
 TEST_CASE_METHOD(HermeticLocalTestFixture,
                  "LargeObjectCAS: uplink nested large objects",
                  "[storage]") {
-    auto const& cas = Storage::Instance().CAS();
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
+    auto const& cas = storage.CAS();
 
     // Randomize a large directory:
     auto tree_path = LargeTestUtils::Tree::Generate(
@@ -601,8 +610,7 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK_FALSE(FileSystemManager::IsFile(*nested_tree_path));
     CHECK_FALSE(FileSystemManager::IsFile(*nested_blob_path));
 
-    auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
-    ::Generation const latest{gen_config};
+    auto const latest = ::Generation::Create(&StorageConfig::Instance());
 
     // However, they might be reconstructed on request because there entries are
     // in the latest generation:
@@ -615,8 +623,8 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     // Check there are no spliced results in old generations:
     for (std::size_t i = 1; i < StorageConfig::Instance().NumGenerations();
          ++i) {
-        auto gen_config1 = StorageConfig::Instance().CreateGenerationConfig(i);
-        ::Generation storage{gen_config1};
+        auto const storage =
+            ::Generation::Create(&StorageConfig::Instance(), /*generation=*/i);
         auto const& generation_cas = storage.CAS();
         REQUIRE_FALSE(generation_cas.TreePath(*nested_tree_digest));
         REQUIRE_FALSE(generation_cas.TreePath(*large_tree_digest));

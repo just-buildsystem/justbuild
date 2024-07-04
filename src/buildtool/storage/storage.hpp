@@ -16,10 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_STORAGE_HPP
 
 #include <cstddef>
-#include <filesystem>
 #include <memory>
-#include <optional>
-#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
@@ -36,7 +33,7 @@
 /// the affected storage instance (CAS, action cache, target cache).
 /// \tparam kDoGlobalUplink     Enable global uplinking.
 template <bool kDoGlobalUplink>
-class LocalStorage {
+class LocalStorage final {
   public:
     static constexpr std::size_t kYoungest = 0U;
 
@@ -45,11 +42,16 @@ class LocalStorage {
     using AC_t = LocalAC<kDoGlobalUplink>;
     using TC_t = ::TargetCache<kDoGlobalUplink>;
 
-    explicit LocalStorage(GenerationConfig const& config)
-        : uplinker_{std::make_shared<Uplinker_t>(config.storage_config)},
-          cas_{std::make_shared<CAS_t>(config, &*uplinker_)},
-          ac_{std::make_shared<AC_t>(&*cas_, config, &*uplinker_)},
-          tc_{std::make_shared<TC_t>(&*cas_, config, &*uplinker_)} {}
+    [[nodiscard]] static auto Create(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        std::size_t generation = kYoungest) -> LocalStorage<kDoGlobalUplink> {
+        if constexpr (kDoGlobalUplink) {
+            // It is not allowed to enable uplinking for old generations.
+            EnsuresAudit(generation == kYoungest);
+        }
+        auto gen_config = storage_config->CreateGenerationConfig(generation);
+        return LocalStorage<kDoGlobalUplink>{gen_config};
+    }
 
     /// \brief Get the CAS instance.
     [[nodiscard]] auto CAS() const noexcept -> CAS_t const& { return *cas_; }
@@ -65,10 +67,16 @@ class LocalStorage {
     }
 
   private:
-    std::shared_ptr<Uplinker_t const> uplinker_;
-    std::shared_ptr<CAS_t const> cas_;
-    std::shared_ptr<AC_t const> ac_;
-    std::shared_ptr<TC_t const> tc_;
+    std::unique_ptr<Uplinker_t const> uplinker_;
+    std::unique_ptr<CAS_t const> cas_;
+    std::unique_ptr<AC_t const> ac_;
+    std::unique_ptr<TC_t const> tc_;
+
+    explicit LocalStorage(GenerationConfig const& config)
+        : uplinker_{std::make_unique<Uplinker_t>(config.storage_config)},
+          cas_{std::make_unique<CAS_t>(config, &*uplinker_)},
+          ac_{std::make_unique<AC_t>(&*cas_, config, &*uplinker_)},
+          tc_{std::make_unique<TC_t>(&*cas_, config, &*uplinker_)} {}
 };
 
 #ifdef BOOTSTRAP_BUILD_TOOL
@@ -81,35 +89,6 @@ constexpr auto kDefaultDoGlobalUplink = true;
 /// \brief Generation type, local storage without global uplinking.
 using Generation = LocalStorage</*kDoGlobalUplink=*/false>;
 
-/// \brief Global storage singleton class, valid throughout the entire tool.
-/// Configured via \ref StorageConfig.
-class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
-  public:
-    /// \brief Get the global storage instance.
-    /// Build root is read from \ref
-    /// StorageConfig::Instance().BuildRoot().
-    /// \returns The global storage singleton instance.
-    [[nodiscard]] static auto Instance() noexcept -> Storage const& {
-        return GetStorage();
-    }
-
-    /// \brief Reinitialize storage instance and generations.
-    /// Use if global \ref StorageConfig was changed. Not thread-safe!
-    static void Reinitialize() noexcept { GetStorage() = CreateStorage(); }
-
-  private:
-    using LocalStorage<kDefaultDoGlobalUplink>::LocalStorage;
-
-    [[nodiscard]] static auto CreateStorage() noexcept -> Storage {
-        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(
-            Storage::kYoungest);
-        return Storage{gen_config};
-    }
-
-    [[nodiscard]] static auto GetStorage() noexcept -> Storage& {
-        static auto instance = CreateStorage();
-        return instance;
-    }
-};
+using Storage = LocalStorage<kDefaultDoGlobalUplink>;
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_STORAGE_HPP

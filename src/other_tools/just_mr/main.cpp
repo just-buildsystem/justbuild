@@ -296,6 +296,8 @@ auto main(int argc, char* argv[]) -> int {
             return kExitGenericFailure;
         }
 
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         // check for conflicts in main repo name
         if ((not arguments.setup.sub_all) and arguments.common.main and
             arguments.setup.sub_main and
@@ -346,7 +348,7 @@ auto main(int argc, char* argv[]) -> int {
                             arguments.retry,
                             arguments.launch_fwd,
                             StorageConfig::Instance(),
-                            Storage::Instance(),
+                            storage,
                             forward_build_root,
                             my_name);
         }
@@ -376,7 +378,7 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.just_cmd,
                 arguments.auth,
                 StorageConfig::Instance(),
-                Storage::Instance(),
+                storage,
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv),
                 my_name);
             // dump resulting config to stdout
@@ -424,7 +426,7 @@ auto main(int argc, char* argv[]) -> int {
                                   arguments.fetch,
                                   arguments.auth,
                                   StorageConfig::Instance(),
-                                  Storage::Instance(),
+                                  storage,
                                   my_name);
         }
 

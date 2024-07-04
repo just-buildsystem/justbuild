@@ -34,8 +34,8 @@ namespace {
     std::vector<Generation> generations;
     generations.reserve(storage_config->NumGenerations());
     for (std::size_t i = 0; i < storage_config->NumGenerations(); ++i) {
-        auto const gen_config = storage_config->CreateGenerationConfig(i);
-        generations.emplace_back(gen_config);
+        generations.emplace_back(Generation::Create(storage_config,
+                                                    /*generation=*/i));
     }
     return generations;
 }

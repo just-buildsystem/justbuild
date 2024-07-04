@@ -101,15 +101,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "simple targets", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -549,15 +550,17 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
+
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -642,15 +645,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -745,15 +749,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "built-in rules", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -958,15 +963,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "target reference", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1104,15 +1110,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "trees", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1216,15 +1223,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};
@@ -1385,15 +1393,16 @@ TEST_CASE_METHOD(HermeticLocalTestFixture, "wrong arguments", "[target_map]") {
     auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
     REQUIRE(serve_config);
 
+    auto const storage = Storage::Create(&StorageConfig::Instance());
     Auth auth{};
     ApiBundle const apis{&StorageConfig::Instance(),
-                         &Storage::Instance(),
+                         &storage,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
-    auto serve = ServeApi::Create(*serve_config, &Storage::Instance(), &apis);
+    auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
-                       .storage = &Storage::Instance(),
+                       .storage = &storage,
                        .statistics = &stats,
                        .progress = &exports_progress,
                        .serve = serve ? &*serve : nullptr};

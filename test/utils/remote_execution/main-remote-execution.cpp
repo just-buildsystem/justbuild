@@ -24,9 +24,10 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/test_env.hpp"
@@ -73,9 +74,6 @@ void wait_for_grpc_to_shutdown() {
         not StorageConfig::Instance().SetBuildRoot(cache_dir)) {
         return false;
     }
-    // After the build root has been changed, the file roots of the
-    // static storage instances need to be updated.
-    Storage::Reinitialize();
     return true;
 }
 

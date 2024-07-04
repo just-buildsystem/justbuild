@@ -784,6 +784,8 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
+        auto const storage = Storage::Create(&StorageConfig::Instance());
+
         if (arguments.cmd == SubCommand::kGc) {
             if (GarbageCollector::TriggerGarbageCollection(
                     StorageConfig::Instance(), arguments.gc.no_rotate)) {
@@ -795,13 +797,12 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kExecute) {
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&StorageConfig::Instance(),
-                                      &Storage::Instance(),
+                                      &storage,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
-            if (not ServerImpl::Instance().Run(StorageConfig::Instance(),
-                                               Storage::Instance(),
-                                               exec_apis)) {
+            if (not ServerImpl::Instance().Run(
+                    StorageConfig::Instance(), storage, exec_apis)) {
                 return kExitFailure;
             }
             return kExitSuccess;
@@ -816,16 +817,16 @@ auto main(int argc, char* argv[]) -> int {
             if (serve_server) {
                 ApiBundle const serve_apis{
                     &StorageConfig::Instance(),
-                    &Storage::Instance(),
+                    &storage,
                     /*repo_config=*/nullptr,
                     &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
-                auto serve = ServeApi::Create(
-                    *serve_config, &Storage::Instance(), &serve_apis);
+                auto serve =
+                    ServeApi::Create(*serve_config, &storage, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
                 return serve_server->Run(*serve_config,
                                          StorageConfig::Instance(),
-                                         Storage::Instance(),
+                                         storage,
                                          serve,
                                          serve_apis,
                                          with_execute)
@@ -876,7 +877,7 @@ auto main(int argc, char* argv[]) -> int {
             std::exit(kExitFailure);
         }
         ApiBundle const main_apis{&StorageConfig::Instance(),
-                                  &Storage::Instance(),
+                                  &storage,
                                   &repo_config,
                                   &*auth_config,
                                   RemoteExecutionConfig::RemoteAddress()};
@@ -905,8 +906,7 @@ auto main(int argc, char* argv[]) -> int {
                        : kExitFailure;
         }
         if (arguments.cmd == SubCommand::kAddToCas) {
-            return AddArtifactsToCas(
-                       arguments.to_add, Storage::Instance(), main_apis)
+            return AddArtifactsToCas(arguments.to_add, storage, main_apis)
                        ? kExitSuccess
                        : kExitFailure;
         }
@@ -917,7 +917,7 @@ auto main(int argc, char* argv[]) -> int {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
         std::optional<ServeApi> serve =
-            ServeApi::Create(*serve_config, &Storage::Instance(), &main_apis);
+            ServeApi::Create(*serve_config, &storage, &main_apis);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -993,7 +993,7 @@ auto main(int argc, char* argv[]) -> int {
             // create progress tracker for export targets
             Progress exports_progress{};
             AnalyseContext analyse_ctx{.repo_config = &repo_config,
-                                       .storage = &Storage::Instance(),
+                                       .storage = &storage,
                                        .statistics = &stats,
                                        .progress = &exports_progress,
                                        .serve = serve ? &*serve : nullptr};
@@ -1095,7 +1095,7 @@ auto main(int argc, char* argv[]) -> int {
                         jobs,
                         main_apis,
                         arguments.tc.target_cache_write_strategy,
-                        Storage::Instance().TargetCache(),
+                        storage.TargetCache(),
                         nullptr,
                         arguments.serve.remote_serve_address
                             ? LogLevel::Performance
