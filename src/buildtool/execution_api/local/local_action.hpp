@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>  // std::move
 #include <vector>
 
@@ -29,6 +30,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 class LocalApi;
 
@@ -46,6 +48,8 @@ class LocalAction final : public IExecutionAction {
         std::variant<bazel_re::OutputFile, bazel_re::OutputSymlink>;
     using OutputDirOrSymlink =
         std::variant<bazel_re::OutputDirectory, bazel_re::OutputSymlink>;
+
+    using FileCopies = std::unordered_map<Artifact::ObjectInfo, TmpDirPtr>;
 
     auto Execute(Logger const* logger) noexcept
         -> IExecutionResponse::Ptr final;
@@ -111,7 +115,8 @@ class LocalAction final : public IExecutionAction {
 
     [[nodiscard]] auto StageInput(
         std::filesystem::path const& target_path,
-        Artifact::ObjectInfo const& info) const noexcept -> bool;
+        Artifact::ObjectInfo const& info,
+        gsl::not_null<FileCopies*> copies) const noexcept -> bool;
 
     /// \brief Stage input artifacts and leaf trees to the execution directory.
     /// Stage artifacts and their parent directory structure from CAS to the
@@ -119,7 +124,8 @@ class LocalAction final : public IExecutionAction {
     /// \param[in] exec_path Absolute path to the execution directory.
     /// \returns Success indicator.
     [[nodiscard]] auto StageInputs(
-        std::filesystem::path const& exec_path) const noexcept -> bool;
+        std::filesystem::path const& exec_path,
+        gsl::not_null<FileCopies*> copies) const noexcept -> bool;
 
     [[nodiscard]] auto CreateDirectoryStructure(
         std::filesystem::path const& exec_path) const noexcept -> bool;

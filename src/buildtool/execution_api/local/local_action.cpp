@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <system_error>
 #include <utility>
 
 #include "src/buildtool/common/bazel_types.hpp"
@@ -183,15 +184,25 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     return std::nullopt;
 }
 
-auto LocalAction::StageInput(std::filesystem::path const& target_path,
-                             Artifact::ObjectInfo const& info) const noexcept
-    -> bool {
+auto LocalAction::StageInput(
+    std::filesystem::path const& target_path,
+    Artifact::ObjectInfo const& info,
+    gsl::not_null<LocalAction::FileCopies*> copies) const noexcept -> bool {
+    static std::string const kCopyFileName{"blob"};
+
     if (IsTreeObject(info.type)) {
         return FileSystemManager::CreateDirectory(target_path);
     }
 
-    auto blob_path =
-        storage_.CAS().BlobPath(info.digest, IsExecutableObject(info.type));
+    std::optional<std::filesystem::path> blob_path{};
+
+    if (auto lookup = copies->find(info); lookup != copies->end()) {
+        blob_path = lookup->second->GetPath() / kCopyFileName;
+    }
+    else {
+        blob_path =
+            storage_.CAS().BlobPath(info.digest, IsExecutableObject(info.type));
+    }
 
     if (not blob_path) {
         logger_.Emit(LogLevel::Error,
@@ -212,12 +223,54 @@ auto LocalAction::StageInput(std::filesystem::path const& target_path,
         return FileSystemManager::CreateSymlink(*to, target_path);
     }
 
-    return FileSystemManager::CreateDirectory(target_path.parent_path()) and
-           FileSystemManager::CreateFileHardlink(*blob_path, target_path);
+    if (not FileSystemManager::CreateDirectory(target_path.parent_path())) {
+        return false;
+    }
+    auto res = FileSystemManager::CreateFileHardlink(
+        *blob_path, target_path, LogLevel::Debug);
+    if (res) {
+        return true;
+    }
+    if (res.error() != std::errc::too_many_links) {
+        logger_.Emit(LogLevel::Warning,
+                     "Failed to link {} to {}: {}, {}",
+                     nlohmann::json(blob_path->string()).dump(),
+                     nlohmann::json(target_path.string()).dump(),
+                     res.error().value(),
+                     res.error().message());
+        return false;
+    }
+    TmpDirPtr new_copy_dir = storage_config_.CreateTypedTmpDir("blob-copy");
+    if (new_copy_dir == nullptr) {
+        logger_.Emit(LogLevel::Warning,
+                     "Failed to create a temporary directory for a blob copy");
+        return false;
+    }
+    auto new_copy = new_copy_dir->GetPath() / kCopyFileName;
+    if (not FileSystemManager::CopyFile(
+            *blob_path, new_copy, IsExecutableObject(info.type))) {
+        logger_.Emit(LogLevel::Warning,
+                     "Failed to create a copy of {}",
+                     info.ToString());
+        return false;
+    }
+    if (not FileSystemManager::CreateFileHardlinkAs<true>(
+            new_copy, target_path, info.type)) {
+        return false;
+    }
+    try {
+        copies->insert_or_assign(info, new_copy_dir);
+    } catch (std::exception const& e) {
+        logger_.Emit(LogLevel::Warning,
+                     "Failed to update temp-copies map (continuing anyway): {}",
+                     e.what());
+    }
+    return true;
 }
 
 auto LocalAction::StageInputs(
-    std::filesystem::path const& exec_path) const noexcept -> bool {
+    std::filesystem::path const& exec_path,
+    gsl::not_null<LocalAction::FileCopies*> copies) const noexcept -> bool {
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
@@ -228,7 +281,7 @@ auto LocalAction::StageInputs(
         return false;
     }
     for (std::size_t i{}; i < result->paths.size(); ++i) {
-        if (not StageInput(result->paths.at(i), result->infos.at(i))) {
+        if (not StageInput(result->paths.at(i), result->infos.at(i), copies)) {
             return false;
         }
     }
@@ -250,10 +303,13 @@ auto LocalAction::CreateDirectoryStructure(
     }
 
     // stage inputs (files, leaf trees) to execution directory
-    if (not StageInputs(exec_path)) {
-        logger_.Emit(LogLevel::Error,
-                     "failed to stage input files to exec_path");
-        return false;
+    {
+        LocalAction::FileCopies copies{};
+        if (not StageInputs(exec_path, &copies)) {
+            logger_.Emit(LogLevel::Error,
+                         "failed to stage input files to exec_path");
+            return false;
+        }
     }
 
     // create output paths
