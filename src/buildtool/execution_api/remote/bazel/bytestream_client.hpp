@@ -80,7 +80,7 @@ class ByteStreamClient {
         }
     };
 
-    ByteStreamClient(std::string const& server, Port port) noexcept {
+    explicit ByteStreamClient(std::string const& server, Port port) noexcept {
         stub_ = google::bytestream::ByteStream::NewStub(
             CreateChannelWithCredentials(server, port));
     }

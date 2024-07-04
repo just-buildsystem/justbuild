@@ -32,14 +32,14 @@
 
 class AnalysedTarget {
   public:
-    AnalysedTarget(TargetResult result,
-                   std::vector<ActionDescription::Ptr> actions,
-                   std::vector<std::string> blobs,
-                   std::vector<Tree::Ptr> trees,
-                   std::unordered_set<std::string> vars,
-                   std::set<std::string> tainted,
-                   std::set<std::string> implied_export_targets,
-                   TargetGraphInformation graph_information)
+    explicit AnalysedTarget(TargetResult result,
+                            std::vector<ActionDescription::Ptr> actions,
+                            std::vector<std::string> blobs,
+                            std::vector<Tree::Ptr> trees,
+                            std::unordered_set<std::string> vars,
+                            std::set<std::string> tainted,
+                            std::set<std::string> implied_export_targets,
+                            TargetGraphInformation graph_information)
         : result_{std::move(result)},
           actions_{std::move(actions)},
           blobs_{std::move(blobs)},

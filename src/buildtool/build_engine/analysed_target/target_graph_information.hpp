@@ -25,7 +25,7 @@
 
 class TargetGraphInformation {
   public:
-    TargetGraphInformation(
+    explicit TargetGraphInformation(
         BuildMaps::Target::ConfiguredTargetPtr node,
         std::vector<BuildMaps::Target::ConfiguredTargetPtr> direct,
         std::vector<BuildMaps::Target::ConfiguredTargetPtr> implicit,

@@ -67,13 +67,14 @@ class LocalAction final : public IExecutionAction {
     std::chrono::milliseconds timeout_{kDefaultTimeout};
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
-    LocalAction(gsl::not_null<Storage const*> const& storage,
-                ArtifactDigest root_digest,
-                std::vector<std::string> command,
-                std::vector<std::string> output_files,
-                std::vector<std::string> output_dirs,
-                std::map<std::string, std::string> env_vars,
-                std::map<std::string, std::string> const& properties) noexcept
+    explicit LocalAction(
+        gsl::not_null<Storage const*> const& storage,
+        ArtifactDigest root_digest,
+        std::vector<std::string> command,
+        std::vector<std::string> output_files,
+        std::vector<std::string> output_dirs,
+        std::map<std::string, std::string> env_vars,
+        std::map<std::string, std::string> const& properties) noexcept
         : storage_{storage},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},

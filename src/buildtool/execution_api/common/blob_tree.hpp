@@ -33,7 +33,7 @@ using BlobTreePtr = gsl::not_null<std::shared_ptr<BlobTree>>;
 /// upload.
 class BlobTree {
   public:
-    BlobTree(ArtifactBlob blob, std::vector<BlobTreePtr> nodes)
+    explicit BlobTree(ArtifactBlob blob, std::vector<BlobTreePtr> nodes)
         : blob_{std::move(blob)}, nodes_{std::move(nodes)} {}
 
     [[nodiscard]] auto Blob() const noexcept -> ArtifactBlob { return blob_; }

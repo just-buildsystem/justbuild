@@ -46,10 +46,10 @@ concept Runnable = requires(T const r,
 template <Runnable Executor>
 class Traverser {
   public:
-    Traverser(Executor const& r,
-              DependencyGraph const& graph,
-              std::size_t jobs,
-              gsl::not_null<std::atomic<bool>*> const& fail_flag)
+    explicit Traverser(Executor const& r,
+                       DependencyGraph const& graph,
+                       std::size_t jobs,
+                       gsl::not_null<std::atomic<bool>*> const& fail_flag)
         : runner_{r}, graph_{graph}, failed_{fail_flag}, tasker_{jobs} {}
     Traverser() = delete;
     Traverser(Traverser const&) = delete;

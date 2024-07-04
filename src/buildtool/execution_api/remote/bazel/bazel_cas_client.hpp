@@ -37,7 +37,7 @@
 /// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L317
 class BazelCasClient {
   public:
-    BazelCasClient(std::string const& server, Port port) noexcept;
+    explicit BazelCasClient(std::string const& server, Port port) noexcept;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance

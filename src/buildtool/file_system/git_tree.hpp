@@ -99,10 +99,10 @@ class GitTree {
     // If set, ignore all fast tree lookups and always traverse.
     bool ignore_special_;
 
-    GitTree(gsl::not_null<GitCASPtr> const& cas,
-            entries_t&& entries,
-            std::string raw_id,
-            bool ignore_special = false) noexcept
+    explicit GitTree(gsl::not_null<GitCASPtr> const& cas,
+                     entries_t&& entries,
+                     std::string raw_id,
+                     bool ignore_special = false) noexcept
         : cas_{cas},
           entries_{std::move(entries)},
           raw_id_{std::move(raw_id)},

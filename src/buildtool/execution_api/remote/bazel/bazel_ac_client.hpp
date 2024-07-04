@@ -31,7 +31,7 @@
 /// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L144
 class BazelAcClient {
   public:
-    BazelAcClient(std::string const& server, Port port) noexcept;
+    explicit BazelAcClient(std::string const& server, Port port) noexcept;
 
     [[nodiscard]] auto GetActionResult(
         std::string const& instance_name,

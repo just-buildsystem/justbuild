@@ -70,9 +70,9 @@ class BazelResponse final : public IExecutionResponse {
     DirSymlinks dir_symlinks_{};
     bool populated_{false};
 
-    BazelResponse(std::string action_id,
-                  std::shared_ptr<BazelNetwork> network,
-                  BazelExecutionClient::ExecutionOutput output)
+    explicit BazelResponse(std::string action_id,
+                           std::shared_ptr<BazelNetwork> network,
+                           BazelExecutionClient::ExecutionOutput output)
         : action_id_{std::move(action_id)},
           network_{std::move(network)},
           output_{std::move(output)} {}

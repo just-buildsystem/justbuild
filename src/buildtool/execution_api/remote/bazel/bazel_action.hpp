@@ -50,13 +50,14 @@ class BazelAction final : public IExecutionAction {
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
     std::chrono::milliseconds timeout_{kDefaultTimeout};
 
-    BazelAction(std::shared_ptr<BazelNetwork> network,
-                bazel_re::Digest root_digest,
-                std::vector<std::string> command,
-                std::vector<std::string> output_files,
-                std::vector<std::string> output_dirs,
-                std::map<std::string, std::string> const& env_vars,
-                std::map<std::string, std::string> const& properties) noexcept;
+    explicit BazelAction(
+        std::shared_ptr<BazelNetwork> network,
+        bazel_re::Digest root_digest,
+        std::vector<std::string> command,
+        std::vector<std::string> output_files,
+        std::vector<std::string> output_dirs,
+        std::map<std::string, std::string> const& env_vars,
+        std::map<std::string, std::string> const& properties) noexcept;
 
     [[nodiscard]] auto CreateBundlesForAction(BazelBlobContainer* blobs,
                                               bazel_re::Digest const& exec_dir,

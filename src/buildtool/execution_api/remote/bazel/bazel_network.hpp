@@ -35,10 +35,10 @@
 /// \brief Contains all network clients and is responsible for all network IO.
 class BazelNetwork {
   public:
-    BazelNetwork(std::string instance_name,
-                 std::string const& host,
-                 Port port,
-                 ExecutionConfiguration const& exec_config) noexcept;
+    explicit BazelNetwork(std::string instance_name,
+                          std::string const& host,
+                          Port port,
+                          ExecutionConfiguration const& exec_config) noexcept;
 
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up

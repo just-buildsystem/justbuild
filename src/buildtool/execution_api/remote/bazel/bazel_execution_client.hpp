@@ -54,7 +54,8 @@ class BazelExecutionClient {
         }
     };
 
-    BazelExecutionClient(std::string const& server, Port port) noexcept;
+    explicit BazelExecutionClient(std::string const& server,
+                                  Port port) noexcept;
 
     [[nodiscard]] auto Execute(std::string const& instance_name,
                                bazel_re::Digest const& action_digest,
