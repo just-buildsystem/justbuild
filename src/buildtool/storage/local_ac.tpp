@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_TPP
 
+#include <tuple>  //std::ignore
+
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
@@ -38,8 +40,7 @@ auto LocalAC<kDoGlobalUplink>::CachedResult(bazel_re::Digest const& action_id)
 
     if constexpr (kDoGlobalUplink) {
         // Uplink any existing action-cache entries in storage generations
-        [[maybe_unused]] bool found =
-            GarbageCollector::GlobalUplinkActionCacheEntry(action_id);
+        std::ignore = uplinker_.UplinkActionCacheEntry(action_id);
     }
 
     auto const entry =

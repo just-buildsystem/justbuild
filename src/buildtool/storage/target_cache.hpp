@@ -35,13 +35,14 @@
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
+#include "src/buildtool/storage/uplinker.hpp"
 #include "src/utils/cpp/gsl.hpp"
 
 /// \brief The high-level target cache for storing export target's data.
-/// Supports global uplinking across all generations using the garbage
-/// collector. The uplink is automatically performed for every entry that is
-/// read and already exists in an older generation.
-/// \tparam kDoGlobalUplink     Enable global uplinking via garbage collector.
+/// Supports global uplinking across all generations. The uplink is
+/// automatically performed for every entry that is read and already exists in
+/// an older generation.
+/// \tparam kDoGlobalUplink     Enable global uplinking.
 template <bool kDoGlobalUplink>
 class TargetCache {
   public:
@@ -54,9 +55,11 @@ class TargetCache {
 
     explicit TargetCache(
         gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
-        GenerationConfig const& config)
+        GenerationConfig const& config,
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
         : cas_{*cas},
           file_store_{config.target_cache / ComputeShard()},
+          uplinker_{*uplinker},
           explicit_shard_{std::nullopt} {
         if constexpr (kDoGlobalUplink) {
             // write backend description (shard) to CAS
@@ -133,6 +136,7 @@ class TargetCache {
                 kStoreMode,
                 /*kSetEpochTime=*/false>
         file_store_;
+    Uplinker<kDoGlobalUplink> const& uplinker_;
     std::optional<std::string> explicit_shard_{std::nullopt};
 
     explicit TargetCache(TargetCache const& other,
@@ -140,6 +144,7 @@ class TargetCache {
         : cas_{other.cas_},
           file_store_{other.file_store_.StorageRoot().parent_path() /
                       explicit_shard},
+          uplinker_{other.uplinker_},
           explicit_shard_{explicit_shard} {}
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>

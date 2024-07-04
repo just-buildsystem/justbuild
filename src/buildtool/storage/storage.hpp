@@ -28,26 +28,28 @@
 #include "src/buildtool/storage/local_ac.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/uplinker.hpp"
 
 /// \brief The local storage for accessing CAS and caches.
 /// Maintains an instance of LocalCAS, LocalAC, TargetCache. Supports global
-/// uplinking across all generations using the garbage collector. The uplink is
-/// automatically performed by the affected storage instance (CAS, action cache,
-/// target cache).
-/// \tparam kDoGlobalUplink     Enable global uplinking via garbage collector.
+/// uplinking across all generations. The uplink is automatically performed by
+/// the affected storage instance (CAS, action cache, target cache).
+/// \tparam kDoGlobalUplink     Enable global uplinking.
 template <bool kDoGlobalUplink>
 class LocalStorage {
   public:
     static constexpr std::size_t kYoungest = 0U;
 
+    using Uplinker_t = Uplinker<kDoGlobalUplink>;
     using CAS_t = LocalCAS<kDoGlobalUplink>;
     using AC_t = LocalAC<kDoGlobalUplink>;
     using TC_t = ::TargetCache<kDoGlobalUplink>;
 
     explicit LocalStorage(GenerationConfig const& config)
-        : cas_{std::make_shared<CAS_t>(config)},
-          ac_{std::make_shared<AC_t>(&*cas_, config)},
-          tc_{std::make_shared<TC_t>(&*cas_, config)} {}
+        : uplinker_{std::make_shared<Uplinker_t>(config.storage_config)},
+          cas_{std::make_shared<CAS_t>(config, &*uplinker_)},
+          ac_{std::make_shared<AC_t>(&*cas_, config, &*uplinker_)},
+          tc_{std::make_shared<TC_t>(&*cas_, config, &*uplinker_)} {}
 
     /// \brief Get the CAS instance.
     [[nodiscard]] auto CAS() const noexcept -> CAS_t const& { return *cas_; }
@@ -63,13 +65,14 @@ class LocalStorage {
     }
 
   private:
+    std::shared_ptr<Uplinker_t const> uplinker_;
     std::shared_ptr<CAS_t const> cas_;
     std::shared_ptr<AC_t const> ac_;
     std::shared_ptr<TC_t const> tc_;
 };
 
 #ifdef BOOTSTRAP_BUILD_TOOL
-// disable global uplinking (via garbage collector) for global storage singleton
+// disable global uplinking
 constexpr auto kDefaultDoGlobalUplink = false;
 #else
 constexpr auto kDefaultDoGlobalUplink = true;
@@ -90,22 +93,9 @@ class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
         return GetStorage();
     }
 
-    /// \brief Get specific storage generation.
-    /// Number of generations is read from \ref
-    /// StorageConfig::Instance().NumGenerations().
-    /// \param index    the generation index (0 is latest).
-    /// \returns The specific storage generation.
-    [[nodiscard]] static auto Generation(std::size_t index) noexcept
-        -> ::Generation const& {
-        return GetGenerations()[index];
-    }
-
     /// \brief Reinitialize storage instance and generations.
     /// Use if global \ref StorageConfig was changed. Not thread-safe!
-    static void Reinitialize() noexcept {
-        GetStorage() = CreateStorage();
-        GetGenerations() = CreateGenerations();
-    }
+    static void Reinitialize() noexcept { GetStorage() = CreateStorage(); }
 
   private:
     using LocalStorage<kDefaultDoGlobalUplink>::LocalStorage;
@@ -116,28 +106,9 @@ class Storage : public LocalStorage<kDefaultDoGlobalUplink> {
         return Storage{gen_config};
     }
 
-    [[nodiscard]] static auto CreateGenerations() noexcept
-        -> std::vector<::Generation> {
-        auto count = StorageConfig::Instance().NumGenerations();
-        std::vector<::Generation> generations{};
-        generations.reserve(count);
-        for (std::size_t i = 0; i < count; ++i) {
-            auto gen_config =
-                StorageConfig::Instance().CreateGenerationConfig(i);
-            generations.emplace_back(gen_config);
-        }
-        return generations;
-    }
-
     [[nodiscard]] static auto GetStorage() noexcept -> Storage& {
         static auto instance = CreateStorage();
         return instance;
-    }
-
-    [[nodiscard]] static auto GetGenerations() noexcept
-        -> std::vector<::Generation>& {
-        static auto generations = CreateGenerations();
-        return generations;
     }
 };
 

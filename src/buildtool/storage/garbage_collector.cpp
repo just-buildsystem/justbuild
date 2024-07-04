@@ -16,27 +16,19 @@
 
 #include "src/buildtool/storage/garbage_collector.hpp"
 
-#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
-#include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/compactifier.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/storage/target_cache_entry.hpp"
-#include "src/utils/cpp/hex_string.hpp"
 
 namespace {
 
@@ -58,87 +50,6 @@ auto RemoveDirs(const std::vector<std::filesystem::path>& directories) -> bool {
 }
 
 }  // namespace
-
-auto GarbageCollector::GlobalUplinkBlob(bazel_re::Digest const& digest,
-                                        bool is_executable) noexcept -> bool {
-    // Try to find blob in all generations.
-    auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
-         ++i) {
-        // Note that we uplink with _skip_sync_ as we want to prefer hard links
-        // from older generations over copies from the companion file/exec CAS.
-        if (Storage::Generation(i).CAS().LocalUplinkBlob(
-                latest_cas,
-                digest,
-                is_executable,
-                /*skip_sync=*/true,
-                /*splice_result=*/true)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-auto GarbageCollector::GlobalUplinkLargeBlob(
-    bazel_re::Digest const& digest) noexcept -> bool {
-    // Try to find large entry in all generations.
-    auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
-         ++i) {
-        if (Storage::Generation(i)
-                .CAS()
-                .LocalUplinkLargeObject<ObjectType::File>(latest_cas, digest)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-auto GarbageCollector::GlobalUplinkTree(bazel_re::Digest const& digest) noexcept
-    -> bool {
-    // Try to find tree in all generations.
-    auto const& latest_cas = Storage::Generation(0).CAS();
-    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
-         ++i) {
-        if (Storage::Generation(i).CAS().LocalUplinkTree(
-                latest_cas, digest, /*splice_result=*/true)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-auto GarbageCollector::GlobalUplinkActionCacheEntry(
-    bazel_re::Digest const& action_id) noexcept -> bool {
-    // Try to find action-cache entry in all generations.
-    auto const& latest_ac = Storage::Generation(0).ActionCache();
-    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
-         ++i) {
-        if (Storage::Generation(i).ActionCache().LocalUplinkEntry(latest_ac,
-                                                                  action_id)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-auto GarbageCollector::GlobalUplinkTargetCacheEntry(
-    TargetCacheKey const& key,
-    std::optional<std::string> const& shard) noexcept -> bool {
-    // Try to find target-cache entry in all generations.
-    auto const& latest_tc =
-        Storage::Generation(0).TargetCache().WithShard(shard);
-    for (std::size_t i = 0; i < StorageConfig::Instance().NumGenerations();
-         ++i) {
-        if (Storage::Generation(i)
-                .TargetCache()
-                .WithShard(shard)
-                .LocalUplinkEntry(latest_tc, key)) {
-            return true;
-        }
-    }
-    return false;
-}
 
 auto GarbageCollector::SharedLock(StorageConfig const& storage_config) noexcept
     -> std::optional<LockFile> {

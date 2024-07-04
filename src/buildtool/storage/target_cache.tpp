@@ -16,10 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_TPP
 
 #include <exception>
+#include <tuple>  //std::ignore
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
 template <bool kDoGlobalUplink>
@@ -78,9 +78,7 @@ auto TargetCache<kDoGlobalUplink>::Read(
 
     if constexpr (kDoGlobalUplink) {
         // Uplink any existing target cache entry in storage generations
-        [[maybe_unused]] auto found =
-            GarbageCollector::GlobalUplinkTargetCacheEntry(key,
-                                                           explicit_shard_);
+        std::ignore = uplinker_.UplinkTargetCacheEntry(key, explicit_shard_);
     }
 
     auto const entry =

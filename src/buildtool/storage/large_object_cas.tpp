@@ -26,7 +26,6 @@
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
@@ -45,8 +44,8 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
         // trees is used:
         bool uplinked =
             IsTreeObject(kType) and not Compatibility::IsCompatible()
-                ? GarbageCollector::GlobalUplinkTree(digest)
-                : GarbageCollector::GlobalUplinkLargeBlob(digest);
+                ? uplinker_.UplinkTree(digest)
+                : uplinker_.UplinkLargeBlob(digest);
         if (uplinked and FileSystemManager::IsFile(file_path)) {
             return file_path;
         }

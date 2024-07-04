@@ -25,6 +25,7 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/uplinker.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -98,11 +99,14 @@ class LargeObjectCAS final {
   public:
     explicit LargeObjectCAS(
         gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& local_cas,
-        GenerationConfig const& config) noexcept
+        GenerationConfig const& config,
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const&
+            uplinker) noexcept
         : local_cas_(*local_cas),
+          storage_config_{*config.storage_config},
+          uplinker_{*uplinker},
           file_store_(IsTreeObject(kType) ? config.cas_large_t
-                                          : config.cas_large_f),
-          storage_config_{*config.storage_config} {}
+                                          : config.cas_large_f) {}
 
     LargeObjectCAS(LargeObjectCAS const&) = delete;
     LargeObjectCAS(LargeObjectCAS&&) = delete;
@@ -172,6 +176,7 @@ class LargeObjectCAS final {
 
     LocalCAS<kDoGlobalUplink> const& local_cas_;
     StorageConfig const& storage_config_;
+    Uplinker<kDoGlobalUplink> const& uplinker_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
 

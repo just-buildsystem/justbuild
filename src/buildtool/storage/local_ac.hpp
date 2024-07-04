@@ -23,8 +23,8 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
+#include "src/buildtool/storage/uplinker.hpp"
 
 // forward declarations
 namespace build::bazel::remote::execution::v2 {
@@ -34,10 +34,10 @@ class ActionResult;
 namespace bazel_re = build::bazel::remote::execution::v2;
 
 /// \brief The action cache for storing action results.
-/// Supports global uplinking across all generations using the garbage
-/// collector. The uplink is automatically performed for every entry that is
-/// read and already exists in an older generation.
-/// \tparam kDoGlobalUplink     Enable global uplinking via garbage collector.
+/// Supports global uplinking across all generations. The uplink is
+/// automatically performed for every entry that is read and already exists in
+/// an older generation.
+/// \tparam kDoGlobalUplink     Enable global uplinking.
 template <bool kDoGlobalUplink>
 class LocalAC {
   public:
@@ -45,8 +45,10 @@ class LocalAC {
     using LocalGenerationAC = LocalAC</*kDoGlobalUplink=*/false>;
 
     explicit LocalAC(gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
-                     GenerationConfig const& config) noexcept
-        : cas_{*cas}, file_store_{config.action_cache} {};
+                     GenerationConfig const& config,
+                     gsl::not_null<Uplinker<kDoGlobalUplink> const*> const&
+                         uplinker) noexcept
+        : cas_{*cas}, file_store_{config.action_cache}, uplinker_{*uplinker} {};
 
     LocalAC(LocalAC const&) = default;
     LocalAC(LocalAC&&) noexcept = default;
@@ -92,6 +94,7 @@ class LocalAC {
     LocalCAS<kDoGlobalUplink> const& cas_;
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
+    Uplinker<kDoGlobalUplink> const& uplinker_;
 
     [[nodiscard]] auto ReadResult(bazel_re::Digest const& digest) const noexcept
         -> std::optional<bazel_re::ActionResult>;

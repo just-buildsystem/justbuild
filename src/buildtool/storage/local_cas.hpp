@@ -24,17 +24,17 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
+#include "src/buildtool/storage/uplinker.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 /// \brief The local (logical) CAS for storing blobs and trees.
 /// Blobs can be stored/queried as executable or non-executable. Trees might be
 /// treated differently depending on the compatibility mode. Supports global
-/// uplinking across all generations using the garbage collector. The uplink
-/// is automatically performed for every entry that is read and every entry that
-/// is stored and already exists in an older generation.
-/// \tparam kDoGlobalUplink     Enable global uplinking via garbage collector.
+/// uplinking across all generations. The uplink is automatically performed for
+/// every entry that is read and every entry that is stored and already exists
+/// in an older generation.
+/// \tparam kDoGlobalUplink     Enable global uplinking.
 template <bool kDoGlobalUplink>
 class LocalCAS {
   public:
@@ -45,12 +45,15 @@ class LocalCAS {
     /// Note that the base path is concatenated by a single character
     /// 'f'/'x'/'t' for each internally used physical CAS.
     /// \param base     The base path for the CAS.
-    explicit LocalCAS(GenerationConfig const& config)
-        : cas_file_{config.cas_f, Uplinker<ObjectType::File>()},
-          cas_exec_{config.cas_x, Uplinker<ObjectType::Executable>()},
-          cas_tree_{config.cas_t, Uplinker<ObjectType::Tree>()},
-          cas_file_large_{this, config},
-          cas_tree_large_{this, config} {}
+    explicit LocalCAS(
+        GenerationConfig const& config,
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
+        : cas_file_{config.cas_f, MakeUplinker<ObjectType::File>(uplinker)},
+          cas_exec_{config.cas_x,
+                    MakeUplinker<ObjectType::Executable>(uplinker)},
+          cas_tree_{config.cas_t, MakeUplinker<ObjectType::Tree>(uplinker)},
+          cas_file_large_{this, config, uplinker},
+          cas_tree_large_{this, config, uplinker} {}
 
     /// \brief Obtain path to the storage root.
     /// \param type             Type of the storage to be obtained.
@@ -260,19 +263,19 @@ class LocalCAS {
 
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>
-    [[nodiscard]] static auto Uplinker() ->
+    [[nodiscard]] static auto MakeUplinker(
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker) ->
         typename ObjectCAS<kType>::ExistsFunc {
         if constexpr (kDoGlobalUplink) {
-            return [](auto digest, auto /*path*/) {
-                if (not Compatibility::IsCompatible()) {
+            return [uplinker](auto const& digest, auto const& /*path*/) {
+                if constexpr (IsTreeObject(kType)) {
                     // in non-compatible mode, do explicit deep tree uplink
-                    if constexpr (IsTreeObject(kType)) {
-                        return GarbageCollector::GlobalUplinkTree(digest);
+                    // in compatible mode, treat all trees as blobs
+                    if (not Compatibility::IsCompatible()) {
+                        return uplinker->UplinkTree(digest);
                     }
                 }
-                // in compatible mode, treat all trees as blobs
-                return GarbageCollector::GlobalUplinkBlob(
-                    digest, IsExecutableObject(kType));
+                return uplinker->UplinkBlob(digest, IsExecutableObject(kType));
             };
         }
         return ObjectCAS<kType>::kDefaultExists;

@@ -188,9 +188,11 @@ static void TestLarge() noexcept {
             CHECK_FALSE(FileSystemManager::IsFile(path));
 
             // Call split with disabled uplinking:
-            auto pack_3 = kIsTree
-                              ? Storage::Generation(0).CAS().SplitTree(digest)
-                              : Storage::Generation(0).CAS().SplitBlob(digest);
+            auto gen_config =
+                StorageConfig::Instance().CreateGenerationConfig(0);
+            ::Generation youngest_storage{gen_config};
+            auto pack_3 = kIsTree ? youngest_storage.CAS().SplitTree(digest)
+                                  : youngest_storage.CAS().SplitBlob(digest);
             REQUIRE(pack_3);
             CHECK(pack_3->size() == pack_1->size());
 
@@ -198,10 +200,12 @@ static void TestLarge() noexcept {
             for (std::size_t i = 0;
                  i < StorageConfig::Instance().NumGenerations();
                  ++i) {
+                auto gen_config1 =
+                    StorageConfig::Instance().CreateGenerationConfig(i);
+                ::Generation storage{gen_config1};
                 auto generation_path =
-                    kIsTree ? Storage::Generation(i).CAS().TreePath(digest)
-                            : Storage::Generation(i).CAS().BlobPath(digest,
-                                                                    kIsExec);
+                    kIsTree ? storage.CAS().TreePath(digest)
+                            : storage.CAS().BlobPath(digest, kIsExec);
                 REQUIRE_FALSE(generation_path);
             }
         }
@@ -350,7 +354,8 @@ static void TestExternal() noexcept {
             REQUIRE(cas.BlobPath(part, is_executable));
         }
 
-        auto const& youngest = Storage::Generation(0).CAS();
+        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
+        ::Generation const youngest{gen_config};
 
         SECTION("Proper request") {
             if constexpr (kIsTree) {
@@ -362,9 +367,9 @@ static void TestExternal() noexcept {
             REQUIRE_FALSE(FileSystemManager::IsFile(path));
 
             // Reconstruct the result from parts:
-            std::ignore = kIsTree
-                              ? youngest.SpliceTree(digest, *pack_1)
-                              : youngest.SpliceBlob(digest, *pack_1, kIsExec);
+            std::ignore =
+                kIsTree ? youngest.CAS().SpliceTree(digest, *pack_1)
+                        : youngest.CAS().SpliceBlob(digest, *pack_1, kIsExec);
             CHECK(FileSystemManager::IsFile(path));
         }
 
@@ -390,8 +395,9 @@ static void TestExternal() noexcept {
             // Invalidation is simulated by reconstructing the small_digest
             // object from the parts of the initial object:
             auto splice =
-                kIsTree ? youngest.SpliceTree(small_digest, *pack_1)
-                        : youngest.SpliceBlob(small_digest, *pack_1, kIsExec);
+                kIsTree
+                    ? youngest.CAS().SpliceTree(small_digest, *pack_1)
+                    : youngest.CAS().SpliceBlob(small_digest, *pack_1, kIsExec);
             REQUIRE_FALSE(splice);
             CHECK(splice.error().Code() == LargeObjectErrorCode::InvalidResult);
 
@@ -402,7 +408,7 @@ static void TestExternal() noexcept {
         if constexpr (kIsTree) {
             SECTION("Tree invariants check fails") {
                 // Check splice fails due to the tree invariants check.
-                auto splice = youngest.SpliceTree(digest, *pack_1);
+                auto splice = youngest.CAS().SpliceTree(digest, *pack_1);
                 REQUIRE_FALSE(splice);
                 CHECK(splice.error().Code() ==
                       LargeObjectErrorCode::InvalidTree);
@@ -464,9 +470,11 @@ static void TestCompactification() {
                            : cas.BlobPath(digest, kIsExec);
         };
 
-        auto const& latest = Storage::Generation(0).CAS();
-        REQUIRE(get_path(latest, digest).has_value());
-        REQUIRE(get_path(latest, digest_2).has_value());
+        auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
+        ::Generation const latest{gen_config};
+
+        REQUIRE(get_path(latest.CAS(), digest).has_value());
+        REQUIRE(get_path(latest.CAS(), digest_2).has_value());
         REQUIRE(FileSystemManager::IsFile(*unique_path));
 
         // Compactify the youngest generation:
@@ -477,8 +485,8 @@ static void TestCompactification() {
 
         // All entries must be deleted during compactification, and for blobs
         // and executables there are no synchronized entries in the storage:
-        REQUIRE_FALSE(get_path(latest, digest).has_value());
-        REQUIRE_FALSE(get_path(latest, digest_2).has_value());
+        REQUIRE_FALSE(get_path(latest.CAS(), digest).has_value());
+        REQUIRE_FALSE(get_path(latest.CAS(), digest_2).has_value());
         REQUIRE_FALSE(FileSystemManager::IsFile(*unique_path));
 
         // All valid entries must be implicitly spliceable:
@@ -593,20 +601,23 @@ TEST_CASE_METHOD(HermeticLocalTestFixture,
     CHECK_FALSE(FileSystemManager::IsFile(*nested_tree_path));
     CHECK_FALSE(FileSystemManager::IsFile(*nested_blob_path));
 
-    auto const& latest_cas = Storage::Generation(0).CAS();
+    auto gen_config = StorageConfig::Instance().CreateGenerationConfig(0);
+    ::Generation const latest{gen_config};
 
     // However, they might be reconstructed on request because there entries are
     // in the latest generation:
-    auto split_nested_tree_2 = latest_cas.SplitTree(*nested_tree_digest);
+    auto split_nested_tree_2 = latest.CAS().SplitTree(*nested_tree_digest);
     REQUIRE(split_nested_tree_2);
 
-    auto split_nested_blob_2 = latest_cas.SplitBlob(*nested_blob_digest);
+    auto split_nested_blob_2 = latest.CAS().SplitBlob(*nested_blob_digest);
     REQUIRE(split_nested_blob_2);
 
     // Check there are no spliced results in old generations:
     for (std::size_t i = 1; i < StorageConfig::Instance().NumGenerations();
          ++i) {
-        auto const& generation_cas = Storage::Generation(i).CAS();
+        auto gen_config1 = StorageConfig::Instance().CreateGenerationConfig(i);
+        ::Generation storage{gen_config1};
+        auto const& generation_cas = storage.CAS();
         REQUIRE_FALSE(generation_cas.TreePath(*nested_tree_digest));
         REQUIRE_FALSE(generation_cas.TreePath(*large_tree_digest));
         REQUIRE_FALSE(generation_cas.BlobPath(*nested_blob_digest,

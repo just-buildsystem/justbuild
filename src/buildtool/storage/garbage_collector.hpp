@@ -23,59 +23,10 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 
-// forward declarations
-namespace build::bazel::remote::execution::v2 {
-class Digest;
-}
-namespace bazel_re = build::bazel::remote::execution::v2;
-class TargetCacheKey;
-
 /// \brief Global garbage collector implementation.
-/// Responsible for deleting oldest generation and uplinking across all
-/// generations to latest generation.
+/// Responsible for deleting oldest generation.
 class GarbageCollector {
   public:
-    /// \brief Uplink blob across LocalCASes from all generations to latest.
-    /// Note that blobs will NOT be synced between file/executable CAS.
-    /// \param digest           Digest of the blob to uplink.
-    /// \param is_executable    Indicate that blob is an executable.
-    /// \returns true if blob was found and successfully uplinked.
-    [[nodiscard]] auto static GlobalUplinkBlob(bazel_re::Digest const& digest,
-                                               bool is_executable) noexcept
-        -> bool;
-
-    /// \brief Uplink large blob entry across LocalCASes from all generations to
-    /// latest. This method does not splice the large object.
-    /// \param digest           Digest of the large blob entry to uplink.
-    /// \returns true if large entry was found and successfully uplinked.
-    [[nodiscard]] auto static GlobalUplinkLargeBlob(
-        bazel_re::Digest const& digest) noexcept -> bool;
-
-    /// \brief Uplink tree across LocalCASes from all generations to latest.
-    /// Note that the tree will be deeply uplinked, i.e., all entries referenced
-    /// by this tree will be uplinked before (including sub-trees).
-    /// \param digest   Digest of the tree to uplink.
-    /// \returns true if tree was found and successfully uplinked (deep).
-    [[nodiscard]] auto static GlobalUplinkTree(
-        bazel_re::Digest const& digest) noexcept -> bool;
-
-    /// \brief Uplink entry from action cache across all generations to latest.
-    /// Note that the entry will be uplinked including all referenced items.
-    /// \param action_id    Id of the action to uplink entry for.
-    /// \returns true if cache entry was found and successfully uplinked.
-    [[nodiscard]] auto static GlobalUplinkActionCacheEntry(
-        bazel_re::Digest const& action_id) noexcept -> bool;
-
-    /// \brief Uplink entry from target cache across all generations to latest.
-    /// Note that the entry will be uplinked including all referenced items.
-    /// \param key  Target cache key to uplink entry for.
-    /// \param shard Optional explicit shard, if the default is not intended.
-    /// \returns true if cache entry was found and successfully uplinked.
-    [[nodiscard]] auto static GlobalUplinkTargetCacheEntry(
-        TargetCacheKey const& key,
-        std::optional<std::string> const& shard = std::nullopt) noexcept
-        -> bool;
-
     /// \brief Trigger garbage collection; unless no_rotation is given, this
     /// will include rotation of generations and deleting the oldest generation.
     /// \returns true on success.
