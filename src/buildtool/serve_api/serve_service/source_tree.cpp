@@ -895,20 +895,21 @@ auto SourceTreeService::DistdirImportToGit(
     auto const& tmp_path = distdir_tmp_dir->GetPath();
     // link the CAS blobs into the tmp dir
     auto const& cas = storage_.CAS();
-    if (not std::all_of(content_list.begin(),
-                        content_list.end(),
-                        [&cas, tmp_path](auto const& kv) {
-                            auto content_path = cas.BlobPath(
-                                ArtifactDigest(
-                                    kv.second.first, 0, /*is_tree=*/false),
-                                kv.second.second);
-                            if (content_path) {
-                                return FileSystemManager::CreateFileHardlink(
-                                    *content_path,  // from: cas_path/content_id
-                                    tmp_path / kv.first);  // to: tmp_path/name
-                            }
-                            return false;
-                        })) {
+    if (not std::all_of(
+            content_list.begin(),
+            content_list.end(),
+            [&cas, tmp_path](auto const& kv) {
+                auto content_path = cas.BlobPath(
+                    ArtifactDigest(kv.second.first, 0, /*is_tree=*/false),
+                    kv.second.second);
+                if (content_path) {
+                    return FileSystemManager::CreateFileHardlink(
+                               *content_path,  // from: cas_path/content_id
+                               tmp_path / kv.first)  // to: tmp_path/name
+                        .has_value();
+                }
+                return false;
+            })) {
         logger_->Emit(LogLevel::Error,
                       "Failed to create links to CAS content {}",
                       content_id);

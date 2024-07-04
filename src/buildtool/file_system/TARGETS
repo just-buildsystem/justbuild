@@ -40,8 +40,10 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "path"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

@@ -25,7 +25,9 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <system_error>
 #include <unordered_set>
+#include <variant>
 
 #ifdef __unix__
 #include <fcntl.h>
@@ -39,10 +41,12 @@
 #endif
 
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace detail {
@@ -216,21 +220,28 @@ class FileSystemManager {
         return false;
     }
 
+    /// \brief Try to create a hard link; return unit on success and a
+    /// std::error_condition describing the failure.
     [[nodiscard]] static auto CreateFileHardlink(
         std::filesystem::path const& file_path,
         std::filesystem::path const& link_path,
-        LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
-        try {
-            std::filesystem::create_hard_link(file_path, link_path);
-            return std::filesystem::is_regular_file(link_path);
-        } catch (std::exception const& e) {
-            Logger::Log(log_failure_at,
-                        "hard linking {} to {}\n{}",
-                        file_path.string(),
-                        link_path.string(),
-                        e.what());
-            return false;
+        LogLevel log_failure_at = LogLevel::Error) noexcept
+        -> expected<std::monostate, std::error_code> {
+        std::error_code ec{};
+        std::filesystem::create_hard_link(file_path, link_path, ec);
+        if (not ec) {
+            if (std::filesystem::is_regular_file(link_path)) {
+                return std::monostate{};
+            }
+            return unexpected(std::error_code{});
         }
+        Logger::Log(log_failure_at,
+                    "failed hard linking {} to {}: {}, {}",
+                    nlohmann::json(file_path.string()).dump(),
+                    nlohmann::json(link_path.string()).dump(),
+                    ec.value(),
+                    ec.message());
+        return unexpected(ec);
     }
 
     template <ObjectType kType, bool kSetEpochTime = false>

@@ -42,19 +42,21 @@ namespace {
         content_list,
     std::filesystem::path const& tmp_dir) noexcept -> bool {
     auto const& cas = storage.CAS();
-    return std::all_of(content_list->begin(),
-                       content_list->end(),
-                       [&cas, tmp_dir](auto const& kv) {
-                           auto content_path =
-                               cas.BlobPath(ArtifactDigest(kv.second, 0, false),
-                                            /*is_executable=*/false);
-                           if (content_path) {
-                               return FileSystemManager::CreateFileHardlink(
-                                   *content_path,  // from: cas_path/content_id
-                                   tmp_dir / kv.first);  // to: tmp_dir/name
-                           }
-                           return false;
-                       });
+    return std::all_of(
+        content_list->begin(),
+        content_list->end(),
+        [&cas, tmp_dir](auto const& kv) {
+            auto content_path =
+                cas.BlobPath(ArtifactDigest(kv.second, 0, false),
+                             /*is_executable=*/false);
+            if (content_path) {
+                return FileSystemManager::CreateFileHardlink(
+                           *content_path,       // from: cas_path/content_id
+                           tmp_dir / kv.first)  // to: tmp_dir/name
+                    .has_value();
+            }
+            return false;
+        });
 }
 
 /// \brief Called once we know we have the content blobs in local CAS in order
