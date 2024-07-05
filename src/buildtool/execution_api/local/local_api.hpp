@@ -43,6 +43,7 @@
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -54,11 +55,14 @@
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
   public:
-    explicit LocalApi(gsl::not_null<StorageConfig const*> const& storage_config,
-                      gsl::not_null<Storage const*> const& storage,
-                      RepositoryConfig const* repo_config = nullptr) noexcept
+    explicit LocalApi(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalExecutionConfig const*> const& exec_config,
+        RepositoryConfig const* repo_config = nullptr) noexcept
         : storage_config_{*storage_config},
           storage_{*storage},
+          exec_config_{*exec_config},
           repo_config_{repo_config} {}
 
     [[nodiscard]] auto CreateAction(
@@ -71,6 +75,7 @@ class LocalApi final : public IExecutionApi {
         -> IExecutionAction::Ptr final {
         return IExecutionAction::Ptr{new LocalAction{&storage_config_,
                                                      &storage_,
+                                                     &exec_config_,
                                                      root_digest,
                                                      command,
                                                      output_files,
@@ -411,6 +416,7 @@ class LocalApi final : public IExecutionApi {
   private:
     StorageConfig const& storage_config_;
     Storage const& storage_;
+    LocalExecutionConfig const& exec_config_;
     RepositoryConfig const* const repo_config_ = nullptr;
 };
 

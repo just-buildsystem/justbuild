@@ -28,6 +28,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -65,6 +66,7 @@ class LocalAction final : public IExecutionAction {
     Logger logger_{"LocalExecution"};
     StorageConfig const& storage_config_;
     Storage const& storage_;
+    LocalExecutionConfig const& exec_config_;
     ArtifactDigest const root_digest_{};
     std::vector<std::string> const cmdline_{};
     std::vector<std::string> output_files_{};
@@ -77,6 +79,7 @@ class LocalAction final : public IExecutionAction {
     explicit LocalAction(
         gsl::not_null<StorageConfig const*> storage_config,
         gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalExecutionConfig const*> const& exec_config,
         ArtifactDigest root_digest,
         std::vector<std::string> command,
         std::vector<std::string> output_files,
@@ -85,6 +88,7 @@ class LocalAction final : public IExecutionAction {
         std::map<std::string, std::string> const& properties) noexcept
         : storage_config_{*storage_config},
           storage_{*storage},
+          exec_config_{*exec_config},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
           output_files_{std::move(output_files)},

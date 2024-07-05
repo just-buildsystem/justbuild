@@ -63,7 +63,10 @@ TEST_CASE("LocalExecution: No input, no output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(), &storage, &repo_config);
+    auto api = LocalApi(&storage_config.Get(),
+                        &storage,
+                        &LocalExecutionConfig::Instance(),
+                        &repo_config);
 
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
@@ -111,7 +114,10 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(), &storage, &repo_config);
+    auto api = LocalApi(&storage_config.Get(),
+                        &storage,
+                        &LocalExecutionConfig::Instance(),
+                        &repo_config);
 
     std::string test_content("test from env var");
     std::vector<std::string> const cmdline = {
@@ -162,7 +168,10 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(), &storage, &repo_config);
+    auto api = LocalApi(&storage_config.Get(),
+                        &storage,
+                        &LocalExecutionConfig::Instance(),
+                        &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -219,7 +228,10 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(), &storage, &repo_config);
+    auto api = LocalApi(&storage_config.Get(),
+                        &storage,
+                        &LocalExecutionConfig::Instance(),
+                        &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -289,7 +301,10 @@ TEST_CASE("LocalExecution: Cache failed action's result", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(), &storage, &repo_config);
+    auto api = LocalApi(&storage_config.Get(),
+                        &storage,
+                        &LocalExecutionConfig::Instance(),
+                        &repo_config);
 
     auto flag = GetTestDir() / "flag";
     std::vector<std::string> const cmdline = {

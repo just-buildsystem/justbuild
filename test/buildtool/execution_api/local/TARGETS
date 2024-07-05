@@ -25,6 +25,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["buildtool/execution_api/common", "api_test"]
     , ["utils", "test_storage_config"]

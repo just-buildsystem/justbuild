@@ -24,7 +24,6 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
@@ -166,7 +165,7 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
         return std::nullopt;
     }
 
-    auto cmdline = LocalExecutionConfig::GetLauncher();
+    auto cmdline = exec_config_.GetLauncher();
     std::copy(cmdline_.begin(), cmdline_.end(), std::back_inserter(cmdline));
 
     SystemCommand system{"LocalExecution"};

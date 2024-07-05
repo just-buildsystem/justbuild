@@ -30,6 +30,7 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "grpc", "", "grpc++"]
+    , "config"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
@@ -51,7 +52,6 @@
   , "private-deps":
     [ ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/system", "system_command"]
-    , "config"
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
