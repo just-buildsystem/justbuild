@@ -34,6 +34,7 @@
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
 
@@ -267,11 +268,12 @@ void BlobGenRuleWithDeps(
         return;
     }
 
-    auto stage = ExpressionPtr{Expression::map_t{
-        name_val->String(),
-        ExpressionPtr{ArtifactDescription::CreateKnown(
-            ArtifactDigest::Create<ObjectType::File>(data_val->String()),
-            blob_type)}}};
+    auto stage = ExpressionPtr{
+        Expression::map_t{name_val->String(),
+                          ExpressionPtr{ArtifactDescription::CreateKnown(
+                              ArtifactDigest::Create<ObjectType::File>(
+                                  HashFunction::Instance(), data_val->String()),
+                              blob_type)}}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{.artifact_stage = stage,

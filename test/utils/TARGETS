@@ -17,6 +17,7 @@
     , "test_env"
     , "test_auth_config"
     , "test_remote_config"
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -167,6 +168,7 @@
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   }
 , "TESTS":

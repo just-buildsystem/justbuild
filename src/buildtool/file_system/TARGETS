@@ -28,6 +28,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

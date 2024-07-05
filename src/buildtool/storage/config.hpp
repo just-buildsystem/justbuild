@@ -27,6 +27,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -157,6 +158,7 @@ struct StorageConfig final {
         -> std::string {
         try {
             return ArtifactDigest::Create<ObjectType::File>(
+                       HashFunction::Instance(),
                        DescribeBackend(std::nullopt, {}, {}).value())
                 .hash();
         } catch (...) {
@@ -219,8 +221,9 @@ class StorageConfig::Builder final {
         auto desc = DescribeBackend(
             remote_address_, remote_platform_properties_, remote_dispatch_);
         if (desc) {
-            backend_description_id =
-                ArtifactDigest::Create<ObjectType::File>(*desc).hash();
+            backend_description_id = ArtifactDigest::Create<ObjectType::File>(
+                                         HashFunction::Instance(), *desc)
+                                         .hash();
         }
         else {
             return unexpected{desc.error()};

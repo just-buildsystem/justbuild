@@ -15,6 +15,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/utils/cpp", "expected"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   }
@@ -81,6 +82,7 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":

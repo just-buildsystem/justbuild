@@ -27,6 +27,7 @@
 
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -184,7 +185,8 @@ template <class T>
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
+    auto digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), *content);
 
     auto msg = CreateDirectoryNode(dir_name);
     msg.set_allocated_digest(
@@ -223,7 +225,8 @@ template <class T>
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
+    auto digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), *content);
     return BazelBlob{digest, std::move(*content), /*is_exec=*/false};
 }
 
@@ -259,7 +262,8 @@ template <class T>
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
+    auto digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), *content);
     return BazelBlob{digest, std::move(*content), /*is_exec=*/false};
 }
 

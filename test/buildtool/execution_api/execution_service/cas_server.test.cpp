@@ -17,6 +17,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -57,15 +58,16 @@ TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
     auto empty_entries = GitRepo::tree_entries_t{};
     auto empty_tree = GitRepo::CreateShallowTree(empty_entries);
     REQUIRE(empty_tree);
-    auto empty_tree_digest =
-        ArtifactDigest::Create<ObjectType::Tree>(empty_tree->second);
+    auto empty_tree_digest = ArtifactDigest::Create<ObjectType::Tree>(
+        HashFunction::Instance(), empty_tree->second);
 
     // Create a tree containing the empty tree.
     auto entries = GitRepo::tree_entries_t{};
     entries[empty_tree->first].emplace_back("empty_tree", ObjectType::Tree);
     auto tree = GitRepo::CreateShallowTree(entries);
     REQUIRE(tree);
-    auto tree_digest = ArtifactDigest::Create<ObjectType::Tree>(tree->second);
+    auto tree_digest = ArtifactDigest::Create<ObjectType::Tree>(
+        HashFunction::Instance(), tree->second);
 
     // Upload tree. The tree invariant is violated, thus, a negative answer is
     // expected.

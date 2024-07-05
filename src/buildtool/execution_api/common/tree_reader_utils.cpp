@@ -19,6 +19,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -42,7 +43,8 @@ namespace {
 [[nodiscard]] auto CreateObjectInfo(bazel_re::SymlinkNode const& node)
     -> Artifact::ObjectInfo {
     return Artifact::ObjectInfo{
-        .digest = ArtifactDigest::Create<ObjectType::File>(node.target()),
+        .digest = ArtifactDigest::Create<ObjectType::File>(
+            HashFunction::Instance(), node.target()),
         .type = ObjectType::Symlink};
 }
 

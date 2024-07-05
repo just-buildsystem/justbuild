@@ -10,6 +10,7 @@
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
   }

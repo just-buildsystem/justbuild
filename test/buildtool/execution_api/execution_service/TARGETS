@@ -17,6 +17,7 @@
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "execution_service"]
   }

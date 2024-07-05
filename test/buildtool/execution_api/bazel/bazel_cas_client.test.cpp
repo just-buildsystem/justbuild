@@ -20,6 +20,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -47,7 +48,8 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
     SECTION("Valid digest and blob") {
         // digest of "test"
-        auto digest = ArtifactDigest::Create<ObjectType::File>(content);
+        auto digest = ArtifactDigest::Create<ObjectType::File>(
+            HashFunction::Instance(), content);
 
         // Valid blob
         BazelBlob blob{digest, content, /*is_exec=*/false};

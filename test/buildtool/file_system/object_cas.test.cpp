@@ -30,7 +30,8 @@ TEST_CASE("ObjectCAS", "[file_system]") {
     auto gen_config = storage_config.Get().CreateGenerationConfig(0);
 
     std::string test_content{"test"};
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), test_content);
 
     SECTION("CAS for files") {
         ObjectCAS<ObjectType::File> cas{gen_config.cas_f};

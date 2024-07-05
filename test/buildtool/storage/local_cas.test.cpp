@@ -17,6 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -32,7 +33,8 @@ TEST_CASE("LocalCAS: Add blob to storage from bytes", "[storage]") {
 
     std::string test_bytes("test");
 
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_bytes);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), test_bytes);
 
     // check blob not in storage
     CHECK(not cas.BlobPath(test_digest, true));
@@ -82,7 +84,8 @@ TEST_CASE("LocalCAS: Add blob to storage from non-executable file",
     std::filesystem::path non_exec_file{
         "test/buildtool/storage/data/non_executable_file"};
 
-    auto test_blob = CreateBlobFromPath(non_exec_file);
+    auto test_blob =
+        CreateBlobFromPath(non_exec_file, HashFunction::Instance());
     REQUIRE(test_blob);
 
     // check blob not in storage
@@ -132,7 +135,7 @@ TEST_CASE("LocalCAS: Add blob to storage from executable file", "[storage]") {
     std::filesystem::path exec_file{
         "test/buildtool/storage/data/executable_file"};
 
-    auto test_blob = CreateBlobFromPath(exec_file);
+    auto test_blob = CreateBlobFromPath(exec_file, HashFunction::Instance());
     REQUIRE(test_blob);
 
     // check blob not in storage

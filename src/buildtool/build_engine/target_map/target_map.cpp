@@ -40,6 +40,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -731,7 +732,8 @@ void withDependencies(
               }
               blobs.emplace_back(data->String());
               return ExpressionPtr{ArtifactDescription::CreateKnown(
-                  ArtifactDigest::Create<ObjectType::File>(data->String()),
+                  ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), data->String()),
                   ObjectType::File)};
           }},
 
@@ -751,7 +753,8 @@ void withDependencies(
               blobs.emplace_back(data->String());
 
               return ExpressionPtr{ArtifactDescription::CreateKnown(
-                  ArtifactDigest::Create<ObjectType::Symlink>(data->String()),
+                  ArtifactDigest::Create<ObjectType::Symlink>(
+                      HashFunction::Instance(), data->String()),
                   ObjectType::Symlink)};
           }},
 

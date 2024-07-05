@@ -18,6 +18,7 @@
 #include <tuple>  //std::ignore
 
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
 
@@ -104,8 +105,8 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
     for (auto const& link : result->output_file_symlinks()) {
         if (not cas_.LocalUplinkBlob(
                 latest.cas_,
-                bazel_re::Digest(
-                    ArtifactDigest::Create<ObjectType::File>(link.target())),
+                bazel_re::Digest(ArtifactDigest::Create<ObjectType::File>(
+                    HashFunction::Instance(), link.target())),
                 /*is_executable=*/false)) {
             return false;
         }
@@ -113,8 +114,8 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
     for (auto const& link : result->output_directory_symlinks()) {
         if (not cas_.LocalUplinkBlob(
                 latest.cas_,
-                bazel_re::Digest(
-                    ArtifactDigest::Create<ObjectType::File>(link.target())),
+                bazel_re::Digest(ArtifactDigest::Create<ObjectType::File>(
+                    HashFunction::Instance(), link.target())),
                 /*is_executable=*/false)) {
             return false;
         }

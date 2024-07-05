@@ -18,6 +18,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -30,7 +31,8 @@ namespace {
 auto ProcessDirectoryMessage(bazel_re::Directory const& dir) noexcept
     -> std::optional<BazelBlob> {
     auto data = dir.SerializeAsString();
-    auto digest = ArtifactDigest::Create<ObjectType::File>(data);
+    auto digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), data);
     return BazelBlob{std::move(digest), std::move(data), /*is_exec=*/false};
 }
 
@@ -99,8 +101,8 @@ auto BazelResponse::Populate() noexcept -> bool {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .digest = ArtifactDigest::Create<ObjectType::File>(
+                        HashFunction::Instance(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;
@@ -111,8 +113,8 @@ auto BazelResponse::Populate() noexcept -> bool {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .digest = ArtifactDigest::Create<ObjectType::File>(
+                        HashFunction::Instance(), link.target()),
                     .type = ObjectType::Symlink});
             dir_symlinks.emplace(link.path());  // add it to set
         } catch (...) {
@@ -126,8 +128,8 @@ auto BazelResponse::Populate() noexcept -> bool {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .digest = ArtifactDigest::Create<ObjectType::File>(
+                        HashFunction::Instance(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;
@@ -138,8 +140,8 @@ auto BazelResponse::Populate() noexcept -> bool {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigest::Create<ObjectType::File>(link.target()),
+                    .digest = ArtifactDigest::Create<ObjectType::File>(
+                        HashFunction::Instance(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;

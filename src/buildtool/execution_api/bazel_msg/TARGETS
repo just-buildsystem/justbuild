@@ -34,6 +34,7 @@
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "git_repo"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]

@@ -24,6 +24,7 @@
     , ["utils", "blob_creator"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }
@@ -41,6 +42,7 @@
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["utils", "test_storage_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }

@@ -37,6 +37,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -292,7 +293,8 @@ class GraphTraverser {
         std::vector<std::string> const& blobs) const noexcept -> bool {
         ArtifactBlobContainer container;
         for (auto const& blob : blobs) {
-            auto digest = ArtifactDigest::Create<ObjectType::File>(blob);
+            auto digest = ArtifactDigest::Create<ObjectType::File>(
+                HashFunction::Instance(), blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Uploaded blob {}, its digest has id {} and size {}.",

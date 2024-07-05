@@ -22,6 +22,7 @@
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -116,13 +117,14 @@ class ObjectCAS {
 
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {
-        return ArtifactDigest::Create<kType>(bytes);
+        return ArtifactDigest::Create<kType>(HashFunction::Instance(), bytes);
     }
 
     [[nodiscard]] static auto CreateDigest(
         std::filesystem::path const& file_path) noexcept
         -> std::optional<bazel_re::Digest> {
-        return ArtifactDigest::CreateFromFile<kType>(file_path);
+        return ArtifactDigest::CreateFromFile<kType>(HashFunction::Instance(),
+                                                     file_path);
     }
 
     [[nodiscard]] auto IsAvailable(

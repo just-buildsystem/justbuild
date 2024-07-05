@@ -36,8 +36,8 @@
     std::string const& instance_name,
     std::vector<std::string> const& args,
     std::map<std::string, std::string> const& env_vars,
-    std::map<std::string, std::string> const& properties) noexcept
-    -> std::unique_ptr<bazel_re::Digest> {
+    std::map<std::string, std::string> const& properties,
+    HashFunction hash_function) noexcept -> std::unique_ptr<bazel_re::Digest> {
     auto platform = std::make_unique<bazel_re::Platform>();
     for (auto const& [name, value] : properties) {
         bazel_re::Platform_Property property;
@@ -64,12 +64,14 @@
                    });
 
     auto cmd_data = cmd.SerializeAsString();
-    auto cmd_id = ArtifactDigest::Create<ObjectType::File>(cmd_data);
+    auto cmd_id =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, cmd_data);
     blobs.emplace_back(cmd_id, cmd_data, /*is_exec=*/false);
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
-    auto dir_id = ArtifactDigest::Create<ObjectType::Tree>(dir_data);
+    auto dir_id =
+        ArtifactDigest::Create<ObjectType::Tree>(hash_function, dir_data);
     blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
@@ -80,7 +82,8 @@
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{dir_id}});
 
     auto action_data = action.SerializeAsString();
-    auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
+    auto action_id =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, action_data);
     blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();

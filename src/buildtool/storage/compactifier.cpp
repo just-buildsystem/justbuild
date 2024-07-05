@@ -271,7 +271,8 @@ template <ObjectType kType>
     }
 
     // Calculate the digest for the entry:
-    auto const digest = ArtifactDigest::CreateFromFile<kType>(path);
+    auto const digest =
+        ArtifactDigest::CreateFromFile<kType>(HashFunction::Instance(), path);
     if (not digest) {
         task.Log(LogLevel::Error,
                  "Failed to calculate digest for {}",

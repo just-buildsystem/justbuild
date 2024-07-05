@@ -138,9 +138,10 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
     result.reserve(full_tree.size());
     for (auto& dir : full_tree) {
         try {
-            result.emplace(ArtifactDigest::Create<ObjectType::File>(
-                               dir.SerializeAsString()),
-                           std::move(dir));
+            result.emplace(
+                ArtifactDigest::Create<ObjectType::File>(
+                    HashFunction::Instance(), dir.SerializeAsString()),
+                std::move(dir));
         } catch (...) {
             return std::nullopt;
         }
@@ -191,8 +192,10 @@ auto BazelNetworkReader::BatchReadBlobs(
 auto BazelNetworkReader::Validate(BazelBlob const& blob) noexcept -> bool {
     ArtifactDigest const rehashed_digest =
         NativeSupport::IsTree(blob.digest.hash())
-            ? ArtifactDigest::Create<ObjectType::Tree>(*blob.data)
-            : ArtifactDigest::Create<ObjectType::File>(*blob.data);
+            ? ArtifactDigest::Create<ObjectType::Tree>(HashFunction::Instance(),
+                                                       *blob.data)
+            : ArtifactDigest::Create<ObjectType::File>(HashFunction::Instance(),
+                                                       *blob.data);
     if (rehashed_digest == ArtifactDigest{blob.digest}) {
         return true;
     }

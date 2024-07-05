@@ -17,6 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -36,9 +37,9 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     REQUIRE(FileSystemManager::CreateSymlink("file1", link));
 
     // create the corresponding blobs
-    auto file1_blob = CreateBlobFromPath(file1);
-    auto file2_blob = CreateBlobFromPath(file2);
-    auto link_blob = CreateBlobFromPath(link);
+    auto file1_blob = CreateBlobFromPath(file1, HashFunction::Instance());
+    auto file2_blob = CreateBlobFromPath(file2, HashFunction::Instance());
+    auto link_blob = CreateBlobFromPath(link, HashFunction::Instance());
 
     CHECK(file1_blob);
     CHECK(file2_blob);

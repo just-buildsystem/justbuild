@@ -25,6 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -227,7 +228,7 @@ class GitApi final : public IExecutionApi {
                             return false;
                         }
                         auto digest = ArtifactDigest::Create<ObjectType::File>(
-                            *entry_content);
+                            HashFunction::Instance(), *entry_content);
                         // Collect blob and upload to remote CAS if transfer
                         // size reached.
                         if (not UpdateContainerAndUpload<ArtifactDigest>(
@@ -258,8 +259,10 @@ class GitApi final : public IExecutionApi {
 
             ArtifactDigest digest =
                 IsTreeObject(info.type)
-                    ? ArtifactDigest::Create<ObjectType::Tree>(*content)
-                    : ArtifactDigest::Create<ObjectType::File>(*content);
+                    ? ArtifactDigest::Create<ObjectType::Tree>(
+                          HashFunction::Instance(), *content)
+                    : ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), *content);
 
             // Collect blob and upload to remote CAS if transfer size reached.
             if (not UpdateContainerAndUpload<ArtifactDigest>(

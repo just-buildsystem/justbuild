@@ -22,6 +22,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
@@ -55,13 +56,16 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), content_foo),
                   content_foo,
                   /*is_exec=*/false};
-    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), content_bar),
                   content_bar,
                   /*is_exec=*/false};
-    BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(content_baz),
+    BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), content_baz),
                   content_baz,
                   /*is_exec=*/false};
 
@@ -113,10 +117,12 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), content_foo),
                   content_foo,
                   /*is_exec=*/false};
-    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
+                      HashFunction::Instance(), content_bar),
                   content_bar,
                   /*is_exec=*/false};
 

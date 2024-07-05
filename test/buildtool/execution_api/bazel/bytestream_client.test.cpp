@@ -19,6 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
@@ -48,7 +49,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
         // digest of "foobar"
         auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(content));
+            ArtifactDigest::Create<ObjectType::File>(HashFunction::Instance(),
+                                                     content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -77,7 +79,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
         // digest of "instance_nameinstance_nameinstance_..."
         auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(content));
+            ArtifactDigest::Create<ObjectType::File>(HashFunction::Instance(),
+                                                     content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -131,13 +134,16 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>("foo"),
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), "foo"),
                       "foo",
                       /*is_exec=*/false};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>("bar"),
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), "bar"),
                       "bar",
                       /*is_exec=*/false};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>("baz"),
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), "baz"),
                       "baz",
                       /*is_exec=*/false};
 
@@ -184,13 +190,16 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
             content_baz[i] = instance_name[(i + 2) % instance_name.size()];
         }
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(content_foo),
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), content_foo),
                       content_foo,
                       /*is_exec=*/false};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(content_bar),
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), content_bar),
                       content_bar,
                       /*is_exec=*/false};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(content_baz),
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), content_baz),
                       content_baz,
                       /*is_exec=*/false};
 

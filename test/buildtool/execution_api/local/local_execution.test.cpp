@@ -21,6 +21,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -172,7 +173,8 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
         &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), test_content);
 
     std::string output_path{"output_file"};
     std::vector<std::string> const cmdline = {
@@ -231,7 +233,8 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
         &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
+    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+        HashFunction::Instance(), test_content);
     REQUIRE(api.Upload(ArtifactBlobContainer{{ArtifactBlob{
                            test_digest, test_content, /*is_exec=*/false}}},
                        false));

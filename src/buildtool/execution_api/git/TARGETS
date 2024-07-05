@@ -11,6 +11,7 @@
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "git"]
   }

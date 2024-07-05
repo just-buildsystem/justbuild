@@ -22,6 +22,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
   }

@@ -36,6 +36,7 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -456,7 +457,8 @@ class ExecutorImpl {
         if (not content.has_value()) {
             return std::nullopt;
         }
-        auto digest = ArtifactDigest::Create<ObjectType::File>(*content);
+        auto digest = ArtifactDigest::Create<ObjectType::File>(
+            HashFunction::Instance(), *content);
         if (not api.Upload(ArtifactBlobContainer{
                 {ArtifactBlob{digest,
                               std::move(*content),

@@ -34,6 +34,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
@@ -214,8 +215,10 @@ class LocalApi final : public IExecutionApi {
             // storage_.ReadTreeInfos() will contain 0 as size.
             ArtifactDigest digest =
                 IsTreeObject(info.type)
-                    ? ArtifactDigest::Create<ObjectType::Tree>(*content)
-                    : ArtifactDigest::Create<ObjectType::File>(*content);
+                    ? ArtifactDigest::Create<ObjectType::Tree>(
+                          HashFunction::Instance(), *content)
+                    : ArtifactDigest::Create<ObjectType::File>(
+                          HashFunction::Instance(), *content);
 
             // Collect blob and upload to remote CAS if transfer size reached.
             if (not UpdateContainerAndUpload<ArtifactDigest>(

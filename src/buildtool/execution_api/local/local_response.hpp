@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "gsl/gsl"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -139,7 +140,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            link.target()),
+                            HashFunction::Instance(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
@@ -151,7 +152,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            link.target()),
+                            HashFunction::Instance(), link.target()),
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
             } catch (...) {
@@ -166,7 +167,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            link.target()),
+                            HashFunction::Instance(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
@@ -178,7 +179,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            link.target()),
+                            HashFunction::Instance(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
