@@ -30,17 +30,11 @@
 
 /// \brief Store global build system configuration.
 class LocalExecutionConfig {
-    struct ConfigData {
-        // Launcher to be prepended to action's command before executed.
-        // Default: ["env", "--"]
-        std::vector<std::string> launcher{"env", "--"};
-    };
-
   public:
     [[nodiscard]] static auto SetLauncher(
         std::vector<std::string> const& launcher) noexcept -> bool {
         try {
-            Data().launcher = launcher;
+            Instance().launcher_ = launcher;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "when setting the local launcher\n{}",
@@ -52,14 +46,18 @@ class LocalExecutionConfig {
 
     [[nodiscard]] static auto GetLauncher() noexcept
         -> std::vector<std::string> {
-        return Data().launcher;
+        return Instance().launcher_;
+    }
+
+    [[nodiscard]] static auto Instance() noexcept -> LocalExecutionConfig& {
+        static LocalExecutionConfig config;
+        return config;
     }
 
   private:
-    [[nodiscard]] static auto Data() noexcept -> ConfigData& {
-        static ConfigData instance{};
-        return instance;
-    }
+    // Launcher to be prepended to action's command before executed.
+    // Default: ["env", "--"]
+    std::vector<std::string> launcher_ = {"env", "--"};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_CONFIG_HPP
