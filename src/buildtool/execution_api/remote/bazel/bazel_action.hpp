@@ -41,13 +41,13 @@ class BazelAction final : public IExecutionAction {
     }
 
   private:
-    std::shared_ptr<BazelNetwork> network_;
+    std::shared_ptr<BazelNetwork> const network_;
     bazel_re::Digest const root_digest_;
     std::vector<std::string> const cmdline_;
     std::vector<std::string> output_files_;
     std::vector<std::string> output_dirs_;
-    std::vector<bazel_re::Command_EnvironmentVariable> env_vars_;
-    std::vector<bazel_re::Platform_Property> properties_;
+    std::vector<bazel_re::Command_EnvironmentVariable> const env_vars_;
+    std::vector<bazel_re::Platform_Property> const properties_;
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
     std::chrono::milliseconds timeout_{kDefaultTimeout};
 

@@ -26,8 +26,8 @@
 
 [[nodiscard]] static inline auto ActionResultContainsExpectedOutputs(
     const bazel_re::ActionResult& result,
-    std::vector<std::string> expected_files,
-    std::vector<std::string> expected_dirs) noexcept -> bool {
+    const std::vector<std::string>& expected_files,
+    const std::vector<std::string>& expected_dirs) noexcept -> bool {
     try {
         std::set<std::string> actual_output_files{};
         for (auto const& file : result.output_files()) {

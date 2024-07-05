@@ -65,12 +65,12 @@ class LocalAction final : public IExecutionAction {
     Logger logger_{"LocalExecution"};
     StorageConfig const& storage_config_;
     Storage const& storage_;
-    ArtifactDigest root_digest_{};
-    std::vector<std::string> cmdline_{};
+    ArtifactDigest const root_digest_{};
+    std::vector<std::string> const cmdline_{};
     std::vector<std::string> output_files_{};
     std::vector<std::string> output_dirs_{};
-    std::map<std::string, std::string> env_vars_{};
-    std::vector<bazel_re::Platform_Property> properties_;
+    std::map<std::string, std::string> const env_vars_{};
+    std::vector<bazel_re::Platform_Property> const properties_;
     std::chrono::milliseconds timeout_{kDefaultTimeout};
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
