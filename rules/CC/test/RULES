@@ -27,6 +27,7 @@
     , "CC_TEST_LAUNCHER"
     , "RUNS_PER_TEST"
     , "ARCH_DISPATCH"
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES"
     ]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
@@ -129,6 +130,10 @@
       , "on that architecture. Only the actual test binary will be run with"
       , "the specified execution properties (i.e., on the target architecture);"
       , "all building will be done on the host architecture."
+      ]
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES":
+      [ "Additional remote-execution properties for the test-summarizing action"
+      , "in case RUNS_PER_TEST is set; defaults to the empty map."
       ]
     }
   , "artifacts_doc":

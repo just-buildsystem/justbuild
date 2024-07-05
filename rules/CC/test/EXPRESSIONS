@@ -10,6 +10,7 @@
     , "HOST_ARCH"
     , "TARGET_ARCH"
     , "ARCH_DISPATCH"
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES"
     , "CC"
     , "CXX"
     , "CFLAGS"
@@ -280,6 +281,11 @@
               , "outs":
                 ["stdout", "stderr", "result", "time-start", "time-stop"]
               , "cmd": ["./summarizer"]
+              , "execution properties":
+                { "type": "var"
+                , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
+                , "default": {"type": "empty_map"}
+                }
               }
             ]
           , [ "artifacts"
