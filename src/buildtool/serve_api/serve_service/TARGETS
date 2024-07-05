@@ -39,6 +39,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/utils/archive", "archive_ops"]
     , ["src/buildtool/execution_api/git", "git"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "serve_server_implementation":

@@ -52,7 +52,8 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    std::string hash = HashFunction::ComputeBlobHash(empty_str).HexString();
+    std::string hash =
+        HashFunction::Instance().ComputeBlobHash(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());
@@ -117,7 +118,8 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    std::string hash = HashFunction::ComputeBlobHash(empty_str).HexString();
+    std::string hash =
+        HashFunction::Instance().ComputeBlobHash(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());

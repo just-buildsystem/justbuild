@@ -33,19 +33,30 @@ class HashFunction {
         Compatible  ///< SHA256 for all hashes.
     };
 
-    /// \brief Set globally used hash type.
-    static void SetHashType(JustHash type) {
-        [[maybe_unused]] auto _ = HashType(type);
+    static constexpr auto kDefaultType = JustHash::Native;
+
+    explicit HashFunction(JustHash type) noexcept : type_{type} {}
+
+    [[nodiscard]] auto GetHashType() const noexcept -> JustHash {
+        return type_;
     }
 
+    [[nodiscard]] static auto Instance() noexcept -> HashFunction& {
+        static HashFunction instance{kDefaultType};
+        return instance;
+    }
+
+    /// \brief Set globally used hash type.
+    void SetHashType(JustHash type) noexcept { type_ = type; }
+
     /// \brief Compute a plain hash.
-    [[nodiscard]] static auto ComputeHash(std::string const& data) noexcept
+    [[nodiscard]] auto ComputeHash(std::string const& data) const noexcept
         -> Hasher::HashDigest {
         return ComputeTaggedHash(data);
     }
 
     /// \brief Compute a blob hash.
-    [[nodiscard]] static auto ComputeBlobHash(std::string const& data) noexcept
+    [[nodiscard]] auto ComputeBlobHash(std::string const& data) const noexcept
         -> Hasher::HashDigest {
         static auto const kBlobTagCreator =
             [](std::string const& data) -> std::string {
@@ -55,13 +66,12 @@ class HashFunction {
     }
 
     /// \brief Compute the blob hash of a file or std::nullopt on IO error.
-    [[nodiscard]] static auto ComputeHashFile(
-        const std::filesystem::path& file_path,
-        bool as_tree) noexcept
+    [[nodiscard]] auto ComputeHashFile(const std::filesystem::path& file_path,
+                                       bool as_tree) const noexcept
         -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 
     /// \brief Compute a tree hash.
-    [[nodiscard]] static auto ComputeTreeHash(std::string const& data) noexcept
+    [[nodiscard]] auto ComputeTreeHash(std::string const& data) const noexcept
         -> Hasher::HashDigest {
         static auto const kTreeTagCreator =
             [](std::string const& data) -> std::string {
@@ -71,8 +81,8 @@ class HashFunction {
     }
 
     /// \brief Obtain incremental hasher for computing plain hashes.
-    [[nodiscard]] static auto Hasher() noexcept -> ::Hasher {
-        switch (HashType()) {
+    [[nodiscard]] auto Hasher() const noexcept -> ::Hasher {
+        switch (type_) {
             case JustHash::Native:
                 return ::Hasher{Hasher::HashType::SHA1};
             case JustHash::Compatible:
@@ -82,23 +92,14 @@ class HashFunction {
     }
 
   private:
-    static constexpr auto kDefaultType = JustHash::Native;
+    JustHash type_ = kDefaultType;
 
-    [[nodiscard]] static auto HashType(
-        std::optional<JustHash> type = std::nullopt) -> JustHash {
-        static JustHash type_{kDefaultType};
-        if (type) {
-            type_ = *type;
-        }
-        return type_;
-    }
-
-    [[nodiscard]] static auto ComputeTaggedHash(
+    [[nodiscard]] auto ComputeTaggedHash(
         std::string const& data,
-        std::function<std::string(std::string const&)> const& tag_creator =
-            {}) noexcept -> Hasher::HashDigest {
+        std::function<std::string(std::string const&)> const& tag_creator = {})
+        const noexcept -> Hasher::HashDigest {
         auto hasher = Hasher();
-        if (tag_creator and HashType() == JustHash::Native) {
+        if (tag_creator and type_ == JustHash::Native) {
             hasher.Update(tag_creator(data));
         }
         hasher.Update(data);

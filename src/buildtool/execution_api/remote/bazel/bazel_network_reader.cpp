@@ -89,10 +89,11 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     };
 
     std::string const& content = *read_blob->data;
-    return GitRepo::ReadTreeData(content,
-                                 HashFunction::ComputeTreeHash(content).Bytes(),
-                                 check_symlinks,
-                                 /*is_hex_id=*/false);
+    return GitRepo::ReadTreeData(
+        content,
+        HashFunction::Instance().ComputeTreeHash(content).Bytes(),
+        check_symlinks,
+        /*is_hex_id=*/false);
 }
 
 auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,

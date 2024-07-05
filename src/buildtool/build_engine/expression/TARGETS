@@ -44,7 +44,6 @@
     , "linked_map"
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["src/buildtool/common", "artifact_description"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "json"]
     , ["src/utils/cpp", "hash_combine"]
@@ -59,6 +58,8 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "path"]
+    , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 }

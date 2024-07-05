@@ -74,6 +74,8 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "target_map_testable_internals":

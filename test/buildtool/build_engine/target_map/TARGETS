@@ -42,6 +42,7 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "serve_api"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["utils", "test_storage_config"]
     , ["utils", "test_serve_config"]
     ]

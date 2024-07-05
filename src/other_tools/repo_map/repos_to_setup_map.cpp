@@ -18,6 +18,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -591,8 +592,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     }
     // get hash of distdir content
     auto distdir_content_id =
-        HashFunction::ComputeBlobHash(
-            nlohmann::json(*distdir_content_for_id).dump())
+        HashFunction::Instance()
+            .ComputeBlobHash(nlohmann::json(*distdir_content_for_id).dump())
             .HexString();
     // get the WS root as git tree
     DistdirInfo distdir_info = {

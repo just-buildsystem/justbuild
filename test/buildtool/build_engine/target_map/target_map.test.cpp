@@ -29,6 +29,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -960,10 +961,10 @@ TEST_CASE("built-in rules", "[target_map]") {
         CHECK(error_msg == "NONE");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              HashFunction::ComputeBlobHash("bar").HexString());
+              HashFunction::Instance().ComputeBlobHash("bar").HexString());
         CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
         CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              HashFunction::ComputeBlobHash("baz").HexString());
+              HashFunction::Instance().ComputeBlobHash("baz").HexString());
     }
 }
 

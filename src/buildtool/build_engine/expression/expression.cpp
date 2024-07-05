@@ -24,6 +24,8 @@
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/json.hpp"
@@ -245,10 +247,11 @@ auto Expression::ComputeHash() const noexcept -> std::string {
                            : IsNode()   ? "#"
                            : IsName()   ? "$"
                                         : ""};
-        hash = HashFunction::ComputeHash(prefix + ToString()).Bytes();
+        hash =
+            HashFunction::Instance().ComputeHash(prefix + ToString()).Bytes();
     }
     else {
-        auto hasher = HashFunction::Hasher();
+        auto hasher = HashFunction::Instance().Hasher();
         if (IsList()) {
             auto list = Value<Expression::list_t>();
             hasher.Update("[");
@@ -260,7 +263,8 @@ auto Expression::ComputeHash() const noexcept -> std::string {
             auto map = Value<Expression::map_t>();
             hasher.Update("{");
             for (auto const& el : map->get()) {
-                hasher.Update(HashFunction::ComputeHash(el.first).Bytes());
+                hasher.Update(
+                    HashFunction::Instance().ComputeHash(el.first).Bytes());
                 hasher.Update(el.second->ToHash());
             }
         }

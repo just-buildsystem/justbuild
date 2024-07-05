@@ -22,39 +22,39 @@ TEST_CASE("Hash Function", "[crypto]") {
     std::string bytes{"test"};
 
     SECTION("Native") {
-        HashFunction::SetHashType(HashFunction::JustHash::Native);
+        HashFunction const hash_function{HashFunction::JustHash::Native};
 
         // same as: echo -n test | sha1sum
-        CHECK(HashFunction::ComputeHash(bytes).HexString() ==
+        CHECK(hash_function.ComputeHash(bytes).HexString() ==
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
         // same as: echo -n test | git hash-object --stdin
-        CHECK(HashFunction::ComputeBlobHash(bytes).HexString() ==
+        CHECK(hash_function.ComputeBlobHash(bytes).HexString() ==
               "30d74d258442c7c65512eafab474568dd706c430");
         // same as: echo -n test | git hash-object -t "tree" --stdin --literally
-        CHECK(HashFunction::ComputeTreeHash(bytes).HexString() ==
+        CHECK(hash_function.ComputeTreeHash(bytes).HexString() ==
               "5f0ecc1a989593005e80f457446133250fcc43cc");
 
-        auto hasher = HashFunction::Hasher();
+        auto hasher = hash_function.Hasher();
         hasher.Update(bytes);
         CHECK(std::move(hasher).Finalize().HexString() ==  // NOLINT
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
     }
 
     SECTION("Compatible") {
-        HashFunction::SetHashType(HashFunction::JustHash::Compatible);
+        HashFunction const hash_function{HashFunction::JustHash::Compatible};
 
         // all same as: echo -n test | sha256sum
         CHECK(
-            HashFunction::ComputeHash(bytes).HexString() ==
+            hash_function.ComputeHash(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
         CHECK(
-            HashFunction::ComputeBlobHash(bytes).HexString() ==
+            hash_function.ComputeBlobHash(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
         CHECK(
-            HashFunction::ComputeTreeHash(bytes).HexString() ==
+            hash_function.ComputeTreeHash(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
 
-        auto hasher = HashFunction::Hasher();
+        auto hasher = hash_function.Hasher();
         hasher.Update(bytes);
         CHECK(
             std::move(hasher).Finalize().HexString() ==  // NOLINT

@@ -11,6 +11,7 @@
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
   }

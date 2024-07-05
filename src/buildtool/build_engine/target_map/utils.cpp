@@ -21,6 +21,8 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hasher.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 
@@ -184,9 +186,9 @@ auto BuildMaps::Target::Utils::getTainted(
 
 namespace {
 auto hash_vector(std::vector<std::string> const& vec) -> std::string {
-    auto hasher = HashFunction::Hasher();
+    auto hasher = HashFunction::Instance().Hasher();
     for (auto const& s : vec) {
-        hasher.Update(HashFunction::ComputeHash(s).Bytes());
+        hasher.Update(HashFunction::Instance().ComputeHash(s).Bytes());
     }
     return std::move(hasher).Finalize().Bytes();
 }
@@ -202,7 +204,7 @@ auto BuildMaps::Target::Utils::createAction(
     double timeout_scale,
     const ExpressionPtr& execution_properties_exp,
     const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
-    auto hasher = HashFunction::Hasher();
+    auto hasher = HashFunction::Instance().Hasher();
     hasher.Update(hash_vector(output_files));
     hasher.Update(hash_vector(output_dirs));
     hasher.Update(hash_vector(command));

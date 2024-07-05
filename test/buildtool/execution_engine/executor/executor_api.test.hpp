@@ -29,6 +29,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -52,9 +53,10 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
     auto api = factory();
     std::string const blob = "test";
     CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-        ArtifactDigest{HashFunction::ComputeBlobHash(blob).HexString(),
-                       blob.size(),
-                       /*is_tree=*/false},
+        ArtifactDigest{
+            HashFunction::Instance().ComputeBlobHash(blob).HexString(),
+            blob.size(),
+            /*is_tree=*/false},
         blob,
         /*is_exec=*/false}}}));
 }
@@ -401,14 +403,14 @@ static inline void TestUploadAndDownloadTrees(
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
-    auto foo_digest =
-        ArtifactDigest{HashFunction::ComputeBlobHash(foo).HexString(),
-                       foo.size(),
-                       /*is_tree=*/false};
-    auto bar_digest =
-        ArtifactDigest{HashFunction::ComputeBlobHash(bar).HexString(),
-                       bar.size(),
-                       /*is_tree=*/false};
+    auto foo_digest = ArtifactDigest{
+        HashFunction::Instance().ComputeBlobHash(foo).HexString(),
+        foo.size(),
+        /*is_tree=*/false};
+    auto bar_digest = ArtifactDigest{
+        HashFunction::Instance().ComputeBlobHash(bar).HexString(),
+        bar.size(),
+        /*is_tree=*/false};
 
     // upload blobs
     auto api = factory();

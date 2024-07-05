@@ -38,6 +38,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/logging/log_config.hpp"
@@ -257,9 +258,9 @@ void SetupExecutionServiceConfig(ServiceArguments const& args) {
 }
 
 void SetupHashFunction() {
-    HashFunction::SetHashType(Compatibility::IsCompatible()
-                                  ? HashFunction::JustHash::Compatible
-                                  : HashFunction::JustHash::Native);
+    HashFunction::Instance().SetHashType(
+        Compatibility::IsCompatible() ? HashFunction::JustHash::Compatible
+                                      : HashFunction::JustHash::Native);
 }
 
 void SetupFileChunker() {

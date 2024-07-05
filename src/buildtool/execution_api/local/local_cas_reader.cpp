@@ -60,7 +60,7 @@ auto LocalCasReader::ReadGitTree(ArtifactDigest const& digest) const noexcept
                 };
             return GitRepo::ReadTreeData(
                 *content,
-                HashFunction::ComputeTreeHash(*content).Bytes(),
+                HashFunction::Instance().ComputeTreeHash(*content).Bytes(),
                 check_symlinks,
                 /*is_hex_id=*/false);
         }

@@ -106,7 +106,7 @@ static void EncodeUUIDVariant1(std::string* uuid) {
     constexpr auto kHexDashPos = std::array{8UL, 12UL, 16UL, 20UL};
 
     auto value = fmt::format("{}-{}", std::to_string(kRandomConstant), seed);
-    auto uuid = HashFunction::ComputeHash(value).Bytes();
+    auto uuid = HashFunction::Instance().ComputeHash(value).Bytes();
     EncodeUUIDVersion4(&uuid);
     EncodeUUIDVariant1(&uuid);
     Expects(uuid.size() >= kRawLength);

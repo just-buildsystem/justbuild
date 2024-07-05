@@ -14,6 +14,7 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
@@ -75,8 +76,9 @@ auto RepositoryConfig::DeduplicateRepo(std::string const& repo) const
             // content-fixed.
             if (data.base_desc) {
                 // Use hash of content-fixed base description as content id
-                auto hash =
-                    HashFunction::ComputeHash(data.base_desc->dump()).Bytes();
+                auto hash = HashFunction::Instance()
+                                .ComputeHash(data.base_desc->dump())
+                                .Bytes();
                 // Add state with name, transitions, and content id
                 minimizer.AddState(repo, data.info.name_mapping, hash);
             }

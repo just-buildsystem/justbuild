@@ -156,7 +156,7 @@ template <ObjectType kType>
     }
 
     // Calculate reference hash size:
-    auto const kHashSize = HashFunction::Hasher().GetHashLength();
+    auto const kHashSize = HashFunction::Instance().Hasher().GetHashLength();
     auto const kFileNameSize =
         kHashSize - FileStorageData::kDirectoryNameLength;
 

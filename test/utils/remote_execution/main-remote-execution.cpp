@@ -22,6 +22,7 @@
 #include "catch2/catch_session.hpp"
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
@@ -50,9 +51,9 @@ void ConfigureRemoteExecution() {
         std::exit(EXIT_FAILURE);
     }
 
-    HashFunction::SetHashType(Compatibility::IsCompatible()
-                                  ? HashFunction::JustHash::Compatible
-                                  : HashFunction::JustHash::Native);
+    HashFunction::Instance().SetHashType(
+        Compatibility::IsCompatible() ? HashFunction::JustHash::Compatible
+                                      : HashFunction::JustHash::Native);
 
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     if (not remote_config or remote_config->remote_address == std::nullopt) {

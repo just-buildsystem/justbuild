@@ -16,20 +16,19 @@
 
 #include <cstddef>
 #include <fstream>
-#include <string>
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 [[nodiscard]] auto HashFunction::ComputeHashFile(
     const std::filesystem::path& file_path,
-    bool as_tree) noexcept
+    bool as_tree) const noexcept
     -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
     static constexpr std::size_t kChunkSize{4048};
     try {
         auto hasher = Hasher();
         auto size = std::filesystem::file_size(file_path);
-        if (HashType() == JustHash::Native) {
+        if (type_ == JustHash::Native) {
             hasher.Update(
                 (as_tree ? std::string{"tree "} : std::string{"blob "}) +
                 std::to_string(size) + '\0');

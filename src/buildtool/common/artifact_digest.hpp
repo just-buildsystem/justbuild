@@ -78,13 +78,13 @@ class ArtifactDigest {
         -> ArtifactDigest {
         if constexpr (kType == ObjectType::Tree) {
             return ArtifactDigest{
-                HashFunction::ComputeTreeHash(content).HexString(),
+                HashFunction::Instance().ComputeTreeHash(content).HexString(),
                 content.size(),
                 /*is_tree=*/true};
         }
         else {
             return ArtifactDigest{
-                HashFunction::ComputeBlobHash(content).HexString(),
+                HashFunction::Instance().ComputeBlobHash(content).HexString(),
                 content.size(),
                 /*is_tree=*/false};
         }
@@ -95,7 +95,7 @@ class ArtifactDigest {
         std::filesystem::path const& path) noexcept
         -> std::optional<ArtifactDigest> {
         static constexpr bool kIsTree = IsTreeObject(kType);
-        auto hash = HashFunction::ComputeHashFile(path, kIsTree);
+        auto hash = HashFunction::Instance().ComputeHashFile(path, kIsTree);
         if (hash) {
             return ArtifactDigest{
                 hash->first.HexString(), hash->second, kIsTree};

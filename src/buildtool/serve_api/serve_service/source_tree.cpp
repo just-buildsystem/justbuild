@@ -25,6 +25,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -1158,9 +1159,9 @@ auto SourceTreeService::ServeDistdirTree(
             kv.name(), std::make_pair(blob_digest, kv.executable()));
     }
     // get hash of distdir content; this must match with that in just-mr
-    auto content_id =
-        HashFunction::ComputeBlobHash(nlohmann::json(content_list).dump())
-            .HexString();
+    auto content_id = HashFunction::Instance()
+                          .ComputeBlobHash(nlohmann::json(content_list).dump())
+                          .HexString();
     // create in-memory tree of the distdir, now that we know we have all blobs
     auto tree = GitRepo::CreateShallowTree(entries);
     if (not tree) {

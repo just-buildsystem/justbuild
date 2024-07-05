@@ -194,7 +194,7 @@ auto ArtifactDescription::ToString(int indent) const noexcept -> std::string {
 auto ArtifactDescription::ComputeId(nlohmann::json const& desc) noexcept
     -> ArtifactIdentifier {
     try {
-        return HashFunction::ComputeHash(desc.dump()).Bytes();
+        return HashFunction::Instance().ComputeHash(desc.dump()).Bytes();
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "Computing artifact id failed with error:\n{}",

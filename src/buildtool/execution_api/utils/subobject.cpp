@@ -16,6 +16,7 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -77,7 +78,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
         else {
             auto entries = GitRepo::ReadTreeData(
                 *data,
-                HashFunction::ComputeTreeHash(*data).Bytes(),
+                HashFunction::Instance().ComputeTreeHash(*data).Bytes(),
                 [](auto const& /*unused*/) { return true; },
                 /*is_hex_id=*/false);
             if (not entries) {
