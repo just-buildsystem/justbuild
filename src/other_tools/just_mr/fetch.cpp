@@ -23,6 +23,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -408,6 +409,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
 
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &*auth_config,
                          RemoteExecutionConfig::RemoteAddress()};

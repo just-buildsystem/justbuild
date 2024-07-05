@@ -23,6 +23,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
@@ -33,6 +34,7 @@ struct ApiBundle final {
     explicit ApiBundle(
         gsl::not_null<StorageConfig const*> const& storage_config,
         gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
         RepositoryConfig const* repo_config,
         gsl::not_null<Auth const*> const& authentication,
         std::optional<ServerAddress> const& remote_address);

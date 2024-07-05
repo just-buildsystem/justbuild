@@ -27,6 +27,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -501,6 +502,7 @@ auto TargetService::ServeTarget(
         // traversing.
         ApiBundle const local_apis{&storage_config_,
                                    &storage_,
+                                   &LocalExecutionConfig::Instance(),
                                    &repository_config,
                                    &apis_.auth,
                                    address};

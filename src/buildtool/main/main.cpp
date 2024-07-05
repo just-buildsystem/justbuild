@@ -822,6 +822,7 @@ auto main(int argc, char* argv[]) -> int {
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
                                       &storage,
+                                      &LocalExecutionConfig::Instance(),
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
@@ -850,6 +851,7 @@ auto main(int argc, char* argv[]) -> int {
                 ApiBundle const serve_apis{
                     &*storage_config,
                     &storage,
+                    &LocalExecutionConfig::Instance(),
                     /*repo_config=*/nullptr,
                     &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
@@ -919,6 +921,7 @@ auto main(int argc, char* argv[]) -> int {
         }
         ApiBundle const main_apis{&*storage_config,
                                   &storage,
+                                  &LocalExecutionConfig::Instance(),
                                   &repo_config,
                                   &*auth_config,
                                   RemoteExecutionConfig::RemoteAddress()};

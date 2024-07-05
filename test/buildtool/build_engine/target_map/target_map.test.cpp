@@ -29,6 +29,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
@@ -108,6 +109,7 @@ TEST_CASE("simple targets", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -557,6 +559,7 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -651,6 +654,7 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -757,6 +761,7 @@ TEST_CASE("built-in rules", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -973,6 +978,7 @@ TEST_CASE("target reference", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1122,6 +1128,7 @@ TEST_CASE("trees", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1235,6 +1242,7 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1407,6 +1415,7 @@ TEST_CASE("wrong arguments", "[target_map]") {
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};

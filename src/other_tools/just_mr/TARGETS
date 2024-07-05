@@ -130,6 +130,7 @@
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
@@ -195,6 +196,7 @@
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]

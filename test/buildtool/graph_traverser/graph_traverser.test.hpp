@@ -167,6 +167,7 @@ inline void SetLauncher() {
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -198,6 +199,7 @@ inline void SetLauncher() {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         ApiBundle const apis{&storage_config,
                              &storage,
+                             &LocalExecutionConfig::Instance(),
                              p.GetRepoConfig(),
                              auth,
                              RemoteExecutionConfig::RemoteAddress()};
@@ -241,6 +243,7 @@ inline void SetLauncher() {
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -278,6 +281,7 @@ inline void SetLauncher() {
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -336,6 +340,7 @@ inline void SetLauncher() {
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          full_hello_world.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -398,6 +403,7 @@ static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -443,6 +449,7 @@ static void TestEnvironmentVariablesSetAndUsed(
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -487,6 +494,7 @@ static void TestTreesUsed(StorageConfig const& storage_config,
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -531,6 +539,7 @@ static void TestNestedTreesUsed(StorageConfig const& storage_config,
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -573,6 +582,7 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
+                         &LocalExecutionConfig::Instance(),
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};

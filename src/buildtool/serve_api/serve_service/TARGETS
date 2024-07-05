@@ -102,6 +102,7 @@
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
