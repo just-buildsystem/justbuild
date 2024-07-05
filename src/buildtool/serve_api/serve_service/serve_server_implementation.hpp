@@ -19,6 +19,7 @@
 #include <string>
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -46,12 +47,14 @@ class ServeServerImpl {
     /// \param serve_config     RemoteServeConfig to be used.
     /// \param storage_config   StorageConfig to be used.
     /// \param storage          Storage to be used.
+    /// \param local_exec_config   LocalExecutionConfig to be used.
     /// \param serve            ServeApi to be used.
     /// \param with_execute Flag specifying if just serve should act also as
     /// just execute (i.e., start remote execution services with same interface)
     auto Run(RemoteServeConfig const& serve_config,
              StorageConfig const& storage_config,
              Storage const& storage,
+             LocalExecutionConfig const& local_exec_config,
              std::optional<ServeApi> const& serve,
              ApiBundle const& apis,
              bool with_execute) -> bool;

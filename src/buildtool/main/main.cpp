@@ -861,6 +861,7 @@ auto main(int argc, char* argv[]) -> int {
                 return serve_server->Run(*serve_config,
                                          *storage_config,
                                          storage,
+                                         LocalExecutionConfig::Instance(),
                                          serve,
                                          serve_apis,
                                          with_execute)

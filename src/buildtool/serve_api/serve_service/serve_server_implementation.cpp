@@ -90,6 +90,7 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
 auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
                           StorageConfig const& storage_config,
                           Storage const& storage,
+                          LocalExecutionConfig const& local_exec_config,
                           std::optional<ServeApi> const& serve,
                           ApiBundle const& apis,
                           bool with_execute) -> bool {
@@ -111,6 +112,7 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     TargetService ts{&serve_config,
                      &storage_config,
                      &storage,
+                     &local_exec_config,
                      &apis,
                      serve ? &*serve : nullptr};
     ConfigurationService cs{};

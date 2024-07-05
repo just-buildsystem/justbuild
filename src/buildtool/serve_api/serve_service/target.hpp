@@ -30,7 +30,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -45,11 +45,13 @@ class TargetService final : public justbuild::just_serve::Target::Service {
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
         gsl::not_null<StorageConfig const*> const& storage_config,
         gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
         gsl::not_null<ApiBundle const*> const& apis,
         ServeApi const* serve = nullptr) noexcept
         : serve_config_{*serve_config},
           storage_config_{*storage_config},
           storage_{*storage},
+          local_exec_config_{*local_exec_config},
           apis_{*apis},
           serve_{serve} {}
 
@@ -132,6 +134,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     RemoteServeConfig const& serve_config_;
     StorageConfig const& storage_config_;
     Storage const& storage_;
+    LocalExecutionConfig const& local_exec_config_;
     ApiBundle const& apis_;
     ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
