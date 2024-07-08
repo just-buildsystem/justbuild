@@ -20,6 +20,9 @@ A feature release on top of `1.3.0`, backwards compatible.
 - Dependencies have been updated to also build with gcc 14.
 - Portability improvements of the code by not relying on implementation
   details of the compiler.
+- Local execution no longer has the requirement that there exist no
+  more files with identical content than the hardlink limit of the
+  underlying file system.
 - Various improvements of the documentation.
 
 ## Release `1.3.0` (2024-05-08)
