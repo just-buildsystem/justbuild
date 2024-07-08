@@ -28,6 +28,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -39,9 +40,9 @@ class BazelNetworkReader final {
   public:
     using DumpCallback = std::function<bool(std::string const&)>;
 
-    explicit BazelNetworkReader(
-        std::string instance_name,
-        gsl::not_null<BazelCasClient const*> const& cas) noexcept;
+    explicit BazelNetworkReader(std::string instance_name,
+                                gsl::not_null<BazelCasClient const*> const& cas,
+                                HashFunction hash_function) noexcept;
 
     BazelNetworkReader(
         BazelNetworkReader&& other,
@@ -73,17 +74,18 @@ class BazelNetworkReader final {
 
     std::string const instance_name_;
     BazelCasClient const& cas_;
+    HashFunction const hash_function_;
     std::optional<DirectoryMap> auxiliary_map_;
 
-    [[nodiscard]] static auto MakeAuxiliaryMap(
-        std::vector<bazel_re::Directory>&& full_tree) noexcept
+    [[nodiscard]] auto MakeAuxiliaryMap(
+        std::vector<bazel_re::Directory>&& full_tree) const noexcept
         -> std::optional<DirectoryMap>;
 
     [[nodiscard]] auto BatchReadBlobs(
         std::vector<bazel_re::Digest> const& blobs) const noexcept
         -> std::vector<ArtifactBlob>;
 
-    [[nodiscard]] static auto Validate(BazelBlob const& blob) noexcept -> bool;
+    [[nodiscard]] auto Validate(BazelBlob const& blob) const noexcept -> bool;
 };
 
 class BazelNetworkReader::IncrementalReader final {

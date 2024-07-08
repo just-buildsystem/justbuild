@@ -45,29 +45,34 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     RetryConfig retry_config{};  // default retry config
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
                                 &retry_config,
-                                {}};
+                                {},
+                                hash_function};
 
     std::string content_foo("foo");
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), content_foo),
-                  content_foo,
-                  /*is_exec=*/false};
-    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), content_bar),
-                  content_bar,
-                  /*is_exec=*/false};
-    BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), content_baz),
-                  content_baz,
-                  /*is_exec=*/false};
+    BazelBlob foo{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content_foo),
+        content_foo,
+        /*is_exec=*/false};
+    BazelBlob bar{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content_bar),
+        content_bar,
+        /*is_exec=*/false};
+    BazelBlob baz{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content_baz),
+        content_baz,
+        /*is_exec=*/false};
 
     // Search blobs via digest
     REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar, baz}}));
@@ -107,24 +112,29 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     RetryConfig retry_config{};  // default retry config
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
                                 &retry_config,
-                                {}};
+                                {},
+                                hash_function};
 
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), content_foo),
-                  content_foo,
-                  /*is_exec=*/false};
-    BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), content_bar),
-                  content_bar,
-                  /*is_exec=*/false};
+    BazelBlob foo{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content_foo),
+        content_foo,
+        /*is_exec=*/false};
+    BazelBlob bar{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content_bar),
+        content_bar,
+        /*is_exec=*/false};
 
     // Upload blobs
     REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar}}));

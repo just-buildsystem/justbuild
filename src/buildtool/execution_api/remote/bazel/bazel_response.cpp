@@ -28,11 +28,11 @@
 
 namespace {
 
-auto ProcessDirectoryMessage(bazel_re::Directory const& dir) noexcept
+auto ProcessDirectoryMessage(HashFunction hash_function,
+                             bazel_re::Directory const& dir) noexcept
     -> std::optional<BazelBlob> {
     auto data = dir.SerializeAsString();
-    auto digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), data);
+    auto digest = ArtifactDigest::Create<ObjectType::File>(hash_function, data);
     return BazelBlob{std::move(digest), std::move(data), /*is_exec=*/false};
 }
 
@@ -102,7 +102,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                 link.path(),
                 Artifact::ObjectInfo{
                     .digest = ArtifactDigest::Create<ObjectType::File>(
-                        HashFunction::Instance(), link.target()),
+                        network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;
@@ -114,7 +114,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                 link.path(),
                 Artifact::ObjectInfo{
                     .digest = ArtifactDigest::Create<ObjectType::File>(
-                        HashFunction::Instance(), link.target()),
+                        network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
             dir_symlinks.emplace(link.path());  // add it to set
         } catch (...) {
@@ -129,7 +129,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                 link.path(),
                 Artifact::ObjectInfo{
                     .digest = ArtifactDigest::Create<ObjectType::File>(
-                        HashFunction::Instance(), link.target()),
+                        network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;
@@ -141,7 +141,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                 link.path(),
                 Artifact::ObjectInfo{
                     .digest = ArtifactDigest::Create<ObjectType::File>(
-                        HashFunction::Instance(), link.target()),
+                        network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return false;
@@ -215,7 +215,8 @@ auto BazelResponse::UploadTreeMessageDirectories(
     bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest> {
     BazelBlobContainer dir_blobs{};
 
-    auto rootdir_blob = ProcessDirectoryMessage(tree.root());
+    auto rootdir_blob =
+        ProcessDirectoryMessage(network_->GetHashFunction(), tree.root());
     if (not rootdir_blob) {
         return std::nullopt;
     }
@@ -234,7 +235,8 @@ auto BazelResponse::UploadTreeMessageDirectories(
     }
 
     for (auto const& subdir : tree.children()) {
-        auto subdir_blob = ProcessDirectoryMessage(subdir);
+        auto subdir_blob =
+            ProcessDirectoryMessage(network_->GetHashFunction(), subdir);
         if (not subdir_blob) {
             return std::nullopt;
         }

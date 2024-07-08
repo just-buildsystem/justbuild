@@ -27,7 +27,8 @@ BazelNetwork::BazelNetwork(
     Port port,
     gsl::not_null<Auth const*> const& auth,
     gsl::not_null<RetryConfig const*> const& retry_config,
-    ExecutionConfiguration const& exec_config) noexcept
+    ExecutionConfiguration const& exec_config,
+    HashFunction hash_function) noexcept
     : instance_name_{std::move(instance_name)},
       cas_{std::make_unique<BazelCasClient>(host, port, auth, retry_config)},
       ac_{std::make_unique<BazelAcClient>(host, port, auth, retry_config)},
@@ -35,7 +36,8 @@ BazelNetwork::BazelNetwork(
                                                    port,
                                                    auth,
                                                    retry_config)},
-      exec_config_{exec_config} {}
+      exec_config_{exec_config},
+      hash_function_{hash_function} {}
 
 auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
     -> bool {
@@ -141,7 +143,7 @@ auto BazelNetwork::ExecuteBazelActionSync(
 }
 
 auto BazelNetwork::CreateReader() const noexcept -> BazelNetworkReader {
-    return BazelNetworkReader{instance_name_, cas_.get()};
+    return BazelNetworkReader{instance_name_, cas_.get(), hash_function_};
 }
 
 auto BazelNetwork::GetCachedActionResult(

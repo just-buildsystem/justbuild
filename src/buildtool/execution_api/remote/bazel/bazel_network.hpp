@@ -27,6 +27,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -43,7 +44,8 @@ class BazelNetwork {
                           Port port,
                           gsl::not_null<Auth const*> const& auth,
                           gsl::not_null<RetryConfig const*> const& retry_config,
-                          ExecutionConfiguration const& exec_config) noexcept;
+                          ExecutionConfiguration const& exec_config,
+                          HashFunction hash_function) noexcept;
 
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up
@@ -79,6 +81,9 @@ class BazelNetwork {
         -> std::optional<BazelExecutionClient::ExecutionOutput>;
 
     [[nodiscard]] auto CreateReader() const noexcept -> BazelNetworkReader;
+    [[nodiscard]] auto GetHashFunction() const noexcept -> HashFunction {
+        return hash_function_;
+    }
 
     [[nodiscard]] auto GetCachedActionResult(
         bazel_re::Digest const& action,
@@ -91,6 +96,7 @@ class BazelNetwork {
     std::unique_ptr<BazelAcClient> ac_{};
     std::unique_ptr<BazelExecutionClient> exec_{};
     ExecutionConfiguration exec_config_{};
+    HashFunction const hash_function_;
 
     template <class T_Iter>
     [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,

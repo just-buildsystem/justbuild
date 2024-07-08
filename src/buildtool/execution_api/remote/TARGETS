@@ -37,6 +37,7 @@
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -52,7 +53,6 @@
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common/remote", "retry"]
     , ["src/buildtool/execution_api/common", "message_limits"]
@@ -87,6 +87,7 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "config":
