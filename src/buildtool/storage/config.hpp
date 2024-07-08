@@ -65,6 +65,8 @@ struct StorageConfig final {
     // Number of total storage generations (default: two generations).
     std::size_t const num_generations = 2;
 
+    HashFunction const hash_function{HashFunction::JustHash::Native};
+
     // Hash of the execution backend description
     std::string const backend_description_id = DefaultBackendDescriptionId();
 
@@ -154,11 +156,10 @@ struct StorageConfig final {
         return dir / (is_compatible ? "compatible-sha256" : "git-sha1");
     };
 
-    [[nodiscard]] static auto DefaultBackendDescriptionId() noexcept
-        -> std::string {
+    [[nodiscard]] auto DefaultBackendDescriptionId() noexcept -> std::string {
         try {
             return ArtifactDigest::Create<ObjectType::File>(
-                       HashFunction::Instance(),
+                       hash_function,
                        DescribeBackend(std::nullopt, {}, {}).value())
                 .hash();
         } catch (...) {
@@ -180,11 +181,16 @@ class StorageConfig::Builder final {
         return *this;
     }
 
-    auto SetRemoteExecutionArgs(
-        std::optional<ServerAddress> address,
-        std::map<std::string, std::string> properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch) noexcept -> Builder& {
+    /// \brief Specify the type of the hash function
+    auto SetHashType(HashFunction::JustHash value) noexcept -> Builder& {
+        hash_type_ = value;
+        return *this;
+    }
+
+    auto SetRemoteExecutionArgs(std::optional<ServerAddress> address,
+                                ExecutionProperties properties,
+                                std::vector<DispatchEndpoint> dispatch) noexcept
+        -> Builder& {
         remote_address_ = std::move(address);
         remote_platform_properties_ = std::move(properties);
         remote_dispatch_ = std::move(dispatch);
@@ -216,14 +222,19 @@ class StorageConfig::Builder final {
             }
         }
 
+        auto hash_function = default_config.hash_function;
+        if (hash_type_.has_value()) {
+            hash_function = HashFunction{*hash_type_};
+        }
+
         // Hash the execution backend description
         auto backend_description_id = default_config.backend_description_id;
         auto desc = DescribeBackend(
             remote_address_, remote_platform_properties_, remote_dispatch_);
         if (desc) {
-            backend_description_id = ArtifactDigest::Create<ObjectType::File>(
-                                         HashFunction::Instance(), *desc)
-                                         .hash();
+            backend_description_id =
+                ArtifactDigest::Create<ObjectType::File>(hash_function, *desc)
+                    .hash();
         }
         else {
             return unexpected{desc.error()};
@@ -232,18 +243,19 @@ class StorageConfig::Builder final {
         return StorageConfig{
             .build_root = std::move(build_root),
             .num_generations = num_generations,
+            .hash_function = hash_function,
             .backend_description_id = std::move(backend_description_id)};
     }
 
   private:
     std::optional<std::filesystem::path> build_root_;
     std::optional<std::size_t> num_generations_;
+    std::optional<HashFunction::JustHash> hash_type_;
 
     // Fields for computing remote execution backend description
     std::optional<ServerAddress> remote_address_;
-    std::map<std::string, std::string> remote_platform_properties_;
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        remote_dispatch_;
+    ExecutionProperties remote_platform_properties_;
+    std::vector<DispatchEndpoint> remote_dispatch_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP

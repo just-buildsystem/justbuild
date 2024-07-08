@@ -110,10 +110,10 @@ void SetupLogging(LogArguments const& clargs) {
 
 [[nodiscard]] auto CreateStorageConfig(
     EndpointArguments const& eargs,
+    bool is_compatible,
     std::optional<ServerAddress> const& remote_address = std::nullopt,
-    std::map<std::string, std::string> const& remote_platform_properties = {},
-    std::vector<std::pair<std::map<std::string, std::string>,
-                          ServerAddress>> const& remote_dispatch = {}) noexcept
+    ExecutionProperties const& remote_platform_properties = {},
+    std::vector<DispatchEndpoint> const& remote_dispatch = {}) noexcept
     -> std::optional<StorageConfig> {
     StorageConfig::Builder builder;
     if (eargs.local_root.has_value()) {
@@ -122,6 +122,8 @@ void SetupLogging(LogArguments const& clargs) {
 
     auto config =
         builder
+            .SetHashType(is_compatible ? HashFunction::JustHash::Compatible
+                                       : HashFunction::JustHash::Native)
             .SetRemoteExecutionArgs(
                 remote_address, remote_platform_properties, remote_dispatch)
             .Build();
@@ -800,7 +802,8 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kGc) {
             // Set up storage for GC, as we have all the config args we need.
-            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            auto const storage_config = CreateStorageConfig(
+                arguments.endpoint, Compatibility::IsCompatible());
             if (not storage_config) {
                 return kExitFailure;
             }
@@ -828,7 +831,8 @@ auto main(int argc, char* argv[]) -> int {
             RemoteExecutionConfig remote_exec_config{};
 
             // Set up storage for local execution.
-            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            auto const storage_config = CreateStorageConfig(
+                arguments.endpoint, Compatibility::IsCompatible());
             if (not storage_config) {
                 return kExitFailure;
             }
@@ -885,6 +889,7 @@ auto main(int argc, char* argv[]) -> int {
                 // Set up storage for serve operation.
                 auto const storage_config =
                     CreateStorageConfig(arguments.endpoint,
+                                        Compatibility::IsCompatible(),
                                         remote_exec_config->remote_address,
                                         remote_exec_config->platform_properties,
                                         remote_exec_config->dispatch);
@@ -950,13 +955,15 @@ auto main(int argc, char* argv[]) -> int {
         // correctly-sharded target cache.
         auto const storage_config =
             CreateStorageConfig(arguments.endpoint,
+                                Compatibility::IsCompatible(),
                                 remote_exec_config->remote_address,
                                 remote_exec_config->platform_properties,
                                 remote_exec_config->dispatch);
 #else
         // For bootstrapping the TargetCache sharding is not needed, so we can
         // default all execution arguments.
-        auto const storage_config = CreateStorageConfig(arguments.endpoint);
+        auto const storage_config = CreateStorageConfig(
+            arguments.endpoint, Compatibility::IsCompatible());
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
             return kExitFailure;

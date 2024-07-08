@@ -25,6 +25,7 @@
     , "setup"
     , "setup_utils"
     , "update"
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":

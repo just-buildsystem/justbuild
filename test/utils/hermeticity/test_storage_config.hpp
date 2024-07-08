@@ -21,6 +21,7 @@
 #include <utility>  //std::move
 
 #include "gsl/gsl"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -51,7 +52,11 @@ class TestStorageConfig final {
         }
 
         StorageConfig::Builder builder;
-        auto config = builder.SetBuildRoot(temp_dir->GetPath()).Build();
+        auto config = builder.SetBuildRoot(temp_dir->GetPath())
+                          .SetHashType(Compatibility::IsCompatible()
+                                           ? HashFunction::JustHash::Compatible
+                                           : HashFunction::JustHash::Native)
+                          .Build();
         if (not config) {
             Logger::Log(LogLevel::Error, config.error());
             std::exit(EXIT_FAILURE);

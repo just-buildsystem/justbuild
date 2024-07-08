@@ -52,6 +52,7 @@
     , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

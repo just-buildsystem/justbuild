@@ -961,10 +961,14 @@ TEST_CASE("built-in rules", "[target_map]") {
         CHECK(error_msg == "NONE");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              HashFunction::Instance().ComputeBlobHash("bar").HexString());
+              storage_config.Get()
+                  .hash_function.ComputeBlobHash("bar")
+                  .HexString());
         CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
         CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              HashFunction::Instance().ComputeBlobHash("baz").HexString());
+              storage_config.Get()
+                  .hash_function.ComputeBlobHash("baz")
+                  .HexString());
     }
 }
 

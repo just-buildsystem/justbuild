@@ -52,6 +52,7 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "utils"]
   }
