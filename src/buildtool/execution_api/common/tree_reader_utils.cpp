@@ -40,11 +40,13 @@ namespace {
                                             : ObjectType::File};
 }
 
-[[nodiscard]] auto CreateObjectInfo(bazel_re::SymlinkNode const& node)
+[[nodiscard]] auto CreateObjectInfo(bazel_re::SymlinkNode const& node,
+                                    HashFunction hash_function)
     -> Artifact::ObjectInfo {
+
     return Artifact::ObjectInfo{
-        .digest = ArtifactDigest::Create<ObjectType::File>(
-            HashFunction::Instance(), node.target()),
+        .digest = ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                           node.target()),
         .type = ObjectType::Symlink};
 }
 
@@ -87,8 +89,11 @@ auto TreeReaderUtils::ReadObjectInfos(bazel_re::Directory const& dir,
                 return false;
             }
         }
+
+        // SHA256 is used since bazel types are processed here.
+        HashFunction const hash_function{HashFunction::JustHash::Compatible};
         for (auto const& l : dir.symlinks()) {
-            if (not store_info(l.name(), CreateObjectInfo(l))) {
+            if (not store_info(l.name(), CreateObjectInfo(l, hash_function))) {
                 return false;
             }
         }
