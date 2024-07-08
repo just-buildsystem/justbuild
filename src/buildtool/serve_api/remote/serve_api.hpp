@@ -46,7 +46,7 @@ class ServeApi final {
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
         : stc_{address, &apis->auth},
           tc_{address, storage, apis},
-          cc_{address, &apis->auth} {}
+          cc_{address, &apis->auth, &apis->remote_config} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;

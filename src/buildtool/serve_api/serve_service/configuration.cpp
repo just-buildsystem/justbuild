@@ -16,17 +16,14 @@
 
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 
-#include <optional>
-
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 
 auto ConfigurationService::RemoteExecutionEndpoint(
     ::grpc::ServerContext* /*context*/,
     const ::justbuild::just_serve::RemoteExecutionEndpointRequest* /*request*/,
     ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
     -> ::grpc::Status {
-    auto address = RemoteExecutionConfig::RemoteAddress();
+    auto address = remote_config_.RemoteAddress();
     response->set_address(address ? address->ToJson().dump() : std::string());
     return ::grpc::Status::OK;
 }

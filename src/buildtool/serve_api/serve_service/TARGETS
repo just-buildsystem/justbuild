@@ -127,11 +127,10 @@
   , "hdrs": ["configuration.hpp"]
   , "srcs": ["configuration.cpp"]
   , "proto": ["just_serve_proto"]
+  , "deps":
+    [["@", "gsl", "", "gsl"], ["src/buildtool/execution_api/remote", "config"]]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
-  , "private-deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/execution_api/remote", "config"]
-    ]
+  , "private-deps": [["src/buildtool/compatibility", "compatibility"]]
   }
 , "target_utils":
   { "type": ["@", "rules", "CC", "library"]

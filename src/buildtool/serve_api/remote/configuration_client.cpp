@@ -20,12 +20,11 @@
 #include <optional>
 
 #include "nlohmann/json.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 
 auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
-    auto client_remote_address = RemoteExecutionConfig::RemoteAddress();
+    auto const client_remote_address = remote_config_.RemoteAddress();
     if (!client_remote_address) {
         logger_.Emit(LogLevel::Error,
                      "Internal error: the remote execution endpoint should "

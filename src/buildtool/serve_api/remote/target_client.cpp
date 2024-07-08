@@ -60,7 +60,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     request.mutable_target_cache_key_id()->CopyFrom(key_dgst);
 
     // add execution properties to request
-    for (auto const& [k, v] : RemoteExecutionConfig::PlatformProperties()) {
+    for (auto const& [k, v] : apis_.remote_config.PlatformProperties()) {
         auto* prop = request.add_execution_properties();
         prop->set_name(k);
         prop->set_value(v);
@@ -71,7 +71,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     auto dispatch_list = nlohmann::json::array();
     try {
         for (auto const& [props, endpoint] :
-             RemoteExecutionConfig::DispatchList()) {
+             apis_.remote_config.DispatchList()) {
             auto entry = nlohmann::json::array();
             entry.push_back(nlohmann::json(props));
             entry.push_back(endpoint.ToJson());

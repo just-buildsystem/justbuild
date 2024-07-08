@@ -85,6 +85,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/common/remote", "remote_common"]
@@ -93,7 +94,6 @@
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
     [ ["@", "json", "", "json"]
-    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/serve_api/remote", "config"]
     ]

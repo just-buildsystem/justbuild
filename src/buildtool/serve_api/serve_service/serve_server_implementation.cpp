@@ -115,7 +115,7 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
                      &local_exec_config,
                      &apis,
                      serve ? &*serve : nullptr};
-    ConfigurationService cs{};
+    ConfigurationService cs{&apis.remote_config};
 
     grpc::ServerBuilder builder;
 

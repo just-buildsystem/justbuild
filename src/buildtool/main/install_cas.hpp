@@ -24,7 +24,8 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #endif
 
-[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s) noexcept
+[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s,
+                                               bool has_remote) noexcept
     -> Artifact::ObjectInfo;
 
 #ifndef BOOTSTRAP_BUILD_TOOL

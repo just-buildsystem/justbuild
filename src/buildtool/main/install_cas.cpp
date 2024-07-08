@@ -30,17 +30,19 @@
 namespace {
 
 [[nodiscard]] auto InvalidSizeString(std::string const& size_str,
-                                     std::string const& hash) noexcept -> bool {
+                                     std::string const& hash,
+                                     bool has_remote) noexcept -> bool {
     static auto const kEmptyHash = HashFunction::ComputeBlobHash("");
     return Compatibility::IsCompatible() and          // native mode is fine
            (size_str == "0" or size_str.empty()) and  // not "0" or "" is fine
            kEmptyHash.HexString() != hash and         // empty hash is fine
-           RemoteExecutionConfig::RemoteAddress();    // local is fine
+           has_remote;                                // local is fine
 }
 
 }  // namespace
 
-[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s) noexcept
+[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s,
+                                               bool has_remote) noexcept
     -> Artifact::ObjectInfo {
     std::istringstream iss(s);
     std::string id{};
@@ -56,7 +58,7 @@ namespace {
     if (not iss.eof()) {
         std::getline(iss, type, ']');
     }
-    if (InvalidSizeString(size_str, id)) {
+    if (InvalidSizeString(size_str, id, has_remote)) {
         Logger::Log(
             LogLevel::Warning,
             "{} size in object-id is not supported in compatiblity mode.",
@@ -73,7 +75,8 @@ namespace {
 #ifndef BOOTSTRAP_BUILD_TOOL
 auto FetchAndInstallArtifacts(ApiBundle const& apis,
                               FetchArguments const& clargs) -> bool {
-    auto object_info = ObjectInfoFromLiberalString(clargs.object_id);
+    auto object_info = ObjectInfoFromLiberalString(
+        clargs.object_id, apis.remote_config.RemoteAddress().has_value());
 
     if (clargs.remember) {
         if (not apis.remote->ParallelRetrieveToCas(

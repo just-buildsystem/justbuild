@@ -138,7 +138,7 @@ auto TargetService::ServeTarget(
     }
 
     // start filling in the backend description
-    auto const address = RemoteExecutionConfig::RemoteAddress();
+    auto const address = apis_.remote_config.RemoteAddress();
     // read in the execution properties.
     // Important: we will need to pass these platform properties also to the
     // executor (via the graph_traverser) in order for the build to be properly
@@ -480,7 +480,7 @@ auto TargetService::ServeTarget(
                                    &local_exec_config_,
                                    &repository_config,
                                    &apis_.auth,
-                                   &RemoteExecutionConfig::Instance()};
+                                   &apis_.remote_config};
         GraphTraverser const traverser{
             std::move(traverser_args),
             &repository_config,
