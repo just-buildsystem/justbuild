@@ -291,7 +291,7 @@ auto LocalAction::StageInputs(
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
-    auto reader = TreeReader<LocalCasReader>{storage_.CAS()};
+    auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
     auto result = reader.RecursivelyReadTreeLeafs(
         root_digest_, exec_path, /*include_trees=*/true);
     if (not result) {

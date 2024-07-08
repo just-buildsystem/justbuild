@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
@@ -30,7 +31,9 @@ class LocalCasReader final {
   public:
     using DumpCallback = std::function<bool(std::string const&)>;
 
-    explicit LocalCasReader(LocalCAS<true> const& cas) noexcept : cas_(cas) {}
+    explicit LocalCasReader(
+        gsl::not_null<LocalCAS<true> const*> const& cas) noexcept
+        : cas_(*cas) {}
 
     [[nodiscard]] auto ReadDirectory(ArtifactDigest const& digest)
         const noexcept -> std::optional<bazel_re::Directory>;

@@ -95,7 +95,7 @@ class LocalApi final : public IExecutionApi {
             auto const& info = artifacts_info[i];
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto reader = TreeReader<LocalCasReader>{storage_.CAS()};
+                auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
                 auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not result) {
@@ -149,7 +149,7 @@ class LocalApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
         bool raw_tree) const noexcept -> bool final {
-        auto dumper = StreamDumper<LocalCasReader>{storage_.CAS()};
+        auto dumper = StreamDumper<LocalCasReader>{&storage_.CAS()};
         return CommonRetrieveToFds(
             artifacts_info,
             fds,
@@ -202,7 +202,7 @@ class LocalApi final : public IExecutionApi {
             auto const& info = missing_artifacts_info->back_map[dgst];
             // Recursively process trees.
             if (IsTreeObject(info.type)) {
-                auto reader = TreeReader<LocalCasReader>{storage_.CAS()};
+                auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
                 auto const& result = reader.ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
                 if (not result or not RetrieveToCas(result->infos, api)) {

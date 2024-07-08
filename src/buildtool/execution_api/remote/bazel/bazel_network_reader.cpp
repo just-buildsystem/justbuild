@@ -24,9 +24,10 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
 
-BazelNetworkReader::BazelNetworkReader(std::string instance_name,
-                                       BazelCasClient const& cas) noexcept
-    : instance_name_{std::move(instance_name)}, cas_(cas) {}
+BazelNetworkReader::BazelNetworkReader(
+    std::string instance_name,
+    gsl::not_null<BazelCasClient const*> const& cas) noexcept
+    : instance_name_{std::move(instance_name)}, cas_(*cas) {}
 
 BazelNetworkReader::BazelNetworkReader(
     BazelNetworkReader&& other,

@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
@@ -38,8 +39,9 @@ class BazelNetworkReader final {
   public:
     using DumpCallback = std::function<bool(std::string const&)>;
 
-    BazelNetworkReader(std::string instance_name,
-                       BazelCasClient const& cas) noexcept;
+    explicit BazelNetworkReader(
+        std::string instance_name,
+        gsl::not_null<BazelCasClient const*> const& cas) noexcept;
 
     BazelNetworkReader(
         BazelNetworkReader&& other,

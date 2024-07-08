@@ -136,7 +136,7 @@ auto BazelNetwork::ExecuteBazelActionSync(
 }
 
 auto BazelNetwork::CreateReader() const noexcept -> BazelNetworkReader {
-    return BazelNetworkReader{instance_name_, *cas_};
+    return BazelNetworkReader{instance_name_, cas_.get()};
 }
 
 auto BazelNetwork::GetCachedActionResult(
