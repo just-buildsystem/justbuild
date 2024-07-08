@@ -6,7 +6,7 @@ A feature release on top of `1.3.0`, backwards compatible.
 
 - A bug was fixed that cased `just serve` to fail with an internal
   error when building against ignore-special roots.
-- `just` now accurately reports internal errors that occured on
+- `just` now accurately reports internal errors that occurred on
   the serve endpoint.
 - Target-level cache entries are only written if all export targets
   depended upon are also written to or found in cache; previously,
@@ -18,7 +18,7 @@ A feature release on top of `1.3.0`, backwards compatible.
 - Internal code clean up, reducing memory footprint, in particular
   for simultaneous upload of a large number of blobs.
 - Dependencies have been updated to also build with gcc 14.
-- Porability improvements of the code by not relying on implementation
+- Portability improvements of the code by not relying on implementation
   details of the compiler.
 - Various improvements of the documentation.
 
