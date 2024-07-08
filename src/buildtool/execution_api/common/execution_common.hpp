@@ -105,8 +105,11 @@ static void EncodeUUIDVariant1(std::string* uuid) {
     constexpr auto kRawLength = 16UL;
     constexpr auto kHexDashPos = std::array{8UL, 12UL, 16UL, 20UL};
 
+    // The type of HashFunction is irrelevant here. It is used for
+    // identification purposes only. SHA256 is used.
+    HashFunction const hash_function{HashFunction::JustHash::Compatible};
     auto value = fmt::format("{}-{}", std::to_string(kRandomConstant), seed);
-    auto uuid = HashFunction::Instance().ComputeHash(value).Bytes();
+    auto uuid = hash_function.ComputeHash(value).Bytes();
     EncodeUUIDVersion4(&uuid);
     EncodeUUIDVariant1(&uuid);
     Expects(uuid.size() >= kRawLength);
