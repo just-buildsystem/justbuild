@@ -23,7 +23,7 @@
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
@@ -50,7 +50,7 @@ class TreeReader final {
         -> std::optional<ReadTreeResult> {
         ReadTreeResult result;
 
-        BazelMsgFactory::InfoStoreFunc store_info =
+        TreeReaderUtils::InfoStoreFunc store_info =
             [&result, &parent](std::filesystem::path const& path,
                                Artifact::ObjectInfo const& info) {
                 result.paths.emplace_back(parent / path);
@@ -60,15 +60,15 @@ class TreeReader final {
 
         if (Compatibility::IsCompatible()) {
             auto tree = impl_.ReadDirectory(digest);
-            if (tree and not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                             *tree, store_info)) {
+            if (tree and
+                not TreeReaderUtils::ReadObjectInfos(*tree, store_info)) {
                 return std::nullopt;
             }
         }
         else {
             auto tree = impl_.ReadGitTree(digest);
-            if (tree and not BazelMsgFactory::ReadObjectInfosFromGitTree(
-                             *tree, store_info)) {
+            if (tree and
+                not TreeReaderUtils::ReadObjectInfos(*tree, store_info)) {
                 return std::nullopt;
             }
         }
@@ -117,11 +117,11 @@ class TreeReader final {
     }
 
     [[nodiscard]] auto ReadObjectInfosRecursively(
-        BazelMsgFactory::InfoStoreFunc const& store,
+        TreeReaderUtils::InfoStoreFunc const& store,
         std::filesystem::path const& parent,
         ArtifactDigest const& digest,
         bool const include_trees) const -> bool {
-        BazelMsgFactory::InfoStoreFunc internal_store =
+        TreeReaderUtils::InfoStoreFunc internal_store =
             [this, &store, &parent, include_trees](
                 std::filesystem::path const& path,
                 Artifact::ObjectInfo const& info) -> bool {
@@ -138,8 +138,7 @@ class TreeReader final {
                         return false;
                     }
                 }
-                return BazelMsgFactory::ReadObjectInfosFromDirectory(
-                    *tree, internal_store);
+                return TreeReaderUtils::ReadObjectInfos(*tree, internal_store);
             }
         }
         else {
@@ -149,8 +148,7 @@ class TreeReader final {
                         return false;
                     }
                 }
-                return BazelMsgFactory::ReadObjectInfosFromGitTree(
-                    *tree, internal_store);
+                return TreeReaderUtils::ReadObjectInfos(*tree, internal_store);
             }
         }
         return false;

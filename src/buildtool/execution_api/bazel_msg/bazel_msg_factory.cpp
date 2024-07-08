@@ -392,27 +392,6 @@ template <class T>
     return ActionBundle::Create(msg, content_creator, digest_creator);
 }
 
-[[nodiscard]] auto CreateObjectInfo(bazel_re::DirectoryNode const& node)
-    -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
-                                .type = ObjectType::Tree};
-}
-
-[[nodiscard]] auto CreateObjectInfo(bazel_re::FileNode const& node)
-    -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
-                                .type = node.is_executable()
-                                            ? ObjectType::Executable
-                                            : ObjectType::File};
-}
-
-[[nodiscard]] auto CreateObjectInfo(bazel_re::SymlinkNode const& node)
-    -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{
-        ArtifactDigest::Create<ObjectType::File>(node.target()),
-        ObjectType::Symlink};
-}
-
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
 /// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DirectoryTreeToBundle(
@@ -486,61 +465,6 @@ template <class T>
 }
 
 }  // namespace
-
-auto BazelMsgFactory::ReadObjectInfosFromDirectory(
-    bazel_re::Directory const& dir,
-    InfoStoreFunc const& store_info) noexcept -> bool {
-    try {
-        for (auto const& f : dir.files()) {
-            if (not store_info(f.name(), CreateObjectInfo(f))) {
-                return false;
-            }
-        }
-        for (auto const& l : dir.symlinks()) {
-            if (not store_info(l.name(), CreateObjectInfo(l))) {
-                return false;
-            }
-        }
-        for (auto const& d : dir.directories()) {
-            if (not store_info(d.name(), CreateObjectInfo(d))) {
-                return false;
-            }
-        }
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "reading object infos from Directory failed with:\n{}",
-                    ex.what());
-        return false;
-    }
-    return true;
-}
-
-auto BazelMsgFactory::ReadObjectInfosFromGitTree(
-    GitRepo::tree_entries_t const& entries,
-    InfoStoreFunc const& store_info) noexcept -> bool {
-    try {
-        for (auto const& [raw_id, es] : entries) {
-            auto const hex_id = ToHexString(raw_id);
-            for (auto const& entry : es) {
-                if (not store_info(
-                        entry.name,
-                        Artifact::ObjectInfo{
-                            .digest = ArtifactDigest{hex_id,
-                                                     /*size is unknown*/ 0,
-                                                     IsTreeObject(entry.type)},
-                            .type = entry.type})) {
-                    return false;
-                }
-            }
-        }
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "reading object infos from Git tree failed with:\n{}",
-                    ex.what());
-        return false;
-    }
-    return true;
-}
 
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     DirectoryTreePtr const& tree,
@@ -762,49 +686,4 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
     }
 
     return action->Digest();
-}
-
-auto BazelMsgFactory::DirectoryToString(bazel_re::Directory const& dir) noexcept
-    -> std::optional<std::string> {
-    auto json = nlohmann::json::object();
-    try {
-        if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
-                dir, [&json](auto path, auto info) {
-                    json[path.string()] = info.ToString();
-                    return true;
-                })) {
-            Logger::Log(LogLevel::Error,
-                        "reading object infos from Directory failed");
-            return std::nullopt;
-        }
-        return json.dump(2) + "\n";
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "dumping Directory to string failed with:\n{}",
-                    ex.what());
-        return std::nullopt;
-    }
-}
-
-auto BazelMsgFactory::GitTreeToString(
-    GitRepo::tree_entries_t const& entries) noexcept
-    -> std::optional<std::string> {
-    auto json = nlohmann::json::object();
-    try {
-        if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
-                entries, [&json](auto path, auto info) {
-                    json[path.string()] = info.ToString(/*size_unknown=*/true);
-                    return true;
-                })) {
-            Logger::Log(LogLevel::Error,
-                        "reading object infos from Directory failed");
-            return std::nullopt;
-        }
-        return json.dump(2) + "\n";
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "dumping Directory to string failed with:\n{}",
-                    ex.what());
-        return std::nullopt;
-    }
 }

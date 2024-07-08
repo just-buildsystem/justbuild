@@ -7,9 +7,11 @@
     , "execution_action.hpp"
     , "execution_response.hpp"
     , "tree_reader.hpp"
+    , "tree_reader_utils.hpp"
     , "stream_dumper.hpp"
     , "artifact_blob_container.hpp"
     ]
+  , "srcs": ["tree_reader_utils.cpp"]
   , "deps":
     [ "content_blob_container"
     , ["@", "gsl", "", "gsl"]

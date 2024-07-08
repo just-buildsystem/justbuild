@@ -30,7 +30,6 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -54,18 +53,6 @@ class BazelMsgFactory {
         std::function<std::optional<bazel_re::Digest>(std::string const&)>;
     using TreeStoreFunc =
         std::function<std::optional<bazel_re::Digest>(std::string const&)>;
-
-    /// \brief Read object infos from directory.
-    /// \returns true on success.
-    [[nodiscard]] static auto ReadObjectInfosFromDirectory(
-        bazel_re::Directory const& dir,
-        InfoStoreFunc const& store_info) noexcept -> bool;
-
-    /// \brief Read object infos from git tree.
-    /// \returns true on success.
-    [[nodiscard]] static auto ReadObjectInfosFromGitTree(
-        GitRepo::tree_entries_t const& entries,
-        InfoStoreFunc const& store_info) noexcept -> bool;
 
     /// \brief Create Directory digest from artifact tree structure.
     /// Recursively traverse entire tree and create blobs for sub-directories.
@@ -134,15 +121,6 @@ class BazelMsgFactory {
         std::chrono::milliseconds const& timeout,
         std::optional<BlobStoreFunc> const& store_blob = std::nullopt)
         -> bazel_re::Digest;
-
-    /// \brief Create descriptive string from Directory protobuf message.
-    [[nodiscard]] static auto DirectoryToString(
-        bazel_re::Directory const& dir) noexcept -> std::optional<std::string>;
-
-    /// \brief Create descriptive string from Git tree entries.
-    [[nodiscard]] static auto GitTreeToString(
-        GitRepo::tree_entries_t const& entries) noexcept
-        -> std::optional<std::string>;
 
     /// \brief Create message vector from std::map.
     /// \param[in]  input   map

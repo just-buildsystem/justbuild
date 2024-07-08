@@ -17,6 +17,7 @@
 
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -51,7 +52,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                 break;
             }
             std::optional<Artifact::ObjectInfo> new_object_info{};
-            if (not BazelMsgFactory::ReadObjectInfosFromDirectory(
+            if (not TreeReaderUtils::ReadObjectInfos(
                     *directory,
                     [&new_object_info, &segment](auto path, auto info) {
                         if (path == segment) {
@@ -87,7 +88,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                 break;
             }
             std::optional<Artifact::ObjectInfo> new_object_info{};
-            if (not BazelMsgFactory::ReadObjectInfosFromGitTree(
+            if (not TreeReaderUtils::ReadObjectInfos(
                     *entries,
                     [&new_object_info, &segment](auto path, auto info) {
                         if (path == segment) {

@@ -23,7 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 template <typename TImpl>
@@ -68,7 +68,7 @@ class StreamDumper final {
         if (Compatibility::IsCompatible()) {
             auto directory = impl_.ReadDirectory(info.digest);
             auto data = directory
-                            ? BazelMsgFactory::DirectoryToString(*directory)
+                            ? TreeReaderUtils::DirectoryToString(*directory)
                             : std::nullopt;
             if (data) {
                 return DumpString(*data, stream);
@@ -76,7 +76,7 @@ class StreamDumper final {
         }
         else {
             auto entries = impl_.ReadGitTree(info.digest);
-            auto data = entries ? BazelMsgFactory::GitTreeToString(*entries)
+            auto data = entries ? TreeReaderUtils::GitTreeToString(*entries)
                                 : std::nullopt;
             if (data) {
                 return DumpString(*data, stream);
