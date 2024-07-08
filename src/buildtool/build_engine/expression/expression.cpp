@@ -238,6 +238,10 @@ auto Expression::TypeString() const noexcept -> std::string {
 // NOLINTNEXTLINE(misc-no-recursion)
 auto Expression::ComputeHash() const noexcept -> std::string {
     auto hash = std::string{};
+
+    // The type of HashFunction is irrelevant here. It is used for
+    // identification and quick comparison of expressions. SHA256 is used.
+    HashFunction const hash_function{HashFunction::JustHash::Compatible};
     if (IsNone() or IsBool() or IsNumber() or IsString() or IsArtifact() or
         IsResult() or IsNode() or IsName()) {
         // just hash the JSON representation, but prepend "@" for artifact,
@@ -247,11 +251,10 @@ auto Expression::ComputeHash() const noexcept -> std::string {
                            : IsNode()   ? "#"
                            : IsName()   ? "$"
                                         : ""};
-        hash =
-            HashFunction::Instance().ComputeHash(prefix + ToString()).Bytes();
+        hash = hash_function.ComputeHash(prefix + ToString()).Bytes();
     }
     else {
-        auto hasher = HashFunction::Instance().Hasher();
+        auto hasher = hash_function.Hasher();
         if (IsList()) {
             auto list = Value<Expression::list_t>();
             hasher.Update("[");
@@ -263,8 +266,7 @@ auto Expression::ComputeHash() const noexcept -> std::string {
             auto map = Value<Expression::map_t>();
             hasher.Update("{");
             for (auto const& el : map->get()) {
-                hasher.Update(
-                    HashFunction::Instance().ComputeHash(el.first).Bytes());
+                hasher.Update(hash_function.ComputeHash(el.first).Bytes());
                 hasher.Update(el.second->ToHash());
             }
         }
