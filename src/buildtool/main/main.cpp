@@ -874,7 +874,7 @@ auto main(int argc, char* argv[]) -> int {
                                       &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
-                                      RemoteExecutionConfig::RemoteAddress()};
+                                      &RemoteExecutionConfig::Instance()};
             if (not ServerImpl::Instance().Run(
                     *storage_config, storage, exec_apis)) {
                 return kExitFailure;
@@ -901,13 +901,12 @@ auto main(int argc, char* argv[]) -> int {
                 auto const storage = Storage::Create(&*storage_config);
                 StoreTargetCacheShard(*storage_config, storage);
 
-                ApiBundle const serve_apis{
-                    &*storage_config,
-                    &storage,
-                    &*local_exec_config,
-                    /*repo_config=*/nullptr,
-                    &*auth_config,
-                    RemoteExecutionConfig::RemoteAddress()};
+                ApiBundle const serve_apis{&*storage_config,
+                                           &storage,
+                                           &*local_exec_config,
+                                           /*repo_config=*/nullptr,
+                                           &*auth_config,
+                                           &RemoteExecutionConfig::Instance()};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
                 bool with_execute = not RemoteExecutionConfig::RemoteAddress();
@@ -990,7 +989,7 @@ auto main(int argc, char* argv[]) -> int {
                                   &*local_exec_config,
                                   &repo_config,
                                   &*auth_config,
-                                  RemoteExecutionConfig::RemoteAddress()};
+                                  &RemoteExecutionConfig::Instance()};
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),

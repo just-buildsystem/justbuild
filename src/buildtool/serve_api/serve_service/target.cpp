@@ -480,7 +480,7 @@ auto TargetService::ServeTarget(
                                    &local_exec_config_,
                                    &repository_config,
                                    &apis_.auth,
-                                   address};
+                                   &RemoteExecutionConfig::Instance()};
         GraphTraverser const traverser{
             std::move(traverser_args),
             &repository_config,

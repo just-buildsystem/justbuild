@@ -24,13 +24,14 @@ ApiBundle::ApiBundle(
     gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
     RepositoryConfig const* repo_config,
     gsl::not_null<Auth const*> const& authentication,
-    std::optional<ServerAddress> const& remote_address)
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config)
     : local{std::make_shared<LocalApi>(storage_config,
                                        storage,
                                        local_exec_config,
                                        repo_config)},  // needed by remote
       auth{*authentication},                           // needed by remote
-      remote{CreateRemote(remote_address)} {}
+      remote_config{*remote_exec_config},              // needed by remote
+      remote{CreateRemote(remote_exec_config->RemoteAddress())} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
     -> gsl::not_null<IExecutionApi::Ptr> {

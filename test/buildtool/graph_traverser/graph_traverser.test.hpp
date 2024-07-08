@@ -173,7 +173,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -205,7 +205,7 @@ class TestProject {
                              &local_exec_config,
                              p.GetRepoConfig(),
                              auth,
-                             RemoteExecutionConfig::RemoteAddress()};
+                             &RemoteExecutionConfig::Instance()};
         GraphTraverser const gt_get_exec{
             clargs_exec.gtargs,
             p.GetRepoConfig(),
@@ -249,7 +249,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -287,7 +287,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             RemoteExecutionConfig::PlatformProperties(),
@@ -346,7 +346,7 @@ class TestProject {
                          &local_exec_config,
                          full_hello_world.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
                                    RemoteExecutionConfig::PlatformProperties(),
@@ -409,7 +409,7 @@ static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -455,7 +455,7 @@ static void TestEnvironmentVariablesSetAndUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -500,7 +500,7 @@ static void TestTreesUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -545,7 +545,7 @@ static void TestNestedTreesUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       RemoteExecutionConfig::PlatformProperties(),
@@ -589,7 +589,7 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");

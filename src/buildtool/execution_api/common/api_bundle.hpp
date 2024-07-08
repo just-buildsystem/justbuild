@@ -24,6 +24,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
@@ -37,13 +38,14 @@ struct ApiBundle final {
         gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
         RepositoryConfig const* repo_config,
         gsl::not_null<Auth const*> const& authentication,
-        std::optional<ServerAddress> const& remote_address);
+        gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
         const -> gsl::not_null<IExecutionApi::Ptr>;
 
     gsl::not_null<IExecutionApi::Ptr> const local;  // needed by remote
     Auth const& auth;                               // needed by remote
+    RemoteExecutionConfig const& remote_config;     // needed by remote
     gsl::not_null<IExecutionApi::Ptr> const remote;
 };
 

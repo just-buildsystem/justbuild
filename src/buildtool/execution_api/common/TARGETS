@@ -46,6 +46,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]

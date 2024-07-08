@@ -419,7 +419,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                          &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
-                         RemoteExecutionConfig::RemoteAddress()};
+                         &RemoteExecutionConfig::Instance()};
 
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;
