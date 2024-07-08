@@ -374,7 +374,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
     // methods can refer to a file that existed before. The direct hash
     // calculation is done instead.
     auto const& file_path = large_object.GetPath();
-    auto spliced_digest = ObjectCAS<kType>::CreateDigest(file_path);
+    auto spliced_digest = ArtifactDigest::CreateFromFile<kType>(file_path);
     if (not spliced_digest) {
         return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
                                            "could not calculate digest"}};

@@ -21,12 +21,12 @@
 #include <optional>
 #include <vector>
 
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -271,7 +271,7 @@ template <ObjectType kType>
     }
 
     // Calculate the digest for the entry:
-    auto const digest = ObjectCAS<kType>::CreateDigest(path);
+    auto const digest = ArtifactDigest::CreateFromFile<kType>(path);
     if (not digest) {
         task.Log(LogLevel::Error,
                  "Failed to calculate digest for {}",

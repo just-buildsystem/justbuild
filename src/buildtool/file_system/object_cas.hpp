@@ -20,7 +20,7 @@
 #include <thread>
 #include <utility>  // std::move
 
-#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -103,21 +103,6 @@ class ObjectCAS {
         return blob_path;
     }
 
-    /// \brief Calculate the digest for a file.
-    /// \param file_path    File for which the digest needs to be calculated.
-    /// \return             File digest.
-    [[nodiscard]] static auto CreateDigest(
-        std::filesystem::path const& file_path) noexcept
-        -> std::optional<bazel_re::Digest> {
-        bool is_tree = kType == ObjectType::Tree;
-        auto hash = HashFunction::ComputeHashFile(file_path, is_tree);
-        if (hash) {
-            return ArtifactDigest(
-                hash->first.HexString(), hash->second, is_tree);
-        }
-        return std::nullopt;
-    }
-
   private:
     // For `Tree` the underlying storage type is non-executable file.
     static constexpr auto kStorageType =
@@ -132,6 +117,12 @@ class ObjectCAS {
     [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
         -> std::optional<bazel_re::Digest> {
         return ArtifactDigest::Create<kType>(bytes);
+    }
+
+    [[nodiscard]] static auto CreateDigest(
+        std::filesystem::path const& file_path) noexcept
+        -> std::optional<bazel_re::Digest> {
+        return ArtifactDigest::CreateFromFile<kType>(file_path);
     }
 
     [[nodiscard]] auto IsAvailable(

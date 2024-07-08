@@ -90,6 +90,19 @@ class ArtifactDigest {
         }
     }
 
+    template <ObjectType kType>
+    [[nodiscard]] static auto CreateFromFile(
+        std::filesystem::path const& path) noexcept
+        -> std::optional<ArtifactDigest> {
+        static constexpr bool kIsTree = IsTreeObject(kType);
+        auto hash = HashFunction::ComputeHashFile(path, kIsTree);
+        if (hash) {
+            return ArtifactDigest{
+                hash->first.HexString(), hash->second, kIsTree};
+        }
+        return std::nullopt;
+    }
+
     [[nodiscard]] auto operator<(ArtifactDigest const& other) const -> bool {
         return (hash_ < other.hash_) or
                ((hash_ == other.hash_) and (static_cast<int>(is_tree_) <
