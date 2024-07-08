@@ -24,6 +24,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
@@ -64,6 +65,10 @@ void DefaultReachableRepositories(
 [[nodiscard]] auto CreateAuthConfig(
     MultiRepoRemoteAuthArguments const& authargs) noexcept
     -> std::optional<Auth>;
+
+[[nodiscard]] auto CreateLocalExecutionConfig(
+    MultiRepoCommonArguments const& cargs) noexcept
+    -> std::optional<LocalExecutionConfig>;
 
 void SetupRemoteConfig(
     std::optional<std::string> const& remote_exec_addr,

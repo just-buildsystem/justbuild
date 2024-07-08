@@ -118,16 +118,25 @@ void SetupLogging(LogArguments const& clargs) {
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-void SetupExecutionConfig(EndpointArguments const& eargs,
-                          BuildArguments const& bargs,
-                          RebuildArguments const& rargs) {
-    using LocalConfig = LocalExecutionConfig;
-    using RemoteConfig = RemoteExecutionConfig;
-    if (bargs.local_launcher and
-        not LocalConfig::SetLauncher(*bargs.local_launcher)) {
-        Logger::Log(LogLevel::Error, "Failed to configure local execution.");
-        std::exit(kExitFailure);
+[[nodiscard]] auto CreateLocalExecutionConfig(
+    BuildArguments const& bargs) noexcept
+    -> std::optional<LocalExecutionConfig> {
+    LocalExecutionConfig::Builder builder;
+    if (bargs.local_launcher.has_value()) {
+        builder.SetLauncher(*bargs.local_launcher);
     }
+
+    auto config = builder.Build();
+    if (config) {
+        return *std::move(config);
+    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
+}
+
+void SetupRemoteExecutionConfig(EndpointArguments const& eargs,
+                                RebuildArguments const& rargs) {
+    using RemoteConfig = RemoteExecutionConfig;
     for (auto const& property : eargs.platform_properties) {
         if (not RemoteConfig::AddPlatformProperty(property)) {
             Logger::Log(LogLevel::Error,
@@ -781,8 +790,13 @@ auto main(int argc, char* argv[]) -> int {
 
         SetupHashFunction();
         SetupFileChunker();
-        SetupExecutionConfig(
-            arguments.endpoint, arguments.build, arguments.rebuild);
+
+        auto local_exec_config = CreateLocalExecutionConfig(arguments.build);
+        if (not local_exec_config) {
+            return kExitFailure;
+        }
+
+        SetupRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
 
         auto serve_config = CreateServeConfig(
             arguments.serve, arguments.common, arguments.build, arguments.tc);
@@ -822,7 +836,7 @@ auto main(int argc, char* argv[]) -> int {
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
                                       &storage,
-                                      &LocalExecutionConfig::Instance(),
+                                      &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
                                       RemoteExecutionConfig::RemoteAddress()};
@@ -851,7 +865,7 @@ auto main(int argc, char* argv[]) -> int {
                 ApiBundle const serve_apis{
                     &*storage_config,
                     &storage,
-                    &LocalExecutionConfig::Instance(),
+                    &*local_exec_config,
                     /*repo_config=*/nullptr,
                     &*auth_config,
                     RemoteExecutionConfig::RemoteAddress()};
@@ -861,7 +875,7 @@ auto main(int argc, char* argv[]) -> int {
                 return serve_server->Run(*serve_config,
                                          *storage_config,
                                          storage,
-                                         LocalExecutionConfig::Instance(),
+                                         *local_exec_config,
                                          serve,
                                          serve_apis,
                                          with_execute)
@@ -922,7 +936,7 @@ auto main(int argc, char* argv[]) -> int {
         }
         ApiBundle const main_apis{&*storage_config,
                                   &storage,
-                                  &LocalExecutionConfig::Instance(),
+                                  &*local_exec_config,
                                   &repo_config,
                                   &*auth_config,
                                   RemoteExecutionConfig::RemoteAddress()};

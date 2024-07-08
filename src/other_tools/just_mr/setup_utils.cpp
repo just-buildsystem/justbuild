@@ -217,6 +217,22 @@ auto CreateAuthConfig(MultiRepoRemoteAuthArguments const& authargs) noexcept
     return Auth{};
 }
 
+auto CreateLocalExecutionConfig(MultiRepoCommonArguments const& cargs) noexcept
+    -> std::optional<LocalExecutionConfig> {
+
+    LocalExecutionConfig::Builder builder;
+    if (cargs.local_launcher.has_value()) {
+        builder.SetLauncher(*cargs.local_launcher);
+    }
+
+    auto config = builder.Build();
+    if (config) {
+        return *std::move(config);
+    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
+}
+
 void SetupRemoteConfig(
     std::optional<std::string> const& remote_exec_addr,
     std::optional<std::string> const& remote_serve_addr) noexcept {

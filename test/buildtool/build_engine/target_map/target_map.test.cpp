@@ -106,10 +106,11 @@ TEST_CASE("simple targets", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -556,10 +557,11 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -651,10 +653,11 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -758,10 +761,11 @@ TEST_CASE("built-in rules", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -975,10 +979,11 @@ TEST_CASE("target reference", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1125,10 +1130,11 @@ TEST_CASE("trees", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1239,10 +1245,11 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -1412,10 +1419,11 @@ TEST_CASE("wrong arguments", "[target_map]") {
     auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
+    LocalExecutionConfig local_exec_config{};
     Auth auth{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
                          RemoteExecutionConfig::RemoteAddress()};

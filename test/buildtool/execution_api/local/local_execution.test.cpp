@@ -41,7 +41,8 @@ namespace {
            "test/buildtool/execution_api/local";
 }
 
-inline void SetLauncher() {
+[[nodiscard]] inline auto CreateLocalExecConfig() noexcept
+    -> LocalExecutionConfig {
     std::vector<std::string> launcher{"env"};
     auto* env_path = std::getenv("PATH");
     if (env_path != nullptr) {
@@ -50,10 +51,12 @@ inline void SetLauncher() {
     else {
         launcher.emplace_back("PATH=/bin:/usr/bin");
     }
-    if (not LocalExecutionConfig::SetLauncher(launcher)) {
-        Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
-        std::exit(EXIT_FAILURE);
+    LocalExecutionConfig::Builder builder;
+    if (auto config = builder.SetLauncher(std::move(launcher)).Build()) {
+        return *std::move(config);
     }
+    Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
+    std::exit(EXIT_FAILURE);
 }
 
 }  // namespace
@@ -63,18 +66,15 @@ TEST_CASE("LocalExecution: No input, no output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(),
-                        &storage,
-                        &LocalExecutionConfig::Instance(),
-                        &repo_config);
+    auto const local_exec_config = CreateLocalExecConfig();
+    auto api = LocalApi(
+        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
     auto action =
         api.CreateAction(*api.UploadTree({}), cmdline, {}, {}, {}, {});
     REQUIRE(action);
-
-    SetLauncher();
 
     SECTION("Cache execution result in action cache") {
         // run execution
@@ -114,10 +114,9 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(),
-                        &storage,
-                        &LocalExecutionConfig::Instance(),
-                        &repo_config);
+    auto const local_exec_config = CreateLocalExecConfig();
+    auto api = LocalApi(
+        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test from env var");
     std::vector<std::string> const cmdline = {
@@ -168,10 +167,9 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(),
-                        &storage,
-                        &LocalExecutionConfig::Instance(),
-                        &repo_config);
+    auto const local_exec_config = CreateLocalExecConfig();
+    auto api = LocalApi(
+        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -228,10 +226,9 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(),
-                        &storage,
-                        &LocalExecutionConfig::Instance(),
-                        &repo_config);
+    auto const local_exec_config = CreateLocalExecConfig();
+    auto api = LocalApi(
+        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
@@ -301,10 +298,9 @@ TEST_CASE("LocalExecution: Cache failed action's result", "[execution_api]") {
     auto const storage = Storage::Create(&storage_config.Get());
 
     RepositoryConfig repo_config{};
-    auto api = LocalApi(&storage_config.Get(),
-                        &storage,
-                        &LocalExecutionConfig::Instance(),
-                        &repo_config);
+    auto const local_exec_config = CreateLocalExecConfig();
+    auto api = LocalApi(
+        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
 
     auto flag = GetTestDir() / "flag";
     std::vector<std::string> const cmdline = {

@@ -165,7 +165,8 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
         return std::nullopt;
     }
 
-    auto cmdline = exec_config_.GetLauncher();
+    // prepare actual command by including the launcher
+    auto cmdline = exec_config_.launcher;
     std::copy(cmdline_.begin(), cmdline_.end(), std::back_inserter(cmdline));
 
     SystemCommand system{"LocalExecution"};

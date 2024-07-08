@@ -137,7 +137,8 @@ class TestProject {
     }
 };
 
-inline void SetLauncher() {
+[[nodiscard]] inline auto CreateLocalExecConfig() noexcept
+    -> LocalExecutionConfig {
     std::vector<std::string> launcher{"env"};
     auto* env_path = std::getenv("PATH");
     if (env_path != nullptr) {
@@ -146,10 +147,12 @@ inline void SetLauncher() {
     else {
         launcher.emplace_back("PATH=/bin:/usr/bin");
     }
-    if (not LocalExecutionConfig::SetLauncher(launcher)) {
-        Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
-        std::exit(EXIT_FAILURE);
+    LocalExecutionConfig::Builder builder;
+    if (auto config = builder.SetLauncher(std::move(launcher)).Build()) {
+        return *std::move(config);
     }
+    Logger::Log(LogLevel::Error, "Failure setting the local launcher.");
+    std::exit(EXIT_FAILURE);
 }
 
 }  // namespace
@@ -161,13 +164,13 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -199,7 +202,7 @@ inline void SetLauncher() {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         ApiBundle const apis{&storage_config,
                              &storage,
-                             &LocalExecutionConfig::Instance(),
+                             &local_exec_config,
                              p.GetRepoConfig(),
                              auth,
                              RemoteExecutionConfig::RemoteAddress()};
@@ -237,13 +240,13 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -275,13 +278,13 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -333,14 +336,14 @@ inline void SetLauncher() {
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     auto const clargs_update_cpp =
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          full_hello_world.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -398,12 +401,12 @@ static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -444,12 +447,12 @@ static void TestEnvironmentVariablesSetAndUsed(
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -489,12 +492,12 @@ static void TestTreesUsed(StorageConfig const& storage_config,
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -534,12 +537,12 @@ static void TestNestedTreesUsed(StorageConfig const& storage_config,
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
-    SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
@@ -578,17 +581,17 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
                                         bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
+    auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
                          RemoteExecutionConfig::RemoteAddress()};
 
     {
-        SetLauncher();
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{clargs.gtargs,
                                 p.GetRepoConfig(),

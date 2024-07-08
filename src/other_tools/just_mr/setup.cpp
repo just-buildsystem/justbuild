@@ -126,9 +126,16 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
+    // setup local execution
+    auto local_exec_config =
+        JustMR::Utils::CreateLocalExecutionConfig(common_args);
+    if (not local_exec_config) {
+        return std::nullopt;
+    }
+
     ApiBundle const apis{&storage_config,
                          &storage,
-                         &LocalExecutionConfig::Instance(),
+                         &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
                          RemoteExecutionConfig::RemoteAddress()};
