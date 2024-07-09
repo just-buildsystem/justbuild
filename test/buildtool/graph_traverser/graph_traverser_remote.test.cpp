@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
@@ -29,7 +30,12 @@
     }
 
     StorageConfig::Builder builder;
-    auto config = builder.SetBuildRoot(cache_dir).Build();
+    auto config =
+        builder.SetBuildRoot(cache_dir)
+            .SetRemoteExecutionArgs(RemoteExecutionConfig::RemoteAddress(),
+                                    RemoteExecutionConfig::PlatformProperties(),
+                                    RemoteExecutionConfig::DispatchList())
+            .Build();
     if (not config) {
         Logger::Log(LogLevel::Error, config.error());
         std::exit(EXIT_FAILURE);

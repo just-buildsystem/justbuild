@@ -31,6 +31,8 @@ class TestStorageConfig final {
     /// \brief Create a unique StorageConfig that has the build root in a new
     /// empty location. Uses TEST_TMPDIR environment variable to determine path
     /// to the location.
+    /// To be used only for local tests, as it does not know about remote
+    /// execution config.
     [[nodiscard]] static auto Create() noexcept -> TestStorageConfig {
         /**
          * Test must not assume the existence of a home directory, nor write

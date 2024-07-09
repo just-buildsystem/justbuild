@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -24,6 +25,7 @@
 #include <unordered_set>
 #include <utility>
 #include <variant>
+#include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
@@ -32,6 +34,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -102,14 +105,23 @@ void SetupLogging(LogArguments const& clargs) {
     }
 }
 
-[[nodiscard]] auto CreateStorageConfig(EndpointArguments const& eargs) noexcept
+[[nodiscard]] auto CreateStorageConfig(
+    EndpointArguments const& eargs,
+    std::optional<ServerAddress> const& remote_address = std::nullopt,
+    std::map<std::string, std::string> const& remote_platform_properties = {},
+    std::vector<std::pair<std::map<std::string, std::string>,
+                          ServerAddress>> const& remote_dispatch = {}) noexcept
     -> std::optional<StorageConfig> {
     StorageConfig::Builder builder;
     if (eargs.local_root.has_value()) {
         builder.SetBuildRoot(*eargs.local_root);
     }
 
-    auto config = builder.Build();
+    auto config =
+        builder
+            .SetRemoteExecutionArgs(
+                remote_address, remote_platform_properties, remote_dispatch)
+            .Build();
     if (config) {
         return *std::move(config);
     }
@@ -791,6 +803,20 @@ auto main(int argc, char* argv[]) -> int {
         SetupHashFunction();
         SetupFileChunker();
 
+        if (arguments.cmd == SubCommand::kGc) {
+            // Set up storage for GC, as we have all the config args we need.
+            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            if (not storage_config) {
+                return kExitFailure;
+            }
+
+            if (GarbageCollector::TriggerGarbageCollection(
+                    *storage_config, arguments.gc.no_rotate)) {
+                return kExitSuccess;
+            }
+            return kExitFailure;
+        }
+
         auto local_exec_config = CreateLocalExecutionConfig(arguments.build);
         if (not local_exec_config) {
             return kExitFailure;
@@ -810,24 +836,13 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
-        if (arguments.cmd == SubCommand::kGc) {
-            // Set up storage for GC, as we have all the config args we need.
-            auto const storage_config = CreateStorageConfig(arguments.endpoint);
-            if (not storage_config) {
-                return kExitFailure;
-            }
-            auto const storage = Storage::Create(&*storage_config);
-
-            if (GarbageCollector::TriggerGarbageCollection(
-                    *storage_config, arguments.gc.no_rotate)) {
-                return kExitSuccess;
-            }
-            return kExitFailure;
-        }
-
         if (arguments.cmd == SubCommand::kExecute) {
             // Set up storage for server-side operation.
-            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            auto const storage_config =
+                CreateStorageConfig(arguments.endpoint,
+                                    RemoteExecutionConfig::RemoteAddress(),
+                                    RemoteExecutionConfig::PlatformProperties(),
+                                    RemoteExecutionConfig::DispatchList());
             if (not storage_config) {
                 return kExitFailure;
             }
@@ -855,8 +870,11 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.pid_file);
             if (serve_server) {
                 // Set up storage for server-side operation.
-                auto const storage_config =
-                    CreateStorageConfig(arguments.endpoint);
+                auto const storage_config = CreateStorageConfig(
+                    arguments.endpoint,
+                    RemoteExecutionConfig::RemoteAddress(),
+                    RemoteExecutionConfig::PlatformProperties(),
+                    RemoteExecutionConfig::DispatchList());
                 if (not storage_config) {
                     return kExitFailure;
                 }
@@ -900,12 +918,20 @@ auto main(int argc, char* argv[]) -> int {
                         "Using '{}' as the remote execution endpoint.",
                         *arguments.serve.remote_serve_address);
         }
-#endif  // BOOTSTRAP_BUILD_TOOL
 
         // Set up storage for client-side operation. This needs to have all the
         // correct remote endpoint info in order to instantiate the
         // correctly-sharded target cache.
+        auto const storage_config =
+            CreateStorageConfig(arguments.endpoint,
+                                RemoteExecutionConfig::RemoteAddress(),
+                                RemoteExecutionConfig::PlatformProperties(),
+                                RemoteExecutionConfig::DispatchList());
+#else
+        // For bootstrapping the TargetCache sharding is not needed, so we can
+        // default all execution arguments.
         auto const storage_config = CreateStorageConfig(arguments.endpoint);
+#endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
             return kExitFailure;
         }

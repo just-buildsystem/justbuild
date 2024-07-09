@@ -9,6 +9,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]

@@ -3,10 +3,13 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "deps":
-    [ ["src/buildtool/execution_api/remote", "config"]
+    [ "backend_description"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "gsl"]

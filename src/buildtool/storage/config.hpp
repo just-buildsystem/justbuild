@@ -17,13 +17,21 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <map>
+#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/backend_description.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -55,6 +63,9 @@ struct StorageConfig final {
 
     // Number of total storage generations (default: two generations).
     std::size_t const num_generations = 2;
+
+    // Hash of the execution backend description
+    std::string const backend_description_id = DefaultBackendDescriptionId();
 
     /// \brief Root directory of all storage generations.
     [[nodiscard]] auto CacheRoot() const noexcept -> std::filesystem::path {
@@ -121,6 +132,17 @@ struct StorageConfig final {
         bool is_compatible) -> std::filesystem::path {
         return dir / (is_compatible ? "compatible-sha256" : "git-sha1");
     };
+
+    [[nodiscard]] static auto DefaultBackendDescriptionId() noexcept
+        -> std::string {
+        try {
+            return ArtifactDigest::Create<ObjectType::File>(
+                       DescribeBackend(std::nullopt, {}, {}).value())
+                .hash();
+        } catch (...) {
+            return std::string();
+        }
+    }
 };
 
 class StorageConfig::Builder final {
@@ -133,6 +155,17 @@ class StorageConfig::Builder final {
     /// \brief Specifies the number of storage generations.
     auto SetNumGenerations(std::size_t value) noexcept -> Builder& {
         num_generations_ = value;
+        return *this;
+    }
+
+    auto SetRemoteExecutionArgs(
+        std::optional<ServerAddress> address,
+        std::map<std::string, std::string> properties,
+        std::vector<std::pair<std::map<std::string, std::string>,
+                              ServerAddress>> dispatch) noexcept -> Builder& {
+        remote_address_ = std::move(address);
+        remote_platform_properties_ = std::move(properties);
+        remote_dispatch_ = std::move(dispatch);
         return *this;
     }
 
@@ -161,13 +194,33 @@ class StorageConfig::Builder final {
             }
         }
 
-        return StorageConfig{.build_root = std::move(build_root),
-                             .num_generations = num_generations};
+        // Hash the execution backend description
+        auto backend_description_id = default_config.backend_description_id;
+        auto desc = DescribeBackend(
+            remote_address_, remote_platform_properties_, remote_dispatch_);
+        if (desc) {
+            backend_description_id =
+                ArtifactDigest::Create<ObjectType::File>(*desc).hash();
+        }
+        else {
+            return unexpected{desc.error()};
+        }
+
+        return StorageConfig{
+            .build_root = std::move(build_root),
+            .num_generations = num_generations,
+            .backend_description_id = std::move(backend_description_id)};
     }
 
   private:
     std::optional<std::filesystem::path> build_root_;
     std::optional<std::size_t> num_generations_;
+
+    // Fields for computing remote execution backend description
+    std::optional<ServerAddress> remote_address_;
+    std::map<std::string, std::string> remote_platform_properties_;
+    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
+        remote_dispatch_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP
