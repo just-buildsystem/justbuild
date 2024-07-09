@@ -357,7 +357,6 @@ auto BazelApi::CreateAction(
         blob_digests, api, network_, missing_artifacts_info->back_map);
 }
 
-/// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::ParallelRetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     IExecutionApi const& api,
@@ -367,6 +366,33 @@ auto BazelApi::CreateAction(
     if (this == &api) {
         return true;
     }
+    std::unordered_set<Artifact::ObjectInfo> done{};
+    return ParallelRetrieveToCasWithCache(
+        artifacts_info, api, jobs, use_blob_splitting, &done);
+}
+
+/// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] auto BazelApi::ParallelRetrieveToCasWithCache(
+    std::vector<Artifact::ObjectInfo> const& all_artifacts_info,
+    IExecutionApi const& api,
+    std::size_t jobs,
+    bool use_blob_splitting,
+    gsl::not_null<std::unordered_set<Artifact::ObjectInfo>*> done)
+    const noexcept -> bool {
+
+    std::vector<Artifact::ObjectInfo> artifacts_info{};
+    artifacts_info.reserve(all_artifacts_info.size());
+    for (auto const& info : all_artifacts_info) {
+        if (not done->contains(info)) {
+            artifacts_info.emplace_back(info);
+        }
+    }
+    if (artifacts_info.empty()) {
+        return true;  // Nothing to do
+    }
+    std::sort(artifacts_info.begin(), artifacts_info.end());
+    auto last_info = std::unique(artifacts_info.begin(), artifacts_info.end());
+    artifacts_info.erase(last_info, artifacts_info.end());
 
     // Determine missing artifacts in other CAS.
     auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
@@ -392,8 +418,8 @@ auto BazelApi::CreateAction(
                 auto const result = reader.ReadDirectTreeEntries(
                     info.digest, std::filesystem::path{});
                 if (not result or
-                    not ParallelRetrieveToCas(
-                        result->infos, api, jobs, use_blob_splitting)) {
+                    not ParallelRetrieveToCasWithCache(
+                        result->infos, api, jobs, use_blob_splitting, done)) {
                     return false;
                 }
             }
@@ -423,6 +449,17 @@ auto BazelApi::CreateAction(
                     "Artifact synchronization failed: {}",
                     ex.what());
         return false;
+    }
+
+    try {
+        for (auto const& info : artifacts_info) {
+            done->insert(info);
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Warning,
+                    "Exception when updating set of synchronized objects "
+                    "(continuing anyway): {}",
+                    ex.what());
     }
 
     return not failure;

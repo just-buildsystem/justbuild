@@ -114,6 +114,14 @@ class BazelApi final : public IExecutionApi {
 
   private:
     std::shared_ptr<BazelNetwork> network_;
+
+    [[nodiscard]] auto ParallelRetrieveToCasWithCache(
+        std::vector<Artifact::ObjectInfo> const& all_artifacts_info,
+        IExecutionApi const& api,
+        std::size_t jobs,
+        bool use_blob_splitting,
+        gsl::not_null<std::unordered_set<Artifact::ObjectInfo>*> done)
+        const noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_API_HPP
