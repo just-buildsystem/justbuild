@@ -103,4 +103,16 @@
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps": [["@", "gsl", "", "gsl"]]
   }
+, "backend_description":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["backend_description"]
+  , "hdrs": ["backend_description.hpp"]
+  , "srcs": ["backend_description.cpp"]
+  , "deps":
+    [ ["src/buildtool/common/remote", "remote_common"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  , "private-deps": [["@", "fmt", "", "fmt"], ["@", "json", "", "json"]]
+  }
 }
