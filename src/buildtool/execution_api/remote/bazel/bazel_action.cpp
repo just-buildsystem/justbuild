@@ -14,6 +14,7 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
 
+#include <optional>
 #include <utility>  // std::move
 
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -95,17 +96,22 @@ auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
                                          bazel_re::Digest const& exec_dir,
                                          bool do_not_cache) const noexcept
     -> bazel_re::Digest {
-    return BazelMsgFactory::CreateActionDigestFromCommandLine(
-        cmdline_,
-        exec_dir,
-        output_files_,
-        output_dirs_,
-        env_vars_,
-        properties_,
-        do_not_cache,
-        timeout_,
-        blobs == nullptr ? std::nullopt
-                         : std::make_optional([&blobs](BazelBlob&& blob) {
-                               blobs->Emplace(std::move(blob));
-                           }));
+    using StoreFunc = BazelMsgFactory::ActionDigestRequest::BlobStoreFunc;
+    std::optional<StoreFunc> store_blob = std::nullopt;
+    if (blobs != nullptr) {
+        store_blob = [&blobs](BazelBlob&& blob) {
+            blobs->Emplace(std::move(blob));
+        };
+    }
+    BazelMsgFactory::ActionDigestRequest request{
+        .command_line = &cmdline_,
+        .output_files = &output_files_,
+        .output_dirs = &output_dirs_,
+        .env_vars = &env_vars_,
+        .properties = &properties_,
+        .exec_dir = &exec_dir,
+        .timeout = timeout_,
+        .skip_action_cache = do_not_cache,
+        .store_blob = std::move(store_blob)};
+    return BazelMsgFactory::CreateActionDigestFromCommandLine(request);
 }

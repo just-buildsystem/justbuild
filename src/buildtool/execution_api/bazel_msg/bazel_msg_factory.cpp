@@ -25,7 +25,6 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -319,29 +318,24 @@ template <class T>
 
 /// \brief Create bundle for protobuf message Command from args strings.
 [[nodiscard]] auto CreateCommandBundle(
-    std::vector<std::string> const& args,
-    std::vector<std::string> const& output_files,
-    std::vector<std::string> const& output_dirs,
-    std::vector<bazel_re::Command_EnvironmentVariable> const& env_vars,
-    std::vector<bazel_re::Platform_Property> const& platform_properties)
-    -> CommandBundle::Ptr {
+    BazelMsgFactory::ActionDigestRequest const& request) -> CommandBundle::Ptr {
     bazel_re::Command msg;
     // DEPRECATED as of v2.2: platform properties are now specified
     // directly in the action. See documentation note in the
     // [Action][build.bazel.remote.execution.v2.Action] for migration.
     // (https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L646)
-    msg.set_allocated_platform(CreatePlatform(platform_properties).release());
-    std::copy(std::cbegin(args),
-              std::cend(args),
+    msg.set_allocated_platform(CreatePlatform(*request.properties).release());
+    std::copy(request.command_line->begin(),
+              request.command_line->end(),
               pb::back_inserter(msg.mutable_arguments()));
-    std::copy(std::cbegin(output_files),
-              std::cend(output_files),
+    std::copy(request.output_files->begin(),
+              request.output_files->end(),
               pb::back_inserter(msg.mutable_output_files()));
-    std::copy(std::cbegin(output_dirs),
-              std::cend(output_dirs),
+    std::copy(request.output_dirs->begin(),
+              request.output_dirs->end(),
               pb::back_inserter(msg.mutable_output_directories()));
-    std::copy(std::cbegin(env_vars),
-              std::cend(env_vars),
+    std::copy(request.env_vars->begin(),
+              request.env_vars->end(),
               pb::back_inserter(msg.mutable_environment_variables()));
 
     auto content_creator = [&msg] { return SerializeMessage(msg); };
@@ -356,32 +350,29 @@ template <class T>
 /// \brief Create bundle for protobuf message Action from Command.
 [[nodiscard]] auto CreateActionBundle(
     bazel_re::Digest const& command,
-    bazel_re::Digest const& root_dir,
-    std::vector<bazel_re::Platform_Property> const& platform_properties,
-    bool do_not_cache,
-    std::chrono::milliseconds const& timeout) -> ActionBundle::Ptr {
+    BazelMsgFactory::ActionDigestRequest const& request) -> ActionBundle::Ptr {
     using seconds = std::chrono::seconds;
     using nanoseconds = std::chrono::nanoseconds;
-    auto sec = std::chrono::duration_cast<seconds>(timeout);
-    auto nanos = std::chrono::duration_cast<nanoseconds>(timeout - sec);
+    auto sec = std::chrono::duration_cast<seconds>(request.timeout);
+    auto nanos = std::chrono::duration_cast<nanoseconds>(request.timeout - sec);
 
     auto duration = std::make_unique<google::protobuf::Duration>();
     duration->set_seconds(sec.count());
     duration->set_nanos(nanos.count());
 
     bazel_re::Action msg;
-    msg.set_do_not_cache(do_not_cache);
+    msg.set_do_not_cache(request.skip_action_cache);
     msg.set_allocated_timeout(duration.release());
     msg.set_allocated_command_digest(
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{command}});
     msg.set_allocated_input_root_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{root_dir}});
+        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*request.exec_dir}});
     // New in version 2.2: clients SHOULD set these platform properties
     // as well as those in the
     // [Command][build.bazel.remote.execution.v2.Command]. Servers
     // SHOULD prefer those set here.
     // (https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L516)
-    msg.set_allocated_platform(CreatePlatform(platform_properties).release());
+    msg.set_allocated_platform(CreatePlatform(*request.properties).release());
 
     auto content_creator = [&msg] { return SerializeMessage(msg); };
 
@@ -651,26 +642,13 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
 }
 
 auto BazelMsgFactory::CreateActionDigestFromCommandLine(
-    std::vector<std::string> const& cmdline,
-    bazel_re::Digest const& exec_dir,
-    std::vector<std::string> const& output_files,
-    std::vector<std::string> const& output_dirs,
-    std::vector<bazel_re::Command_EnvironmentVariable> const& env_vars,
-    std::vector<bazel_re::Platform_Property> const& properties,
-    bool do_not_cache,
-    std::chrono::milliseconds const& timeout,
-    std::optional<BlobStoreFunc> const& store_blob) -> bazel_re::Digest {
-    // create command
-    auto cmd = CreateCommandBundle(
-        cmdline, output_files, output_dirs, env_vars, properties);
+    ActionDigestRequest const& request) -> bazel_re::Digest {
+    auto cmd = CreateCommandBundle(request);
+    auto action = CreateActionBundle(cmd->Digest(), request);
 
-    // create action
-    auto action = CreateActionBundle(
-        cmd->Digest(), exec_dir, properties, do_not_cache, timeout);
-
-    if (store_blob) {
-        (*store_blob)(cmd->MakeBlob(/*is_exec=*/false));
-        (*store_blob)(action->MakeBlob(/*is_exec=*/false));
+    if (request.store_blob) {
+        (*request.store_blob)(cmd->MakeBlob(/*is_exec=*/false));
+        (*request.store_blob)(action->MakeBlob(/*is_exec=*/false));
     }
 
     return action->Digest();

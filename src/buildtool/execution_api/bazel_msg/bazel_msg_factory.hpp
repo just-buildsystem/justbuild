@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
@@ -40,8 +41,6 @@ class BazelMsgFactory {
   public:
     /// \brief Store or otherwise process a blob. Returns success flag.
     using BlobProcessFunc = std::function<bool(BazelBlob&&)>;
-    /// \brief Store blob.
-    using BlobStoreFunc = std::function<void(BazelBlob&&)>;
     using LinkDigestResolveFunc =
         std::function<void(std::vector<bazel_re::Digest> const&,
                            std::vector<std::string>*)>;
@@ -92,31 +91,13 @@ class BazelMsgFactory {
         SymlinkStoreFunc const& store_symlink) noexcept
         -> std::optional<bazel_re::Digest>;
 
+    struct ActionDigestRequest;
     /// \brief Creates Action digest from command line.
     /// As part of the internal process, it creates an ActionBundle and
     /// CommandBundle that can be captured via BlobStoreFunc.
-    /// \param[in] cmdline      The command line.
-    /// \param[in] exec_dir     The Digest of the execution directory.
-    /// \param[in] output_files The paths of output files.
-    /// \param[in] output_dirs  The paths of output directories.
-    /// \param[in] output_node. The output node's properties.
-    /// \param[in] env_vars     The environment variables set.
-    /// \param[in] properties   The target platform's properties.
-    /// \param[in] do_not_cache Skip action cache.
-    /// \param[in] timeout      The command execution timeout.
-    /// \param[in] store_blob Function for storing action and cmd bundles.
     /// \returns Digest representing the action.
     [[nodiscard]] static auto CreateActionDigestFromCommandLine(
-        std::vector<std::string> const& cmdline,
-        bazel_re::Digest const& exec_dir,
-        std::vector<std::string> const& output_files,
-        std::vector<std::string> const& output_dirs,
-        std::vector<bazel_re::Command_EnvironmentVariable> const& env_vars,
-        std::vector<bazel_re::Platform_Property> const& properties,
-        bool do_not_cache,
-        std::chrono::milliseconds const& timeout,
-        std::optional<BlobStoreFunc> const& store_blob = std::nullopt)
-        -> bazel_re::Digest;
+        ActionDigestRequest const& request) -> bazel_re::Digest;
 
     /// \brief Create message vector from std::map.
     /// \param[in]  input   map
@@ -150,6 +131,40 @@ class BazelMsgFactory {
         Logger::Log(LogLevel::Error, "failed to parse message from string");
         return std::nullopt;
     }
+};
+
+struct BazelMsgFactory::ActionDigestRequest final {
+    using BlobStoreFunc = std::function<void(BazelBlob&&)>;
+
+    template <typename T>
+    using VectorPtr = gsl::not_null<std::vector<T> const*>;
+
+    /// \brief The command line.
+    VectorPtr<std::string> const command_line;
+
+    /// \brief The paths of output files.
+    VectorPtr<std::string> const output_files;
+
+    /// \brief The paths of output directories.
+    VectorPtr<std::string> const output_dirs;
+
+    /// \brief The environment variables set.
+    VectorPtr<bazel_re::Command_EnvironmentVariable> const env_vars;
+
+    /// \brief The target platform's properties.
+    VectorPtr<bazel_re::Platform_Property> const properties;
+
+    /// \brief The Digest of the execution directory.
+    gsl::not_null<bazel_re::Digest const*> const exec_dir;
+
+    /// \brief The command execution timeout.
+    std::chrono::milliseconds const timeout;
+
+    /// \brief Skip action cache.
+    bool skip_action_cache;
+
+    /// \brief Function for storing action and cmd bundles.
+    std::optional<BlobStoreFunc> const store_blob = std::nullopt;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_MSG_FACTORY_HPP

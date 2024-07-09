@@ -28,11 +28,11 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/utils/cpp", "hex_string"]
-    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     ]

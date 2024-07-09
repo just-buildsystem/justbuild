@@ -98,16 +98,19 @@ class LocalAction final : public IExecutionAction {
     [[nodiscard]] auto CreateActionDigest(bazel_re::Digest const& exec_dir,
                                           bool do_not_cache)
         -> bazel_re::Digest {
-        return BazelMsgFactory::CreateActionDigestFromCommandLine(
-            cmdline_,
-            exec_dir,
-            output_files_,
-            output_dirs_,
-            BazelMsgFactory::CreateMessageVectorFromMap<
-                bazel_re::Command_EnvironmentVariable>(env_vars_),
-            properties_,
-            do_not_cache,
-            timeout_);
+        auto const env_vars = BazelMsgFactory::CreateMessageVectorFromMap<
+            bazel_re::Command_EnvironmentVariable>(env_vars_);
+
+        BazelMsgFactory::ActionDigestRequest request{
+            .command_line = &cmdline_,
+            .output_files = &output_files_,
+            .output_dirs = &output_dirs_,
+            .env_vars = &env_vars,
+            .properties = &properties_,
+            .exec_dir = &exec_dir,
+            .timeout = timeout_,
+            .skip_action_cache = do_not_cache};
+        return BazelMsgFactory::CreateActionDigestFromCommandLine(request);
     }
 
     [[nodiscard]] auto Run(bazel_re::Digest const& action_id) const noexcept
