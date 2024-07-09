@@ -642,9 +642,16 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
 }
 
 auto BazelMsgFactory::CreateActionDigestFromCommandLine(
-    ActionDigestRequest const& request) -> bazel_re::Digest {
+    ActionDigestRequest const& request) -> std::optional<bazel_re::Digest> {
     auto cmd = CreateCommandBundle(request);
+    if (cmd == nullptr) {
+        return std::nullopt;
+    }
+
     auto action = CreateActionBundle(cmd->Digest(), request);
+    if (action == nullptr) {
+        return std::nullopt;
+    }
 
     if (request.store_blob) {
         (*request.store_blob)(cmd->MakeBlob(/*is_exec=*/false));

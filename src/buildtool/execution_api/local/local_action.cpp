@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <system_error>
 #include <utility>
@@ -86,6 +85,14 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateActionDigest(root_digest_, not do_cache);
+    if (not action) {
+        if (logger != nullptr) {
+            logger->Emit(LogLevel::Error,
+                         "failed to create an action digest for {}",
+                         root_digest_.hash());
+        }
+        return nullptr;
+    }
 
     if (logger != nullptr) {
         logger->Emit(LogLevel::Trace,
@@ -93,16 +100,16 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
                      root_digest_.hash(),
-                     NativeSupport::Unprefix(action.hash()));
+                     NativeSupport::Unprefix(action->hash()));
     }
 
     if (do_cache) {
-        if (auto result = storage_.ActionCache().CachedResult(action)) {
+        if (auto result = storage_.ActionCache().CachedResult(*action)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
                 return IExecutionResponse::Ptr{
-                    new LocalResponse{action.hash(),
+                    new LocalResponse{action->hash(),
                                       {std::move(*result), /*is_cached=*/true},
                                       &storage_}};
             }
@@ -110,16 +117,26 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (ExecutionEnabled(cache_flag_)) {
-        if (auto output = Run(action)) {
+        if (auto output = Run(*action)) {
             if (cache_flag_ == CacheFlag::PretendCached) {
                 // ensure the same id is created as if caching were enabled
-                auto action_id = CreateActionDigest(root_digest_, false).hash();
+                auto action_cached = CreateActionDigest(root_digest_, false);
+                if (not action_cached) {
+                    if (logger != nullptr) {
+                        logger->Emit(
+                            LogLevel::Error,
+                            "failed to create a cached action digest for {}",
+                            root_digest_.hash());
+                    }
+                    return nullptr;
+                }
+
                 output->is_cached = true;
                 return IExecutionResponse::Ptr{new LocalResponse{
-                    std::move(action_id), std::move(*output), &storage_}};
+                    action_cached->hash(), std::move(*output), &storage_}};
             }
             return IExecutionResponse::Ptr{new LocalResponse{
-                action.hash(), std::move(*output), &storage_}};
+                action->hash(), std::move(*output), &storage_}};
         }
     }
 

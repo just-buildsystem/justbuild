@@ -17,6 +17,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -62,7 +63,7 @@ class BazelAction final : public IExecutionAction {
     [[nodiscard]] auto CreateBundlesForAction(BazelBlobContainer* blobs,
                                               bazel_re::Digest const& exec_dir,
                                               bool do_not_cache) const noexcept
-        -> bazel_re::Digest;
+        -> std::optional<bazel_re::Digest>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_ACTION_HPP

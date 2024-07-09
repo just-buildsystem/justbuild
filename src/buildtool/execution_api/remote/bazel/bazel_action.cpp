@@ -14,7 +14,6 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
 
-#include <optional>
 #include <utility>  // std::move
 
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -49,6 +48,14 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     BazelBlobContainer blobs{};
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateBundlesForAction(&blobs, root_digest_, not do_cache);
+    if (not action) {
+        if (logger != nullptr) {
+            logger->Emit(LogLevel::Error,
+                         "failed to create an action digest for {}",
+                         root_digest_.hash());
+        }
+        return nullptr;
+    }
 
     if (logger != nullptr) {
         logger->Emit(LogLevel::Trace,
@@ -56,36 +63,46 @@ auto BazelAction::Execute(Logger const* logger) noexcept
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
                      root_digest_.hash(),
-                     action.hash());
+                     action->hash());
     }
 
     if (do_cache) {
         if (auto result =
-                network_->GetCachedActionResult(action, output_files_)) {
+                network_->GetCachedActionResult(*action, output_files_)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)
 
             ) {
                 return IExecutionResponse::Ptr{new BazelResponse{
-                    action.hash(), network_, {*result, true}}};
+                    action->hash(), network_, {*result, true}}};
             }
         }
     }
 
     if (ExecutionEnabled(cache_flag_) and
         network_->UploadBlobs(std::move(blobs))) {
-        if (auto output = network_->ExecuteBazelActionSync(action)) {
+        if (auto output = network_->ExecuteBazelActionSync(*action)) {
             if (cache_flag_ == CacheFlag::PretendCached) {
                 // ensure the same id is created as if caching were enabled
-                auto action_id =
-                    CreateBundlesForAction(nullptr, root_digest_, false).hash();
+                auto action_cached =
+                    CreateBundlesForAction(nullptr, root_digest_, false);
+                if (not action_cached) {
+                    if (logger != nullptr) {
+                        logger->Emit(
+                            LogLevel::Error,
+                            "failed to create a cached action digest for {}",
+                            root_digest_.hash());
+                    }
+                    return nullptr;
+                }
+
                 output->cached_result = true;
                 return IExecutionResponse::Ptr{new BazelResponse{
-                    std::move(action_id), network_, std::move(*output)}};
+                    action_cached->hash(), network_, std::move(*output)}};
             }
-            return IExecutionResponse::Ptr{
-                new BazelResponse{action.hash(), network_, std::move(*output)}};
+            return IExecutionResponse::Ptr{new BazelResponse{
+                action->hash(), network_, std::move(*output)}};
         }
     }
 
@@ -95,7 +112,7 @@ auto BazelAction::Execute(Logger const* logger) noexcept
 auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
                                          bazel_re::Digest const& exec_dir,
                                          bool do_not_cache) const noexcept
-    -> bazel_re::Digest {
+    -> std::optional<bazel_re::Digest> {
     using StoreFunc = BazelMsgFactory::ActionDigestRequest::BlobStoreFunc;
     std::optional<StoreFunc> store_blob = std::nullopt;
     if (blobs != nullptr) {

@@ -18,6 +18,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
@@ -97,7 +98,7 @@ class LocalAction final : public IExecutionAction {
 
     [[nodiscard]] auto CreateActionDigest(bazel_re::Digest const& exec_dir,
                                           bool do_not_cache)
-        -> bazel_re::Digest {
+        -> std::optional<bazel_re::Digest> {
         auto const env_vars = BazelMsgFactory::CreateMessageVectorFromMap<
             bazel_re::Command_EnvironmentVariable>(env_vars_);
 

@@ -97,7 +97,7 @@ class BazelMsgFactory {
     /// CommandBundle that can be captured via BlobStoreFunc.
     /// \returns Digest representing the action.
     [[nodiscard]] static auto CreateActionDigestFromCommandLine(
-        ActionDigestRequest const& request) -> bazel_re::Digest;
+        ActionDigestRequest const& request) -> std::optional<bazel_re::Digest>;
 
     /// \brief Create message vector from std::map.
     /// \param[in]  input   map
