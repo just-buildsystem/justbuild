@@ -27,6 +27,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
@@ -157,6 +158,9 @@ struct BazelMsgFactory::ActionDigestRequest final {
 
     /// \brief The Digest of the execution directory.
     gsl::not_null<bazel_re::Digest const*> const exec_dir;
+
+    /// \brief Hash function to be used.
+    HashFunction const hash_function;
 
     /// \brief The command execution timeout.
     std::chrono::milliseconds const timeout;

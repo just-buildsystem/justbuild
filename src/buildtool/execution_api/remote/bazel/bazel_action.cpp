@@ -127,6 +127,7 @@ auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
         .env_vars = &env_vars_,
         .properties = &properties_,
         .exec_dir = &exec_dir,
+        .hash_function = network_->GetHashFunction(),
         .timeout = timeout_,
         .skip_action_cache = do_not_cache,
         .store_blob = std::move(store_blob)};
