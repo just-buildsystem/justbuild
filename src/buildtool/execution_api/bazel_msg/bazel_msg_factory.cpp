@@ -185,8 +185,11 @@ template <class T>
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), *content);
+
+    // SHA256 is used since bazel types are processed here.
+    HashFunction const hash_function{HashFunction::JustHash::Compatible};
+    auto digest =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, *content);
 
     auto msg = CreateDirectoryNode(dir_name);
     msg.set_allocated_digest(

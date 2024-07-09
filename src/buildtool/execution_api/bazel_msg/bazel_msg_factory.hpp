@@ -51,8 +51,9 @@ class BazelMsgFactory {
     using TreeStoreFunc =
         std::function<std::optional<bazel_re::Digest>(std::string const&)>;
 
-    /// \brief Create Directory digest from artifact tree structure.
-    /// Recursively traverse entire tree and create blobs for sub-directories.
+    /// \brief Create Directory digest from artifact tree structure. Uses
+    /// compatible HashFunction for hashing. Recursively traverse entire tree
+    /// and create blobs for sub-directories.
     /// \param tree           Directory tree of artifacts.
     /// \param resolve_links  Function for resolving symlinks.
     /// \param process_blob   Function for processing Directory blobs.
