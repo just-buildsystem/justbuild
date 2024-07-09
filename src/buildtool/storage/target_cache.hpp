@@ -27,7 +27,6 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -36,7 +35,6 @@
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/buildtool/storage/uplinker.hpp"
-#include "src/utils/cpp/gsl.hpp"
 
 /// \brief The high-level target cache for storing export target's data.
 /// Supports global uplinking across all generations. The uplink is
@@ -58,16 +56,10 @@ class TargetCache {
         GenerationConfig const& config,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
         : cas_{*cas},
-          file_store_{config.target_cache / ComputeShard()},
+          file_store_{config.target_cache /
+                      config.storage_config->backend_description_id},
           uplinker_{*uplinker},
-          explicit_shard_{std::nullopt} {
-        if constexpr (kDoGlobalUplink) {
-            // write backend description (shard) to CAS
-            [[maybe_unused]] auto id =
-                cas_.StoreBlob(RemoteExecutionConfig::DescribeBackend());
-            EnsuresAudit(id and ArtifactDigest{*id}.hash() == ComputeShard());
-        }
-    }
+          explicit_shard_{std::nullopt} {}
 
     /// \brief Returns a new TargetCache backed by the same CAS, but the
     /// FileStorage uses the given \p shard. This is particularly useful for the
@@ -151,12 +143,6 @@ class TargetCache {
     requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
         LocalGenerationTC const& latest,
         std::string const& key_digest) const noexcept -> bool;
-
-    [[nodiscard]] static auto ComputeShard() noexcept -> std::string {
-        return ArtifactDigest::Create<ObjectType::File>(
-                   RemoteExecutionConfig::DescribeBackend())
-            .hash();
-    }
 
     [[nodiscard]] auto DownloadKnownArtifacts(
         TargetCacheEntry const& value,

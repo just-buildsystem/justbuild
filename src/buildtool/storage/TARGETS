@@ -68,7 +68,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/execution_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":

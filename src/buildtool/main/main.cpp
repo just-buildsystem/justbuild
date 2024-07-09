@@ -80,7 +80,9 @@
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
+#include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/gsl.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
@@ -289,6 +291,23 @@ void SetupHashFunction() {
 
 void SetupFileChunker() {
     FileChunker::Initialize();
+}
+
+/// \brief Write backend description (which determines the target cache shard)
+/// to CAS.
+void StoreTargetCacheShard(StorageConfig const& storage_config,
+                           Storage const& storage) noexcept {
+    auto backend_description =
+        DescribeBackend(RemoteExecutionConfig::RemoteAddress(),
+                        RemoteExecutionConfig::PlatformProperties(),
+                        RemoteExecutionConfig::DispatchList());
+    if (not backend_description) {
+        Logger::Log(LogLevel::Error, backend_description.error());
+        std::exit(kExitFailure);
+    }
+    [[maybe_unused]] auto id = storage.CAS().StoreBlob(*backend_description);
+    EnsuresAudit(id and ArtifactDigest{*id}.hash() ==
+                            storage_config.backend_description_id);
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -847,6 +866,7 @@ auto main(int argc, char* argv[]) -> int {
                 return kExitFailure;
             }
             auto const storage = Storage::Create(&*storage_config);
+            StoreTargetCacheShard(*storage_config, storage);
 
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
@@ -879,6 +899,7 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
+                StoreTargetCacheShard(*storage_config, storage);
 
                 ApiBundle const serve_apis{
                     &*storage_config,
@@ -936,6 +957,10 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
         auto const storage = Storage::Create(&*storage_config);
+
+#ifndef BOOTSTRAP_BUILD_TOOL
+        StoreTargetCacheShard(*storage_config, storage);
+#endif  // BOOTSTRAP_BUILD_TOOL
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
                                                    : arguments.common.jobs;
