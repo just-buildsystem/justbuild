@@ -13,6 +13,7 @@
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_REMOTE_EXECUTION"
     , "TIMEOUT_SCALE"
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES"
     ]
   , "field_doc":
     { "test":
@@ -63,6 +64,10 @@
       ]
     , "TIMEOUT_SCALE":
       ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES":
+      [ "Additional remote-execution properties for the test-summarizing action"
+      , "in case RUNS_PER_TEST is set; defaults to the empty map."
+      ]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
@@ -190,6 +195,11 @@
               , "outs":
                 ["stdout", "stderr", "result", "time-start", "time-stop"]
               , "cmd": ["./summarizer"]
+              , "execution properties":
+                { "type": "var"
+                , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
+                , "default": {"type": "empty_map"}
+                }
               }
             ]
           , [ "artifacts"
@@ -237,6 +247,7 @@
     , "TEST_COMPATIBLE_REMOTE"
     , "TEST_STANDALONE_SERVE"
     , "TIMEOUT_SCALE"
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES"
     ]
   , "field_doc":
     { "test":
@@ -300,6 +311,10 @@
       ["If true, run the remote execution in compatible mode."]
     , "TIMEOUT_SCALE":
       ["Factor on how to scale the timeout for this test. Defaults to 1.0."]
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES":
+      [ "Additional remote-execution properties for the test-summarizing action"
+      , "in case RUNS_PER_TEST is set; defaults to the empty map."
+      ]
     }
   , "tainted": ["test"]
   , "artifacts_doc":
@@ -458,6 +473,11 @@
               , "outs":
                 ["stdout", "stderr", "result", "time-start", "time-stop"]
               , "cmd": ["./summarizer"]
+              , "execution properties":
+                { "type": "var"
+                , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
+                , "default": {"type": "empty_map"}
+                }
               }
             ]
           , [ "artifacts"
