@@ -42,8 +42,6 @@ class BazelMsgFactory {
     using BlobProcessFunc = std::function<bool(BazelBlob&&)>;
     /// \brief Store blob.
     using BlobStoreFunc = std::function<void(BazelBlob&&)>;
-    using InfoStoreFunc = std::function<bool(std::filesystem::path const&,
-                                             Artifact::ObjectInfo const&)>;
     using LinkDigestResolveFunc =
         std::function<void(std::vector<bazel_re::Digest> const&,
                            std::vector<std::string>*)>;
@@ -59,13 +57,11 @@ class BazelMsgFactory {
     /// \param tree           Directory tree of artifacts.
     /// \param resolve_links  Function for resolving symlinks.
     /// \param process_blob   Function for processing Directory blobs.
-    /// \param store_info     Function for storing object infos.
     /// \returns Digest representing the entire tree.
     [[nodiscard]] static auto CreateDirectoryDigestFromTree(
         DirectoryTreePtr const& tree,
         LinkDigestResolveFunc const& resolve_links,
-        std::optional<BlobProcessFunc> const& process_blob = std::nullopt,
-        std::optional<InfoStoreFunc> const& store_info = std::nullopt) noexcept
+        BlobProcessFunc const& process_blob) noexcept
         -> std::optional<bazel_re::Digest>;
 
     /// \brief Create Directory digest from local file root.

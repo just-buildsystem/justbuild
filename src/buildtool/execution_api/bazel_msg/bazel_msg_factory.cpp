@@ -398,8 +398,7 @@ template <class T>
     std::string const& root_name,
     DirectoryTreePtr const& tree,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links,
-    std::optional<BazelMsgFactory::BlobProcessFunc> const& process_blob,
-    std::optional<BazelMsgFactory::InfoStoreFunc> const& store_info,
+    BazelMsgFactory::BlobProcessFunc const& process_blob,
     std::filesystem::path const& parent = "") noexcept
     -> DirectoryNodeBundle::Ptr {
     std::vector<bazel_re::FileNode> file_nodes{};
@@ -410,18 +409,14 @@ template <class T>
         for (auto const& [name, node] : *tree) {
             if (std::holds_alternative<DirectoryTreePtr>(node)) {
                 auto const& dir = std::get<DirectoryTreePtr>(node);
-                auto const dir_bundle = DirectoryTreeToBundle(name,
-                                                              dir,
-                                                              resolve_links,
-                                                              process_blob,
-                                                              store_info,
-                                                              parent / name);
+                auto const dir_bundle = DirectoryTreeToBundle(
+                    name, dir, resolve_links, process_blob, parent / name);
                 if (not dir_bundle) {
                     return nullptr;
                 }
                 dir_nodes.emplace_back(dir_bundle->Message());
-                if (process_blob and not(*process_blob)(dir_bundle->MakeBlob(
-                                         /*is_exec=*/false))) {
+                if (not process_blob(dir_bundle->MakeBlob(
+                        /*is_exec=*/false))) {
                     return nullptr;
                 }
             }
@@ -445,10 +440,6 @@ template <class T>
                     file_nodes.emplace_back(
                         CreateFileNodeFromObjectInfo(name, *object_info));
                 }
-                if (store_info and
-                    not(*store_info)(parent / name, *object_info)) {
-                    return nullptr;
-                }
             }
         }
         return CreateDirectoryNodeBundle(
@@ -469,19 +460,16 @@ template <class T>
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     DirectoryTreePtr const& tree,
     LinkDigestResolveFunc const& resolve_links,
-    std::optional<BlobProcessFunc> const& process_blob,
-    std::optional<InfoStoreFunc> const& store_info) noexcept
+    BlobProcessFunc const& process_blob) noexcept
     -> std::optional<bazel_re::Digest> {
-    if (auto bundle = DirectoryTreeToBundle(
-            "", tree, resolve_links, process_blob, store_info)) {
-        if (process_blob) {
-            try {
-                if (not(*process_blob)(bundle->MakeBlob(/*is_exec=*/false))) {
-                    return std::nullopt;
-                }
-            } catch (...) {
+    if (auto bundle =
+            DirectoryTreeToBundle("", tree, resolve_links, process_blob)) {
+        try {
+            if (not process_blob(bundle->MakeBlob(/*is_exec=*/false))) {
                 return std::nullopt;
             }
+        } catch (...) {
+            return std::nullopt;
         }
         return bundle->Digest();
     }
