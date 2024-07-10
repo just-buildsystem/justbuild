@@ -415,11 +415,6 @@ class DependencyGraph : DirectedAcyclicGraph {
             return NodePaths(output_dirs_);
         }
 
-        [[nodiscard]] auto OutputDirIds() const
-            -> std::vector<ArtifactIdentifier> {
-            return Ids(output_dirs_);
-        }
-
         [[nodiscard]] auto DependencyPaths() const
             -> std::vector<Action::LocalPath> {
             return NodePaths(dependencies_);
@@ -576,17 +571,6 @@ class DependencyGraph : DirectedAcyclicGraph {
 
     [[nodiscard]] auto ArtifactWithId(
         ArtifactIdentifier const& id) const noexcept -> std::optional<Artifact>;
-
-    [[nodiscard]] auto ActionWithId(ActionIdentifier const& id) const noexcept
-        -> std::optional<Action>;
-
-    [[nodiscard]] auto ActionOfArtifactWithId(
-        ArtifactIdentifier const& artifact_id) const noexcept
-        -> std::optional<Action>;
-
-    [[nodiscard]] auto ActionIdOfArtifactWithId(
-        ArtifactIdentifier const& artifact_id) const noexcept
-        -> std::optional<ActionIdentifier>;
 
     [[nodiscard]] auto IsValid() const noexcept -> bool {
         return std::all_of(
