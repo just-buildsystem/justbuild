@@ -143,6 +143,7 @@
     , "        the respective file descriptor"
     , "time-start/time-stop: The time (decimally coded) in seconds since the"
     , "        epoch when the test invocation started and ended."
+    , "pwd:     the directory in which the test was carried out"
     ]
   , "runfiles_doc":
     [ "A tree consisting of the artifacts staged at the name of the test."

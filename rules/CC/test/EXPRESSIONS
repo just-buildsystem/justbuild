@@ -165,7 +165,13 @@
           [ [ "test-results"
             , { "type": "ACTION"
               , "outs":
-                ["result", "stdout", "stderr", "time-start", "time-stop"]
+                [ "result"
+                , "stdout"
+                , "stderr"
+                , "time-start"
+                , "time-stop"
+                , "pwd"
+                ]
               , "inputs": {"type": "var", "name": "test input"}
               , "cmd": ["./runner"]
               , "env":
@@ -291,7 +297,11 @@
           , [ "artifacts"
             , { "type": "map_union"
               , "$1":
-                [ {"type": "var", "name": "summary"}
+                [ { "type": "singleton_map"
+                  , "key": "pwd"
+                  , "value": {"type": "BLOB", "data": "/summary"}
+                  }
+                , {"type": "var", "name": "summary"}
                 , { "type": "singleton_map"
                   , "key": "work"
                   , "value":

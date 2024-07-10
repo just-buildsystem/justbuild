@@ -172,7 +172,7 @@
       , [ "outs"
         , { "type": "++"
           , "$1":
-            [ ["result", "stdout", "stderr", "time-start", "time-stop"]
+            [ ["result", "stdout", "stderr", "time-start", "time-stop", "pwd"]
             , { "type": "foreach"
               , "var": "filename"
               , "range": {"type": "var", "name": "keep"}

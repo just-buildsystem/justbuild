@@ -93,6 +93,7 @@
     , "work:   In this directory, all the files specified to \"keep\" are staged"
     , "time-start/time-stop: The time (decimally coded) in seconds since the"
     , "        epoch when the test invocation started and ended."
+    , "pwd:    the directory in which the test was carried out"
     ]
   , "runfiles_doc":
     [ "A tree consisting of the artifacts staged at the name of the test."
@@ -227,7 +228,11 @@
           , [ "artifacts"
             , { "type": "map_union"
               , "$1":
-                [ {"type": "var", "name": "summary"}
+                [ { "type": "singleton_map"
+                  , "key": "pwd"
+                  , "value": {"type": "BLOB", "data": "/summary"}
+                  }
+                , {"type": "var", "name": "summary"}
                 , { "type": "singleton_map"
                   , "key": "work"
                   , "value":

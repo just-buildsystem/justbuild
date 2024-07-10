@@ -21,6 +21,7 @@ RESULT=UNKNOWN
 echo "${RESULT}" > result
 echo UNKNOWN > time-start
 echo UNKNOWN > time-stop
+pwd > pwd
 
 mkdir scratch
 export TEST_TMPDIR=$(realpath scratch)
