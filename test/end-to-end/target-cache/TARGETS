@@ -36,6 +36,12 @@
   }
 , "bootstrap-src-staged":
   {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]}
+, "check-sharding":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["check-sharding"]
+  , "test": ["check-sharding.sh"]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -47,7 +53,7 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["artifacts-sync", "serve-sync"]
+        , "else": ["artifacts-sync", "serve-sync", "check-sharding"]
         }
       ]
     }
