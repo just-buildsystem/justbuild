@@ -90,6 +90,12 @@ class ArtifactDigest {
         }
     }
 
+    [[nodiscard]] auto operator<(ArtifactDigest const& other) const -> bool {
+        return (hash_ < other.hash_) or
+               ((hash_ == other.hash_) and (static_cast<int>(is_tree_) <
+                                            static_cast<int>(other.is_tree_)));
+    }
+
   private:
     std::size_t size_{};
     std::string hash_{};
