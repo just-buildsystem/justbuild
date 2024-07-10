@@ -324,6 +324,11 @@ class DependencyGraph : DirectedAcyclicGraph {
             return output_dirs_;
         }
 
+        [[nodiscard]] auto Dependencies()
+            const& -> std::vector<NamedOtherNodePtr> const& {
+            return dependencies_;
+        }
+
         [[nodiscard]] auto Command() const -> std::vector<std::string> {
             return Content().Command();
         }
@@ -349,19 +354,9 @@ class DependencyGraph : DirectedAcyclicGraph {
             return Content().NoCache();
         }
 
-        [[nodiscard]] auto Dependencies()
-            const& -> std::vector<NamedOtherNodePtr> const& {
-            return dependencies_;
-        }
-
         [[nodiscard]] auto OutputFilePaths() const
             -> std::vector<Action::LocalPath> {
             return NodePaths(output_files_);
-        }
-
-        [[nodiscard]] auto OutputFileIds() const
-            -> std::vector<ArtifactIdentifier> {
-            return Ids(output_files_);
         }
 
         [[nodiscard]] auto OutputDirPaths() const
@@ -372,11 +367,6 @@ class DependencyGraph : DirectedAcyclicGraph {
         [[nodiscard]] auto DependencyPaths() const
             -> std::vector<Action::LocalPath> {
             return NodePaths(dependencies_);
-        }
-
-        [[nodiscard]] auto DependencyIds() const
-            -> std::vector<ArtifactIdentifier> {
-            return Ids(dependencies_);
         }
 
         // To initialise the action traversal specific data before traversing
@@ -410,20 +400,6 @@ class DependencyGraph : DirectedAcyclicGraph {
                 paths.begin(),
                 [](auto const& named_node) { return named_node.path; });
             return paths;
-        }
-
-        /// \brief Collect ids from named nodes (artifacts in this case)
-        [[nodiscard]] static auto Ids(
-            std::vector<NamedOtherNodePtr> const& nodes)
-            -> std::vector<ArtifactIdentifier> {
-            std::vector<ArtifactIdentifier> ids{nodes.size()};
-            std::transform(nodes.cbegin(),
-                           nodes.cend(),
-                           ids.begin(),
-                           [](auto const& named_node) {
-                               return named_node.node->Content().Id();
-                           });
-            return ids;
         }
     };
 
@@ -513,13 +489,6 @@ class DependencyGraph : DirectedAcyclicGraph {
 
     [[nodiscard]] auto ActionNodeWithId(
         ActionIdentifier const& id) const noexcept -> ActionNode const*;
-
-    [[nodiscard]] auto ActionNodeOfArtifactWithId(
-        ArtifactIdentifier const& artifact_id) const noexcept
-        -> ActionNode const*;
-
-    [[nodiscard]] auto ArtifactWithId(
-        ArtifactIdentifier const& id) const noexcept -> std::optional<Artifact>;
 
   private:
     // List of action nodes we already created

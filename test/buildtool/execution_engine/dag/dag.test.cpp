@@ -30,7 +30,11 @@
 
 namespace {
 [[nodiscard]] auto IsValidGraph(DependencyGraph const& graph) noexcept -> bool;
-}
+[[nodiscard]] auto GetActionOfArtifact(
+    DependencyGraph const& g,
+    ActionIdentifier const& action_id) noexcept
+    -> DependencyGraph::ActionNode const*;
+}  // namespace
 
 /// \brief Checks that each artifact with identifier in output_ids has been
 /// added to the graph and that its builder action has id action_id, and that
@@ -43,14 +47,19 @@ void CheckOutputNodesCorrectlyAdded(
     for (auto const& path : output_paths) {
         auto const output_id = ArtifactFactory::Identifier(
             ArtifactFactory::DescribeActionArtifact(action_id, path));
-        CHECK(g.ArtifactWithId(output_id));
-        auto const* action = g.ActionNodeOfArtifactWithId(output_id);
+        CHECK(g.ArtifactNodeWithId(output_id) != nullptr);
+        auto const* action = GetActionOfArtifact(g, output_id);
         CHECK(action != nullptr);
         CHECK(action->Content().Id() == action_id);
         output_ids.push_back(output_id);
     }
+
+    std::vector<ArtifactIdentifier> output_file_ids;
+    for (auto const& out_file : g.ActionNodeWithId(action_id)->OutputFiles()) {
+        output_file_ids.push_back(out_file.node->Content().Id());
+    }
     CHECK_THAT(
-        g.ActionNodeWithId(action_id)->OutputFileIds(),
+        output_file_ids,
         HasSameUniqueElementsAs<std::vector<ArtifactIdentifier>>(output_ids));
 }
 
@@ -61,10 +70,16 @@ void CheckInputNodesCorrectlyAdded(
     ActionIdentifier const& action_id,
     std::vector<ArtifactIdentifier> const& input_ids) noexcept {
     for (auto const& input_id : input_ids) {
-        CHECK(g.ArtifactWithId(input_id));
+        CHECK(g.ArtifactNodeWithId(input_id) != nullptr);
+    }
+
+    std::vector<ArtifactIdentifier> dependency_ids;
+    for (auto const& dependency :
+         g.ActionNodeWithId(action_id)->Dependencies()) {
+        dependency_ids.push_back(dependency.node->Content().Id());
     }
     CHECK_THAT(
-        g.ActionNodeWithId(action_id)->DependencyIds(),
+        dependency_ids,
         HasSameUniqueElementsAs<std::vector<ArtifactIdentifier>>(input_ids));
 }
 
@@ -218,7 +233,7 @@ TEST_CASE("Add executable and library", "[dag]") {
         CheckOutputNodesCorrectlyAdded(g, make_exec_id, {"exec"});
         CheckInputNodesCorrectlyAdded(g, make_exec_id, {main_id, lib_a_id});
         CheckLocalArtifactsCorrectlyAdded(g, {main_id}, {"main.cpp"});
-        CHECK_THAT(g.ActionNodeOfArtifactWithId(exec_out_id)->Command(),
+        CHECK_THAT(GetActionOfArtifact(g, exec_out_id)->Command(),
                    Catch::Matchers::Equals(make_exec_cmd));
     };
 
@@ -228,7 +243,7 @@ TEST_CASE("Add executable and library", "[dag]") {
         CheckInputNodesCorrectlyAdded(g, make_lib_id, {lib_hpp_id, lib_cpp_id});
         CheckLocalArtifactsCorrectlyAdded(
             g, {lib_hpp_id, lib_cpp_id}, {"lib/lib.hpp", "lib/lib.cpp"});
-        CHECK_THAT(g.ActionNodeOfArtifactWithId(lib_a_id)->Command(),
+        CHECK_THAT(GetActionOfArtifact(g, lib_a_id)->Command(),
                    Catch::Matchers::Equals(make_lib_cmd));
     };
 
@@ -378,5 +393,20 @@ template <typename TNode>
         }
     }
     return true;
+}
+
+[[nodiscard]] auto GetActionOfArtifact(
+    DependencyGraph const& g,
+    ActionIdentifier const& action_id) noexcept
+    -> DependencyGraph::ActionNode const* {
+    auto const* node = g.ArtifactNodeWithId(action_id);
+    if (node != nullptr) {
+        auto const& children = node->Children();
+        if (children.empty()) {
+            return nullptr;
+        }
+        return children[0];
+    }
+    return nullptr;
 }
 }  // namespace

@@ -227,25 +227,3 @@ auto DependencyGraph::ActionNodeWithId(ActionIdentifier const& id)
     }
     return &(*action_nodes_[it_to_action->second]);
 }
-
-auto DependencyGraph::ActionNodeOfArtifactWithId(ArtifactIdentifier const& id)
-    const noexcept -> DependencyGraph::ActionNode const* {
-    auto const* node = ArtifactNodeWithId(id);
-    if (node != nullptr) {
-        auto const& children = node->Children();
-        if (children.empty()) {
-            return nullptr;
-        }
-        return children[0];
-    }
-    return nullptr;
-}
-
-auto DependencyGraph::ArtifactWithId(
-    ArtifactIdentifier const& id) const noexcept -> std::optional<Artifact> {
-    auto const* node = ArtifactNodeWithId(id);
-    if (node != nullptr) {
-        return node->Content();
-    }
-    return std::nullopt;
-}
