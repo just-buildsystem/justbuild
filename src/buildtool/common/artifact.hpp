@@ -48,6 +48,14 @@ class Artifact {
             return not(*this == other);
         }
 
+        [[nodiscard]] auto operator<(ObjectInfo const& other) const -> bool {
+            return (digest < other.digest) or
+                   ((digest == other.digest) and (type < other.type)) or
+                   ((digest == other.digest) and (type == other.type) and
+                    (static_cast<int>(failed) <
+                     static_cast<int>(other.failed)));
+        }
+
         // Create string of the form '[hash:size:type]'
         [[nodiscard]] auto ToString(bool size_unknown = false) const noexcept
             -> std::string {
