@@ -18,7 +18,6 @@
 #include <algorithm>
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -49,13 +48,11 @@ class DirectedAcyclicGraph {
     /// \brief Abstract class for DAG nodes.
     /// \tparam T_Content  Type of content.
     /// \tparam T_Other    Type of neighboring nodes.
-    /// Sub classes need to implement \ref IsValid method.
     /// TODO: once we have hashes, require sub classes to implement generating
     /// IDs depending on its unique content.
     template <typename T_Content, typename T_Other>
     class Node {
       public:
-        using Id = std::uintptr_t;
         using OtherNode = T_Other;
         using OtherNodePtr = gsl::not_null<OtherNode*>;
 
@@ -76,11 +73,7 @@ class DirectedAcyclicGraph {
         Node(Node&&) = delete;
         auto operator=(Node const&) -> Node& = delete;
         auto operator=(Node&&) -> Node& = delete;
-
-        [[nodiscard]] auto NodeId() const noexcept -> Id {
-            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-            return reinterpret_cast<Id>(this);
-        }
+        ~Node() = default;
 
         [[nodiscard]] auto Content() const& noexcept -> T_Content const& {
             return content_;
@@ -119,9 +112,6 @@ class DirectedAcyclicGraph {
             children_.push_back(std::move(child));
             return true;
         }
-
-        [[nodiscard]] virtual auto IsValid() const noexcept -> bool = 0;
-        virtual ~Node() noexcept = default;
 
       private:
         T_Content content_{};
@@ -179,37 +169,6 @@ class DirectedAcyclicGraph {
         std::atomic<bool> is_queued_to_be_processed_{false};
         std::atomic<bool> is_required_{false};
     };
-
-  protected:
-    template <typename T_Node>
-    // NOLINTNEXTLINE(misc-no-recursion)
-    [[nodiscard]] static auto check_validity(
-        gsl::not_null<T_Node*> node) noexcept -> bool {
-        // Check node-specified validity (e.g. bipartiteness requirements)
-        if (!node->IsValid()) {
-            return false;
-        }
-
-        // Search for cycles
-        thread_local std::vector<typename T_Node::Id> stack{};
-        for (auto const& child : node->Children()) {
-            auto node_id = child->NodeId();
-
-            if (std::find(stack.begin(), stack.end(), node_id) != stack.end()) {
-                return false;
-            }
-
-            stack.push_back(node_id);
-            bool valid = check_validity(child);
-            stack.pop_back();
-
-            if (!valid) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 };
 
 class DependencyGraph : DirectedAcyclicGraph {
@@ -292,7 +251,7 @@ class DependencyGraph : DirectedAcyclicGraph {
     };
 
     /// \brief Action node (bipartite)
-    /// Cannot be entry (see \ref IsValid).
+    /// Cannot be entry.
     class ActionNode final : public Node<Action, ArtifactNode> {
         using base = Node<Action, ArtifactNode>;
 
@@ -311,11 +270,6 @@ class DependencyGraph : DirectedAcyclicGraph {
 
         [[nodiscard]] static auto Create(Action&& content) noexcept -> Ptr {
             return std::make_unique<ActionNode>(std::move(content));
-        }
-
-        // only valid if it has parents
-        [[nodiscard]] auto IsValid() const noexcept -> bool final {
-            return (!base::Parents().empty());
         }
 
         [[nodiscard]] auto AddOutputFile(
@@ -474,8 +428,7 @@ class DependencyGraph : DirectedAcyclicGraph {
     };
 
     /// \brief Artifact node (bipartite)
-    /// Can be entry or leaf (see \ref IsValid) and can only have single child
-    /// (see \ref AddChild)
+    /// Can be entry or leaf and can only have single child (see \ref AddChild)
     class ArtifactNode final : public Node<Artifact, ActionNode> {
         using base = Node<Artifact, ActionNode>;
 
@@ -508,10 +461,6 @@ class DependencyGraph : DirectedAcyclicGraph {
         [[nodiscard]] auto AddConsumerActionNode(
             OtherNodePtr const& action) noexcept -> bool {
             return base::AddParent(action);
-        }
-
-        [[nodiscard]] auto IsValid() const noexcept -> bool final {
-            return base::Children().size() <= 1;
         }
 
         [[nodiscard]] auto HasBuilderAction() const noexcept -> bool {
@@ -571,16 +520,6 @@ class DependencyGraph : DirectedAcyclicGraph {
 
     [[nodiscard]] auto ArtifactWithId(
         ArtifactIdentifier const& id) const noexcept -> std::optional<Artifact>;
-
-    [[nodiscard]] auto IsValid() const noexcept -> bool {
-        return std::all_of(
-            artifact_nodes_.begin(),
-            artifact_nodes_.end(),
-            [](auto const& node) {
-                return DirectedAcyclicGraph::check_validity<
-                    std::remove_reference_t<decltype(*node)>>(&(*node));
-            });
-    }
 
   private:
     // List of action nodes we already created

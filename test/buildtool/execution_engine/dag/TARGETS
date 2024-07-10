@@ -5,6 +5,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
+    , ["@", "gsl", "", "gsl"]
     , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/common", "action_description"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]

@@ -13,17 +13,24 @@
 // limitations under the License.
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
+
+namespace {
+[[nodiscard]] auto IsValidGraph(DependencyGraph const& graph) noexcept -> bool;
+}
 
 /// \brief Checks that each artifact with identifier in output_ids has been
 /// added to the graph and that its builder action has id action_id, and that
@@ -78,7 +85,7 @@ void CheckLocalArtifactsCorrectlyAdded(
 
 TEST_CASE("Empty Dependency Graph", "[dag]") {
     DependencyGraph g;
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 }
 
 TEST_CASE("AddAction({single action, single output, no inputs})", "[dag]") {
@@ -88,7 +95,7 @@ TEST_CASE("AddAction({single action, single output, no inputs})", "[dag]") {
     DependencyGraph g;
     CHECK(g.AddAction(action_description));
     CheckOutputNodesCorrectlyAdded(g, action_id, {"out"});
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 }
 
 TEST_CASE("AddAction({single action, more outputs, no inputs})", "[dag]") {
@@ -102,7 +109,7 @@ TEST_CASE("AddAction({single action, more outputs, no inputs})", "[dag]") {
     DependencyGraph g;
     CHECK(g.AddAction(action_description));
     CheckOutputNodesCorrectlyAdded(g, action_id, output_files);
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 }
 
 TEST_CASE("AddAction({single action, single output, source file})", "[dag]") {
@@ -141,7 +148,7 @@ TEST_CASE("AddAction({single action, single output, source file})", "[dag]") {
                     ArtifactFactory::Identifier(
                         ArtifactFactory::DescribeActionArtifact(
                             action_id, "executable"))}));
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 }
 
 TEST_CASE("AddAction({single action, single output, no inputs, env_variables})",
@@ -171,7 +178,7 @@ TEST_CASE("AddAction({single action, single output, no inputs, env_variables})",
                    {ArtifactFactory::Identifier(
                        ArtifactFactory::DescribeActionArtifact(action_id,
                                                                "greeting"))}));
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 }
 
 TEST_CASE("Add executable and library", "[dag]") {
@@ -207,7 +214,7 @@ TEST_CASE("Add executable and library", "[dag]") {
 
     DependencyGraph g;
     auto check_exec = [&]() {
-        CHECK(g.IsValid());
+        CHECK(IsValidGraph(g));
         CheckOutputNodesCorrectlyAdded(g, make_exec_id, {"exec"});
         CheckInputNodesCorrectlyAdded(g, make_exec_id, {main_id, lib_a_id});
         CheckLocalArtifactsCorrectlyAdded(g, {main_id}, {"main.cpp"});
@@ -216,7 +223,7 @@ TEST_CASE("Add executable and library", "[dag]") {
     };
 
     auto check_lib = [&]() {
-        CHECK(g.IsValid());
+        CHECK(IsValidGraph(g));
         CheckOutputNodesCorrectlyAdded(g, make_lib_id, {"lib.a"});
         CheckInputNodesCorrectlyAdded(g, make_lib_id, {lib_hpp_id, lib_cpp_id});
         CheckLocalArtifactsCorrectlyAdded(
@@ -287,7 +294,7 @@ TEST_CASE("Adding cyclic dependencies produces invalid graph", "[dag]") {
 
     DependencyGraph g;
     CHECK(g.Add({action1_desc, action2_desc}));
-    CHECK(not g.IsValid());
+    CHECK(not IsValidGraph(g));
 }
 
 TEST_CASE("Error when adding an action with an id already added", "[dag]") {
@@ -298,7 +305,7 @@ TEST_CASE("Error when adding an action with an id already added", "[dag]") {
     DependencyGraph g;
     CHECK(g.AddAction(action_desc));
     CheckOutputNodesCorrectlyAdded(g, action_id, {"out"});
-    CHECK(g.IsValid());
+    CHECK(IsValidGraph(g));
 
     CHECK(not g.AddAction(action_desc));
 }
@@ -311,3 +318,65 @@ TEST_CASE("Error when adding conflicting output files and directories",
     DependencyGraph g;
     CHECK_FALSE(g.AddAction(action_desc));
 }
+
+namespace {
+[[nodiscard]] auto IsValidNode(
+    DependencyGraph::ArtifactNode const& node) noexcept -> bool {
+    return node.Children().size() <= 1;
+}
+
+[[nodiscard]] auto IsValidNode(DependencyGraph::ActionNode const& node) noexcept
+    -> bool {
+    return not node.Parents().empty();
+}
+
+template <typename TNode>
+// NOLINTNEXTLINE(misc-no-recursion)
+[[nodiscard]] auto IsValidNode(
+    TNode const& node,
+    gsl::not_null<std::unordered_set<std::uintptr_t>*> const& seen) -> bool {
+    // Check the node hasn't been met yet (cycles check):
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    auto const node_id = reinterpret_cast<std::uintptr_t>(&node);
+    auto [it, inserted] = seen->insert(node_id);
+    if (not inserted) {
+        return false;
+    }
+
+    // Check the validity of the node and all children:
+    if (not IsValidNode(node)) {
+        return false;
+    }
+    for (auto const& child : node.Children()) {
+        if (not IsValidNode(*child, seen)) {
+            return false;
+        }
+    }
+
+    seen->erase(it);
+    return true;
+}
+
+[[nodiscard]] auto IsValidGraph(DependencyGraph const& graph) noexcept -> bool {
+    std::unordered_set<std::uintptr_t> seen{};
+    for (auto const& id : graph.ArtifactIdentifiers()) {
+        DependencyGraph::ArtifactNode const* node =
+            graph.ArtifactNodeWithId(id);
+
+        try {
+            // Check the node exists and is valid:
+            if (node == nullptr or not IsValidNode(*node, &seen)) {
+                return false;
+            }
+        } catch (...) {
+            return false;
+        }
+
+        // There must be no pending nodes:
+        if (not seen.empty()) {
+            return false;
+        }
+    }
+    return true;
+}
+}  // namespace
