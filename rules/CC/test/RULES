@@ -81,7 +81,8 @@
       ]
     , "summarizer":
       [ "Tool to aggregate the results of individual test runs (for flakyness"
-      , "detection) to an overall test result."
+      , "detection) to an overall test result. If more fields than the result"
+      , "itself is needed, those can be specified using the \"summarizer\" rule."
       ]
     }
   , "config_doc":
@@ -157,6 +158,7 @@
     , "host transition": ["transitions", "maybe for host"]
     , "stage": ["./", "../..", "stage_singleton_field"]
     , "run_test": "run_test"
+    , "field_list": ["", "field_list_provider"]
     }
   , "config_transitions":
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
@@ -235,6 +237,18 @@
           , "bindings":
             [["fieldname", "summarizer"], ["location", "summarizer"]]
           , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+          }
+        ]
+      , [ "summary artifacts"
+        , { "type": "++"
+          , "$1":
+            [ ["result"]
+            , { "type": "let*"
+              , "bindings":
+                [["provider", "artifacts"], ["fieldname", "summarizer"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "field_list"}
+              }
+            ]
           }
         ]
       ]

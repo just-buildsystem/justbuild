@@ -1,4 +1,31 @@
-{ "script":
+{ "summarizer":
+  { "doc":
+    ["Specify a test summarizer together with the required additional fields"]
+  , "target_fields": ["summarizer"]
+  , "string_fields": ["artifacts"]
+  , "imports": {"stage": ["./", "../..", "stage_singleton_field"]}
+  , "field_doc":
+    { "summarizer": ["The single artifact acting as summarizer"]
+    , "artifacts":
+      [ "Any additional artifacts, besides \"result\", the summaries needs from"
+      , "the individual test results"
+      ]
+    }
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts":
+      { "type": "let*"
+      , "bindings": [["fieldname", "summarizer"], ["location", "summarizer"]]
+      , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+      }
+    , "provides":
+      { "type": "singleton_map"
+      , "key": "artifacts"
+      , "value": {"type": "FIELD", "name": "artifacts"}
+      }
+    }
+  }
+, "script":
   { "doc": ["Shell test, given by a test script"]
   , "target_fields": ["deps", "test"]
   , "string_fields": ["keep", "name"]
@@ -48,7 +75,8 @@
       ]
     , "summarizer":
       [ "Tool to aggregate the results of individual test runs (for flakyness"
-      , "detection) to an overall test result."
+      , "detection) to an overall test result. If more fields than the result"
+      , "itself is needed, those can be specified using the \"summarizer\" rule."
       ]
     , "defaults": ["The shell toolcahin to use."]
     }
@@ -111,6 +139,7 @@
     , "stage": ["./", "../..", "stage_singleton_field"]
     , "host transition": ["transitions", "maybe for host"]
     , "target properties": ["transitions", "target properties"]
+    , "field_list": ["", "field_list_provider"]
     }
   , "config_transitions":
     { "deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
@@ -158,7 +187,7 @@
       , "then":
         { "type": "let*"
         , "bindings":
-          [ [ "attempts"
+          [ [ "attempts (plain)"
             , { "type": "map_union"
               , "$1":
                 { "type": "foreach"
@@ -170,36 +199,55 @@
                 , "body":
                   { "type": "singleton_map"
                   , "key": {"type": "var", "name": "ATTEMPT"}
-                  , "value":
-                    { "type": "TREE"
-                    , "$1": {"type": "CALL_EXPRESSION", "name": "action"}
-                    }
+                  , "value": {"type": "CALL_EXPRESSION", "name": "action"}
                   }
                 }
               }
             ]
           , [ "summarizer"
+            , { "type": "let*"
+              , "bindings":
+                [["fieldname", "summarizer"], ["location", "summarizer"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+              }
+            ]
+          , [ "summary artifacts"
+            , { "type": "++"
+              , "$1":
+                [ ["result"]
+                , { "type": "let*"
+                  , "bindings":
+                    [["provider", "artifacts"], ["fieldname", "summarizer"]]
+                  , "body": {"type": "CALL_EXPRESSION", "name": "field_list"}
+                  }
+                ]
+              }
+            ]
+          , [ "attempts (for summary)"
             , { "type": "map_union"
               , "$1":
-                { "type": "foreach"
-                , "var": "x"
-                , "range": {"type": "FIELD", "name": "summarizer"}
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
                 , "body":
-                  { "type": "map_union"
-                  , "$1":
-                    { "type": "foreach"
-                    , "var": "x"
-                    , "range":
-                      { "type": "values"
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    { "type": "TREE"
+                    , "$1":
+                      { "type": "map_union"
                       , "$1":
-                        { "type": "DEP_ARTIFACTS"
-                        , "dep": {"type": "var", "name": "x"}
+                        { "type": "foreach"
+                        , "range": {"type": "var", "name": "summary artifacts"}
+                        , "body":
+                          { "type": "singleton_map"
+                          , "key": {"type": "var", "name": "_"}
+                          , "value":
+                            { "type": "lookup"
+                            , "map": {"type": "var", "name": "$_"}
+                            , "key": {"type": "var", "name": "_"}
+                            }
+                          }
                         }
-                      }
-                    , "body":
-                      { "type": "singleton_map"
-                      , "key": "summarizer"
-                      , "value": {"type": "var", "name": "x"}
                       }
                     }
                   }
@@ -211,7 +259,7 @@
               , "inputs":
                 { "type": "map_union"
                 , "$1":
-                  [ {"type": "var", "name": "attempts"}
+                  [ {"type": "var", "name": "attempts (for summary)"}
                   , {"type": "var", "name": "summarizer"}
                   ]
                 }
@@ -222,6 +270,20 @@
                 { "type": "var"
                 , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
                 , "default": {"type": "empty_map"}
+                }
+              }
+            ]
+          , [ "attempts"
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    {"type": "TREE", "$1": {"type": "var", "name": "$_"}}
+                  }
                 }
               }
             ]
