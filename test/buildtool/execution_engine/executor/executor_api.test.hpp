@@ -99,7 +99,7 @@ static inline void RunHelloWorldCompilation(
     using path = std::filesystem::path;
     SetupConfig(repo_config);
     auto const main_cpp_desc =
-        ArtifactDescription{path{"data/hello_world/main.cpp"}, ""};
+        ArtifactDescription::CreateLocal(path{"data/hello_world/main.cpp"}, "");
     auto const& main_cpp_id = main_cpp_desc.Id();
     std::string const make_hello_id = "make_hello";
     auto* env_path = std::getenv("PATH");
@@ -118,7 +118,7 @@ static inline void RunHelloWorldCompilation(
                env},
         {{"src/main.cpp", main_cpp_desc}}};
     auto const exec_desc =
-        ArtifactDescription{make_hello_id, "out/hello_world"};
+        ArtifactDescription::CreateAction(make_hello_id, "out/hello_world");
     auto const& exec_id = exec_desc.Id();
 
     DependencyGraph g;
@@ -174,10 +174,10 @@ static inline void RunGreeterCompilation(
     using path = std::filesystem::path;
     SetupConfig(repo_config);
     auto const greet_hpp_desc =
-        ArtifactDescription{path{"data/greeter/greet.hpp"}, ""};
+        ArtifactDescription::CreateLocal(path{"data/greeter/greet.hpp"}, "");
     auto const& greet_hpp_id = greet_hpp_desc.Id();
     auto const greet_cpp_desc =
-        ArtifactDescription{path{"data/greeter"} / greetcpp, ""};
+        ArtifactDescription::CreateLocal(path{"data/greeter"} / greetcpp, "");
     auto const& greet_cpp_id = greet_cpp_desc.Id();
 
     std::string const compile_greet_id = "compile_greet";
@@ -205,7 +205,7 @@ static inline void RunGreeterCompilation(
                            {"src/greet.cpp", greet_cpp_desc}}};
 
     auto const greet_o_desc =
-        ArtifactDescription{compile_greet_id, "out/greet.o"};
+        ArtifactDescription::CreateAction(compile_greet_id, "out/greet.o");
     auto const& greet_o_id = greet_o_desc.Id();
 
     std::string const make_lib_id = "make_lib";
@@ -216,11 +216,11 @@ static inline void RunGreeterCompilation(
         {{"greet.o", greet_o_desc}}};
 
     auto const main_cpp_desc =
-        ArtifactDescription{path{"data/greeter/main.cpp"}, ""};
+        ArtifactDescription::CreateLocal(path{"data/greeter/main.cpp"}, "");
     auto const& main_cpp_id = main_cpp_desc.Id();
 
     auto const libgreet_desc =
-        ArtifactDescription{make_lib_id, "out/libgreet.a"};
+        ArtifactDescription::CreateAction(make_lib_id, "out/libgreet.a");
     auto const& libgreet_id = libgreet_desc.Id();
 
     std::string const make_exe_id = "make_exe";
@@ -242,7 +242,8 @@ static inline void RunGreeterCompilation(
                            {"include/greet.hpp", greet_hpp_desc},
                            {"lib/libgreet.a", libgreet_desc}}};
 
-    auto const exec_id = ArtifactDescription(make_exe_id, "out/greeter").Id();
+    auto const exec_id =
+        ArtifactDescription::CreateAction(make_exe_id, "out/greeter").Id();
 
     DependencyGraph g;
     CHECK(g.Add({compile_greet_desc, make_lib_desc, make_exe_desc}));
@@ -402,8 +403,10 @@ static inline void TestUploadAndDownloadTrees(
          ArtifactBlob{bar_digest, bar, /*is_exec=*/false}}}));
 
     // define known artifacts
-    auto foo_desc = ArtifactDescription{foo_digest, ObjectType::File};
-    auto bar_desc = ArtifactDescription{bar_digest, ObjectType::Symlink};
+    auto foo_desc =
+        ArtifactDescription::CreateKnown(foo_digest, ObjectType::File);
+    auto bar_desc =
+        ArtifactDescription::CreateKnown(bar_digest, ObjectType::Symlink);
 
     DependencyGraph g{};
     auto foo_id = g.AddArtifact(foo_desc);
@@ -560,7 +563,8 @@ static inline void TestRetrieveOutputDirectories(
 
     SECTION("entire action output as directory") {
         auto const make_tree_desc = create_action({}, {""});
-        auto const root_desc = ArtifactDescription{make_tree_id, ""};
+        auto const root_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "");
 
         DependencyGraph g{};
         REQUIRE(g.AddAction(make_tree_desc));
@@ -605,9 +609,12 @@ static inline void TestRetrieveOutputDirectories(
 
     SECTION("disjoint files and directories") {
         auto const make_tree_desc = create_action({"foo", "bar"}, {"baz"});
-        auto const foo_desc = ArtifactDescription{make_tree_id, "foo"};
-        auto const bar_desc = ArtifactDescription{make_tree_id, "bar"};
-        auto const baz_desc = ArtifactDescription{make_tree_id, "baz"};
+        auto const foo_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "foo");
+        auto const bar_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "bar");
+        auto const baz_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "baz");
 
         DependencyGraph g{};
         REQUIRE(g.AddAction(make_tree_desc));
@@ -669,10 +676,14 @@ static inline void TestRetrieveOutputDirectories(
     SECTION("nested files and directories") {
         auto const make_tree_desc =
             create_action({"foo", "baz/bar"}, {"", "baz/baz"});
-        auto const root_desc = ArtifactDescription{make_tree_id, ""};
-        auto const foo_desc = ArtifactDescription{make_tree_id, "foo"};
-        auto const bar_desc = ArtifactDescription{make_tree_id, "baz/bar"};
-        auto const baz_desc = ArtifactDescription{make_tree_id, "baz/baz"};
+        auto const root_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "");
+        auto const foo_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "foo");
+        auto const bar_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "baz/bar");
+        auto const baz_desc =
+            ArtifactDescription::CreateAction(make_tree_id, "baz/baz");
 
         DependencyGraph g{};
         REQUIRE(g.AddAction(make_tree_desc));
@@ -750,7 +761,8 @@ static inline void TestRetrieveOutputDirectories(
     SECTION("non-existing outputs") {
         SECTION("non-existing file") {
             auto const make_tree_desc = create_action({"fool"}, {});
-            auto const fool_desc = ArtifactDescription{make_tree_id, "fool"};
+            auto const fool_desc =
+                ArtifactDescription::CreateAction(make_tree_id, "fool");
 
             DependencyGraph g{};
             REQUIRE(g.AddAction(make_tree_desc));
@@ -775,7 +787,8 @@ static inline void TestRetrieveOutputDirectories(
 
         SECTION("non-existing directory") {
             auto const make_tree_desc = create_action({"bazel"}, {});
-            auto const bazel_desc = ArtifactDescription{make_tree_id, "bazel"};
+            auto const bazel_desc =
+                ArtifactDescription::CreateAction(make_tree_id, "bazel");
 
             DependencyGraph g{};
             REQUIRE(g.AddAction(make_tree_desc));

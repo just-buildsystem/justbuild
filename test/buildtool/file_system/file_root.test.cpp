@@ -367,8 +367,8 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto desc = root.ToArtifactDescription("baz/foo", "repo");
         REQUIRE(desc);
-        CHECK(*desc ==
-              ArtifactDescription(std::filesystem::path{"baz/foo"}, "repo"));
+        CHECK(*desc == ArtifactDescription::CreateLocal(
+                           std::filesystem::path{"baz/foo"}, "repo"));
 
         CHECK(root.ToArtifactDescription("does_not_exist", "repo"));
     }
@@ -381,17 +381,17 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto foo = root->ToArtifactDescription("baz/foo", "repo");
         REQUIRE(foo);
-        CHECK(*foo ==
-              ArtifactDescription{ArtifactDigest{kFooId, 3, /*is_tree=*/false},
-                                  ObjectType::File,
-                                  "repo"});
+        CHECK(*foo == ArtifactDescription::CreateKnown(
+                          ArtifactDigest{kFooId, 3, /*is_tree=*/false},
+                          ObjectType::File,
+                          "repo"));
 
         auto bar = root->ToArtifactDescription("baz/bar", "repo");
         REQUIRE(bar);
-        CHECK(*bar ==
-              ArtifactDescription{ArtifactDigest{kBarId, 3, /*is_tree=*/false},
-                                  ObjectType::Executable,
-                                  "repo"});
+        CHECK(*bar == ArtifactDescription::CreateKnown(
+                          ArtifactDigest{kBarId, 3, /*is_tree=*/false},
+                          ObjectType::Executable,
+                          "repo"));
 
         CHECK_FALSE(root->ToArtifactDescription("baz", "repo"));
         CHECK_FALSE(root->ToArtifactDescription("does_not_exist", "repo"));
@@ -404,8 +404,8 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto desc = root.ToArtifactDescription("baz/foo", "repo");
         REQUIRE(desc);
-        CHECK(*desc ==
-              ArtifactDescription(std::filesystem::path{"baz/foo"}, "repo"));
+        CHECK(*desc == ArtifactDescription::CreateLocal(
+                           std::filesystem::path{"baz/foo"}, "repo"));
 
         CHECK(root.ToArtifactDescription("does_not_exist", "repo"));
     }
@@ -419,17 +419,17 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto foo = root->ToArtifactDescription("baz/foo", "repo");
         REQUIRE(foo);
-        CHECK(*foo ==
-              ArtifactDescription{ArtifactDigest{kFooId, 3, /*is_tree=*/false},
-                                  ObjectType::File,
-                                  "repo"});
+        CHECK(*foo == ArtifactDescription::CreateKnown(
+                          ArtifactDigest{kFooId, 3, /*is_tree=*/false},
+                          ObjectType::File,
+                          "repo"));
 
         auto bar = root->ToArtifactDescription("baz/bar", "repo");
         REQUIRE(bar);
-        CHECK(*bar ==
-              ArtifactDescription{ArtifactDigest{kBarId, 3, /*is_tree=*/false},
-                                  ObjectType::Executable,
-                                  "repo"});
+        CHECK(*bar == ArtifactDescription::CreateKnown(
+                          ArtifactDigest{kBarId, 3, /*is_tree=*/false},
+                          ObjectType::Executable,
+                          "repo"));
 
         CHECK_FALSE(root->ToArtifactDescription("baz", "repo"));
         CHECK_FALSE(root->ToArtifactDescription("does_not_exist", "repo"));

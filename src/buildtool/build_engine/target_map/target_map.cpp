@@ -37,6 +37,7 @@
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -706,14 +707,16 @@ void withDependencies(
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));
               for (auto const& out : outputs) {
-                  result.emplace(out,
-                                 ExpressionPtr{ArtifactDescription{
-                                     action_id, std::filesystem::path{out}}});
+                  result.emplace(
+                      out,
+                      ExpressionPtr{ArtifactDescription::CreateAction(
+                          action_id, std::filesystem::path{out})});
               }
               for (auto const& out : output_dirs) {
-                  result.emplace(out,
-                                 ExpressionPtr{ArtifactDescription{
-                                     action_id, std::filesystem::path{out}}});
+                  result.emplace(
+                      out,
+                      ExpressionPtr{ArtifactDescription::CreateAction(
+                          action_id, std::filesystem::path{out})});
               }
 
               return ExpressionPtr{Expression::map_t{result}};
@@ -727,9 +730,9 @@ void withDependencies(
                                   data->ToString())};
               }
               blobs.emplace_back(data->String());
-              return ExpressionPtr{ArtifactDescription{
+              return ExpressionPtr{ArtifactDescription::CreateKnown(
                   ArtifactDigest::Create<ObjectType::File>(data->String()),
-                  ObjectType::File}};
+                  ObjectType::File)};
           }},
 
          {"SYMLINK",
@@ -747,9 +750,9 @@ void withDependencies(
               }
               blobs.emplace_back(data->String());
 
-              return ExpressionPtr{ArtifactDescription{
+              return ExpressionPtr{ArtifactDescription::CreateKnown(
                   ArtifactDigest::Create<ObjectType::Symlink>(data->String()),
-                  ObjectType::Symlink}};
+                  ObjectType::Symlink)};
           }},
 
          {"TREE",
@@ -783,7 +786,7 @@ void withDependencies(
               auto tree = std::make_shared<Tree>(std::move(artifacts));
               auto tree_id = tree->Id();
               trees.emplace_back(std::move(tree));
-              return ExpressionPtr{ArtifactDescription{tree_id}};
+              return ExpressionPtr{ArtifactDescription::CreateTree(tree_id)};
           }},
          {"VALUE_NODE",
           [](auto&& eval, auto const& expr, auto const& env) {
@@ -1693,7 +1696,9 @@ void TreeTarget(
                     auto tree = std::make_shared<Tree>(std::move(artifacts));
                     auto tree_id = tree->Id();
                     auto tree_map = ExpressionPtr{Expression::map_t{
-                        name, ExpressionPtr{ArtifactDescription{tree_id}}}};
+                        name,
+                        ExpressionPtr{
+                            ArtifactDescription::CreateTree(tree_id)}}};
                     auto analysis_result =
                         std::make_shared<AnalysedTarget const>(
                             TargetResult{.artifact_stage = tree_map,

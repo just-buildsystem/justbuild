@@ -234,9 +234,10 @@ class TestApi : public IExecutionApi {
     -> std::pair<TestApiConfig, RepositoryConfig> {
     using path = std::filesystem::path;
 
-    auto const local_cpp_desc = ArtifactDescription{path{"local.cpp"}, ""};
-    auto const known_cpp_desc = ArtifactDescription{
-        ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File};
+    auto const local_cpp_desc =
+        ArtifactDescription::CreateLocal(path{"local.cpp"}, "");
+    auto const known_cpp_desc = ArtifactDescription::CreateKnown(
+        ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File);
 
     auto const test_action_desc = ActionDescription{
         {"output1.exe", "output2.exe"},

@@ -19,6 +19,7 @@
     , ["", "catch-main"]
     , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , ["@", "src", "src/buildtool/common", "common"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }

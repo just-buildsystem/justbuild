@@ -32,6 +32,7 @@
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/export.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
@@ -268,9 +269,9 @@ void BlobGenRuleWithDeps(
 
     auto stage = ExpressionPtr{Expression::map_t{
         name_val->String(),
-        ExpressionPtr{ArtifactDescription{
+        ExpressionPtr{ArtifactDescription::CreateKnown(
             ArtifactDigest::Create<ObjectType::File>(data_val->String()),
-            blob_type}}}};
+            blob_type)}}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{.artifact_stage = stage,
@@ -511,7 +512,7 @@ void TreeRuleWithDeps(
     std::vector<Tree::Ptr> trees{};
     trees.emplace_back(std::move(tree));
     auto result_stage = Expression::map_t::underlying_map_t{};
-    result_stage.emplace(name, ArtifactDescription{tree_id});
+    result_stage.emplace(name, ArtifactDescription::CreateTree(tree_id));
     auto result = ExpressionPtr{Expression::map_t{result_stage}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
@@ -1351,8 +1352,8 @@ void GenericRuleWithDeps(
         for (const auto& path : container) {
             artifacts.emplace(
                 path,
-                ExpressionPtr{ArtifactDescription{
-                    action_identifier, std::filesystem::path{path}}});
+                ExpressionPtr{ArtifactDescription::CreateAction(
+                    action_identifier, std::filesystem::path{path})});
         }
     }
 

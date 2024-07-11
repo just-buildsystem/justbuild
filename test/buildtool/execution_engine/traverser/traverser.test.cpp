@@ -167,10 +167,9 @@ class TestProject {
         command.emplace_back("BUILD");
         for (auto const& output : outputs) {
             command.push_back(output);
-            auto const out_id = ArtifactDescription{
-                action_id,
-                std::filesystem::path{
-                    output}}.Id();
+            auto const out_id = ArtifactDescription::CreateAction(
+                                    action_id, std::filesystem::path{output})
+                                    .Id();
             auto [_, is_inserted] = artifacts_to_be_built_.insert(out_id);
             if (!is_inserted) {
                 return false;

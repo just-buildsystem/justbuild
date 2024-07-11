@@ -52,22 +52,32 @@ namespace {
     -> std::optional<ArtifactDescription>;
 }  // namespace
 
-ArtifactDescription::ArtifactDescription(std::filesystem::path path,
-                                         std::string repository) noexcept
-    : data_{std::make_pair(std::move(path), std::move(repository))} {}
+auto ArtifactDescription::CreateLocal(std::filesystem::path path,
+                                      std::string repository) noexcept
+    -> ArtifactDescription {
+    Local data{std::move(path), std::move(repository)};
+    return ArtifactDescription{std::move(data)};
+}
 
-ArtifactDescription::ArtifactDescription(
-    ArtifactDigest digest,
-    ObjectType file_type,
-    std::optional<std::string> repo) noexcept
-    : data_{std::make_tuple(std::move(digest), file_type, std::move(repo))} {}
+auto ArtifactDescription::CreateAction(std::string action_id,
+                                       std::filesystem::path path) noexcept
+    -> ArtifactDescription {
+    Action data{std::move(action_id), std::move(path)};
+    return ArtifactDescription{std::move(data)};
+}
 
-ArtifactDescription::ArtifactDescription(std::string action_id,
-                                         std::filesystem::path path) noexcept
-    : data_{std::make_pair(std::move(action_id), std::move(path))} {}
+auto ArtifactDescription::CreateKnown(ArtifactDigest digest,
+                                      ObjectType file_type,
+                                      std::optional<std::string> repo) noexcept
+    -> ArtifactDescription {
+    Known data{std::move(digest), file_type, std::move(repo)};
+    return ArtifactDescription{std::move(data)};
+}
 
-ArtifactDescription::ArtifactDescription(std::string tree_id) noexcept
-    : data_{std::move(tree_id)} {}
+auto ArtifactDescription::CreateTree(std::string tree_id) noexcept
+    -> ArtifactDescription {
+    return ArtifactDescription{std::move(tree_id)};
+}
 
 auto ArtifactDescription::FromJson(nlohmann::json const& json) noexcept
     -> std::optional<ArtifactDescription> {
@@ -225,14 +235,14 @@ auto DescribeTreeArtifact(std::string const& tree_id) noexcept
 
 auto CreateLocalArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription> {
-    auto const path =
+    auto path =
         ExtractValueAs<std::string>(data, "path", [](std::string const& error) {
             Logger::Log(LogLevel::Error,
                         "{}\ncan not retrieve value for \"path\" from "
                         "LOCAL artifact's data.",
                         error);
         });
-    auto const repository = ExtractValueAs<std::string>(
+    auto repository = ExtractValueAs<std::string>(
         data, "repository", [](std::string const& error) {
             Logger::Log(LogLevel::Error,
                         "{}\ncan not retrieve value for \"path\" from "
@@ -240,7 +250,8 @@ auto CreateLocalArtifactDescription(nlohmann::json const& data)
                         error);
         });
     if (path.has_value() and repository.has_value()) {
-        return ArtifactDescription{std::filesystem::path{*path}, *repository};
+        return ArtifactDescription::CreateLocal(std::move(*path),
+                                                std::move(*repository));
     }
     return std::nullopt;
 }
@@ -271,16 +282,15 @@ auto CreateKnownArtifactDescription(nlohmann::json const& data)
     if (blob_id.has_value() and size.has_value() and file_type.has_value() and
         file_type->size() == 1) {
         auto const& object_type = FromChar((*file_type)[0]);
-        return ArtifactDescription{
-            ArtifactDigest{*blob_id, *size, IsTreeObject(object_type)},
-            object_type};
+        ArtifactDigest digest{*blob_id, *size, IsTreeObject(object_type)};
+        return ArtifactDescription::CreateKnown(std::move(digest), object_type);
     }
     return std::nullopt;
 }
 
 auto CreateActionArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription> {
-    auto const action_id =
+    auto action_id =
         ExtractValueAs<std::string>(data, "id", [](std::string const& error) {
             Logger::Log(LogLevel::Error,
                         "{}\ncan not retrieve value for \"id\" from "
@@ -288,7 +298,7 @@ auto CreateActionArtifactDescription(nlohmann::json const& data)
                         error);
         });
 
-    auto const path =
+    auto path =
         ExtractValueAs<std::string>(data, "path", [](std::string const& error) {
             Logger::Log(LogLevel::Error,
                         "{}\ncan not retrieve value for \"path\" from "
@@ -296,14 +306,15 @@ auto CreateActionArtifactDescription(nlohmann::json const& data)
                         error);
         });
     if (action_id.has_value() and path.has_value()) {
-        return ArtifactDescription{*action_id, std::filesystem::path{*path}};
+        return ArtifactDescription::CreateAction(std::move(*action_id),
+                                                 std::move(*path));
     }
     return std::nullopt;
 }
 
 auto CreateTreeArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription> {
-    auto const tree_id =
+    auto tree_id =
         ExtractValueAs<std::string>(data, "id", [](std::string const& error) {
             Logger::Log(LogLevel::Error,
                         "{}\ncan not retrieve value for \"id\" from "
@@ -312,7 +323,7 @@ auto CreateTreeArtifactDescription(nlohmann::json const& data)
         });
 
     if (tree_id.has_value()) {
-        return ArtifactDescription{*tree_id};
+        return ArtifactDescription::CreateTree(std::move(*tree_id));
     }
     return std::nullopt;
 }

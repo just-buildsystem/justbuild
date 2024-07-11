@@ -22,6 +22,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "test/utils/container_matchers.hpp"
 
 TEST_CASE("Expression access", "[expression]") {  // NOLINT
@@ -38,7 +39,8 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
     auto boolean = ExpressionPtr{true};
     auto number = ExpressionPtr{number_t{1}};
     auto string = ExpressionPtr{"2"s};
-    auto artifact = ExpressionPtr{artifact_t{path{"local_path"}}};
+    auto artifact =
+        ExpressionPtr{ArtifactDescription::CreateTree(path{"local_path"})};
     auto result = ExpressionPtr{result_t{boolean, number, string}};
     auto list = ExpressionPtr{list_t{number}};
     auto map = ExpressionPtr{map_t{{"3"s, number}}};
@@ -78,7 +80,8 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(string->String() == "2"s);
         CHECK_THROWS_AS(string->Artifact(), Expression::ExpressionTypeError);
 
-        CHECK(artifact->Artifact() == artifact_t{path{"local_path"}});
+        CHECK(artifact->Artifact() ==
+              ArtifactDescription::CreateTree(path{"local_path"}));
         CHECK_THROWS_AS(artifact->String(), Expression::ExpressionTypeError);
 
         CHECK(result->Result() == result_t{boolean, number, string});
@@ -154,13 +157,14 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(string == Expression::FromJson(R"("2")"_json));
         CHECK(string != ""s);
         CHECK(string != Expression{""s});
-        CHECK(string != artifact_t{path{"local_path"}});
+        CHECK(string != ArtifactDescription::CreateTree(path{"local_path"}));
         CHECK(string != artifact);
         CHECK(string != Expression::FromJson(R"("")"_json));
 
         CHECK(artifact == artifact);
-        CHECK(artifact == artifact_t{path{"local_path"}});
-        CHECK(artifact == Expression{artifact_t{path{"local_path"}}});
+        CHECK(artifact == ArtifactDescription::CreateTree(path{"local_path"}));
+        CHECK(artifact ==
+              Expression{ArtifactDescription::CreateTree(path{"local_path"})});
         CHECK(artifact != ""s);
         CHECK(artifact != string);
 
@@ -191,16 +195,16 @@ TEST_CASE("Expression access", "[expression]") {  // NOLINT
         CHECK(map != Expression::FromJson(R"(["3",1])"_json));
 
         // compare nullptr != null != false != 0 != "" != [] != {}
-        auto exprs =
-            std::vector<ExpressionPtr>{ExpressionPtr{nullptr},
-                                       ExpressionPtr{artifact_t{path{""}}},
-                                       ExpressionPtr{result_t{}},
-                                       Expression::FromJson("null"_json),
-                                       Expression::FromJson("false"_json),
-                                       Expression::FromJson("0"_json),
-                                       Expression::FromJson(R"("")"_json),
-                                       Expression::FromJson("[]"_json),
-                                       Expression::FromJson("{}"_json)};
+        auto exprs = std::vector<ExpressionPtr>{
+            ExpressionPtr{nullptr},
+            ExpressionPtr{ArtifactDescription::CreateTree(path{""})},
+            ExpressionPtr{result_t{}},
+            Expression::FromJson("null"_json),
+            Expression::FromJson("false"_json),
+            Expression::FromJson("0"_json),
+            Expression::FromJson(R"("")"_json),
+            Expression::FromJson("[]"_json),
+            Expression::FromJson("{}"_json)};
         for (auto const& l : exprs) {
             for (auto const& r : exprs) {
                 if (&l != &r) {
@@ -1697,7 +1701,7 @@ TEST_CASE("Expression hash computation", "[expression]") {
     auto boolean = ExpressionPtr{false};
     auto number = ExpressionPtr{number_t{}};
     auto string = ExpressionPtr{""s};
-    auto artifact = ExpressionPtr{artifact_t{path{""}}};
+    auto artifact = ExpressionPtr{ArtifactDescription::CreateTree(path{""})};
     auto result = ExpressionPtr{result_t{}};
     auto list = ExpressionPtr{list_t{}};
     auto map = ExpressionPtr{map_t{}};
@@ -1718,9 +1722,11 @@ TEST_CASE("Expression hash computation", "[expression]") {
     CHECK_FALSE(string->ToHash() == Expression{" "s}.ToHash());
 
     CHECK_FALSE(artifact->ToHash().empty());
-    CHECK(artifact->ToHash() == Expression{artifact_t{path{""}}}.ToHash());
-    CHECK_FALSE(artifact->ToHash() ==
-                Expression{artifact_t{path{" "}}}.ToHash());
+    CHECK(artifact->ToHash() ==
+          Expression{ArtifactDescription::CreateTree(path{""})}.ToHash());
+    CHECK_FALSE(
+        artifact->ToHash() ==
+        Expression{ArtifactDescription::CreateTree(path{" "})}.ToHash());
 
     CHECK_FALSE(result->ToHash().empty());
     CHECK(result->ToHash() == Expression{result_t{}}.ToHash());

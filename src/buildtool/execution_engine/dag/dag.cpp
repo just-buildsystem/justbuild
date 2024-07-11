@@ -22,7 +22,7 @@ auto DependencyGraph::CreateOutputArtifactNodes(
     -> std::pair<std::vector<DependencyGraph::NamedArtifactNodePtr>,
                  std::vector<DependencyGraph::NamedArtifactNodePtr>> {
     if (is_tree_action) {  // create tree artifact
-        auto artifact = ArtifactDescription{action_id}.ToArtifact();
+        auto artifact = ArtifactDescription::CreateTree(action_id).ToArtifact();
         auto const node_id = AddArtifact(std::move(artifact));
         return std::make_pair(std::vector<NamedArtifactNodePtr>{},
                               std::vector<NamedArtifactNodePtr>{
@@ -32,10 +32,9 @@ auto DependencyGraph::CreateOutputArtifactNodes(
     // create action artifacts
     auto node_creator = [this, &action_id](auto* nodes, auto const& paths) {
         for (auto const& artifact_path : paths) {
-            auto artifact =
-                ArtifactDescription{action_id,
-                                    std::filesystem::path{artifact_path}}
-                    .ToArtifact();
+            auto artifact = ArtifactDescription::CreateAction(
+                                action_id, std::filesystem::path{artifact_path})
+                                .ToArtifact();
             auto const node_id = AddArtifact(std::move(artifact));
             nodes->emplace_back(NamedArtifactNodePtr{
                 artifact_path, &(*artifact_nodes_[node_id])});

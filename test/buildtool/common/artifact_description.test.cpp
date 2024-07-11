@@ -28,8 +28,8 @@
 }
 
 TEST_CASE("Local artifact", "[artifact_description]") {
-    auto local_desc =
-        ArtifactDescription{std::filesystem::path{"local_path"}, "repo"};
+    auto local_desc = ArtifactDescription::CreateLocal(
+        std::filesystem::path{"local_path"}, "repo");
     auto local = local_desc.ToArtifact();
     auto local_from_factory =
         ArtifactFactory::FromDescription(local_desc.ToJson());
@@ -38,27 +38,27 @@ TEST_CASE("Local artifact", "[artifact_description]") {
 
 TEST_CASE("Known artifact", "[artifact_description]") {
     SECTION("File object") {
-        auto known_desc = ArtifactDescription{
+        auto known_desc = ArtifactDescription::CreateKnown(
             ArtifactDigest{std::string{"f_fake_hash"}, 0, /*is_tree=*/false},
-            ObjectType::File};
+            ObjectType::File);
         auto known = known_desc.ToArtifact();
         auto known_from_factory =
             ArtifactFactory::FromDescription(known_desc.ToJson());
         CHECK(known == *known_from_factory);
     }
     SECTION("Executable object") {
-        auto known_desc = ArtifactDescription{
+        auto known_desc = ArtifactDescription::CreateKnown(
             ArtifactDigest{std::string{"x_fake_hash"}, 1, /*is_tree=*/false},
-            ObjectType::Executable};
+            ObjectType::Executable);
         auto known = known_desc.ToArtifact();
         auto known_from_factory =
             ArtifactFactory::FromDescription(known_desc.ToJson());
         CHECK(known == *known_from_factory);
     }
     SECTION("Symlink object") {
-        auto known_desc = ArtifactDescription{
+        auto known_desc = ArtifactDescription::CreateKnown(
             ArtifactDigest{std::string{"l_fake_hash"}, 2, /*is_tree=*/false},
-            ObjectType::Symlink};
+            ObjectType::Symlink);
         auto known = known_desc.ToArtifact();
         auto known_from_factory =
             ArtifactFactory::FromDescription(known_desc.ToJson());
@@ -67,8 +67,8 @@ TEST_CASE("Known artifact", "[artifact_description]") {
 }
 
 TEST_CASE("Action artifact", "[artifact_description]") {
-    auto action_desc =
-        ArtifactDescription{"action_id", std::filesystem::path{"out_path"}};
+    auto action_desc = ArtifactDescription::CreateAction(
+        "action_id", std::filesystem::path{"out_path"});
     auto action = action_desc.ToArtifact();
     auto action_from_factory =
         ArtifactFactory::FromDescription(action_desc.ToJson());

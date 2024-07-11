@@ -21,6 +21,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -40,7 +41,8 @@ namespace {
             if (auto it = replacements.find(artifact);
                 it != replacements.end()) {
                 auto const& info = it->second;
-                return ArtifactDescription{info.digest, info.type}.ToJson();
+                return ArtifactDescription::CreateKnown(info.digest, info.type)
+                    .ToJson();
             }
             throw std::runtime_error{
                 "No replacement for non-known artifact found."};

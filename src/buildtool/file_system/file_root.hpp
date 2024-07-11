@@ -230,10 +230,10 @@ class FileRoot {
                     if (auto id = data->Hash()) {
                         auto const& size = data->Size();
                         if (size) {
-                            return ArtifactDescription{
+                            return ArtifactDescription::CreateKnown(
                                 ArtifactDigest{*id, *size, /*is_tree=*/true},
                                 ObjectType::Tree,
-                                repository};
+                                repository);
                         }
                     }
                 } catch (...) {
@@ -575,23 +575,23 @@ class FileRoot {
                     if (Compatibility::IsCompatible()) {
                         auto compatible_hash = Compatibility::RegisterGitEntry(
                             entry->Hash(), *entry->Blob(), repository);
-                        return ArtifactDescription{
+                        return ArtifactDescription::CreateKnown(
                             ArtifactDigest{compatible_hash,
                                            *entry->Size(),
                                            /*is_tree=*/false},
-                            entry->Type()};
+                            entry->Type());
                     }
-                    return ArtifactDescription{
+                    return ArtifactDescription::CreateKnown(
                         ArtifactDigest{
                             entry->Hash(), *entry->Size(), /*is_tree=*/false},
                         entry->Type(),
-                        repository};
+                        repository);
                 }
             }
             return std::nullopt;
         }
         if (std::holds_alternative<fs_root_t>(root_)) {
-            return ArtifactDescription{file_path, repository};
+            return ArtifactDescription::CreateLocal(file_path, repository);
         }
         return std::nullopt;  // absent roots are neither LOCAL nor KNOWN
     }

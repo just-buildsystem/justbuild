@@ -25,7 +25,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
-class ArtifactDescription {
+class ArtifactDescription final {
     using Local = std::pair<std::filesystem::path, std::string>;
     using Known =
         std::tuple<ArtifactDigest, ObjectType, std::optional<std::string>>;
@@ -33,18 +33,22 @@ class ArtifactDescription {
     using Tree = std::string;
 
   public:
-    explicit ArtifactDescription(std::filesystem::path path,
-                                 std::string repository) noexcept;
+    [[nodiscard]] static auto CreateLocal(std::filesystem::path path,
+                                          std::string repository) noexcept
+        -> ArtifactDescription;
 
-    ArtifactDescription(
+    [[nodiscard]] static auto CreateAction(std::string action_id,
+                                           std::filesystem::path path) noexcept
+        -> ArtifactDescription;
+
+    [[nodiscard]] static auto CreateKnown(
         ArtifactDigest digest,
         ObjectType file_type,
-        std::optional<std::string> repo = std::nullopt) noexcept;
+        std::optional<std::string> repo = std::nullopt) noexcept
+        -> ArtifactDescription;
 
-    ArtifactDescription(std::string action_id,
-                        std::filesystem::path path) noexcept;
-
-    explicit ArtifactDescription(std::string tree_id) noexcept;
+    [[nodiscard]] static auto CreateTree(std::string tree_id) noexcept
+        -> ArtifactDescription;
 
     [[nodiscard]] auto Id() const& noexcept -> ArtifactIdentifier const& {
         return id_;
@@ -82,7 +86,11 @@ class ArtifactDescription {
 
   private:
     std::variant<Local, Known, Action, Tree> data_;
-    ArtifactIdentifier id_{ComputeId(ToJson())};
+    ArtifactIdentifier id_;
+
+    template <typename T>
+    explicit ArtifactDescription(T data) noexcept
+        : data_{std::move(data)}, id_{ComputeId(ToJson())} {}
 
     [[nodiscard]] static auto ComputeId(nlohmann::json const& desc) noexcept
         -> ArtifactIdentifier;

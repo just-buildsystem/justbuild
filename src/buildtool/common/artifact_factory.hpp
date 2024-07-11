@@ -26,6 +26,7 @@
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -54,28 +55,30 @@ class ArtifactFactory {
     [[nodiscard]] static auto DescribeLocalArtifact(
         std::filesystem::path const& src_path,
         std::string repository) noexcept -> nlohmann::json {
-        return ArtifactDescription{src_path, std::move(repository)}.ToJson();
+        return ArtifactDescription::CreateLocal(src_path, std::move(repository))
+            .ToJson();
     }
 
     [[nodiscard]] static auto DescribeKnownArtifact(
         std::string const& blob_id,
         std::size_t size,
         ObjectType type = ObjectType::File) noexcept -> nlohmann::json {
-        return ArtifactDescription{
-            ArtifactDigest{blob_id, size, IsTreeObject(type)}, type}
+        return ArtifactDescription::CreateKnown(
+                   ArtifactDigest{blob_id, size, IsTreeObject(type)}, type)
             .ToJson();
     }
 
     [[nodiscard]] static auto DescribeActionArtifact(
         std::string const& action_id,
         std::string const& out_path) noexcept -> nlohmann::json {
-        return ArtifactDescription{action_id, std::filesystem::path{out_path}}
+        return ArtifactDescription::CreateAction(
+                   action_id, std::filesystem::path{out_path})
             .ToJson();
     }
 
     [[nodiscard]] static auto DescribeTreeArtifact(
         std::string const& tree_id) noexcept -> nlohmann::json {
-        return ArtifactDescription{tree_id}.ToJson();
+        return ArtifactDescription::CreateTree(tree_id).ToJson();
     }
 
     [[nodiscard]] static auto DescribeAction(

@@ -51,7 +51,7 @@ class Tree {
     }
 
     [[nodiscard]] auto Output() const -> ArtifactDescription {
-        return ArtifactDescription{id_};
+        return ArtifactDescription::CreateTree(id_);
     }
 
     [[nodiscard]] static auto FromJson(std::string const& id,
