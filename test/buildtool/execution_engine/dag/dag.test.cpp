@@ -24,7 +24,6 @@
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"

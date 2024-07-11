@@ -8,7 +8,6 @@
     , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
-    , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/traverser", "traverser"]
     ]

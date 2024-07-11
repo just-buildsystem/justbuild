@@ -62,20 +62,6 @@
     ]
   , "stage": ["src", "buildtool", "common"]
   }
-, "artifact_factory":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["artifact_factory"]
-  , "hdrs": ["artifact_factory.hpp"]
-  , "deps":
-    [ "common"
-    , "action_description"
-    , "artifact_description"
-    , ["@", "json", "", "json"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/utils/cpp", "json"]
-    ]
-  , "stage": ["src", "buildtool", "common"]
-  }
 , "artifact_description":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["artifact_description"]

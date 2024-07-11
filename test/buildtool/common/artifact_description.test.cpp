@@ -16,9 +16,9 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 [[nodiscard]] auto operator==(Artifact const& lhs, Artifact const& rhs)
@@ -66,10 +66,12 @@ TEST_CASE("Action artifact", "[artifact_description]") {
 }
 
 TEST_CASE("From JSON", "[artifact_description]") {
-    auto local = ArtifactFactory::DescribeLocalArtifact("local", "repo");
+    auto local = ArtifactDescription::CreateLocal("local", "repo").ToJson();
     auto known =
-        ArtifactFactory::DescribeKnownArtifact("hash", 0, ObjectType::File);
-    auto action = ArtifactFactory::DescribeActionArtifact("id", "output");
+        ArtifactDescription::CreateKnown(
+            ArtifactDigest{"hash", 0, /*is_tree=*/false}, ObjectType::File)
+            .ToJson();
+    auto action = ArtifactDescription::CreateAction("id", "output").ToJson();
 
     SECTION("Parse artifacts") {
         CHECK(ArtifactDescription::FromJson(local));
@@ -143,4 +145,54 @@ TEST_CASE("From JSON", "[artifact_description]") {
             CHECK_FALSE(ArtifactDescription::FromJson(action));
         }
     }
+}
+
+TEST_CASE("Description missing mandatory key/value pair",
+          "[artifact_description]") {
+    nlohmann::json const missing_type = {{"data", {{"path", "some/path"}}}};
+    CHECK(not ArtifactDescription::FromJson(missing_type));
+    nlohmann::json const missing_data = {{"type", "LOCAL"}};
+    CHECK(not ArtifactDescription::FromJson(missing_data));
+}
+
+TEST_CASE("Local artifact description contains incorrect value for \"data\"",
+          "[artifact_description]") {
+    nlohmann::json const local_art_missing_path = {
+        {"type", "LOCAL"}, {"data", nlohmann::json::object()}};
+    CHECK(not ArtifactDescription::FromJson(local_art_missing_path));
+}
+
+TEST_CASE("Known artifact description contains incorrect value for \"data\"",
+          "[artifact_description]") {
+    std::string file_type{};
+    file_type += ToChar(ObjectType::File);
+    SECTION("missing \"id\"") {
+        nlohmann::json const known_art_missing_id = {
+            {"type", "KNOWN"},
+            {"data", {{"size", 15}, {"file_type", file_type}}}};
+        CHECK(not ArtifactDescription::FromJson(known_art_missing_id));
+    }
+    SECTION("missing \"size\"") {
+        nlohmann::json const known_art_missing_size = {
+            {"type", "KNOWN"},
+            {"data", {{"id", "known_input"}, {"file_type", file_type}}}};
+        CHECK(not ArtifactDescription::FromJson(known_art_missing_size));
+    }
+    SECTION("missing \"file_type\"") {
+        nlohmann::json const known_art_missing_file_type = {
+            {"type", "KNOWN"}, {"data", {{"id", "known_input"}, {"size", 15}}}};
+
+        CHECK(not ArtifactDescription::FromJson(known_art_missing_file_type));
+    }
+}
+
+TEST_CASE("Action artifact description contains incorrect value for \"data\"",
+          "[artifact_description]") {
+    nlohmann::json const action_art_missing_id = {
+        {"type", "ACTION"}, {"data", {{"path", "output/path"}}}};
+    CHECK(not ArtifactDescription::FromJson(action_art_missing_id));
+
+    nlohmann::json const action_art_missing_path = {
+        {"type", "ACTION"}, {"data", {{"id", "action_id"}}}};
+    CHECK(not ArtifactDescription::FromJson(action_art_missing_path));
 }

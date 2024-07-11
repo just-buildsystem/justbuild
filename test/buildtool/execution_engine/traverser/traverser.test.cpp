@@ -22,7 +22,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/traverser/traverser.hpp"
 #include "test/utils/container_matchers.hpp"
@@ -31,6 +30,9 @@ namespace {
 
 auto const kNumJobs = std::max(1U, std::thread::hardware_concurrency());
 
+[[nodiscard]] auto IsArtifactLocal(nlohmann::json const& j) -> bool {
+    return j.at("type") == "LOCAL";
+}
 class TestBuildInfo {
   public:
     [[nodiscard]] auto CorrectlyBuilt() const noexcept
@@ -185,7 +187,7 @@ class TestProject {
                 auto const input_id = artifact->Id();
                 command.push_back(input_id);
                 inputs_desc.emplace(input_id, *artifact);
-                if (ArtifactFactory::IsLocal(input_desc)) {
+                if (IsArtifactLocal(input_desc)) {
                     local_artifacts_.insert(input_id);
                 }
             }
@@ -222,7 +224,7 @@ TEST_CASE("Executable", "[traverser]") {
     CHECK(p.AddOutputInputPair(
         "action",
         {"executable"},
-        {ArtifactFactory::DescribeLocalArtifact("main.cpp", "")}));
+        {ArtifactDescription::CreateLocal("main.cpp", "").ToJson()}));
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
@@ -277,13 +279,13 @@ TEST_CASE("Executable depends on library", "[traverser]") {
     CHECK(p.AddOutputInputPair(
         "make_exe",
         {"executable"},
-        {ArtifactFactory::DescribeLocalArtifact("main.cpp", "repo"),
-         ArtifactFactory::DescribeActionArtifact("make_lib", "library")}));
+        {ArtifactDescription::CreateLocal("main.cpp", "repo").ToJson(),
+         ArtifactDescription::CreateAction("make_lib", "library").ToJson()}));
     CHECK(p.AddOutputInputPair(
         "make_lib",
         {"library"},
-        {ArtifactFactory::DescribeLocalArtifact("library.hpp", "repo"),
-         ArtifactFactory::DescribeLocalArtifact("library.cpp", "repo")}));
+        {ArtifactDescription::CreateLocal("library.hpp", "repo").ToJson(),
+         ArtifactDescription::CreateLocal("library.cpp", "repo").ToJson()}));
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
@@ -369,8 +371,8 @@ TEST_CASE("Two artifacts depend on another", "[traverser]") {
     CHECK(p.AddOutputInputPair(
         "make_dep",
         {"dep"},
-        {ArtifactFactory::DescribeLocalArtifact("leaf1", "repo"),
-         ArtifactFactory::DescribeLocalArtifact("leaf2", "repo")}));
+        {ArtifactDescription::CreateLocal("leaf1", "repo").ToJson(),
+         ArtifactDescription::CreateLocal("leaf2", "repo").ToJson()}));
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
@@ -497,7 +499,7 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
     CHECK(p.AddOutputInputPair(
         "make_outputs",
         {"output1", "output2"},
-        {ArtifactFactory::DescribeLocalArtifact("dep", "repo")}));
+        {ArtifactDescription::CreateLocal("dep", "repo").ToJson()}));
     auto const output1_id =
         ArtifactDescription::CreateAction("make_outputs", "output1").Id();
     auto const output2_id =
@@ -710,21 +712,21 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     CHECK(p.AddOutputInputPair(
         "make_exe",
         {"executable"},
-        {ArtifactFactory::DescribeLocalArtifact("main.cpp", "repo"),
+        {ArtifactDescription::CreateLocal("main.cpp", "repo").ToJson(),
          lib1_desc,
          lib2_desc}));
 
     CHECK(p.AddOutputInputPair(
         "make_lib1",
         {"lib1"},
-        {ArtifactFactory::DescribeLocalArtifact("lib1.hpp", "repo"),
-         ArtifactFactory::DescribeLocalArtifact("lib1.cpp", "repo")}));
+        {ArtifactDescription::CreateLocal("lib1.hpp", "repo").ToJson(),
+         ArtifactDescription::CreateLocal("lib1.cpp", "repo").ToJson()}));
     CHECK(p.AddOutputInputPair(
         "make_lib2",
         {"lib2"},
         {lib1_desc,
-         ArtifactFactory::DescribeLocalArtifact("lib2.hpp", "repo"),
-         ArtifactFactory::DescribeLocalArtifact("lib2.cpp", "repo")}));
+         ArtifactDescription::CreateLocal("lib2.hpp", "repo").ToJson(),
+         ArtifactDescription::CreateLocal("lib2.cpp", "repo").ToJson()}));
 
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
