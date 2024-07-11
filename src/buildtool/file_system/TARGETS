@@ -170,6 +170,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "concepts"]
+    , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

@@ -80,12 +80,14 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["artifact_description"]
   , "hdrs": ["artifact_description.hpp"]
+  , "srcs": ["artifact_description.cpp"]
   , "deps":
     [ "common"
+    , ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "json"]
     ]
+  , "private-deps": [["src/utils/cpp", "json"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "action_description":
@@ -98,6 +100,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }

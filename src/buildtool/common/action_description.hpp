@@ -28,6 +28,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/json.hpp"
 
 class ActionDescription {
   public:

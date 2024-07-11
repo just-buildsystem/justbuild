@@ -32,6 +32,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/concepts.hpp"
+#include "src/utils/cpp/json.hpp"
 
 /// FilteredIterator is an helper class to allow for iteration over
 /// directory-only or file-only entries stored inside the class
