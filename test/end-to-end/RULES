@@ -97,11 +97,13 @@
     , "action": "test-action"
     , "stage": ["@", "rules", "", "stage_singleton_field"]
     , "host transition": ["@", "rules", "transitions", "for host"]
+    , "field_list": ["@", "rules", "", "field_list_provider"]
     }
   , "config_transitions":
     { "deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "just": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "runner": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "summarizer": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     }
   , "expression":
     { "type": "let*"
@@ -136,7 +138,7 @@
       , "then":
         { "type": "let*"
         , "bindings":
-          [ [ "attempts"
+          [ [ "attempts (plain)"
             , { "type": "map_union"
               , "$1":
                 { "type": "foreach"
@@ -148,36 +150,55 @@
                 , "body":
                   { "type": "singleton_map"
                   , "key": {"type": "var", "name": "ATTEMPT"}
-                  , "value":
-                    { "type": "TREE"
-                    , "$1": {"type": "CALL_EXPRESSION", "name": "action"}
-                    }
+                  , "value": {"type": "CALL_EXPRESSION", "name": "action"}
                   }
                 }
               }
             ]
           , [ "summarizer"
+            , { "type": "let*"
+              , "bindings":
+                [["fieldname", "summarizer"], ["location", "summarizer"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+              }
+            ]
+          , [ "summary artifacts"
+            , { "type": "++"
+              , "$1":
+                [ ["result"]
+                , { "type": "let*"
+                  , "bindings":
+                    [["provider", "artifacts"], ["fieldname", "summarizer"]]
+                  , "body": {"type": "CALL_EXPRESSION", "name": "field_list"}
+                  }
+                ]
+              }
+            ]
+          , [ "attempts (for summary)"
             , { "type": "map_union"
               , "$1":
-                { "type": "foreach"
-                , "var": "x"
-                , "range": {"type": "FIELD", "name": "summarizer"}
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
                 , "body":
-                  { "type": "map_union"
-                  , "$1":
-                    { "type": "foreach"
-                    , "var": "x"
-                    , "range":
-                      { "type": "values"
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    { "type": "TREE"
+                    , "$1":
+                      { "type": "map_union"
                       , "$1":
-                        { "type": "DEP_ARTIFACTS"
-                        , "dep": {"type": "var", "name": "x"}
+                        { "type": "foreach"
+                        , "range": {"type": "var", "name": "summary artifacts"}
+                        , "body":
+                          { "type": "singleton_map"
+                          , "key": {"type": "var", "name": "_"}
+                          , "value":
+                            { "type": "lookup"
+                            , "map": {"type": "var", "name": "$_"}
+                            , "key": {"type": "var", "name": "_"}
+                            }
+                          }
                         }
-                      }
-                    , "body":
-                      { "type": "singleton_map"
-                      , "key": "summarizer"
-                      , "value": {"type": "var", "name": "x"}
                       }
                     }
                   }
@@ -189,7 +210,7 @@
               , "inputs":
                 { "type": "map_union"
                 , "$1":
-                  [ {"type": "var", "name": "attempts"}
+                  [ {"type": "var", "name": "attempts (for summary)"}
                   , {"type": "var", "name": "summarizer"}
                   ]
                 }
@@ -200,6 +221,20 @@
                 { "type": "var"
                 , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
                 , "default": {"type": "empty_map"}
+                }
+              }
+            ]
+          , [ "attempts"
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    {"type": "TREE", "$1": {"type": "var", "name": "$_"}}
+                  }
                 }
               }
             ]
@@ -350,12 +385,14 @@
     , "action": "test-action"
     , "stage": ["@", "rules", "", "stage_singleton_field"]
     , "host transition": ["@", "rules", "transitions", "for host"]
+    , "field_list": ["@", "rules", "", "field_list_provider"]
     }
   , "config_transitions":
     { "deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "repos": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "just": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "runner": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "summarizer": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     }
   , "expression":
     { "type": "let*"
@@ -418,7 +455,7 @@
       , "then":
         { "type": "let*"
         , "bindings":
-          [ [ "attempts"
+          [ [ "attempts (plain)"
             , { "type": "map_union"
               , "$1":
                 { "type": "foreach"
@@ -430,36 +467,55 @@
                 , "body":
                   { "type": "singleton_map"
                   , "key": {"type": "var", "name": "ATTEMPT"}
-                  , "value":
-                    { "type": "TREE"
-                    , "$1": {"type": "CALL_EXPRESSION", "name": "action"}
-                    }
+                  , "value": {"type": "CALL_EXPRESSION", "name": "action"}
                   }
                 }
               }
             ]
           , [ "summarizer"
+            , { "type": "let*"
+              , "bindings":
+                [["fieldname", "summarizer"], ["location", "summarizer"]]
+              , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+              }
+            ]
+          , [ "summary artifacts"
+            , { "type": "++"
+              , "$1":
+                [ ["result"]
+                , { "type": "let*"
+                  , "bindings":
+                    [["provider", "artifacts"], ["fieldname", "summarizer"]]
+                  , "body": {"type": "CALL_EXPRESSION", "name": "field_list"}
+                  }
+                ]
+              }
+            ]
+          , [ "attempts (for summary)"
             , { "type": "map_union"
               , "$1":
-                { "type": "foreach"
-                , "var": "x"
-                , "range": {"type": "FIELD", "name": "summarizer"}
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
                 , "body":
-                  { "type": "map_union"
-                  , "$1":
-                    { "type": "foreach"
-                    , "var": "x"
-                    , "range":
-                      { "type": "values"
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    { "type": "TREE"
+                    , "$1":
+                      { "type": "map_union"
                       , "$1":
-                        { "type": "DEP_ARTIFACTS"
-                        , "dep": {"type": "var", "name": "x"}
+                        { "type": "foreach"
+                        , "range": {"type": "var", "name": "summary artifacts"}
+                        , "body":
+                          { "type": "singleton_map"
+                          , "key": {"type": "var", "name": "_"}
+                          , "value":
+                            { "type": "lookup"
+                            , "map": {"type": "var", "name": "$_"}
+                            , "key": {"type": "var", "name": "_"}
+                            }
+                          }
                         }
-                      }
-                    , "body":
-                      { "type": "singleton_map"
-                      , "key": "summarizer"
-                      , "value": {"type": "var", "name": "x"}
                       }
                     }
                   }
@@ -471,7 +527,7 @@
               , "inputs":
                 { "type": "map_union"
                 , "$1":
-                  [ {"type": "var", "name": "attempts"}
+                  [ {"type": "var", "name": "attempts (for summary)"}
                   , {"type": "var", "name": "summarizer"}
                   ]
                 }
@@ -482,6 +538,20 @@
                 { "type": "var"
                 , "name": "TEST_SUMMARY_EXECUTION_PROPERTIES"
                 , "default": {"type": "empty_map"}
+                }
+              }
+            ]
+          , [ "attempts"
+            , { "type": "map_union"
+              , "$1":
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "attempts (plain)"}
+                , "body":
+                  { "type": "singleton_map"
+                  , "key": {"type": "var", "name": "_"}
+                  , "value":
+                    {"type": "TREE", "$1": {"type": "var", "name": "$_"}}
+                  }
                 }
               }
             ]
