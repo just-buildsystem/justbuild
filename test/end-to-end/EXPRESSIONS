@@ -68,6 +68,7 @@
               , "stderr"
               , "time-start"
               , "time-stop"
+              , "pwd"
               , "remotestdout"
               , "remotestderr"
               ]
