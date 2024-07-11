@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -51,28 +51,22 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
 
     // create known artifacts
     auto artifact1_opt =
-        ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            NativeSupport::Unprefix(file1_blob->digest.hash()),
-            static_cast<std::size_t>(file1_blob->digest.size_bytes()),
-            ObjectType::File));
-    CHECK(artifact1_opt.has_value());
-    auto artifact1 = DependencyGraph::ArtifactNode{std::move(*artifact1_opt)};
+        ArtifactDescription::CreateKnown(ArtifactDigest{file1_blob->digest},
+                                         ObjectType::File)
+            .ToArtifact();
+    auto artifact1 = DependencyGraph::ArtifactNode{std::move(artifact1_opt)};
 
     auto artifact2_opt =
-        ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            NativeSupport::Unprefix(file2_blob->digest.hash()),
-            static_cast<std::size_t>(file2_blob->digest.size_bytes()),
-            ObjectType::File));
-    CHECK(artifact2_opt.has_value());
-    auto artifact2 = DependencyGraph::ArtifactNode{std::move(*artifact2_opt)};
+        ArtifactDescription::CreateKnown(ArtifactDigest{file2_blob->digest},
+                                         ObjectType::File)
+            .ToArtifact();
+    auto artifact2 = DependencyGraph::ArtifactNode{std::move(artifact2_opt)};
 
     auto artifact3_opt =
-        ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            NativeSupport::Unprefix(link_blob->digest.hash()),
-            static_cast<std::size_t>(link_blob->digest.size_bytes()),
-            ObjectType::Symlink));
-    CHECK(artifact3_opt.has_value());
-    auto artifact3 = DependencyGraph::ArtifactNode{std::move(*artifact3_opt)};
+        ArtifactDescription::CreateKnown(ArtifactDigest{link_blob->digest},
+                                         ObjectType::Symlink)
+            .ToArtifact();
+    auto artifact3 = DependencyGraph::ArtifactNode{std::move(artifact3_opt)};
 
     // create directory tree
     auto tree =

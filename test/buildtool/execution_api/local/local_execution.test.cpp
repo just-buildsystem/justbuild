@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
@@ -233,11 +233,10 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     std::vector<std::string> const cmdline = {"cp", input_path, output_path};
 
     auto local_artifact_opt =
-        ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            test_digest.hash(), test_digest.size(), ObjectType::File));
-    REQUIRE(local_artifact_opt);
+        ArtifactDescription::CreateKnown(test_digest, ObjectType::File)
+            .ToArtifact();
     auto local_artifact =
-        DependencyGraph::ArtifactNode{std::move(*local_artifact_opt)};
+        DependencyGraph::ArtifactNode{std::move(local_artifact_opt)};
 
     auto action =
         api.CreateAction(*api.UploadTree({{input_path, &local_artifact}}),

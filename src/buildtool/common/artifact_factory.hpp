@@ -34,15 +34,6 @@
 
 class ArtifactFactory {
   public:
-    [[nodiscard]] static auto FromDescription(nlohmann::json const& description)
-        -> std::optional<Artifact> {
-        auto desc = ArtifactDescription::FromJson(description);
-        if (desc) {
-            return desc->ToArtifact();
-        }
-        return std::nullopt;
-    }
-
     [[nodiscard]] static auto DescribeLocalArtifact(
         std::filesystem::path const& src_path,
         std::string repository) noexcept -> nlohmann::json {

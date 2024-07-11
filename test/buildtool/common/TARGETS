@@ -6,7 +6,7 @@
     [ ["@", "catch2", "", "catch2"]
     , ["", "catch-main"]
     , ["@", "json", "", "json"]
-    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "buildtool", "common"]

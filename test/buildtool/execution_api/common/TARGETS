@@ -4,7 +4,7 @@
   , "hdrs": ["api_test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common", "artifact_factory"]
+    , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]

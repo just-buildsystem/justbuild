@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/artifact_factory.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
@@ -207,11 +207,10 @@ inline void SetLauncher() {
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(test_content);
 
     auto input_artifact_opt =
-        ArtifactFactory::FromDescription(ArtifactFactory::DescribeKnownArtifact(
-            test_digest.hash(), test_digest.size(), ObjectType::File));
-    CHECK(input_artifact_opt.has_value());
+        ArtifactDescription::CreateKnown(test_digest, ObjectType::File)
+            .ToArtifact();
     auto input_artifact =
-        DependencyGraph::ArtifactNode{std::move(*input_artifact_opt)};
+        DependencyGraph::ArtifactNode{std::move(input_artifact_opt)};
 
     std::string input_path{"dir/subdir/input"};
     std::string output_path{"output_file"};
