@@ -795,15 +795,15 @@ auto main(int argc, char* argv[]) -> int {
         if (not auth_config) {
             return kExitFailure;
         }
-#endif
-        auto const storage_config = CreateStorageConfig(arguments.endpoint);
-        if (not storage_config) {
-            return kExitFailure;
-        }
-        auto const storage = Storage::Create(&*storage_config);
 
-#ifndef BOOTSTRAP_BUILD_TOOL
         if (arguments.cmd == SubCommand::kGc) {
+            // Set up storage for GC, as we have all the config args we need.
+            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            if (not storage_config) {
+                return kExitFailure;
+            }
+            auto const storage = Storage::Create(&*storage_config);
+
             if (GarbageCollector::TriggerGarbageCollection(
                     *storage_config, arguments.gc.no_rotate)) {
                 return kExitSuccess;
@@ -812,6 +812,13 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
+            // Set up storage for server-side operation.
+            auto const storage_config = CreateStorageConfig(arguments.endpoint);
+            if (not storage_config) {
+                return kExitFailure;
+            }
+            auto const storage = Storage::Create(&*storage_config);
+
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
                                       &storage,
@@ -832,6 +839,14 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.info_file,
                                         arguments.service.pid_file);
             if (serve_server) {
+                // Set up storage for server-side operation.
+                auto const storage_config =
+                    CreateStorageConfig(arguments.endpoint);
+                if (not storage_config) {
+                    return kExitFailure;
+                }
+                auto const storage = Storage::Create(&*storage_config);
+
                 ApiBundle const serve_apis{
                     &*storage_config,
                     &storage,
@@ -869,6 +884,15 @@ auto main(int argc, char* argv[]) -> int {
                         *arguments.serve.remote_serve_address);
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
+
+        // Set up storage for client-side operation. This needs to have all the
+        // correct remote endpoint info in order to instantiate the
+        // correctly-sharded target cache.
+        auto const storage_config = CreateStorageConfig(arguments.endpoint);
+        if (not storage_config) {
+            return kExitFailure;
+        }
+        auto const storage = Storage::Create(&*storage_config);
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
                                                    : arguments.common.jobs;
