@@ -76,7 +76,7 @@ class ArtifactDescription final {
 
     [[nodiscard]] auto operator==(
         ArtifactDescription const& other) const noexcept -> bool {
-        return data_ == other.data_;
+        return id_ == other.id_;
     }
 
     [[nodiscard]] auto operator!=(
